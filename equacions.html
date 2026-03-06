@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>Equacions de 1r Grau</title>
+
+    <!-- 1. Configuració per defecte ESPECÍFICA d'aquest joc -->
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    5,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!-- 2. Fitxers compartits (ordre important: utils → config → game-core) -->
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+
+    <!-- 3. Estils compartits -->
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ---- Variables de color específiques d'equacions ---- */
+        :root {
+            --bg-color:      #f0fdfa;
+            --primary:       #0d9488;
+            --primary-light: #ccfbf1;
+            --primary-hover: #0f766e;
+            --primary-dark:  #115e59;
+            --accent:        #f59e0b;
+        }
+
+        /* ---- Overrides de color específics ---- */
+        h1 { color: #134e4a; }
+        .header-info { background-color: #f0fdfa; }
+        .level-text  { color: #134e4a; }
+        .score-text  { color: var(--primary); }
+
+        /* ---- ZONA EQUACIÓ ---- */
+        .equation-box {
+            padding: 10px 20px;
+            text-align: center;
+            min-height: 0;
+            display: none;
+        }
+
+        .equation-display {
+            font-size: 2em;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: var(--text-main);
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .equation-display .eq-sign { color: var(--primary); padding: 0 8px; }
+        .equation-display .eq-var  { color: var(--primary-dark); }
+        .equation-display.eq-solved       { color: var(--success); }
+        .equation-display.eq-solved .eq-sign { color: var(--success); }
+        .equation-display.eq-updating     { opacity: 0; transform: translateY(-8px); }
+
+        /* ---- PISTA: EQUACIÓ OBJECTIU ---- */
+        .step-hint {
+            display: none;
+            text-align: center;
+            padding: 12px 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+            opacity: 0.7;
+            letter-spacing: 1px;
+            animation: fadeIn 0.3s;
+        }
+
+        .step-hint .hint-unknown {
+            display: inline-block;
+            min-width: 44px;
+            min-height: 36px;
+            border: 3px solid var(--primary);
+            border-radius: 5px;
+            margin: 0 4px;
+            vertical-align: middle;
+        }
+
+        .step-hint .hint-input {
+            width: 58px;
+            height: 36px;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 0;
+            text-align: center;
+            border: 3px solid var(--primary);
+            border-radius: 5px;
+            outline: none;
+            background: transparent;
+            color: var(--primary);
+            margin: 0 4px;
+            vertical-align: middle;
+        }
+
+        .step-hint .hint-input:focus { border-color: var(--primary-dark); }
+
+        /* ---- HISTORIAL D'EQUACIONS EQUIVALENTS ---- */
+        .eq-history {
+            padding: 10px 20px 5px 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        .eq-history-line {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--text-muted);
+            padding: 6px 0;
+            text-align: center;
+            animation: fadeIn 0.3s;
+            line-height: 1.4;
+        }
+
+        .eq-history-line .eq-sign { color: var(--text-muted); padding: 0 6px; }
+        .eq-history-line .eq-var  { color: var(--text-muted); }
+
+        .eq-history-line.eq-original             { color: var(--text-main); font-size: 1.5em; padding-bottom: 8px; }
+        .eq-history-line.eq-original .eq-sign    { color: var(--primary); }
+        .eq-history-line.eq-original .eq-var     { color: var(--primary-dark); }
+
+        .eq-history-line.eq-latest               { color: var(--text-main); }
+        .eq-history-line.eq-latest .eq-sign      { color: var(--primary); }
+        .eq-history-line.eq-latest .eq-var       { color: var(--primary-dark); }
+
+        .eq-history-line.eq-solved               { color: var(--success); font-size: 1.5em; padding-top: 8px; }
+        .eq-history-line.eq-solved .eq-sign      { color: var(--success); }
+        .eq-history-line.eq-solved .eq-var       { color: var(--success); }
+
+        /* ---- ZONA DE RESOLUCIÓ PAS A PAS ---- */
+        .resolution-panel {
+            background-color: #f8fafc;
+            border-top: 1px solid var(--border-color);
+            padding: 25px 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .step-instruction {
+            font-size: 1.15em;
+            color: #334155;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .step-counter {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .step-container { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s; }
+        .step-container.active { display: flex; }
+
+        .value-input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* ---- RESPONSIU ESPECÍFIC ---- */
+        @media (max-width: 820px) {
+            .equation-display { font-size: 1.7em; }
+            .eq-history-line { font-size: 1.15em; }
+            .eq-history-line.eq-original { font-size: 1.35em; }
+            .eq-history-line.eq-solved   { font-size: 1.35em; }
+        }
+
+        @media (max-width: 480px) {
+            .step-hint { font-size: 1.1em; }
+            .eq-history-line { font-size: 1em; }
+            .eq-history-line.eq-original { font-size: 1.15em; }
+            .eq-history-line.eq-solved   { font-size: 1.15em; }
+            .resolution-panel { padding: 20px 15px; }
+            .step-instruction { font-size: 1.05em; }
+        }
+
+        @media (max-width: 350px) {
+            .equation-display { font-size: 1.2em; }
+            .step-hint { font-size: 0.95em; }
+            .eq-history-line { font-size: 0.9em; }
+            .eq-history-line.eq-original { font-size: 1em; }
+            .eq-history-line.eq-solved   { font-size: 1em; }
+        }
+
+        /* Animació específica d'equacions */
+        .attempts-counter.blink-warning { animation: blinkAttempts 1s ease-in-out; }
+
+        @keyframes blinkAttempts {
+            0%   { background-color: #facc15; }
+            25%  { background-color: white; }
+            50%  { background-color: #facc15; }
+            75%  { background-color: white; }
+            100% { background-color: #facc15; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Capçalera amb icona home -->
+<div class="title-row">
+    <a href="https://mates-ins.github.io/operacions/index.html"
+       class="home-icon-link"
+       title="Tornar a l'inici"
+       aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Equacions de 1r Grau</h1>
+</div>
+<div class="subtitle">Resolució pas a pas</div>
+
+<div class="panel" id="main-panel">
+
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 3</div>
+                <div class="level-text" id="lvl-display">Equació 1 de 8</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 6</div>
+        </div>
+
+        <div class="equation-box">
+            <div class="equation-display" id="equation-display"></div>
+        </div>
+
+        <div class="eq-history" id="eq-history"></div>
+
+        <div class="step-hint" id="step-hint"></div>
+
+        <div class="resolution-panel" id="resolution-panel">
+            <div class="step-counter" id="step-counter">Pas 1 de 3</div>
+            <div class="step-instruction" id="step-instruction"></div>
+
+            <div class="step-container" id="step-value">
+                <div class="value-input-group">
+                    <button class="btn-submit" id="btn-submit-val" onclick="checkValue()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- 4. game-core DESPRÉS del body perquè pot referenciar DOM -->
+<script src="js/game-core.js"></script>
+
+<script>
+    // ============================================================
+    // CODI ESPECÍFIC D'EQUACIONS — el que NO és compartit
+    // ============================================================
+
+    // Cache DOM específic d'aquest joc
+    const els = {
+        body:             document.body,
+        gameScreen:       document.getElementById('game-screen'),
+        sessionDisplay:   document.getElementById('session-display'),
+        lvlDisplay:       document.getElementById('lvl-display'),
+        scoreDisplay:     document.getElementById('score-display'),
+        attemptsDisplay:  document.getElementById('attempts-display'),
+        eqHistory:        document.getElementById('eq-history'),
+        stepHint:         document.getElementById('step-hint'),
+        resolutionPanel:  document.getElementById('resolution-panel'),
+        stepCounter:      document.getElementById('step-counter'),
+        stepInstruction:  document.getElementById('step-instruction'),
+        stepValue:        document.getElementById('step-value'),
+        valueInput:       null,   // es crea dinàmicament a renderStepHint
+        btnSubmitVal:     document.getElementById('btn-submit-val'),
+    };
+
+    // Estat específic d'equacions
+    let equation         = null;   // { leftA, leftB, rightC, rightD, xSol }
+    let steps            = [];     // passos a resoldre
+    let currentStepIndex = 0;
+    let isPenalizing     = false;
+    
+    // ---- GENERACIÓ ALEATÒRIA D'EQUACIONS ----
+    function generateEquation(opIndex) {
+        const xSol = randIntNonZero(-10, 10);
+        let leftA, leftB, rightC, rightD;
+
+        if (opIndex <= 1) {
+            // Nivell 1: ax = b
+            leftA = randIntNonZero(-6, 6);
+            while (Math.abs(leftA) === 1) leftA = randIntNonZero(-6, 6);
+            leftB  = 0;
+            rightC = 0;
+            rightD = leftA * xSol;
+
+        } else if (opIndex <= 3) {
+            // Nivell 2: ax + b = c
+            leftA  = randIntNonZero(-5, 5);
+            leftB  = randIntNonZero(-10, 10);
+            rightC = 0;
+            rightD = leftA * xSol + leftB;
+
+        } else if (opIndex <= 5 && opIndex !== TOTAL_OPERATIONS - 1) {
+            // Nivell 3: ax + b = cx + d
+            leftA  = randIntNonZero(-4, 4);
+            rightC = randIntNonZero(-3, 3);
+            while (rightC === leftA) rightC = randIntNonZero(-3, 3);
+            leftB  = randIntNonZero(-8, 8);
+            rightD = (leftA - rightC) * xSol + leftB;
+
+        } else {
+            // Nivell 4
+            leftA  = randIntNonZero(-6, 6);
+            rightC = randIntNonZero(-5, 5);
+            while (rightC === leftA) rightC = randIntNonZero(-5, 5);
+            while (Math.abs(leftA - rightC) === 1) {
+                rightC = randIntNonZero(-5, 5);
+                if (rightC === leftA) continue;
+            }
+            leftB  = randIntNonZero(-10, 10);
+            rightD = (leftA - rightC) * xSol + leftB;
+        }
+
+        return { leftA, leftB, rightC, rightD, xSol };
+    }
+
+    // ---- DETERMINACIÓ DELS PASSOS DE RESOLUCIÓ ----
+    function determineSteps(eq) {
+        const result = [];
+        let lA = eq.leftA, lB = eq.leftB, rC = eq.rightC, rD = eq.rightD;
+
+        // Pas 1: Agrupar x
+        if (rC !== 0) {
+            const newLA = lA - rC;
+            result.push({
+                type: 'group_x',
+                instruction: `Quant val el coeficient de la x?`,
+                answer: newLA,
+                label: 'Coeficient de x',
+                resultState: { leftA: newLA, leftB: lB, rightC: 0, rightD: rD }
+            });
+            lA = newLA;
+            rC = 0;
+        }
+
+        // Pas 2: Agrupar constants
+        if (lB !== 0) {
+            const newRD = rD - lB;
+            result.push({
+                type: 'group_num',
+                instruction: `Quant val el terme independent?`,
+                answer: newRD,
+                label: 'Terme independent',
+                resultState: { leftA: lA, leftB: 0, rightC: 0, rightD: newRD }
+            });
+            rD = newRD;
+            lB = 0;
+        }
+
+        // Pas 3: Dividir pel coeficient
+        if (lA !== 1) {
+            result.push({
+                type: 'solve',
+                instruction: `Quina és la solució de l'equació?`,
+                answer: eq.xSol,
+                label: 'Valor de x',
+                resultState: { leftA: 1, leftB: 0, rightC: 0, rightD: eq.xSol }
+            });
+        }
+
+        return result;
+    }
+
+    // ---- FORMAT D'EQUACIÓ ----
+    function formatSide(xCoeff, constant) {
+        let s = '';
+
+        if (xCoeff !== 0) {
+            if (xCoeff === 1)       s = '<span class="eq-var">x</span>';
+            else if (xCoeff === -1) s = '−<span class="eq-var">x</span>';
+            else if (xCoeff > 0)    s = xCoeff + '<span class="eq-var">x</span>';
+            else                    s = '−' + Math.abs(xCoeff) + '<span class="eq-var">x</span>';
+        }
+
+        if (constant !== 0) {
+            if (s === '') {
+                s = constant < 0 ? '−' + Math.abs(constant) : String(constant);
+            } else if (constant > 0) {
+                s += ' + ' + constant;
+            } else {
+                s += ' − ' + Math.abs(constant);
+            }
+        }
+
+        if (s === '') s = '0';
+        return s;
+    }
+
+    function renderEquation(lA, lB, rC, rD) {
+        const left  = formatSide(lA, lB);
+        const right = formatSide(rC, rD);
+        return left + '<span class="eq-sign">=</span>' + right;
+    }
+
+    function formatHintNum(n) {
+        if (n < 0) return '−' + Math.abs(n);
+        return String(n);
+    }
+
+    function formatHintCoeff(c) {
+        if (c === 1)  return '<span class="eq-var">x</span>';
+        if (c === -1) return '−<span class="eq-var">x</span>';
+        if (c > 0)    return c + '<span class="eq-var">x</span>';
+        return '−' + Math.abs(c) + '<span class="eq-var">x</span>';
+    }
+
+    function addEquationToHistory(lA, lB, rC, rD, extraClass) {
+        const prev = els.eqHistory.querySelector('.eq-latest');
+        if (prev) prev.classList.remove('eq-latest');
+
+        const div = document.createElement('div');
+        div.className = 'eq-history-line';
+        if (extraClass) div.classList.add(extraClass);
+        div.innerHTML = renderEquation(lA, lB, rC, rD);
+        els.eqHistory.appendChild(div);
+    }
+
+    // ---- BUILD LEVEL (cridat per game-core) ----
+    function buildLevel() {
+        attemptsLeft    = MAX_INTENTS;
+        isTransitioning = false;
+
+        equation         = generateEquation(currentOperation);
+        steps            = determineSteps(equation);
+        currentStepIndex = 0;
+
+        const colorIndex = (currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length;
+        els.body.style.backgroundColor = bgColors[colorIndex];
+
+        els.eqHistory.innerHTML     = '';
+        els.eqHistory.style.display = 'flex';
+        els.stepHint.style.display  = 'none';
+
+        addEquationToHistory(equation.leftA, equation.leftB, equation.rightC, equation.rightD, 'eq-original');
+
+        updateHeader();
+        showCurrentStep();
+    }
+
+    // ---- ACTUALITZAR INTERFÍCIE ----
+    function updateHeader() {
+        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText      = `Equació ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter';
+        if (attemptsLeft < 5) els.attemptsDisplay.classList.add('danger');
+    }
+
+    function showCurrentStep() {
+        if (currentStepIndex >= steps.length) {
+            const fails       = MAX_INTENTS - attemptsLeft;
+            const levelPoints = Math.max(0, 10 - fails);
+            finishEquation(levelPoints);
+            return;
+        }
+
+        const step = steps[currentStepIndex];
+
+        els.resolutionPanel.style.display = 'flex';
+        els.stepCounter.innerText         = `Pas ${currentStepIndex + 1} de ${steps.length}`;
+        els.stepInstruction.innerHTML     = step.instruction;
+
+        renderStepHint(step);
+
+        els.stepValue.classList.add('active');
+        els.valueInput = document.getElementById('value-input');
+        els.valueInput.value = '';
+
+        if (isTouchDevice()) {
+            showCustomKeyboard(els.valueInput);
+        } else {
+            els.valueInput.focus();
+        }
+    }
+
+    function renderStepHint(step) {
+        const st  = step.resultState;
+        const Q   = '<input type="text" id="value-input" autocomplete="off" aria-label="Resultat numèric" class="hint-input">';
+        let left, right;
+
+        if (step.type === 'group_x') {
+            left  = Q + '<span class="eq-var">x</span>';
+            if (st.leftB > 0)       left += ' + ' + st.leftB;
+            else if (st.leftB < 0)  left += ' − ' + Math.abs(st.leftB);
+            right = formatHintNum(st.rightD);
+
+        } else if (step.type === 'group_num') {
+            left  = formatHintCoeff(st.leftA);
+            right = Q;
+
+        } else {
+            left  = '<span class="eq-var">x</span>';
+            right = Q;
+        }
+
+        els.stepHint.innerHTML     = left + ' <span class="eq-sign">=</span> ' + right;
+        els.stepHint.style.display = 'block';
+    }
+
+    // ---- PENALITZACIÓ ----
+    function penalize() {
+        if (isPenalizing || isTransitioning) return;
+            isPenalizing = true;
+            els.attemptsDisplay.classList.add('blink-warning');
+
+            setTimeout(() => {
+                els.attemptsDisplay.classList.remove('blink-warning');
+
+                attemptsLeft--;
+                updateHeader();
+
+                if (attemptsLeft <= 0) {
+                    isTransitioning = true;
+                    els.stepValue.classList.remove('active');
+                    if (els.valueInput) els.valueInput.value = '';
+                    if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
+                    finishEquation(0);
+                }
+                isPenalizing = false;
+            }, 1000);
+        }    
+    // ---- COMPROVAR VALOR ----
+function checkValue() {
+            if (isTransitioning) return;
+
+            const rawValue = els.valueInput.value.trim();
+            if (rawValue === '') return;
+            const step = steps[currentStepIndex];
+            
+            // Convertim l'input de text a número (ex: "-3" -> -3)
+            const userAnswer = parseStrictInt(rawValue);
+            if (isNaN(userAnswer)) return;
+    
+            // Nom neutre de la pregunta per a l'informe
+            const stepQuestion = "Pas " + (currentStepIndex + 1) + " de l'equació";
+
+            // CORRECCIÓ: Comparem amb step.answer (on tens guardada la solució numèrica)
+            if (userAnswer !== step.answer) {
+                els.btnSubmitVal.classList.add('error-shake');
+                setTimeout(() => els.btnSubmitVal.classList.remove('error-shake'), 200);
+
+                // 🔴 Guardem l'error a l'historial si la funció està disponible
+                if (typeof recordAnswerToHistory === 'function') {
+                    recordAnswerToHistory(stepQuestion, rawValue, false);
+                }
+
+                penalize();
+                if (isTouchDevice()) {
+                    kbMarkForOverwrite(els.valueInput);
+                } else {
+                    if (els.valueInput) { els.valueInput.value = ''; els.valueInput.focus(); }
+                }
+                return;
+            }
+
+            // 🟢 Guardem l'encert a l'historial si la funció està disponible
+            if (typeof recordAnswerToHistory === 'function') {
+                recordAnswerToHistory(stepQuestion, rawValue, true);
+            }
+
+// correcte
+            els.btnSubmitVal.classList.add('success-pop');
+            setTimeout(() => els.btnSubmitVal.classList.remove('success-pop'), 300);
+
+            advanceStep();
+        }    
+    // ---- AVANÇAR AL SEGÜENT PAS ----
+    function advanceStep() {
+        const step = steps[currentStepIndex];
+        const st   = step.resultState;
+
+        const isFinal = (currentStepIndex === steps.length - 1);
+        addEquationToHistory(st.leftA, st.leftB, st.rightC, st.rightD, isFinal ? 'eq-solved' : 'eq-latest');
+
+        els.stepValue.classList.remove('active');
+        if (els.valueInput) els.valueInput.value = '';
+        hideCustomKeyboard();
+
+        currentStepIndex++;
+
+        setTimeout(() => {
+            showCurrentStep();
+        }, 500);
+    }
+
+// ---- FINALITZAR EQUACIÓ I AVANÇAR ----
+    function finishEquation(levelPoints) {
+        isTransitioning = true;
+        if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
+        els.resolutionPanel.style.display = 'none';
+        els.stepHint.style.display        = 'none';
+
+        // Sumem els punts a la variable global i actualitzem marcador
+        sessionScore += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+        // Mostrem l'overlay de "Molt bé" o "Intents esgotats"
+        const waitTime = typeof showMiniOverlay === 'function' 
+            ? showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)', pointsColor: 'var(--success)' }) 
+            : 1500;
+
+        // Passem a la següent equació o acabem la sessió
+        setTimeout(() => {
+            if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
+            
+            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                if (typeof endSession === 'function') endSession();
+            } else {
+                currentOperation++;
+                buildLevel();
+            }
+        }, waitTime);
+    }
+    
+    // ---- TECLAT FÍSIC ----
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (isTransitioning || els.gameScreen.style.display === 'none') return;
+            if (els.stepValue.classList.contains('active')) checkValue();
+        }
+    });
+
+    // ---- checkCurrentCell: alias que game-core crida en prémer → del teclat custom ----
+    function checkCurrentCell() { checkValue(); }
+
+    // ---- ARRENCADA ----
+    injectSharedHTML();
+    validateConfig();
+    initCustomKeyboard({ allowNegative: true });
+    startGame();
+</script>
+</body>
+</html>

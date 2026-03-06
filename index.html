@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step Quiz Matemàtiques</title>
+
+  <script>
+    // ============================================================
+    // CONFIGURACIÓ
+    // ============================================================
+    const BASE_URL = 'https://mates-ins.github.io/operacions/';
+
+    // Llistat d'activitats amb tots els camps d'ajuda (yt) buits
+    const ACTIVITIES_ESO = [
+      { file: 'enters-1.html', label: 'Nombres enters', yt: 'https://youtu.be/7M6oAKwovag' },
+      { file: 'factoritzar-1.html', label: 'Descomposar en factors primers', yt: 'https://youtu.be/s2LGUllVMfM' },
+      { file: 'mcd-mcm-1.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ' },
+      { file: 'fraccions-1.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI' },
+      { file: 'equacions-1.html', label: 'Equacions de 1r grau', yt: 'https://youtu.be/Ad9BBLqYgyc' },
+      { file: 'radicals-1.html', label: 'Simplificació de radicals', yt: '' },
+      { file: 'pla-cartesia-1.html', label: 'Pla cartesià', yt: '' }
+    ];
+
+    const ACTIVITIES_BATX = [
+      { file: 'rectes-plans-1.html', label: 'Equacions rectes i plans', yt: '' },
+      { file: 'complexos-1.html', label: 'Nombres complexos', yt: '' },
+      { file: 'ruffini-1.html', label: 'Ruffini (arrels enteres)', yt: '' },
+      { file: 'grafica-funcio-i-derivada-1.html', label: 'Comparar gràfiques de funció i de derivada', yt: '' },
+      { file: 'esglaonar-matriu-1.html', label: 'Esglaonar una matriu', yt: '' }
+    ];
+
+    const DEFAULT_ESO = 'enters-1.html';
+    const DEFAULT_BATX = 'rectes-plans-1.html'; // CORREGIT: complexes -> complexos
+  </script>
+
+  <style>
+    /* ============================================================
+       ESTILS (CSS)
+       ============================================================ */
+    :root {
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --bg-body: #f8fafc;
+      --eso-bg: #eff6ff;
+      --eso-title: var(--text-main);
+      --batx-bg: #f1f5f9;
+      --batx-title: var(--text-main);
+      --math-title: #3486e4;
+      --border-heavy: #cbd5e1;
+      --panel-w: 384px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg-body);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text-main);
+      padding: 10px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center; /* En ordinador ho manté centrat verticalment */
+    }
+
+    /* Títol i animacions */
+    .title-container { text-align: center; margin-bottom: 20px; }
+    .title-row-1 { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 36px; font-weight: 800; color: #0f172a; margin: 0; }
+    .title-row-2 { font-size: 24px; font-weight: 400; color: var(--math-title); margin-top: -15px; }
+    .inline-icon { height: 82px; opacity: 0; animation: icon-slide-brake 0.6s cubic-bezier(0.1, 1.0, 0.2, 1.0) 0.1s forwards; }
+    .text-step, .text-quiz { opacity: 0; animation: fade-in 0.43s ease-out 0.6s forwards; }
+    .title-row-2, .main-wrapper, #mobile-nav-container { opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
+
+    @keyframes icon-slide-brake { from { transform: translateX(-60px) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Estructura principal */
+    .main-wrapper { display: flex; gap: 30px; justify-content: center; width: 100%; max-width: 1000px; align-items: flex-start; }
+    .quiz-panel { width: var(--panel-w); max-width: 100%; padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-heavy); }
+    #panel-eso { background-color: var(--eso-bg); }
+    #panel-batx { background-color: var(--batx-bg); }
+
+    h2 { margin: 0 0 10px 5px; font-size: 22px; font-weight: 800; }
+    .row { display: grid; grid-template-columns: 155px 1fr; align-items: center; gap: 10px; padding: 4px 8px; }
+    .row label { font-size: 14px; font-weight: 600; text-align: right; }
+
+    select { appearance: none; background-color: #ffffff; height: 32px; padding: 0 10px; font-size: 14px; border: 1px solid var(--border-heavy); border-radius: 6px; cursor: pointer; text-align: center; width: 100%; }
+
+    .link-block { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
+    .link-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+    .link-output { width: 100%; min-height: 40px; font-family: monospace; font-size: 12px; padding: 10px; border-radius: 6px; border: 1px solid var(--border-heavy); background: #e2e8f0; word-break: break-all; user-select: all; -webkit-user-select: all; cursor: text; line-height: 1.4; }
+
+    /* Botons */
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .copy-btn, .open-btn, .help-btn { flex: 1; height: 38px; cursor: pointer; border-radius: 6px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; border: none; gap: 6px; transition: all 0.2s ease; }
+
+    .copy-btn, .help-btn { background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .copy-btn:hover, .help-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+    .open-btn { background: #64748b; color: white; }
+    .open-btn:hover { background: #475569; }
+
+    .yt-icon { height: 16px; width: auto; }
+    .copy-status { font-size: 13px; color: #059669; margin-top: 6px; min-height: 18px; font-weight: 700; text-align: center; }
+
+    /* Navegació Mòbil */
+    .mobile-nav { display: none; margin-bottom: 20px; padding: 5px; background: #e2e8f0; border-radius: 12px; width: 100%; max-width: var(--panel-w); }
+    .mobile-nav input { display: none; }
+    .mobile-nav label { flex: 1; text-align: center; padding: 10px 0; font-weight: 700; cursor: pointer; border-radius: 8px; color: var(--text-muted); }
+    .mobile-nav input:checked + label { background: #ffffff; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+    /* AQUÍ APLIQUEM EL CANVI PER MÒBILS */
+    @media (max-width: 1050px) {
+      body {
+        justify-content: flex-start; /* Fa que tot pugi cap a dalt */
+        padding-top: 30px; /* Deixa una mica d'aire a dalt perquè no s'enganxi */
+      }
+      .main-wrapper { flex-direction: column; align-items: center; }
+      .mobile-nav { display: flex; }
+      .quiz-panel { display: none; }
+      .quiz-panel.active { display: block; animation: fadeInPanels 0.3s ease-out; }
+    }
+
+    @keyframes fadeInPanels { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes select-shake-wave {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); background-color: #fef08a; }
+      20%, 40%, 60%, 80% { transform: translateX(4px); background-color: #ffedd5; }
+    }
+    .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
+
+    /* FIX: evita el "flash" inicial del botó Ajuda abans del JS */
+    .help-btn { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="title-container">
+    <h1 class="title-row-1">
+      <span class="text-step">Step</span>
+      <img src="icon.png" alt="Icona" class="inline-icon">
+      <span class="text-step">Quiz</span>
+    </h1>
+    <div class="title-row-2">Matemàtiques</div>
+  </div>
+
+  <div id="mobile-nav-container" class="mobile-nav">
+    <input type="radio" id="nav-eso" name="mobile-nav" value="panel-eso" checked>
+    <label for="nav-eso">ESO</label>
+    <input type="radio" id="nav-batx" name="mobile-nav" value="panel-batx">
+    <label for="nav-batx">Batxillerat</label>
+  </div>
+
+  <div class="main-wrapper">
+    <div id="panel-eso" class="quiz-panel active">
+      <h2>ESO</h2>
+      <div class="row"><label for="f-eso">Activitat</label><select id="f-eso"></select></div>
+      <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+      <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+      <div class="row"><label for="i-eso">Errors màx.</label><select id="i-eso"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      <div class="row"><label for="m-eso">Criteri</label><select id="m-eso"><option value="1">Nota màxima</option><option value="0">Nota mitjana</option></select></div>
+
+      <div class="link-block">
+        <div class="link-label">Enllaç:</div>
+        <div id="l-eso" class="link-output" tabindex="0"></div>
+        <div class="btn-row">
+          <button id="c-eso" class="copy-btn">Copia</button>
+          <button id="p-eso" class="open-btn">Obre</button>
+          <button id="h-eso" class="help-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda
+          </button>
+        </div>
+        <div id="st-eso" class="copy-status"></div>
+      </div>
+    </div>
+
+    <div id="panel-batx" class="quiz-panel">
+      <h2>Batxillerat</h2>
+      <div class="row"><label for="f-batx">Activitat</label><select id="f-batx"></select></div>
+      <div class="link-block">
+        <div class="link-label">Enllaç:</div>
+        <div id="l-batx" class="link-output" tabindex="0"></div>
+        <div class="btn-row">
+          <button id="c-batx" class="copy-btn">Copia</button>
+          <button id="p-batx" class="open-btn">Obre</button>
+          <button id="h-batx" class="help-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda
+          </button>
+        </div>
+        <div id="st-batx" class="copy-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function initPanel(suffix, activities, defaultFile) {
+      const els = {
+        file: document.getElementById('f-' + suffix),
+        s: document.getElementById('s-' + suffix),
+        o: document.getElementById('o-' + suffix),
+        i: document.getElementById('i-' + suffix),
+        m: document.getElementById('m-' + suffix),
+        link: document.getElementById('l-' + suffix),
+        copy: document.getElementById('c-' + suffix),
+        open: document.getElementById('p-' + suffix),
+        help: document.getElementById('h-' + suffix),
+        status: document.getElementById('st-' + suffix)
+      };
+
+      // Variables per evitar errors si l'usuari canvia d'activitat molt ràpid
+      let timeout1, timeout2;
+
+      function populate() {
+        activities.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.file;
+          opt.textContent = a.label;
+          if (a.file === defaultFile) opt.selected = true;
+          els.file.appendChild(opt);
+        });
+      }
+
+      function build() {
+        // 1. Generar URL (Ara només s'encarrega d'això)
+        if (suffix === 'batx') {
+          els.link.textContent = `${BASE_URL}${els.file.value}`;
+        } else {
+          const qs = new URLSearchParams({
+            totalsessions: els.s.value,
+            totaloperations: els.o.value,
+            maxintents: els.i.value,
+            maxenllocmitjana: els.m.value
+          });
+          els.link.textContent = `${BASE_URL}${els.file.value}?${qs.toString()}`;
+        }
+      }
+
+      function manageHelpButton(isInitialLoad = false) {
+        const selected = activities.find(a => a.file === els.file.value);
+        const hasVideo = selected && selected.yt && selected.yt.trim() !== '';
+
+        // Netegem els temporitzadors per si l'usuari canvia d'opció ràpidament
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+
+        // Helper: converteix "1.53s" / "200ms" a mil·lisegons (agafa el primer valor si hi ha llista)
+        function cssTimeToMs(t) {
+          if (!t) return 0;
+          const first = String(t).split(',')[0].trim();
+          if (first.endsWith('ms')) return parseFloat(first) || 0;
+          if (first.endsWith('s')) return (parseFloat(first) || 0) * 1000;
+          return 0;
+        }
+
+        if (isInitialLoad) {
+          // COMPORTAMENT A L'INICI:
+          // 1. D'entrada, no mostris el botó Ajuda
+          els.help.style.display = 'none';
+
+          // 2) Espera 1.5s DESPRÉS que el panell comenci a aparèixer (fade-in delay)
+          const wrapper = document.querySelector('.main-wrapper');
+          const fadeDelayMs = wrapper ? cssTimeToMs(getComputedStyle(wrapper).animationDelay) : 0;
+
+          timeout1 = setTimeout(() => {
+            // Recalcula per si l'usuari ha canviat activitat abans que acabi el retard
+            const nowSel = activities.find(a => a.file === els.file.value);
+            const nowHasVideo = nowSel && nowSel.yt && nowSel.yt.trim() !== '';
+            if (nowHasVideo) els.help.style.display = 'flex';
+          }, fadeDelayMs + 3500);
+
+        } else {
+          // COMPORTAMENT EN CANVIAR D'ACTIVITAT:
+          // 1. Espera 0.2 segons
+          timeout1 = setTimeout(() => {
+            // 2. Fes desaparèixer el botó
+            els.help.style.display = 'none';
+
+            // 3. Espera 0.8 segons
+            timeout2 = setTimeout(() => {
+              // 4. Torna a fer aparèixer el botó (si l'activitat nova té vídeo)
+              if (hasVideo) els.help.style.display = 'flex';
+            }, 800);
+
+          }, 200);
+        }
+      }
+
+      // Inicialització
+      populate();
+      build();
+      manageHelpButton(true); // Cridem la funció indicant que és la càrrega inicial
+
+      // Escoltem els canvis per actualitzar la URL (tots els selects)
+      [els.file, els.s, els.o, els.i, els.m].filter(Boolean).forEach(el => el.addEventListener('change', build));
+
+      // Escoltem els canvis NOMÉS a l'Activitat per fer la seqüència del botó d'Ajuda
+      els.file.addEventListener('change', () => manageHelpButton(false));
+
+      // Botons d'acció
+      els.copy.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(els.link.textContent);
+        els.status.textContent = 'Copiat ✅';
+        setTimeout(() => els.status.textContent = '', 2000);
+      });
+
+      els.open.addEventListener('click', () => window.open(els.link.textContent, '_blank'));
+
+      els.help.addEventListener('click', () => {
+        const selected = activities.find(a => a.file === els.file.value);
+        if (selected && selected.yt) window.open(selected.yt, '_blank');
+      });
+    }
+
+    initPanel('eso', ACTIVITIES_ESO, DEFAULT_ESO);
+    initPanel('batx', ACTIVITIES_BATX, DEFAULT_BATX);
+
+    document.querySelectorAll('input[name="mobile-nav"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        document.querySelectorAll('.quiz-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(e.target.value).classList.add('active');
+      });
+    });
+
+    // Ara aplica el blink-and-shake als dos Selects (eso i batx)
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const fEso = document.getElementById('f-eso');
+        const fBatx = document.getElementById('f-batx');
+
+        fEso.classList.add('select-atencio-shake');
+        fBatx.classList.add('select-atencio-shake');
+
+        setTimeout(() => {
+          fEso.classList.remove('select-atencio-shake');
+          fBatx.classList.remove('select-atencio-shake');
+        }, 1250);
+      }, 2220);
+    });
+  </script>
+</body>
+</html>

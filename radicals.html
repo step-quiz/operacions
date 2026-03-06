@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>Radicals — 4t ESO</title>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    3,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ---- Variables de color específiques ---- */
+        :root {
+            --blue-box: #3b82f6;
+            --grey-box: #94a3b8;
+        }
+
+        /* ---- Overrides de shared.css ---- */
+        .panel { border-top-color: #475569; }
+
+        /* ---- Pantalla de selecció ---- */
+        #selection-screen { padding: 30px 20px; text-align: center; }
+        #selection-screen h2 { color: #334155; font-size: 1.4em; margin-bottom: 20px; }
+        .selection-cards { display: flex; flex-direction: column; gap: 12px; max-width: 420px; margin: 0 auto; }
+        .selection-card {
+            background: white; border: 2px solid var(--border-heavy); border-radius: 10px;
+            padding: 22px 18px; cursor: pointer; transition: all 0.2s; text-align: left;
+            display: flex; align-items: center; gap: 16px; font-family: inherit;
+        }
+        .selection-card:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+        .selection-card:active { transform: scale(0.97); }
+        @media (hover:hover) {
+            .selection-card:hover { border-color: var(--blue-box); background: #f0f7ff; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        }
+        .selection-icon {
+            font-family: 'Courier New', monospace; font-size: 1.6em; font-weight: bold;
+            color: var(--primary); background: var(--primary-light);
+            width: 52px; height: 52px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .selection-text h3 { margin: 0 0 4px 0; color: #334155; font-size: 1.05em; }
+        .selection-text p { margin: 0; color: var(--text-muted); font-size: 0.9em; }
+
+        /* ---- Zona expressió principal ---- */
+        .expression-box {
+            padding: 35px 20px; text-align: center;
+            display: flex; justify-content: center; align-items: center;
+            flex-wrap: wrap; gap: 5px;
+            font-size: 1.8em; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; min-height: 110px; line-height: 1.5;
+        }
+        #intermediate-box {
+            text-align: center; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; font-size: 1.35em; margin-top: -10px; min-height: 1.6em;
+        }
+
+        /* ---- Radical ---- */
+        .radical-group { display: inline-flex; align-items: flex-end; transition: all 0.4s ease; }
+        .radical-group.resolved { color: var(--primary-hover); }
+        .radical-front-coef { padding-right: 2px; }
+        .radical-dot { padding: 0 5px; }
+        .radical-sign { font-size: 1.55em; line-height: 0.9; padding-right: 1px; }
+        .radical-radicand { border-top: 3px solid currentColor; padding: 2px 6px 0 4px; min-width: 30px; text-align: center; }
+        .radical-equals { padding: 0 12px; color: var(--text-muted); }
+        .radical-op { padding: 0 8px; }
+
+        /* ---- Fracció ---- */
+        .frac-display {
+            display: inline-flex; flex-direction: column; align-items: center;
+            vertical-align: middle; font-size: 0.75em;
+        }
+        .frac-num-row {
+            display: flex; align-items: flex-end; gap: 2px;
+            padding: 2px 10px 4px; border-bottom: 3px solid currentColor;
+        }
+        .frac-den-row {
+            display: flex; align-items: flex-end; gap: 2px;
+            padding: 4px 10px 2px;
+        }
+
+        /* ---- Esquema visual ---- */
+        .schema-row {
+            display: flex; align-items: flex-end; justify-content: center;
+            gap: 0; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; font-size: 1.6em; margin-bottom: 20px;
+            animation: fadeIn 0.3s;
+        }
+        .schema-equals { padding: 0 10px; color: var(--text-muted); align-self: center; font-size: 1em; }
+        .schema-box {
+            width: 40px; height: 40px; border-radius: 6px; border: 3px solid;
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.85em;
+        }
+        .schema-box.blue { border-color: var(--blue-box); background: #eff6ff; }
+        .schema-box.grey { border-color: var(--grey-box); background: #f1f5f9; }
+        .schema-box.grey.filled { background: #e2e8f0; color: var(--grey-box); font-weight: bold; }
+        .schema-dot { padding: 0 8px; color: var(--text-muted); font-size: 1.1em; align-self: center; }
+        .schema-sign { font-size: 1.55em; line-height: 0.9; padding-right: 1px; align-self: flex-end; }
+        .schema-radicand-bar {
+            border-top: 3px solid var(--text-main); padding: 3px 4px 0 4px;
+            display: inline-flex; align-items: center; min-height: 40px;
+        }
+        .schema-input {
+            width: 40px; height: 40px;
+            font-family: 'Courier New', Courier, monospace; font-size: 0.85em; font-weight: bold;
+            text-align: center; border: 3px solid var(--blue-box); border-radius: 6px;
+            background: #eff6ff; outline: none; color: var(--text-main);
+            -moz-appearance: textfield;
+        }
+        .schema-input:focus { background: #dbeafe; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+        .schema-input::-webkit-inner-spin-button,
+        .schema-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .schema-input.error-flash { border-color: var(--danger); background: var(--danger-light); animation: shake 0.2s; }
+
+        /* ---- Resolució ---- */
+        .resolution-panel {
+            background-color: var(--bg-color); border-top: 1px solid var(--border-color);
+            padding: 25px 20px; display: none; flex-direction: column; align-items: center; width: 100%;
+        }
+        .step-container { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s; }
+        .step-container.active { display: flex; }
+        .step-title { font-size: 1.05em; color: #475569; margin-bottom: 18px; font-weight: bold; text-align: center; }
+
+        #step-feedback { margin-top: 10px; font-size: 0.95em; color: var(--text-muted); text-align: center; min-height: 1.2em; }
+        #step-feedback.important { color: #b45309; font-weight: bold; }
+
+        .btn-submit-schema {
+            background-color: #475569; color: white; border: none;
+            padding: 12px 28px; font-size: 1em; font-weight: bold;
+            border-radius: 6px; cursor: pointer; text-transform: uppercase;
+            touch-action: manipulation; margin-top: 18px;
+        }
+        .btn-submit-schema:active { transform: scale(0.95); }
+        @media (hover:hover) { .btn-submit-schema:hover { background-color: #334155; } }
+        .btn-submit-schema.error-shake { background-color: var(--danger); animation: shake 0.2s; }
+
+        /* ---- Animació intents ---- */
+        .attempts-counter.blink { animation: attemptsBlink 0.2s linear 5; }
+        @keyframes attemptsBlink {
+            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
+            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
+        }
+
+        /* ---- Mini overlay (override: posició absoluta) ---- */
+        #mini-victory-overlay {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(255,255,255,0.4);
+            z-index: 100; justify-content: flex-end;
+            padding: 0 20px 40px; pointer-events: none; border-radius: 8px;
+            border-top: none;
+        }
+
+        /* ---- Responsiu específic ---- */
+        @media (max-width: 820px) { .expression-box { font-size: 1.6em; padding: 30px 15px; } }
+        @media (max-width: 480px) {
+            .expression-box { font-size: 1.3em; padding: 20px 10px; gap: 4px; min-height: 80px; }
+            #intermediate-box { font-size: 1.15em; margin-top: -6px; }
+            .resolution-panel { padding: 20px 15px; }
+            .schema-row { font-size: 1.3em; }
+            .schema-box { width: 34px; height: 34px; }
+            .schema-input { width: 34px; height: 34px; font-size: 0.8em; }
+            .schema-radicand-bar { min-height: 34px; }
+            .schema-dot { padding: 0 5px; font-size: 1em; }
+            .schema-equals { padding: 0 6px; }
+            .btn-submit-schema { padding: 10px 22px; font-size: 0.9em; }
+            .selection-icon { width: 44px; height: 44px; font-size: 1.3em; }
+        }
+        @media (max-width: 350px) {
+            .expression-box { font-size: 1.1em; }
+            #intermediate-box { font-size: 1.05em; }
+            .schema-row { font-size: 1.1em; }
+            .schema-box { width: 30px; height: 30px; font-size: 0.75em; }
+            .schema-input { width: 30px; height: 30px; font-size: 0.75em; }
+            .schema-radicand-bar { min-height: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Operacions amb radicals</h1>
+    <div class="subtitle">4t ESO — Matemàtiques</div>
+
+    <div class="panel" id="main-panel">
+
+        <div id="selection-screen">
+            <h2>Tria un repte</h2>
+            <div class="selection-cards">
+                <button class="selection-card" onclick="selectRepte(1)">
+                    <div class="selection-icon">√n</div>
+                    <div class="selection-text">
+                        <h3>Extreure factors d'un radical</h3>
+                        <p>Simplifica √72, 3√50…</p>
+                    </div>
+                </button>
+                <button class="selection-card" onclick="selectRepte(2)">
+                    <div class="selection-icon">√·√</div>
+                    <div class="selection-text">
+                        <h3>Producte i quocient de radicals</h3>
+                        <p>Simplifica √6·√15, 3√2·4√3…</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <div id="game-screen" style="display:none;">
+            <div class="header-info">
+                <div class="header-left">
+                    <div class="session-text" id="session-display"></div>
+                    <div class="level-text" id="lvl-display"></div>
+                </div>
+                <div class="score-text" id="score-display">Punts: 0</div>
+                <div id="attempts-display" class="attempts-counter"></div>
+            </div>
+            <div class="expression-box" id="expression-box"></div>
+            <div id="intermediate-box"></div>
+            <div class="resolution-panel" id="resolution-panel">
+                <div class="step-container" id="current-step">
+                    <div class="step-title" id="step-title"></div>
+                    <div class="schema-row" id="step-schema"></div>
+                    <div id="step-feedback"></div>
+                    <button class="btn-submit-schema" id="btn-submit-step" onclick="checkStep()">OK</button>
+                </div>
+            </div>
+        </div>
+        <!-- #mini-victory-overlay, #session-end-screen, #final-screen → injectats per injectSharedHTML() -->
+    </div>
+
+<script src="js/game-core.js"></script>
+
+<script>
+    // ============================================================
+    // DOM
+    // ============================================================
+    const els = {
+        body:             document.body,
+        selectionScreen:  document.getElementById('selection-screen'),
+        gameScreen:       document.getElementById('game-screen'),
+        sessionDisplay:   document.getElementById('session-display'),
+        lvlDisplay:       document.getElementById('lvl-display'),
+        scoreDisplay:     document.getElementById('score-display'),
+        attemptsDisplay:  document.getElementById('attempts-display'),
+        expressionBox:    document.getElementById('expression-box'),
+        intermediateBox:  document.getElementById('intermediate-box'),
+        resolutionPanel:  document.getElementById('resolution-panel'),
+        currentStep:      document.getElementById('current-step'),
+        stepTitle:        document.getElementById('step-title'),
+        stepSchema:       document.getElementById('step-schema'),
+        stepFeedback:     document.getElementById('step-feedback'),
+        btnSubmitStep:    document.getElementById('btn-submit-step'),
+    };
+
+    // ============================================================
+    // ESTAT
+    // ============================================================
+    let selectedRepte   = 0;
+    let isPenalizing    = false;
+    let usedProblems    = new Set();
+
+    let currentProblem  = null;
+    let currentSteps    = [];
+    let currentStepIdx  = 0;
+
+    let r1FactorSquare = null, r1FactorRest = null;
+    let r2FactorSquare = null, r2FactorRest = null;
+    let r2DecompA = null, r2DecompB = null;
+
+    // ============================================================
+    // UTILITATS MATEMÀTIQUES
+    // ============================================================
+    function getFactorPairs(n) {
+        const p = [];
+        for (let i = 2; i * i <= n; i++) { if (n % i === 0) p.push([i, n / i]); }
+        return p;
+    }
+
+    function isPerfectSquare(n) {
+        if (!Number.isInteger(n) || n < 0) return false;
+        return Number.isInteger(Math.sqrt(n));
+    }
+
+    function maxPerfectSquareDivisor(n) {
+        let best = 1;
+        for (let i = 2; i * i <= n; i++) {
+            if (n % (i * i) === 0) best = i * i;
+        }
+        return best;
+    }
+
+    // ============================================================
+    // RENDERITZACIÓ — RADICAL
+    // ============================================================
+    function buildRadicalSpan(frontCoef, radicand, extraClass) {
+        const g = document.createElement('span');
+        g.className = 'radical-group' + (extraClass ? ' ' + extraClass : '');
+        if (frontCoef > 1) {
+            const c = document.createElement('span'); c.className = 'radical-front-coef'; c.innerText = frontCoef; g.appendChild(c);
+            const d = document.createElement('span'); d.className = 'radical-dot'; d.innerText = '·'; g.appendChild(d);
+        }
+        const s = document.createElement('span'); s.className = 'radical-sign'; s.innerText = '√'; g.appendChild(s);
+        const r = document.createElement('span'); r.className = 'radical-radicand'; r.innerText = radicand; g.appendChild(r);
+        return g;
+    }
+
+    function addEqualsTo(container) {
+        const e = document.createElement('span'); e.className = 'radical-equals'; e.innerText = '='; container.appendChild(e);
+    }
+
+    function showExprRadical(coef, rad) {
+        els.expressionBox.innerHTML = '';
+        els.expressionBox.appendChild(buildRadicalSpan(coef, rad, ''));
+        addEqualsTo(els.expressionBox);
+    }
+
+    // ============================================================
+    // ESQUEMES — Builders
+    // ============================================================
+    function schemaRadOnlyInput(container) {
+        container.innerHTML = '';
+        const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
+        const sign = document.createElement('span'); sign.className = 'schema-sign'; sign.innerText = '√'; container.appendChild(sign);
+        const bar = document.createElement('span'); bar.className = 'schema-radicand-bar';
+        const inp = document.createElement('input'); inp.type = 'number'; inp.className = 'schema-input'; inp.id = 'step-input'; inp.autocomplete = 'off'; bar.appendChild(inp); container.appendChild(bar);
+    }
+
+    function schemaTwoRadInputs(container) {
+        container.innerHTML = '';
+        const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
+        const sign1 = document.createElement('span'); sign1.className = 'schema-sign'; sign1.innerText = '√'; container.appendChild(sign1);
+        const bar1 = document.createElement('span'); bar1.className = 'schema-radicand-bar';
+        const inp1 = document.createElement('input'); inp1.type = 'number'; inp1.className = 'schema-input'; inp1.id = 'step-input-a'; inp1.autocomplete = 'off'; bar1.appendChild(inp1); container.appendChild(bar1);
+        const dot = document.createElement('span'); dot.className = 'schema-dot'; dot.innerText = '·'; container.appendChild(dot);
+        const sign2 = document.createElement('span'); sign2.className = 'schema-sign'; sign2.innerText = '√'; container.appendChild(sign2);
+        const bar2 = document.createElement('span'); bar2.className = 'schema-radicand-bar';
+        const inp2 = document.createElement('input'); inp2.type = 'number'; inp2.className = 'schema-input'; inp2.id = 'step-input-b'; inp2.autocomplete = 'off'; bar2.appendChild(inp2); container.appendChild(bar2);
+    }
+
+    function schemaCoefTwoRadInputs(container, coefVal) {
+        container.innerHTML = '';
+        const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
+        if (coefVal !== 1) {
+            const box = document.createElement('span'); box.className = 'schema-box grey filled'; box.innerText = coefVal; container.appendChild(box);
+            const dot0 = document.createElement('span'); dot0.className = 'schema-dot'; dot0.innerText = '·'; container.appendChild(dot0);
+        }
+        const sign1 = document.createElement('span'); sign1.className = 'schema-sign'; sign1.innerText = '√'; container.appendChild(sign1);
+        const bar1 = document.createElement('span'); bar1.className = 'schema-radicand-bar';
+        const inp1 = document.createElement('input'); inp1.type = 'number'; inp1.className = 'schema-input'; inp1.id = 'step-input-a'; inp1.autocomplete = 'off'; bar1.appendChild(inp1); container.appendChild(bar1);
+        const dot = document.createElement('span'); dot.className = 'schema-dot'; dot.innerText = '·'; container.appendChild(dot);
+        const sign2 = document.createElement('span'); sign2.className = 'schema-sign'; sign2.innerText = '√'; container.appendChild(sign2);
+        const bar2 = document.createElement('span'); bar2.className = 'schema-radicand-bar';
+        const inp2 = document.createElement('input'); inp2.type = 'number'; inp2.className = 'schema-input'; inp2.id = 'step-input-b'; inp2.autocomplete = 'off'; bar2.appendChild(inp2); container.appendChild(bar2);
+    }
+
+    function schemaCoefAndRadInput(container) {
+        container.innerHTML = '';
+        const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
+        const inpC = document.createElement('input'); inpC.type = 'number'; inpC.className = 'schema-input'; inpC.id = 'step-input-c'; inpC.autocomplete = 'off'; container.appendChild(inpC);
+        const dot = document.createElement('span'); dot.className = 'schema-dot'; dot.innerText = '·'; container.appendChild(dot);
+        const sign = document.createElement('span'); sign.className = 'schema-sign'; sign.innerText = '√'; container.appendChild(sign);
+        const bar = document.createElement('span'); bar.className = 'schema-radicand-bar';
+        const inpB = document.createElement('input'); inpB.type = 'number'; inpB.className = 'schema-input'; inpB.id = 'step-input-b2'; inpB.autocomplete = 'off'; bar.appendChild(inpB); container.appendChild(bar);
+    }
+
+    // ============================================================
+    // SISTEMA GENÈRIC DE PASSOS
+    // ============================================================
+    function showCurrentStep() {
+        if (els.stepFeedback) { els.stepFeedback.innerText = ''; els.stepFeedback.className = ''; }
+        const step = currentSteps[currentStepIdx];
+        els.stepTitle.innerText = step.title;
+        step.buildSchema(els.stepSchema);
+        els.currentStep.classList.add('active');
+        els.resolutionPanel.style.display = 'flex';
+        setTimeout(() => {
+            const first = els.stepSchema.querySelector('input');
+            if (first) first.focus();
+        }, 100);
+    }
+
+    function flashError() {
+        const inputs = els.stepSchema.querySelectorAll('input');
+        inputs.forEach(inp => inp.classList.add('error-flash'));
+        els.btnSubmitStep.classList.add('error-shake');
+        setTimeout(() => {
+            inputs.forEach(inp => inp.classList.remove('error-flash'));
+            els.btnSubmitStep.classList.remove('error-shake');
+        }, 250);
+    }
+
+    function clearAndFocus() {
+        const inputs = els.stepSchema.querySelectorAll('input');
+        inputs.forEach(inp => inp.value = '');
+        const first = els.stepSchema.querySelector('input');
+        if (first) first.focus();
+    }
+
+    function checkStep() {
+        if (isTransitioning || isPenalizing) return;
+
+        const step = currentSteps[currentStepIdx];
+
+        if (step.validate) {
+            if (els.stepFeedback) { els.stepFeedback.innerText = ''; els.stepFeedback.className = ''; }
+            const res = step.validate();
+
+            if (res && typeof res === 'object' && res.status === 'suboptimal') {
+                if (els.stepFeedback) {
+                    els.stepFeedback.innerText = res.message;
+                    els.stepFeedback.className = 'important';
+                }
+                return;
+            }
+
+            if (res !== true) {
+                flashError(); penalize();
+                if (attemptsLeft > 0) clearAndFocus();
+                return;
+            }
+
+            if (step.onCorrect) step.onCorrect();
+            currentStepIdx++;
+            if (currentStepIdx >= currentSteps.length) finalizeProblem();
+            else showCurrentStep();
+            return;
+        }
+
+        // Pas amb resposta simple (step.answer)
+        const inp = document.getElementById('step-input');
+        if (!inp) return;
+        const raw = inp.value.trim();
+        if (raw === '') return;
+
+        const userVal = parseStrictInt(raw);
+        if (isNaN(userVal) || userVal !== step.answer) {
+            flashError(); penalize();
+            if (attemptsLeft > 0) { inp.value = ''; inp.focus(); }
+            return;
+        }
+
+        if (step.onCorrect) step.onCorrect();
+        currentStepIdx++;
+        if (currentStepIdx >= currentSteps.length) finalizeProblem();
+        else showCurrentStep();
+    }
+
+    // ============================================================
+    // SELECCIÓ DE REPTE
+    // ============================================================
+    function selectRepte(n) {
+        selectedRepte = n;
+        startGame();
+    }
+
+    // ============================================================
+    // BUILD LEVEL / PENALIZE / FINALIZE
+    // ============================================================
+    function updateUI() {
+        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText      = `Exercici ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter';
+        if (attemptsLeft < 3) els.attemptsDisplay.classList.add('danger');
+    }
+
+    function buildLevel() {
+        attemptsLeft = MAX_INTENTS;
+        isTransitioning = false;
+        isPenalizing = false;
+
+        // Resetejar problemes usats a l'inici de cada sessió
+        if (currentOperation === 0) usedProblems = new Set();
+
+        const ci = (currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length;
+        els.body.style.backgroundColor = bgColors[ci];
+
+        if (els.intermediateBox) els.intermediateBox.innerHTML = '';
+
+        if (selectedRepte === 1) {
+            currentProblem = generateRepte1(currentOperation);
+            showExprRadical(currentProblem.frontCoef, currentProblem.radicand);
+            currentSteps = buildStepsRepte1(currentProblem);
+        } else {
+            currentProblem = generateRepte2(currentOperation);
+            renderRepte2Expr(currentProblem);
+            currentSteps = buildStepsRepte2(currentProblem);
+        }
+
+        currentStepIdx = 0;
+        showCurrentStep();
+        updateUI();
+    }
+
+    function penalize() {
+        if (isPenalizing || isTransitioning) return;
+        isPenalizing = true;
+        els.attemptsDisplay.classList.add('blink');
+        setTimeout(() => {
+            els.attemptsDisplay.classList.remove('blink');
+            attemptsLeft--;
+            isPenalizing = false;
+            updateUI();
+            if (attemptsLeft <= 0) {
+                isTransitioning = true;
+                els.resolutionPanel.style.display = 'none';
+                finalizeProblem(0);
+            }
+        }, 1000);
+    }
+
+    function showFinalResult() {
+        const p = currentProblem;
+        els.expressionBox.innerHTML = '';
+
+        const origWrap = document.createElement('span');
+        origWrap.style.opacity = '0.35';
+        if (selectedRepte === 1) {
+            origWrap.appendChild(buildRadicalSpan(p.frontCoef, p.radicand, ''));
+        } else {
+            buildRepte2OrigNodes(origWrap, p);
+        }
+        els.expressionBox.appendChild(origWrap);
+        addEqualsTo(els.expressionBox);
+
+        if (p.finalRadicand === 1) {
+            const sp = document.createElement('span'); sp.className = 'radical-group resolved'; sp.innerText = p.finalCoef;
+            els.expressionBox.appendChild(sp);
+        } else {
+            els.expressionBox.appendChild(buildRadicalSpan(p.finalCoef, p.finalRadicand, 'resolved'));
+        }
+    }
+
+    function finalizeProblem(forcedPoints) {
+        if (forcedPoints === undefined) forcedPoints = null;
+        isTransitioning = true;
+        showFinalResult();
+        els.currentStep.classList.remove('active');
+        els.resolutionPanel.style.display = 'none';
+
+        let pts;
+        if (forcedPoints !== null) {
+            pts = forcedPoints;
+        } else {
+            const fails = MAX_INTENTS - attemptsLeft;
+            pts = Math.max(0, 10 - (fails * 2));
+        }
+
+        sessionScore += pts;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+        const waitTime = showMiniOverlay(pts);
+        setTimeout(() => {
+            hideMiniOverlay();
+            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                endSession();
+            } else {
+                currentOperation++;
+                buildLevel();
+            }
+        }, waitTime);
+    }
+
+    // ============================================================
+    // REPTE 1 — EXTREURE FACTORS
+    // ============================================================
+    const R1_BASES_EASY   = [2,3,5,7];
+    const R1_BASES_MEDIUM = [2,3,5,6,7,10,11];
+    const R1_BASES_HARD   = [2,3,5,6,7,10,11,13,14,15];
+    const R1_SQ_EASY   = [{sq:4,r:2},{sq:9,r:3}];
+    const R1_SQ_MEDIUM = [{sq:4,r:2},{sq:9,r:3},{sq:16,r:4},{sq:25,r:5}];
+
+    function generateRepte1(opIndex) {
+        for (let t = 0; t < 50; t++) {
+            let p;
+            {
+                let bases, squares, fc;
+                if (opIndex<=1) { bases=R1_BASES_EASY; squares=R1_SQ_EASY; fc=1; }
+                else if (opIndex<=3) { bases=R1_BASES_MEDIUM; squares=R1_SQ_MEDIUM; fc=1; }
+                else { bases=R1_BASES_HARD; squares=R1_SQ_MEDIUM; fc=randInt(2,5); }
+                const base=pick(bases), si=pick(squares);
+                p = { frontCoef:fc, radicand:base*si.sq, expectedSquare:si.sq, expectedRest:base, finalCoef:fc*si.r, finalRadicand:base };
+            }
+            const key = p.frontCoef+'|'+p.radicand;
+            if (!usedProblems.has(key)) { usedProblems.add(key); return p; }
+        }
+        const b=pick(R1_BASES_EASY), s=pick(R1_SQ_EASY);
+        return { frontCoef:1, radicand:b*s.sq, expectedSquare:s.sq, expectedRest:b, finalCoef:s.r, finalRadicand:b };
+    }
+
+    function buildStepsRepte1(p) {
+        r1FactorSquare = null;
+        r1FactorRest = null;
+
+        return [
+            {
+                title: "Expressa el radicand com √a · √b (un d'ells ha de ser quadrat perfecte)",
+                buildSchema: (c) => schemaTwoRadInputs(c),
+                validate: () => {
+                    const ia = document.getElementById('step-input-a');
+                    const ib = document.getElementById('step-input-b');
+                    if (!ia || !ib) return false;
+
+                    const a = parseStrictInt(ia.value);
+                    const b = parseStrictInt(ib.value);
+                    if (isNaN(a) || isNaN(b)) return false;
+                    if (a <= 0 || b <= 0) return false;
+                    if (a * b !== p.radicand) return false;
+
+                    const aSq = isPerfectSquare(a);
+                    const bSq = isPerfectSquare(b);
+                    if (!aSq && !bSq) return false;
+                    if (aSq && bSq) return false;
+
+                    r1FactorSquare = aSq ? a : b;
+                    r1FactorRest = aSq ? b : a;
+
+                    const bestSq = maxPerfectSquareDivisor(p.radicand);
+                    if (r1FactorSquare < bestSq) {
+                        return { status: 'suboptimal', message: "És correcte, però el quadrat perfecte extret no és el més gran possible. Torna-ho a provar." };
+                    }
+                    return true;
+                }
+            },
+            {
+                title: "Ara escriu c · √b (on c² = a)",
+                buildSchema: (c) => schemaCoefAndRadInput(c),
+                validate: () => {
+                    const ic = document.getElementById('step-input-c');
+                    const ib = document.getElementById('step-input-b2');
+                    if (!ic || !ib) return false;
+
+                    const cVal = parseStrictInt(ic.value);
+                    const bVal = parseStrictInt(ib.value);
+                    if (isNaN(cVal) || isNaN(bVal)) return false;
+                    if (cVal <= 0 || bVal <= 0) return false;
+                    if (r1FactorSquare === null || r1FactorRest === null) return false;
+                    if (bVal !== r1FactorRest) return false;
+                    if (cVal * cVal !== r1FactorSquare) return false;
+
+                    p.finalCoef = p.frontCoef * cVal;
+                    p.finalRadicand = r1FactorRest;
+                    return true;
+                }
+            }
+        ];
+    }
+
+    // ============================================================
+    // REPTE 2 — PRODUCTE I QUOCIENT
+    // ============================================================
+    const R2_BASES  = [2,3,5,7];
+    const R2_ROOTS  = [2,3,4,5];
+
+    function generateRepte2(opIndex) {
+        for (let t = 0; t < 60; t++) {
+            let p;
+            if (opIndex <= 1)      p = genLevelA();
+            else if (opIndex <= 3) p = genLevelB();
+            else                   p = genLevelC();
+            if (!p) continue;
+            const key = p.type + '|' + JSON.stringify(p.display);
+            if (!usedProblems.has(key)) { usedProblems.add(key); return p; }
+        }
+        return genLevelA();
+    }
+
+    function genLevelA() {
+        const isProduct = Math.random() > 0.4;
+        const er = pick(R2_ROOTS), base = pick(R2_BASES);
+        const cRad = er * er * base;
+
+        if (isProduct) {
+            const pairsAll = getFactorPairs(cRad);
+            if (pairsAll.length === 0) return null;
+            const pairs = pairsAll.filter(([x,y]) => !isPerfectSquare(x) && !isPerfectSquare(y));
+            if (pairs.length === 0) return null;
+            const [r1, r2] = pick(pairs);
+            return { type:'prod_simple', r1, r2, combinedRad:cRad, extractedRoot:er, base, finalCoef:er, finalRadicand:base, display:{r1,r2} };
+        } else {
+            const mOptions = [2,3,5].filter(m => !isPerfectSquare(cRad * m));
+            if (mOptions.length === 0) return null;
+            const m = pick(mOptions);
+            return { type:'quot_simple', numRad:cRad*m, denRad:m, combinedRad:cRad, extractedRoot:er, base, finalCoef:er, finalRadicand:base, display:{n:cRad*m, d:m} };
+        }
+    }
+
+    function genLevelB() {
+        const c1 = pick([2,3,4]), c2 = pick([2,3]);
+        const er = pick([2,3]), base = pick(R2_BASES);
+        const cRad = er * er * base;
+        const pairsAll = getFactorPairs(cRad);
+        if (pairsAll.length === 0) return null;
+        const pairs = pairsAll.filter(([x,y]) => !isPerfectSquare(x) && !isPerfectSquare(y));
+        if (pairs.length === 0) return null;
+        const [r1, r2] = pick(pairs);
+        const combinedCoef = c1 * c2;
+        return { type:'prod_coef', c1, c2, r1, r2, combinedCoef, combinedRad:cRad, extractedRoot:er, base, finalCoef:combinedCoef*er, finalRadicand:base, display:{c1,c2,r1,r2} };
+    }
+
+    function genLevelC() {
+        const qCoef = pick([2,3]), er = pick([2,3]), base = pick(R2_BASES);
+        const d = pick([2,3]), a = qCoef * d;
+        const e = pick([2,3,5]), qRad = er * er * base, b = qRad * e;
+        if (isPerfectSquare(b)) return null;
+        return { type:'quot_coef', a, b, d, e, quotientCoef:qCoef, quotientRad:qRad, extractedRoot:er, base, finalCoef:qCoef*er, finalRadicand:base, display:{a,b,d,e} };
+    }
+
+    function renderRepte2Expr(p) {
+        els.expressionBox.innerHTML = '';
+        buildRepte2OrigNodes(els.expressionBox, p);
+        addEqualsTo(els.expressionBox);
+    }
+
+    function buildRepte2OrigNodes(container, p) {
+        if (p.type === 'prod_simple') {
+            container.appendChild(buildRadicalSpan(1, p.r1, ''));
+            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '·';
+            container.appendChild(op);
+            container.appendChild(buildRadicalSpan(1, p.r2, ''));
+        } else if (p.type === 'quot_simple') {
+            container.appendChild(buildRadicalSpan(1, p.numRad, ''));
+            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '/';
+            container.appendChild(op);
+            container.appendChild(buildRadicalSpan(1, p.denRad, ''));
+        } else if (p.type === 'prod_coef') {
+            container.appendChild(buildRadicalSpan(p.c1, p.r1, ''));
+            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '·';
+            container.appendChild(op);
+            container.appendChild(buildRadicalSpan(p.c2, p.r2, ''));
+        } else if (p.type === 'quot_coef') {
+            const frac = document.createElement('span'); frac.className = 'frac-display';
+            const num = document.createElement('span'); num.className = 'frac-num-row';
+            num.appendChild(buildRadicalSpan(p.a, p.b, ''));
+            const den = document.createElement('span'); den.className = 'frac-den-row';
+            den.appendChild(buildRadicalSpan(p.d, p.e, ''));
+            frac.appendChild(num); frac.appendChild(den);
+            container.appendChild(frac);
+        }
+    }
+
+    function addSimplifyStepsDecompose(steps, p, frontCoef, radicandN) {
+        r2FactorSquare = null; r2FactorRest = null;
+        r2DecompA = null; r2DecompB = null;
+
+        steps.push({
+            title: "Expressa el radicand com √a · √b (un d'ells ha de ser quadrat perfecte)",
+            buildSchema: (c) => schemaCoefTwoRadInputs(c, frontCoef),
+            validate: () => {
+                const ia = document.getElementById('step-input-a');
+                const ib = document.getElementById('step-input-b');
+                if (!ia || !ib) return false;
+
+                const a = parseStrictInt(ia.value);
+                const b = parseStrictInt(ib.value);
+                if (isNaN(a) || isNaN(b)) return false;
+                if (a <= 0 || b <= 0) return false;
+                if (a * b !== radicandN) return false;
+
+                r2DecompA = a; r2DecompB = b;
+                const aSq = isPerfectSquare(a);
+                const bSq = isPerfectSquare(b);
+                if (!aSq && !bSq) return false;
+                if (aSq && bSq) return false;
+
+                r2FactorSquare = aSq ? a : b;
+                r2FactorRest = aSq ? b : a;
+
+                const bestSq = maxPerfectSquareDivisor(radicandN);
+                if (r2FactorSquare < bestSq) {
+                    return { status: 'suboptimal', message: "És correcte, però el quadrat perfecte extret no és el més gran possible. Torna-ho a provar." };
+                }
+                return true;
+            },
+            onCorrect: () => {
+                if (!els.intermediateBox) return;
+                els.intermediateBox.innerHTML = '';
+                if (frontCoef !== 1) {
+                    const coefSpan = document.createElement('span'); coefSpan.innerText = frontCoef;
+                    els.intermediateBox.appendChild(coefSpan);
+                    const dot0 = document.createElement('span'); dot0.className = 'radical-dot'; dot0.innerText = '·';
+                    els.intermediateBox.appendChild(dot0);
+                }
+                els.intermediateBox.appendChild(buildRadicalSpan(1, r2DecompA, ''));
+                const dot = document.createElement('span'); dot.className = 'radical-dot'; dot.innerText = '·';
+                els.intermediateBox.appendChild(dot);
+                els.intermediateBox.appendChild(buildRadicalSpan(1, r2DecompB, ''));
+            }
+        });
+
+        steps.push({
+            title: "Ara reescriu l'expressió com: c · √b (on c² = a)",
+            buildSchema: (c) => schemaCoefAndRadInput(c),
+            validate: () => {
+                const ic = document.getElementById('step-input-c');
+                const ib = document.getElementById('step-input-b2');
+                if (!ic || !ib) return false;
+
+                const cVal = parseStrictInt(ic.value);
+                const bVal = parseStrictInt(ib.value);
+                if (isNaN(cVal) || isNaN(bVal)) return false;
+                if (cVal <= 0 || bVal <= 0) return false;
+                if (r2FactorSquare === null || r2FactorRest === null) return false;
+                if (bVal !== r2FactorRest) return false;
+
+                const rootA = Math.sqrt(r2FactorSquare);
+                if (!Number.isInteger(rootA)) return false;
+                const expectedCoef = frontCoef * rootA;
+                if (cVal !== expectedCoef) return false;
+
+                p.finalCoef = expectedCoef;
+                p.finalRadicand = r2FactorRest;
+                return true;
+            }
+        });
+    }
+
+    function buildStepsRepte2(p) {
+        const steps = [];
+
+        if (p.type === 'prod_simple') {
+            steps.push({
+                title: 'Multiplica els radicands',
+                answer: p.combinedRad,
+                buildSchema: (c) => schemaRadOnlyInput(c),
+                onCorrect: () => showExprRadical(1, p.combinedRad)
+            });
+            addSimplifyStepsDecompose(steps, p, 1, p.combinedRad);
+
+        } else if (p.type === 'quot_simple') {
+            steps.push({
+                title: 'Divideix els radicands',
+                answer: p.combinedRad,
+                buildSchema: (c) => schemaRadOnlyInput(c),
+                onCorrect: () => showExprRadical(1, p.combinedRad)
+            });
+            addSimplifyStepsDecompose(steps, p, 1, p.combinedRad);
+
+        } else if (p.type === 'prod_coef') {
+            steps.push({
+                title: "Escriu el factor que multiplica l'arrel",
+                buildSchema: (c) => schemaCoefAndRadInput(c),
+                validate: () => {
+                    const ic = document.getElementById('step-input-c');
+                    const ib = document.getElementById('step-input-b2');
+                    if (!ic || !ib) return false;
+                    const cVal = parseStrictInt(ic.value);
+                    const bVal = parseStrictInt(ib.value);
+                    if (isNaN(cVal) || isNaN(bVal)) return false;
+                    if (cVal !== p.combinedCoef) return false;
+                    if (bVal !== p.combinedRad) return false;
+                    return true;
+                },
+                onCorrect: () => showExprRadical(p.combinedCoef, p.combinedRad)
+            });
+            addSimplifyStepsDecompose(steps, p, p.combinedCoef, p.combinedRad);
+
+        } else if (p.type === 'quot_coef') {
+            steps.push({
+                title: "Escriu el factor que multiplica l'arrel",
+                buildSchema: (c) => schemaCoefAndRadInput(c),
+                validate: () => {
+                    const ic = document.getElementById('step-input-c');
+                    const ib = document.getElementById('step-input-b2');
+                    if (!ic || !ib) return false;
+                    const cVal = parseStrictInt(ic.value);
+                    const bVal = parseStrictInt(ib.value);
+                    if (isNaN(cVal) || isNaN(bVal)) return false;
+                    if (cVal !== p.quotientCoef) return false;
+                    if (bVal !== p.quotientRad) return false;
+                    return true;
+                },
+                onCorrect: () => showExprRadical(p.quotientCoef, p.quotientRad)
+            });
+            addSimplifyStepsDecompose(steps, p, p.quotientCoef, p.quotientRad);
+        }
+
+        return steps;
+    }
+
+    // ============================================================
+    // TECLAT
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (isTransitioning || isPenalizing) return;
+            if (els.selectionScreen.style.display !== 'none') return;
+            if (els.gameScreen.style.display !== 'none') checkStep();
+        }
+    });
+
+    // ============================================================
+    // ARRENCADA
+    // ============================================================
+    registerScreens(['selection-screen', 'game-screen', 'session-end-screen', 'final-screen']);
+    injectSharedHTML();
+    validateConfig();
+    showScreen('selection-screen');
+</script>
+</body>
+</html>

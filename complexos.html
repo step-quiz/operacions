@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nombres Complexos</title>
+    <script src="js/utils.js"></script>
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #ede9fe;
+            --success: #16a34a;
+            --success-light: #dcfce7;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+            --warning: #d97706;
+            --gris: #64748b;
+            --gris-fosc: #334155;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --border-heavy: #cbd5e1;
+            --t-anim-pop: 0.35s; --t-anim-shake: 0.80s;
+            --t-anim-flash: 0.60s; --t-fade-out: 0.50s;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg); min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 16px; color: var(--gris-fosc);
+        }
+        h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; color: #1e293b; text-align: center; margin: 8px 0 16px; }
+
+        /* ── TABS ──────────────────────────────────────────────── */
+        .ops-tabs { display:flex; gap:0; margin-bottom:20px; border-radius:12px; overflow:hidden; border:2px solid var(--border-heavy); width:100%; max-width:820px; }
+        .ops-tab { flex:1; padding:12px 8px; border:none; background:white; font-size:0.88rem; font-weight:700; color:var(--gris); cursor:pointer; transition:all .15s; border-right:1px solid var(--border); position:relative; }
+        .ops-tab:last-child { border-right:none; }
+        .ops-tab:hover:not(.active):not(.disabled) { background:var(--primary-light); color:var(--primary); }
+        .ops-tab.active { background:var(--gris-fosc); color:white; }
+        .ops-tab.disabled { opacity:0.45; cursor:default; }
+        .ops-tab .tab-badge { display:inline-block; font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; background:#fbbf24; color:#78350f; padding:1px 5px; border-radius:4px; margin-left:4px; vertical-align:middle; }
+
+        .app-card { background:var(--card); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:28px 36px; width:100%; max-width:820px; }
+
+        /* ── WIP ──────────────────────────────────────────────── */
+        .wip-container { text-align:center; padding:60px 20px; }
+        .wip-icon { font-size:3.5rem; margin-bottom:16px; }
+        .wip-title { font-size:1.3rem; font-weight:800; color:#1e293b; margin-bottom:8px; }
+        .wip-text { font-size:0.95rem; color:var(--gris); max-width:340px; margin:0 auto; line-height:1.5; }
+
+        /* ── EXERCISE ROW ─────────────────────────────────────── */
+        .exercise-row { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:20px; }
+        .btn-errors { flex-shrink:0; padding:4px 10px; border-radius:6px; border:1.5px solid #cbd5e1; background:#f1f5f9; color:var(--gris); font-size:0.85rem; font-weight:700; cursor:default; white-space:nowrap; }
+        .exercise-display { text-align:center; font-size:1.2rem; font-weight:700; color:#1e293b; letter-spacing:-0.3px; }
+
+        /* ── HINT BOX ─────────────────────────────────────────── */
+        .hint-box { background:var(--primary-light); border:1px solid #c4b5fd; border-radius:10px; padding:10px 16px; font-size:0.88rem; color:var(--primary-dark); margin-bottom:18px; text-align:center; line-height:1.5; display:none; }
+        .hint-box.visible { display:block; animation:fade-in-up .35s ease-out; }
+        .hint-box strong { font-weight:700; }
+
+        /* ── INPUTS ───────────────────────────────────────────── */
+        .step-input { width:72px; height:48px; text-align:center; border:2.5px solid var(--border-heavy); border-radius:10px; font-size:1.25rem; font-weight:700; color:var(--primary); background:#f8fafc; transition:border-color .2s,background .2s; }
+        .step-input:focus { outline:none; border-color:var(--primary); background:var(--primary-light); }
+        .step-input:disabled { background:white; border-color:transparent; color:#1e293b; cursor:default; }
+        .step-input.confirmed { background:white; border-color:transparent; color:#1e293b; }
+        .step-input.kb-selected { background:var(--primary); border-color:var(--primary-dark); color:white; }
+        .step-input.locked-ok { background:var(--success-light); border-color:var(--success); color:var(--success); cursor:default; }
+        .step-input-sm { width:58px; height:40px; font-size:1.1rem; }
+
+        /* ── ANSWER INLINE ────────────────────────────────────── */
+        .answer-area { display:flex; flex-direction:column; align-items:center; gap:14px; margin-bottom:8px; }
+        .answer-inline { display:flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap; }
+        .answer-label { font-size:1.1rem; font-weight:700; color:var(--gris); }
+        .answer-symbol { font-size:1.3rem; font-weight:800; color:var(--gris-fosc); }
+        .answer-symbol-i { font-size:1.15rem; font-weight:700; color:#1e293b; font-style:italic; }
+        .answer-final { font-size:1.2rem; font-weight:700; color:#1e293b; text-align:center; animation:fade-in-up .35s ease-out; }
+        .answer-final em { font-style:italic; }
+
+        /* ── CSS FRACCIONS (estil LaTeX) ──────────────────────── */
+        .frac {
+            display: inline-flex; flex-direction: column; align-items: center;
+            vertical-align: middle; text-align: center; position: relative;
+            margin: 0 3px;
+        }
+        .frac-num { padding: 0 6px 3px; font-weight: 700; color: #1e293b; }
+        .frac-den { padding: 3px 6px 0; font-weight: 700; color: #1e293b; }
+        .frac-num, .frac-den { font-size: 1.05rem; line-height: 1.3; }
+        .frac::after {
+            content: ''; position: absolute; left: 0; right: 0;
+            top: 50%; height: 2px; background: #1e293b;
+        }
+        .frac em { font-style: italic; }
+        .frac-big .frac-num, .frac-big .frac-den { font-size: 1.15rem; }
+
+        /* Fracció amb input dins */
+        .frac-input .frac-num, .frac-input .frac-den {
+            display: flex; align-items: center; gap: 4px; justify-content: center;
+        }
+        .frac-input .step-input { width: 58px; height: 38px; font-size: 1.05rem; }
+
+        /* ── DIVISIÓ: LAYOUT PASSOS ──────────────────────────── */
+        .dv-enunciat {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; flex-wrap: wrap; margin-bottom: 8px;
+            font-size: 1.1rem; font-weight: 700; color: #1e293b;
+        }
+        .dv-conjugat { animation: fade-in-up 0.4s ease-out; }
+        .frac-grey .frac-num, .frac-grey .frac-den { color: var(--gris); }
+        .frac-grey::after { background: var(--gris); }
+        .dv-step {
+            margin-top: 16px; padding-top: 16px;
+            border-top: 1.5px dashed var(--border-heavy);
+            animation: fade-in-up 0.4s ease-out;
+        }
+        .dv-step-title {
+            font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--gris); text-align: center;
+            margin-bottom: 12px;
+        }
+        .dv-step-row {
+            display: flex; align-items: center; gap: 8px;
+            justify-content: center; flex-wrap: wrap; margin-bottom: 10px;
+        }
+
+        /* ── RESULTAT ─────────────────────────────────────────── */
+        .result-box { background:var(--success-light); border:2px solid #86efac; border-radius:12px; padding:16px 20px; text-align:center; margin-top:16px; }
+        .result-box .result-title { font-size:1.05rem; font-weight:700; color:var(--success); margin-bottom:0; }
+
+        /* ── FEEDBACK ─────────────────────────────────────────── */
+        .feedback { min-height:2rem; text-align:center; font-size:1.05rem; font-weight:700; margin-top:8px; margin-bottom:12px; transition:opacity var(--t-fade-out) ease; }
+        .feedback.fade-out { opacity:0; }
+
+        /* ── BOTONS ───────────────────────────────────────────── */
+        .btn-check-sm { display:inline-block; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; box-shadow:0 3px 0 var(--primary-dark); transition:.1s; white-space:nowrap; }
+        .btn-check-sm:hover { background:var(--primary-dark); }
+        .btn-check-sm:active { transform:translateY(2px); box-shadow:0 1px 0 var(--primary-dark); }
+
+        /* ── ANIMACIONS ───────────────────────────────────────── */
+        @keyframes pop-in{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+        @keyframes shake{0%,100%{transform:translateX(0)}10%{transform:translateX(-6px)}20%{transform:translateX(6px)}30%{transform:translateX(-5px)}40%{transform:translateX(5px)}50%{transform:translateX(-4px)}60%{transform:translateX(4px)}70%{transform:translateX(-2px)}80%{transform:translateX(2px)}90%{transform:translateX(-1px)}}
+        @keyframes flash-green{0%{background:var(--success-light);border-color:var(--success)}100%{background:white;border-color:transparent}}
+        @keyframes fade-in-up{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+        .anim-pop{animation:pop-in var(--t-anim-pop) cubic-bezier(.34,1.56,.64,1)}
+        .anim-shake{animation:shake var(--t-anim-shake) ease-in-out}
+        .anim-flash{animation:flash-green var(--t-anim-flash) ease-out forwards}
+        .anim-fade-in-up{animation:fade-in-up .4s ease-out}
+
+        /* ── TECLAT CUSTOM ────────────────────────────────────── */
+        input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+        input[type=number]{-moz-appearance:textfield}
+        #customKeyboard{display:none;background:#f1f5f9;border:2px solid var(--border-heavy);border-radius:12px;padding:12px 12px 16px;margin-top:12px}
+        #customKeyboard.kb-visible{display:block}
+        .kb-grid{display:grid;grid-template-columns:58px 58px 58px 80px;gap:8px;justify-content:center}
+        .kb-btn{height:52px;border-radius:10px;border:1.5px solid #cbd5e1;background:white;font-size:1.3rem;font-weight:700;color:#1e293b;cursor:pointer;box-shadow:0 2px 0 #cbd5e1;transition:.08s;display:flex;align-items:center;justify-content:center}
+        .kb-btn:active{transform:translateY(2px);box-shadow:none}
+        .kb-btn.kb-enter{background:var(--primary);border-color:var(--primary-dark);color:white;box-shadow:0 2px 0 var(--primary-dark);font-size:1.5rem}
+        .kb-btn.kb-minus{background:#f8fafc;color:var(--primary)}
+        .kb-btn.kb-del{background:#fff1f2;border-color:#fca5a5;color:#b91c1c;font-size:1.1rem}
+        .kb-btn.kb-zero{grid-column:1}
+
+        /* ── RESPONSIVE ───────────────────────────────────────── */
+        @media(max-width:600px){
+            .app-card{padding:18px 14px} .ops-tab{font-size:.78rem;padding:10px 4px}
+            .exercise-display{font-size:1.05rem}
+            .step-input{width:60px;height:42px;font-size:1.1rem}
+            .frac-num,.frac-den{font-size:.92rem}
+            .frac-input .step-input{width:50px;height:34px;font-size:.95rem}
+        }
+        @media(max-width:480px){
+            body{padding:10px}
+            h1{font-size:1.2rem;margin:4px 0 10px}
+            .app-card{padding:14px 10px}
+            .ops-tab{font-size:.72rem;padding:8px 3px}
+            .btn-check-sm{padding:8px 14px;font-size:.8rem}
+            .hint-box{font-size:.82rem;padding:8px 12px}
+            .answer-label{font-size:.95rem}
+            .answer-symbol{font-size:1.1rem}
+            .dv-enunciat{font-size:1rem}
+            .dv-step-title{font-size:.8rem}
+        }
+        @media(max-width:350px){
+            .app-card{padding:10px 8px}
+            .step-input{width:50px;height:36px;font-size:1rem}
+            .frac-input .step-input{width:42px;height:30px;font-size:.85rem}
+            .ops-tab{font-size:.65rem;padding:7px 2px}
+            .answer-label{font-size:.85rem}
+        }
+        @media(orientation:landscape)and(max-height:500px){
+            h1{font-size:1.1rem;margin:4px 0 8px} .app-card{padding:10px 14px}
+            .hint-box{padding:6px 12px;font-size:.78rem;margin-bottom:10px}
+            .ops-tab{padding:8px 4px;font-size:.75rem}
+            .kb-grid{grid-template-columns:48px 48px 48px 64px;gap:5px}
+            .kb-btn{height:40px;font-size:1.1rem} .kb-btn.kb-enter{font-size:1.2rem}
+            #customKeyboard{padding:7px 10px 10px;margin-top:8px}
+        }
+    </style>
+</head>
+<body>
+
+<h1>Nombres Complexos</h1>
+
+<div class="ops-tabs">
+    <button class="ops-tab active" onclick="switchOp('sumaresta',this)">Suma / Resta</button>
+    <button class="ops-tab" onclick="switchOp('producte',this)">Producte</button>
+    <button class="ops-tab" onclick="switchOp('divisio',this)">Divisió</button>
+    <button class="ops-tab disabled" onclick="switchOp('potencia',this)">Potència <span class="tab-badge">aviat</span></button>
+</div>
+
+<div class="app-card" id="appCard">
+
+    <!-- ═══ SUMA / RESTA ════════════════════════════════════ -->
+    <div id="panel-sumaresta">
+        <div class="exercise-row">
+            <button class="btn-errors">errors: <span id="errCntSR">0</span></button>
+            <div id="exDispSR" class="exercise-display"></div>
+        </div>
+        <div id="hintSR" class="hint-box"></div>
+        <div class="answer-area" id="answerSR">
+            <div class="answer-inline">
+                <span class="answer-label">Escriu el resultat:</span>
+                <input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-re">
+                <span class="answer-symbol">+</span>
+                <input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-im">
+                <span class="answer-symbol-i">·&thinsp;i</span>
+            </div>
+        </div>
+        <div id="fbSR" class="feedback"></div>
+        <div id="resSR"></div>
+    </div>
+
+    <!-- ═══ PRODUCTE ════════════════════════════════════════ -->
+    <div id="panel-producte" style="display:none">
+        <div class="exercise-row">
+            <button class="btn-errors">errors: <span id="errCntPR">0</span></button>
+            <div id="exDispPR" class="exercise-display"></div>
+        </div>
+        <div id="hintPR" class="hint-box"></div>
+        <div class="answer-area" id="answerPR">
+            <div class="answer-inline">
+                <span class="answer-label">Escriu el resultat:</span>
+                <input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-re">
+                <span class="answer-symbol">+</span>
+                <input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-im">
+                <span class="answer-symbol-i">·&thinsp;i</span>
+            </div>
+        </div>
+        <div id="fbPR" class="feedback"></div>
+        <div id="resPR"></div>
+    </div>
+
+    <!-- ═══ DIVISIÓ ═════════════════════════════════════════ -->
+    <div id="panel-divisio" style="display:none">
+        <div class="exercise-row">
+            <button class="btn-errors">errors: <span id="errCntDV">0</span></button>
+            <div style="flex:1"></div>
+        </div>
+        <div id="dvEnunciat" class="dv-enunciat"></div>
+        <div id="hintDV" class="hint-box"></div>
+        <div id="dvSteps"></div>
+        <div id="fbDV" class="feedback"></div>
+        <div id="resDV"></div>
+    </div>
+
+    <!-- ═══ POTÈNCIA (WIP) ══════════════════════════════════ -->
+    <div id="panel-potencia" style="display:none">
+        <div class="wip-container">
+            <div class="wip-icon">🏗️</div>
+            <div class="wip-title">Potència de complexos</div>
+            <div class="wip-text">Aquesta activitat està en construcció. Aviat podràs practicar potències amb la fórmula de De Moivre!</div>
+        </div>
+    </div>
+
+    <!-- ═══ TECLAT COMPARTIT ════════════════════════════════ -->
+    <div id="customKeyboard">
+        <div class="kb-grid">
+            <button class="kb-btn" data-key="7">7</button>
+            <button class="kb-btn" data-key="8">8</button>
+            <button class="kb-btn" data-key="9">9</button>
+            <button class="kb-btn kb-del" data-key="del">⌫</button>
+            <button class="kb-btn" data-key="4">4</button>
+            <button class="kb-btn" data-key="5">5</button>
+            <button class="kb-btn" data-key="6">6</button>
+            <button class="kb-btn kb-minus" data-key="-">−</button>
+            <button class="kb-btn" data-key="1">1</button>
+            <button class="kb-btn" data-key="2">2</button>
+            <button class="kb-btn" data-key="3">3</button>
+            <button class="kb-btn kb-enter" data-key="enter">→</button>
+            <button class="kb-btn kb-zero" data-key="0">0</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const T_FOCUS_DELAY=50, T_SCROLL_DELAY=150;
+
+// ─── ESTAT GLOBAL ─────────────────────────────────────────────────
+let currentOp='sumaresta';
+let z1={re:0,im:0}, z2={re:0,im:0};
+let opSign='+';
+let expectedRe=0, expectedIm=0;
+let errorCount=0, finished=false, hintShown=false;
+
+// ─── UTILS ────────────────────────────────────────────────────────
+// randInt, pick, parseStrictInt → utils.js
+function randCoef(){const r=Math.random();if(r<.20)return 0;if(r<.50)return -randInt(1,9);return randInt(1,9)}
+function randNonZeroCoef(){return(Math.random()<.30?-1:1)*randInt(1,9)}
+
+function isInvalidPair(a,b,c,d){
+    // z1=0 o z2=0
+    if(a===0&&b===0) return true;
+    if(c===0&&d===0) return true;
+    // z1=1 o z2=1
+    if(a===1&&b===0) return true;
+    if(c===1&&d===0) return true;
+    // Ambdós reals purs (b=0 i d=0)
+    if(b===0&&d===0) return true;
+    // z1 real pura + z2 imaginària pura (o viceversa)
+    if(b===0&&c===0) return true;
+    if(a===0&&d===0) return true;
+    return false;
+}
+
+function generateTwoComplex(){
+    let a,b,c,d;
+    if(Math.random()<0.80){
+        // 80%: tots quatre coeficients no nuls
+        do{a=randNonZeroCoef();b=randNonZeroCoef();c=randNonZeroCoef();d=randNonZeroCoef()}
+        while(isInvalidPair(a,b,c,d));
+    } else {
+        // 20%: almenys un zero, però respectant les restriccions
+        do{
+            a=randCoef();b=randCoef();c=randCoef();d=randCoef();
+            if(a!==0&&b!==0&&c!==0&&d!==0){
+                const pick=randInt(0,3);
+                if(pick===0)a=0;else if(pick===1)b=0;else if(pick===2)c=0;else d=0;
+            }
+        }while(isInvalidPair(a,b,c,d));
+    }
+    return[{re:a,im:b},{re:c,im:d}];
+}
+function fmtNum(n){return n>=0?String(n):'−'+Math.abs(n)}
+function fmtComplex(re,im){
+    if(re===0&&im===0)return'0';
+    let p=[];
+    if(re!==0)p.push(fmtNum(re));
+    if(im!==0){const a=Math.abs(im);if(re!==0)p.push(im>0?' + ':' − ');else if(im<0)p.push('−');p.push(a===1?'<em>i</em>':a+'<em>i</em>')}
+    return p.join('');
+}
+/** Genera HTML d'una fracció CSS */
+function htmlFrac(num,den,extraClass){
+    const cls='frac'+(extraClass?' '+extraClass:'');
+    return `<span class="${cls}"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+}
+const isTouchDevice=()=>window.matchMedia('(hover:none)and(pointer:coarse)').matches;
+
+// ─── TABS ─────────────────────────────────────────────────────────
+function switchOp(op,btn){
+    if(btn.classList.contains('disabled'))return;
+    document.querySelectorAll('.ops-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    currentOp=op;
+    ['sumaresta','producte','divisio','potencia'].forEach(id=>{
+        document.getElementById('panel-'+id).style.display=(id===op)?'':'none';
+    });
+    hideCustomKeyboard();
+    if(op==='sumaresta')initSumaResta();
+    else if(op==='producte')initProducte();
+    else if(op==='divisio')initDivisio();
+}
+
+// ─── INPUT GENÈRIC ────────────────────────────────────────────────
+function setupInput(inp){
+    inp.removeEventListener('keydown',onKeyDown);
+    inp.addEventListener('keydown',onKeyDown);
+    if(isTouchDevice()){
+        inp.setAttribute('readonly',true);inp.inputMode='none';
+        inp.addEventListener('pointerdown',function(){
+            if(!inp.disabled){activeKbInput=inp;kbClearOnNext=false;
+                setTimeout(()=>{const kb=document.getElementById('customKeyboard');if(kb.classList.contains('kb-visible'))kb.scrollIntoView({behavior:'smooth',block:'nearest'})},50);
+            }
+        });
+    } else {
+        inp.removeAttribute('readonly');inp.inputMode='numeric';
+        inp.addEventListener('focus',()=>{setTimeout(()=>inp.scrollIntoView({behavior:'smooth',block:'nearest'}),50)});
+    }
+}
+function onKeyDown(e){
+    if(e.key==='Enter'){e.preventDefault();onEnterPressed()}
+    else if(e.key==='Tab'){e.preventDefault();tabToNext(e.target)}
+}
+function tabToNext(current){
+    const panel=document.getElementById('panel-'+currentOp);
+    const inputs=[...panel.querySelectorAll('.step-input:not(:disabled)')];
+    if(!inputs.length)return;
+    const idx=inputs.indexOf(current);
+    const next=inputs[(idx+1)%inputs.length];
+    next.focus();
+    if(isTouchDevice()){activeKbInput=next;kbClearOnNext=false}
+}
+function onEnterPressed(){
+    if(currentOp==='sumaresta')enterSR();
+    else if(currentOp==='producte')enterPR();
+    else if(currentOp==='divisio')enterDV();
+}
+function focusInput(inp){
+    if(isTouchDevice()){activeKbInput=inp;
+        if(!document.getElementById('customKeyboard').classList.contains('kb-visible'))showCustomKeyboard(inp);
+    }else{setTimeout(()=>inp.focus(),T_FOCUS_DELAY)}
+}
+function selectInputContent(inp){
+    if(isTouchDevice()){kbClearOnNext=true;inp.classList.add('kb-selected')}
+    else{setTimeout(()=>{inp.focus();inp.select()},T_FOCUS_DELAY)}
+}
+function triggerShake(inp){inp.classList.remove('anim-shake');void inp.offsetWidth;inp.classList.add('anim-shake')}
+
+// ─── VALIDACIÓ GENÈRICA 2 INPUTS (re+im) ─────────────────────────
+function genericEnter2(panelId){
+    const panel=document.getElementById(panelId);
+    const inputs=[...panel.querySelectorAll('.step-input:not(:disabled)')];
+    if(!inputs.length)return'check';
+    const cur=activeKbInput||document.activeElement;
+    const hasVal=v=>v.trim()!==''&&v.trim()!=='-';
+    if(cur&&hasVal(cur.value)){
+        const empty=inputs.find(i=>i!==cur&&!hasVal(i.value));
+        if(empty){focusInput(empty);if(isTouchDevice())activeKbInput=empty;return'jumped'}
+    }
+    return'check';
+}
+
+function genericCheck2(inpRe,inpIm,expRe,expIm,locked,errSpan,hintKey,fb){
+    fb.classList.remove('fade-out');
+    const reT=inpRe?inpRe.value.trim():'',imT=inpIm?inpIm.value.trim():'';
+    const reE=!locked.re&&(reT===''||reT==='-'),imE=!locked.im&&(imT===''||imT==='-');
+    if(reE||imE){fb.style.color='var(--warning)';fb.innerText='⚠️ Cal omplir la part real i la part imaginària.';if(reE)focusInput(inpRe);else focusInput(inpIm);return'empty'}
+    const eRe=locked.re?expRe:parseStrictInt(reT),eIm=locked.im?expIm:parseStrictInt(imT);
+    if(!locked.re&&isNaN(eRe)){fb.style.color='var(--warning)';fb.innerText='⚠️ Escriu un número.';focusInput(inpRe);return'nan'}
+    if(!locked.im&&isNaN(eIm)){fb.style.color='var(--warning)';fb.innerText='⚠️ Escriu un número.';focusInput(inpIm);return'nan'}
+    const reOk=eRe===expRe,imOk=eIm===expIm;
+    if(reOk&&imOk){fb.innerText='';return'ok'}
+    errorCount++;document.getElementById(errSpan).textContent=errorCount;
+    showHint(hintKey);
+    fb.style.color='var(--danger)';fb.innerText='❌ No és correcte. Torna-ho a intentar.';
+    if(reOk&&!locked.re){locked.re=true;inpRe.disabled=true;inpRe.classList.add('locked-ok')}
+    if(imOk&&!locked.im){locked.im=true;inpIm.disabled=true;inpIm.classList.add('locked-ok')}
+    if(!reOk&&!locked.re){triggerShake(inpRe);selectInputContent(inpRe)}
+    if(!imOk&&!locked.im){triggerShake(inpIm);if(reOk||locked.re)selectInputContent(inpIm)}
+    if(!reOk&&!locked.re)focusInput(inpRe);else if(!imOk&&!locked.im)focusInput(inpIm);
+    return'error';
+}
+
+function showHint(key){
+    if(hintShown)return;hintShown=true;
+    const h=document.getElementById('hint'+key);
+    if(key==='SR'){const w=opSign==='+'?'sumar':'restar';h.innerHTML=`Cal ${w} <strong>per separat</strong> la part real i la part imaginària.`}
+    else if(key==='PR'){h.innerHTML=`(a+b<em>i</em>) · (c+d<em>i</em>) = (ac−bd) + (ad+bc) · <em>i</em>`}
+    else if(key==='DV'){h.innerHTML=`Multiplica numerador i denominador pel <strong>conjugat</strong> del denominador.`}
+    h.classList.add('visible');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SUMA / RESTA
+// ════════════════════════════════════════════════════════════════════
+let srLocked={re:false,im:false};
+function generateSR(){[z1,z2]=generateTwoComplex();opSign=Math.random()<.5?'+':'−';if(opSign==='+'){expectedRe=z1.re+z2.re;expectedIm=z1.im+z2.im}else{expectedRe=z1.re-z2.re;expectedIm=z1.im-z2.im}}
+function initSumaResta(){
+    hideCustomKeyboard();generateSR();errorCount=0;finished=false;hintShown=false;srLocked={re:false,im:false};
+    document.getElementById('errCntSR').textContent='0';
+    document.getElementById('exDispSR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} )&ensp;${opSign}&ensp;( ${fmtComplex(z2.re,z2.im)} )&ensp;= ?`;
+    const h=document.getElementById('hintSR');h.classList.remove('visible');h.innerHTML='';
+    document.getElementById('answerSR').innerHTML=`<div class="answer-inline"><span class="answer-label">Escriu el resultat:</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-re"><span class="answer-symbol">+</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-im"><span class="answer-symbol-i">·&thinsp;i</span></div>`;
+    setupInput(document.getElementById('sr-re'));setupInput(document.getElementById('sr-im'));
+    document.getElementById('fbSR').innerText='';document.getElementById('fbSR').classList.remove('fade-out');document.getElementById('resSR').innerHTML='';
+    if(isTouchDevice())showCustomKeyboard(document.getElementById('sr-re'));else setTimeout(()=>document.getElementById('sr-re').focus(),T_FOCUS_DELAY);
+}
+function enterSR(){if(genericEnter2('panel-sumaresta')!=='check')return;checkSR()}
+function checkSR(){
+    const r=genericCheck2(document.getElementById('sr-re'),document.getElementById('sr-im'),expectedRe,expectedIm,srLocked,'errCntSR','SR',document.getElementById('fbSR'));
+    if(r==='ok'){hideCustomKeyboard();finished=true;
+        document.getElementById('exDispSR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} )&ensp;${opSign}&ensp;( ${fmtComplex(z2.re,z2.im)} )`;
+        document.getElementById('answerSR').innerHTML=`<div class="answer-final">= ${fmtComplex(expectedRe,expectedIm)}</div>`;
+        document.getElementById('resSR').innerHTML=`<div class="result-box anim-fade-in-up"><div class="result-title">✅ Correcte!</div><button class="btn-check-sm" style="margin:16px auto 0;display:block" onclick="initSumaResta()">Exercici nou</button></div>`;
+        setTimeout(()=>document.getElementById('resSR').scrollIntoView({behavior:'smooth',block:'center'}),T_SCROLL_DELAY);
+    }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// PRODUCTE
+// ════════════════════════════════════════════════════════════════════
+let prLocked={re:false,im:false};
+function generatePR(){[z1,z2]=generateTwoComplex();expectedRe=z1.re*z2.re-z1.im*z2.im;expectedIm=z1.re*z2.im+z1.im*z2.re}
+function initProducte(){
+    hideCustomKeyboard();generatePR();errorCount=0;finished=false;hintShown=false;prLocked={re:false,im:false};
+    document.getElementById('errCntPR').textContent='0';
+    document.getElementById('exDispPR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} ) · ( ${fmtComplex(z2.re,z2.im)} )&ensp;= ?`;
+    const h=document.getElementById('hintPR');h.classList.remove('visible');h.innerHTML='';
+    document.getElementById('answerPR').innerHTML=`<div class="answer-inline"><span class="answer-label">Escriu el resultat:</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-re"><span class="answer-symbol">+</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-im"><span class="answer-symbol-i">·&thinsp;i</span></div>`;
+    setupInput(document.getElementById('pr-re'));setupInput(document.getElementById('pr-im'));
+    document.getElementById('fbPR').innerText='';document.getElementById('fbPR').classList.remove('fade-out');document.getElementById('resPR').innerHTML='';
+    if(isTouchDevice())showCustomKeyboard(document.getElementById('pr-re'));else setTimeout(()=>document.getElementById('pr-re').focus(),T_FOCUS_DELAY);
+}
+function enterPR(){if(genericEnter2('panel-producte')!=='check')return;checkPR()}
+function checkPR(){
+    const r=genericCheck2(document.getElementById('pr-re'),document.getElementById('pr-im'),expectedRe,expectedIm,prLocked,'errCntPR','PR',document.getElementById('fbPR'));
+    if(r==='ok'){hideCustomKeyboard();finished=true;
+        document.getElementById('exDispPR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} ) · ( ${fmtComplex(z2.re,z2.im)} )`;
+        document.getElementById('answerPR').innerHTML=`<div class="answer-final">= ${fmtComplex(expectedRe,expectedIm)}</div>`;
+        document.getElementById('resPR').innerHTML=`<div class="result-box anim-fade-in-up"><div class="result-title">✅ Correcte!</div><button class="btn-check-sm" style="margin:16px auto 0;display:block" onclick="initProducte()">Exercici nou</button></div>`;
+        setTimeout(()=>document.getElementById('resPR').scrollIntoView({behavior:'smooth',block:'center'}),T_SCROLL_DELAY);
+    }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// DIVISIÓ
+// ════════════════════════════════════════════════════════════════════
+let dvPhase=1;
+let dvExp={numRe:0,numIm:0,den:0}; // pas 1 expected
+let dvLocked1={re:false,im:false,den:false};
+let dvStep2Groups=[];
+
+function generateDV(){
+    // Per la divisió, z2 ha de tenir part imaginària ≠ 0
+    // (perquè la multiplicació pel conjugat tingui sentit pedagògic)
+    do{ [z1,z2]=generateTwoComplex() }while(z2.im===0);
+
+    const a=z1.re, b=z1.im, c=z2.re, d=z2.im;
+    dvExp.numRe = a*c + b*d;
+    dvExp.numIm = b*c - a*d;
+    dvExp.den   = c*c + d*d;
+}
+
+function initDivisio(){
+    hideCustomKeyboard();generateDV();
+    dvPhase=1;errorCount=0;finished=false;hintShown=false;
+    dvLocked1={re:false,im:false,den:false};
+    dvStep2Groups=[];
+    document.getElementById('errCntDV').textContent='0';
+    const h=document.getElementById('hintDV');h.classList.remove('visible');h.innerHTML='';
+    document.getElementById('fbDV').innerText='';document.getElementById('fbDV').classList.remove('fade-out');
+    document.getElementById('resDV').innerHTML='';
+    document.getElementById('dvSteps').innerHTML='';
+
+    // Enunciat: fracció
+    const z1h=fmtComplex(z1.re,z1.im), z2h=fmtComplex(z2.re,z2.im);
+    const conjH=fmtComplex(z2.re,-z2.im);
+    const enun=document.getElementById('dvEnunciat');
+    enun.innerHTML=htmlFrac(z1h,z2h,'frac-big')+`<span>&ensp;= ?</span>`;
+
+    // Després de 750ms, mostrar la multiplicació pel conjugat
+    setTimeout(()=>{
+        enun.innerHTML=htmlFrac(z1h,z2h,'frac-big')+
+            `<span class="dv-conjugat">&ensp;=&ensp;`+htmlFrac(z1h,z2h,'frac-big')+
+            `&ensp;·&ensp;`+htmlFrac(conjH,conjH,'frac-big frac-grey')+`&ensp;=</span>`;
+        // Esperar 300ms i mostrar pas 1
+        setTimeout(()=>showDVstep1(),300);
+    },750);
+}
+
+function showDVstep1(){
+    const steps=document.getElementById('dvSteps');
+    steps.innerHTML=`
+        <div class="dv-step" id="dvStep1">
+            <div class="dv-step-title">Pas 1: multiplica numeradors i denominadors</div>
+            <div class="dv-step-row">
+                ${htmlFrac(
+                    `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-numre"> <span style="font-size:1rem;font-weight:700">+</span> <input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-numim"> <span style="font-size:.9rem;font-weight:700;font-style:italic">·&thinsp;i</span>`,
+                    `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-den">`,
+                    'frac-input'
+                )}
+            </div>
+        </div>`;
+    ['dv-numre','dv-numim','dv-den'].forEach(id=>setupInput(document.getElementById(id)));
+    const first=document.getElementById('dv-numre');
+    if(isTouchDevice())showCustomKeyboard(first);else setTimeout(()=>first.focus(),T_FOCUS_DELAY);
+    setTimeout(()=>steps.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function enterDV(){
+    if(dvPhase===1)enterDV1();
+    else enterDV2();
+}
+
+function enterDV1(){
+    // Salta a casella buida si n'hi ha
+    const inputs=[...document.querySelectorAll('#dvStep1 .step-input:not(:disabled)')];
+    if(!inputs.length){checkDV1();return}
+    const cur=activeKbInput||document.activeElement;
+    const hasVal=v=>v.trim()!==''&&v.trim()!=='-';
+    if(cur&&hasVal(cur.value)){
+        const empty=inputs.find(i=>i!==cur&&!hasVal(i.value));
+        if(empty){focusInput(empty);if(isTouchDevice())activeKbInput=empty;return}
+    }
+    checkDV1();
+}
+
+function checkDV1(){
+    const fb=document.getElementById('fbDV');fb.classList.remove('fade-out');
+    const inpNR=document.getElementById('dv-numre'),inpNI=document.getElementById('dv-numim'),inpD=document.getElementById('dv-den');
+    const ids=[{inp:inpNR,exp:dvExp.numRe,key:'re'},{inp:inpNI,exp:dvExp.numIm,key:'im'},{inp:inpD,exp:dvExp.den,key:'den'}];
+
+    // Comprovar buits
+    const anyEmpty=ids.some(o=>!dvLocked1[o.key]&&(o.inp.value.trim()===''||o.inp.value.trim()==='-'));
+    if(anyEmpty){fb.style.color='var(--warning)';fb.innerText='⚠️ Cal omplir tots els camps.';
+        const first=ids.find(o=>!dvLocked1[o.key]&&(o.inp.value.trim()===''||o.inp.value.trim()==='-'));
+        if(first)focusInput(first.inp);return;
+    }
+
+    // Parse i comprovar
+    const vals={};
+    for(const o of ids){
+        if(dvLocked1[o.key]){vals[o.key]=o.exp;continue}
+        vals[o.key]=parseStrictInt(o.inp.value);
+        if(isNaN(vals[o.key])){fb.style.color='var(--warning)';fb.innerText='⚠️ Escriu un número.';focusInput(o.inp);return}
+    }
+
+    const results={};ids.forEach(o=>results[o.key]=vals[o.key]===o.exp);
+    const allOk=Object.values(results).every(v=>v);
+
+    if(allOk){
+        fb.innerText='';hideCustomKeyboard();
+        ids.forEach(o=>{o.inp.disabled=true;o.inp.classList.add('confirmed','anim-flash');o.inp.classList.remove('locked-ok')});
+        dvPhase=2;
+        setTimeout(()=>showDVstep2(),400);
+        return;
+    }
+
+    // Errors
+    errorCount++;document.getElementById('errCntDV').textContent=errorCount;
+    showHint('DV');
+    fb.style.color='var(--danger)';fb.innerText='❌ No és correcte. Torna-ho a intentar.';
+
+    let firstWrong=null;
+    for(const o of ids){
+        if(results[o.key]&&!dvLocked1[o.key]){dvLocked1[o.key]=true;o.inp.disabled=true;o.inp.classList.add('locked-ok')}
+        if(!results[o.key]&&!dvLocked1[o.key]){triggerShake(o.inp);if(!firstWrong){firstWrong=o.inp;selectInputContent(o.inp)}}
+    }
+    if(firstWrong)focusInput(firstWrong);
+}
+
+
+function showDVstep2(){
+    const k=dvExp.den, p=dvExp.numRe, q=dvExp.numIm;
+    const reExact=(p%k===0), imExact=(q%k===0);
+
+    // Canviar títol
+    document.querySelector('#dvStep1 .dv-step-title').textContent='Pas 2: escriu la part real i la part imaginària del resultat final';
+
+    // Reescriure la fracció del pas 1 de forma compacta (sense inputs)
+    const compactFrac=htmlFrac(fmtComplex(p,q),k,'frac-big');
+
+    // Construir inputs del resultat per grups (real, imag)
+    let realPart, imagPart;
+    dvStep2Groups=[];
+
+    if(reExact){
+        realPart=`<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-rr">`;
+        dvStep2Groups.push({type:'int',ids:['dv-rr'],exp:p/k,locked:false});
+    } else {
+        realPart=htmlFrac(
+            `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-rn">`,
+            `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-rd">`,
+            'frac-input');
+        dvStep2Groups.push({type:'frac',ids:['dv-rn','dv-rd'],expNum:p,expDen:k,locked:false});
+    }
+
+    if(imExact){
+        imagPart=`<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-ir">`;
+        dvStep2Groups.push({type:'int',ids:['dv-ir'],exp:q/k,locked:false});
+    } else {
+        imagPart=htmlFrac(
+            `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-in">`,
+            `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-id">`,
+            'frac-input');
+        dvStep2Groups.push({type:'frac',ids:['dv-in','dv-id'],expNum:q,expDen:k,locked:false});
+    }
+
+    // Substituir contingut del step1: fracció compacta = inputs resultat
+    const step1=document.getElementById('dvStep1');
+    step1.querySelector('.dv-step-row').innerHTML=`
+        ${compactFrac}
+        <span class="answer-symbol" style="font-size:1.1rem">=</span>
+        ${realPart}
+        <span class="answer-symbol" style="font-size:1.1rem">+</span>
+        ${imagPart}
+        <span class="answer-symbol-i" style="font-size:1rem">·&thinsp;i</span>`;
+
+    dvStep2Groups.forEach(g=>g.ids.forEach(id=>setupInput(document.getElementById(id))));
+    const first=document.getElementById(dvStep2Groups[0].ids[0]);
+    if(isTouchDevice())showCustomKeyboard(first);else setTimeout(()=>first.focus(),T_FOCUS_DELAY);
+    setTimeout(()=>step1.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function enterDV2(){
+    const inputs=[...document.querySelectorAll('#dvStep1 .step-input:not(:disabled)')];
+    if(!inputs.length){checkDV2();return}
+    const cur=activeKbInput||document.activeElement;
+    const hasVal=v=>v.trim()!==''&&v.trim()!=='-';
+    if(cur&&hasVal(cur.value)){
+        const empty=inputs.find(i=>i!==cur&&!hasVal(i.value));
+        if(empty){focusInput(empty);if(isTouchDevice())activeKbInput=empty;return}
+    }
+    checkDV2();
+}
+
+function checkDV2(){
+    const fb=document.getElementById('fbDV');fb.classList.remove('fade-out');
+
+    // Comprovar buits
+    for(const g of dvStep2Groups){
+        if(g.locked)continue;
+        for(const id of g.ids){
+            const v=document.getElementById(id).value.trim();
+            if(v===''||v==='-'){fb.style.color='var(--warning)';fb.innerText='⚠️ Cal omplir tots els camps.';focusInput(document.getElementById(id));return}
+        }
+    }
+
+    // Parse tots els valors
+    for(const g of dvStep2Groups){
+        if(g.locked)continue;
+        for(const id of g.ids){
+            const v=parseStrictInt(document.getElementById(id).value);
+            if(isNaN(v)){fb.style.color='var(--warning)';fb.innerText='⚠️ Escriu un número.';focusInput(document.getElementById(id));return}
+        }
+    }
+
+    // Validar cada grup
+    const groupResults=dvStep2Groups.map(g=>{
+        if(g.locked)return{g,ok:true};
+        if(g.type==='int'){
+            const v=parseStrictInt(document.getElementById(g.ids[0]).value);
+            return{g,ok:v===g.exp};
+        } else {
+            // Fracció: validar per equivalència (producte creuat)
+            const num=parseStrictInt(document.getElementById(g.ids[0]).value);
+            const den=parseStrictInt(document.getElementById(g.ids[1]).value);
+            if(den===0)return{g,ok:false};
+            // num/den === expNum/expDen  <=>  num*expDen === expNum*den
+            return{g,ok:num*g.expDen===g.expNum*den};
+        }
+    });
+
+    const allOk=groupResults.every(r=>r.ok);
+
+    if(allOk){
+        fb.innerText='';hideCustomKeyboard();finished=true;
+        const z1h=fmtComplex(z1.re,z1.im),z2h=fmtComplex(z2.re,z2.im);
+        document.getElementById('dvEnunciat').innerHTML=htmlFrac(z1h,z2h,'frac-big')+`<span>&ensp;=</span>`;
+        // Resultat elegant
+        const k=dvExp.den,p=dvExp.numRe,q=dvExp.numIm;
+        let finalHTML;
+        const reE=(p%k===0),imE=(q%k===0);
+        if(reE&&imE){
+            // Ambdós enters → fmtComplex ja gestiona ±1, signe, etc.
+            finalHTML='= '+fmtComplex(p/k,q/k);
+        } else {
+            // Almenys un és fracció
+            // Part real
+            let rp;
+            if(reE){rp=fmtNum(p/k)} else {
+                const un=parseStrictInt(document.getElementById('dv-rn').value),ud=parseStrictInt(document.getElementById('dv-rd').value);
+                rp=htmlFrac(fmtNum(un),fmtNum(ud));
+            }
+            // Signe de la part imaginària (k sempre >0, signe ve de q)
+            const imSign=(q>0)?' + ':' − ';
+            // Part imaginària (valor absolut)
+            let ip;
+            if(imE){
+                const absQK=Math.abs(q/k);
+                ip=(absQK===1)?'':fmtNum(absQK);
+            } else {
+                const un=parseStrictInt(document.getElementById('dv-in').value),ud=parseStrictInt(document.getElementById('dv-id').value);
+                // Mostrar la fracció en positiu (el signe ja el posa imSign)
+                const absUn=Math.abs(un),absUd=Math.abs(ud);
+                // Si |un/ud|==1, no cal escriure la fracció
+                if(absUn===absUd){ip=''} else {ip=htmlFrac(fmtNum(absUn),fmtNum(absUd))}
+            }
+            finalHTML='= '+rp+imSign+ip+'<em>i</em>';
+        }
+        document.getElementById('dvSteps').innerHTML=`<div class="answer-final" style="margin-top:14px">${finalHTML}</div>`;
+        document.getElementById('resDV').innerHTML=`<div class="result-box anim-fade-in-up"><div class="result-title">✅ Correcte!</div><button class="btn-check-sm" style="margin:16px auto 0;display:block" onclick="initDivisio()">Exercici nou</button></div>`;
+        setTimeout(()=>document.getElementById('resDV').scrollIntoView({behavior:'smooth',block:'center'}),T_SCROLL_DELAY);
+        return;
+    }
+
+    // Errors
+    errorCount++;document.getElementById('errCntDV').textContent=errorCount;
+    showHint('DV');
+    fb.style.color='var(--danger)';fb.innerText='❌ No és correcte. Torna-ho a intentar.';
+
+    let firstWrong=null;
+    for(const r of groupResults){
+        const inps=r.g.ids.map(id=>document.getElementById(id));
+        if(r.ok&&!r.g.locked){
+            r.g.locked=true;
+            inps.forEach(inp=>{inp.disabled=true;inp.classList.add('locked-ok')});
+        }
+        if(!r.ok&&!r.g.locked){
+            inps.forEach(inp=>triggerShake(inp));
+            if(!firstWrong){firstWrong=inps[0];inps.forEach(inp=>selectInputContent(inp))}
+        }
+    }
+    if(firstWrong)focusInput(firstWrong);
+}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
+
+// ════════════════════════════════════════════════════════════════════
+// TECLAT CUSTOM
+// ════════════════════════════════════════════════════════════════════
+let activeKbInput=null,kbClearOnNext=false;
+function showCustomKeyboard(inp){
+    activeKbInput=inp;const kb=document.getElementById('customKeyboard');
+    kb.classList.add('kb-visible');inp.focus();
+    setTimeout(()=>kb.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+function hideCustomKeyboard(){document.getElementById('customKeyboard').classList.remove('kb-visible');activeKbInput=null}
+function initCustomKeyboard(){
+    document.querySelectorAll('#customKeyboard .kb-btn').forEach(btn=>{
+        btn.addEventListener('pointerdown',e=>{
+            e.preventDefault();if(!activeKbInput)return;
+            const key=btn.dataset.key;
+            if(key==='del'){
+                if(kbClearOnNext){activeKbInput.value='';kbClearOnNext=false;activeKbInput.classList.remove('kb-selected')}
+                else{activeKbInput.value=activeKbInput.value.slice(0,-1)}
+            }else if(key==='enter'){
+                onEnterPressed();
+            }else if(key==='-'){
+                if(kbClearOnNext){activeKbInput.value='-';kbClearOnNext=false;activeKbInput.classList.remove('kb-selected')}
+                else{if(activeKbInput.value===''||activeKbInput.value==='-')activeKbInput.value=activeKbInput.value==='-'?'':'-'}
+            }else{
+                if(kbClearOnNext){activeKbInput.value='';kbClearOnNext=false;activeKbInput.classList.remove('kb-selected')}
+                if(activeKbInput.value==='-0')activeKbInput.value='-';
+                activeKbInput.value+=key;
+            }
+        });
+    });
+}
+
+window.onload=()=>{initCustomKeyboard();initSumaResta()};
+</script>
+</body>
+</html>

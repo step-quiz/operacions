@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>Descomposició Factorial</title>
+
+    <!-- 1. Configuració per defecte ESPECÍFICA d'aquest joc -->
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    3,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!-- 2. Fitxers compartits -->
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+
+    <!-- 3. Estils compartits -->
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ---- Variables de color específiques de factoritzar ---- */
+        :root {
+            --bg-color:      #fef7ed;
+            --primary:       #d97706;
+            --primary-light: #fef3c7;
+            --primary-hover: #b45309;
+            --primary-dark:  #92400e;
+            --accent:        #7c3aed;
+            --accent-light:  #ede9fe;
+            --success-light: #d1fae5;
+            --node-active:   #f59e0b;
+            --node-prime:    #10b981;
+            --node-done:     #94a3b8;
+        }
+
+        /* ---- Overrides de color específics ---- */
+        h1 { color: var(--primary-dark); }
+        .header-info { background-color: #fffbeb; }
+        .level-text  { color: var(--primary-dark); font-size: 1.1em; }
+        .score-text  { color: var(--primary); }
+
+        .phase-text { font-size: 0.9em; color: var(--accent); font-weight: 600; }
+
+        /* ---- ARBRE DE FACTORS ---- */
+        .tree-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: auto;
+        }
+        .tree-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+        .node-value {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
+            min-height: 48px;
+            padding: 6px 14px;
+            border-radius: 50%;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: 3px solid var(--border-heavy);
+            background: white;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .node-value.prime      { border-color: var(--node-prime); background: var(--success-light); color: #065f46; }
+        .node-value.prime-done { border-color: var(--node-done);  background: #f1f5f9; color: var(--text-muted); }
+        .node-value.active     { border-color: var(--node-active); background: var(--primary-light); color: var(--primary-dark); animation: pulse 1.5s infinite; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+        .node-value.decomposed { border-color: var(--node-done); background: #f1f5f9; color: var(--text-muted); }
+
+        .node-children {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            position: relative;
+        }
+        .node-children::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            width: 0;
+            height: 8px;
+            border-left: 2px dashed var(--border-heavy);
+        }
+        .split-symbol {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            color: var(--text-muted);
+            font-weight: bold;
+            padding-top: 20px;
+        }
+
+        /* ---- RESULTAT DE FACTORITZACIÓ ---- */
+        .factorization-display {
+            text-align: center;
+            padding: 15px 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--primary-dark);
+            background: var(--primary-light);
+            border-radius: 8px;
+            margin: 10px 20px;
+            animation: fadeIn 0.4s;
+        }
+        .factorization-display sup {
+            font-size: 0.7em;
+            color: var(--accent);
+            vertical-align: baseline;
+            position: relative;
+            top: -0.55em;
+            line-height: 0;
+            margin-left: -0.3em;
+        }
+
+        /* ---- PANELL DE RESOLUCIÓ ---- */
+        .resolution-panel {
+            background-color: #f8fafc;
+            border-top: 1px solid var(--border-color);
+            padding: 25px 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .step-instruction {
+            font-size: 1.15em;
+            color: #334155;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .step-counter {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        /* ---- ZONA D'INPUT DE FACTORS ---- */
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .factor-input {
+            width: 90px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.4em;
+            font-weight: bold;
+            padding: 12px;
+            text-align: center;
+            border: 2px solid var(--border-heavy);
+            border-radius: 6px;
+            outline: none;
+        }
+        .factor-input:focus { border-color: var(--primary); }
+        .input-multiply, .input-equals {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+        .input-equals  { color: var(--primary); }
+        .input-target  { font-size: 1.5em; font-weight: bold; font-family: 'Courier New', Courier, monospace; color: var(--primary-dark); }
+        .error-msg     { color: var(--danger); font-size: 0.9em; font-weight: bold; margin-top: 8px; min-height: 1.2em; }
+
+        /* ---- PHASE BANNER ---- */
+        .phase-banner {
+            display: none;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 0.4s;
+        }
+        .phase-banner h3 { font-size: 1.4em; color: var(--primary-dark); margin: 0 0 8px 0; }
+        .phase-banner p  { color: var(--text-muted); margin: 0; font-size: 1em; }
+
+        /* ---- RESPONSIU ESPECÍFIC ---- */
+        @media (max-width: 480px) {
+            .node-value    { min-width: 40px; min-height: 40px; font-size: 1.1em; padding: 5px 10px; }
+            .factor-input  { width: 70px; font-size: 1.2em; padding: 10px; }
+        }
+
+        /* ---- Animacions específiques ---- */
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.2); }
+            50%      { box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+        }
+        @keyframes blink-yellow {
+            0%, 50%, 100% { background-color: white; }
+            25%, 75%      { background-color: #fef08a; border-color: #facc15; }
+        }
+        .blink-animation { animation: blink-yellow 1s step-end; }
+    </style>
+</head>
+<body>
+
+<!-- Capçalera amb icona home -->
+<div class="title-row">
+    <a href="https://mates-ins.github.io/operacions/index.html"
+       class="home-icon-link"
+       title="Tornar a l'inici"
+       aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Descomposició Factorial</h1>
+</div>
+<div class="subtitle">Matemàtiques ESO — Pas a pas</div>
+
+<div class="panel" id="main-panel">
+
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display"></div>
+                <div class="level-text" id="lvl-display"></div>
+                <div class="phase-text" id="phase-display">Arbre de factors</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 4</div>
+        </div>
+
+        <div class="phase-banner" id="phase-banner">
+            <h3 id="phase-banner-title"></h3>
+            <p id="phase-banner-text"></p>
+        </div>
+
+        <div class="tree-container" id="tree-container"></div>
+        <div id="factorization-result" style="display:none;"></div>
+
+        <div class="resolution-panel" id="resolution-panel">
+            <div class="step-counter" id="step-counter"></div>
+            <div class="step-instruction" id="step-instruction"></div>
+            <div id="input-zone"></div>
+            <div class="error-msg" id="error-msg"></div>
+        </div>
+    </div>
+ </div>    
+<!-- 4. game-core DESPRÉS del body -->
+<script src="js/game-core.js"></script>
+
+<script>
+    // ============================================================
+    // CODI ESPECÍFIC DE FACTORITZAR — el que NO és compartit
+    // ============================================================
+
+    // Cache DOM específic
+    const els = {
+        body:             document.body,
+        gameScreen:       document.getElementById('game-screen'),
+        sessionDisplay:   document.getElementById('session-display'),
+        lvlDisplay:       document.getElementById('lvl-display'),
+        scoreDisplay:     document.getElementById('score-display'),
+        attemptsDisplay:  document.getElementById('attempts-display'),
+        phaseBanner:      document.getElementById('phase-banner'),
+        phaseBannerTitle: document.getElementById('phase-banner-title'),
+        phaseBannerText:  document.getElementById('phase-banner-text'),
+        treeContainer:    document.getElementById('tree-container'),
+        factResult:       document.getElementById('factorization-result'),
+        resolutionPanel:  document.getElementById('resolution-panel'),
+        stepCounter:      document.getElementById('step-counter'),
+        stepInstruction:  document.getElementById('step-instruction'),
+        inputZone:        document.getElementById('input-zone'),
+        errorMsg:         document.getElementById('error-msg'),
+    };
+
+    // Estat específic de factoritzar
+    let numberA     = 0;
+    let factorsA    = {};
+    let currentTree = null;
+    let isPenalizing = false;    
+
+    // ---- MATEMÀTIQUES ----
+    function isPrime(n) {
+        if (n < 2) return false;
+        if (n < 4) return true;
+        if (n % 2 === 0 || n % 3 === 0) return false;
+        for (let i = 5; i * i <= n; i += 6) {
+            if (n % i === 0 || n % (i + 2) === 0) return false;
+        }
+        return true;
+    }
+
+    function primeFactorization(n) {
+        const factors = {};
+        let d = 2;
+        while (d * d <= n) {
+            while (n % d === 0) { factors[d] = (factors[d] || 0) + 1; n /= d; }
+            d++;
+        }
+        if (n > 1) factors[n] = (factors[n] || 0) + 1;
+        return factors;
+    }
+
+    function formatFactorization(n, factors) {
+        const primes = Object.keys(factors).map(Number).sort((a, b) => a - b);
+        return `<strong>${n}</strong> = ` + primes.map(p =>
+            factors[p] === 1 ? `${p}` : `${p}<sup>${factors[p]}</sup>`
+        ).join(' · ');
+    }
+
+    // ---- GENERACIÓ DE NOMBRES ----
+    function generateNumber(opIndex) {
+        const primePools = [[2, 3, 5], [2, 3, 5, 7], [2, 3, 5, 7, 11]];
+        const difficulty = Math.min(opIndex, primePools.length - 1);
+        const pool = primePools[difficulty];
+
+        function makeNumber(minFactors, maxFactors) {
+            const numFactors = randInt(minFactors, maxFactors);
+            let n = 1;
+            for (let i = 0; i < numFactors; i++) {
+                n *= pool[randInt(0, Math.min(pool.length - 1, difficulty + 2))];
+            }
+            if (n < 6) n *= pool[randInt(0, 1)];
+            if (n > 150) return makeNumber(minFactors, maxFactors);
+            return n;
+        }
+        return makeNumber(2, 3 + Math.min(difficulty, 1));
+    }
+
+    // ---- ARBRE DE FACTORS ----
+    function createNode(value) {
+        return {
+            value: value,
+            isPrime: isPrime(value),
+            children: null,
+            id: 'node_' + Math.random().toString(36).substr(2, 6)
+        };
+    }
+
+    function getPendingNodes(node) {
+        if (!node) return [];
+        if (!node.children && !node.isPrime) return [node];
+        if (!node.children) return [];
+        return [...getPendingNodes(node.children[0]), ...getPendingNodes(node.children[1])];
+    }
+
+    function renderTree(node, activeNodeId, isComplete, isRoot) {
+        if (!node) return '';
+        let nodeClass = 'node-value';
+        if (isComplete) {
+            if (isRoot && node.children) nodeClass += ' decomposed';
+            else if (node.isPrime && !node.children) nodeClass += ' prime';
+            else if (node.children) nodeClass += ' decomposed';
+        } else {
+            if (node.isPrime && !node.children) nodeClass += ' prime-done';
+            else if (node.id === activeNodeId) nodeClass += ' active';
+            else if (node.children) nodeClass += ' decomposed';
+        }
+        let html = `<div class="tree-node"><div class="${nodeClass}" data-id="${node.id}">${node.value}</div>`;
+        if (node.children) {
+            html += `<div class="node-children">${renderTree(node.children[0], activeNodeId, isComplete, false)}<div class="split-symbol">·</div>${renderTree(node.children[1], activeNodeId, isComplete, false)}</div>`;
+        }
+        html += `</div>`;
+        return html;
+    }
+
+    function renderCurrentTree() {
+        const pending = getPendingNodes(currentTree);
+        els.treeContainer.innerHTML = renderTree(
+            currentTree,
+            pending.length > 0 ? pending[0].id : null,
+            pending.length === 0,
+            true
+        );
+    }
+
+    // ---- BUILD LEVEL (cridat per game-core) ----
+    function buildLevel() {
+        attemptsLeft    = MAX_INTENTS;
+        isTransitioning = false;
+
+        numberA  = generateNumber(currentOperation);
+        factorsA = primeFactorization(numberA);
+
+        els.body.style.backgroundColor = bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+        startPhase();
+    }
+
+    function startPhase() {
+        els.treeContainer.innerHTML      = '';
+        els.factResult.style.display     = 'none';
+        els.factResult.innerHTML         = '';
+        els.resolutionPanel.style.display = 'none';
+        els.errorMsg.textContent         = '';
+        els.phaseBanner.style.display    = 'none';
+        updateHeader();
+
+        els.phaseBanner.style.display     = 'block';
+        els.phaseBannerTitle.textContent  = '🌳 Descomposició factorial';
+        els.phaseBannerText.textContent   = 'en factors primers';
+        setTimeout(() => {
+            els.phaseBanner.style.display = 'none';
+            startFactorTree(numberA);
+        }, 1250);
+    }
+
+    function startFactorTree(number) {
+        currentTree = createNode(number);
+        if (currentTree.isPrime) {
+            renderCurrentTree();
+            showFactorizationResult(number);
+            setTimeout(() => advancePhase(), 1200);
+            return;
+        }
+        renderCurrentTree();
+        showFactorInput();
+    }
+
+function showFactorInput() {
+        const pending = getPendingNodes(currentTree);
+        if (pending.length === 0) {
+            showFactorizationResult(numberA);
+            setTimeout(() => advancePhase(), 1500);
+            return;
+        }
+
+        els.resolutionPanel.style.display = 'flex';
+        els.stepInstruction.innerHTML     = `Descomposa <strong>${pending[0].value}</strong> en dos factors majors que 1`;
+        els.errorMsg.textContent          = '';
+
+        els.inputZone.innerHTML = `
+            <div class="input-row">
+                <input type="text" class="factor-input" id="factor-a-input" autocomplete="off" inputmode="none" placeholder="?">
+                <span class="input-multiply">·</span>
+                <input type="text" class="factor-input" id="factor-b-input" autocomplete="off" inputmode="none" placeholder="?">
+                <span class="input-equals">=</span>
+                <span class="input-target">${pending[0].value}</span>
+            </div>
+            <button class="btn-submit" id="btn-factor-submit" onclick="checkFactors()">OK</button>`;
+
+        const inpA = document.getElementById('factor-a-input');
+        const inpB = document.getElementById('factor-b-input');
+
+        // REGISTRE: Això permet que el teclat custom sàpiga on escriure quan es clica l'input
+        if (typeof registerKbInput === 'function') {
+            registerKbInput(inpA);
+            registerKbInput(inpB);
+        }
+
+        // CONTROL DE VISIBILITAT: Només obrim el teclat custom automàticament si és TÀCTIL
+        if (isTouchDevice()) {
+            setTimeout(() => {
+                showCustomKeyboard(inpA); // Obre el teclat custom al mòbil
+            }, 50);
+        } else {
+            // A PC, simplement fem focus normal i el teclat custom es queda amagat
+            hideCustomKeyboard();
+            inpA.focus();
+        }
+        
+        // NAVEGACIÓ LLIURE: Si l'usuari clica/toca un input, ens assegurem que el teclat custom l'apunti
+        [inpA, inpB].forEach(el => {
+            el.addEventListener('focus', () => {
+                if (isTouchDevice()) showCustomKeyboard(el);
+            });
+        });
+    }
+    
+    // ---- COMPROVAR FACTORS ----
+// ---- COMPROVAR FACTORS ----
+    function checkFactors() {
+        if (isTransitioning) return;
+
+        const inpA = document.getElementById('factor-a-input');
+        const inpB = document.getElementById('factor-b-input');
+        if (!inpA || !inpB) return;
+        
+        const a = parseStrictInt(inpA.value);
+        const b = parseStrictInt(inpB.value);
+        
+        const pending = getPendingNodes(currentTree);
+        if (pending.length === 0) return;
+
+        // --- ACCIÓ DE NETEJA: Torna a posar l'usuari a la primera casella ---
+        const resetInputs = () => {
+            if (attemptsLeft > 0) {
+                // El petit retard (100ms) evita bloquejos en mòbils en processar l'error
+                setTimeout(() => {
+                    inpA.value = '';
+                    inpB.value = '';
+                    if (isTouchDevice()) {
+                        showCustomKeyboard(inpA); // Força l'obertura del teclat custom a la casella A
+                    }
+                    inpA.focus(); // Posa el cursor visible a la casella A (tant a PC com a mòbil)
+                }, 100);
+            }
+        };
+
+        // 1. Validació: Si està buit o no és un número
+        if (isNaN(a) || isNaN(b)) { 
+            showError('Introdueix dos nombres'); 
+            resetInputs();
+            return; 
+        }
+
+        // 2. Validació: Si l'usuari posa un 1 (ex: 1 · 9)
+        if (a < 2 || b < 2) { 
+            showError('Tots dos factors han de ser majors que 1'); 
+            penalize(); 
+            resetInputs();
+            return; 
+        }
+
+        // Generem la pregunta i resposta per a l'informe d'historial
+        const stepQuestion = "Factors de " + pending[0].value;
+        const userAnswer = a + " · " + b;
+
+        // 3. Validació: Si s'equivoquen al multiplicar
+        if (a * b !== pending[0].value) {
+            showError(`${a} · ${b} = ${a * b}, però ha de ser ${pending[0].value}`);
+            
+            // Guardem l'error a l'historial
+            if (typeof recordAnswerToHistory === 'function') {
+                recordAnswerToHistory(stepQuestion, userAnswer, false);
+            }
+
+            penalize();
+            resetInputs();
+            return;
+        }
+
+        // 🟢 Guardem l'encert a l'historial
+        if (typeof recordAnswerToHistory === 'function') {
+            recordAnswerToHistory(stepQuestion, userAnswer, true);
+        }
+
+        // Si tot és correcte: netejem errors, amaguem teclat i avancem l'arbre
+        els.errorMsg.textContent = '';
+        hideCustomKeyboard();
+        pending[0].children = [createNode(a), createNode(b)];
+        renderCurrentTree();
+        setTimeout(() => showFactorInput(), 400);
+    }
+    function showFactorizationResult(number) {
+        els.resolutionPanel.style.display = 'none';
+        hideCustomKeyboard();
+        const div = document.createElement('div');
+        div.className = 'factorization-display';
+        div.innerHTML = '✅ ' + formatFactorization(number, factorsA);
+        els.factResult.innerHTML = '';
+        els.factResult.appendChild(div);
+        els.factResult.style.display = 'block';
+    }
+
+    function advancePhase() {
+        finishExercise(Math.max(0, 10 - (MAX_INTENTS - attemptsLeft)));
+    }
+
+// ---- FINALITZAR EXERCICI ----
+    function finishExercise(levelPoints) {
+        isTransitioning = true;
+        if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
+        els.resolutionPanel.style.display = 'none';
+        els.treeContainer.innerHTML       = '';
+        els.factResult.style.display      = 'none';
+        els.phaseBanner.style.display     = 'none';
+
+        // Sumem els punts a la variable global i actualitzem marcador
+        sessionScore += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+        // Mostrem l'overlay de "Molt bé" o "Intents esgotats"
+        const waitTime = typeof showMiniOverlay === 'function' 
+            ? showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)', pointsColor: 'var(--success)' }) 
+            : 1500;
+
+        // Passem al següent exercici o acabem la sessió
+        setTimeout(() => {
+            if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
+            
+            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                if (typeof endSession === 'function') endSession();
+            } else {
+                currentOperation++;
+                buildLevel();
+            }
+        }, waitTime);
+    }
+    // ---- PENALITZACIÓ ----
+    function penalize() {
+        if (isPenalizing || isTransitioning) return;
+        isPenalizing = true;
+        els.attemptsDisplay.classList.add('blink-animation');
+        setTimeout(() => {
+            els.attemptsDisplay.classList.remove('blink-animation');
+            attemptsLeft--;
+            updateHeader();
+            if (attemptsLeft <= 0) {
+                isTransitioning = true;
+                els.resolutionPanel.style.display = 'none';
+                finishExercise(0);
+            }
+            isPenalizing = false;
+        }, 1000);
+    }
+    function showError(msg) {
+        els.errorMsg.textContent = msg;
+        const btn = els.inputZone.querySelector('.btn-submit');
+        if (btn) {
+            btn.classList.add('error-shake');
+            setTimeout(() => btn.classList.remove('error-shake'), 200);
+        }
+    }
+
+    function updateHeader() {
+        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText      = `Exercici ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 5 ? ' danger' : '');
+    }
+
+    // ---- TECLAT FÍSIC ----
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !isTransitioning && els.gameScreen.style.display !== 'none') {
+            e.preventDefault();
+            const factorBtn = document.getElementById('btn-factor-submit');
+            if (factorBtn) checkFactors();
+        }
+        if (e.key === 'Tab') {
+            const factA = document.getElementById('factor-a-input');
+            const factB = document.getElementById('factor-b-input');
+            if (factA && factB && document.activeElement === factA) {
+                e.preventDefault();
+                factB.focus();
+            }
+        }
+    });
+
+    // ---- checkCurrentCell: botó → del teclat custom ----
+    // Lògica intel·ligent: si input A ple i B buit → salta a B; sinó → checkFactors
+    function checkCurrentCell() {
+        const inpA = document.getElementById('factor-a-input');
+        const inpB = document.getElementById('factor-b-input');
+        if (!inpA || !inpB) return;
+
+        const aFull = inpA.value.trim() !== '';
+        const bFull = inpB.value.trim() !== '';
+
+        if (aFull && !bFull) {
+            // Salta al segon input
+            showCustomKeyboard(inpB);
+        } else if (!aFull && bFull) {
+            // Salta al primer input
+            showCustomKeyboard(inpA);
+        } else {
+            // Tots dos plens (o tots dos buits) → intenta validar
+            checkFactors();
+        }
+    }
+
+    // ---- ARRENCADA ----
+    injectSharedHTML();
+    validateConfig();
+    initCustomKeyboard({ allowNegative: false, allowZero: false });
+    startGame();
+</script>
+</body>
+</html>

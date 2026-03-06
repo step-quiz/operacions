@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>MCD i MCM</title>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    3,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ---- Variables de color específiques (paleta ambre/violeta) ---- */
+        :root {
+            --bg-color:      #fef7ed;
+            --primary:       #d97706;
+            --primary-light: #fef3c7;
+            --primary-hover: #b45309;
+            --primary-dark:  #92400e;
+            --accent:        #7c3aed;
+            --accent-light:  #ede9fe;
+            --success-light: #d1fae5;
+        }
+
+        /* ---- Overrides de shared.css ---- */
+        h1 { color: var(--primary-dark); }
+        .header-info { background-color: #fffbeb; }
+        .level-text  { font-size: 1.1em; color: var(--primary-dark); }
+        .score-text  { color: var(--primary); }
+        .btn-submit  { background-color: var(--primary-dark); }
+        @media (hover: hover) { .btn-submit:hover { background-color: var(--primary-hover); } }
+
+        /* ---- Fase (MCD / MCM) ---- */
+        .phase-text { font-size: 0.9em; color: var(--accent); font-weight: 600; }
+
+        .phase-banner { display: none; padding: 20px; text-align: center; animation: fadeIn 0.4s; }
+        .phase-banner h3 { font-size: 1.4em; color: var(--primary-dark); margin: 0 0 8px 0; }
+        .phase-banner p  { color: var(--text-muted); margin: 0; font-size: 1em; }
+
+        /* ---- Zona MCD/MCM ---- */
+        .mcd-mcm-zone { padding: 20px; text-align: center; }
+
+        .both-factorizations { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+        .fact-row {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-family: 'Courier New', Courier, monospace; font-size: 1.2em; font-weight: bold;
+            padding: 10px 15px; border-radius: 8px; animation: fadeIn 0.3s;
+        }
+        .fact-row.row-a { background: var(--primary-light); color: var(--primary-dark); }
+        .fact-row.row-b { background: var(--accent-light); color: #5b21b6; }
+        .fact-row sup, .factorization-display sup {
+            font-size: 0.7em; vertical-align: baseline; position: relative;
+            top: -0.55em; line-height: 0; margin-left: -0.3em;
+        }
+
+        .factorization-display {
+            text-align: center; padding: 15px 20px;
+            font-family: 'Courier New', Courier, monospace; font-size: 1.4em; font-weight: bold;
+            border-radius: 8px; margin: 10px 20px; animation: fadeIn 0.4s;
+        }
+
+        /* ---- Resolució ---- */
+        .resolution-panel {
+            background-color: #f8fafc; border-top: 1px solid var(--border-color);
+            padding: 25px 20px; display: none; flex-direction: column; align-items: center; width: 100%;
+        }
+        .step-instruction {
+            font-size: 1.15em; color: #334155; margin-bottom: 20px;
+            font-weight: bold; text-align: center; line-height: 1.4;
+        }
+        .input-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        .factor-input {
+            width: 130px; font-family: 'Courier New', Courier, monospace; font-size: 1.4em;
+            font-weight: bold; padding: 12px; text-align: center;
+            border: 2px solid var(--border-heavy); border-radius: 6px; outline: none;
+            -moz-appearance: textfield;
+        }
+        .factor-input:focus { border-color: var(--primary); }
+        .factor-input::-webkit-inner-spin-button,
+        .factor-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .error-msg { color: var(--danger); font-size: 0.9em; font-weight: bold; margin-top: 8px; min-height: 1.2em; }
+
+        /* ---- Animació intents ---- */
+        .attempts-counter.blink-error { animation: blink-yellow 0.25s step-end infinite; border-color: #eab308; }
+        @keyframes blink-yellow {
+            0%, 100% { background-color: #fef9c3; color: #854d0e; }
+            50%      { background-color: white; color: var(--text-muted); }
+        }
+
+        /* ---- Responsiu específic ---- */
+        @media (max-width: 480px) {
+            .factor-input { width: 100px; font-size: 1.2em; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Màxim Comú Divisor i Mínim Comú Múltiple</h1>
+    <div class="subtitle">Matemàtiques ESO — Pas a pas</div>
+
+    <div class="panel" id="main-panel">
+
+        <div id="game-screen" style="display:none;">
+            <div class="header-info">
+                <div class="header-left">
+                    <div class="session-text" id="session-display"></div>
+                    <div class="level-text" id="lvl-display"></div>
+                    <div class="phase-text" id="phase-display">MCD / MCM</div>
+                </div>
+                <div class="score-text" id="score-display">Punts: 0</div>
+                <div id="attempts-display" class="attempts-counter">Intents: 4</div>
+            </div>
+
+            <div class="phase-banner" id="phase-banner">
+                <h3 id="phase-banner-title"></h3>
+                <p id="phase-banner-text"></p>
+            </div>
+
+            <div class="mcd-mcm-zone" id="mcd-mcm-zone" style="display:none;"></div>
+
+            <div class="resolution-panel" id="resolution-panel">
+                <div class="step-instruction" id="step-instruction"></div>
+                <div id="input-zone"></div>
+                <div class="error-msg" id="error-msg"></div>
+            </div>
+        </div>
+        <!-- #mini-victory-overlay, #session-end-screen, #final-screen → injectats per injectSharedHTML() -->
+    </div>
+
+<script src="js/game-core.js"></script>
+
+<script>
+    // ============================================================
+    // DOM
+    // ============================================================
+    const els = {
+        body:             document.body,
+        gameScreen:       document.getElementById('game-screen'),
+        sessionDisplay:   document.getElementById('session-display'),
+        lvlDisplay:       document.getElementById('lvl-display'),
+        phaseDisplay:     document.getElementById('phase-display'),
+        scoreDisplay:     document.getElementById('score-display'),
+        attemptsDisplay:  document.getElementById('attempts-display'),
+        phaseBanner:      document.getElementById('phase-banner'),
+        phaseBannerTitle: document.getElementById('phase-banner-title'),
+        phaseBannerText:  document.getElementById('phase-banner-text'),
+        mcdMcmZone:       document.getElementById('mcd-mcm-zone'),
+        resolutionPanel:  document.getElementById('resolution-panel'),
+        stepInstruction:  document.getElementById('step-instruction'),
+        inputZone:        document.getElementById('input-zone'),
+        errorMsg:         document.getElementById('error-msg'),
+    };
+
+    const bgColors_override = ['#fef7ed', '#fefce8', '#fdf4ff', '#f0fdf4', '#fff1f2', '#ecfeff', '#eff6ff', '#faf5ff', '#fffbeb', '#f5f3ff'];
+
+    // ============================================================
+    // ESTAT ESPECÍFIC DEL JOC
+    // ============================================================
+    let isPenalizing = false;
+    let currentPhase = 'mcd';
+    let numberA = 0, numberB = 0;
+    let factorsA = {}, factorsB = {};
+    let mcdValue = 0, mcmValue = 0;
+
+    // ============================================================
+    // MATEMÀTIQUES
+    // ============================================================
+    function primeFactorization(n) {
+        const factors = {}; let d = 2;
+        while (d * d <= n) { while (n % d === 0) { factors[d] = (factors[d] || 0) + 1; n /= d; } d++; }
+        if (n > 1) factors[n] = (factors[n] || 0) + 1;
+        return factors;
+    }
+
+    function computeMCD(fa, fb) {
+        let result = 1;
+        for (const p in fa) { if (fb[p]) result *= Math.pow(parseInt(p), Math.min(fa[p], fb[p])); }
+        return result;
+    }
+
+    function computeMCM(fa, fb) {
+        const allPrimes = new Set([...Object.keys(fa), ...Object.keys(fb)]);
+        let result = 1;
+        for (const p of allPrimes) { result *= Math.pow(parseInt(p), Math.max(fa[p] || 0, fb[p] || 0)); }
+        return result;
+    }
+
+    function formatFactorization(n, factors) {
+        const primes = Object.keys(factors).map(Number).sort((a, b) => a - b);
+        return `<strong>${n}</strong> = ` + primes.map(p => factors[p] === 1 ? `${p}` : `${p}<sup>${factors[p]}</sup>`).join(' · ');
+    }
+
+    function generatePair(opIndex) {
+        const primePools = [[2, 3, 5], [2, 3, 5, 7], [2, 3, 5, 7, 11]];
+        const difficulty = Math.min(opIndex, primePools.length - 1);
+        const pool = primePools[difficulty];
+
+        function makeNumber(minFactors, maxFactors) {
+            const numFactors = randInt(minFactors, maxFactors); let n = 1;
+            for (let i = 0; i < numFactors; i++) n *= pool[randInt(0, Math.min(pool.length - 1, difficulty + 2))];
+            if (n < 6) n *= pool[randInt(0, 1)];
+            if (n > 150) return makeNumber(minFactors, maxFactors);
+            return n;
+        }
+
+        const allowCoprime = Math.random() < 0.15;
+        const maxMcm = allowCoprime ? 500 : 300;
+        let attempts = 0, a, b, fa, fb, mcm, mcd;
+        do {
+            a = makeNumber(2, 3 + Math.min(difficulty, 1));
+            b = makeNumber(2, 3 + Math.min(difficulty, 1));
+            fa = primeFactorization(a); fb = primeFactorization(b);
+            mcd = computeMCD(fa, fb); mcm = computeMCM(fa, fb);
+            attempts++; if (attempts > 200) break;
+        } while (b === a || mcm > maxMcm || (allowCoprime ? mcd !== 1 : mcd === 1));
+        return [a, b];
+    }
+
+    // ============================================================
+    // FLUX DEL JOC
+    // ============================================================
+    function buildLevel() {
+        attemptsLeft = MAX_INTENTS;
+        isTransitioning = false;
+        isPenalizing = false;
+
+        const [a, b] = generatePair(currentOperation);
+        numberA = a; numberB = b;
+        factorsA = primeFactorization(a); factorsB = primeFactorization(b);
+        mcdValue = computeMCD(factorsA, factorsB);
+        mcmValue = computeMCM(factorsA, factorsB);
+
+        els.body.style.backgroundColor = bgColors_override[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors_override.length];
+        currentPhase = 'mcd';
+        startPhase();
+    }
+
+    function startPhase() {
+        els.resolutionPanel.style.display = 'none';
+        els.errorMsg.textContent = '';
+        els.phaseBanner.style.display = 'none';
+        if (currentPhase === 'mcd') els.mcdMcmZone.innerHTML = '';
+        updateHeader();
+
+        if (currentPhase === 'mcd') {
+            els.phaseBanner.style.display = 'block';
+            els.phaseBannerTitle.textContent = '🔗 Màxim Comú Divisor';
+            els.phaseBannerText.textContent = `Calcula el MCD de ${numberA} i ${numberB}`;
+            setTimeout(() => { els.phaseBanner.style.display = 'none'; startMcdMcm('mcd'); }, 1500);
+        } else if (currentPhase === 'mcm') {
+            els.phaseBanner.style.display = 'block';
+            els.phaseBannerTitle.textContent = '🔗 Mínim Comú Múltiple';
+            els.phaseBannerText.textContent = `Calcula el MCM de ${numberA} i ${numberB}`;
+            setTimeout(() => { els.phaseBanner.style.display = 'none'; startMcdMcm('mcm'); }, 1500);
+        }
+    }
+
+    function advancePhase() {
+        if (currentPhase === 'mcd') {
+            currentPhase = 'mcm';
+            startPhase();
+        } else if (currentPhase === 'mcm') {
+            finishExercise(Math.max(0, 10 - (MAX_INTENTS - attemptsLeft)));
+        }
+    }
+
+    function startMcdMcm(type) {
+        els.mcdMcmZone.style.display = 'block';
+        const label = type === 'mcd' ? 'MCD' : 'MCM';
+        const fullName = type === 'mcd' ? 'màxim comú divisor' : 'mínim comú múltiple';
+        const answer = type === 'mcd' ? mcdValue : mcmValue;
+
+        els.mcdMcmZone.innerHTML = `<div class="both-factorizations"><div class="fact-row row-a">${formatFactorization(numberA, factorsA)}</div><div class="fact-row row-b">${formatFactorization(numberB, factorsB)}</div></div>`;
+
+        els.resolutionPanel.style.display = 'flex';
+        els.stepInstruction.innerHTML = `Quin és el <span style="color: var(--accent); font-weight: bold;">${fullName}</span> de ${numberA} i ${numberB}?`;
+        els.errorMsg.textContent = '';
+        els.inputZone.innerHTML = `<div class="input-row"><input type="number" class="factor-input" id="mcd-mcm-input" autocomplete="off" aria-label="${label}"><button class="btn-submit" id="btn-mcd-mcm-submit" onclick="checkMcdMcm(${answer}, '${label}')">OK</button></div>`;
+        document.getElementById('mcd-mcm-input').focus();
+    }
+
+    function checkMcdMcm(answer, label) {
+        if (isTransitioning || isPenalizing) return;
+        const input = document.getElementById('mcd-mcm-input');
+        const rawValue = input.value.trim();
+
+        if (rawValue === '') { showError('Introdueix un nombre'); return; }
+
+        const userVal = parseStrictInt(rawValue);
+        if (isNaN(userVal)) { showError('Introdueix un nombre vàlid'); return; }
+
+        if (userVal !== answer) {
+            showError(`${userVal} no és el resultat correcte. Torna-ho a intentar.`);
+            penalize();
+            if (attemptsLeft > 0) { input.value = ''; input.focus(); }
+            return;
+        }
+
+        els.errorMsg.textContent = '';
+        els.resolutionPanel.style.display = 'none';
+
+        if (label === 'MCM') {
+            els.phaseDisplay.innerHTML = `🔗 MCD(${numberA}, ${numberB}) = ${mcdValue}<br>🔗 MCM(${numberA}, ${numberB}) = ${mcmValue}`;
+        }
+
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'factorization-display';
+        resultDiv.style.background = label === 'MCD' ? 'var(--success-light)' : 'var(--accent-light)';
+        resultDiv.style.color = label === 'MCD' ? '#065f46' : '#5b21b6';
+        resultDiv.innerHTML = `✅ ${label}(${numberA}, ${numberB}) = <strong>${answer}</strong>`;
+        els.mcdMcmZone.appendChild(resultDiv);
+
+        setTimeout(() => advancePhase(), 1200);
+    }
+
+    function finishExercise(levelPoints) {
+        isTransitioning = true;
+        els.resolutionPanel.style.display = 'none';
+        els.mcdMcmZone.style.display = 'none';
+        els.phaseBanner.style.display = 'none';
+
+        sessionScore += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+        const waitTime = showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
+        setTimeout(() => {
+            hideMiniOverlay();
+            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                endSession();
+            } else {
+                currentOperation++;
+                buildLevel();
+            }
+        }, waitTime);
+    }
+
+    // ============================================================
+    // PENALITZACIÓ (amb guarda anti-clics ràpids)
+    // ============================================================
+    function penalize() {
+        if (isPenalizing || isTransitioning) return;
+        isPenalizing = true;
+        els.attemptsDisplay.classList.add('blink-error');
+        setTimeout(() => {
+            els.attemptsDisplay.classList.remove('blink-error');
+            attemptsLeft--;
+            isPenalizing = false;
+            updateHeader();
+            if (attemptsLeft <= 0) {
+                isTransitioning = true;
+                els.resolutionPanel.style.display = 'none';
+                finishExercise(0);
+            }
+        }, 1000);
+    }
+
+    function showError(msg) {
+        els.errorMsg.textContent = msg;
+        const btn = els.inputZone.querySelector('.btn-submit');
+        if (btn) {
+            btn.classList.add('error-shake');
+            setTimeout(() => btn.classList.remove('error-shake'), 200);
+        }
+    }
+
+    // ============================================================
+    // ACTUALITZACIÓ UI
+    // ============================================================
+    function updateHeader() {
+        els.sessionDisplay.innerText = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText = `Exercici ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 3 ? ' danger' : '');
+        els.phaseDisplay.innerHTML = currentPhase === 'mcd'
+            ? `🔗 MCD(${numberA}, ${numberB})`
+            : `🔗 MCD(${numberA}, ${numberB}) = ${mcdValue}<br>🔗 MCM(${numberA}, ${numberB}) = ?`;
+    }
+
+    // ============================================================
+    // TECLAT
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !isTransitioning && !isPenalizing && els.gameScreen.style.display !== 'none') {
+            const mcdMcmBtn = document.getElementById('btn-mcd-mcm-submit');
+            if (mcdMcmBtn) mcdMcmBtn.click();
+        }
+    });
+
+    // ============================================================
+    // ARRENCADA
+    // ============================================================
+    injectSharedHTML();
+    validateConfig();
+    startGame();
+</script>
+</body>
+</html>
