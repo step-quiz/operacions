@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+	<link rel="icon" href="icon.png">
+    <title>La funció i la seva derivada</title>
+    <script>
+        // ============================================================
+        // CONFIGURACIÓ
+        // ============================================================
+        const TOTAL_SESSIONS     = 2;
+        const TOTAL_OPERATIONS   = 5;
+        const MAX_INTENTS        = 8;
+        const K_DISTRACTORS      = 3; 
+        let difficultyLevel      = 1; // 1, 2 o 3
+    </script>
+    <style>
+        :root {
+            --bg-color: #f8fafc; --panel-bg: #ffffff;
+            --text-main: #1e293b; --text-muted: #64748b;
+            --primary: #0f766e; --primary-light: #ccfbf1;
+            --primary-hover: #0d9488; --primary-dark: #115e59;
+            --danger: #ef4444; --danger-light: #fef2f2;
+            --success: #10b981; --border-color: #e2e8f0; --border-heavy: #cbd5e1;
+            --func-blue: #3b82f6; --func-blue-hover: #2563eb;
+            --func-red: #ef4444; --func-red-hover: #dc2626;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            transition: background-color 1s ease;
+        }
+        
+        h1 {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #334155;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* SELECTOR DE NIVELL */
+        .difficulty-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 10px;
+        }
+        .lvl-btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-muted);
+            transition: 0.3s;
+            background: transparent;
+        }
+        .lvl-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+@keyframes blink-attention {
+            0%, 100% { background: transparent; }
+            50% { background: #fef08a; } /* Groc d'alerta */
+        }
+.attention-blink {
+            animation: blink-attention 0.4s ease-in-out 5; /* 5 cicles de 0.4s = 2 segons */
+        }
+        @keyframes shake-attention {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        .attention-shake {
+            animation: shake-attention 0.2s ease-in-out 5; /* 10 cicles de 0.2s = 2 segons */
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 1250px;
+            margin: 0 auto;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            border-top: 6px solid var(--primary);
+            position: relative;
+        }
+        
+        .header-info {
+            background-color: #f1f5f9;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .header-left {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            align-items: baseline;
+        }
+        .session-text { font-size: 1.05em; color: var(--text-muted); }
+        .level-text   { font-size: 1.05em; color: #334155; }
+        .score-text   { font-size: 1.15em; color: var(--primary); font-family: monospace; }
+        
+        .content-row { display: flex; flex-direction: column; width: 100%; }
+        
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+        }
+        #graph-canvas {
+            border: 2px solid var(--border-heavy);
+            border-radius: 8px;
+            background-color: white;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1 / 1;
+        }
+
+        #debug-info {
+            background-color: #fef08a;
+            color: #854d0e;
+            border: 1px dashed #ca8a04;
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.85em;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .interaction-panel {
+            padding: 25px 30px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .step-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            animation: fadeIn 0.4s;
+        }
+        .step-container.active { display: flex; }
+        
+        .question-text {
+            font-size: 1.3em;
+            color: #334155;
+            margin-bottom: 20px;
+            font-weight: normal;
+            line-height: 1.4;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .options-row { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .options-row-step1 { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+        
+        .btn-option {
+            padding: 12px 18px;
+font-size: 1.12em;
+font-weight: 400;
+border-radius: 8px;
+            border: 2px solid transparent;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-blue { background-color: var(--func-blue); }
+        .btn-red  { background-color: var(--func-red); }
+
+.btn-neutral {
+    background-color: white;
+    color: #334155;
+    border-color: var(--border-heavy);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    line-height: 1.9;
+    transition: background-color 0.15s;
+}
+.btn-neutral:hover {
+    background-color: #f1f5f9;
+}        
+        .correct-flash { background-color: var(--success) !important; color: white !important; }
+        .error-shake { animation: shake 0.3s; }
+
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        
+        @media (min-width: 850px) { 
+            .content-row { flex-direction: row; align-items: stretch; }
+            .canvas-container { flex: 0 0 640px; border-bottom: none; border-left: 1px solid var(--border-color); justify-content: center; }
+            .interaction-panel { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>La funció i la seva derivada</h1>
+
+    <div class="difficulty-selector">
+        <button class="lvl-btn active" onclick="setDifficulty(1, this)">Nivell 1</button>
+        <button class="lvl-btn" onclick="setDifficulty(2, this)">Nivell 2</button>
+        <button class="lvl-btn" onclick="setDifficulty(3, this)">Nivell 3</button>
+    </div>
+
+    <div class="panel" id="main-panel">
+        <div id="game-screen">
+            <div class="header-info">
+                <div class="header-left">
+                    <span class="session-text" id="session-display">Sessió 1 de 2</span>
+                    <span class="level-text" id="lvl-display">Gràfica 1 de 5</span>
+                </div>
+                <div class="score-text" id="score-display">Punts: 0</div>
+                <div id="attempts-display" class="attempts-counter" style="display:none;"></div>
+            </div>
+
+            <div class="content-row">
+                <div class="interaction-panel">
+                    <div class="step-container active" id="step-1">
+                        <div class="question-text">
+                            Una gràfica correspon a f(x) i l'altra gràfica a f&nbsp;'&nbsp;(x).<br><br>
+                            <strong>Selecciona la gràfica que correspon a f(x)</strong>
+                        </div>
+                        <div class="options-row options-row-step1">
+                            <button class="btn-option btn-blue" onclick="checkStep1('blue', this)">La Gràfica Blava</button>
+                            <button class="btn-option btn-red" onclick="checkStep1('red', this)">La Gràfica Vermella</button>
+                        </div>
+                    </div>
+
+                    <div class="step-container" id="step-2">
+                        <div class="question-text" id="justification-text">Quina d'aquestes afirmacions és certa?</div>
+                        <div class="options-row" id="justification-options"></div>
+                    </div>
+                    
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="graph-canvas" width="600" height="600"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentOperation = 0, sessionScore = 0, isTransitioning = false, showLegend = false;
+        let currentProblem = { fOriginal: null, fDerivada: null, colorOriginal: '', colorDerivada: '' };
+        const ctx = document.getElementById('graph-canvas').getContext('2d');
+
+        // Si el nombre és enter (ex. 4,00), mostrem només "4"
+        const fmt = (val) => {
+            const n = Number(val);
+            const nearestInt = Math.round(n);
+            if (Math.abs(n - nearestInt) < 1e-9) return String(nearestInt);
+            return n.toFixed(2).replace('.', ',');
+        };
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+const SEED_FUNCTIONS = [
+            // Polinomis (Nivell 1, 2, 3)
+            { type: 'poly', str: "x^2 - 4",       f: x => x*x - 4,                  df: x => 2*x,                     crits: [0],          infs: [] },
+            { type: 'poly', str: "-x^2 + 1",       f: x => -x*x + 1,                 df: x => -2*x,                    crits: [0],          infs: [] },
+            { type: 'poly', str: "x^2 + 2x",       f: x => x*x + 2*x,                df: x => 2*x + 2,                 crits: [-1],         infs: [] },
+            { type: 'poly', str: "x^3 - 3x",       f: x => x*x*x - 3*x,              df: x => 3*x*x - 3,               crits: [-1, 1],      infs: [0] },
+            { type: 'poly', str: "x^3 + 3x^2",     f: x => x*x*x + 3*x*x,            df: x => 3*x*x + 6*x,             crits: [-2, 0],      infs: [-1] },
+            { type: 'poly', str: "x^3 - 6x",       f: x => x*x*x - 6*x,              df: x => 3*x*x - 6,               crits: [-1.41, 1.41],infs: [0] },
+            { type: 'poly', str: "x^4 - 2x^2",     f: x => x*x*x*x - 2*x*x,          df: x => 4*x*x*x - 4*x,           crits: [-1, 0, 1],   infs: [-0.57, 0.57] },
+            { type: 'poly', str: "x^4 - 4x^2 + 3", f: x => x*x*x*x - 4*x*x + 3,     df: x => 4*x*x*x - 8*x,           crits: [-1.41, 0, 1.41], infs: [-0.82, 0.82] },
+            // Racionals sense asímptotes (Nivell 2, 3)
+            { type: 'smooth', str: "4 / (x^2+1)",  f: x => 4/(x*x+1),                df: x => -8*x/Math.pow(x*x+1,2),  crits: [0],          infs: [-0.57, 0.57] },
+            { type: 'smooth', str: "x / (x^2+1)",  f: x => x/(x*x+1),                df: x => (1-x*x)/Math.pow(x*x+1,2), crits: [-1, 1],    infs: [0] },
+            { type: 'smooth', str: "3 / (x^2+4)",  f: x => 3/(x*x+4),                df: x => -6*x/Math.pow(x*x+4,2),  crits: [0],          infs: [-1.15, 1.15] },
+            // Amb asímptotes (Nivell 3)
+            { type: 'asym', str: "x + 1/x",        f: x => x + 1/x,                  df: x => 1 - 1/(x*x),             crits: [-1, 1],      vas: [0], infs: [] },
+            { type: 'asym', str: "x - 1/x",        f: x => x - 1/x,                  df: x => 1 + 1/(x*x),             crits: [],           vas: [0], infs: [] }
+        ];
+        function setDifficulty(lvl, btn) {
+            if (isTransitioning) return;
+            difficultyLevel = lvl;
+            document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            buildLevel();
+        }
+
+        function generateProblem() {
+            let filtered = SEED_FUNCTIONS;
+            if (difficultyLevel === 1) filtered = SEED_FUNCTIONS.filter(s => s.type === 'poly');
+            if (difficultyLevel === 2) filtered = SEED_FUNCTIONS.filter(s => s.type !== 'asym');
+            
+            const seed = filtered[Math.floor(Math.random() * filtered.length)];
+
+            // Més varietat: A i B ja no són fixes
+            const A_OPTIONS = [0.8, 1.0, 1.2, 1.5];
+            const B_OPTIONS = [0.75, 1.0, 1.25];
+            const A = A_OPTIONS[Math.floor(Math.random() * A_OPTIONS.length)];
+            const B = B_OPTIONS[Math.floor(Math.random() * B_OPTIONS.length)] * (Math.random() > 0.5 ? 1 : -1);
+
+            const h = (Math.floor(Math.random() * 5) - 2);
+            const k = (Math.floor(Math.random() * 3) - 1);
+            
+            currentProblem.fOriginal = (x) => A * seed.f(B * (x - h)) + k;
+            currentProblem.fDerivada = (x) => A * B * seed.df(B * (x - h));
+            currentProblem.colorOriginal = Math.random() > 0.5 ? 'blue' : 'red';
+            currentProblem.colorDerivada = currentProblem.colorOriginal === 'blue' ? 'red' : 'blue';
+            
+//            document.getElementById('debug-info').innerHTML =
+//                `DEBUG: ${seed.str} | A=${fmt(A)} | B=${fmt(B)} | f(x) és ${currentProblem.colorOriginal}`;
+            
+            buildQuestions(seed, B, h);
+        }
+
+        function buildQuestions(seed, B, h) {
+            const crits = seed.crits.map(c => c / B + h);
+            const infs = seed.infs.map(i => i / B + h);
+            const vas = (seed.vas || []).map(v => v / B + h); // reservat per a futurs usos
+            
+            const strF = `<span style="color:var(--func-${currentProblem.colorOriginal}); font-weight:bold;">f(x)</span>`;
+            const strDF = `<span style="color:var(--func-${currentProblem.colorDerivada}); font-weight:bold;">f&nbsp;\'&nbsp;(x)</span>`;
+            const derivColor = `var(--func-${currentProblem.colorDerivada})`;
+
+            const strDFat = (xVal) =>
+                `<span style="color:${derivColor}; font-weight:bold;">f&nbsp;\'&nbsp;(${fmt(xVal)})</span>`;
+
+            let pool = [];
+
+            // 1. Extrems
+            crits.forEach(x => {
+                if (x < -4 || x > 4) return;
+                const type = currentProblem.fDerivada(x - 0.1) > 0 ? "màxim" : "mínim";
+
+                const dfVerb = Math.random() > 0.5
+                    ? `${strDF} talla l'eix d'abscisses en x = ${fmt(x)}`
+                    : `${strDFat(x)} = 0`;
+
+                pool.push({
+                    x: x,
+                    correct: `${strF} té un ${type} relatiu en x = ${fmt(x)}<br>i, per tant, ${dfVerb}.`,
+                    wrong: `${strF} té un ${type === "màxim" ? "mínim" : "màxim"} relatiu en x = ${fmt(x)}<br>i, per tant, ${dfVerb}.`
+                });
+            });
+
+            // 2. Monotonia
+            [-3, -1, 1, 3].forEach(x => {
+                const realX = x + h;
+                if (crits.some(c => Math.abs(c - realX) < 0.6)) return;
+
+                const isPositive = currentProblem.fDerivada(realX) > 0;
+                const monotonia = isPositive ? "creixent" : "decreixent";
+                const correctSign = isPositive ? "&gt;" : "&lt;";
+                const wrongSign   = isPositive ? "&lt;" : "&gt;";
+
+                // Espais correctes: "f'(a) < 0" / "f'(a) > 0"
+                const dfAtWithSign = (sign) => `${strDFat(realX)} ${sign} 0`;
+
+                pool.push({
+                    x: realX,
+                    correct: `${strF} és <strong>${monotonia}</strong> a prop de x = ${fmt(realX)},<br>i, per tant, ${dfAtWithSign(correctSign)}.`,
+                    wrong: `${strF} és <strong>${monotonia}</strong> a prop de x = ${fmt(realX)},<br>i, per tant, ${dfAtWithSign(wrongSign)}.`
+                });
+            });
+
+            // 3. Concavitat (Només Nivell 3)
+
+if (difficultyLevel === 3) {
+                infs.forEach(x => {
+                    const sign = currentProblem.fDerivada(x + 0.1) > currentProblem.fDerivada(x - 0.1)
+                        ? ["positiva", "creixent"]
+                        : ["negativa", "decreixent"];
+                    const wrongVerb = sign[1] === "creixent" ? "decreixent" : "creixent";
+
+                    pool.push({
+                        x: x,
+                        correct: `A prop de x = ${fmt(x)}, ${strF} té concavitat <strong>${sign[0]}</strong>,<br>i això es confirma perquè ${strDF} és <strong>${sign[1]}</strong>.`,
+                        wrong:   `A prop de x = ${fmt(x)}, ${strF} té concavitat <strong>${sign[0]}</strong>,<br>i això es confirma perquè ${strDF} és <strong>${wrongVerb}</strong>.`
+                    });
+                });
+            }
+
+            // Defensiu: si el pool queda buit, regenera
+            if (pool.length === 0) {
+                generateProblem();
+                return;
+            }
+
+            // Selecció segons nivell (sense distractors duplicats)
+            const correctObj = pool[Math.floor(Math.random() * pool.length)];
+            let options = [{ label: correctObj.correct, correct: true }];
+
+            // Construïm tots els distractors possibles i eliminem duplicats
+            let uniqueWrongLabels = [...new Set(
+                pool.map(candidate => {
+                    const finalX = (difficultyLevel === 1) ? correctObj.x : candidate.x;
+                    return candidate.wrong.replace(new RegExp(fmt(candidate.x), 'g'), fmt(finalX));
+                })
+            )].filter(label => label !== correctObj.correct);
+
+            // Si no hi ha prou distractors únics, regenera (cas poc probable)
+            if (uniqueWrongLabels.length < K_DISTRACTORS) {
+                generateProblem();
+                return;
+            }
+
+            // Barreja i agafa K_DISTRACTORS
+            shuffleArray(uniqueWrongLabels);
+            for (let i = 0; i < K_DISTRACTORS; i++) {
+                options.push({ label: uniqueWrongLabels[i], correct: false });
+            }
+
+            renderOptions(options);
+        }
+
+        function renderOptions(opts) {
+            const container = document.getElementById('justification-options');
+            container.innerHTML = '';
+
+            opts.sort(() => 0.5 - Math.random()).forEach(o => {
+                const b = document.createElement('button');
+                b.className = 'btn-option btn-neutral';
+                b.style.textAlign = 'left';
+                b.innerHTML = o.label;
+
+                b.onclick = () => {
+                    if (isTransitioning) return;
+
+                    if (o.correct) {
+                        isTransitioning = true;
+                        b.classList.add('correct-flash');
+                        setTimeout(() => {
+                            currentOperation++;
+                            buildLevel();
+                        }, 1000);
+                    } else {
+                        b.classList.add('error-shake');
+                        setTimeout(() => b.classList.remove('error-shake'), 300);
+                    }
+                };
+
+                container.appendChild(b);
+            });
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, 600, 600);
+            ctx.fillStyle = "#f8fafc";
+            ctx.fillRect(0, 0, 600, 600);
+
+            ctx.strokeStyle = "#94a3b8";
+            ctx.lineWidth = 1;
+            for (let i = -5; i <= 5; i++) { 
+                const p = (i + 5) * 60;
+                ctx.beginPath(); ctx.moveTo(p, 0);   ctx.lineTo(p, 600); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, p);   ctx.lineTo(600, p); ctx.stroke();
+            }
+
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(300, 0);   ctx.lineTo(300, 600); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, 300);   ctx.lineTo(600, 300); ctx.stroke();
+
+            ctx.font = '17px Segoe UI';
+            ctx.fillStyle = '#1e293b';
+            ctx.textAlign = 'center';
+
+            for (let i = -5; i <= 5; i++) {
+                if (i !== 0) {
+                    ctx.fillText(i, (i + 5) * 60, 320);
+                    ctx.fillText(i, 285, 600 - (i + 5) * 60 + 5);
+                }
+            }
+
+            if (showLegend) {
+                ctx.font = 'bold 20px Segoe UI';
+                ctx.fillStyle = currentProblem.colorOriginal === 'blue' ? '#3b82f6' : '#ef4444';
+                ctx.fillText("f(x)", 550, 40);
+
+                ctx.fillStyle = currentProblem.colorDerivada === 'blue' ? '#3b82f6' : '#ef4444';
+                ctx.fillText("f ' (x)", 550, 70);
+            }
+        }
+
+        function drawFunction(fn, color) {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+
+            let first = true;
+            for (let px = 0; px <= 600; px++) {
+                const x = -5 + (px / 60);
+                const y = fn(x);
+
+                if (isFinite(y) && Math.abs(y) < 12) {
+                    const py = 300 - (y * 60);
+                    if (first) {
+                        ctx.moveTo(px, py);
+                        first = false;
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                } else {
+                    first = true;
+                }
+            }
+            ctx.stroke();
+        }
+
+        function buildLevel() {
+            isTransitioning = false;
+            showLegend = false;
+
+            // Reset visual dels botons del pas 1
+            document.querySelectorAll('#step-1 .btn-option').forEach(btn => {
+                btn.classList.remove('correct-flash', 'error-shake');
+            });
+
+            document.getElementById('step-1').classList.add('active');
+            document.getElementById('step-2').classList.remove('active');
+
+            generateProblem();
+            drawGrid();
+
+            drawFunction(
+                currentProblem.colorOriginal === 'blue' ? currentProblem.fOriginal : currentProblem.fDerivada,
+                '#3b82f6'
+            );
+            drawFunction(
+                currentProblem.colorOriginal === 'red' ? currentProblem.fOriginal : currentProblem.fDerivada,
+                '#ef4444'
+            );
+
+            document.getElementById('lvl-display').innerText = `Gràfica ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        }
+
+        function checkStep1(color, btn) {
+            if (isTransitioning) return;
+
+            if (color === currentProblem.colorOriginal) {
+                isTransitioning = true;
+                btn.classList.add('correct-flash');
+                showLegend = true;
+
+setTimeout(() => {
+            document.getElementById('step-1').classList.remove('active');
+            document.getElementById('step-2').classList.add('active');
+
+            drawGrid();
+            drawFunction(
+                currentProblem.colorOriginal === 'blue' ? currentProblem.fOriginal : currentProblem.fDerivada,
+                '#3b82f6'
+            );
+            drawFunction(
+                currentProblem.colorOriginal === 'red' ? currentProblem.fOriginal : currentProblem.fDerivada,
+                '#ef4444'
+            );
+
+            isTransitioning = false;
+
+            if (window.innerWidth >= 850) {
+                document.getElementById('main-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 600);
+            } else {
+                btn.classList.add('error-shake');
+                setTimeout(() => btn.classList.remove('error-shake'), 300);
+            }
+        }
+
+        buildLevel();
+// Activa el parpelleig inicial als botons de nivell 2 i 3 quan la pàgina es carrega
+        window.addEventListener('load', () => {
+            const btns = document.querySelectorAll('.lvl-btn');
+            if (btns.length >= 3) {
+		btns[0].classList.add('attention-shake'); // Botó Nivell 1
+                btns[1].classList.add('attention-blink');
+                btns[2].classList.add('attention-blink');
+            }
+        });
+    </script>
+</body>
+</html>

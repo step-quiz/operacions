@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>Esglaonar matriu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --gris-fosc: #64748b;
+            --gris-text: #334155;
+            --bg: #f0f4ff;
+            --cell-size: 55px;
+            --cols: 4;
+            --card-bg: rgba(255,255,255,0.85);
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(99,102,241,0.10) 0%, transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(37,99,235,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 55% 5%, rgba(139,92,246,0.07) 0%, transparent 45%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        .app-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 28px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow:
+                0 4px 6px rgba(37,99,235,0.04),
+                0 20px 60px rgba(37,99,235,0.10),
+                0 1px 0 rgba(255,255,255,0.8) inset;
+            width: 100%;
+            max-width: 1350px;
+            position: relative;
+            min-height: 550px;
+        }
+
+        /* ── TOOLBAR ── */
+        .toolbar {
+            display: flex;
+            gap: 2.5rem;
+            margin-bottom: 24px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--gris-fosc);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar label { display: flex; align-items: center; gap: 7px; }
+
+        .toolbar select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 5px 30px 5px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E") no-repeat right 9px center;
+            cursor: pointer;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--gris-text);
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .toolbar select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        .toolbar select:hover { border-color: #94a3b8; }
+
+        /* ── LAYOUT ── */
+        .gauss-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 5px;
+        }
+
+        .matrix-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+        .matrix-title {
+            color: var(--gris-text);
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.03em;
+            margin-bottom: 10px;
+            height: 1.8rem;
+        }
+
+        /* ── MATRIU ── */
+        .matrix {
+            display: grid;
+            grid-template-columns: repeat(var(--cols), var(--cell-size));
+            gap: 7px;
+            padding: 16px;
+            border-left: 3px solid #1e293b;
+            border-right: 3px solid #1e293b;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.7);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-family: 'DM Mono', 'Courier New', monospace;
+            font-weight: 500;
+            color: var(--gris-text);
+            animation: cellIn 0.25s ease-out both;
+        }
+
+        @keyframes cellIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .cell.sep-column {
+            border-left: 1.5px dashed #94a3b8;
+            margin-left: -3px;
+        }
+
+        .boxed-zero {
+            border: 2px solid var(--primary);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(37,99,235,0.06);
+        }
+
+        .cell input {
+            width: 85%; height: 85%;
+            text-align: center;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            font-family: 'DM Mono', 'Courier New', monospace;
+            background: #f8faff;
+            color: var(--primary);
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+        }
+        .cell input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+        }
+
+        /* ── PANELL CENTRAL ── */
+        .equivalence-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 280px;
+            padding-top: 25px;
+        }
+
+        .tilde {
+            font-size: 5rem;
+            color: var(--primary);
+            line-height: 1;
+            margin: -10px 0;
+            user-select: none;
+            opacity: 0.75;
+        }
+
+        .op-input {
+            width: 48px; height: 48px;
+            text-align: center;
+            border: 1.5px solid var(--primary-light);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            color: var(--primary);
+            background: rgba(37,99,235,0.05);
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .op-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+            background: white;
+        }
+        @media (hover: hover) {
+            .op-input:hover:not(:focus) {
+                border-color: #000;
+                background: #cbd5e1;
+                color: #1e293b;
+            }
+        }
+
+        /* ── SCAFFOLD / AJUDA ── */
+        .dashed-box {
+            position: relative;
+            border: 1.5px solid var(--border);
+            border-left: 3px solid var(--primary-light);
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(248,250,255,0.9);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+            width: 240px;
+            min-height: 60px;
+            font-family: 'DM Mono', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--gris-fosc);
+            display: grid;
+            grid-template-columns: auto auto 1fr;
+            column-gap: 8px;
+            align-items: center;
+            transition: opacity 0.2s;
+        }
+
+        .strategy-check {
+            position: absolute; top: 50%; right: 12px;
+            transform: translateY(-50%);
+            color: var(--success);
+            font-size: 1.5rem;
+            display: none;
+            filter: drop-shadow(0 0 4px rgba(22,163,74,0.35));
+        }
+
+        /* ── BOTÓ PRINCIPAL ── */
+        .side-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding-top: 35px;
+        }
+
+        .btn-check {
+            padding: 14px 26px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow:
+                0 4px 14px rgba(37,99,235,0.35),
+                0 1px 0 rgba(255,255,255,0.25) inset;
+            transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        .btn-check:hover {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            box-shadow: 0 6px 20px rgba(37,99,235,0.40);
+            transform: translateY(-1px);
+        }
+        .btn-check:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+        }
+
+        /* ── FEEDBACK ── */
+        .feedback {
+            margin-top: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-align: center;
+            min-height: 2.5rem;
+            transition: transform 0.2s ease-out;
+            letter-spacing: 0.01em;
+        }
+
+        .success-pols { animation: pols-verd 0.7s cubic-bezier(0.34,1.56,0.64,1); }
+
+        @keyframes pols-verd {
+            0%   { transform: scale(0.95); opacity: 0.5; }
+            50%  { transform: scale(1.07); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ── BOTÓ MINI ── */
+        .btn-mini {
+            padding: 9px 16px;
+            background: var(--gris-text);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .btn-mini:hover { background: #1e293b; transform: translateY(-1px); }
+
+        /* ── CHECKBOX ── */
+        #helpToggle {
+            accent-color: var(--primary);
+            width: 14px; height: 14px;
+            cursor: pointer;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1150px) {
+            .toolbar { gap: 1.5rem; }
+            .gauss-container { flex-direction: column; gap: 10px; }
+            .tilde { transform: rotate(90deg); margin: 5px 0; font-size: 4rem; }
+            .side-action {
+                padding-top: 10px;
+                width: 100%;
+                align-items: flex-end;
+            }
+        }
+
+        @media (max-width: 450px) {
+            :root { --cell-size: 45px; }
+            .toolbar { gap: 0.8rem; }
+            .matrix { padding: 10px; }
+            .app-card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="toolbar">
+        <label>Mida matriu:
+            <select id="sizeSelect" onchange="initApp()">
+                <option value="4" selected>3×4</option>
+                <option value="3">3×3</option>
+            </select>
+        </label>
+        <label>Origen coeficients:
+            <select id="originSelect" onchange="initApp()">
+                <option value="random" selected>aleatoris</option>
+                <option value="manual">fixats</option>
+            </select>
+        </label>
+        <label>Operació:
+            <select id="orderSelect" onchange="renderStep()">
+                <option value="pivotFirst" selected>Fi → aFj + bFi</option>
+                <option value="targetFirst">Fi → aFi + bFj</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="gauss-container" id="mainContainer">
+        <div class="matrix-wrapper" id="wrapperLeft">
+            <div class="matrix-title" id="titleLeft"></div>
+            <div id="matrixLeft" class="matrix"></div>
+        </div>
+
+        <div id="centralPanel" class="equivalence-panel">
+            <div id="opText" style="color:var(--primary); font-weight:700; font-size:1.35rem; margin-bottom:10px; font-family:'DM Sans',system-ui,sans-serif;"></div>
+            <div class="tilde">~</div>
+            <div style="width: 100%;">
+                <div style="display:flex; justify-content:flex-end; gap:8px; font-size:0.78rem; margin-bottom:6px; color:var(--gris-fosc); font-weight:500;">
+                    <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">Mostrar Ajuda <input type="checkbox" id="helpToggle" checked onchange="updateHelp()"></label>
+                </div>
+                <div id="scaffold" class="dashed-box">
+                    <span id="strategyCheck" class="strategy-check">✔</span>
+                    <div id="vL1"></div> <div id="vE1">=</div> <div id="vV1"></div>
+                    <div id="vL2"></div> <div id="vE2">=</div> <div id="vV2"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="matrix-wrapper" id="wrapperRight">
+            <div id="matrixTitleRight" class="matrix-title"></div>
+            <div id="matrixRight" class="matrix"></div>
+        </div>
+
+        <div id="sideAction" class="side-action">
+            <button id="mainBtn" class="btn-check" onclick="checkStep()">Comprovar</button>
+        </div>
+    </div>
+    <div id="feedback" class="feedback"></div>
+</div>
+
+<script>
+    let matrix = [];
+    let currentCols = 4;
+    let isManualMode = false;
+    let currentStepIdx = 0;
+    let feedbackOffset = 0;
+    let exerciseFinished = false;
+
+    const steps = [
+        { tRow: 1, pRow: 0, label: "Fila 2" },
+        { tRow: 2, pRow: 0, label: "Fila 3" },
+        { tRow: 2, pRow: 1, label: "Fila 3" }
+    ];
+
+    window.onload = initApp;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !exerciseFinished) {
+            if (isManualMode) setManualMatrix();
+            else checkStep();
+        }
+    });
+
+    function initApp() {
+        currentCols = parseInt(document.getElementById('sizeSelect').value);
+        isManualMode = document.getElementById('originSelect').value === 'manual';
+        document.documentElement.style.setProperty('--cols', currentCols);
+        currentStepIdx = 0;
+        exerciseFinished = false;
+        feedbackOffset = 0;
+        document.getElementById('feedback').innerText = "";
+
+        document.getElementById('centralPanel').style.display = "flex";
+        document.getElementById('wrapperRight').style.display = "flex";
+
+        if (isManualMode) renderManualInput();
+        else { generateSmartMatrix(); renderStep(); }
+    }
+
+    function generateSmartMatrix() {
+        const getInt = (canBeZero = true) => {
+            if (canBeZero && Math.random() < 0.1) return 0;
+            let v = 0;
+            while (v === 0) v = Math.floor(Math.random() * 17) - 8;
+            return v;
+        };
+        let m = [];
+        let success = false;
+        let attempts = 0;
+        while (!success && attempts < 200) {
+            attempts++;
+            m = [];
+            m.push([getInt(false), getInt(), getInt(), getInt()].slice(0, currentCols));
+            m.push([getInt(false), getInt(), getInt(), getInt()].slice(0, currentCols));
+            let r3 = [];
+            const scenario = Math.random();
+            if (currentCols === 4) {
+                if (scenario < 0.125) {
+                    const c1 = getInt(false), c2 = getInt(false);
+                    for(let j=0; j<currentCols; j++) r3.push(c1*m[0][j] + c2*m[1][j]);
+                } else if (scenario < 0.25) {
+                    const c1 = getInt(false), c2 = getInt(false);
+                    for(let j=0; j<currentCols; j++) r3.push(c1*m[0][j] + c2*m[1][j]);
+                    r3[currentCols-1] += (Math.random() < 0.5 ? 2 : -2);
+                } else { r3 = [getInt(false), getInt(), getInt(), getInt()].slice(0, currentCols); }
+            } else { r3 = [getInt(false), getInt(), getInt()].slice(0, currentCols); }
+            m.push(r3);
+            success = m.every(row => row.every(v => Math.abs(v) <= 18)) && m[2][0] !== 0;
+        }
+        matrix = m;
+    }
+
+    function renderManualInput() {
+        document.getElementById('centralPanel').style.display = "none";
+        document.getElementById('wrapperRight').style.display = "none";
+        document.getElementById('titleLeft').innerText = "Defineix la matriu";
+        document.getElementById('feedback').innerText = "";
+
+        const mLeft = document.getElementById('matrixLeft');
+        mLeft.innerHTML = '';
+        for (let i = 0; i < 3 * currentCols; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.style.animationDelay = `${i * 0.02}s`;
+            if (currentCols === 4 && (i % currentCols) === 3) cell.classList.add('sep-column');
+            cell.innerHTML = `<input type="number" class="manual-cell" placeholder="?" onfocus="this.select()">`;
+            mLeft.appendChild(cell);
+        }
+
+        document.getElementById('sideAction').innerHTML = `<button id="mainBtn" class="btn-check" onclick="setManualMatrix()">Establir aquesta matriu</button>`;
+
+        setTimeout(() => {
+            const firstInput = document.querySelector('.manual-cell');
+            if (firstInput) firstInput.focus();
+        }, 50);
+    }
+
+    function setManualMatrix() {
+        const inputs = document.querySelectorAll('.manual-cell');
+        const fb = document.getElementById('feedback');
+        let m = [];
+        let idx = 0;
+        let allFilled = true;
+
+        for (let i = 0; i < 3; i++) {
+            let row = [];
+            for (let j = 0; j < currentCols; j++) {
+                const valStr = inputs[idx++].value.trim();
+                if (valStr === "") allFilled = false;
+                row.push(parseInt(valStr));
+            }
+            m.push(row);
+        }
+
+        if (!allFilled) {
+            fb.innerText = "⚠️ Cal donar valor a tots els elements de la matriu.";
+            fb.style.color = "var(--warning)";
+            fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        document.getElementById('centralPanel').style.display = "flex";
+        document.getElementById('wrapperRight').style.display = "flex";
+        document.getElementById('titleLeft').innerText = "";
+
+        matrix = m;
+        isManualMode = false;
+        renderStep();
+    }
+
+    function renderStep() {
+        const step = steps[currentStepIdx];
+        document.getElementById('matrixTitleRight').innerText = step.label;
+        const order = document.getElementById('orderSelect').value;
+        const targetL = `F<sub>${step.tRow+1}</sub>`;
+        const pivotL = `F<sub>${step.pRow+1}</sub>`;
+
+        if (order === "pivotFirst") {
+            document.getElementById('opText').innerHTML = `${targetL} ⮕ <input type="number" id="cLeft" class="op-input" onfocus="this.select()"> ${pivotL} + <input type="number" id="cRight" class="op-input" onfocus="this.select()"> ${targetL}`;
+        } else {
+            document.getElementById('opText').innerHTML = `${targetL} ⮕ <input type="number" id="cLeft" class="op-input" onfocus="this.select()"> ${targetL} + <input type="number" id="cRight" class="op-input" onfocus="this.select()"> ${pivotL}`;
+        }
+
+        document.getElementById('cLeft').addEventListener('input', updateHelp);
+        document.getElementById('cRight').addEventListener('input', updateHelp);
+
+        const mLeft = document.getElementById('matrixLeft');
+        mLeft.innerHTML = '';
+        matrix.forEach((row, i) => {
+            row.forEach((val, j) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
+                if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
+                let isA21Done = (currentStepIdx > 0 && i === 1 && j === 0);
+                let isA31Done = (currentStepIdx > 1 && i === 2 && j === 0);
+                let isA32Done = (exerciseFinished && i === 2 && j === 1);
+                if (val === 0 && (isA21Done || isA31Done || isA32Done)) {
+                    cell.innerHTML = `<span class="boxed-zero">0</span>`;
+                } else { cell.innerText = val; }
+                mLeft.appendChild(cell);
+            });
+        });
+
+        const mRight = document.getElementById('matrixRight');
+        mRight.innerHTML = '';
+        matrix.forEach((row, i) => {
+            row.forEach((val, j) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
+                if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
+                if (i === step.tRow) {
+                    cell.innerHTML = `<input type="number" id="r${j}" placeholder="?" onfocus="this.select()">`;
+                } else { cell.innerText = val; }
+                mRight.appendChild(cell);
+            });
+        });
+        document.getElementById('sideAction').innerHTML = `<button id="mainBtn" class="btn-check" onclick="checkStep()">Comprovar</button>`;
+        updateHelp();
+    }
+
+    function updateHelp() {
+        const step = steps[currentStepIdx];
+        const order = document.getElementById('orderSelect').value;
+        const valL = parseInt(document.getElementById('cLeft').value);
+        const valR = parseInt(document.getElementById('cRight').value);
+        const active = document.getElementById('helpToggle').checked;
+        document.getElementById('scaffold').style.opacity = active ? "1" : "0";
+        const vL1 = document.getElementById('vL1'), vV1 = document.getElementById('vV1');
+        const vL2 = document.getElementById('vL2'), vV2 = document.getElementById('vV2');
+        if (isNaN(valL) || isNaN(valR)) {
+            vL1.innerText = "..."; vV1.innerText = "";
+            vL2.innerText = "..."; vV2.innerText = "";
+            document.getElementById('strategyCheck').style.display = "none";
+            return;
+        }
+        let rL = (order === "pivotFirst") ? matrix[step.pRow] : matrix[step.tRow];
+        let rR = (order === "pivotFirst") ? matrix[step.tRow] : matrix[step.pRow];
+        let labL = (order === "pivotFirst") ? `F${step.pRow+1}` : `F${step.tRow+1}`;
+        let labR = (order === "pivotFirst") ? `F${step.tRow+1}` : `F${step.pRow+1}`;
+        vL1.innerText = `${valL}·${labL}`;
+        vV1.innerText = `(${rL.map(x => valL*x).join(',')})`;
+        vL2.innerText = `${valR}·${labR}`;
+        vV2.innerText = `(${rR.map(x => valR*x).join(',')})`;
+        const colIdx = (currentStepIdx === 2) ? 1 : 0;
+        const isZero = (valL * rL[colIdx] + valR * rR[colIdx]) === 0;
+        document.getElementById('strategyCheck').style.display = (isZero && (valL!==0 || valR!==0)) ? "block" : "none";
+    }
+
+    function checkStep() {
+        const step = steps[currentStepIdx];
+        const order = document.getElementById('orderSelect').value;
+        const valL = parseInt(document.getElementById('cLeft').value);
+        const valR = parseInt(document.getElementById('cRight').value);
+        const res = [];
+        for(let j=0; j<currentCols; j++) res.push(parseInt(document.getElementById(`r${j}`).value));
+        const fb = document.getElementById('feedback');
+        if (isNaN(valL) || isNaN(valR) || res.some(isNaN)) {
+            fb.innerText = `⚠️ Omple tota la fila.`;
+            fb.style.color = "var(--warning)";
+            fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        let rowL = (order === "pivotFirst") ? matrix[step.pRow] : matrix[step.tRow];
+        let rowR = (order === "pivotFirst") ? matrix[step.tRow] : matrix[step.pRow];
+        const colIdx = (currentStepIdx === 2) ? 1 : 0;
+        if ((valL * rowL[colIdx] + valR * rowR[colIdx]) !== 0) {
+            fb.innerText = "❌ No genera el zero.";
+            fb.style.color = "var(--danger)";
+            fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        if (res.every((val, j) => val === (valL * rowL[j] + valR * rowR[j]))) {
+            triggerSuccessFeedback(`✅ Pas correcte.`);
+            matrix[step.tRow] = [...res];
+            setTimeout(() => {
+                if (currentStepIdx < steps.length - 1) { currentStepIdx++; renderStep(); }
+                else { exerciseFinished = true; finishExercise(); }
+            }, 1000);
+        } else {
+            fb.innerText = "❌ Càlculs incorrectes.";
+            fb.style.color = "var(--danger)";
+            fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function triggerSuccessFeedback(msg) {
+        const fb = document.getElementById('feedback');
+        fb.innerText = msg;
+        fb.style.color = "var(--success)";
+        fb.classList.remove('success-pols');
+        void fb.offsetWidth;
+        fb.classList.add('success-pols');
+        fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function finishExercise() {
+        const fb = document.getElementById('feedback');
+        fb.innerText = "";
+        document.getElementById('sideAction').innerHTML = `
+            <div style="color:var(--success); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;">Matriu ja esglaonada ✓</div>
+            <button class="btn-mini" onclick="initApp()">Nou exercici</button>
+        `;
+        const mLeft = document.getElementById('matrixLeft');
+        mLeft.innerHTML = '';
+        matrix.forEach((row, i) => {
+            row.forEach((val, j) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
+                if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
+                let isA21Done = (i === 1 && j === 0 && val === 0);
+                let isA31Done = (i === 2 && j === 0 && val === 0);
+                let isA32Done = (i === 2 && j === 1 && val === 0);
+                if (isA21Done || isA31Done || isA32Done) {
+                    cell.innerHTML = `<span class="boxed-zero">0</span>`;
+                } else { cell.innerText = val; }
+                mLeft.appendChild(cell);
+            });
+        });
+        const mRight = document.getElementById('matrixRight');
+        mRight.innerHTML = '';
+        matrix.forEach((row, i) => row.forEach((val, j) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
+            if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
+            cell.innerText = val;
+            mRight.appendChild(cell);
+        }));
+        document.getElementById('sideAction').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+</script>
+</body>
+</html>
