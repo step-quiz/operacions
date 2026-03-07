@@ -252,7 +252,7 @@ function injectSharedHTML() {
                     📋 Informe
                 </button>
                 <button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats === 'function') copiarResultats();" style="background-color: #334155;">
-                    🔒 Copiar codi
+                    📝 Copiar codi
                 </button>
                 <button class="btn-submit" onclick="finalitzar()" style="background-color: var(--text-muted);">
                     🔄 Tornar a jugar
@@ -424,7 +424,7 @@ function showHistorySummary() {
 
             <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
                 <button id="btn-copiar-informe" class="btn-submit" onclick="copiarResultats(); this.innerText='Copiat! ✅'; this.style.backgroundColor='var(--success)'; this.style.borderColor='var(--success)'; setTimeout(() => { this.style.display='none'; }, 3000);" style="background-color: #334155;">
-                    🔒 Copiar codi
+                    📝 Copiar codi
                 </button>
                 <button class="btn-submit" onclick="finalitzar()" style="background-color: var(--text-muted);">
                     🔄 Tornar a jugar
@@ -436,7 +436,7 @@ function showHistorySummary() {
     summaryScreen.style.display = 'block';
 }
 // ============================================================
-// SISTEMA DE VERIFICACIÓ ANTIFRAU
+// GENERADOR DE CODI DE SESSIÓ (per al professor)
 // ============================================================
 
 async function copiarResultats() {
@@ -486,13 +486,27 @@ async function copiarResultats() {
         }
     }
 
-    // 🟢 CORRECCIÓ 8: Eliminat el fallback amb textarea oculta (document.execCommand)
-    // que Google Safe Browsing detectava com a Clipboard Hijacking.
-    // Ara: API moderna + prompt() natiu com a fallback segur.
+    // Fallback segur: mostrar el codi en un element visible dins la pàgina
+    // (Evita prompt() que Google Safe Browsing pot detectar com a enginyeria social)
     try {
         await navigator.clipboard.writeText(output);
         mostrarExit();
     } catch (err) {
-        prompt("Copia aquest codi i envia'l al professor:", output);
+        // Fallback: mostrar el codi en un element seleccionable dins la pàgina
+        let fallbackBox = document.getElementById('fallback-code-box');
+        if (!fallbackBox) {
+            fallbackBox = document.createElement('div');
+            fallbackBox.id = 'fallback-code-box';
+            fallbackBox.style.cssText = 'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:400px;';
+            fallbackBox.innerHTML = `
+                <div style="font-size:0.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div>
+                <div id="fallback-code-text" style="font-family:monospace;font-size:1.1em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;"></div>
+            `;
+            const panel = document.querySelector('.panel') || document.body;
+            panel.appendChild(fallbackBox);
+        }
+        document.getElementById('fallback-code-text').textContent = output;
+        fallbackBox.style.display = 'block';
+        fallbackBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
