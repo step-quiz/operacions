@@ -40,8 +40,8 @@
 
   <style>
     /* ============================================================
-       ESTILS (CSS)
-       ============================================================ */
+        ESTILS (CSS)
+        ============================================================ */
     :root {
       --text-main: #1e293b;
       --text-muted: #64748b;
@@ -53,6 +53,7 @@
       --math-title: #3486e4;
       --border-heavy: #cbd5e1;
       --panel-w: 384px;
+      --accent: #3b82f6; /* Blau agressiu */
     }
 
     * { box-sizing: border-box; }
@@ -67,7 +68,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center; /* En ordinador ho manté centrat verticalment */
+      justify-content: center;
     }
 
     /* Títol i animacions */
@@ -94,17 +95,20 @@
     select { appearance: none; background-color: #ffffff; height: 32px; padding: 0 10px; font-size: 14px; border: 1px solid var(--border-heavy); border-radius: 6px; cursor: pointer; text-align: center; width: 100%; }
 
     .link-block { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
-    .link-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+    .link-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; display: block; }
     .link-output { width: 100%; min-height: 40px; font-family: monospace; font-size: 12px; padding: 10px; border-radius: 6px; border: 1px solid var(--border-heavy); background: #e2e8f0; word-break: break-all; user-select: all; -webkit-user-select: all; cursor: text; line-height: 1.4; }
 
     /* Botons */
-    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
-    .copy-btn, .open-btn, .help-btn { flex: 1; height: 38px; cursor: pointer; border-radius: 6px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; border: none; gap: 6px; transition: all 0.2s ease; }
+    .btn-row { display: flex; gap: 8px; margin-top: 5px; align-items: center; }
+    .copy-btn, .open-btn, .help-btn { height: 38px; cursor: pointer; border-radius: 6px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; border: none; gap: 6px; transition: all 0.2s ease; }
 
-    .copy-btn, .help-btn { background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    /* Proporcions quirúrgiques de llargada */
+    .copy-btn { flex: 0.8; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .help-btn { flex: 1; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .open-btn { flex: 1.15; background: var(--accent); color: white; }
+    
     .copy-btn:hover, .help-btn:hover { background: #f8fafc; border-color: #94a3b8; }
-    .open-btn { background: #64748b; color: white; }
-    .open-btn:hover { background: #475569; }
+    .open-btn:hover { background: #2563eb; }
 
     .yt-icon { height: 16px; width: auto; }
     .copy-status { font-size: 13px; color: #059669; margin-top: 6px; min-height: 18px; font-weight: 700; text-align: center; }
@@ -115,11 +119,10 @@
     .mobile-nav label { flex: 1; text-align: center; padding: 10px 0; font-weight: 700; cursor: pointer; border-radius: 8px; color: var(--text-muted); }
     .mobile-nav input:checked + label { background: #ffffff; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-    /* AQUÍ APLIQUEM EL CANVI PER MÒBILS */
     @media (max-width: 1050px) {
       body {
-        justify-content: flex-start; /* Fa que tot pugi cap a dalt */
-        padding-top: 30px; /* Deixa una mica d'aire a dalt perquè no s'enganxi */
+        justify-content: flex-start;
+        padding-top: 30px;
       }
       .main-wrapper { flex-direction: column; align-items: center; }
       .mobile-nav { display: flex; }
@@ -135,7 +138,6 @@
     }
     .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
 
-    /* FIX: evita el "flash" inicial del botó Ajuda abans del JS */
     .help-btn { display: none; }
   </style>
 </head>
@@ -167,16 +169,16 @@
       <div class="row"><label for="m-eso">Criteri</label><select id="m-eso"><option value="1">Nota màxima</option><option value="0">Nota mitjana</option></select></div>
 
       <div class="link-block">
-        <div class="link-label">Enllaç:</div>
-        <div id="l-eso" class="link-output" tabindex="0"></div>
         <div class="btn-row">
           <button id="c-eso" class="copy-btn">Copia</button>
-          <button id="p-eso" class="open-btn">Obre</button>
           <button id="h-eso" class="help-btn">
             <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda
           </button>
+          <button id="p-eso" class="open-btn">Obre</button>
         </div>
         <div id="st-eso" class="copy-status"></div>
+        <div class="link-label">Enllaç:</div>
+        <div id="l-eso" class="link-output" tabindex="0"></div>
       </div>
     </div>
 
@@ -184,16 +186,16 @@
       <h2>Batxillerat</h2>
       <div class="row"><label for="f-batx">Activitat</label><select id="f-batx"></select></div>
       <div class="link-block">
-        <div class="link-label">Enllaç:</div>
-        <div id="l-batx" class="link-output" tabindex="0"></div>
         <div class="btn-row">
           <button id="c-batx" class="copy-btn">Copia</button>
-          <button id="p-batx" class="open-btn">Obre</button>
           <button id="h-batx" class="help-btn">
             <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda
           </button>
+          <button id="p-batx" class="open-btn">Obre</button>
         </div>
         <div id="st-batx" class="copy-status"></div>
+        <div class="link-label">Enllaç:</div>
+        <div id="l-batx" class="link-output" tabindex="0"></div>
       </div>
     </div>
   </div>
@@ -213,7 +215,6 @@
         status: document.getElementById('st-' + suffix)
       };
 
-      // Variables per evitar errors si l'usuari canvia d'activitat molt ràpid
       let timeout1, timeout2;
 
       function populate() {
@@ -227,7 +228,6 @@
       }
 
       function build() {
-        // 1. Generar URL (Ara només s'encarrega d'això)
         if (suffix === 'batx') {
           els.link.textContent = `${BASE_URL}${els.file.value}`;
         } else {
@@ -245,11 +245,9 @@
         const selected = activities.find(a => a.file === els.file.value);
         const hasVideo = selected && selected.yt && selected.yt.trim() !== '';
 
-        // Netegem els temporitzadors per si l'usuari canvia d'opció ràpidament
         clearTimeout(timeout1);
         clearTimeout(timeout2);
 
-        // Helper: converteix "1.53s" / "200ms" a mil·lisegons (agafa el primer valor si hi ha llista)
         function cssTimeToMs(t) {
           if (!t) return 0;
           const first = String(t).split(',')[0].trim();
@@ -259,50 +257,33 @@
         }
 
         if (isInitialLoad) {
-          // COMPORTAMENT A L'INICI:
-          // 1. D'entrada, no mostris el botó Ajuda
           els.help.style.display = 'none';
-
-          // 2) Espera 1.5s DESPRÉS que el panell comenci a aparèixer (fade-in delay)
           const wrapper = document.querySelector('.main-wrapper');
           const fadeDelayMs = wrapper ? cssTimeToMs(getComputedStyle(wrapper).animationDelay) : 0;
 
           timeout1 = setTimeout(() => {
-            // Recalcula per si l'usuari ha canviat activitat abans que acabi el retard
             const nowSel = activities.find(a => a.file === els.file.value);
             const nowHasVideo = nowSel && nowSel.yt && nowSel.yt.trim() !== '';
             if (nowHasVideo) els.help.style.display = 'flex';
           }, fadeDelayMs + 3500);
 
         } else {
-          // COMPORTAMENT EN CANVIAR D'ACTIVITAT:
-          // 1. Espera 0.2 segons
           timeout1 = setTimeout(() => {
-            // 2. Fes desaparèixer el botó
             els.help.style.display = 'none';
-
-            // 3. Espera 0.8 segons
             timeout2 = setTimeout(() => {
-              // 4. Torna a fer aparèixer el botó (si l'activitat nova té vídeo)
               if (hasVideo) els.help.style.display = 'flex';
             }, 800);
-
           }, 200);
         }
       }
 
-      // Inicialització
       populate();
       build();
-      manageHelpButton(true); // Cridem la funció indicant que és la càrrega inicial
+      manageHelpButton(true);
 
-      // Escoltem els canvis per actualitzar la URL (tots els selects)
       [els.file, els.s, els.o, els.i, els.m].filter(Boolean).forEach(el => el.addEventListener('change', build));
-
-      // Escoltem els canvis NOMÉS a l'Activitat per fer la seqüència del botó d'Ajuda
       els.file.addEventListener('change', () => manageHelpButton(false));
 
-      // Botons d'acció
       els.copy.addEventListener('click', async () => {
         await navigator.clipboard.writeText(els.link.textContent);
         els.status.textContent = 'Copiat ✅';
@@ -327,15 +308,12 @@
       });
     });
 
-    // Ara aplica el blink-and-shake als dos Selects (eso i batx)
     window.addEventListener('load', () => {
       setTimeout(() => {
         const fEso = document.getElementById('f-eso');
         const fBatx = document.getElementById('f-batx');
-
         fEso.classList.add('select-atencio-shake');
         fBatx.classList.add('select-atencio-shake');
-
         setTimeout(() => {
           fEso.classList.remove('select-atencio-shake');
           fBatx.classList.remove('select-atencio-shake');
@@ -344,17 +322,16 @@
     });
   </script>
 
-<footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f9fa; border-top: 1px solid #ccc; padding: 10px; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box; text-align: center;">
-    <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="flex-shrink: 0;">
-        <img alt="Llicència CC BY-NC-ND" style="border-width:0; height: 31px;" src="https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png" />
-    </a>
-    <span style="font-size: 0.85em; color: #333;">
-        © 2026 <strong>[DAVID ARSO CIVIL]</strong>. Ús educatiu lliure. 
-        <br style="display: none;" /> Prohibida la comercialització i la modificació (<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="color: #333; text-decoration: underline;">CC BY-NC-ND 4.0</a>).
-    </span>
-</footer>
+  <footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f9fa; border-top: 1px solid #ccc; padding: 10px; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box; text-align: center;">
+      <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="flex-shrink: 0;">
+          <img alt="Llicència CC BY-NC-ND" style="border-width:0; height: 31px;" src="https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png" />
+      </a>
+      <span style="font-size: 0.85em; color: #333;">
+          © 2026 <strong>[DAVID ARSO CIVIL]</strong>. Ús educatiu lliure. 
+          <br style="display: none;" /> Prohibida la comercialització i la modificació (<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="color: #333; text-decoration: underline;">CC BY-NC-ND 4.0</a>).
+      </span>
+  </footer>
 
-<div style="height: 70px;"></div>
-  
+  <div style="height: 70px;"></div>
 </body>
 </html>
