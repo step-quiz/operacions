@@ -68,7 +68,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start; /* Canvi per optimitzar espai vertical */
+      padding-top: 20px;
     }
 
     /* Títol i animacions */
@@ -88,42 +89,47 @@
     #panel-eso { background-color: var(--eso-bg); }
     #panel-batx { background-color: var(--batx-bg); }
 
+    /* Canvi imatge 1: Identació esquerra per a Batxillerat */
+    #panel-batx .row { grid-template-columns: 80px 1fr; }
+    #panel-batx .row label { text-align: left; }
+
     h2 { margin: 0 0 10px 5px; font-size: 22px; font-weight: 800; }
     .row { display: grid; grid-template-columns: 155px 1fr; align-items: center; gap: 10px; padding: 4px 8px; }
     .row label { font-size: 14px; font-weight: 600; text-align: right; }
 
-    select { appearance: none; background-color: #ffffff; height: 32px; padding: 0 10px; font-size: 14px; border: 1px solid var(--border-heavy); border-radius: 6px; cursor: pointer; text-align: center; width: 100%; }
+    /* Canvi 3: Background gris al passar el mouse per qualsevol menú */
+    select { appearance: none; background-color: #ffffff; height: 32px; padding: 0 10px; font-size: 14px; border: 1px solid var(--border-heavy); border-radius: 6px; cursor: pointer; text-align: center; width: 100%; transition: background-color 0.2s; }
+    select:hover { background-color: #f1f5f9; }
 
-    .link-block { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
-    .link-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; display: block; }
-    .link-output { width: 100%; min-height: 40px; font-family: monospace; font-size: 12px; padding: 10px; border-radius: 6px; border: 1px solid var(--border-heavy); background: #e2e8f0; word-break: break-all; user-select: all; -webkit-user-select: all; cursor: text; line-height: 1.4; }
+    /* Canvi imatge 2: Zona enllaç més estreta i enganxada */
+    .link-block { margin-top: 5px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
+    .link-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; margin-bottom: 4px; display: block; }
+    .link-output { width: 100%; min-height: 34px; height: 34px; font-family: monospace; font-size: 12px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-heavy); background: #e2e8f0; word-break: break-all; user-select: all; -webkit-user-select: all; cursor: text; line-height: 1.2; }
 
     /* Botons */
-    .btn-row { display: flex; gap: 8px; margin-top: 5px; align-items: center; }
+    .btn-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
     .copy-btn, .open-btn, .help-btn { height: 38px; cursor: pointer; border-radius: 6px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; border: none; gap: 6px; transition: all 0.2s ease; }
 
-    /* Proporcions quirúrgiques de llargada */
+    /* Proporcions quirúrgiques botons */
     .copy-btn { flex: 0.8; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .help-btn { flex: 1; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .open-btn { flex: 1.15; background: var(--accent); color: white; }
+    .open-btn { flex: 1.15; background: var(--accent); color: white; } /* Blau agressiu */
     
-    .copy-btn:hover, .help-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+    .copy-btn:hover, .help-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
     .open-btn:hover { background: #2563eb; }
 
     .yt-icon { height: 16px; width: auto; }
-    .copy-status { font-size: 13px; color: #059669; margin-top: 6px; min-height: 18px; font-weight: 700; text-align: center; }
+    .copy-status { font-size: 13px; color: #059669; margin-top: 2px; min-height: 16px; font-weight: 700; text-align: center; }
 
     /* Navegació Mòbil */
     .mobile-nav { display: none; margin-bottom: 20px; padding: 5px; background: #e2e8f0; border-radius: 12px; width: 100%; max-width: var(--panel-w); }
     .mobile-nav input { display: none; }
-    .mobile-nav label { flex: 1; text-align: center; padding: 10px 0; font-weight: 700; cursor: pointer; border-radius: 8px; color: var(--text-muted); }
+    .mobile-nav label { flex: 1; text-align: center; padding: 10px 0; font-weight: 700; cursor: pointer; border-radius: 8px; color: var(--text-muted); transition: background-color 0.2s; }
+    .mobile-nav label:hover { background-color: #cbd5e1; }
     .mobile-nav input:checked + label { background: #ffffff; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
     @media (max-width: 1050px) {
-      body {
-        justify-content: flex-start;
-        padding-top: 30px;
-      }
+      body { justify-content: flex-start; padding-top: 30px; }
       .main-wrapper { flex-direction: column; align-items: center; }
       .mobile-nav { display: flex; }
       .quiz-panel { display: none; }
@@ -322,16 +328,17 @@
     });
   </script>
 
-  <footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f9fa; border-top: 1px solid #ccc; padding: 10px; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box; text-align: center;">
-      <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="flex-shrink: 0;">
-          <img alt="Llicència CC BY-NC-ND" style="border-width:0; height: 31px;" src="https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png" />
-      </a>
-      <span style="font-size: 0.85em; color: #333;">
-          © 2026 <strong>[DAVID ARSO CIVIL]</strong>. Ús educatiu lliure. 
-          <br style="display: none;" /> Prohibida la comercialització i la modificació (<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="color: #333; text-decoration: underline;">CC BY-NC-ND 4.0</a>).
-      </span>
-  </footer>
+<footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f9fa; border-top: 1px solid #ccc; padding: 10px; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box; text-align: center;">
+    <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="flex-shrink: 0;">
+        <img alt="Llicència CC BY-NC-ND" style="border-width:0; height: 31px;" src="https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png" />
+    </a>
+    <span style="font-size: 0.85em; color: #333;">
+        © 2026 <strong>[DAVID ARSO CIVIL]</strong>. Ús educatiu lliure. 
+        <br style="display: none;" /> Prohibida la comercialització i la modificació (<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="color: #333; text-decoration: underline;">CC BY-NC-ND 4.0</a>).
+    </span>
+</footer>
 
-  <div style="height: 70px;"></div>
+<div style="height: 70px;"></div>
+  
 </body>
 </html>
