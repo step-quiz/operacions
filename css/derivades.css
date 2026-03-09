@@ -77,7 +77,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     width: 100%;
-    max-width: 600px;
+    max-width: 780px;
     margin: 20px auto;
     padding: 0 15px;
 }
@@ -174,12 +174,13 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 
 /* Text d'error (nivell 1) */
 .feedback-wrong {
-    color: var(--danger);
+    color: var(--text-main);
+    font-weight: normal;
 }
 
-/* Hint ampliat (nivell 2): explicació conceptual del tipus d'error */
+/* Hint ampliat (nivell 2): ocult per defecte, es desplega amb "+ ajuda" */
 .hint-box {
-    margin-top: 10px;
+    margin-top: 8px;
     padding: 10px 16px;
     background-color: #fffbeb;
     border-left: 4px solid #f59e0b;
@@ -191,6 +192,23 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     text-align: left;
     animation: fadeInDown 0.3s ease;
 }
+
+/* Botó que desplega el hint */
+.hint-toggle-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+.hint-toggle-btn:hover { background: #fde68a; }
 
 @keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-6px); }
