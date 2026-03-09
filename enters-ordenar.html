@@ -5,488 +5,489 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Activitat interactiva de matemàtiques — Ordenar Enters">
     <link rel="icon" href="icon.png">
-    <title>Ordenació d'Enters</title>
+    <title>Ordenar Enters</title>
 
     <script>
-        // Si sessions=1 i operations=6, l'alumne farà exactament 2 exercicis de cada repte per sessió.
         window.APP_CONFIG = {
             defaultSessions:      1,
-            defaultOperations:    6, 
+            defaultOperations:    6, // Amb 6, l'alumne farà exactament 2 exercicis de cada repte per sessió.
             defaultIntents:       4,
             defaultEnllocMitjana: 1
         };
     </script>
-    
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
-    <script src="js/game-core.js"></script>
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
         :root {
-            --bg-color:      #f0fdf4; /* Verd suau per diferenciar el joc */
-            --primary:       #16a34a;
-            --primary-light: #dcfce7;
-            --primary-hover: #15803d;
+            --bg-color:      #f8fafc;
+            --primary:       #0369a1;
+            --primary-light: #e0f2fe;
+            --primary-hover: #2563eb;
         }
 
-        .challenge-container {
-            padding: 30px 15px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 200px;
-            width: 100%;
+        .expression-box {
+            padding: 40px 20px; text-align: center; display: flex;
+            justify-content: center; align-items: center; flex-wrap: wrap;
+            gap: 10px; font-size: 1.8em; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; min-height: 120px; line-height: 1.5;
         }
 
-        .instruction {
-            font-size: 1.2em;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            font-weight: 500;
+        .token-num { padding: 10px; transition: all 0.3s; }
+        .token-num.highlight      { background-color: var(--primary-light); border-radius: 6px; }
+        .token-num.resolved-num   { color: var(--primary-hover); }
+
+        .token-op {
+            background-color: #f1f5f9; border: 2px solid var(--border-heavy);
+            border-radius: 8px; padding: 5px 15px; color: #334155;
+            cursor: pointer; transition: all 0.2s ease;
+            font-family: 'Courier New', Courier, monospace; font-weight: bold;
+            font-size: 1em; touch-action: manipulation;
+        }
+        .token-op:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+        @media (hover: hover) {
+            .token-op:hover {
+                background-color: var(--primary-hover); border-color: #1e40af;
+                color: white; transform: scale(1.1); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+            }
+        }
+        .token-op:active        { transform: scale(0.95); }
+        .token-op.error-shake   { background-color: var(--danger-light) !important; border-color: var(--danger) !important; color: var(--danger) !important; animation: shake 0.2s; }
+        .token-op.auto-selected { background-color: var(--primary-light); border-color: var(--primary); color: #334155; }
+        .token-op.step0-blink   { animation: step0Blink 0.4s linear 5; }
+
+        .op-instruction { display: none; padding: 0 20px 14px 20px; text-align: center; color: #475569; font-weight: 600; font-size: 1em; }
+        .op-instruction.active { display: block; }
+        .op-instruction-line.error { color: var(--danger); font-weight: 700; }
+        .op-instruction-line.hint  { color: #475569; font-weight: 600; margin-top: 6px; }
+
+        .resolution-panel {
+            background-color: var(--bg-color); border-top: 1px solid var(--border-color);
+            padding: 25px 20px; display: none; flex-direction: column;
+            align-items: center; width: 100%;
         }
 
-        .expression-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+        .sub-problem {
+            font-size: 1.5em; font-family: monospace; font-weight: bold;
+            color: var(--primary); margin-bottom: 20px; letter-spacing: 2px; text-align: center;
         }
 
-        .term-box {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: 70px;
-            height: 70px;
-            font-size: 1.8em;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            background: white;
-            border: 3px solid var(--primary);
-            border-radius: 12px;
-            color: var(--text-main);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        .step-container { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s; }
+        .step-container.active { display: flex; }
+
+        .step-title { font-size: 1.1em; color: #475569; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; text-align: center; }
+
+        .sign-buttons { display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
+
+        .btn-sign {
+            padding: 12px 20px; font-size: 1.1em; font-weight: bold; border-radius: 8px;
+            border: 2px solid var(--border-heavy); background: white; color: #334155;
+            cursor: pointer; transition: 0.2s; text-transform: capitalize;
+            flex: 1; min-width: 80px; max-width: 150px; text-align: center; touch-action: manipulation;
+        }
+        .btn-sign:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+        @media (hover: hover) {
+            .btn-sign:hover { background: var(--primary-light); border-color: #0ea5e9; color: var(--primary); transform: translateY(-2px); }
+        }
+        .btn-sign:active      { transform: scale(0.95); }
+        .btn-sign.error-shake { background-color: var(--danger-light); border-color: var(--danger); color: var(--danger); animation: shake 0.2s; }
+        
+        /* Nova classe per als botons seleccionats al Repte 3 */
+        .btn-sign.selected    { background-color: var(--primary-light); border-color: var(--primary); color: var(--primary-hover); transform: scale(0.95); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+
+        .value-input-group { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+
+        input[type="text"]#value-input {
+            width: 130px; font-family: 'Courier New', Courier, monospace; font-size: 1.5em;
+            font-weight: bold; padding: 12px; text-align: center;
+            border: 2px solid var(--border-heavy); border-radius: 6px; outline: none;
+        }
+        input[type="text"]#value-input:focus { border-color: #0ea5e9; }
+
+        @media (max-width: 480px) {
+            .expression-box { font-size: 1.3em; padding: 20px 10px; gap: 6px; min-height: 80px; }
+            .token-num  { padding: 5px; }
+            .token-op   { font-size: 0.9em; padding: 6px 10px; }
+            .resolution-panel { padding: 20px 15px; }
+            .sub-problem { font-size: 1.3em; }
+            .sign-buttons { gap: 8px; }
+            .btn-sign   { padding: 12px 5px; font-size: 0.95em; min-width: 0; }
+            input[type="text"]#value-input { width: 100px; font-size: 1.3em; padding: 10px; }
+            .btn-submit { padding: 12px 20px; font-size: 0.9em; }
+        }
+        @media (max-width: 350px) {
+            .expression-box { font-size: 1.1em; gap: 4px; }
+            .btn-sign { font-size: 0.85em; }
         }
 
-        .term-box.empty {
-            background: #f1f5f9;
-            border: 3px dashed var(--border-heavy);
-            color: var(--text-muted);
-            font-size: 1.4em;
+        @keyframes attemptsBlink {
+            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
+            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
         }
-
-        .term-box.correct {
-            background: var(--success);
-            border-color: var(--success);
-            color: white;
+        @keyframes step0Blink {
+            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
+            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
         }
-
-        .term-box.error {
-            background: var(--danger-light);
-            border-color: var(--danger);
-            color: var(--danger);
-        }
-
-        /* Input numèric pel Repte 2 */
-        .input-box {
-            width: 80px;
-            text-align: center;
-            cursor: text;
-        }
-        .input-box:focus {
-            outline: none;
-            border-color: var(--primary-hover);
-            box-shadow: 0 0 0 4px var(--primary-light);
-        }
-        /* Amagar les fletxetes de l'input number */
-        .input-box::-webkit-outer-spin-button,
-        .input-box::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .math-sign {
-            font-size: 2em;
-            font-weight: bold;
-            color: var(--text-main);
-        }
-
-        /* Graella pel Repte 3 */
-        .grid-8 {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            width: 100%;
-            max-width: 320px;
-            margin-bottom: 20px;
-        }
-
-        .btn-num {
-            padding: 15px 5px;
-            font-size: 1.4em;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            border: 2px solid var(--border-heavy);
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .btn-num.selected {
-            background: var(--primary-light);
-            border-color: var(--primary);
-            color: var(--primary-hover);
-            transform: scale(0.95);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* Controls / Botons d'acció */
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .btn-action {
-            padding: 12px 25px;
-            font-size: 1.3em;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-            min-width: 120px;
-            color: white;
-        }
-
-        .btn-action-primary { background: var(--primary); }
-        .btn-action-primary:hover { background: var(--primary-hover); }
-
-        .btn-action-large {
-            font-size: 1.8em;
-            width: 80px;
-            min-width: unset;
-        }
-
-        /* Animació d'error */
-        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
-        }
+        .attempts-counter.blink { animation: attemptsBlink 0.2s linear 5; }
     </style>
 </head>
 <body>
 
-    <div id="game-screen" class="panel screen">
-        <div class="stats-bar" style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color);">
-            <div id="session-display">Sessió: 1</div>
-            <div id="op-display">Repte: 1</div>
-            <div id="score-display">Punts: 0</div>
-            <div id="attempts-display">Intents: 4</div>
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Ordenar enters</h1>
+</div>
+
+<div class="panel" id="main-panel">
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 3</div>
+                <div class="level-text"   id="lvl-display">Repte 1 de 10</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 6</div>
         </div>
 
-        <div id="challenge-container" class="challenge-container">
+        <div class="expression-box" id="expression-box" role="group" aria-label="Expressió matemàtica"></div>
+        <div id="op-instruction" class="op-instruction" aria-live="polite"></div>
+
+        <div class="resolution-panel" id="resolution-panel">
+            <div class="sub-problem" id="sub-problem-display" aria-live="polite"></div>
+
+            <div class="step-container" id="step-repte1">
+                <div class="step-title">Signe de desigualtat?</div>
+                <div class="sign-buttons" role="group" aria-label="Tria el signe">
+                    <button class="btn-sign" onclick="checkRepte1('<', this)" aria-label="Menor que">&lt;</button>
+                    <button class="btn-sign" onclick="checkRepte1('>', this)" aria-label="Major que">&gt;</button>
+                </div>
             </div>
 
-        <div id="controls-container" class="controls">
+            <div class="step-container" id="step-repte2">
+                <div class="step-title">Quin nombre hi pot anar?</div>
+                <div class="value-input-group">
+                    <input type="text" id="value-input" autocomplete="off" aria-label="Resultat numèric">
+                    <button class="btn-submit" id="btn-submit-val" onclick="checkRepte2()">OK</button>
+                </div>
             </div>
+
+            <div class="step-container" id="step-repte3">
+                <div class="step-title" id="r3-title">Selecciona tots els nombres menors que X</div>
+                <div class="sign-buttons" id="r3-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 300px; margin: 0 auto 15px auto;">
+                    </div>
+                <button class="btn-submit" id="btn-submit-r3" onclick="checkRepte3()">OK</button>
+            </div>
+
+        </div>
     </div>
+</div>
 
-    <script>
-        // ---- VARIABLES DE L'ESTAT LOCAL ----
-        const els = {
-            gameScreen:   document.getElementById('game-screen'),
-            sessionDisp:  document.getElementById('session-display'),
-            opDisp:       document.getElementById('op-display'),
-            scoreDisp:    document.getElementById('score-display'),
-            attemptsDisp: document.getElementById('attempts-display'),
-            challenge:    document.getElementById('challenge-container'),
-            controls:     document.getElementById('controls-container')
-        };
+<script src="js/game-core.js"></script>
 
-        let currentChallengeType = 1;
-        let challengeData = {};
+<script>
+    const els = {
+        body:            document.body,
+        gameScreen:      document.getElementById('game-screen'),
+        sessionDisplay:  document.getElementById('session-display'),
+        lvlDisplay:      document.getElementById('lvl-display'),
+        scoreDisplay:    document.getElementById('score-display'),
+        attemptsDisplay: document.getElementById('attempts-display'),
+        expressionBox:   document.getElementById('expression-box'),
+        opInstruction:   document.getElementById('op-instruction'),
+        resolutionPanel: document.getElementById('resolution-panel'),
+        subProblem:      document.getElementById('sub-problem-display'),
+        
+        stepRepte1:      document.getElementById('step-repte1'),
+        stepRepte2:      document.getElementById('step-repte2'),
+        stepRepte3:      document.getElementById('step-repte3'),
+        
+        valueInput:      document.getElementById('value-input'),
+        btnSubmitVal:    document.getElementById('btn-submit-val'),
+        btnSubmitR3:     document.getElementById('btn-submit-r3'),
+        
+        r3Title:         document.getElementById('r3-title'),
+        r3Grid:          document.getElementById('r3-grid')
+    };
 
-        // ---- INICIALITZACIÓ ----
-        window.addEventListener('DOMContentLoaded', () => {
-            // Cridem les funcions de game-core per preparar l'entorn
-            if(typeof injectSharedHTML === 'function') injectSharedHTML();
-            if(typeof validateConfig === 'function') validateConfig();
-            
-            // Forcem que s'amagui qualsevol teclat si game-core l'ha posat
-            if(typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
-            
-            startSession();
-        });
+    let isPenalizing    = false;
+    let challengeType   = 1; // 1, 2, o 3
+    let challengeData   = {};
 
-        // Interceptar Enter per comoditat al Repte 2 i 3
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !isTransitioning) {
-                if (currentChallengeType === 2 || currentChallengeType === 3) {
-                    e.preventDefault();
-                    checkAnswer();
-                }
-            }
-        });
+    function formatNum(num) {
+        if (num < 0) return `(${num})`;
+        return String(num);
+    }
 
-        function updateUI() {
-            els.sessionDisp.innerText  = `Sessió: ${currentSession} / ${TOTAL_SESSIONS}`;
-            els.opDisp.innerText       = `Repte: ${currentOperation} / ${TOTAL_OPERATIONS}`;
-            els.scoreDisp.innerText    = `Punts: ${sessionScore}`;
-            els.attemptsDisp.innerText = `Intents: ${attemptsLeft}`;
+    // ---- GENERACIÓ DELS REPTES ----
+    function generateChallenge(type) {
+        let data = {};
+        if (type === 1) {
+            let p = randInt(-9, 9);
+            let q = randInt(-9, 9);
+            while (p === q) q = randInt(-9, 9);
+            data = { p, q, correctSign: p < q ? '<' : '>' };
+        } else if (type === 2) {
+            let p = randInt(-9, 7);
+            let q = randInt(p + 2, 9);
+            data = { p, q };
+        } else if (type === 3) {
+            let r = randInt(-7, 7);
+            let nums = [];
+            for (let i = 0; i < 8; i++) nums.push(randInt(-9, 9));
+            data = { r, nums };
         }
+        return data;
+    }
 
-        function startSession() {
-            currentSession++;
-            currentOperation = 0;
-            sessionScore = 0;
-            if(typeof sessionHistory !== 'undefined') sessionHistory = [];
+    function updateUI() {
+        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText      = `Repte ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 3 ? ' danger' : '');
+        
+        // Reiniciar la interfície de resolució
+        els.resolutionPanel.style.display = 'flex';
+        els.stepRepte1.classList.remove('active');
+        els.stepRepte2.classList.remove('active');
+        els.stepRepte3.classList.remove('active');
+        els.opInstruction.classList.remove('active');
+
+        // Construir la interfície depenent del repte
+        if (challengeType === 1) {
+            els.expressionBox.innerHTML = `
+                <span class="token-num highlight">${formatNum(challengeData.p)}</span>
+                <span class="token-op auto-selected">?</span>
+                <span class="token-num highlight">${formatNum(challengeData.q)}</span>
+            `;
+            els.subProblem.innerText = "Completa la desigualtat";
+            els.stepRepte1.classList.add('active');
+
+        } else if (challengeType === 2) {
+            els.expressionBox.innerHTML = `
+                <span class="token-num highlight">${formatNum(challengeData.p)}</span>
+                <span class="token-num" style="background:transparent">&lt;</span>
+                <span class="token-op auto-selected">?</span>
+                <span class="token-num" style="background:transparent">&lt;</span>
+                <span class="token-num highlight">${formatNum(challengeData.q)}</span>
+            `;
+            els.subProblem.innerText = "Tria un enter intermedi";
+            els.stepRepte2.classList.add('active');
+            els.valueInput.value = '';
             
-            els.gameScreen.style.display = 'block';
-            nextOperation();
-        }
-
-        function nextOperation() {
-            currentOperation++;
-            
-            // Comprovem si la sessió ha acabat
-            if (currentOperation > TOTAL_OPERATIONS) {
-                els.gameScreen.style.display = 'none';
-                if(typeof sessionScores !== 'undefined') sessionScores.push(sessionScore);
-                
-                // Si usem la lògica compartida de game-core per finalitzar
-                if(typeof showEndSessionScreen === 'function') {
-                    showEndSessionScreen();
-                } else {
-                    alert(`Sessió completada! Puntuació: ${sessionScore}`);
-                }
-                return;
-            }
-
-            attemptsLeft = MAX_INTENTS;
-            isTransitioning = false;
-            
-            // Alternem cíclicament entre els reptes 1, 2 i 3
-            currentChallengeType = ((currentOperation - 1) % 3) + 1;
-            setupChallenge();
-            updateUI();
-        }
-
-        // ---- GENERACIÓ DELS REPTES ----
-        function setupChallenge() {
-            els.challenge.innerHTML = '';
-            els.controls.innerHTML = '';
-            els.challenge.classList.remove('shake');
-
-            if (currentChallengeType === 1) {
-                // REPTE 1: Triar < o >
-                let p = randInt(-9, 9);
-                let q = randInt(-9, 9);
-                while(p === q) q = randInt(-9, 9); // Garantir diferents
-                
-                challengeData = { p, q, ans: p < q ? '<' : '>' };
-
-                els.challenge.innerHTML = `
-                    <div class="instruction">Tria el signe correcte per completar la desigualtat:</div>
-                    <div class="expression-row">
-                        <div class="term-box">${p}</div>
-                        <div id="c1-sign" class="term-box empty">?</div>
-                        <div class="term-box">${q}</div>
-                    </div>
-                `;
-                els.controls.innerHTML = `
-                    <button class="btn-action btn-action-primary btn-action-large" onclick="checkAnswer('<')">&lt;</button>
-                    <button class="btn-action btn-action-primary btn-action-large" onclick="checkAnswer('>')">&gt;</button>
-                `;
-
-            } else if (currentChallengeType === 2) {
-                // REPTE 2: Trobar un nombre r tal que p < r < q
-                let p = randInt(-9, 7);
-                let q = randInt(p + 2, 9); // +2 garanteix que hi ha almenys 1 enter entremig
-                
-                challengeData = { p, q };
-
-                els.challenge.innerHTML = `
-                    <div class="instruction">Escriu un nombre enter que compleixi la condició:</div>
-                    <div class="expression-row">
-                        <div class="term-box">${p}</div>
-                        <div class="math-sign">&lt;</div>
-                        <input type="number" id="c2-input" class="term-box input-box" autocomplete="off">
-                        <div class="math-sign">&lt;</div>
-                        <div class="term-box">${q}</div>
-                    </div>
-                `;
-                els.controls.innerHTML = `
-                    <button class="btn-action btn-action-primary" onclick="checkAnswer()">Comprova</button>
-                `;
-                setTimeout(() => document.getElementById('c2-input').focus(), 100);
-
-            } else if (currentChallengeType === 3) {
-                // REPTE 3: Seleccionar tots els menors que 'r'
-                let r = randInt(-7, 7);
-                let nums = [];
-                for(let i=0; i<8; i++) {
-                    nums.push(randInt(-9, 9));
-                }
-                
-                challengeData = { r, nums };
-
-                // Dibuixem els botons
-                let gridHTML = nums.map((n, i) => 
-                    `<button class="btn-num" id="btn-n${i}" onclick="toggleSelection(${i})">${n}</button>`
-                ).join('');
-
-                els.challenge.innerHTML = `
-                    <div class="instruction">
-                        Selecciona <b>TOTS</b> els nombres que són <span style="color:var(--primary); font-weight:bold;">MENORS que ${r}</span>
-                    </div>
-                    <div class="grid-8">
-                        ${gridHTML}
-                    </div>
-                `;
-                els.controls.innerHTML = `
-                    <button class="btn-action btn-action-primary" onclick="checkAnswer()">Comprova</button>
-                `;
-            }
-        }
-
-        // Funció pel repte 3
-        function toggleSelection(i) {
-            if (isTransitioning) return;
-            document.getElementById(`btn-n${i}`).classList.toggle('selected');
-        }
-
-        // ---- VALIDACIÓ DE RESPOSTES ----
-        function checkAnswer(val = null) {
-            if (isTransitioning) return;
-            
-            let isCorrect = false;
-
-            // -- Verificació segons el tipus de repte --
-            if (currentChallengeType === 1) {
-                isCorrect = (val === challengeData.ans);
-                if (isCorrect) {
-                    const signBox = document.getElementById('c1-sign');
-                    signBox.innerText = val;
-                    signBox.classList.remove('empty');
-                    signBox.classList.add('correct');
-                }
-
-            } else if (currentChallengeType === 2) {
-                const inputEl = document.getElementById('c2-input');
-                const userVal = parseInt(inputEl.value, 10);
-                
-                if (!isNaN(userVal) && userVal > challengeData.p && userVal < challengeData.q) {
-                    isCorrect = true;
-                    inputEl.classList.add('correct');
-                    inputEl.readOnly = true;
-                } else {
-                    inputEl.value = ''; // Netejem l'input si s'equivoca
-                    inputEl.focus();
-                }
-
-            } else if (currentChallengeType === 3) {
-                let allCorrect = true;
-                for(let i=0; i<8; i++) {
-                    const btn = document.getElementById(`btn-n${i}`);
-                    const isSelected = btn.classList.contains('selected');
-                    const shouldBeSelected = challengeData.nums[i] < challengeData.r;
-                    
-                    if (isSelected !== shouldBeSelected) {
-                        allCorrect = false;
-                        break;
-                    }
-                }
-                isCorrect = allCorrect;
-                
-                if (isCorrect) {
-                    // Marquem verd les encertades i desactivem tot
-                    for(let i=0; i<8; i++) {
-                        const btn = document.getElementById(`btn-n${i}`);
-                        btn.style.pointerEvents = 'none';
-                        if (challengeData.nums[i] < challengeData.r) {
-                            btn.classList.add('correct');
-                            btn.style.borderColor = 'var(--success)';
-                        }
-                    }
-                }
-            }
-
-            // -- Resolució de l'intent --
-            if (isCorrect) {
-                isTransitioning = true;
-                let fails = MAX_INTENTS - attemptsLeft;
-                let points = Math.max(0, 10 - fails * 2);
-                sessionScore += points;
-                updateUI();
-                
-                // Afegim a l'historial del resum (si s'utilitza la pantalla compartida)
-                if(typeof sessionHistory !== 'undefined') {
-                    sessionHistory.push({
-                        opStr: `Repte ${currentChallengeType} superat`,
-                        success: true
-                    });
-                }
-                
-                setTimeout(nextOperation, 1000);
-
+            // Si és tàctil, aixequem el teclat a mida
+            if (typeof isTouchDevice === 'function' && isTouchDevice()) {
+                if (typeof showCustomKeyboard === 'function') showCustomKeyboard(els.valueInput);
             } else {
-                attemptsLeft--;
-                updateUI();
-                
-                // Efecte visual d'error
-                els.challenge.classList.remove('shake');
-                void els.challenge.offsetWidth; // Força el reflow per reiniciar l'animació CSS
-                els.challenge.classList.add('shake');
-                
-                if (attemptsLeft <= 0) {
-                    isTransitioning = true;
-                    
-                    // Mostrar la solució forçada depenent del repte
-                    if (currentChallengeType === 1) {
-                        const signBox = document.getElementById('c1-sign');
-                        signBox.innerText = challengeData.ans;
-                        signBox.classList.remove('empty');
-                        signBox.classList.add('error');
-                    } else if (currentChallengeType === 2) {
-                        const inputEl = document.getElementById('c2-input');
-                        inputEl.value = challengeData.p + 1; // Un valor possible correcte qualsevol
-                        inputEl.classList.add('error');
-                        inputEl.readOnly = true;
-                    } else if (currentChallengeType === 3) {
-                        for(let i=0; i<8; i++) {
-                            const btn = document.getElementById(`btn-n${i}`);
-                            if (challengeData.nums[i] < challengeData.r) {
-                                btn.classList.add('selected');
-                                btn.classList.add('error');
-                            } else {
-                                btn.classList.remove('selected');
-                            }
-                            btn.style.pointerEvents = 'none';
-                        }
-                    }
-                    
-                    if(typeof sessionHistory !== 'undefined') {
-                        sessionHistory.push({
-                            opStr: `Repte ${currentChallengeType} fallat`,
-                            success: false
-                        });
-                    }
-                    
-                    setTimeout(nextOperation, 1800);
-                }
+                els.valueInput.focus();
+            }
+
+        } else if (challengeType === 3) {
+            els.expressionBox.innerHTML = `
+                <span class="token-num" style="font-size:0.9em; background:transparent;">Quins d'aquests nombres compleixen la condició?</span>
+            `;
+            els.subProblem.innerText = "";
+            els.r3Title.innerHTML = `Selecciona TOTS els menors que <span style="color:var(--primary); font-size:1.4em;">${formatNum(challengeData.r)}</span>`;
+            
+            els.r3Grid.innerHTML = '';
+            challengeData.nums.forEach((num, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-sign';
+                btn.style.minWidth = '50px';
+                btn.innerText = num;
+                btn.onclick = function() {
+                    if (isPenalizing || isTransitioning) return;
+                    this.classList.toggle('selected');
+                };
+                els.r3Grid.appendChild(btn);
+            });
+            
+            els.stepRepte3.classList.add('active');
+        }
+    }
+
+    function buildLevel() {
+        attemptsLeft    = MAX_INTENTS;
+        challengeType   = (currentOperation % 3) + 1;
+        challengeData   = generateChallenge(challengeType);
+        isTransitioning = false;
+        isPenalizing    = false;
+        
+        els.body.style.backgroundColor = bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+        updateUI();
+    }
+
+    function penalize() {
+        if (isPenalizing || isTransitioning) return;
+        isPenalizing = true;
+        els.attemptsDisplay.classList.add('blink');
+        setTimeout(() => {
+            els.attemptsDisplay.classList.remove('blink');
+            attemptsLeft--;
+            if (attemptsLeft <= 0) {
+                isTransitioning = true;
+                els.stepRepte1.classList.remove('active');
+                els.stepRepte2.classList.remove('active');
+                els.stepRepte3.classList.remove('active');
+                if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
+            }
+            isPenalizing = false;
+            updateUI();
+            if (attemptsLeft <= 0) _finishOp(0);
+        }, 1000);
+    }
+
+    function _finishOp(levelPoints) {
+        if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
+        const waitTime = showMiniOverlay(levelPoints);
+        setTimeout(() => {
+            hideMiniOverlay();
+            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                endSession();
+            } else {
+                currentOperation++;
+                buildLevel();
+            }
+        }, waitTime);
+    }
+
+    // ---- VALIDACIONS DELS REPTES ----
+
+    function checkRepte1(selectedSign, btnElement) {
+        if (isTransitioning || isPenalizing) return;
+        const stepQuestion = `Signe entre ${challengeData.p} i ${challengeData.q}`;
+
+        if (selectedSign !== challengeData.correctSign) {
+            btnElement.classList.add('error-shake');
+            setTimeout(() => btnElement.classList.remove('error-shake'), 200);
+            if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, selectedSign, false);
+            penalize(); btnElement.blur(); return;
+        }
+        
+        if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, selectedSign, true);
+        els.expressionBox.innerHTML = `
+            <span class="token-num highlight">${formatNum(challengeData.p)}</span>
+            <span class="token-num resolved-num" style="font-size:1.5em">${selectedSign}</span>
+            <span class="token-num highlight">${formatNum(challengeData.q)}</span>
+        `;
+        els.stepRepte1.classList.remove('active');
+        successEnd();
+    }
+
+    function checkRepte2() {
+        if (isTransitioning || isPenalizing) return;
+        const rawValue = els.valueInput.value.trim();
+        if (rawValue === '') return;
+
+        if (!/^-?\d+$/.test(rawValue)) {
+             els.btnSubmitVal.classList.add('error-shake');
+             setTimeout(() => els.btnSubmitVal.classList.remove('error-shake'), 200);
+             penalize(); return;
+        }
+
+        const userAnswer = parseInt(rawValue, 10);
+        const stepQuestion = `Enter entre ${challengeData.p} i ${challengeData.q}`;
+
+        if (userAnswer <= challengeData.p || userAnswer >= challengeData.q) {
+            els.btnSubmitVal.classList.add('error-shake');
+            setTimeout(() => els.btnSubmitVal.classList.remove('error-shake'), 200);
+            if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, rawValue, false);
+            penalize();
+            
+            if (typeof isTouchDevice === 'function' && isTouchDevice()) {
+                if (typeof kbMarkForOverwrite === 'function') kbMarkForOverwrite(els.valueInput);
+            } else {
+                els.valueInput.value = ''; els.valueInput.focus();
+            }
+            return;
+        }
+        
+        if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, rawValue, true);
+        els.expressionBox.innerHTML = `
+            <span class="token-num highlight">${formatNum(challengeData.p)}</span>
+            <span class="token-num" style="background:transparent">&lt;</span>
+            <span class="token-num resolved-num">${userAnswer}</span>
+            <span class="token-num" style="background:transparent">&lt;</span>
+            <span class="token-num highlight">${formatNum(challengeData.q)}</span>
+        `;
+        els.stepRepte2.classList.remove('active');
+        successEnd();
+    }
+
+    function checkRepte3() {
+        if (isTransitioning || isPenalizing) return;
+        
+        const buttons = els.r3Grid.querySelectorAll('.btn-sign');
+        let allCorrect = true;
+        
+        buttons.forEach((btn, i) => {
+            const isSelected = btn.classList.contains('selected');
+            const isLessThanR = challengeData.nums[i] < challengeData.r;
+            
+            if (isSelected !== isLessThanR) {
+                allCorrect = false;
+            }
+        });
+
+        const stepQuestion = `Menors que ${challengeData.r}`;
+
+        if (!allCorrect) {
+            els.btnSubmitR3.classList.add('error-shake');
+            setTimeout(() => els.btnSubmitR3.classList.remove('error-shake'), 200);
+            if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Error", false);
+            penalize(); return;
+        }
+
+        if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Correcte", true);
+        
+        // Efecte de guanyar al panell
+        buttons.forEach((btn, i) => {
+            btn.style.pointerEvents = 'none';
+            if (challengeData.nums[i] < challengeData.r) {
+                btn.style.backgroundColor = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'white';
+            }
+        });
+
+        els.stepRepte3.classList.remove('active');
+        successEnd();
+    }
+
+    function successEnd() {
+        isTransitioning = true;
+        const fails       = MAX_INTENTS - attemptsLeft;
+        const levelPoints = Math.max(0, 10 - (fails * 2));
+        sessionScore     += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+        _finishOp(levelPoints);
+    }
+
+    // Interceptar l'Enter com a l'original
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            if (els.gameScreen.style.display !== 'none') {
+                e.preventDefault(); 
+                if (!isTransitioning) checkCurrentCell();
             }
         }
-    </script>
+    });
+
+    function checkCurrentCell() { 
+        if (challengeType === 2) checkRepte2(); 
+        if (challengeType === 3) checkRepte3();
+    }
+
+    // Inicialització seguint exactament l'ordre del teu codi
+    if (typeof injectSharedHTML === 'function') injectSharedHTML();
+    if (typeof validateConfig === 'function') validateConfig();
+    if (typeof initCustomKeyboard === 'function') initCustomKeyboard({ allowNegative: true });
+    
+    // Assegurem que s'engega igual que originalment. game-core acostuma a donar la funció startGame()
+    if (typeof startGame === 'function') startGame();
+</script>
 </body>
 </html>
