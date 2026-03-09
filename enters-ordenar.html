@@ -10,7 +10,7 @@
     <script>
         window.APP_CONFIG = {
             defaultSessions:      1,
-            defaultOperations:    6, // Amb 6, l'alumne farà exactament 2 exercicis de cada repte per sessió.
+            defaultOperations:    6,
             defaultIntents:       4,
             defaultEnllocMitjana: 1
         };
@@ -55,12 +55,9 @@
         .token-op:active        { transform: scale(0.95); }
         .token-op.error-shake   { background-color: var(--danger-light) !important; border-color: var(--danger) !important; color: var(--danger) !important; animation: shake 0.2s; }
         .token-op.auto-selected { background-color: var(--primary-light); border-color: var(--primary); color: #334155; }
-        .token-op.step0-blink   { animation: step0Blink 0.4s linear 5; }
 
         .op-instruction { display: none; padding: 0 20px 14px 20px; text-align: center; color: #475569; font-weight: 600; font-size: 1em; }
         .op-instruction.active { display: block; }
-        .op-instruction-line.error { color: var(--danger); font-weight: 700; }
-        .op-instruction-line.hint  { color: #475569; font-weight: 600; margin-top: 6px; }
 
         .resolution-panel {
             background-color: var(--bg-color); border-top: 1px solid var(--border-color);
@@ -76,7 +73,7 @@
         .step-container { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s; }
         .step-container.active { display: flex; }
 
-        .step-title { font-size: 1.1em; color: #475569; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; text-align: center; }
+        .step-title { font-size: 1.1em; color: #475569; margin-bottom: 15px; font-weight: bold; text-align: center; }
 
         .sign-buttons { display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
 
@@ -86,14 +83,14 @@
             cursor: pointer; transition: 0.2s; text-transform: capitalize;
             flex: 1; min-width: 80px; max-width: 150px; text-align: center; touch-action: manipulation;
         }
+        .btn-narrow { max-width: 105px !important; } /* Un 30% més curts aproximadament */
+        
         .btn-sign:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
         @media (hover: hover) {
             .btn-sign:hover { background: var(--primary-light); border-color: #0ea5e9; color: var(--primary); transform: translateY(-2px); }
         }
         .btn-sign:active      { transform: scale(0.95); }
         .btn-sign.error-shake { background-color: var(--danger-light); border-color: var(--danger); color: var(--danger); animation: shake 0.2s; }
-        
-        /* Nova classe per als botons seleccionats al Repte 3 */
         .btn-sign.selected    { background-color: var(--primary-light); border-color: var(--primary); color: var(--primary-hover); transform: scale(0.95); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
 
         .value-input-group { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
@@ -122,10 +119,6 @@
         }
 
         @keyframes attemptsBlink {
-            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
-            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
-        }
-        @keyframes step0Blink {
             0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
             50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
         }
@@ -159,10 +152,10 @@
             <div class="sub-problem" id="sub-problem-display" aria-live="polite"></div>
 
             <div class="step-container" id="step-repte1">
-                <div class="step-title">Signe de desigualtat?</div>
+                <div class="step-title">Escull el signe correcte</div>
                 <div class="sign-buttons" role="group" aria-label="Tria el signe">
-                    <button class="btn-sign" onclick="checkRepte1('<', this)" aria-label="Menor que">&lt;</button>
-                    <button class="btn-sign" onclick="checkRepte1('>', this)" aria-label="Major que">&gt;</button>
+                    <button class="btn-sign btn-narrow" onclick="checkRepte1('<', this)" aria-label="Menor que">&lt;</button>
+                    <button class="btn-sign btn-narrow" onclick="checkRepte1('>', this)" aria-label="Major que">&gt;</button>
                 </div>
             </div>
 
@@ -175,7 +168,7 @@
             </div>
 
             <div class="step-container" id="step-repte3">
-                <div class="step-title" id="r3-title">Selecciona tots els nombres menors que X</div>
+                <div class="step-title" id="r3-title"></div>
                 <div class="sign-buttons" id="r3-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 300px; margin: 0 auto 15px auto;">
                     </div>
                 <button class="btn-submit" id="btn-submit-r3" onclick="checkRepte3()">OK</button>
@@ -213,7 +206,7 @@
     };
 
     let isPenalizing    = false;
-    let challengeType   = 1; // 1, 2, o 3
+    let challengeType   = 1;
     let challengeData   = {};
 
     function formatNum(num) {
@@ -221,7 +214,6 @@
         return String(num);
     }
 
-    // ---- GENERACIÓ DELS REPTES ----
     function generateChallenge(type) {
         let data = {};
         if (type === 1) {
@@ -249,21 +241,23 @@
         els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
         els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 3 ? ' danger' : '');
         
-        // Reiniciar la interfície de resolució
+        // Mostrar per defecte (s'amagarà al repte 3)
+        els.expressionBox.style.display = 'flex';
+        els.subProblem.style.display    = 'block';
         els.resolutionPanel.style.display = 'flex';
+        
         els.stepRepte1.classList.remove('active');
         els.stepRepte2.classList.remove('active');
         els.stepRepte3.classList.remove('active');
         els.opInstruction.classList.remove('active');
 
-        // Construir la interfície depenent del repte
         if (challengeType === 1) {
             els.expressionBox.innerHTML = `
                 <span class="token-num highlight">${formatNum(challengeData.p)}</span>
                 <span class="token-op auto-selected">?</span>
                 <span class="token-num highlight">${formatNum(challengeData.q)}</span>
             `;
-            els.subProblem.innerText = "Completa la desigualtat";
+            els.subProblem.innerText = "Completa l'interrogant";
             els.stepRepte1.classList.add('active');
 
         } else if (challengeType === 2) {
@@ -274,11 +268,10 @@
                 <span class="token-num" style="background:transparent">&lt;</span>
                 <span class="token-num highlight">${formatNum(challengeData.q)}</span>
             `;
-            els.subProblem.innerText = "Tria un enter intermedi";
+            els.subProblem.innerText = "Completa l'interrogant";
             els.stepRepte2.classList.add('active');
             els.valueInput.value = '';
             
-            // Si és tàctil, aixequem el teclat a mida
             if (typeof isTouchDevice === 'function' && isTouchDevice()) {
                 if (typeof showCustomKeyboard === 'function') showCustomKeyboard(els.valueInput);
             } else {
@@ -286,11 +279,12 @@
             }
 
         } else if (challengeType === 3) {
-            els.expressionBox.innerHTML = `
-                <span class="token-num" style="font-size:0.9em; background:transparent;">Quins d'aquests nombres compleixen la condició?</span>
-            `;
-            els.subProblem.innerText = "";
-            els.r3Title.innerHTML = `Selecciona TOTS els menors que <span style="color:var(--primary); font-size:1.4em;">${formatNum(challengeData.r)}</span>`;
+            // Amaguem el bloc d'expressió i el subproblema perquè tot pugi cap a dalt
+            els.expressionBox.style.display = 'none';
+            els.subProblem.style.display    = 'none';
+            
+            // Frase integrada sense formatNum ni blaus
+            els.r3Title.innerText = `Selecciona els nombres que siguin menors que ${challengeData.r}`;
             
             els.r3Grid.innerHTML = '';
             challengeData.nums.forEach((num, i) => {
@@ -353,8 +347,6 @@
             }
         }, waitTime);
     }
-
-    // ---- VALIDACIONS DELS REPTES ----
 
     function checkRepte1(selectedSign, btnElement) {
         if (isTransitioning || isPenalizing) return;
@@ -443,7 +435,6 @@
 
         if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Correcte", true);
         
-        // Efecte de guanyar al panell
         buttons.forEach((btn, i) => {
             btn.style.pointerEvents = 'none';
             if (challengeData.nums[i] < challengeData.r) {
@@ -466,7 +457,6 @@
         _finishOp(levelPoints);
     }
 
-    // Interceptar l'Enter com a l'original
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             if (els.gameScreen.style.display !== 'none') {
@@ -481,12 +471,9 @@
         if (challengeType === 3) checkRepte3();
     }
 
-    // Inicialització seguint exactament l'ordre del teu codi
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
     if (typeof validateConfig === 'function') validateConfig();
     if (typeof initCustomKeyboard === 'function') initCustomKeyboard({ allowNegative: true });
-    
-    // Assegurem que s'engega igual que originalment. game-core acostuma a donar la funció startGame()
     if (typeof startGame === 'function') startGame();
 </script>
 </body>
