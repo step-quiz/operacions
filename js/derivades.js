@@ -34,16 +34,20 @@ function generateK() {
 }
 
 // CAS 2: Generador per a K fraccionari (p/q)
+// CAS 2: Generador per a K fraccionari (p/q)
 function generateFractionK() {
     const denoms = [2, 3, 4, 5];
-    const q = pick(denoms);
-    let p = randIntNonZero(-5, 5);
+    let q, p, common, finalDen;
     
-    // Simplificar la fracció
-    const common = gcd(p, q);
-    return { num: p / common, den: q / common };
-}
+    do {
+        q = pick(denoms);
+        p = randIntNonZero(-5, 5);
+        common = gcd(p, q);
+        finalDen = q / common;
+    } while (finalDen === 1); // Si l'enter de sota és 1 (ex: 4/2 = 2/1), tornem a tirar els daus
 
+    return { num: p / common, den: finalDen };
+}
 function formatK(k) {
     if (k === 1) return "";
     if (k === -1) return "-";
