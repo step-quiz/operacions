@@ -65,48 +65,6 @@ function invertFractionTex(fracObj) {
     return `${sign}\\frac{${fracObj.den}}{${absNum}}`;
 }
 
-
-// --- BANC DE PREGUNTES ---
-const questionBank = [
-    {
-        id: 'exp_kx_int', // Exponencial amb enters
-        generate: () => {
-            const k = generateK();
-            const kStr = formatK(k);
-            let kInvStr = k < 0 ? `-\\frac{1}{${Math.abs(k)}}` : `\\frac{1}{${k}}`;
-            let potExpo = k === 1 ? "x - 1" : (k - 1 === 1 ? "x" : (k - 1 === 0 ? "" : `x - 1`));
-
-            return {
-                questionTex: `f(x) = e^{${kStr}x}`,
-                correctTex: `${kStr}e^{${kStr}x}`,
-                distractorsTex: [
-                    `e^{${kStr}x}`,
-                    `${kStr}x e^{${kStr}${potExpo}}`,
-                    `${kInvStr} e^{${kStr}x}`
-                ]
-            };
-        }
-    },
-    {
-        id: 'exp_kx_frac', // Exponencial amb fraccions
-        generate: () => {
-            const frac = generateFractionK();
-            const kStr = frac.tex;
-            const kInvStr = invertFractionTex(frac);
-            
-            return {
-                questionTex: `f(x) = e^{${kStr}x}`,
-                correctTex: `${kStr}e^{${kStr}x}`,
-                distractorsTex: [
-                    `e^{${kStr}x}`,                          // Oblida regla de la cadena
-                    `${kStr}x e^{${kStr}x - 1}`,             // Regla potències (escrit literal)
-                    `${kInvStr} e^{${kStr}x}`                // Integral en lloc de derivada
-                ]
-            };
-        }
-    }
-];
-
 // --- MOTOR DEL JOC ---
 function buildLevel() {
     attemptsLeft    = MAX_INTENTS;
