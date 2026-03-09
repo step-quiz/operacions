@@ -9,6 +9,10 @@
  *     'universal'           → qualsevol família
  *     'linear-inner'        → quan h(x) = kx
  *     'family:exp'          → g(x) = e^x
+ *     'family:exp-sin'      → e^{sin(x)}
+ *     'family:exp-cos'      → e^{cos(x)}
+ *     'family:ln-sin'       → ln(sin(x))
+ *     'family:ln-cos'       → ln(cos(x))
  *     'family:log-kx'       → ln(kx)
  *     'family:log-xn'       → ln(x^n)
  *     'family:log-linear'   → ln(ax+b)
@@ -30,11 +34,16 @@
  *     FeedbackHints
  * - FASE 10: Afegits pools per sin(x²+bx+c) i cos(x²+bx+c).
  *   buildTrig ara accepta type='sin-poly2'|'cos-poly2' amb params={b,c}.
- * DEPENDÈNCIES: Requereix math-engine.js.
+ * DEPENDÈNCIES: Requereix math-engine.js i strings.js.
  * ============================================================================
  */
 
 window.DistractorLib = (() => {
+
+    // =========================================================================
+    // ÀLIES LOCAL → Strings.Feedback (font única de tots els textos)
+    // =========================================================================
+    const S = Strings.Feedback;
 
     // =========================================================================
     // TAXONOMIA D'errorType
@@ -56,84 +65,9 @@ window.DistractorLib = (() => {
 
     // =========================================================================
     // HINTS AMPLIATS PER errorType
+    // Delegats completament a strings.js → Strings.Hints
     // =========================================================================
-    const FeedbackHints = {
-        // Nivell 2: explica el PERQUÈ de la regla, no repeteix l'error concret.
-        // El feedback immediat (opt.feedback) ja descriu l'error específic.
-        // El hint aporta la justificació conceptual o un truc mnemotècnic.
-
-        [CHAIN_FORGOT]:
-            "La regla de la cadena té dos factors obligatoris: f'(g(x)) · g'(x). " +
-            "El primer és la derivada de l'exterior avaluada a l'interior; el segon, la derivada de l'interior. " +
-            "Cap dels dos no pot mancar: si no apareix g'(x) com a factor, la cadena és incompleta.",
-
-        [CHAIN_WRONG_COEF]:
-            "Quan l'argument interior és un polinomi p(x), cal derivar-lo terme a terme: " +
-            "cada potència, cada coeficient lineal i cada constant. " +
-            "Un error habitual és oblidar un terme o calcular malament el coeficient d'un dels sumands de p'(x).",
-
-        [CHAIN_SIGN]:
-            "El signe és part de la derivada, no un detall. " +
-            "(sin u)' = +cos(u)·u', però (cos u)' = −sin(u)·u' — el negatiu és intrínsec a cos'. " +
-            "Si u' té termes negatius, el signe es propaga i pot canviar el resultat final.",
-
-        [NO_DERIVATIVE]:
-            "Quan una opció és idèntica a la funció de la pregunta, és una pista segura que no s'ha derivat. " +
-            "La derivada quasi sempre és una funció diferent de l'original " +
-            "(l'excepció notable és e^x, que és la seva pròpia derivada).",
-
-        [INTEGRAL_CONFUSION]:
-            "Derivar i integrar (calcular primitives) són operacions inverses. " +
-            "La derivada redueix el grau del polinomi o elimina factors; la primitiva l'augmenta. " +
-            "Si el resultat és 'més gran' que la funció original, probablement s'ha integrat en lloc de derivar.",
-
-        [PRODUCT_FORGOT_SUM]:
-            "La regla del producte és una suma de dos termes: (fg)' = f'g + fg'. " +
-            "La idea és que cada factor es deriva per torn mentre l'altre es manté. " +
-            "Si el resultat és un sol terme o un producte de derivades, no s'ha aplicat la regla.",
-
-        [PRODUCT_WRONG_ORDER]:
-            "(fg)' = f'g + fg' i (f/g)' = (f'g − fg')/g² semblen paregudes però difereixen en signe i denominador. " +
-            "La regla del producte sempre suma; la del quocient sempre resta (f' primer, f segon al numerador).",
-
-        [QUOTIENT_SIGN]:
-            "Al numerador de (f/g)', l'ordre importa: f'g − fg', mai fg' − f'g. " +
-            "La manera de recordar-ho: el numerador de la derivada sempre comença pel terme amb la derivada de dalt (f'), " +
-            "igual que en la regla del producte, però amb resta.",
-
-        [QUOTIENT_DENOM]:
-            "El denominador de (f/g)' és sempre g², no g. " +
-            "Geomètricament, elevar al quadrat prové d'aplicar la regla de la cadena a 1/g. " +
-            "Si el denominador no és el quadrat del denominador original, la fórmula és incompleta.",
-
-        [POWER_FORGOT_R]:
-            "La regla de la potència té dos canvis simultanis: l'exponent n baixa com a coeficient davant, " +
-            "i l'exponent es redueix en 1. Els dos han de passar alhora: (x^n)' = n·x^{n−1}. " +
-            "Oblidar qualsevol dels dos és un error parcial.",
-
-        [POWER_WRONG_EXP]:
-            "Quan derives x^n, l'exponent no es manté: passa de n a n−1. " +
-            "Pensa-ho com un 'descens': l'exponent baixa una posició. " +
-            "Si l'exponent del resultat és el mateix que el de la funció original, no s'ha aplicat el descens.",
-
-        [LOG_INVERTED]:
-            "L'origen de la fórmula: per la regla de la cadena, (ln f)' = (1/f) · f'. " +
-            "Llegit com a fracció, f' és sempre el numerador (el que 'ha canviat') " +
-            "i f és sempre el denominador (l'argument original del logaritme). " +
-            "Si tens f a dalt i f' a baix, has intercanviat els papers de numerador i denominador.",
-
-        [LOG_FORGOT_CHAIN]:
-            "Derivar ln(f(x)) és un procés en dos passos: " +
-            "(1) derivar el logaritme com si l'interior fos una variable simple → 1/f(x); " +
-            "(2) multiplicar per la derivada interior → f'(x). " +
-            "El resultat complet és f'(x)/f(x). Saltar el segon pas dóna 1/f en lloc de f'/f.",
-
-        [SIN_COS_SWAP]:
-            "Derivar intercanvia sin i cos, però amb una asimetria de signe: " +
-            "(sin u)' = +cos(u)·u' — sense negatiu; " +
-            "(cos u)' = −sin(u)·u' — amb negatiu. " +
-            "El negatiu pertany sempre a cos (tant en la derivada de cos com en la seva primitiva).",
-    };
+    const FeedbackHints = Strings.Hints;
 
     // =========================================================================
     // ÀLIES LOCALS → MathEngine (font única, evita duplicació)
@@ -153,19 +87,19 @@ window.DistractorLib = (() => {
     function _buildSinPool(k) {
         const arg     = _kxArg(k);
         const pool    = [];
-        if (k !== 1 && k !== -1) pool.push({ tex: `\\cos(${arg})`,           feedback: "Has derivat sin a cos, però has oblidat multiplicar per la derivada de l'argument interior (k).",              errorType: CHAIN_FORGOT,    scope: 'family:sin' });
-        pool.push(                          { tex: _trigTerm(k, 'sin', arg),  feedback: "La derivada de sin(u) és cos(u)·u', no sin(u)·u'. Sin i cos s'intercanvien en derivar.",                       errorType: SIN_COS_SWAP,   scope: 'family:sin' });
-        pool.push(                          { tex: _trigTerm(-k, 'cos', arg), feedback: "La derivada de sin és +cos, no −cos. El signe negatiu apareix en la derivada de cos, no de sin.",               errorType: CHAIN_SIGN,     scope: 'family:sin' });
-        pool.push(                          { tex: _trigTerm(-k, 'sin', arg), feedback: "Dos errors alhora: (sin u)' = cos(u)·u', no −sin(u)·u'.",                                                       errorType: SIN_COS_SWAP,   scope: 'family:sin' });
+        if (k !== 1 && k !== -1) pool.push({ tex: `\\cos(${arg})`,           feedback: S.sin_kx.forgot_k,      errorType: CHAIN_FORGOT,       scope: 'family:sin' });
+        pool.push(                          { tex: _trigTerm(k, 'sin', arg),  feedback: S.sin_kx.sin_cos_swap,  errorType: SIN_COS_SWAP,       scope: 'family:sin' });
+        pool.push(                          { tex: _trigTerm(-k, 'cos', arg), feedback: S.sin_kx.wrong_sign,    errorType: CHAIN_SIGN,         scope: 'family:sin' });
+        pool.push(                          { tex: _trigTerm(-k, 'sin', arg), feedback: S.sin_kx.double_error,  errorType: SIN_COS_SWAP,       scope: 'family:sin' });
         // NO_DERIVATIVE: `\sin(arg)` — comprova que no coincideixi amb un SIN_COS_SWAP ja present
         const sinOriginal = `\\sin(${arg})`;
         if (!pool.find(d => d.tex === sinOriginal))
-            pool.push(                      { tex: sinOriginal,               feedback: "Aquesta és la funció original, no la seva derivada.",                                                             errorType: NO_DERIVATIVE,  scope: 'universal'  });
+            pool.push(                      { tex: sinOriginal,               feedback: S.no_derivative,        errorType: NO_DERIVATIVE,      scope: 'universal'  });
         if (Math.abs(k) > 1) {
             const den     = Math.abs(k);
             const intSign = k > 0 ? '-' : '';
-            pool.push({ tex: `${intSign}\\frac{1}{${den}}\\cos(${arg})`, feedback: "Estàs calculant la primitiva (∫sin = −cos/k), no la derivada (sin' = k·cos).", errorType: INTEGRAL_CONFUSION, scope: 'family:sin' });
-            pool.push({ tex: _trigTerm(k * k, 'cos', arg), feedback: "El coeficient de la regla de la cadena és k, no k².", errorType: CHAIN_WRONG_COEF, scope: 'family:sin' });
+            pool.push({ tex: `${intSign}\\frac{1}{${den}}\\cos(${arg})`, feedback: S.sin_kx.is_integral,  errorType: INTEGRAL_CONFUSION, scope: 'family:sin' });
+            pool.push({ tex: _trigTerm(k * k, 'cos', arg),               feedback: S.sin_kx.k_squared,    errorType: CHAIN_WRONG_COEF,   scope: 'family:sin' });
         }
         return pool;
     }
@@ -176,15 +110,15 @@ window.DistractorLib = (() => {
     function _buildCosPool(k) {
         const arg  = _kxArg(k);
         const pool = [];
-        pool.push({ tex: _trigTerm(k, 'sin', arg),  feedback: "Has derivat cos a sin, però la derivada de cos porta signe negatiu: (cos u)' = −sin(u)·u'.",         errorType: CHAIN_SIGN,    scope: 'family:cos' });
-        pool.push({ tex: _trigTerm(-k, 'cos', arg), feedback: "Has posat el signe negatiu, però la derivada de cos és −sin, no −cos. Sin i cos s'intercanvien.",     errorType: SIN_COS_SWAP,  scope: 'family:cos' });
-        if (k !== 1 && k !== -1) pool.push({ tex: `-\\sin(${arg})`, feedback: "Has derivat cos a −sin, però has oblidat multiplicar per la derivada de l'argument interior (k).", errorType: CHAIN_FORGOT, scope: 'family:cos' });
-        pool.push({ tex: _trigTerm(k, 'cos', arg),  feedback: "Dos errors alhora: falta el signe negatiu i cos no s'ha convertit en sin. Recorda: (cos u)' = −sin(u)·u'.", errorType: SIN_COS_SWAP, scope: 'family:cos' });
-        pool.push({ tex: `\\cos(${arg})`,           feedback: "Aquesta és la funció original, no la seva derivada.",                                                  errorType: NO_DERIVATIVE, scope: 'universal'  });
+        pool.push({ tex: _trigTerm(k, 'sin', arg),  feedback: S.cos_kx.forgot_sign,  errorType: CHAIN_SIGN,    scope: 'family:cos' });
+        pool.push({ tex: _trigTerm(-k, 'cos', arg), feedback: S.cos_kx.sin_cos_swap, errorType: SIN_COS_SWAP,  scope: 'family:cos' });
+        if (k !== 1 && k !== -1) pool.push({ tex: `-\\sin(${arg})`, feedback: S.cos_kx.forgot_k, errorType: CHAIN_FORGOT, scope: 'family:cos' });
+        pool.push({ tex: _trigTerm(k, 'cos', arg),  feedback: S.cos_kx.double_error, errorType: SIN_COS_SWAP,  scope: 'family:cos' });
+        pool.push({ tex: `\\cos(${arg})`,           feedback: S.no_derivative,       errorType: NO_DERIVATIVE, scope: 'universal'  });
         if (Math.abs(k) > 1) {
             const den     = Math.abs(k);
             const intSign = k > 0 ? '' : '-';
-            pool.push({ tex: `${intSign}\\frac{1}{${den}}\\sin(${arg})`, feedback: "Estàs calculant la primitiva (∫cos = sin/k), no la derivada (cos' = −k·sin).", errorType: INTEGRAL_CONFUSION, scope: 'family:cos' });
+            pool.push({ tex: `${intSign}\\frac{1}{${den}}\\sin(${arg})`, feedback: S.cos_kx.is_integral, errorType: INTEGRAL_CONFUSION, scope: 'family:cos' });
         }
         return pool;
     }
@@ -209,60 +143,60 @@ window.DistractorLib = (() => {
 
         // CHAIN_FORGOT: cos(p) → oblidat p'
         pool.push({
-            tex:      `\\cos(${arg})`,
-            feedback: "Has derivat sin a cos, però has oblidat multiplicar per la derivada de l'argument interior p'(x) = 2x+b.",
+            tex:       `\\cos(${arg})`,
+            feedback:  S.sin_poly2.forgot_p_prime,
             errorType: CHAIN_FORGOT,
-            scope:    'family:sin-poly2'
+            scope:     'family:sin-poly2'
         });
 
         // SIN_COS_SWAP: (2x+b)·sin(p) → sin→sin
         pool.push({
-            tex:      _polyCoefTrig(pDeriv, 'sin', arg),
-            feedback: "Has multiplicat per p'(x), però la derivada de sin(u) és cos(u)·u', no sin(u)·u'. Sin i cos s'intercanvien.",
+            tex:       _polyCoefTrig(pDeriv, 'sin', arg),
+            feedback:  S.sin_poly2.sin_cos_swap,
             errorType: SIN_COS_SWAP,
-            scope:    'family:sin-poly2'
+            scope:     'family:sin-poly2'
         });
 
         // CHAIN_SIGN: −(2x+b)·cos(p) → signe negatiu (confusió amb cos')
         pool.push({
-            tex:      `-${_polyCoefTrig(pDeriv, 'cos', arg)}`,
-            feedback: "La derivada de sin és +cos·p', no −cos·p'. El signe negatiu és de la derivada de cos, no de sin.",
+            tex:       `-${_polyCoefTrig(pDeriv, 'cos', arg)}`,
+            feedback:  S.sin_poly2.wrong_sign,
             errorType: CHAIN_SIGN,
-            scope:    'family:sin-poly2'
+            scope:     'family:sin-poly2'
         });
 
         // NO_DERIVATIVE: sin(p)
         pool.push({
-            tex:      `\\sin(${arg})`,
-            feedback: "Aquesta és la funció original, no la seva derivada.",
+            tex:       `\\sin(${arg})`,
+            feedback:  S.no_derivative,
             errorType: NO_DERIVATIVE,
-            scope:    'universal'
+            scope:     'universal'
         });
 
         // CHAIN_WRONG_COEF: 2x·cos(p) → oblidat el terme b de p'(x)
         if (b !== 0) {
             pool.push({
-                tex:      `2x\\cos(${arg})`,
-                feedback: "Has derivat x² correctament (→ 2x), però has oblidat la derivada del terme bx, que és b. La derivada completa de p(x) és 2x+b.",
+                tex:       `2x\\cos(${arg})`,
+                feedback:  S.sin_poly2.forgot_b,
                 errorType: CHAIN_WRONG_COEF,
-                scope:    'family:sin-poly2'
+                scope:     'family:sin-poly2'
             });
         }
 
         // CHAIN_WRONG_COEF: 2·cos(p) → ha derivat 2x com a 2
         pool.push({
-            tex:      `2\\cos(${arg})`,
-            feedback: "La derivada de x² és 2x, no 2. No oblides la x quan derives una potència.",
+            tex:       `2\\cos(${arg})`,
+            feedback:  S.sin_poly2.forgot_x_in_2x,
             errorType: CHAIN_WRONG_COEF,
-            scope:    'family:sin-poly2'
+            scope:     'family:sin-poly2'
         });
 
         // SIN_COS_SWAP + CHAIN_SIGN: −(2x+b)·sin(p)
         pool.push({
-            tex:      `-${_polyCoefTrig(pDeriv, 'sin', arg)}`,
-            feedback: "Dos errors alhora: la derivada de sin és +cos (no −sin), i sin s'ha de convertir en cos.",
+            tex:       `-${_polyCoefTrig(pDeriv, 'sin', arg)}`,
+            feedback:  S.sin_poly2.double_error,
             errorType: SIN_COS_SWAP,
-            scope:    'family:sin-poly2'
+            scope:     'family:sin-poly2'
         });
 
         return pool;
@@ -288,60 +222,60 @@ window.DistractorLib = (() => {
 
         // CHAIN_SIGN: (2x+b)·sin(p) → oblidat el −
         pool.push({
-            tex:      _polyCoefTrig(pDeriv, 'sin', arg),
-            feedback: "Has derivat cos a sin i has multiplicat per p'(x), però la derivada de cos porta signe negatiu: (cos u)' = −sin(u)·u'.",
+            tex:       _polyCoefTrig(pDeriv, 'sin', arg),
+            feedback:  S.cos_poly2.forgot_sign,
             errorType: CHAIN_SIGN,
-            scope:    'family:cos-poly2'
+            scope:     'family:cos-poly2'
         });
 
         // SIN_COS_SWAP: −(2x+b)·cos(p) → signe correcte però fn incorrecta
         pool.push({
-            tex:      `-${_polyCoefTrig(pDeriv, 'cos', arg)}`,
-            feedback: "Has posat el signe negatiu, però la derivada de cos és −sin, no −cos. Sin i cos s'intercanvien.",
+            tex:       `-${_polyCoefTrig(pDeriv, 'cos', arg)}`,
+            feedback:  S.cos_poly2.sin_cos_swap,
             errorType: SIN_COS_SWAP,
-            scope:    'family:cos-poly2'
+            scope:     'family:cos-poly2'
         });
 
         // CHAIN_FORGOT: −sin(p) → signe i fn correctes però oblidat p'
         pool.push({
-            tex:      `-\\sin(${arg})`,
-            feedback: "Has derivat cos a −sin, però has oblidat multiplicar per la derivada de l'argument interior p'(x) = 2x+b.",
+            tex:       `-\\sin(${arg})`,
+            feedback:  S.cos_poly2.forgot_p_prime,
             errorType: CHAIN_FORGOT,
-            scope:    'family:cos-poly2'
+            scope:     'family:cos-poly2'
         });
 
         // NO_DERIVATIVE: cos(p)
         pool.push({
-            tex:      `\\cos(${arg})`,
-            feedback: "Aquesta és la funció original, no la seva derivada.",
+            tex:       `\\cos(${arg})`,
+            feedback:  S.no_derivative,
             errorType: NO_DERIVATIVE,
-            scope:    'universal'
+            scope:     'universal'
         });
 
         // CHAIN_WRONG_COEF: −2x·sin(p) → oblidat terme b de p'
         if (b !== 0) {
             pool.push({
-                tex:      `-2x\\sin(${arg})`,
-                feedback: "Has derivat x² correctament (→ 2x), però has oblidat la derivada del terme bx, que és b. La derivada completa de p(x) és 2x+b.",
+                tex:       `-2x\\sin(${arg})`,
+                feedback:  S.cos_poly2.forgot_b,
                 errorType: CHAIN_WRONG_COEF,
-                scope:    'family:cos-poly2'
+                scope:     'family:cos-poly2'
             });
         }
 
         // CHAIN_WRONG_COEF: −2·sin(p) → derivat 2x com a 2
         pool.push({
-            tex:      `-2\\sin(${arg})`,
-            feedback: "La derivada de x² és 2x, no 2. No oblides la x quan derives una potència.",
+            tex:       `-2\\sin(${arg})`,
+            feedback:  S.cos_poly2.forgot_x_in_2x,
             errorType: CHAIN_WRONG_COEF,
-            scope:    'family:cos-poly2'
+            scope:     'family:cos-poly2'
         });
 
         // SIN_COS_SWAP + CHAIN_SIGN: (2x+b)·cos(p) → ni signe ni fn
         pool.push({
-            tex:      _polyCoefTrig(pDeriv, 'cos', arg),
-            feedback: "Dos errors alhora: falta el signe negatiu i cos no s'ha convertit en sin. Recorda: (cos u)' = −sin(u)·u'.",
+            tex:       _polyCoefTrig(pDeriv, 'cos', arg),
+            feedback:  S.cos_poly2.double_error,
             errorType: SIN_COS_SWAP,
-            scope:    'family:cos-poly2'
+            scope:     'family:cos-poly2'
         });
 
         return pool;
@@ -354,20 +288,20 @@ window.DistractorLib = (() => {
         const { coef, negCoef, kx, negKx, plusK, kInv } = kVars;
         const { g, dg, intG } = fns;
         return [
-            { tex: `${dg(kx)}`,              feedback: "Has oblidat aplicar la regla de la cadena.",                                errorType: CHAIN_FORGOT,       scope: 'universal'    },
-            { tex: `${coef}${g(kx)}`,        feedback: "No és aquesta la derivada.",                                                errorType: NO_DERIVATIVE,      scope: 'universal'    },
-            { tex: `${g(kx)}`,               feedback: "No has derivat.",                                                           errorType: NO_DERIVATIVE,      scope: 'universal'    },
-            { tex: `${kInv}${dg(kx)}`,       feedback: "Quan has aplicat la regla de la cadena, t'has equivocat en un coeficient.", errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
-            { tex: `${coef}x${dg(kx)}`,      feedback: "No has aplicat correctament la regla de la cadena.",                       errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
-            { tex: `${dg(kx)} ${plusK}`,     feedback: "No apliques correctament la regla de la cadena, perquè no hi va una suma.", errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
-            { tex: `${coef}${dg('x')}`,      feedback: "No has aplicat correctament la regla de la cadena.",                       errorType: CHAIN_FORGOT,       scope: 'linear-inner' },
-            { tex: `${dg('x')} ${plusK}`,    feedback: "No apliques correctament la regla de la cadena, perquè no hi va una suma.", errorType: CHAIN_FORGOT,       scope: 'linear-inner' },
-            { tex: `${dg('x')}`,             feedback: "No és aquesta la derivada.",                                                errorType: CHAIN_FORGOT,       scope: 'universal'    },
-            { tex: `${dg(negKx)}`,           feedback: "Revisa els signes i recorda aplicar la regla de la cadena.",                errorType: CHAIN_SIGN,         scope: 'linear-inner' },
-            { tex: `${negCoef}${dg(negKx)}`, feedback: "Hi ha algun error amb els signes.",                                        errorType: CHAIN_SIGN,         scope: 'linear-inner' },
-            { tex: `${kInv}${intG(kx)}`,     feedback: "Incorrecte: recorda que estem derivant.",                                   errorType: INTEGRAL_CONFUSION, scope: 'family:exp'   },
-            { tex: `${intG(kx)}`,            feedback: "Incorrecte: recorda que estem derivant.",                                   errorType: INTEGRAL_CONFUSION, scope: 'family:exp'   },
-            { tex: `${dg(`${coef}(x-1)`)}`,  feedback: "Compte, aquesta funció no es deriva com si fos un polinomi.",              errorType: POWER_WRONG_EXP,    scope: 'family:exp'   },
+            { tex: `${dg(kx)}`,              feedback: S.chain_generic.forgot_chain,       errorType: CHAIN_FORGOT,       scope: 'universal'    },
+            { tex: `${coef}${g(kx)}`,        feedback: S.chain_generic.not_derivative_coef, errorType: NO_DERIVATIVE,      scope: 'universal'    },
+            { tex: `${g(kx)}`,               feedback: S.chain_generic.not_derived,         errorType: NO_DERIVATIVE,      scope: 'universal'    },
+            { tex: `${kInv}${dg(kx)}`,       feedback: S.chain_generic.wrong_coef_generic,  errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
+            { tex: `${coef}x${dg(kx)}`,      feedback: S.chain_generic.wrong_coef_x,        errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
+            { tex: `${dg(kx)} ${plusK}`,     feedback: S.chain_generic.wrong_coef_sum,      errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
+            { tex: `${coef}${dg('x')}`,      feedback: S.chain_generic.forgot_chain_coef,   errorType: CHAIN_FORGOT,       scope: 'linear-inner' },
+            { tex: `${dg('x')} ${plusK}`,    feedback: S.chain_generic.forgot_chain_sum,    errorType: CHAIN_FORGOT,       scope: 'linear-inner' },
+            { tex: `${dg('x')}`,             feedback: S.chain_generic.not_derivative_x,    errorType: CHAIN_FORGOT,       scope: 'universal'    },
+            { tex: `${dg(negKx)}`,           feedback: S.chain_generic.sign_error,          errorType: CHAIN_SIGN,         scope: 'linear-inner' },
+            { tex: `${negCoef}${dg(negKx)}`, feedback: S.chain_generic.sign_error_neg,      errorType: CHAIN_SIGN,         scope: 'linear-inner' },
+            { tex: `${kInv}${intG(kx)}`,     feedback: S.chain_generic.integral_coef,       errorType: INTEGRAL_CONFUSION, scope: 'family:exp'   },
+            { tex: `${intG(kx)}`,            feedback: S.chain_generic.integral_plain,       errorType: INTEGRAL_CONFUSION, scope: 'family:exp'   },
+            { tex: `${dg(`${coef}(x-1)`)}`,  feedback: S.chain_generic.power_wrong_exp,     errorType: POWER_WRONG_EXP,    scope: 'family:exp'   },
         ];
     }
 
@@ -395,24 +329,24 @@ window.DistractorLib = (() => {
         // POWER_FORGOT_R: conserva a, no baixa n com a factor
         const forgotN = fmt(a, n - 1);
         if (forgotN !== correct && !pool.find(d => d.tex === forgotN))
-            pool.push({ tex: forgotN, feedback: "Has reduït l'exponent, però has oblidat multiplicar pel valor de l'exponent n.", errorType: POWER_FORGOT_R, scope: 'rule:power' });
+            pool.push({ tex: forgotN, feedback: S.power.forgot_n, errorType: POWER_FORGOT_R, scope: 'rule:power' });
 
         // POWER_FORGOT_R: baixa n però oblida el coeficient a (només si a≠1)
         if (a !== 1) {
             const forgotA = fmt(n, n - 1);
             if (forgotA !== correct && !pool.find(d => d.tex === forgotA))
-                pool.push({ tex: forgotA, feedback: "Has baixat l'exponent n com a coeficient, però has oblidat el coeficient a de la funció original.", errorType: POWER_FORGOT_R, scope: 'rule:power' });
+                pool.push({ tex: forgotA, feedback: S.power.forgot_a, errorType: POWER_FORGOT_R, scope: 'rule:power' });
         }
 
         // POWER_WRONG_EXP: coeficient correcte, exponent no s'ha reduït
         const wrongExp = fmt(a * n, n);
         if (wrongExp !== correct && !pool.find(d => d.tex === wrongExp))
-            pool.push({ tex: wrongExp, feedback: "El coeficient és correcte, però l'exponent ha de reduir-se en 1: n passa a n−1.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
+            pool.push({ tex: wrongExp, feedback: S.power.coef_ok_exp_not, errorType: POWER_WRONG_EXP, scope: 'rule:power' });
 
         // NO_DERIVATIVE: funció original sense derivar
         const original = fmt(a, n);
         if (!pool.find(d => d.tex === original))
-            pool.push({ tex: original, feedback: "Aquesta és la funció original f(x), no la seva derivada f'(x).", errorType: NO_DERIVATIVE, scope: 'universal' });
+            pool.push({ tex: original, feedback: S.no_derivative_fx, errorType: NO_DERIVATIVE, scope: 'universal' });
 
         // INTEGRAL_CONFUSION: primitiva a·x^{n+1}/(n+1)
         // Simplifica els dos signes negatius si a<0 i n+1<0
@@ -425,18 +359,18 @@ window.DistractorLib = (() => {
                 ? (simpDen === -1 ? `-${numStr}` : numStr)
                 : `\\frac{${numStr}}{${simpDen}}`;
             if (intTex !== correct && !pool.find(d => d.tex === intTex))
-                pool.push({ tex: intTex, feedback: "Estàs calculant la primitiva (integral), no la derivada.", errorType: INTEGRAL_CONFUSION, scope: 'rule:power' });
+                pool.push({ tex: intTex, feedback: S.power.is_integral, errorType: INTEGRAL_CONFUSION, scope: 'rule:power' });
         }
 
         // POWER_WRONG_EXP: doble derivada per error (→ a(n-1)·x^{n-2})
         const overDeriv = fmt(a * (n - 1), n - 2);
         if (overDeriv !== correct && !pool.find(d => d.tex === overDeriv))
-            pool.push({ tex: overDeriv, feedback: "Has derivat dues vegades. La regla de la potència s'aplica una sola vegada.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
+            pool.push({ tex: overDeriv, feedback: S.power.double_derived, errorType: POWER_WRONG_EXP, scope: 'rule:power' });
 
         // POWER_WRONG_EXP: exponent augmentat en lloc de reduït (→ a(n+1)·x^n)
         const plusExp = fmt(a * (n + 1), n);
         if (plusExp !== correct && !pool.find(d => d.tex === plusExp))
-            pool.push({ tex: plusExp, feedback: "L'exponent ha de disminuir en 1, no augmentar.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
+            pool.push({ tex: plusExp, feedback: S.power.exp_increased, errorType: POWER_WRONG_EXP, scope: 'rule:power' });
 
         return pool;
     }
@@ -448,24 +382,26 @@ window.DistractorLib = (() => {
         const argTex = k === 1 ? 'x' : `${k}x`;
         const kStr   = String(k);
         const pool   = [];
-        if (k !== 1) pool.push({ tex: `\\frac{1}{${argTex}}`,   feedback: "Has derivat el logaritme però has oblidat multiplicar per la derivada de l'argument. La derivada de ln(kx) és (1/kx)·k = 1/x.", errorType: LOG_FORGOT_CHAIN, scope: 'family:log-kx' });
-        if (k !== 1) pool.push({ tex: `\\frac{${kStr}}{x}`,     feedback: "Gairebé bé: has calculat (1/kx)·k però no has simplificat. k/(kx) = 1/x.", errorType: CHAIN_WRONG_COEF, scope: 'family:log-kx' });
-        pool.push(              { tex: `\\ln(${argTex})`,        feedback: "Aquesta és la funció original, no la seva derivada.", errorType: NO_DERIVATIVE, scope: 'universal' });
-        pool.push(              { tex: 'x',                      feedback: "La derivada de ln(x) és 1/x, no x. La fracció va al revés.", errorType: LOG_INVERTED, scope: 'family:log-kx' });
-        if (k !== 1) pool.push({ tex: `${kStr}\\ln(${argTex})`, feedback: "La derivada de ln(u) és 1/u·u', no u'·ln(u). Has de derivar el logaritme.", errorType: NO_DERIVATIVE, scope: 'family:log-kx' });
+        if (k !== 1) pool.push({ tex: `\\frac{1}{${argTex}}`,   feedback: S.log_kx.forgot_chain,   errorType: LOG_FORGOT_CHAIN, scope: 'family:log-kx' });
+        if (k !== 1) pool.push({ tex: `\\frac{${kStr}}{x}`,     feedback: S.log_kx.not_simplified,  errorType: CHAIN_WRONG_COEF, scope: 'family:log-kx' });
+        pool.push(              { tex: `\\ln(${argTex})`,        feedback: S.no_derivative,          errorType: NO_DERIVATIVE,    scope: 'universal'     });
+        pool.push(              { tex: 'x',                      feedback: S.log_kx.inverted,        errorType: LOG_INVERTED,     scope: 'family:log-kx' });
+        if (k !== 1) pool.push({ tex: `${kStr}\\ln(${argTex})`, feedback: S.log_kx.no_deriv_kln,    errorType: NO_DERIVATIVE,    scope: 'family:log-kx' });
         return pool;
     }
+
     function _buildLogXnPool(n) {
         const pool = [];
-        pool.push({ tex: n===2?`\\frac{1}{x^2}`:`\\frac{1}{x^{${n}}}`,      feedback: "Has escrit 1/(argument) però has oblidat multiplicar per la derivada de l'argument interior.", errorType: LOG_FORGOT_CHAIN, scope: 'family:log-xn' });
-        pool.push({ tex: n===2?`\\frac{${n}}{x^2}`:`\\frac{${n}}{x^{${n}}}`,feedback: "Gairebé bé: has calculat (1/x^n)·n però no has simplificat x^{n-1}/x^n = 1/x.", errorType: CHAIN_WRONG_COEF, scope: 'family:log-xn' });
-        pool.push({ tex: n===2?`\\ln(x^2)`:`\\ln(x^{${n}})`,                 feedback: "Aquesta és la funció original, no la seva derivada.", errorType: NO_DERIVATIVE, scope: 'universal' });
-        pool.push({ tex: n===2?`\\frac{x^2}{${n}}`:`\\frac{x^{${n}}}{${n}}`, feedback: "La derivada de ln(f) és f'/f, no f/f'. La fracció va al revés.", errorType: LOG_INVERTED, scope: 'family:log-xn' });
-        pool.push({ tex: `${n}\\ln(x)`,  feedback: "Has usat la propietat ln(x^n) = n·ln(x), però ara hauries de derivar n·ln(x) per obtenir n/x.", errorType: NO_DERIVATIVE, scope: 'family:log-xn' });
+        pool.push({ tex: n===2?`\\frac{1}{x^2}`:`\\frac{1}{x^{${n}}}`,       feedback: S.log_xn.forgot_chain,      errorType: LOG_FORGOT_CHAIN, scope: 'family:log-xn' });
+        pool.push({ tex: n===2?`\\frac{${n}}{x^2}`:`\\frac{${n}}{x^{${n}}}`, feedback: S.log_xn.not_simplified,    errorType: CHAIN_WRONG_COEF, scope: 'family:log-xn' });
+        pool.push({ tex: n===2?`\\ln(x^2)`:`\\ln(x^{${n}})`,                  feedback: S.no_derivative,            errorType: NO_DERIVATIVE,    scope: 'universal'     });
+        pool.push({ tex: n===2?`\\frac{x^2}{${n}}`:`\\frac{x^{${n}}}{${n}}`,  feedback: S.log_xn.inverted,          errorType: LOG_INVERTED,     scope: 'family:log-xn' });
+        pool.push({ tex: `${n}\\ln(x)`,                                        feedback: S.log_xn.property_no_deriv, errorType: NO_DERIVATIVE,    scope: 'family:log-xn' });
         const derPow = n===2?`${n}x`:`${n}x^{${n-1}}`;
-        pool.push({ tex: derPow, feedback: "Has derivat x^n com si fos una potència sola, però aquí és l'argument d'un logaritme.", errorType: POWER_WRONG_EXP, scope: 'family:log-xn' });
+        pool.push({ tex: derPow,                                                feedback: S.log_xn.derived_as_power,  errorType: POWER_WRONG_EXP,  scope: 'family:log-xn' });
         return pool;
     }
+
     function _buildLogLinearPool(a, b) {
         const arg  = _fmtLinear(a, b);
         const aStr = _fmtConst(a);
@@ -473,24 +409,25 @@ window.DistractorLib = (() => {
         // _fmtConst(-1)='-1' però davant de ln hauria de ser just '-'
         const aLn  = a === 1 ? '' : a === -1 ? '-' : String(a);
         const pool = [];
-        pool.push({ tex: `\\frac{1}{${arg}}`,          feedback: "Has oblidat multiplicar per la derivada de l'argument interior.", errorType: LOG_FORGOT_CHAIN, scope: 'family:log-linear' });
-        if (a !== 1) pool.push({ tex: `\\frac{${arg}}{${aStr}}`, feedback: "La derivada de ln(f) és f'/f, no f/f'.", errorType: LOG_INVERTED, scope: 'family:log-linear' });
-        pool.push({ tex: `\\ln(${arg})`,               feedback: "Aquesta és la funció original f(x), no la seva derivada f'(x).", errorType: NO_DERIVATIVE, scope: 'universal' });
-        pool.push({ tex: `\\frac{${aStr}}{(${arg})^2}`,feedback: "El denominador ha de ser (ax+b), no (ax+b)².", errorType: CHAIN_WRONG_COEF, scope: 'family:log-linear' });
-        if (a !== 1) pool.push({ tex: `${aLn}\\ln(${arg})`, feedback: "La derivada de ln(u) és 1/u, no ln(u).", errorType: NO_DERIVATIVE, scope: 'family:log-linear' });
-        if (a > 0) pool.push({ tex: `\\frac{-${aStr}}{${arg}}`, feedback: "El signe és incorrecte.", errorType: CHAIN_SIGN, scope: 'family:log-linear' });
+        pool.push(              { tex: `\\frac{1}{${arg}}`,           feedback: S.log_linear.forgot_chain,   errorType: LOG_FORGOT_CHAIN, scope: 'family:log-linear' });
+        if (a !== 1) pool.push({ tex: `\\frac{${arg}}{${aStr}}`,      feedback: S.log_linear.inverted,       errorType: LOG_INVERTED,     scope: 'family:log-linear' });
+        pool.push(              { tex: `\\ln(${arg})`,                 feedback: S.no_derivative_fx,          errorType: NO_DERIVATIVE,    scope: 'universal'         });
+        pool.push(              { tex: `\\frac{${aStr}}{(${arg})^2}`,  feedback: S.log_linear.wrong_denom_sq, errorType: CHAIN_WRONG_COEF, scope: 'family:log-linear' });
+        if (a !== 1) pool.push({ tex: `${aLn}\\ln(${arg})`,           feedback: S.log_linear.no_deriv_ln,    errorType: NO_DERIVATIVE,    scope: 'family:log-linear' });
+        if (a > 0)  pool.push({ tex: `\\frac{-${aStr}}{${arg}}`,      feedback: S.log_linear.wrong_sign,     errorType: CHAIN_SIGN,       scope: 'family:log-linear' });
         return pool;
     }
+
     function _buildLogPoly2Pool(b, c) {
         const arg      = _fmtPoly2(b, c);
         const argDeriv = _fmtPoly2Deriv(b);
         const pool     = [];
-        pool.push({ tex: `\\frac{1}{${arg}}`,                    feedback: "Has escrit 1/(argument) però has oblidat multiplicar per la derivada de l'argument interior, que és (2x+b).", errorType: LOG_FORGOT_CHAIN, scope: 'family:log-poly2' });
-        pool.push({ tex: `\\frac{${argDeriv}}{(${arg})^2}`,      feedback: "El denominador ha de ser (x²+bx+c), no el seu quadrat.", errorType: CHAIN_WRONG_COEF, scope: 'family:log-poly2' });
-        pool.push({ tex: `\\frac{${arg}}{${argDeriv}}`,          feedback: "La derivada de ln(f) és f'/f, no f/f'.", errorType: LOG_INVERTED, scope: 'family:log-poly2' });
-        pool.push({ tex: `\\ln(${arg})`,                         feedback: "Aquesta és la funció original f(x), no la seva derivada f'(x).", errorType: NO_DERIVATIVE, scope: 'universal' });
-        if (b !== 0) pool.push({ tex: `\\frac{2x}{${arg}}`, feedback: "Has derivat x² correctament (→ 2x), però has oblidat la derivada del terme bx, que és b.", errorType: CHAIN_WRONG_COEF, scope: 'family:log-poly2' });
-        pool.push({ tex: `\\frac{2}{${arg}}`, feedback: "La derivada de x² és 2x, no 2. No oblides la x quan derives una potència.", errorType: CHAIN_WRONG_COEF, scope: 'family:log-poly2' });
+        pool.push(              { tex: `\\frac{1}{${arg}}`,                feedback: S.log_poly2.forgot_chain,   errorType: LOG_FORGOT_CHAIN, scope: 'family:log-poly2' });
+        pool.push(              { tex: `\\frac{${argDeriv}}{(${arg})^2}`,  feedback: S.log_poly2.wrong_denom_sq, errorType: CHAIN_WRONG_COEF, scope: 'family:log-poly2' });
+        pool.push(              { tex: `\\frac{${arg}}{${argDeriv}}`,      feedback: S.log_poly2.inverted,       errorType: LOG_INVERTED,     scope: 'family:log-poly2' });
+        pool.push(              { tex: `\\ln(${arg})`,                     feedback: S.no_derivative_fx,         errorType: NO_DERIVATIVE,    scope: 'universal'        });
+        if (b !== 0) pool.push({ tex: `\\frac{2x}{${arg}}`,               feedback: S.log_poly2.forgot_b,       errorType: CHAIN_WRONG_COEF, scope: 'family:log-poly2' });
+        pool.push(              { tex: `\\frac{2}{${arg}}`,                feedback: S.log_poly2.forgot_x,       errorType: CHAIN_WRONG_COEF, scope: 'family:log-poly2' });
         return pool;
     }
 
@@ -538,28 +475,31 @@ window.DistractorLib = (() => {
     function _buildProductPool(pair) {
         const { fTex, gTex, dfTex, dgTex, dfgTex, fdgTex, promptTex } = pair;
         const pool = [];
-        const forgotSumTex = _mul(dfTex, dgTex);
-        if (forgotSumTex !== pair.solutionTex) pool.push({ tex: forgotSumTex, feedback: "Has multiplicat les derivades de f i g, però la regla del producte diu (fg)' = f'g + fg', no f'·g'.", errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
+        const forgotSumTex  = _mul(dfTex, dgTex);
         const wrongOrderTex = _sub(dfgTex, fdgTex);
-        if (wrongOrderTex !== pair.solutionTex) pool.push({ tex: wrongOrderTex, feedback: "Has fet f'g − fg' en lloc de f'g + fg'. La resta és la regla del quocient, no la del producte.", errorType: PRODUCT_WRONG_ORDER, scope: 'rule:product' });
+        if (forgotSumTex  !== pair.solutionTex) pool.push({ tex: forgotSumTex,  feedback: S.product.multiplied_derivs,  errorType: PRODUCT_FORGOT_SUM,  scope: 'rule:product' });
+        if (wrongOrderTex !== pair.solutionTex) pool.push({ tex: wrongOrderTex, feedback: S.product.subtracted,         errorType: PRODUCT_WRONG_ORDER, scope: 'rule:product' });
+        // Nota: el feedback de la funció original inclou la notació f(x)·g(x) específica d'aquest pool
         pool.push({ tex: promptTex, feedback: "Aquesta és la funció original f(x)·g(x), no la seva derivada.", errorType: NO_DERIVATIVE, scope: 'universal' });
-        if (dfgTex !== pair.solutionTex && dfgTex !== promptTex && !pool.find(d => d.tex === dfgTex)) pool.push({ tex: dfgTex, feedback: "Has calculat f'·g però has oblidat el segon terme: + f·g'.", errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
-        if (fdgTex !== pair.solutionTex && fdgTex !== promptTex && !pool.find(d => d.tex === fdgTex)) pool.push({ tex: fdgTex, feedback: "Has calculat f·g' però has oblidat el primer terme: f'·g + ...", errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
+        if (dfgTex !== pair.solutionTex && dfgTex !== promptTex && !pool.find(d => d.tex === dfgTex)) pool.push({ tex: dfgTex, feedback: S.product.forgot_second_term, errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
+        if (fdgTex !== pair.solutionTex && fdgTex !== promptTex && !pool.find(d => d.tex === fdgTex)) pool.push({ tex: fdgTex, feedback: S.product.forgot_first_term,  errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
         return pool;
     }
+
     function _buildQuotientPool(pair) {
         const { fTex, gTex, dfTex, dgTex, dfgTex, fdgTex, g2Tex, promptTex } = pair;
-        const numerator = _sub(dfgTex, fdgTex);
-        const pool = [];
-        const signErrTex = _frac(_add(dfgTex, fdgTex), g2Tex);
-        if (signErrTex !== pair.solutionTex) pool.push({ tex: signErrTex, feedback: "Al numerador has sumat (+) en lloc de restar (−). Recorda: (f/g)' = (f'g − fg')/g².", errorType: QUOTIENT_SIGN, scope: 'rule:quotient' });
+        const numerator   = _sub(dfgTex, fdgTex);
+        const pool        = [];
+        const signErrTex  = _frac(_add(dfgTex, fdgTex), g2Tex);
         const denomErrTex = _frac(numerator, gTex);
-        if (denomErrTex !== pair.solutionTex) pool.push({ tex: denomErrTex, feedback: "Has oblidat elevar el denominador al quadrat.", errorType: QUOTIENT_DENOM, scope: 'rule:quotient' });
-        pool.push({ tex: promptTex, feedback: "Aquesta és la funció original f(x)/g(x), no la seva derivada.", errorType: NO_DERIVATIVE, scope: 'universal' });
         const invertedTex = _frac(_sub(fdgTex, dfgTex), g2Tex);
-        if (invertedTex !== pair.solutionTex) pool.push({ tex: invertedTex, feedback: "Has invertit l'ordre del numerador. Ha de ser f'g − fg', no fg' − f'g.", errorType: QUOTIENT_SIGN, scope: 'rule:quotient' });
-        const noDenomTex = numerator;
-        if (noDenomTex !== pair.solutionTex) pool.push({ tex: noDenomTex, feedback: "Has calculat el numerador correctament però has oblidat dividir per g².", errorType: QUOTIENT_DENOM, scope: 'rule:quotient' });
+        const noDenomTex  = numerator;
+        if (signErrTex  !== pair.solutionTex) pool.push({ tex: signErrTex,  feedback: S.quotient.added_instead,  errorType: QUOTIENT_SIGN,  scope: 'rule:quotient' });
+        if (denomErrTex !== pair.solutionTex) pool.push({ tex: denomErrTex, feedback: S.quotient.forgot_sq,      errorType: QUOTIENT_DENOM, scope: 'rule:quotient' });
+        // Nota: el feedback de la funció original inclou la notació f(x)/g(x) específica d'aquest pool
+        pool.push({ tex: promptTex, feedback: "Aquesta és la funció original f(x)/g(x), no la seva derivada.", errorType: NO_DERIVATIVE, scope: 'universal' });
+        if (invertedTex !== pair.solutionTex) pool.push({ tex: invertedTex, feedback: S.quotient.inverted_order, errorType: QUOTIENT_SIGN,  scope: 'rule:quotient' });
+        if (noDenomTex  !== pair.solutionTex) pool.push({ tex: noDenomTex,  feedback: S.quotient.forgot_denom,   errorType: QUOTIENT_DENOM, scope: 'rule:quotient' });
         return pool;
     }
 
@@ -578,35 +518,37 @@ window.DistractorLib = (() => {
      *   CHAIN_SIGN        → ha oblidat el signe negatiu de cos'(x)
      *   CHAIN_WRONG_COEF  → ha avaluat l'exterior a g'(x) en lloc de g(x)
      *   NO_DERIVATIVE     → funció original sense derivar
+     *
+     * NOTA: el feedback de CHAIN_FORGOT és dinàmic (inclou gPrime i gTex concrets)
+     * i no es pot centralitzar sense perdre precisió. Es manté inline.
      */
     function _buildExpTrigPool(trig) {
-        const isSin  = trig === 'sin';
-        const other  = isSin ? 'cos' : 'sin';
-        const gTex   = `\\${trig}(x)`;
-        const gPrime = isSin ? `\\cos(x)` : `-\\sin(x)`;
-        const gPrimeAbs = isSin ? `\\cos(x)` : `\\sin(x)`;
-        const pool   = [];
+        const isSin     = trig === 'sin';
+        const gTex      = `\\${trig}(x)`;
+        const gPrime    = isSin ? `\\cos(x)` : `-\\sin(x)`;
+        const pool      = [];
+        const S_exp     = isSin ? S.exp_sin : S.exp_cos;
 
         // NO_DERIVATIVE: funció original
-        pool.push({ tex: `e^{${gTex}}`,               feedback: "Aquesta és la funció original, no la seva derivada.",                                                        errorType: NO_DERIVATIVE,     scope: `family:exp-${trig}` });
+        pool.push({ tex: `e^{${gTex}}`, feedback: S_exp.no_derivative, errorType: NO_DERIVATIVE, scope: `family:exp-${trig}` });
 
-        // CHAIN_FORGOT: ha calculat g'(x) però ha oblidat e^{g(x)}
-        pool.push({ tex: gPrime,                       feedback: `Has calculat la derivada de l'interior (${gPrime}), però has oblidat multiplicar per l'exterior e^{${gTex}}.`, errorType: CHAIN_FORGOT,      scope: `family:exp-${trig}` });
+        // CHAIN_FORGOT: dinàmic — inclou el valor concret de gPrime i gTex
+        pool.push({ tex: gPrime, feedback: `Has calculat la derivada de l'interior (${gPrime}), però has oblidat multiplicar per l'exterior e^{${gTex}}.`, errorType: CHAIN_FORGOT, scope: `family:exp-${trig}` });
 
         if (isSin) {
             // SIN_COS_SWAP: ha usat −sin en lloc de cos com a g'(x)
-            pool.push({ tex: `-\\sin(x)e^{\\sin(x)}`,  feedback: "La derivada de sin(x) és cos(x), no −sin(x). Has usat la derivada de cos en lloc de la de sin.",              errorType: SIN_COS_SWAP,      scope: `family:exp-${trig}` });
+            pool.push({ tex: `-\\sin(x)e^{\\sin(x)}`, feedback: S.exp_sin.sin_cos_swap,   errorType: SIN_COS_SWAP,     scope: `family:exp-${trig}` });
             // CHAIN_WRONG_COEF: ha avaluat e a g'(x) en lloc de g(x)
-            pool.push({ tex: `\\cos(x)e^{\\cos(x)}`,   feedback: "Has multiplicat per cos(x), però l'exponencial ha de ser e^{sin(x)}, no e^{cos(x)}. L'argument no canvia.",  errorType: CHAIN_WRONG_COEF,  scope: `family:exp-${trig}` });
+            pool.push({ tex: `\\cos(x)e^{\\cos(x)}`,  feedback: S.exp_sin.wrong_arg_coef, errorType: CHAIN_WRONG_COEF, scope: `family:exp-${trig}` });
             // CHAIN_WRONG_COEF: e^{cos(x)} sense factor
-            pool.push({ tex: `e^{\\cos(x)}`,            feedback: "Has substituït l'argument per la seva derivada. L'argument de l'exponencial és sin(x), no cos(x).",          errorType: CHAIN_WRONG_COEF,  scope: `family:exp-${trig}` });
+            pool.push({ tex: `e^{\\cos(x)}`,           feedback: S.exp_sin.substituted_arg, errorType: CHAIN_WRONG_COEF, scope: `family:exp-${trig}` });
         } else {
             // CHAIN_SIGN: ha oblidat el signe negatiu de cos'
-            pool.push({ tex: `\\sin(x)e^{\\cos(x)}`,   feedback: "La derivada de cos(x) és −sin(x), no +sin(x). Has oblidat el signe negatiu.",                                errorType: CHAIN_SIGN,        scope: `family:exp-${trig}` });
+            pool.push({ tex: `\\sin(x)e^{\\cos(x)}`,  feedback: S.exp_cos.forgot_sign,     errorType: CHAIN_SIGN,       scope: `family:exp-${trig}` });
             // CHAIN_WRONG_COEF: e^{-sin(x)} (substituït arg per la seva derivada)
-            pool.push({ tex: `e^{-\\sin(x)}`,           feedback: "Has substituït l'argument per la seva derivada. L'argument de l'exponencial és cos(x), no −sin(x).",         errorType: CHAIN_WRONG_COEF,  scope: `family:exp-${trig}` });
+            pool.push({ tex: `e^{-\\sin(x)}`,          feedback: S.exp_cos.substituted_arg, errorType: CHAIN_WRONG_COEF, scope: `family:exp-${trig}` });
             // SIN_COS_SWAP: ha usat cos en lloc de −sin com a g'(x)
-            pool.push({ tex: `\\cos(x)e^{\\cos(x)}`,   feedback: "La derivada de cos(x) és −sin(x), no cos(x). Has usat la derivada de sin en lloc de la de cos.",              errorType: SIN_COS_SWAP,      scope: `family:exp-${trig}` });
+            pool.push({ tex: `\\cos(x)e^{\\cos(x)}`,  feedback: S.exp_cos.sin_cos_swap,    errorType: SIN_COS_SWAP,     scope: `family:exp-${trig}` });
         }
         return pool;
     }
@@ -623,41 +565,33 @@ window.DistractorLib = (() => {
      *   CHAIN_WRONG_COEF  → ha calculat g'(x) però ha oblidat dividir per g(x)
      *   SIN_COS_SWAP      → ha usat la funció trig equivocada al numerador
      *   NO_DERIVATIVE     → funció original sense derivar
+     *
+     * NOTA: el feedback de LOG_FORGOT_CHAIN és dinàmic (inclou gTex concret)
+     * i no es pot centralitzar sense perdre precisió. Es manté inline.
      */
     function _buildLogTrigPool(trig) {
         const isSin = trig === 'sin';
         const gTex  = `\\${trig}(x)`;
-        const other = isSin ? '\\cos' : '\\sin';
         const pool  = [];
+        const S_ln  = isSin ? S.ln_sin : S.ln_cos;
 
         // NO_DERIVATIVE
-        pool.push({ tex: `\\ln(${gTex})`,                              feedback: "Aquesta és la funció original, no la seva derivada.",                                                              errorType: NO_DERIVATIVE,    scope: `family:ln-${trig}` });
+        pool.push({ tex: `\\ln(${gTex})`, feedback: S_ln.no_derivative, errorType: NO_DERIVATIVE, scope: `family:ln-${trig}` });
 
-        // LOG_FORGOT_CHAIN: 1/g(x) sense multiplicar per g'(x)
-        pool.push({ tex: `\\frac{1}{${gTex}}`,                         feedback: `Has derivat ln com a 1/${gTex}, però has oblidat multiplicar per la derivada interior (ln f)' = f'/f.`,          errorType: LOG_FORGOT_CHAIN, scope: `family:ln-${trig}` });
+        // LOG_FORGOT_CHAIN: dinàmic — inclou el valor concret de gTex
+        pool.push({ tex: `\\frac{1}{${gTex}}`, feedback: `Has derivat ln com a 1/${gTex}, però has oblidat multiplicar per la derivada interior (ln f)' = f'/f.`, errorType: LOG_FORGOT_CHAIN, scope: `family:ln-${trig}` });
 
         if (isSin) {
-            // Correcta: cos(x)/sin(x)
-            // LOG_INVERTED: sin(x)/cos(x)
-            pool.push({ tex: `\\frac{\\sin(x)}{\\cos(x)}`,             feedback: "Tens la fracció invertida. La derivada de ln(f) és f'/f, no f/f'.",                                               errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
-            // CHAIN_SIGN: −cos(x)/sin(x) (signe negatiu erroni, sin'=+cos)
-            pool.push({ tex: `\\frac{-\\cos(x)}{\\sin(x)}`,            feedback: "El signe és incorrecte. La derivada de sin(x) és +cos(x), no −cos(x).",                                          errorType: CHAIN_SIGN,       scope: `family:ln-${trig}` });
-            // CHAIN_WRONG_COEF: cos(x) sol (ha oblidat dividir per sin)
-            pool.push({ tex: `\\cos(x)`,                                feedback: "Has calculat la derivada de sin(x), però has oblidat dividir per sin(x). El resultat és cos(x)/sin(x).",         errorType: CHAIN_WRONG_COEF, scope: `family:ln-${trig}` });
-            // SIN_COS_SWAP: sin(x)/sin(x)=1, millor usar un cas menys trivial
-            pool.push({ tex: `\\frac{-\\sin(x)}{\\cos(x)}`,            feedback: "Has usat −sin(x) al numerador, però la derivada de sin(x) és cos(x), no −sin(x).",                               errorType: SIN_COS_SWAP,     scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\frac{\\sin(x)}{\\cos(x)}`,  feedback: S_ln.inverted,      errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\frac{-\\cos(x)}{\\sin(x)}`, feedback: S_ln.wrong_sign,    errorType: CHAIN_SIGN,       scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\cos(x)`,                     feedback: S_ln.forgot_divide, errorType: CHAIN_WRONG_COEF, scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\frac{-\\sin(x)}{\\cos(x)}`, feedback: S_ln.sin_cos_swap,  errorType: SIN_COS_SWAP,     scope: `family:ln-${trig}` });
         } else {
-            // Correcta: −sin(x)/cos(x)
-            // CHAIN_SIGN: sin(x)/cos(x) (oblidat signe negatiu)
-            pool.push({ tex: `\\frac{\\sin(x)}{\\cos(x)}`,             feedback: "Has oblidat el signe negatiu. La derivada de cos(x) és −sin(x), no +sin(x).",                                    errorType: CHAIN_SIGN,       scope: `family:ln-${trig}` });
-            // LOG_INVERTED: −cos(x)/sin(x) (invertida i signe)
-            pool.push({ tex: `\\frac{-\\cos(x)}{\\sin(x)}`,            feedback: "Tens la fracció invertida. La derivada de ln(f) és f'/f, no f/f'.",                                               errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
-            // CHAIN_WRONG_COEF: −sin(x) sol
-            pool.push({ tex: `-\\sin(x)`,                               feedback: "Has calculat la derivada de cos(x), però has oblidat dividir per cos(x). El resultat és −sin(x)/cos(x).",        errorType: CHAIN_WRONG_COEF, scope: `family:ln-${trig}` });
-            // SIN_COS_SWAP: −cos(x)/cos(x) = −1... usem una forma menys trivial
-            pool.push({ tex: `\\frac{\\cos(x)}{\\sin(x)}`,             feedback: "Has usat cos(x) al numerador en lloc de −sin(x). La derivada de cos(x) és −sin(x), no cos(x).",                  errorType: SIN_COS_SWAP,     scope: `family:ln-${trig}` });
-            // LOG_FORGOT_CHAIN ja cobert; afegim una variant d'inversió amb signe
-            pool.push({ tex: `\\frac{\\cos(x)}{-\\sin(x)}`,            feedback: "Tens la fracció invertida i el signe desplaçat. Comprova que numerador és f'(x) i denominador f(x).",             errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\frac{\\sin(x)}{\\cos(x)}`,  feedback: S_ln.forgot_sign,   errorType: CHAIN_SIGN,       scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\frac{-\\cos(x)}{\\sin(x)}`, feedback: S_ln.inverted,      errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
+            pool.push({ tex: `-\\sin(x)`,                    feedback: S_ln.forgot_divide, errorType: CHAIN_WRONG_COEF, scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\frac{\\cos(x)}{\\sin(x)}`,  feedback: S_ln.sin_cos_swap,  errorType: SIN_COS_SWAP,     scope: `family:ln-${trig}` });
+            pool.push({ tex: `\\frac{\\cos(x)}{-\\sin(x)}`, feedback: S_ln.inverted_sign, errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
         }
         return pool;
     }
