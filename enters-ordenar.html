@@ -56,7 +56,6 @@
         .token-op.error-shake   { background-color: var(--danger-light) !important; border-color: var(--danger) !important; color: var(--danger) !important; animation: shake 0.2s; }
         .token-op.auto-selected { background-color: var(--primary-light); border-color: var(--primary); color: #334155; }
 
-        /* ESTIL DE L'INPUT INTEGRAT ("fill in the blanks") */
         input[type="text"].inline-input {
             width: 80px; font-family: inherit; font-size: 1em;
             font-weight: bold; padding: 5px; text-align: center;
@@ -240,39 +239,24 @@
             let p = randInt(-9, 7);
             let q = randInt(p + 2, 9);
             data = { p, q };
-} else if (type === 3) {
-            // 🟢 SOLUCIÓ AL PRINCIPI DEL COLOMAR (Pigeonhole)
-            // Per garantir que sempre tinguem prous nombres únics a banda i banda,
-            // limitem la 'r' entre -5 i 4.
+        } else if (type === 3) {
             let r = randInt(-5, 4);
-            
-            // Decidim a l'atzar quants botons seran correctes (entre 2 i 4 per a una bona UX)
             let numCorrects = randInt(2, 4);
-            
             let nums = [];
             
-            // 1. Omplim amb els botons correctes (estrictament menors que r)
             while (nums.length < numCorrects) {
                 let n = randInt(-9, r - 1);
-                if (!nums.includes(n)) {
-                    nums.push(n);
-                }
+                if (!nums.includes(n)) nums.push(n);
             }
             
-            // 2. Omplim la resta fins a 8 amb botons incorrectes (majors o iguals a r)
             while (nums.length < 8) {
                 let n = randInt(r, 9);
-                if (!nums.includes(n)) {
-                    nums.push(n);
-                }
+                if (!nums.includes(n)) nums.push(n);
             }
             
-            // 3. Barregem l'array perquè els correctes no surtin sempre a l'inici
             nums.sort(() => Math.random() - 0.5);
-            
-            // 🟢 MEMÒRIA: Creem un array de 'locked' per saber quins botons ja han estat encertats
             data = { r, nums, locked: Array(8).fill(false) };
-        }        
+        }
         return data;
     }
 
@@ -291,6 +275,9 @@
         els.stepRepte2.classList.remove('active');
         els.stepRepte3.classList.remove('active');
         els.opInstruction.classList.remove('active');
+        
+        // Assegurem que el botó OK torni a estar visible pel següent repte 3
+        els.btnSubmitR3.style.display = ''; 
 
         if (els.valueInput.parentNode === els.expressionBox) {
             els.hiddenVault.appendChild(els.valueInput);
@@ -530,7 +517,9 @@
             }
         });
 
-        els.stepRepte3.classList.remove('active');
+        // 🟢 NOU: Només amaguem el botó OK. La graella es queda visible de fons!
+        els.btnSubmitR3.style.display = 'none';
+        
         successEnd();
     }
 
