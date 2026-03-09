@@ -126,6 +126,15 @@
     color: white !important; 
 }
 
+/* Estat permanent per a una opció incorrecta seleccionada */
+.btn-option.wrong {
+    background-color: var(--danger-light) !important; /* Fons vermell suau */
+    border-color: var(--danger) !important;           /* Vora vermella */
+    color: var(--danger) !important;                  /* Text vermell */
+    pointer-events: none;                             /* Ja no es pot fer clic */
+    opacity: 0.7;                                     /* Una mica apagat perquè perdi jerarquia visual */
+}
+
 /* Adaptació per a mòbils */
 @media (max-width: 480px) {
     .options-grid { 
