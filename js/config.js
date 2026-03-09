@@ -1,18 +1,16 @@
-// ============================================================
-// js/config.js — Lectura de paràmetres URL i configuració global
-// NOTA: Requereix utils.js carregat prèviament (usa getIntParam)
-// ============================================================
-
-// Cada joc pot definir window.APP_CONFIG ABANS de carregar aquest fitxer:
-//
-//   window.APP_CONFIG = {
-//       defaultSessions:      1,
-//       defaultOperations:    5,
-//       defaultIntents:       4,
-//       defaultEnllocMitjana: 1
-//   };
-//
-// Si no ho fa, s'usen els valors base indicats aquí.
+/**
+ * ============================================================================
+ * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+ * FITXER: js/config.js
+ * ROL: Gestió de la configuració de la partida i paràmetres URL.
+ * ARQUITECTURA:
+ * - Permet al professorat configurar la partida via paràmetres GET a la URL 
+ * (ex: ?totalsessions=3&maxintents=2).
+ * - Inclou mecanismes de seguretat defensiva i fallbacks (límits min/max) per 
+ * evitar comportaments anòmals si l'usuari manipula la URL.
+ * DEPENDÈNCIES: Requereix utils.js (per la funció getIntParam).
+ * ============================================================================
+ */
 
 const DEFAULT_TOTAL_SESSIONS     = window.APP_CONFIG?.defaultSessions      ?? 1;
 const DEFAULT_TOTAL_OPERATIONS   = window.APP_CONFIG?.defaultOperations    ?? 3;
