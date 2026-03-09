@@ -1,9 +1,9 @@
+```css
 /* ============================================================
-   css/shared.css — Estils compartits per tots els jocs TQuiz
-   Cada joc defineix el seu propi :root amb les variables de color
-   ABANS de carregar aquest fitxer.
+   css/shared.css — Estils compartits per tots els jocs step-quiz
+   S'ha de carregar PRIMER a l'HTML. Després, cada joc carregarà 
+   el seu propi CSS per sobrescriure els colors del :root.
    ============================================================ */
-
 /* ---- VARIABLES BASE (fallbacks si el joc no les defineix) ---- */
 :root {
     --bg-color:      #f8fafc;
