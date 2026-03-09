@@ -286,26 +286,41 @@
                 inlineInput.focus();
             }
 
-        } else if (challengeType === 3) {
+} else if (challengeType === 3) {
             els.expressionBox.style.display = 'none';
             els.subProblem.style.display    = 'none';
             
             els.r3Title.innerText = `Selecciona els nombres que siguin menors que ${challengeData.r}`;
             els.r3Grid.innerHTML = '';
             
-            const coords = [
-                { x: 120, y: 50  }, { x: 180, y: 50  }, { x: 250, y: 100 },
-                { x: 50,  y: 100 }, { x: 220, y: 180 }, { x: 80,  y: 180 },
-                { x: 180, y: 250 }, { x: 120, y: 250 }
+            // 👉 AQUÍ TENS LA TEVA GRAELLA (0-10). 
+            // Canvia aquests valors pels que tens a la teva imatge!
+            // x: 0 és esquerra, x: 10 és dreta
+            // y: 0 és a baix, y: 10 és a dalt
+            const coordsCartesianes = [
+                { x: 1, y: 1 }, // Botó 1
+                { x: 2, y: 3 }, // Botó 2
+                { x: 4, y: 5 }, // Botó 3
+                { x: 5, y: 2 }, // Botó 4
+                { x: 7, y: 2 }, // Botó 5
+                { x: 9, y: 4 }, // Botó 6
+                { x: 10, y: 1 }, // Botó 7
+                { x: 6, y: 4 }  // Botó 8
             ];
 
             challengeData.nums.forEach((num, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'btn-sign';
                 btn.innerText = num;
+                
+                // Conversió de (0-10) a percentatges de CSS
+                const leftPercent = coordsCartesianes[i].x * 10;
+                // Com que el 'top' de CSS comença a dalt i el teu 'y' comença a baix, ho invertim:
+                const topPercent  = (10 - coordsCartesianes[i].y) * 10; 
+
                 btn.style.position = 'absolute';
-                btn.style.left = `${coords[i].x}px`;
-                btn.style.top = `${coords[i].y}px`;
+                btn.style.left = `${leftPercent}%`;
+                btn.style.top = `${topPercent}%`;
                 btn.style.transform = 'translate(-50%, -50%)';
                 btn.style.minWidth = '50px';
                 btn.style.width = '50px';
