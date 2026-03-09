@@ -1,9 +1,16 @@
-// ============================================================
-// js/game-core.js — Lògica compartida de sessions, puntuació,
-//                   pantalles finals, informe i seguretat
-// NOTA: Requereix utils.js i config.js carregats prèviament
-// ============================================================
-
+/**
+ * ============================================================================
+ * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+ * FITXER: js/config.js
+ * ROL: Gestió de la configuració de la partida i paràmetres URL.
+ * ARQUITECTURA:
+ * - Permet al professorat configurar la partida via paràmetres GET a la URL 
+ * (ex: ?totalsessions=3&maxintents=2).
+ * - Inclou mecanismes de seguretat defensiva i fallbacks (límits min/max) per 
+ * evitar comportaments anòmals si l'usuari manipula la URL.
+ * DEPENDÈNCIES: Requereix utils.js (per la funció getIntParam).
+ * ============================================================================
+ */
 // ---- PALETA DE FONS (compartida) ---
 const bgColors = [
     '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
