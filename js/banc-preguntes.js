@@ -45,8 +45,6 @@ const questionBank = [
     {
         id: 'exp_kx_int', 
         
-        // Dins de questionBank, en el cas 'exp_kx_int', substitueix aquest bloc:
-
         generate: () => {
             const k = generateK();
             
@@ -92,7 +90,8 @@ const questionBank = [
             
             // SI PER ALGUNA RAÓ ENS QUEDEM SENSE DISTRACTORS (molt rar), en posem un de genèric de seguretat
             if (validDistractors.length < 3) {
-                validDistractors.push({ tex: `e^{x}+C`, feedback: "Això sembla una integral, no una derivada." });
+                // MILLORA APLICADA: Usem kVars.kx en lloc d'una x fixa perquè sigui creïble
+                validDistractors.push({ tex: `e^{${kVars.kx}}+C`, feedback: "Això sembla una integral, no una derivada." });
                 validDistractors.push({ tex: `0`, feedback: "La derivada d'una exponencial no és zero." });
                 validDistractors.push({ tex: `x e^{x-1}`, feedback: "No apliquis la regla de la potència a una exponencial." });
             }
@@ -163,8 +162,11 @@ const questionBank = [
             
             // Fallback de seguretat per a fraccions
             if (validDistractors.length < 3) {
+                // MILLORA APLICADA: Evitem posar un "1" literal al davant de l'exponencial
+                const absPStr = absP === 1 ? "" : absP;
+                
                 validDistractors.push({ tex: `\\frac{1}{${q}} e^{${kVars.kx}}`, feedback: "Revisa el coeficient de la regla de la cadena." });
-                validDistractors.push({ tex: `${absP} e^{${kVars.kx}}`, feedback: "Has oblidat el denominador de la fracció." });
+                validDistractors.push({ tex: `${absPStr} e^{${kVars.kx}}`, feedback: "Has oblidat el denominador de la fracció." });
                 validDistractors.push({ tex: `e^{${kxStr}}`, feedback: "Has oblidat aplicar la regla de la cadena." });
             }
 
