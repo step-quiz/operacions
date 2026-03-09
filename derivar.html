@@ -18,14 +18,28 @@
             defaultEnllocMitjana: 1
         };
     </script>
+
+    <!--
+        ORDRE DE CÀRREGA — Fase 1
+        Capa compartida (intocable):
+          utils → config → game-core
+        Capa específica de derivades:
+          math-engine → banc-preguntes → derivades (defer)
+
+        NOTA: math-engine.js és el nou fitxer creat a la Fase 1.
+        banc-preguntes.js NO ha canviat: continua cridant generateK()
+        i formatK() com a globals, que ara provenen de math-engine.js
+        en lloc de derivades.js. Comportament idèntic, origen diferent.
+    -->
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
     <script src="js/game-core.js"></script>
-    
+    <script src="js/derivades/math-engine.js"></script>
+    <script src="js/banc-preguntes.js"></script>
+    <script defer src="js/derivades/derivades.js"></script>
+
     <link rel="stylesheet" href="css/shared.css?v=1">
     <link rel="stylesheet" href="css/derivades.css?v=1">
-    <script src="js/banc-preguntes.js"></script>
-    <script defer src="js/derivades.js"></script>
 </head>
 <body>
 
