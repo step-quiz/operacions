@@ -328,8 +328,9 @@
                 btn.innerText = num;
                 
                 const leftPercent = coordsCartesianes[i].x * 10;
-                const topPercent  = (10 - coordsCartesianes[i].y) * 10; 
-
+// La Y màxima és 5. Multipliquem per 20 (ja que 100% / 5 = 20%)
+// Restem sobre 5.5 per donar un petit marge a la part superior
+                const topPercent  = (5.5 - coordsCartesianes[i].y) * 20;
                 btn.style.position = 'absolute';
                 btn.style.left = `${leftPercent}%`;
                 btn.style.top = `${topPercent}%`;
