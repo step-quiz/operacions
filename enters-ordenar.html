@@ -83,7 +83,7 @@
             cursor: pointer; transition: 0.2s; text-transform: capitalize;
             flex: 1; min-width: 80px; max-width: 150px; text-align: center; touch-action: manipulation;
         }
-        .btn-narrow { max-width: 105px !important; } /* Un 30% més curts aproximadament */
+        .btn-narrow { max-width: 105px !important; }
         
         .btn-sign:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
         @media (hover: hover) {
@@ -169,7 +169,7 @@
 
             <div class="step-container" id="step-repte3">
                 <div class="step-title" id="r3-title"></div>
-                <div class="sign-buttons" id="r3-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 300px; margin: 0 auto 15px auto;">
+                <div id="r3-grid" style="position: relative; width: 300px; height: 300px; margin: 0 auto 15px auto;">
                     </div>
                 <button class="btn-submit" id="btn-submit-r3" onclick="checkRepte3()">OK</button>
             </div>
@@ -229,6 +229,16 @@
             let r = randInt(-7, 7);
             let nums = [];
             for (let i = 0; i < 8; i++) nums.push(randInt(-9, 9));
+            
+            // 🟢 CANVI 1: Assegurar com a mínim un correcte
+            let hasValid = nums.some(num => num < r);
+            if (!hasValid) {
+                let randomIdx = randInt(0, 7);
+                // Triem un valor per a l'índex aleatori que sigui segurament menor que r
+                // Si r és -7, r-1 és -8. randInt(-9, -8) triarà -9 o -8, tots dos vàlids.
+                nums[randomIdx] = randInt(-9, r - 1);
+            }
+            
             data = { r, nums };
         }
         return data;
@@ -241,7 +251,6 @@
         els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
         els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 3 ? ' danger' : '');
         
-        // Mostrar per defecte (s'amagarà al repte 3)
         els.expressionBox.style.display = 'flex';
         els.subProblem.style.display    = 'block';
         els.resolutionPanel.style.display = 'flex';
@@ -279,19 +288,39 @@
             }
 
         } else if (challengeType === 3) {
-            // Amaguem el bloc d'expressió i el subproblema perquè tot pugi cap a dalt
             els.expressionBox.style.display = 'none';
             els.subProblem.style.display    = 'none';
             
-            // Frase integrada sense formatNum ni blaus
             els.r3Title.innerText = `Selecciona els nombres que siguin menors que ${challengeData.r}`;
             
             els.r3Grid.innerHTML = '';
+            
+            // 🟢 CANVI 2: Coordenades per a la constel·lació
+            // Definides per a un contenidor de 300x300, usant transform: translate(-50%, -50%)
+            const coords = [
+                { x: 120, y: 50  }, // A dalt, esquerra
+                { x: 180, y: 50  }, // A dalt, dreta
+                { x: 250, y: 100 }, // A dalt, dreta, més avall
+                { x: 50,  y: 100 }, // A dalt, esquerra, més avall
+                { x: 220, y: 180 }, // Mig, dreta
+                { x: 80,  y: 180 }, // Mig, esquerra
+                { x: 180, y: 250 }, // A baix, dreta
+                { x: 120, y: 250 }  // A baix, esquerra
+            ];
+
             challengeData.nums.forEach((num, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'btn-sign';
-                btn.style.minWidth = '50px';
                 btn.innerText = num;
+                
+                // Apliquem la posició absoluta basant-nos en el centre exacte
+                btn.style.position = 'absolute';
+                btn.style.left = `${coords[i].x}px`;
+                btn.style.top = `${coords[i].y}px`;
+                btn.style.transform = 'translate(-50%, -50%)'; // Posiciona pel centre del botó
+                btn.style.minWidth = '50px';
+                btn.style.width = '50px'; // Forcem una amplada per coordenades precises
+                
                 btn.onclick = function() {
                     if (isPenalizing || isTransitioning) return;
                     this.classList.toggle('selected');
@@ -435,8 +464,9 @@
 
         if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Correcte", true);
         
+        // Efecte de guanyar als botons (sense canviar el contingut, només color)
         buttons.forEach((btn, i) => {
-            btn.style.pointerEvents = 'none';
+            btn.style.pointerEvents = 'none'; // Desactivar clics
             if (challengeData.nums[i] < challengeData.r) {
                 btn.style.backgroundColor = 'var(--success)';
                 btn.style.borderColor = 'var(--success)';
