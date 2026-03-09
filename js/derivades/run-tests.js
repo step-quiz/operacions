@@ -488,6 +488,60 @@ suite('buildActiveFamilies › URL selector');
     ok('URL invàlida → fallback a totes (n=18)', fallback.length === 18);
 }
 
+suite('Bugs UX/UI corregits');
+{
+    // Bug 1: x^3·e^x vs x^3e^x — generateProduct no ha de tenir opcions duplicades semànticament
+    // Comprovem amb el parell (x^3, e^x) concretament
+    const pairX3Ex = FUNCTION_PAIRS.find(p => p.fTex === 'x^3' && p.gTex === 'e^{x}');
+    if (pairX3Ex) {
+        // Simulem generateProduct amb aquest parell fixat
+        const fD = MathEngine.wrapIfNeeded(pairX3Ex.fTex);
+        const gD = MathEngine.wrapIfNeeded(pairX3Ex.gTex);
+        const displayTex = `${fD}\\cdot ${gD}`;
+        const promptTex  = `${fD}${gD}`;
+        const pairCtx = { ...pairX3Ex, promptTex, solutionTex: pairX3Ex.solutionProduct };
+        const pool = DistractorLib.buildProduct(pairCtx);
+        const texos = pool.map(d => d.tex);
+        // Comprova que no hi ha parella que renderitzi igual (cdot vs sense)
+        const hasCdot   = texos.some(t => t.includes('\\cdot'));
+        const hasNoCdot = texos.some(t => t === 'x^3e^{x}');
+        ok('Bug1: pool producte no barreja \\cdot i versió sense per la mateixa expressió',
+            !(hasCdot && hasNoCdot),
+            hasCdot && hasNoCdot ? 'x^3\\cdot e^{x} i x^3e^{x} coexisteixen' : '');
+    } else {
+        ok('Bug1: parell (x^3, e^x) present a FUNCTION_PAIRS', false, 'parell no trobat');
+    }
+
+    // Bug 2: \frac{-x^{-2}}{-2} hauria de simplificar-se a \frac{x^{-2}}{2}
+    const poolNeg = DistractorLib.buildPower(-1, -3);  // f=-x^{-3}, integral → x^{-2}/2
+    const hasUnsimplified = poolNeg.some(d => d.tex.includes('\\frac{-') && d.tex.includes('}{-'));
+    ok('Bug2: pool power(-1,-3) no conté fraccions amb doble negatiu',
+        !hasUnsimplified,
+        hasUnsimplified ? poolNeg.find(d=>d.tex.includes('\\frac{-')&&d.tex.includes('}{-')).tex : '');
+    const simplified = poolNeg.find(d => d.errorType === 'INTEGRAL_CONFUSION');
+    // \frac{x^{-2}}{2} és correcte: el '-' és l'exponent, no un signe de fracció
+    const isSimplified = simplified && !simplified.tex.match(/\\frac\{-/) && !simplified.tex.match(/\}\{-/);
+    ok('Bug2: distractor integral sense doble negatiu a numerador i denominador',
+        isSimplified,
+        simplified ? `rebut: ${simplified.tex}` : 'absent');
+
+    // Bug 3: 0 no ha d'aparèixer com a opció per a cap família exponencial
+    let sawZero = false;
+    for (let i = 0; i < 30; i++) {
+        const q = generateExpKxInt();
+        if (q.options.some(o => o.tex === '0')) { sawZero = true; break; }
+    }
+    ok('Bug3: generateExpKxInt mai proposa "0" com a opció (30 cridades)', !sawZero);
+
+    // Bug 5: -1\ln(...) → -\ln(...)
+    const poolLog = DistractorLib.buildLog('linear', { a: -1, b: -3 });
+    const hasOne  = poolLog.some(d => d.tex.startsWith('-1\\ln'));
+    ok('Bug5: log-linear a=-1 no genera "-1\\\\ln(...)"', !hasOne,
+        hasOne ? poolLog.find(d=>d.tex.startsWith('-1\\ln')).tex : '');
+    const hasClean = poolLog.some(d => d.tex === '-\\ln(-x-3)');
+    ok('Bug5: log-linear a=-1 genera "-\\\\ln(-x-3)"', hasClean);
+}
+
 suite('FeedbackHints › cobertura dels errorTypes');
 {
     const KNOWN_TYPES = [

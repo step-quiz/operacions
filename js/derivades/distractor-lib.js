@@ -354,12 +354,15 @@ window.DistractorLib = (() => {
             pool.push({ tex: original, feedback: "Aquesta és la funció original f(x), no la seva derivada f'(x).", errorType: NO_DERIVATIVE, scope: 'universal' });
 
         // INTEGRAL_CONFUSION: primitiva a·x^{n+1}/(n+1)
+        // Simplifica els dos signes negatius si a<0 i n+1<0
         if (n + 1 !== 0) {
-            const numStr = fmt(a, n + 1);
-            const den    = n + 1;
-            const intTex = Math.abs(den) === 1
-                ? (den === -1 ? `-${numStr}` : numStr)
-                : `\\frac{${numStr}}{${den}}`;
+            const den     = n + 1;
+            const simpA   = (a < 0 && den < 0) ? -a : a;
+            const simpDen = (a < 0 && den < 0) ? -den : den;
+            const numStr  = fmt(simpA, n + 1);
+            const intTex  = Math.abs(simpDen) === 1
+                ? (simpDen === -1 ? `-${numStr}` : numStr)
+                : `\\frac{${numStr}}{${simpDen}}`;
             if (intTex !== correct && !pool.find(d => d.tex === intTex))
                 pool.push({ tex: intTex, feedback: "Estàs calculant la primitiva (integral), no la derivada.", errorType: INTEGRAL_CONFUSION, scope: 'rule:power' });
         }
@@ -405,12 +408,15 @@ window.DistractorLib = (() => {
     function _buildLogLinearPool(a, b) {
         const arg  = _fmtLinear(a, b);
         const aStr = _fmtConst(a);
+        // Per a coeficients multiplicatius davant de ln, suprimim el "1" explícit:
+        // _fmtConst(-1)='-1' però davant de ln hauria de ser just '-'
+        const aLn  = a === 1 ? '' : a === -1 ? '-' : String(a);
         const pool = [];
         pool.push({ tex: `\\frac{1}{${arg}}`,          feedback: "Has oblidat multiplicar per la derivada de l'argument interior.", errorType: LOG_FORGOT_CHAIN, scope: 'family:log-linear' });
         if (a !== 1) pool.push({ tex: `\\frac{${arg}}{${aStr}}`, feedback: "La derivada de ln(f) és f'/f, no f/f'.", errorType: LOG_INVERTED, scope: 'family:log-linear' });
         pool.push({ tex: `\\ln(${arg})`,               feedback: "Aquesta és la funció original f(x), no la seva derivada f'(x).", errorType: NO_DERIVATIVE, scope: 'universal' });
         pool.push({ tex: `\\frac{${aStr}}{(${arg})^2}`,feedback: "El denominador ha de ser (ax+b), no (ax+b)².", errorType: CHAIN_WRONG_COEF, scope: 'family:log-linear' });
-        if (a !== 1) pool.push({ tex: `${aStr}\\ln(${arg})`, feedback: "La derivada de ln(u) és 1/u, no ln(u).", errorType: NO_DERIVATIVE, scope: 'family:log-linear' });
+        if (a !== 1) pool.push({ tex: `${aLn}\\ln(${arg})`, feedback: "La derivada de ln(u) és 1/u, no ln(u).", errorType: NO_DERIVATIVE, scope: 'family:log-linear' });
         if (a > 0) pool.push({ tex: `\\frac{-${aStr}}{${arg}}`, feedback: "El signe és incorrecte.", errorType: CHAIN_SIGN, scope: 'family:log-linear' });
         return pool;
     }

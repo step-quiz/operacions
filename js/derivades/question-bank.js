@@ -112,7 +112,6 @@ function generateExpKxInt() {
     const pool      = DistractorLib.build(kv, fns, SCOPE_EXP_KX);
     const fallbacks = [
         { tex: `e^{${kv.kx}}+C`, feedback: "Això sembla una integral, no una derivada.",             errorType: 'INTEGRAL_CONFUSION', scope: 'family:exp' },
-        { tex: `0`,               feedback: "La derivada d'una exponencial no és zero.",               errorType: 'NO_DERIVATIVE',      scope: 'universal'  },
         { tex: `x e^{x-1}`,       feedback: "No apliquis la regla de la potència a una exponencial.", errorType: 'POWER_WRONG_EXP',    scope: 'family:exp' }
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
@@ -370,13 +369,17 @@ function generateProduct() {
     const pair = FUNCTION_PAIRS[Math.floor(Math.random()*FUNCTION_PAIRS.length)];
     const fDisplay = _wrapIfNeeded(pair.fTex);
     const gDisplay = _wrapIfNeeded(pair.gTex);
-    const promptTex = `${fDisplay}\\cdot ${gDisplay}`;
+    // displayTex: versió visual amb \cdot per mostrar la funció a l'alumne
+    // promptTex:  versió sense \cdot per al pool de distractors,
+    //             igual al format de fdgTex → evita duplicats semàntics
+    const displayTex = `${fDisplay}\\cdot ${gDisplay}`;
+    const promptTex  = `${fDisplay}${gDisplay}`;
     const solutionTex = pair.solutionProduct;
     const pairCtx = { ...pair, promptTex, solutionTex };
     const pool = DistractorLib.buildProduct(pairCtx);
     const fallbacks = [{ tex:pair.fTex, feedback:"Aquesta és només la primera funció.", errorType:'NO_DERIVATIVE', scope:'universal' }, { tex:pair.gTex, feedback:"Aquesta és només la segona funció.", errorType:'NO_DERIVATIVE', scope:'universal' }, { tex:pair.dfTex, feedback:"Has derivat només f(x).", errorType:'PRODUCT_FORGOT_SUM', scope:'rule:product' }];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
-    return { promptTex:`f(x) = ${promptTex}`, solutionTex, options:[{ tex:solutionTex, feedback:"Molt bé! Has aplicat correctament la regla del producte: (fg)' = f'g + fg'.", errorType:null, isCorrect:true }, ...distractors.map(d=>({ tex:d.tex, feedback:d.feedback, errorType:d.errorType, isCorrect:false }))], meta:{ family:'product-rule', outerFn:pair.fTex, innerFn:pair.gTex, params:{}, ruleLabel:'Regla del producte' } };
+    return { promptTex:`f(x) = ${displayTex}`, solutionTex, options:[{ tex:solutionTex, feedback:"Molt bé! Has aplicat correctament la regla del producte: (fg)' = f'g + fg'.", errorType:null, isCorrect:true }, ...distractors.map(d=>({ tex:d.tex, feedback:d.feedback, errorType:d.errorType, isCorrect:false }))], meta:{ family:'product-rule', outerFn:pair.fTex, innerFn:pair.gTex, params:{}, ruleLabel:'Regla del producte' } };
 }
 function generateQuotient() {
     const pair = FUNCTION_PAIRS[Math.floor(Math.random()*FUNCTION_PAIRS.length)];
