@@ -7,9 +7,9 @@
  * - Capa matemàtica completament independent: no depèn de cap fitxer de la
  *   plataforma compartida (utils, config, game-core) ni del controlador DOM.
  * - Exposa window.MathEngine com a namespace explícit i net.
- * - FASE 3: Eliminades les globals de compatibilitat (generateK, formatK,
- *   generateFractionK) que s'havien mantingut per a banc-preguntes.js.
- *   Ara que question-bank.js usa MathEngine.* directament, ja no calen.
+ * - FASE 5: Afegit formatPowerTerm(coef, exp) per formatar coef·x^exp com
+ *   a string LaTeX. Usat per distractor-lib.js i question-bank.js per a
+ *   la nova família de la regla de la potència.
  * DEPENDÈNCIES: Requereix utils.js (randIntNonZero, pick). S'ha de carregar
  * DESPRÉS de utils.js i ABANS de distractor-lib.js.
  * ============================================================================
@@ -73,8 +73,29 @@ window.MathEngine = (() => {
         return k.toString();
     }
 
+    /**
+     * Formata coef·x^exp com a string LaTeX.
+     * Casos especials gestionats:
+     *   exp=0          → just el coeficient (ex: "3", "-1")
+     *   exp=1          → coef·x (ex: "2x", "-x")
+     *   coef=1         → x^exp sense coeficient (ex: "x^{3}")
+     *   coef=-1        → -x^exp (ex: "-x^{-2}")
+     * Usat per a la regla de la potència i els seus distractors.
+     */
+    function formatPowerTerm(coef, exp) {
+        if (exp === 0) {
+            if (coef ===  1) return '1';
+            if (coef === -1) return '-1';
+            return String(coef);
+        }
+        const xp = exp === 1 ? 'x' : `x^{${exp}}`;
+        if (coef ===  1) return xp;
+        if (coef === -1) return `-${xp}`;
+        return `${coef}${xp}`;
+    }
+
     // -------------------------------------------------------------------------
-    // CONSTRUCTORS DE kVars
+    // CONSTRUCTORS DE kVars (per a h(x) = kx)
     // -------------------------------------------------------------------------
 
     /** Construeix kVars complet a partir d'un K enter. */
@@ -133,8 +154,13 @@ window.MathEngine = (() => {
     }
 
     // -------------------------------------------------------------------------
-    // API PÚBLICA — només MathEngine, sense globals de compatibilitat
+    // API PÚBLICA
     // -------------------------------------------------------------------------
-    return { gcd, generateK, generateFractionK, formatK, buildKVars, buildFracKVars };
+    return {
+        gcd,
+        generateK, generateFractionK,
+        formatK, formatPowerTerm,
+        buildKVars, buildFracKVars
+    };
 
 })();

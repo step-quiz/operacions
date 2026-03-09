@@ -4,26 +4,18 @@
  * FITXER: js/derivades/question-bank.js
  * ROL: Registre de famílies de preguntes i selector per URL.
  * ARQUITECTURA:
- * - Substitueix banc-preguntes.js a partir de la Fase 3.
  * - Cada generador retorna el CONTRACTE FORMAL del challenge:
- *   {
- *     promptTex:   string,          — enunciat renderitzable amb KaTeX
- *     solutionTex: string,          — resposta correcta en LaTeX
- *     options: [                    — sempre 4 opcions (1 correcta + 3 distractors)
- *       { tex, feedback, errorType, isCorrect }
- *     ],
- *     meta: {                       — metadades per a analítica i feedback futur
- *       family, outerFn, innerFn, params, ruleLabel
- *     }
- *   }
- * - FamilyRegistry: objecte que mapeja id de família → funció generadora.
- *   Afegir una nova família = afegir una entrada aquí + el seu fitxer/funció.
- * - buildActiveFamilies(): llegeix ?families= de la URL i retorna el pool
- *   de generadors actius. Si el paràmetre és absent, activa totes les famílies.
- * - NOTA: 'difficulty' no forma part del contracte. No hi ha mecanisme que
- *   l'exploti i un camp que ningú no llegeix és documentació que ment.
+ *   { promptTex, solutionTex, options[], meta{} }
+ * - FamilyRegistry: afegir una nova família = una entrada nova aquí.
+ * - buildActiveFamilies(): llegeix ?families= de la URL.
+ *   Si absent → totes les famílies del registre.
+ * - FASE 5: Afegida la família 'power' (regla de la potència, f(x)=x^n).
+ *   Verificació de la separació de capes: generatePowerInt() no toca
+ *   cap codi de la regla de la cadena. El FamilyRegistry creix amb
+ *   una sola línia nova. El selector per URL ja funciona sense canvis.
+ *   URL d'exemple: ?families=power
+ *   URL combinada:  ?families=chain-exp-int,chain-exp-frac,power
  * DEPENDÈNCIES: Requereix math-engine.js i distractor-lib.js.
- * S'ha de carregar DESPRÉS de distractor-lib.js i ABANS de derivades.js.
  * ============================================================================
  */
 
@@ -55,7 +47,7 @@ function _selectDistractors(pool, correctTex, count, fallbacks) {
 }
 
 // =========================================================================
-// FAMÍLIES: e^{kx} amb k enter
+// FAMÍLIA: e^{kx} amb k enter
 // =========================================================================
 
 function generateExpKxInt() {
@@ -70,9 +62,9 @@ function generateExpKxInt() {
     const solutionTex = `${kv.coef}${fns.dg(kv.kx)}`;
     const pool        = DistractorLib.build(kv, fns, SCOPE_EXP_KX);
     const fallbacks   = [
-        { tex: `e^{${kv.kx}}+C`, feedback: "Això sembla una integral, no una derivada.",        errorType: 'INTEGRAL_CONFUSION', scope: 'family:exp' },
-        { tex: `0`,               feedback: "La derivada d'una exponencial no és zero.",          errorType: 'NO_DERIVATIVE',      scope: 'universal'  },
-        { tex: `x e^{x-1}`,       feedback: "No apliquis la regla de la potència a una exponencial.", errorType: 'POWER_WRONG_EXP', scope: 'family:exp' }
+        { tex: `e^{${kv.kx}}+C`, feedback: "Això sembla una integral, no una derivada.",           errorType: 'INTEGRAL_CONFUSION', scope: 'family:exp' },
+        { tex: `0`,               feedback: "La derivada d'una exponencial no és zero.",             errorType: 'NO_DERIVATIVE',      scope: 'universal'  },
+        { tex: `x e^{x-1}`,       feedback: "No apliquis la regla de la potència a una exponencial.", errorType: 'POWER_WRONG_EXP',   scope: 'family:exp' }
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
 
@@ -83,18 +75,12 @@ function generateExpKxInt() {
             { tex: solutionTex, feedback: "Molt bé! Resposta correcta.", errorType: null, isCorrect: true },
             ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
         ],
-        meta: {
-            family:     'chain-rule',
-            outerFn:    'exp',
-            innerFn:    'linear-int',
-            params:     { k },
-            ruleLabel:  'Regla de la cadena'
-        }
+        meta: { family: 'chain-rule', outerFn: 'exp', innerFn: 'linear-int', params: { k }, ruleLabel: 'Regla de la cadena' }
     };
 }
 
 // =========================================================================
-// FAMÍLIES: e^{kx} amb k fraccionari
+// FAMÍLIA: e^{kx} amb k fraccionari
 // =========================================================================
 
 function generateExpKxFrac() {
@@ -124,37 +110,70 @@ function generateExpKxFrac() {
             { tex: solutionTex, feedback: "Molt bé! Resposta correcta.", errorType: null, isCorrect: true },
             ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
         ],
+        meta: { family: 'chain-rule', outerFn: 'exp', innerFn: 'linear-frac', params: { num: frac.num, den: frac.den }, ruleLabel: 'Regla de la cadena' }
+    };
+}
+
+// =========================================================================
+// FAMÍLIA: x^n (regla de la potència, exponent enter)
+// =========================================================================
+
+function generatePowerInt() {
+    // n ∈ {-3,-2,2,3,4,5}: exclosos 0 (trivial) i 1 (f'=1, massa fàcil)
+    // n=2 i n=3 amb més pes: casos més comuns al currículum de Batxillerat
+    const candidates = [-3, -2, 2, 2, 3, 3, 4, 5];
+    const n = candidates[Math.floor(Math.random() * candidates.length)];
+
+    const fmt         = MathEngine.formatPowerTerm;
+    const solutionTex = fmt(n, n - 1);
+    const pool        = DistractorLib.buildPower(n);
+
+    // Fallback genèric per si el pool queda curt (molt improbable)
+    const fallbacks = [
+        {
+            tex:       fmt(n + 1, n),
+            feedback:  "L'exponent ha de disminuir en 1 quan derivem, no augmentar.",
+            errorType: 'POWER_WRONG_EXP',
+            scope:     'rule:power'
+        }
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+
+    return {
+        promptTex:   `f(x) = x^{${n}}`,
+        solutionTex,
+        options: [
+            { tex: solutionTex, feedback: "Molt bé! Resposta correcta.", errorType: null, isCorrect: true },
+            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
+        ],
         meta: {
-            family:    'chain-rule',
-            outerFn:   'exp',
-            innerFn:   'linear-frac',
-            params:    { num: frac.num, den: frac.den },
-            ruleLabel: 'Regla de la cadena'
+            family:    'power-rule',
+            outerFn:   'power',
+            innerFn:   'identity',
+            params:    { n },
+            ruleLabel: 'Regla de la potència'
         }
     };
 }
 
 // =========================================================================
 // REGISTRE DE FAMÍLIES
-// Afegir una nova família = una nova entrada aquí.
-// La clau és l'ID que el professor pot posar a la URL: ?families=chain-exp-int
+// Afegir una nova família = una nova entrada aquí + la seva funció generadora.
+// La clau és l'ID per a la URL: ?families=power
 // =========================================================================
 
 const FamilyRegistry = {
     'chain-exp-int':  generateExpKxInt,
     'chain-exp-frac': generateExpKxFrac,
-    // 'chain-sin-int':  generateSinKxInt,   // propera família
-    // 'power':          generatePower,
-    // 'log':            generateLog,
-    // 'product':        generateProduct,
-    // 'quotient':       generateQuotient,
+    'power':          generatePowerInt,
+    // 'chain-sin-int':  generateSinKxInt,   // propera: sin(kx)
+    // 'log':            generateLog,         // propera: ln(f(x))
+    // 'product':        generateProduct,     // futura: regla del producte
+    // 'quotient':       generateQuotient,    // futura: regla del quocient
 };
 
 // =========================================================================
 // SELECTOR PER URL
-// Llegeix ?families=id1,id2 i retorna el pool de generadors actius.
-// IDs desconeguts s'ignoren silenciosament (seguretat defensiva).
-// Si el paràmetre és absent → totes les famílies actives.
 // =========================================================================
 
 function buildActiveFamilies() {
@@ -166,14 +185,11 @@ function buildActiveFamilies() {
         .filter(id => FamilyRegistry[id])
         .map(id => FamilyRegistry[id]);
 
-    // Fallback defensiu: si cap ID és vàlid, activem totes les famílies
     return active.length > 0 ? active : Object.values(FamilyRegistry);
 }
 
-// Pool actiu: calculat una sola vegada en carregar el fitxer
 const activeFamilies = buildActiveFamilies();
 
-// Funció pública per al controlador: tria una família i genera un challenge
 function generateChallenge() {
     const generator = activeFamilies[Math.floor(Math.random() * activeFamilies.length)];
     return generator();
