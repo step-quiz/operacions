@@ -317,6 +317,7 @@ function _errorTypeLabel(type) {
         POWER_WRONG_EXP:    'Exponent de la potència incorrecte',
         LOG_INVERTED:       'Fracció del logaritme invertida',
         LOG_FORGOT_CHAIN:   'Derivada interior del logaritme oblidada',
+        LOG_FORGOT_DIVIDE:  'Divisió per f(x) oblidada al logaritme',
         SIN_COS_SWAP:       'Confusió sin / cos en derivar',
     };
     return labels[type] || type;

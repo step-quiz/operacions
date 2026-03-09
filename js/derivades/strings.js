@@ -118,6 +118,11 @@ const Hints = {
         "(2) multiplicar per la derivada interior → f'(x). " +
         "El resultat complet és f'(x)/f(x). Saltar el segon pas dóna 1/f en lloc de f'/f.",
 
+    LOG_FORGOT_DIVIDE:
+        "Quan derives ln(f(x)), el resultat és f'(x)/f(x): la derivada de l'interior al numerador " +
+        "i l'argument original del logaritme al denominador. " +
+        "Calcular f'(x) sense dividir per f(x) és fer la meitat de la feina.",
+
     // -------------------------------------------------------
     // Trigonometria
     // -------------------------------------------------------

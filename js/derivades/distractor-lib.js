@@ -61,6 +61,7 @@ window.DistractorLib = (() => {
     const POWER_WRONG_EXP     = 'POWER_WRONG_EXP';
     const LOG_INVERTED        = 'LOG_INVERTED';
     const LOG_FORGOT_CHAIN    = 'LOG_FORGOT_CHAIN';
+    const LOG_FORGOT_DIVIDE   = 'LOG_FORGOT_DIVIDE';
     const SIN_COS_SWAP        = 'SIN_COS_SWAP';
 
     // =========================================================================
@@ -589,7 +590,7 @@ window.DistractorLib = (() => {
         } else {
             pool.push({ tex: `\\frac{\\sin(x)}{\\cos(x)}`,  feedback: S_ln.forgot_sign,   errorType: CHAIN_SIGN,       scope: `family:ln-${trig}` });
             pool.push({ tex: `\\frac{-\\cos(x)}{\\sin(x)}`, feedback: S_ln.inverted,      errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
-            pool.push({ tex: `-\\sin(x)`,                    feedback: S_ln.forgot_divide, errorType: CHAIN_WRONG_COEF, scope: `family:ln-${trig}` });
+            pool.push({ tex: `-\\sin(x)`,                    feedback: S_ln.forgot_divide, errorType: LOG_FORGOT_DIVIDE, scope: `family:ln-${trig}` });
             pool.push({ tex: `\\frac{\\cos(x)}{\\sin(x)}`,  feedback: S_ln.sin_cos_swap,  errorType: SIN_COS_SWAP,     scope: `family:ln-${trig}` });
             pool.push({ tex: `\\frac{\\cos(x)}{-\\sin(x)}`, feedback: S_ln.inverted_sign, errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
         }
