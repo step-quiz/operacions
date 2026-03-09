@@ -60,7 +60,7 @@ let challengeData = null;
 const els = {
     fxDisplay:       document.getElementById('fx-display'),
     optionsContainer: document.getElementById('options-container'),
-    feedback:        document.getElementById('feedback-container'),
+    feedback: document.getElementById('missatge-feedback'), // <--- ID CORRECTE
     scoreDisplay:    document.getElementById('score-display'),
     lvlDisplay:      document.getElementById('lvl-display'),
     attemptsDisplay: document.getElementById('attempts-display')
