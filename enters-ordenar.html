@@ -240,19 +240,39 @@
             let p = randInt(-9, 7);
             let q = randInt(p + 2, 9);
             data = { p, q };
-        } else if (type === 3) {
-            let r = randInt(-7, 7);
-            let nums = [];
-            for (let i = 0; i < 8; i++) nums.push(randInt(-9, 9));
+} else if (type === 3) {
+            // 🟢 SOLUCIÓ AL PRINCIPI DEL COLOMAR (Pigeonhole)
+            // Per garantir que sempre tinguem prous nombres únics a banda i banda,
+            // limitem la 'r' entre -5 i 4.
+            let r = randInt(-5, 4);
             
-            let hasValid = nums.some(num => num < r);
-            if (!hasValid) {
-                let randomIdx = randInt(0, 7);
-                nums[randomIdx] = randInt(-9, r - 1);
+            // Decidim a l'atzar quants botons seran correctes (entre 2 i 4 per a una bona UX)
+            let numCorrects = randInt(2, 4);
+            
+            let nums = [];
+            
+            // 1. Omplim amb els botons correctes (estrictament menors que r)
+            while (nums.length < numCorrects) {
+                let n = randInt(-9, r - 1);
+                if (!nums.includes(n)) {
+                    nums.push(n);
+                }
             }
+            
+            // 2. Omplim la resta fins a 8 amb botons incorrectes (majors o iguals a r)
+            while (nums.length < 8) {
+                let n = randInt(r, 9);
+                if (!nums.includes(n)) {
+                    nums.push(n);
+                }
+            }
+            
+            // 3. Barregem l'array perquè els correctes no surtin sempre a l'inici
+            nums.sort(() => Math.random() - 0.5);
+            
             // 🟢 MEMÒRIA: Creem un array de 'locked' per saber quins botons ja han estat encertats
             data = { r, nums, locked: Array(8).fill(false) };
-        }
+        }        
         return data;
     }
 
@@ -334,7 +354,6 @@
                 btn.style.minWidth = '50px';
                 btn.style.width = '50px';
                 
-                // 🟢 RESTAURAR L'ESTAT: Si l'alumne ja l'havia encertat en un intent previ, es pinta de verd directament.
                 if (challengeData.locked[i]) {
                     btn.classList.add('selected');
                     btn.style.backgroundColor = 'var(--success)';
@@ -486,7 +505,6 @@
                 const isLessThanR = challengeData.nums[i] < challengeData.r;
 
                 if (isSelected && isLessThanR) {
-                    // 🟢 MEMÒRIA: Desem a l'objecte que l'alumne ja ha encertat aquest botó
                     challengeData.locked[i] = true; 
                     btn.style.backgroundColor = 'var(--success)';
                     btn.style.borderColor = 'var(--success)';
