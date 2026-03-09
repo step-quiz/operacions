@@ -44,39 +44,65 @@ function buildChainRuleDistractors(kVars, fns) {
 const questionBank = [
     {
         id: 'exp_kx_int', 
+        
+        // Dins de questionBank, en el cas 'exp_kx_int', substitueix aquest bloc:
+
         generate: () => {
             const k = generateK();
+            
+            // Creem versions de K que mai siguin buides per a fòrmules internes
             const kStr = formatK(k); 
-            const kInvStr = k === -1 ? "-" : (k < 0 ? `-\\frac{1}{${Math.abs(k)}}` : `\\frac{1}{${k}}`);
+            const kSimple = k === 1 ? "" : (k === -1 ? "-" : k.toString());
+            
+            // Corregim kInvStr per evitar strings buits o mal formats
+            const kInvStr = k === 1 ? "" : (k === -1 ? "-" : (k < 0 ? `-\\frac{1}{${Math.abs(k)}}` : `\\frac{1}{${k}}`));
+            
             const plusK = k > 0 ? `+ ${k}` : `- ${Math.abs(k)}`;
             const negKStr = formatK(-k);
 
             const kVars = {
-                coef: kStr, negCoef: negKStr, kx: `${kStr}x`, negKx: `${negKStr}x`, plusK: plusK, kInv: kInvStr
+                // Coeficient principal: si és 1, la derivada d'e^x és e^x (sense res davant)
+                coef: kSimple, 
+                negCoef: negKStr, 
+                kx: kSimple === "" ? "x" : (kSimple === "-" ? "-x" : `${kSimple}x`), 
+                negKx: negKStr === "" ? "x" : (negKStr === "-" ? "-x" : `${negKStr}x`), 
+                plusK: plusK, 
+                kInv: kInvStr
             };
             
             const fns = {
-                g: (arg) => `e^{${arg}}`, dg: (arg) => `e^{${arg}}`, intG: (arg) => `e^{${arg}}`
+                g: (arg) => `e^{${arg}}`, 
+                dg: (arg) => `e^{${arg}}`, 
+                intG: (arg) => `e^{${arg}}`
             };
 
+            // Ara la resposta correcta i l'enunciat aniran coordinats
             const correctTex = `${kVars.coef}${fns.dg(kVars.kx)}`;
             const allDistractors = buildChainRuleDistractors(kVars, fns);
 
-            // Filtre anti-col·lisions per a OBJECTES usant Map
+            // Filtre de seguretat: eliminem qualsevol distractor que hagi quedat buit o igual a la correcta
             const uniqueDistractorsMap = new Map();
             allDistractors.forEach(distractor => {
-                if (distractor.tex !== correctTex && !uniqueDistractorsMap.has(distractor.tex)) {
+                if (distractor.tex && distractor.tex.trim() !== "" && distractor.tex !== correctTex && !uniqueDistractorsMap.has(distractor.tex)) {
                     uniqueDistractorsMap.set(distractor.tex, distractor);
                 }
             });
 
             const validDistractors = Array.from(uniqueDistractorsMap.values());
+            
+            // SI PER ALGUNA RAÓ ENS QUEDEM SENSE DISTRACTORS (molt rar), en posem un de genèric de seguretat
+            if (validDistractors.length < 3) {
+                validDistractors.push({ tex: `e^{x}+C`, feedback: "Això sembla una integral, no una derivada." });
+                validDistractors.push({ tex: `0`, feedback: "La derivada d'una exponencial no és zero." });
+                validDistractors.push({ tex: `x e^{x-1}`, feedback: "No apliquis la regla de la potència a una exponencial." });
+            }
+
             const selectedDistractors = validDistractors.sort(() => Math.random() - 0.5).slice(0, 3);
 
             return {
                 questionTex: `f(x) = e^{${kVars.kx}}`,
                 correctTex: correctTex,
-                distractors: selectedDistractors // <-- Atenció: Ara es diu 'distractors' (array d'objectes), no distractorsTex
+                distractors: selectedDistractors
             };
         }
     },
@@ -107,31 +133,48 @@ const questionBank = [
             }
 
             const kVars = {
-                coef: kCoefStr, negCoef: negKCoefStr, kx: kxStr, negKx: negKxStr, plusK: plusK, kInv: kInvStr
+                coef: kCoefStr, 
+                negCoef: negKCoefStr, 
+                kx: kxStr, 
+                negKx: negKxStr, 
+                plusK: plusK, 
+                kInv: kInvStr
             };
 
             const fns = {
-                g: (arg) => `e^{${arg}}`, dg: (arg) => `e^{${arg}}`, intG: (arg) => `e^{${arg}}`
+                g: (arg) => `e^{${arg}}`, 
+                dg: (arg) => `e^{${arg}}`, 
+                intG: (arg) => `e^{${arg}}`
             };
 
             const correctTex = `${kVars.coef}${fns.dg(kVars.kx)}`;
             const allDistractors = buildChainRuleDistractors(kVars, fns);
 
+            // APLIQUEM EL MATEIX FILTRE DE SEGURETAT QUE ALS ENTERS
             const uniqueDistractorsMap = new Map();
             allDistractors.forEach(distractor => {
-                if (distractor.tex !== correctTex && !uniqueDistractorsMap.has(distractor.tex)) {
+                // Verifiquem que el text existeixi, no sigui buit i no sigui igual a la correcta
+                if (distractor.tex && distractor.tex.trim() !== "" && distractor.tex !== correctTex && !uniqueDistractorsMap.has(distractor.tex)) {
                     uniqueDistractorsMap.set(distractor.tex, distractor);
                 }
             });
 
             const validDistractors = Array.from(uniqueDistractorsMap.values());
+            
+            // Fallback de seguretat per a fraccions
+            if (validDistractors.length < 3) {
+                validDistractors.push({ tex: `\\frac{1}{${q}} e^{${kVars.kx}}`, feedback: "Revisa el coeficient de la regla de la cadena." });
+                validDistractors.push({ tex: `${absP} e^{${kVars.kx}}`, feedback: "Has oblidat el denominador de la fracció." });
+                validDistractors.push({ tex: `e^{${kxStr}}`, feedback: "Has oblidat aplicar la regla de la cadena." });
+            }
+
             const selectedDistractors = validDistractors.sort(() => Math.random() - 0.5).slice(0, 3);
 
             return {
                 questionTex: `f(x) = e^{${kVars.kx}}`,
                 correctTex: correctTex,
-                distractors: selectedDistractors // <-- Array d'objectes
+                distractors: selectedDistractors
             };
         }
     }
-];s
+];
