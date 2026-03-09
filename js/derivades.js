@@ -102,3 +102,149 @@ function formatK(k) {
     if (k === -1) return "-";
     return k.toString();
 }
+
+/**
+ * =========================================================================
+ * LÒGICA DE LA INTERFÍCIE (UI) I CONNEXIÓ AMB GAME-CORE
+ * =========================================================================
+ */
+
+const els = {
+    sessionDisplay: document.getElementById('session-display'),
+    lvlDisplay:     document.getElementById('lvl-display'),
+    scoreDisplay:   document.getElementById('score-display'),
+    attemptsDisplay: document.getElementById('attempts-display'),
+    fxDisplay:      document.getElementById('fx-display'),
+    optionsContainer: document.getElementById('options-container')
+};
+
+let challengeData = {};
+
+// 1. Aquesta funció la crida el teu game-core.js a startSession()
+function buildLevel() {
+    attemptsLeft = typeof MAX_INTENTS !== 'undefined' ? MAX_INTENTS : 2;
+    isTransitioning = false;
+    
+    // Agafem les dades de banc-preguntes.js
+    const bankItem = pickRandom(questionBank);
+    const rawData = bankItem.generate();
+    
+    // Homogeneïtzem l'opció correcta per convertir-la en objecte
+    const correctOption = { tex: rawData.correctTex, isCorrect: true, feedback: "" };
+    
+    // Afegim isCorrect: false als distractors que ja tenen el feedback pedagògic
+    const incorrectOptions = rawData.distractors.map(d => ({
+        tex: d.tex, isCorrect: false, feedback: d.feedback
+    }));
+    
+    const allOptions = [correctOption, ...incorrectOptions];
+    allOptions.sort(() => Math.random() - 0.5); // Barregem els botons
+    
+    challengeData = { questionTex: rawData.questionTex, options: allOptions };
+    updateUI();
+}
+
+function updateUI() {
+    // Actualitzem marcadors del teu game-core
+    els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText      = `Funció ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 2 ? ' danger' : '');
+    
+    // Netejem el missatge de feedback de la ronda anterior
+    const feedbackContainer = document.getElementById('missatge-feedback');
+    if(feedbackContainer) {
+        feedbackContainer.innerText = '';
+        feedbackContainer.style.opacity = '0';
+    }
+    
+    // Renderitzem l'enunciat amb KaTeX
+    katex.render(challengeData.questionTex, els.fxDisplay, { displayMode: true, throwOnError: false });
+    els.optionsContainer.innerHTML = '';
+    
+    // Creem els botons de respostes
+    challengeData.options.forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        
+        const mathSpan = document.createElement('span');
+        katex.render(`f'(x) = ${opt.tex}`, mathSpan, { displayMode: false, throwOnError: false });
+        btn.appendChild(mathSpan);
+        
+        btn.onclick = () => checkAnswer(opt, btn); 
+        els.optionsContainer.appendChild(btn);
+    });
+}
+
+function checkAnswer(opt, btnElement) {
+    if (isTransitioning) return;
+    const feedbackContainer = document.getElementById('missatge-feedback');
+    
+    // --- SI FALLA ---
+    if (!opt.isCorrect) {
+        btnElement.classList.add('error-shake', 'wrong');
+        setTimeout(() => btnElement.classList.remove('error-shake'), 300);
+        
+        // MOSTRA EL MISSATGE PEDAGÒGIC
+        if(feedbackContainer) {
+            feedbackContainer.innerText = opt.feedback;
+            feedbackContainer.style.color = "var(--danger)";
+            feedbackContainer.style.opacity = '1';
+        }
+        
+        attemptsLeft--;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        
+        // Si es queda sense intents
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;
+            Array.from(els.optionsContainer.children).forEach(b => b.style.pointerEvents = 'none');
+            recordAnswerToHistory(challengeData.questionTex, opt.tex, false);
+            _finishOp(0);
+        }
+        return;
+    }
+    
+    // --- SI ENCERTA ---
+    btnElement.classList.add('correct');
+    if(feedbackContainer) {
+        feedbackContainer.innerText = "Molt bé! Has aplicat bé les regles.";
+        feedbackContainer.style.color = "var(--success)";
+        feedbackContainer.style.opacity = '1';
+    }
+    
+    isTransitioning = true;
+    recordAnswerToHistory(challengeData.questionTex, opt.tex, true);
+    
+    const fails = (typeof MAX_INTENTS !== 'undefined' ? MAX_INTENTS : 2) - attemptsLeft;
+    const levelPoints = Math.max(0, 10 - (fails * 2));
+    sessionScore += levelPoints;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    
+    Array.from(els.optionsContainer.children).forEach(b => b.style.pointerEvents = 'none');
+    _finishOp(levelPoints);
+}
+
+// 2. Aquesta funció gestiona el pas a la següent pregunta parlant amb game-core.js
+function _finishOp(levelPoints) {
+    // Usem l'overlay integrat al teu game-core.js
+    const waitTime = showMiniOverlay(levelPoints); 
+    
+    setTimeout(() => {
+        hideMiniOverlay();
+        currentOperation++;
+        
+        if (currentOperation >= TOTAL_OPERATIONS) {
+            endSession(); // Cridem a game-core.js per acabar
+        } else {
+            buildLevel(); // Passem a la següent derivada
+        }
+    }, waitTime);
+}
+
+// 3. Arrencada automàtica en carregar la pàgina
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof validateConfig === 'function') validateConfig();
+    startGame(); // Cridem al game-core per iniciar l'estructura
+});
