@@ -5,14 +5,16 @@
  * ROL: Registre de famílies de preguntes i selector per URL.
  * ARQUITECTURA:
  * - Cada generador retorna: { promptTex, solutionTex, options[], meta{} }
- * - FASE 7: Afegides dues famílies de logaritme amb argument polinòmic:
- *     'log-linear' → f(x) = ln(ax+b),    f'(x) = a/(ax+b)
- *     'log-poly2'  → f(x) = ln(x²+bx+c), f'(x) = (2x+b)/(x²+bx+c)
+ * - FASE 8: Afegides dues famílies noves:
+ *     'product'  → f(x) = f(x)·g(x), regla del producte (fg)' = f'g + fg'
+ *     'quotient' → f(x) = f(x)/g(x), regla del quocient (f'g - fg')/g²
+ *   Els parells de funcions es defineixen en catàlegs estàtics amb tots els
+ *   camps precomputats per evitar generació algebraica dinàmica.
  *   URLs d'exemple:
- *     ?families=log-linear
- *     ?families=log-poly2
- *     ?families=log-linear,log-poly2
- *     ?families=log-kx,log-xn,log-linear,log-poly2
+ *     ?families=product
+ *     ?families=quotient
+ *     ?families=product,quotient
+ *     ?families=chain-exp-int,power,product,quotient
  * DEPENDÈNCIES: Requereix math-engine.js i distractor-lib.js.
  * ============================================================================
  */
@@ -44,27 +46,23 @@ function _selectDistractors(pool, correctTex, count, fallbacks) {
 // =========================================================================
 // AUXILIARS DE FORMAT (compartits pels generadors de logaritme)
 // =========================================================================
-
 function _fmtLinear(a, b) {
-    const aPart = a ===  1 ? 'x' : a === -1 ? '-x' : `${a}x`;
+    const aPart = a === 1 ? 'x' : a === -1 ? '-x' : `${a}x`;
     if (b === 0) return aPart;
     return `${aPart}${b > 0 ? `+${b}` : b}`;
 }
-
 function _fmtPoly2(b, c) {
     let s = 'x^2';
     if (b !== 0) s += b > 0 ? `+${b}x` : `${b}x`;
     if (c !== 0) s += c > 0 ? `+${c}` : `${c}`;
     return s;
 }
-
 function _fmtPoly2Deriv(b) {
     if (b === 0)  return '2x';
     if (b === 1)  return '2x+1';
     if (b === -1) return '2x-1';
     return b > 0 ? `2x+${b}` : `2x${b}`;
 }
-
 function _fmtConst(a) {
     if (a ===  1) return '1';
     if (a === -1) return '-1';
@@ -72,15 +70,15 @@ function _fmtConst(a) {
 }
 
 // =========================================================================
-// FAMÍLIA: e^{kx} amb k enter
+// FAMÍLIES: e^{kx}
 // =========================================================================
 function generateExpKxInt() {
     const k   = MathEngine.generateK();
     const kv  = MathEngine.buildKVars(k);
     const fns = { g: arg => `e^{${arg}}`, dg: arg => `e^{${arg}}`, intG: arg => `e^{${arg}}` };
     const solutionTex = `${kv.coef}${fns.dg(kv.kx)}`;
-    const pool        = DistractorLib.build(kv, fns, SCOPE_EXP_KX);
-    const fallbacks   = [
+    const pool      = DistractorLib.build(kv, fns, SCOPE_EXP_KX);
+    const fallbacks = [
         { tex: `e^{${kv.kx}}+C`, feedback: "Això sembla una integral, no una derivada.",             errorType: 'INTEGRAL_CONFUSION', scope: 'family:exp' },
         { tex: `0`,               feedback: "La derivada d'una exponencial no és zero.",               errorType: 'NO_DERIVATIVE',      scope: 'universal'  },
         { tex: `x e^{x-1}`,       feedback: "No apliquis la regla de la potència a una exponencial.", errorType: 'POWER_WRONG_EXP',    scope: 'family:exp' }
@@ -93,18 +91,15 @@ function generateExpKxInt() {
     };
 }
 
-// =========================================================================
-// FAMÍLIA: e^{kx} amb k fraccionari
-// =========================================================================
 function generateExpKxFrac() {
     const frac = MathEngine.generateFractionK();
     const kv   = MathEngine.buildFracKVars(frac);
     const fns  = { g: arg => `e^{${arg}}`, dg: arg => `e^{${arg}}`, intG: arg => `e^{${arg}}` };
     const solutionTex = `${kv.coef}${fns.dg(kv.kx)}`;
-    const pool        = DistractorLib.build(kv, fns, SCOPE_EXP_KX);
-    const absP        = Math.abs(frac.num);
-    const absPStr     = absP === 1 ? "" : absP;
-    const fallbacks   = [
+    const pool      = DistractorLib.build(kv, fns, SCOPE_EXP_KX);
+    const absP      = Math.abs(frac.num);
+    const absPStr   = absP === 1 ? "" : absP;
+    const fallbacks = [
         { tex: `\\frac{1}{${frac.den}} e^{${kv.kx}}`, feedback: "Revisa el coeficient de la regla de la cadena.", errorType: 'CHAIN_WRONG_COEF', scope: 'linear-inner' },
         { tex: `${absPStr} e^{${kv.kx}}`,             feedback: "Has oblidat el denominador de la fracció.",      errorType: 'CHAIN_WRONG_COEF', scope: 'linear-inner' },
         { tex: `e^{${kv.kx}}`,                        feedback: "Has oblidat aplicar la regla de la cadena.",     errorType: 'CHAIN_FORGOT',     scope: 'universal'    }
@@ -136,17 +131,17 @@ function generatePowerInt() {
 }
 
 // =========================================================================
-// FAMÍLIA: ln(kx)
+// FAMÍLIES: logaritme
 // =========================================================================
 function generateLogKx() {
     const candidates  = [2, 2, 3, 3, 4, 5];
     const k           = candidates[Math.floor(Math.random() * candidates.length)];
     const solutionTex = '\\frac{1}{x}';
-    const pool        = DistractorLib.buildLog('kx', { k });
-    const fallbacks   = [
-        { tex: `\\frac{${k}}{x}`,     feedback: "Gairebé bé, però k/(kx) simplifica a 1/x.",              errorType: 'CHAIN_WRONG_COEF',  scope: 'family:log-kx' },
-        { tex: `\\frac{1}{${k}x}`,    feedback: "Has oblidat la k del numerador de la regla de la cadena.", errorType: 'LOG_FORGOT_CHAIN',  scope: 'family:log-kx' },
-        { tex: `\\ln(${k}x)`,         feedback: "Aquesta és la funció original, no la seva derivada.",      errorType: 'NO_DERIVATIVE',     scope: 'universal'     }
+    const pool      = DistractorLib.buildLog('kx', { k });
+    const fallbacks = [
+        { tex: `\\frac{${k}}{x}`,  feedback: "Gairebé bé, però k/(kx) simplifica a 1/x.",              errorType: 'CHAIN_WRONG_COEF', scope: 'family:log-kx' },
+        { tex: `\\frac{1}{${k}x}`, feedback: "Has oblidat la k del numerador de la regla de la cadena.", errorType: 'LOG_FORGOT_CHAIN', scope: 'family:log-kx' },
+        { tex: `\\ln(${k}x)`,      feedback: "Aquesta és la funció original, no la seva derivada.",      errorType: 'NO_DERIVATIVE',   scope: 'universal'     }
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
     return {
@@ -156,17 +151,14 @@ function generateLogKx() {
     };
 }
 
-// =========================================================================
-// FAMÍLIA: ln(x^n)
-// =========================================================================
 function generateLogXn() {
     const candidates  = [2, 2, 3, 3, 4];
     const n           = candidates[Math.floor(Math.random() * candidates.length)];
     const solutionTex = `\\frac{${n}}{x}`;
-    const pool        = DistractorLib.buildLog('xn', { n });
-    const fallbacks   = [
+    const pool      = DistractorLib.buildLog('xn', { n });
+    const fallbacks = [
         { tex: `\\frac{1}{x^{${n}}}`, feedback: "Has oblidat multiplicar per la derivada de l'argument interior (nx^{n-1}).", errorType: 'LOG_FORGOT_CHAIN', scope: 'family:log-xn' },
-        { tex: `${n}\\ln(x)`,         feedback: "Has usat la propietat del logaritme però no has derivat el resultat.",       errorType: 'NO_DERIVATIVE',    scope: 'family:log-xn' }
+        { tex: `${n}\\ln(x)`,         feedback: "Has usat la propietat del logaritme però no has derivat el resultat.",       errorType: 'NO_DERIVATIVE',   scope: 'family:log-xn' }
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
     return {
@@ -176,72 +168,230 @@ function generateLogXn() {
     };
 }
 
-// =========================================================================
-// FAMÍLIA: ln(ax+b) — derivada a/(ax+b)
-// =========================================================================
 function generateLogLinear() {
-    // a ∈ {1,2,3,-1,-2}, b ∈ {1,2,3,-1,-2,-3}, (a,b) ≠ (1,0) perquè seria ln(x) trivial
-    // Evitem b=0 amb a=1 (seria ln(x), família diferent)
     let a, b;
     do {
         a = pick([1, 1, 2, 2, 3, -1, -2]);
         b = pick([1, 2, 3, -1, -2, -3, 0]);
     } while (a === 1 && b === 0);
-
     const arg         = _fmtLinear(a, b);
     const aStr        = _fmtConst(a);
-    // Solució: a/(ax+b)
     const solutionTex = a === 1 ? `\\frac{1}{${arg}}` : `\\frac{${aStr}}{${arg}}`;
-
     const pool      = DistractorLib.buildLog('linear', { a, b });
     const fallbacks = [
-        { tex: `\\frac{1}{${arg}}`,          feedback: "Has oblidat multiplicar per la derivada de l'argument interior.", errorType: 'LOG_FORGOT_CHAIN', scope: 'family:log-linear' },
-        { tex: `\\ln(${arg})`,               feedback: "Aquesta és la funció original, no la seva derivada.",             errorType: 'NO_DERIVATIVE',    scope: 'universal'         },
-        { tex: `\\frac{${aStr}}{(${arg})^2}`,feedback: "El denominador no va al quadrat en la derivada d'un logaritme.", errorType: 'CHAIN_WRONG_COEF', scope: 'family:log-linear' }
+        { tex: `\\frac{1}{${arg}}`,           feedback: "Has oblidat multiplicar per la derivada de l'argument interior.", errorType: 'LOG_FORGOT_CHAIN', scope: 'family:log-linear' },
+        { tex: `\\ln(${arg})`,                feedback: "Aquesta és la funció original, no la seva derivada.",             errorType: 'NO_DERIVATIVE',   scope: 'universal'         },
+        { tex: `\\frac{${aStr}}{(${arg})^2}`, feedback: "El denominador no va al quadrat en la derivada d'un logaritme.", errorType: 'CHAIN_WRONG_COEF', scope: 'family:log-linear' }
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
-
     return {
-        promptTex:   `f(x) = \\ln(${arg})`,
-        solutionTex,
-        options: [
-            { tex: solutionTex, feedback: "Molt bé! Resposta correcta.", errorType: null, isCorrect: true },
-            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
-        ],
+        promptTex: `f(x) = \\ln(${arg})`, solutionTex,
+        options: [{ tex: solutionTex, feedback: "Molt bé! Resposta correcta.", errorType: null, isCorrect: true }, ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))],
         meta: { family: 'log-rule', outerFn: 'ln', innerFn: 'linear-poly', params: { a, b }, ruleLabel: 'Derivada del logaritme' }
     };
 }
 
-// =========================================================================
-// FAMÍLIA: ln(x²+bx+c) — derivada (2x+b)/(x²+bx+c)
-// =========================================================================
 function generateLogPoly2() {
-    // b ∈ {0,1,2,3,-1,-2,-3}, c ∈ {1,2,3,-1,-2,-3}
-    // c ≠ 0 per evitar ln(x²+bx) = ln(x(x+b)) que porta a una simplificació
-    // que podria confondre (ln|x| + ln|x+b|)
     const b = pick([0, 1, 2, 3, -1, -2, -3]);
     const c = pick([1, 2, 3, -1, -2, -3]);
-
     const arg         = _fmtPoly2(b, c);
     const argDeriv    = _fmtPoly2Deriv(b);
     const solutionTex = `\\frac{${argDeriv}}{${arg}}`;
-
     const pool      = DistractorLib.buildLog('poly2', { b, c });
     const fallbacks = [
-        { tex: `\\frac{1}{${arg}}`,           feedback: "Has oblidat derivar l'argument interior del logaritme.",                  errorType: 'LOG_FORGOT_CHAIN', scope: 'family:log-poly2' },
+        { tex: `\\frac{1}{${arg}}`,               feedback: "Has oblidat derivar l'argument interior del logaritme.",             errorType: 'LOG_FORGOT_CHAIN', scope: 'family:log-poly2' },
         { tex: `\\frac{${argDeriv}}{(${arg})^2}`, feedback: "El denominador no va al quadrat en la derivada d'un logaritme.",     errorType: 'CHAIN_WRONG_COEF', scope: 'family:log-poly2' },
-        { tex: `\\ln(${arg})`,                feedback: "Aquesta és la funció original, no la seva derivada.",                     errorType: 'NO_DERIVATIVE',    scope: 'universal'         }
+        { tex: `\\ln(${arg})`,                    feedback: "Aquesta és la funció original, no la seva derivada.",                errorType: 'NO_DERIVATIVE',   scope: 'universal'         }
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+    return {
+        promptTex: `f(x) = \\ln(${arg})`, solutionTex,
+        options: [{ tex: solutionTex, feedback: "Molt bé! Resposta correcta.", errorType: null, isCorrect: true }, ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))],
+        meta: { family: 'log-rule', outerFn: 'ln', innerFn: 'poly2', params: { b, c }, ruleLabel: 'Derivada del logaritme' }
+    };
+}
+
+// =========================================================================
+// CATÀLEG DE PARELLS DE FUNCIONS (producte i quocient)
+//
+// Cada entrada és un objecte amb TOTS els camps precomputats:
+//   fTex    → f(x) en LaTeX
+//   gTex    → g(x) en LaTeX
+//   dfTex   → f'(x) en LaTeX
+//   dgTex   → g'(x) en LaTeX
+//   dfgTex  → f'(x)·g(x) simplificat (primer terme de la regla del producte/quocient)
+//   fdgTex  → f(x)·g'(x) simplificat (segon terme)
+//   g2Tex   → g(x)² en LaTeX (per al denominador del quocient)
+//   solutionProduct  → (fg)' simplificat
+//   solutionQuotient → (f/g)' simplificat (ja dins \frac{}{})
+//
+// Estratègia: parells curts i nets per no generar expressions LaTeX massa llargues.
+// Prioritat pedagògica: barrejar tipus (polinomi·exp, polinomi·trig, polinomi²).
+// =========================================================================
+
+const FUNCTION_PAIRS = [
+    // x · e^x
+    {
+        fTex: 'x',          gTex: 'e^{x}',
+        dfTex: '1',         dgTex: 'e^{x}',
+        dfgTex: 'e^{x}',    fdgTex: 'xe^{x}',
+        g2Tex: 'e^{2x}',
+        solutionProduct:  'e^{x}+xe^{x}',
+        solutionQuotient: '\\frac{e^{x}-xe^{x}}{e^{2x}}'
+    },
+    // x² · e^x
+    {
+        fTex: 'x^2',        gTex: 'e^{x}',
+        dfTex: '2x',        dgTex: 'e^{x}',
+        dfgTex: '2xe^{x}',  fdgTex: 'x^2e^{x}',
+        g2Tex: 'e^{2x}',
+        solutionProduct:  '2xe^{x}+x^2e^{x}',
+        solutionQuotient: '\\frac{2xe^{x}-x^2e^{x}}{e^{2x}}'
+    },
+    // x · e^{2x}
+    {
+        fTex: 'x',          gTex: 'e^{2x}',
+        dfTex: '1',         dgTex: '2e^{2x}',
+        dfgTex: 'e^{2x}',   fdgTex: '2xe^{2x}',
+        g2Tex: 'e^{4x}',
+        solutionProduct:  'e^{2x}+2xe^{2x}',
+        solutionQuotient: '\\frac{e^{2x}-2xe^{2x}}{e^{4x}}'
+    },
+    // (x+1) · e^x
+    {
+        fTex: 'x+1',        gTex: 'e^{x}',
+        dfTex: '1',         dgTex: 'e^{x}',
+        dfgTex: 'e^{x}',    fdgTex: '(x+1)e^{x}',
+        g2Tex: 'e^{2x}',
+        solutionProduct:  'e^{x}+(x+1)e^{x}',
+        solutionQuotient: '\\frac{e^{x}-(x+1)e^{x}}{e^{2x}}'
+    },
+    // x · ln(x)
+    {
+        fTex: 'x',          gTex: '\\ln(x)',
+        dfTex: '1',         dgTex: '\\frac{1}{x}',
+        dfgTex: '\\ln(x)',  fdgTex: '1',
+        g2Tex: '\\ln^2(x)',
+        solutionProduct:  '\\ln(x)+1',
+        solutionQuotient: '\\frac{\\ln(x)-1}{\\ln^2(x)}'
+    },
+    // x² · ln(x)
+    {
+        fTex: 'x^2',           gTex: '\\ln(x)',
+        dfTex: '2x',           dgTex: '\\frac{1}{x}',
+        dfgTex: '2x\\ln(x)',   fdgTex: 'x',
+        g2Tex: '\\ln^2(x)',
+        solutionProduct:  '2x\\ln(x)+x',
+        solutionQuotient: '\\frac{2x\\ln(x)-x}{\\ln^2(x)}'
+    },
+    // x³ · ln(x)
+    {
+        fTex: 'x^3',           gTex: '\\ln(x)',
+        dfTex: '3x^2',         dgTex: '\\frac{1}{x}',
+        dfgTex: '3x^2\\ln(x)', fdgTex: 'x^2',
+        g2Tex: '\\ln^2(x)',
+        solutionProduct:  '3x^2\\ln(x)+x^2',
+        solutionQuotient: '\\frac{3x^2\\ln(x)-x^2}{\\ln^2(x)}'
+    },
+    // x² · x³ = x⁵ (com a control pedagògic — la regla del producte ha de donar 5x⁴)
+    {
+        fTex: 'x^2',        gTex: 'x^3',
+        dfTex: '2x',        dgTex: '3x^2',
+        dfgTex: '2x^4',     fdgTex: '3x^4',
+        g2Tex: 'x^6',
+        solutionProduct:  '2x^4+3x^4',
+        solutionQuotient: '\\frac{2x^4-3x^4}{x^6}'
+    },
+    // (2x+1) · x²
+    {
+        fTex: '2x+1',       gTex: 'x^2',
+        dfTex: '2',         dgTex: '2x',
+        dfgTex: '2x^2',     fdgTex: '2x(2x+1)',
+        g2Tex: 'x^4',
+        solutionProduct:  '2x^2+2x(2x+1)',
+        solutionQuotient: '\\frac{2x^2-2x(2x+1)}{x^4}'
+    },
+    // x · (x+3)
+    {
+        fTex: 'x',          gTex: 'x+3',
+        dfTex: '1',         dgTex: '1',
+        dfgTex: 'x+3',      fdgTex: 'x',
+        g2Tex: '(x+3)^2',
+        solutionProduct:  'x+3+x',
+        solutionQuotient: '\\frac{x+3-x}{(x+3)^2}'
+    },
+    // (x+1) · (x-1)
+    {
+        fTex: 'x+1',        gTex: 'x-1',
+        dfTex: '1',         dgTex: '1',
+        dfgTex: 'x-1',      fdgTex: 'x+1',
+        g2Tex: '(x-1)^2',
+        solutionProduct:  'x-1+x+1',
+        solutionQuotient: '\\frac{x-1-(x+1)}{(x-1)^2}'
+    },
+    // x² · (x+2)
+    {
+        fTex: 'x^2',         gTex: 'x+2',
+        dfTex: '2x',         dgTex: '1',
+        dfgTex: '2x(x+2)',   fdgTex: 'x^2',
+        g2Tex: '(x+2)^2',
+        solutionProduct:  '2x(x+2)+x^2',
+        solutionQuotient: '\\frac{2x(x+2)-x^2}{(x+2)^2}'
+    },
+];
+
+// =========================================================================
+// FAMÍLIA: Regla del producte f(x)·g(x)
+// =========================================================================
+function generateProduct() {
+    const pair        = FUNCTION_PAIRS[Math.floor(Math.random() * FUNCTION_PAIRS.length)];
+    const promptTex   = `${pair.fTex}\\cdot ${pair.gTex}`;
+    const solutionTex = pair.solutionProduct;
+    const pairCtx     = { ...pair, promptTex, solutionTex };
+
+    const pool      = DistractorLib.buildProduct(pairCtx);
+    const fallbacks = [
+        { tex: pair.fTex,  feedback: "Aquesta és només la primera funció, no la derivada del producte.", errorType: 'NO_DERIVATIVE',      scope: 'universal'    },
+        { tex: pair.gTex,  feedback: "Aquesta és només la segona funció, no la derivada del producte.",  errorType: 'NO_DERIVATIVE',      scope: 'universal'    },
+        { tex: pair.dfTex, feedback: "Has derivat només f(x). Has de tenir en compte g(x) també.",       errorType: 'PRODUCT_FORGOT_SUM', scope: 'rule:product' },
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
 
     return {
-        promptTex:   `f(x) = \\ln(${arg})`,
+        promptTex:   `f(x) = ${promptTex}`,
         solutionTex,
         options: [
-            { tex: solutionTex, feedback: "Molt bé! Resposta correcta.", errorType: null, isCorrect: true },
+            { tex: solutionTex, feedback: "Molt bé! Has aplicat correctament la regla del producte: (fg)' = f'g + fg'.", errorType: null, isCorrect: true },
             ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
         ],
-        meta: { family: 'log-rule', outerFn: 'ln', innerFn: 'poly2', params: { b, c }, ruleLabel: 'Derivada del logaritme' }
+        meta: { family: 'product-rule', outerFn: pair.fTex, innerFn: pair.gTex, params: {}, ruleLabel: 'Regla del producte' }
+    };
+}
+
+// =========================================================================
+// FAMÍLIA: Regla del quocient f(x)/g(x)
+// =========================================================================
+function generateQuotient() {
+    const pair        = FUNCTION_PAIRS[Math.floor(Math.random() * FUNCTION_PAIRS.length)];
+    const promptTex   = `\\frac{${pair.fTex}}{${pair.gTex}}`;
+    const solutionTex = pair.solutionQuotient;
+    const pairCtx     = { ...pair, promptTex, solutionTex };
+
+    const pool      = DistractorLib.buildQuotient(pairCtx);
+    const fallbacks = [
+        { tex: promptTex,                          feedback: "Aquesta és la funció original, no la seva derivada.",                         errorType: 'NO_DERIVATIVE',   scope: 'universal'     },
+        { tex: `\\frac{${pair.dfTex}}{${pair.dgTex}}`, feedback: "Has derivat numerador i denominador per separat, però la regla del quocient és (f'g − fg')/g².", errorType: 'QUOTIENT_DENOM', scope: 'rule:quotient' },
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+
+    return {
+        promptTex:   `f(x) = ${promptTex}`,
+        solutionTex,
+        options: [
+            { tex: solutionTex, feedback: "Molt bé! Has aplicat correctament la regla del quocient: (f'g − fg')/g².", errorType: null, isCorrect: true },
+            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
+        ],
+        meta: { family: 'quotient-rule', outerFn: pair.fTex, innerFn: pair.gTex, params: {}, ruleLabel: 'Regla del quocient' }
     };
 }
 
@@ -256,9 +406,9 @@ const FamilyRegistry = {
     'log-xn':         generateLogXn,
     'log-linear':     generateLogLinear,
     'log-poly2':      generateLogPoly2,
+    'product':        generateProduct,
+    'quotient':       generateQuotient,
     // 'chain-sin-int':  generateSinKxInt,  // propera: sin(kx)
-    // 'product':        generateProduct,   // futura: regla del producte
-    // 'quotient':       generateQuotient,  // futura: regla del quocient
 };
 
 // =========================================================================
