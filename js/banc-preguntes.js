@@ -1,112 +1,146 @@
 // js/banc-preguntes.js
 
+/**
+ * =========================================================================
+ * GENERADOR UNIVERSAL DE DISTRACTORS (Regla de la Cadena: f(x) = g(Kx))
+ * =========================================================================
+ * @param {Object} kVars - Objecte amb les cadenes de text de K ja formatades.
+ * @param {Object} fns - Funcions { g, dg, intG } que retornen codi LaTeX.
+ * @returns {Array} - Llista mestra amb tots els possibles errors cognitius.
+ */
+function buildChainRuleDistractors(kVars, fns) {
+    const { coef, negCoef, kx, negKx, plusK, kInv } = kVars;
+    const { g, dg, intG } = fns;
+
+    return [
+        // --- ERRORS DE LA REGLA DE LA CADENA ---
+        `${dg(kx)}`,                           // 1. Oblida derivar a dins
+        `${coef}${g(kx)}`,                     // 2. Deriva a dins però no a fora
+        `${g(kx)}`,                            // 3. No deriva ni a dins ni a fora (copia l'enunciat)
+        
+        // --- ERRORS DE CONFUSIÓ AMB INTEGRALS ---
+        `${kInv}${dg(kx)}`,                    // 4. Multiplica per 1/K en lloc de K
+        `${kInv}${intG(kx)}`,                  // 5. Fa la integral completa perfectament
+        `${intG(kx)}`,                         // 6. Fa la integral només a fora
+        
+        // --- ERRORS ALGÈBRICS I DE NOTACIÓ ---
+        `${coef}x${dg(kx)}`,                   // 7. Baixa la x (fals ús regla potències)
+        `${dg(`${coef}(x-1)`)}`,               // 8. Resta 1 a l'argument (fals ús regla potències)
+        `${dg(kx)} ${plusK}`,                  // 9. Suma K fora de la funció
+        `${dg('x')} ${plusK}`,                 // 10. Es menja la K de dins i la suma a fora
+        
+        // --- ERRORS D'OBLIDAR LA K DE L'ARGUMENT ---
+        `${dg('x')}`,                          // 11. Es menja la K de l'argument completament
+        `${coef}${dg('x')}`,                   // 12. Treu K fora però l'esborra de dins
+        
+        // --- ERRORS DE SIGNE ---
+        `${dg(negKx)}`,                        // 13. Canvia el signe només a dins
+        `${negCoef}${dg(negKx)}`               // 14. Canvia el signe a dins i a fora
+    ];
+}
+
+/**
+ * =========================================================================
+ * BANC DE PREGUNTES
+ * =========================================================================
+ */
 const questionBank = [
     {
         id: 'exp_kx_int', 
         generate: () => {
+            // 1. Variables de K
             const k = generateK();
             const kStr = formatK(k); 
-            
-            // Format especial per la fracció inversa i sumes
             const kInvStr = k === -1 ? "-" : (k < 0 ? `-\\frac{1}{${Math.abs(k)}}` : `\\frac{1}{${k}}`);
             const plusK = k > 0 ? `+ ${k}` : `- ${Math.abs(k)}`;
-            
-            // Calculem -K per als nous distractors
             const negKStr = formatK(-k);
 
-            const correctTex = `${kStr}e^{${kStr}x}`;
+            // 2. Empaquetem les variables per a la fàbrica
+            const kVars = {
+                coef: kStr,
+                negCoef: negKStr,
+                kx: `${kStr}x`,
+                negKx: `${negKStr}x`,
+                plusK: plusK,
+                kInv: kInvStr
+            };
+            
+            // 3. Definim el comportament de g(x) = e^x
+            const fns = {
+                g:    (arg) => `e^{${arg}}`,
+                dg:   (arg) => `e^{${arg}}`,
+                intG: (arg) => `e^{${arg}}`
+            };
 
-            // Llista mestra de distractors actualitzada (10 opcions)
-            const allDistractors = [
-                `e^{${kStr}x}`,                       // Oblida la regla de la cadena
-                `${kInvStr}e^{${kStr}x}`,             // Fa la integral
-                `${kStr}xe^{${kStr}x}`,               // Baixa la x
-                `e^{${kStr}(x-1)}`,                   // Regla potències a l'exponent
-                `e^{${kStr}x} ${plusK}`,              // Suma K a la funció original
-                `e^x`,                                // Es menja la K de l'exponent
-                `${kStr}e^x`,                         // Baixa la K però se n'oblida a l'exponent
-                
-                // --- ELS TEUS 3 NOUS DISTRACTORS ---
-                `e^{${negKStr}x}`,                    // e^(-Kx)
-                `${negKStr}e^{${negKStr}x}`,          // -K * e^(-Kx)
-                `e^x ${plusK}`                        // e^x + K
-            ];
+            // 4. Generem correcta i distractors
+            const correctTex = `${kVars.coef}${fns.dg(kVars.kx)}`;
+            const allDistractors = buildChainRuleDistractors(kVars, fns);
 
-            // Filtre per evitar duplicats o respostes que coincideixin amb la correcta
+            // 5. Filtrem col·lisions (duplicats o iguals a la correcta) i triem 3
             const validDistractors = [...new Set(allDistractors.filter(d => d !== correctTex))];
-
-            // Triem 3 distractors a l'atzar d'aquesta llista neta
             const selectedDistractors = validDistractors.sort(() => Math.random() - 0.5).slice(0, 3);
 
             return {
-                questionTex: `f(x) = e^{${kStr}x}`,
+                questionTex: `f(x) = e^{${kVars.kx}}`,
                 correctTex: correctTex,
                 distractorsTex: selectedDistractors
             };
         }
     },
- {
+    {
         id: 'exp_kx_frac', 
         generate: () => {
+            // 1. Variables de K (Fracció)
             const frac = generateFractionK();
-            
-            // Extraiem numerador (p) i denominador (q)
             const p = frac.num;
             const q = frac.den;
             const absP = Math.abs(p);
             const sign = p < 0 ? "-" : "";
 
-            // 1. Preparem el coeficient K aïllat (sense la x) per posar davant d'e
             const kCoefStr = p < 0 ? `-\\frac{${absP}}{${q}}` : `\\frac{${absP}}{${q}}`;
-            
-            // 2. Preparem la inversa de K i el -K aïllats
             const kInvStr = p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`;
             const negKCoefStr = p < 0 ? `\\frac{${absP}}{${q}}` : `-\\frac{${absP}}{${q}}`;
-            
-            // Preparem la suma de +K al final
             const plusK = p > 0 ? `+ ${kCoefStr}` : kCoefStr;
 
-            // --- LA MÀGIA: Manera 1 o Manera 2 per escriure Kx ---
+            // 2. Alternança de notació (Manera 1 vs Manera 2)
             const isManera2 = Math.random() < 0.5;
             let kxStr, negKxStr;
 
             if (isManera2) {
-                // Manera 2: px/q (Ex: 3x/5 o x/5)
-                // Si p=1 o p=-1, escrivim només "x" al numerador
                 const pxStr = absP === 1 ? "x" : `${absP}x`;
                 kxStr = `${sign}\\frac{${pxStr}}{${q}}`;
-                
-                // També calculem -Kx per als distractors
                 negKxStr = p < 0 ? `\\frac{${pxStr}}{${q}}` : `-\\frac{${pxStr}}{${q}}`;
             } else {
-                // Manera 1: (p/q)x (Ex: 3/5 x)
                 kxStr = `${kCoefStr}x`;
                 negKxStr = `${negKCoefStr}x`;
             }
 
-            // Ara muntem la resposta correcta i els distractors usant els blocs
-            const correctTex = `${kCoefStr}e^{${kxStr}}`;
+            // 3. Empaquetem per a la fàbrica
+            const kVars = {
+                coef: kCoefStr,
+                negCoef: negKCoefStr,
+                kx: kxStr,
+                negKx: negKxStr,
+                plusK: plusK,
+                kInv: kInvStr
+            };
 
-            const allDistractors = [
-                `e^{${kxStr}}`,                       
-                `${kInvStr}e^{${kxStr}}`,            
-                `${kxStr}e^{${kxStr}}`,              
-                `e^{${kCoefStr}(x-1)}`,                   
-                `e^{${kxStr}} ${plusK}`,              
-                `e^x`,                                
-                `${kCoefStr}e^x`,
-                
-                // Distractors amb el signe canviat
-                `e^{${negKxStr}}`,
-                `${negKCoefStr}e^{${negKxStr}}`,
-                `e^x ${plusK}`
-            ];
+            // 4. Funcions base per a e^x
+            const fns = {
+                g:    (arg) => `e^{${arg}}`,
+                dg:   (arg) => `e^{${arg}}`,
+                intG: (arg) => `e^{${arg}}`
+            };
+
+            // 5. Muntem-ho tot
+            const correctTex = `${kVars.coef}${fns.dg(kVars.kx)}`;
+            const allDistractors = buildChainRuleDistractors(kVars, fns);
 
             const validDistractors = [...new Set(allDistractors.filter(d => d !== correctTex))];
             const selectedDistractors = validDistractors.sort(() => Math.random() - 0.5).slice(0, 3);
 
             return {
-                questionTex: `f(x) = e^{${kxStr}}`,
+                questionTex: `f(x) = e^{${kVars.kx}}`,
                 correctTex: correctTex,
                 distractorsTex: selectedDistractors
             };
