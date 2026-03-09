@@ -6,9 +6,17 @@
 }
 
 .function-box {
-    padding: 15px 20px; text-align: center; display: flex;
-    justify-content: center; align-items: center; flex-direction: column;
-    gap: 10px; font-size: 1.5em; font-weight: bold; min-height: 80px;
+    padding: 15px 20px; 
+    text-align: center; 
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    flex-direction: row; /* Canviat a horitzontal */
+    flex-wrap: wrap; /* Perquè s'adapti bé en mòbils petits */
+    gap: 15px; 
+    font-size: 1.5em; 
+    font-weight: bold; 
+    min-height: 80px;
 }
 
 .function-label {
