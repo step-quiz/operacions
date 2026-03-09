@@ -1,3 +1,16 @@
+```css
+/*
+============================================================================
+PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+FITXER: css/derivades.css
+ROL: Estils específics per al joc de derivades.
+ARQUITECTURA:
+- Sobreescriu les variables de `shared.css` per adaptar els colors al joc.
+- Defineix la graella d'opcions (CSS Grid) i els contenidors de KaTeX.
+- Gestiona les animacions d'encert, error i estats dels botons.
+DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
+============================================================================
+*/
 :root {
     --bg-color:      #fdf4ff;
     --primary:       #9333ea;
