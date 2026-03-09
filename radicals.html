@@ -609,64 +609,94 @@
         const b = pick(R1_BASES_EASY), s = pick(R1_SQ_EASY);
         return { frontCoef: 1, radicand: b * s.sq, expectedSquare: s.sq, expectedRest: b, finalCoef: s.r, finalRadicand: b };
     }
-    function buildStepsRepte1(p) {
-        r1FactorSquare = null;
-        r1FactorRest = null;
 
-        return [
-            {
-                title: "Expressa el radicand com √a · √b (un d'ells ha de ser quadrat perfecte)",
-                buildSchema: (c) => schemaTwoRadInputs(c),
-                validate: () => {
-                    const ia = document.getElementById('step-input-a');
-                    const ib = document.getElementById('step-input-b');
-                    if (!ia || !ib) return false;
+function buildStepsRepte1(p) {
+        r1FactorSquare = null;
+        r1FactorRest = null;
+        // Afegim aquestes dues variables per guardar exactament què ha escrit l'alumne
+        let r1DecompA = null; 
+        let r1DecompB = null;
 
-                    const a = parseStrictInt(ia.value);
-                    const b = parseStrictInt(ib.value);
-                    if (isNaN(a) || isNaN(b)) return false;
-                    if (a <= 0 || b <= 0) return false;
-                    if (a * b !== p.radicand) return false;
+        return [
+            {
+                title: "Expressa el radicand com √a · √b (un d'ells ha de ser quadrat perfecte)",
+                buildSchema: (c) => schemaTwoRadInputs(c),
+                validate: () => {
+                    const ia = document.getElementById('step-input-a');
+                    const ib = document.getElementById('step-input-b');
+                    if (!ia || !ib) return false;
 
-                    const aSq = isPerfectSquare(a);
-                    const bSq = isPerfectSquare(b);
-                    if (!aSq && !bSq) return false;
-                    if (aSq && bSq) return false;
+                    const a = parseStrictInt(ia.value);
+                    const b = parseStrictInt(ib.value);
+                    if (isNaN(a) || isNaN(b)) return false;
+                    if (a <= 0 || b <= 0) return false;
+                    if (a * b !== p.radicand) return false;
 
-                    r1FactorSquare = aSq ? a : b;
-                    r1FactorRest = aSq ? b : a;
+                    const aSq = isPerfectSquare(a);
+                    const bSq = isPerfectSquare(b);
+                    if (!aSq && !bSq) return false;
+                    if (aSq && bSq) return false;
 
-                    const bestSq = maxPerfectSquareDivisor(p.radicand);
-                    if (r1FactorSquare < bestSq) {
-                        return { status: 'suboptimal', message: "És correcte, però el quadrat perfecte extret no és el més gran possible. Torna-ho a provar." };
-                    }
-                    return true;
+                    r1FactorSquare = aSq ? a : b;
+                    r1FactorRest = aSq ? b : a;
+
+                    const bestSq = maxPerfectSquareDivisor(p.radicand);
+                    if (r1FactorSquare < bestSq) {
+                        return { status: 'suboptimal', message: "És correcte, però el quadrat perfecte extret no és el més gran possible. Torna-ho a provar." };
+                    }
+
+                    // Si tot és correcte, desem els valors just abans de donar el vist i plau
+                    r1DecompA = a;
+                    r1DecompB = b;
+
+                    return true;
+                },
+                // AFEGIM AQUESTA PART: S'executa només si el validate() ha retornat true
+                onCorrect: () => {
+                    if (!els.intermediateBox) return;
+                    els.intermediateBox.innerHTML = '';
+                    
+                    // Dibuixem la primera arrel que l'alumne ha escrit
+                    els.intermediateBox.appendChild(buildRadicalSpan(1, r1DecompA, ''));
+                    
+                    // Dibuixem el punt de multiplicar
+                    const dot = document.createElement('span'); 
+                    dot.className = 'radical-dot'; 
+                    dot.innerText = ' · ';
+                    els.intermediateBox.appendChild(dot);
+                    
+                    // Dibuixem la segona arrel
+                    els.intermediateBox.appendChild(buildRadicalSpan(1, r1DecompB, ''));
+
+                    // (Opcional) Si vols que aparegui un signe igual al final d'aquesta línia,
+                    // pots descomentar la línia següent (si tens la funció addEqualsTo disponible globalment):
+                    // addEqualsTo(els.intermediateBox);
                 }
-            },
-            {
-                title: "Ara escriu c · √b (on c² = a)",
-                buildSchema: (c) => schemaCoefAndRadInput(c),
-                validate: () => {
-                    const ic = document.getElementById('step-input-c');
-                    const ib = document.getElementById('step-input-b2');
-                    if (!ic || !ib) return false;
+            },
+            {
+                title: "Ara escriu c · √b (on c² = a)",
+                buildSchema: (c) => schemaCoefAndRadInput(c),
+                validate: () => {
+                    const ic = document.getElementById('step-input-c');
+                    const ib = document.getElementById('step-input-b2');
+                    if (!ic || !ib) return false;
 
-                    const cVal = parseStrictInt(ic.value);
-                    const bVal = parseStrictInt(ib.value);
-                    if (isNaN(cVal) || isNaN(bVal)) return false;
-                    if (cVal <= 0 || bVal <= 0) return false;
-                    if (r1FactorSquare === null || r1FactorRest === null) return false;
-                    if (bVal !== r1FactorRest) return false;
-                    if (cVal * cVal !== r1FactorSquare) return false;
+                    const cVal = parseStrictInt(ic.value);
+                    const bVal = parseStrictInt(ib.value);
+                    if (isNaN(cVal) || isNaN(bVal)) return false;
+                    if (cVal <= 0 || bVal <= 0) return false;
+                    if (r1FactorSquare === null || r1FactorRest === null) return false;
+                    if (bVal !== r1FactorRest) return false;
+                    if (cVal * cVal !== r1FactorSquare) return false;
 
-                    p.finalCoef = p.frontCoef * cVal;
-                    p.finalRadicand = r1FactorRest;
-                    return true;
-                }
-            }
-        ];
-    }
-
+                    p.finalCoef = p.frontCoef * cVal;
+                    p.finalRadicand = r1FactorRest;
+                    return true;
+                }
+            }
+        ];
+    }
+    
     // ============================================================
     // REPTE 2 — PRODUCTE I QUOCIENT
     // ============================================================
