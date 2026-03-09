@@ -98,8 +98,15 @@ const questionBank = [
             const sign = p < 0 ? "-" : "";
 
             const kCoefStr = p < 0 ? `-\\frac{${absP}}{${q}}` : `\\frac{${absP}}{${q}}`;
-            const kInvStr = p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`;
+
+            // --- EL CANVI DE UX ---
+            // Si el numerador original és 1 o -1, l'invers és un nombre sencer (q o -q)
+            const kInvStr = absP === 1 
+                ? (p < 0 ? `-${q}` : `${q}`) 
+                : (p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`);
+                
             const negKCoefStr = p < 0 ? `\\frac{${absP}}{${q}}` : `-\\frac{${absP}}{${q}}`;
+
             const plusK = p > 0 ? `+ ${kCoefStr}` : kCoefStr;
 
             // 2. Alternança de notació (Manera 1 vs Manera 2)
