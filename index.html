@@ -15,7 +15,6 @@
     // ============================================================
     const BASE_URL = 'https://step-quiz.net/';
 
-    // Llistat d'activitats amb tots els camps d'ajuda (yt) buits
     const ACTIVITIES_ESO = [
       { file: 'enters.html', label: 'Nombres enters', yt: 'https://youtu.be/7M6oAKwovag' },
       { file: 'factoritzar.html', label: 'Descomposar en factors primers', yt: 'https://youtu.be/s2LGUllVMfM' },
@@ -35,7 +34,7 @@
     ];
 
     const DEFAULT_ESO = 'enters.html';
-    const DEFAULT_BATX = 'rectes-plans.html'; 
+    const DEFAULT_BATX = 'rectes-plans.html';
   </script>
 
   <style>
@@ -47,9 +46,7 @@
       --text-muted: #64748b;
       --bg-body: #f8fafc;
       --eso-bg: #eff6ff;
-      --eso-title: var(--text-main);
       --batx-bg: #f1f5f9;
-      --batx-title: var(--text-main);
       --math-title: #3486e4;
       --border-heavy: #cbd5e1;
       --panel-w: 384px;
@@ -76,60 +73,48 @@
     .title-row-1 { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 36px; font-weight: 800; color: #0f172a; margin: 0; }
     .title-row-2 { font-size: 24px; font-weight: 400; color: var(--math-title); margin-top: -15px; }
     .inline-icon { height: 82px; opacity: 0; animation: icon-slide-brake 0.6s cubic-bezier(0.1, 1.0, 0.2, 1.0) 0.1s forwards; }
-    .text-step, .text-quiz { opacity: 0; animation: fade-in 0.43s ease-out 0.4s forwards; }
-    .title-row-2, #mobile-nav-container { opacity: 0; animation: fade-in 0.24s ease-out 0.70s forwards; }
-
-/* L'ESO apareix al seu temps original */
-#panel-eso { 
-    opacity: 0; 
-    animation: fade-in 0.24s ease-out 1.50s forwards; 
-}
-
-/* El Batxillerat apareix 0.3 segons més tard (1.5 + 0.3 = 1.8) */
-#panel-batx { 
-    opacity: 0; 
-    animation: fade-in 0.24s ease-out 1.80s forwards; 
-}    
-
+    .text-step, .text-quiz { opacity: 0; animation: fade-in 0.43s ease-out 0.6s forwards; }
     
+    /* El títol i el nav mantenen el seu delay original */
+    .title-row-2, #mobile-nav-container { opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
+
     @keyframes icon-slide-brake { from { transform: translateX(-60px) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
     /* Estructura principal */
     .main-wrapper { display: flex; gap: 30px; justify-content: center; width: 100%; max-width: 1000px; align-items: flex-start; }
     .quiz-panel { width: var(--panel-w); max-width: 100%; padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-heavy); }
-    #panel-eso { background-color: var(--eso-bg); }
-    #panel-batx { background-color: var(--batx-bg); }
+    #panel-eso { background-color: var(--eso-bg); opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
+    #panel-batx { background-color: var(--batx-bg); opacity: 0; animation: fade-in 0.24s ease-out 1.80s forwards; } /* 0.3s després que ESO */
 
     h2 { margin: 0 0 10px 5px; font-size: 22px; font-weight: 800; }
     
-    /* Canvi 3: Identat a l'esquerra per a ESO i Batxillerat */
+    /* Identat a l'esquerra unificat per a ESO i Batxillerat */
     .row { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 10px; padding: 4px 8px; }
     .row label { font-size: 14px; font-weight: 600; text-align: left; }
 
-    /* Canvi 1 i 3: Efecte hover més fosc per suggerir clic */
+    /* Hover gris fosc per a menús i botons */
     select { appearance: none; background-color: #ffffff; height: 32px; padding: 0 10px; font-size: 14px; border: 1px solid var(--border-heavy); border-radius: 6px; cursor: pointer; text-align: center; width: 100%; transition: background-color 0.2s; }
     select:hover { background-color: #cbd5e1; }
 
-    /* Canvi 2: Millora caixa enllaç per evitar que el text quedi fora */
+    /* Zona Enllaç: Estreta i sense espais innecessaris */
     .link-block { margin-top: 5px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
-    .link-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; margin-bottom: 4px; display: block; }
+    .link-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; margin-bottom: 4px; display: block; }
     .link-output { width: 100%; min-height: 45px; height: 45px; font-family: monospace; font-size: 11px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-heavy); background: #e2e8f0; word-break: break-all; user-select: all; -webkit-user-select: all; cursor: text; line-height: 1.3; display: flex; align-items: center; }
 
-    /* Botons */
+    /* Botons i proporcions quirúrgiques */
     .btn-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
     .copy-btn, .open-btn, .help-btn { height: 38px; cursor: pointer; border-radius: 6px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; border: none; gap: 6px; transition: all 0.2s ease; }
 
-    /* Proporcions quirúrgiques de llargada */
-    .copy-btn { flex: 0.8; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .help-btn { flex: 1; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .open-btn { flex: 1.15; background: var(--accent); color: white; }
+    .copy-btn { flex: 0.8; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); }
+    .help-btn { flex: 1; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); }
+    .open-btn { flex: 1.15; background: var(--accent); color: white; } /* Blau agressiu */
     
     .copy-btn:hover, .help-btn:hover { background-color: #cbd5e1; border-color: #94a3b8; }
     .open-btn:hover { background: #2563eb; }
 
     .yt-icon { height: 16px; width: auto; }
-    .copy-status { font-size: 13px; color: #059669; margin-top: 0px; min-height: 16px; font-weight: 700; text-align: center; }
+    .copy-status { font-size: 13px; color: #059669; margin-top: 0px; min-height: 0px; font-weight: 700; text-align: center; }
 
     /* Navegació Mòbil */
     .mobile-nav { display: none; margin-bottom: 20px; padding: 5px; background: #e2e8f0; border-radius: 12px; width: 100%; max-width: var(--panel-w); }
@@ -138,26 +123,27 @@
     .mobile-nav label:hover { background-color: #cbd5e1; }
     .mobile-nav input:checked + label { background: #ffffff; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-/* ADAPTACIÓ MÒBIL I FIX DEL BUG DE UX */
-@media (max-width: 1050px) {
-  
-  /* ... (altres regles de mòbil) ... */
+    /* ADAPTACIÓ MÒBIL I FIX DEL BUG DE UX */
+    @media (max-width: 1050px) {
+      body { justify-content: flex-start; padding-top: 30px; }
+      .main-wrapper { flex-direction: column; align-items: center; }
+      .mobile-nav { display: flex; }
+      .quiz-panel { display: none; }
+      
+      /* FIX: Quan un panell és actiu al mòbil, el delay ha de ser 0 per permetre canvi instantani */
+      .quiz-panel.active { 
+        display: block; 
+        animation: fade-in 0.3s ease-out forwards; 
+        animation-delay: 0s !important; 
+      }
+    }
 
-  /* FIX: Quan un panell és actiu al mòbil, el delay ha de ser 0 per permetre canvi instantani */
-  .quiz-panel.active { 
-    display: block; 
-    animation: fade-in 0.3s ease-out forwards; 
-    animation-delay: 0s !important; /* <--- AQUESTA ÉS LA CLAU */
-  }
-}
-    
-    @keyframes fadeInPanels { from { opacity: 0; } to { opacity: 1; } }
+    .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
     @keyframes select-shake-wave {
       0%, 100% { transform: translateX(0); }
       10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); background-color: #fef08a; }
       20%, 40%, 60%, 80% { transform: translateX(4px); background-color: #ffedd5; }
     }
-    .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
 
     .help-btn { display: none; }
   </style>
@@ -241,8 +227,7 @@
       function populate() {
         activities.forEach(a => {
           const opt = document.createElement('option');
-          opt.value = a.file;
-          opt.textContent = a.label;
+          opt.value = a.file; opt.textContent = a.label;
           if (a.file === defaultFile) opt.selected = true;
           els.file.appendChild(opt);
         });
@@ -265,29 +250,14 @@
       function manageHelpButton(isInitialLoad = false) {
         const selected = activities.find(a => a.file === els.file.value);
         const hasVideo = selected && selected.yt && selected.yt.trim() !== '';
-
-        clearTimeout(timeout1);
-        clearTimeout(timeout2);
-
-        function cssTimeToMs(t) {
-          if (!t) return 0;
-          const first = String(t).split(',')[0].trim();
-          if (first.endsWith('ms')) return parseFloat(first) || 0;
-          if (first.endsWith('s')) return (parseFloat(first) || 0) * 1000;
-          return 0;
-        }
+        clearTimeout(timeout1); clearTimeout(timeout2);
 
         if (isInitialLoad) {
           els.help.style.display = 'none';
-          const wrapper = document.querySelector('.main-wrapper');
-          const fadeDelayMs = wrapper ? cssTimeToMs(getComputedStyle(wrapper).animationDelay) : 0;
-
           timeout1 = setTimeout(() => {
             const nowSel = activities.find(a => a.file === els.file.value);
-            const nowHasVideo = nowSel && nowSel.yt && nowSel.yt.trim() !== '';
-            if (nowHasVideo) els.help.style.display = 'flex';
-          }, fadeDelayMs + 4000);
-
+            if (nowSel && nowSel.yt) els.help.style.display = 'flex';
+          }, 4500); // Retard inicial per no destorbar l'animació
         } else {
           timeout1 = setTimeout(() => {
             els.help.style.display = 'none';
@@ -298,10 +268,7 @@
         }
       }
 
-      populate();
-      build();
-      manageHelpButton(true);
-
+      populate(); build(); manageHelpButton(true);
       [els.file, els.s, els.o, els.i, els.m].filter(Boolean).forEach(el => el.addEventListener('change', build));
       els.file.addEventListener('change', () => manageHelpButton(false));
 
@@ -310,9 +277,7 @@
         els.status.textContent = 'Copiat ✅';
         setTimeout(() => els.status.textContent = '', 2000);
       });
-
       els.open.addEventListener('click', () => window.open(els.link.textContent, '_blank'));
-
       els.help.addEventListener('click', () => {
         const selected = activities.find(a => a.file === els.file.value);
         if (selected && selected.yt) window.open(selected.yt, '_blank');
