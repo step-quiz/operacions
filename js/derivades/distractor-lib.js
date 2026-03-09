@@ -494,7 +494,104 @@ window.DistractorLib = (() => {
     }
 
     // =========================================================================
-    // API PÚBLICA
+    // POOLS: compostes d'ordre superior (exp∘trig i ln∘trig)
+    // =========================================================================
+
+    /**
+     * Pool per a f(x) = e^{trig(x)}, on trig és 'sin' o 'cos'.
+     *   'sin' → f'(x) = cos(x)·e^{sin(x)}
+     *   'cos' → f'(x) = −sin(x)·e^{cos(x)}
+     *
+     * Errors modelats:
+     *   CHAIN_FORGOT      → ha calculat g'(x) però ha oblidat f'(g(x))
+     *   SIN_COS_SWAP      → ha usat la funció trig equivocada com a g'(x)
+     *   CHAIN_SIGN        → ha oblidat el signe negatiu de cos'(x)
+     *   CHAIN_WRONG_COEF  → ha avaluat l'exterior a g'(x) en lloc de g(x)
+     *   NO_DERIVATIVE     → funció original sense derivar
+     */
+    function _buildExpTrigPool(trig) {
+        const isSin  = trig === 'sin';
+        const other  = isSin ? 'cos' : 'sin';
+        const gTex   = `\\${trig}(x)`;
+        const gPrime = isSin ? `\\cos(x)` : `-\\sin(x)`;
+        const gPrimeAbs = isSin ? `\\cos(x)` : `\\sin(x)`;
+        const pool   = [];
+
+        // NO_DERIVATIVE: funció original
+        pool.push({ tex: `e^{${gTex}}`,               feedback: "Aquesta és la funció original, no la seva derivada.",                                                        errorType: NO_DERIVATIVE,     scope: `family:exp-${trig}` });
+
+        // CHAIN_FORGOT: ha calculat g'(x) però ha oblidat e^{g(x)}
+        pool.push({ tex: gPrime,                       feedback: `Has calculat la derivada de l'interior (${gPrime}), però has oblidat multiplicar per l'exterior e^{${gTex}}.`, errorType: CHAIN_FORGOT,      scope: `family:exp-${trig}` });
+
+        if (isSin) {
+            // SIN_COS_SWAP: ha usat −sin en lloc de cos com a g'(x)
+            pool.push({ tex: `-\\sin(x)e^{\\sin(x)}`,  feedback: "La derivada de sin(x) és cos(x), no −sin(x). Has usat la derivada de cos en lloc de la de sin.",              errorType: SIN_COS_SWAP,      scope: `family:exp-${trig}` });
+            // CHAIN_WRONG_COEF: ha avaluat e a g'(x) en lloc de g(x)
+            pool.push({ tex: `\\cos(x)e^{\\cos(x)}`,   feedback: "Has multiplicat per cos(x), però l'exponencial ha de ser e^{sin(x)}, no e^{cos(x)}. L'argument no canvia.",  errorType: CHAIN_WRONG_COEF,  scope: `family:exp-${trig}` });
+            // CHAIN_WRONG_COEF: e^{cos(x)} sense factor
+            pool.push({ tex: `e^{\\cos(x)}`,            feedback: "Has substituït l'argument per la seva derivada. L'argument de l'exponencial és sin(x), no cos(x).",          errorType: CHAIN_WRONG_COEF,  scope: `family:exp-${trig}` });
+        } else {
+            // CHAIN_SIGN: ha oblidat el signe negatiu de cos'
+            pool.push({ tex: `\\sin(x)e^{\\cos(x)}`,   feedback: "La derivada de cos(x) és −sin(x), no +sin(x). Has oblidat el signe negatiu.",                                errorType: CHAIN_SIGN,        scope: `family:exp-${trig}` });
+            // CHAIN_WRONG_COEF: e^{-sin(x)} (substituït arg per la seva derivada)
+            pool.push({ tex: `e^{-\\sin(x)}`,           feedback: "Has substituït l'argument per la seva derivada. L'argument de l'exponencial és cos(x), no −sin(x).",         errorType: CHAIN_WRONG_COEF,  scope: `family:exp-${trig}` });
+            // SIN_COS_SWAP: ha usat cos en lloc de −sin com a g'(x)
+            pool.push({ tex: `\\cos(x)e^{\\cos(x)}`,   feedback: "La derivada de cos(x) és −sin(x), no cos(x). Has usat la derivada de sin en lloc de la de cos.",              errorType: SIN_COS_SWAP,      scope: `family:exp-${trig}` });
+        }
+        return pool;
+    }
+
+    /**
+     * Pool per a f(x) = ln(trig(x)), on trig és 'sin' o 'cos'.
+     *   'sin' → f'(x) = cos(x)/sin(x)    = \\frac{\\cos(x)}{\\sin(x)}
+     *   'cos' → f'(x) = −sin(x)/cos(x)   = \\frac{-\\sin(x)}{\\cos(x)}
+     *
+     * Errors modelats:
+     *   LOG_FORGOT_CHAIN  → ha derivat ln però ha oblidat la derivada interior
+     *   LOG_INVERTED      → té la fracció invertida
+     *   CHAIN_SIGN        → ha oblidat el signe negatiu (família cos)
+     *   CHAIN_WRONG_COEF  → ha calculat g'(x) però ha oblidat dividir per g(x)
+     *   SIN_COS_SWAP      → ha usat la funció trig equivocada al numerador
+     *   NO_DERIVATIVE     → funció original sense derivar
+     */
+    function _buildLogTrigPool(trig) {
+        const isSin = trig === 'sin';
+        const gTex  = `\\${trig}(x)`;
+        const other = isSin ? '\\cos' : '\\sin';
+        const pool  = [];
+
+        // NO_DERIVATIVE
+        pool.push({ tex: `\\ln(${gTex})`,                              feedback: "Aquesta és la funció original, no la seva derivada.",                                                              errorType: NO_DERIVATIVE,    scope: `family:ln-${trig}` });
+
+        // LOG_FORGOT_CHAIN: 1/g(x) sense multiplicar per g'(x)
+        pool.push({ tex: `\\frac{1}{${gTex}}`,                         feedback: `Has derivat ln com a 1/${gTex}, però has oblidat multiplicar per la derivada interior (ln f)' = f'/f.`,          errorType: LOG_FORGOT_CHAIN, scope: `family:ln-${trig}` });
+
+        if (isSin) {
+            // Correcta: cos(x)/sin(x)
+            // LOG_INVERTED: sin(x)/cos(x)
+            pool.push({ tex: `\\frac{\\sin(x)}{\\cos(x)}`,             feedback: "Tens la fracció invertida. La derivada de ln(f) és f'/f, no f/f'.",                                               errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
+            // CHAIN_SIGN: −cos(x)/sin(x) (signe negatiu erroni, sin'=+cos)
+            pool.push({ tex: `\\frac{-\\cos(x)}{\\sin(x)}`,            feedback: "El signe és incorrecte. La derivada de sin(x) és +cos(x), no −cos(x).",                                          errorType: CHAIN_SIGN,       scope: `family:ln-${trig}` });
+            // CHAIN_WRONG_COEF: cos(x) sol (ha oblidat dividir per sin)
+            pool.push({ tex: `\\cos(x)`,                                feedback: "Has calculat la derivada de sin(x), però has oblidat dividir per sin(x). El resultat és cos(x)/sin(x).",         errorType: CHAIN_WRONG_COEF, scope: `family:ln-${trig}` });
+            // SIN_COS_SWAP: sin(x)/sin(x)=1, millor usar un cas menys trivial
+            pool.push({ tex: `\\frac{-\\sin(x)}{\\cos(x)}`,            feedback: "Has usat −sin(x) al numerador, però la derivada de sin(x) és cos(x), no −sin(x).",                               errorType: SIN_COS_SWAP,     scope: `family:ln-${trig}` });
+        } else {
+            // Correcta: −sin(x)/cos(x)
+            // CHAIN_SIGN: sin(x)/cos(x) (oblidat signe negatiu)
+            pool.push({ tex: `\\frac{\\sin(x)}{\\cos(x)}`,             feedback: "Has oblidat el signe negatiu. La derivada de cos(x) és −sin(x), no +sin(x).",                                    errorType: CHAIN_SIGN,       scope: `family:ln-${trig}` });
+            // LOG_INVERTED: −cos(x)/sin(x) (invertida i signe)
+            pool.push({ tex: `\\frac{-\\cos(x)}{\\sin(x)}`,            feedback: "Tens la fracció invertida. La derivada de ln(f) és f'/f, no f/f'.",                                               errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
+            // CHAIN_WRONG_COEF: −sin(x) sol
+            pool.push({ tex: `-\\sin(x)`,                               feedback: "Has calculat la derivada de cos(x), però has oblidat dividir per cos(x). El resultat és −sin(x)/cos(x).",        errorType: CHAIN_WRONG_COEF, scope: `family:ln-${trig}` });
+            // SIN_COS_SWAP: −cos(x)/cos(x) = −1... usem una forma menys trivial
+            pool.push({ tex: `\\frac{\\cos(x)}{\\sin(x)}`,             feedback: "Has usat cos(x) al numerador en lloc de −sin(x). La derivada de cos(x) és −sin(x), no cos(x).",                  errorType: SIN_COS_SWAP,     scope: `family:ln-${trig}` });
+            // LOG_FORGOT_CHAIN ja cobert; afegim una variant d'inversió amb signe
+            pool.push({ tex: `\\frac{\\cos(x)}{-\\sin(x)}`,            feedback: "Tens la fracció invertida i el signe desplaçat. Comprova que numerador és f'(x) i denominador f(x).",             errorType: LOG_INVERTED,     scope: `family:ln-${trig}` });
+        }
+        return pool;
+    }
+
     // =========================================================================
     function build(kVars, fns, scopeFilter) {
         const pool = _buildChainPool(kVars, fns);
@@ -531,6 +628,18 @@ window.DistractorLib = (() => {
         return [];
     }
 
-    return { build, buildPower, buildLog, buildTrig, buildProduct, buildQuotient, FeedbackHints };
+    /**
+     * Genera el pool de distractors per a compostes d'ordre superior.
+     * @param {'exp-sin'|'exp-cos'|'ln-sin'|'ln-cos'} type
+     */
+    function buildCompound(type) {
+        if (type === 'exp-sin') return _buildExpTrigPool('sin');
+        if (type === 'exp-cos') return _buildExpTrigPool('cos');
+        if (type === 'ln-sin')  return _buildLogTrigPool('sin');
+        if (type === 'ln-cos')  return _buildLogTrigPool('cos');
+        return [];
+    }
+
+    return { build, buildPower, buildLog, buildTrig, buildCompound, buildProduct, buildQuotient, FeedbackHints };
 
 })();

@@ -390,6 +390,98 @@ function generateQuotient() {
 }
 
 // =========================================================================
+// FAMÍLIES: compostes d'ordre superior (e^trig i ln∘trig)
+// =========================================================================
+
+/**
+ * f(x) = e^{sin(x)}   →   f'(x) = cos(x)·e^{sin(x)}
+ */
+function generateExpSin() {
+    const solutionTex = '\\cos(x)e^{\\sin(x)}';
+    const pool        = DistractorLib.buildCompound('exp-sin');
+    const fallbacks   = [
+        { tex: 'e^{\\cos(x)}',               feedback: "Has derivat l'argument però has substituït dins l'exponencial en lloc de multiplicar.", errorType: 'CHAIN_WRONG_COEF', scope: 'family:exp-sin' },
+        { tex: 'e^{\\sin(x)}',               feedback: "Aquesta és la funció original, no la seva derivada.",                                   errorType: 'NO_DERIVATIVE',    scope: 'universal' },
+        { tex: '\\cos(x)',                    feedback: "Has calculat la derivada de l'interior, però has oblidat multiplicar per e^{sin(x)}.",  errorType: 'CHAIN_FORGOT',     scope: 'family:exp-sin' }
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+    return {
+        promptTex: 'f(x) = e^{\\sin(x)}', solutionTex,
+        options: [
+            { tex: solutionTex, feedback: "Molt bé! (e^{sin(x)})' = cos(x)·e^{sin(x)}: derivada exterior avaluada a sin(x), per la derivada interior cos(x).", errorType: null, isCorrect: true },
+            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
+        ],
+        meta: { family: 'chain-rule', outerFn: 'exp', innerFn: 'sin', params: {}, ruleLabel: 'Regla de la cadena' }
+    };
+}
+
+/**
+ * f(x) = e^{cos(x)}   →   f'(x) = −sin(x)·e^{cos(x)}
+ */
+function generateExpCos() {
+    const solutionTex = '-\\sin(x)e^{\\cos(x)}';
+    const pool        = DistractorLib.buildCompound('exp-cos');
+    const fallbacks   = [
+        { tex: 'e^{-\\sin(x)}',              feedback: "Has substituït l'argument per la seva derivada. L'exponencial és e^{cos(x)}, no e^{−sin(x)}.",           errorType: 'CHAIN_WRONG_COEF', scope: 'family:exp-cos' },
+        { tex: 'e^{\\cos(x)}',               feedback: "Aquesta és la funció original, no la seva derivada.",                                                     errorType: 'NO_DERIVATIVE',    scope: 'universal' },
+        { tex: '-\\sin(x)',                   feedback: "Has calculat la derivada de l'interior, però has oblidat multiplicar per e^{cos(x)}.",                    errorType: 'CHAIN_FORGOT',     scope: 'family:exp-cos' }
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+    return {
+        promptTex: 'f(x) = e^{\\cos(x)}', solutionTex,
+        options: [
+            { tex: solutionTex, feedback: "Molt bé! (e^{cos(x)})' = −sin(x)·e^{cos(x)}: atenció al signe negatiu de cos'(x) = −sin(x).", errorType: null, isCorrect: true },
+            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
+        ],
+        meta: { family: 'chain-rule', outerFn: 'exp', innerFn: 'cos', params: {}, ruleLabel: 'Regla de la cadena' }
+    };
+}
+
+/**
+ * f(x) = ln(sin(x))   →   f'(x) = cos(x)/sin(x)
+ */
+function generateLnSin() {
+    const solutionTex = '\\frac{\\cos(x)}{\\sin(x)}';
+    const pool        = DistractorLib.buildCompound('ln-sin');
+    const fallbacks   = [
+        { tex: '\\frac{1}{\\sin(x)}',         feedback: "Has derivat el logaritme però has oblidat multiplicar per la derivada interior cos(x).",  errorType: 'LOG_FORGOT_CHAIN', scope: 'family:ln-sin' },
+        { tex: '\\frac{\\sin(x)}{\\cos(x)}',  feedback: "La derivada de ln(f) és f'/f, no f/f'. Tens la fracció invertida.",                       errorType: 'LOG_INVERTED',     scope: 'family:ln-sin' },
+        { tex: '\\ln(\\sin(x))',               feedback: "Aquesta és la funció original, no la seva derivada.",                                     errorType: 'NO_DERIVATIVE',    scope: 'universal' }
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+    return {
+        promptTex: 'f(x) = \\ln(\\sin(x))', solutionTex,
+        options: [
+            { tex: solutionTex, feedback: "Molt bé! (ln(sin(x)))' = cos(x)/sin(x): derivada del logaritme per la derivada interior cos(x), dividida per sin(x).", errorType: null, isCorrect: true },
+            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
+        ],
+        meta: { family: 'log-rule', outerFn: 'ln', innerFn: 'sin', params: {}, ruleLabel: 'Derivada del logaritme' }
+    };
+}
+
+/**
+ * f(x) = ln(cos(x))   →   f'(x) = −sin(x)/cos(x)
+ */
+function generateLnCos() {
+    const solutionTex = '\\frac{-\\sin(x)}{\\cos(x)}';
+    const pool        = DistractorLib.buildCompound('ln-cos');
+    const fallbacks   = [
+        { tex: '\\frac{1}{\\cos(x)}',         feedback: "Has derivat el logaritme però has oblidat multiplicar per la derivada interior −sin(x).", errorType: 'LOG_FORGOT_CHAIN', scope: 'family:ln-cos' },
+        { tex: '\\frac{\\sin(x)}{\\cos(x)}',  feedback: "Has oblidat el signe negatiu. La derivada de cos(x) és −sin(x), no +sin(x).",            errorType: 'CHAIN_SIGN',       scope: 'family:ln-cos' },
+        { tex: '\\ln(\\cos(x))',               feedback: "Aquesta és la funció original, no la seva derivada.",                                     errorType: 'NO_DERIVATIVE',    scope: 'universal' }
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+    return {
+        promptTex: 'f(x) = \\ln(\\cos(x))', solutionTex,
+        options: [
+            { tex: solutionTex, feedback: "Molt bé! (ln(cos(x)))' = −sin(x)/cos(x): atenció al signe negatiu de cos'(x) = −sin(x).", errorType: null, isCorrect: true },
+            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
+        ],
+        meta: { family: 'log-rule', outerFn: 'ln', innerFn: 'cos', params: {}, ruleLabel: 'Derivada del logaritme' }
+    };
+}
+
+// =========================================================================
 // REGISTRE DE FAMÍLIES
 // =========================================================================
 const FamilyRegistry = {
@@ -405,6 +497,10 @@ const FamilyRegistry = {
     'chain-cos-int':   generateCosKxInt,
     'chain-sin-poly2': generateSinPoly2,
     'chain-cos-poly2': generateCosPoly2,
+    'compound-exp-sin':generateExpSin,
+    'compound-exp-cos':generateExpCos,
+    'compound-ln-sin': generateLnSin,
+    'compound-ln-cos': generateLnCos,
     'product':         generateProduct,
     'quotient':        generateQuotient,
 };
