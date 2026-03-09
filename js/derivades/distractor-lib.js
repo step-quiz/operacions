@@ -116,17 +116,40 @@ window.DistractorLib = (() => {
     }
 
     /**
-     * Formata (2x+b)·fn(arg) com a LaTeX net.
+     * Determina si cal envolicar tex entre parèntesis analitzant la
+     * profunditat de claus LaTeX. Evita falsos positius quan els operadors
+     * + o − apareixen dins \frac{}{} o altres entorns amb claus.
+     * Exemples:
+     *   '2x+3'            → '(2x+3)'     ← + a profunditat 0
+     *   '2x'              → '2x'          ← cap operador a profunditat 0
+     *   '-x'              → '-x'          ← - a posició 0, no és infix
+     *   '2x-1'            → '(2x-1)'     ← - infix a profunditat 0
+     *   '\\frac{x+1}{2}'  → '\\frac{x+1}{2}'  ← + dins claus, prof > 0
+     */
+    function _wrapIfNeeded(tex) {
+        let depth = 0;
+        for (let i = 0; i < tex.length; i++) {
+            const c = tex[i];
+            if (c === '{') { depth++; continue; }
+            if (c === '}') { depth--; continue; }
+            if (depth === 0) {
+                if (c === '+') return `(${tex})`;
+                if (c === '-' && i > 0) return `(${tex})`;
+            }
+        }
+        return tex;
+    }
+
+    /**
+     * Formata (pDeriv)·fn(arg) com a LaTeX net.
      * Gestiona el cas b=0 (coef = '2x') i fn='sin'|'cos'.
      * Retorna p.ex. "(2x+3)\\cos(x^2+3x+1)"
-     * Nota: el factor (2x+b) sempre va entre parèntesis si té dos termes,
-     * per evitar ambigüitat visual amb KaTeX.
+     * Usa _wrapIfNeeded per detectar correctament si cal parèntesi,
+     * fins i tot quan pDeriv conté estructures LaTeX amb claus.
      */
     function _polyCoefTrig(pDeriv, fn, arg) {
-        const fnArg = `\\${fn}(${arg})`;
-        // Si pDeriv és un monomi (p.ex. '2x'), no cal parèntesi
-        const needsParen = pDeriv.includes('+') || (pDeriv.startsWith('-') && pDeriv.length > 2);
-        const coefPart = needsParen ? `(${pDeriv})` : pDeriv;
+        const fnArg    = `\\${fn}(${arg})`;
+        const coefPart = _wrapIfNeeded(pDeriv);
         return `${coefPart}${fnArg}`;
     }
 

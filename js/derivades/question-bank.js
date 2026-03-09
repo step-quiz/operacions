@@ -90,11 +90,12 @@ function _wrapIfNeeded(tex) {
     }
     return tex;
 }
-/** Formata (pDeriv)·fn(arg) amb parèntesis al factor si cal */
+/** Formata (pDeriv)·fn(arg) amb parèntesis al factor si cal.
+ *  Delega la detecció a _wrapIfNeeded, que analitza la profunditat
+ *  de claus LaTeX i evita falsos positius dins \frac{}{} i similars. */
 function _polyCoefTrig(pDeriv, fn, arg) {
-    const fnArg = `\\${fn}(${arg})`;
-    const needsParen = pDeriv.includes('+') || (pDeriv.startsWith('-') && pDeriv.length > 2);
-    const coefPart = needsParen ? `(${pDeriv})` : pDeriv;
+    const fnArg    = `\\${fn}(${arg})`;
+    const coefPart = _wrapIfNeeded(pDeriv);
     return `${coefPart}${fnArg}`;
 }
 
