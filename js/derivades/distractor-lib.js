@@ -459,6 +459,23 @@ window.DistractorLib = (() => {
         if (a === '-1') return b.startsWith('-') ? b.slice(1) : `-${b}`;
         if (b.startsWith('-')) return `-${_mul(a, b.slice(1))}`;
         if (b.startsWith('\\frac')) return `${a}\\cdot ${b}`;
+
+        // Si a és un enter i b comença per un coeficient enter, multipliquem
+        // numèricament per evitar concatenacions com "22x" en lloc de "4x".
+        // Exemples: _mul('2','2x')→'4x', _mul('3','4')→'12', _mul('-2','3x')→'-6x'
+        const aInt = /^-?\d+$/.test(a) ? parseInt(a, 10) : null;
+        if (aInt !== null) {
+            const m = b.match(/^(\d+)(.*)$/);
+            if (m) {
+                const prod  = aInt * parseInt(m[1], 10);
+                const bRest = m[2];
+                if (prod ===  0) return '0';
+                if (prod ===  1) return bRest || '1';
+                if (prod === -1) return bRest ? `-${bRest}` : '-1';
+                return bRest ? `${prod}${bRest}` : String(prod);
+            }
+        }
+
         return `${a}${b}`;
     }
     function _add(a, b) {

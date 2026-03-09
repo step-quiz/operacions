@@ -300,8 +300,8 @@ const FUNCTION_PAIRS = [
     { fTex:'x^2',  gTex:'\\ln(x)',  dfTex:'2x',   dgTex:'\\frac{1}{x}', dfgTex:'2x\\ln(x)',  fdgTex:'x',           g2Tex:'\\ln^2(x)', solutionProduct:'2x\\ln(x)+x',           solutionQuotient:'\\frac{2x\\ln(x)-x}{\\ln^2(x)}' },
     { fTex:'x^3',  gTex:'\\ln(x)',  dfTex:'3x^2', dgTex:'\\frac{1}{x}', dfgTex:'3x^2\\ln(x)',fdgTex:'x^2',         g2Tex:'\\ln^2(x)', solutionProduct:'3x^2\\ln(x)+x^2',       solutionQuotient:'\\frac{3x^2\\ln(x)-x^2}{\\ln^2(x)}' },
     { fTex:'2x+1', gTex:'x^2',      dfTex:'2',    dgTex:'2x',           dfgTex:'2x^2',       fdgTex:'2x(2x+1)',    g2Tex:'x^4',       solutionProduct:'2x^2+2x(2x+1)',         solutionQuotient:'\\frac{2x^2-2x(2x+1)}{x^4}' },
-    { fTex:'x',    gTex:'x+3',      dfTex:'1',    dgTex:'1',            dfgTex:'x+3',        fdgTex:'x',           g2Tex:'(x+3)^2',   solutionProduct:'x+3+x',                 solutionQuotient:'\\frac{x+3-x}{(x+3)^2}' },
-    { fTex:'x+1',  gTex:'x-1',      dfTex:'1',    dgTex:'1',            dfgTex:'x-1',        fdgTex:'x+1',         g2Tex:'(x-1)^2',   solutionProduct:'x-1+x+1',               solutionQuotient:'\\frac{x-1-(x+1)}{(x-1)^2}' },
+    { fTex:'x',    gTex:'x+3',      dfTex:'1',    dgTex:'1',            dfgTex:'x+3',        fdgTex:'x',           g2Tex:'(x+3)^2',   solutionProduct:'2x+3',                  solutionQuotient:'\\frac{3}{(x+3)^2}' },
+    { fTex:'2x-1', gTex:'e^{x}',    dfTex:'2',    dgTex:'e^{x}',        dfgTex:'2e^{x}',     fdgTex:'(2x-1)e^{x}', g2Tex:'e^{2x}',    solutionProduct:'2e^{x}+(2x-1)e^{x}',   solutionQuotient:'\\frac{2e^{x}-(2x-1)e^{x}}{e^{2x}}' },
     { fTex:'x^2',  gTex:'x+2',      dfTex:'2x',   dgTex:'1',            dfgTex:'2x(x+2)',    fdgTex:'x^2',         g2Tex:'(x+2)^2',   solutionProduct:'2x(x+2)+x^2',           solutionQuotient:'\\frac{2x(x+2)-x^2}{(x+2)^2}' },
 ];
 
