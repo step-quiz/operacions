@@ -308,28 +308,69 @@ window.DistractorLib = (() => {
     }
 
     // =========================================================================
-    // POOL: potència x^n
+    // POOL: potència a·x^n   (a=1 → cas original x^n, backward compatible)
     // =========================================================================
-    function _buildPowerPool(n) {
+    /**
+     * Genera distractors per a f(x) = a·x^n, f'(x) = an·x^{n−1}.
+     * Quan a=1 el comportament és idèntic a l'antiga _buildPowerPool(n).
+     *
+     * Errors modelats:
+     *   POWER_FORGOT_R   → ha reduït l'exponent però no ha baixat n (→ a·x^{n-1})
+     *   POWER_FORGOT_R   → ha baixat n però ha oblidat a (→ n·x^{n-1}) [a≠1]
+     *   POWER_WRONG_EXP  → coef correcte però exponent no reduït (→ an·x^n)
+     *   NO_DERIVATIVE    → funció original (→ a·x^n)
+     *   INTEGRAL_CONFUSION → primitiva en lloc de derivada
+     *   POWER_WRONG_EXP  → doble derivada per error
+     *   POWER_WRONG_EXP  → exponent augmentat en lloc de reduït
+     */
+    function _buildPowerPool(a, n) {
         const fmt     = MathEngine.formatPowerTerm;
-        const correct = fmt(n, n - 1);
+        const correct = fmt(a * n, n - 1);
         const pool    = [];
-        const forgotR = fmt(1, n - 1);
-        if (forgotR !== correct) pool.push({ tex: forgotR, feedback: "Has aplicat la regla de la potència però has oblidat baixar l'exponent com a coeficient.", errorType: POWER_FORGOT_R, scope: 'rule:power' });
-        const wrongExp = fmt(n, n);
-        if (wrongExp !== correct) pool.push({ tex: wrongExp, feedback: "El coeficient és correcte, però l'exponent ha de reduir-se en 1: n passa a n−1.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
-        pool.push({ tex: fmt(1, n), feedback: "Aquesta és la funció original f(x), no la seva derivada f'(x).", errorType: NO_DERIVATIVE, scope: 'universal' });
-        if (n + 1 !== 0) {
-            const numExp = n + 1;
-            const den    = n + 1;
-            const xp     = numExp === 1 ? 'x' : `x^{${numExp}}`;
-            const intTex = Math.abs(den) === 1 ? (den === 1 ? xp : `-${xp}`) : `\\frac{${xp}}{${den}}`;
-            if (intTex !== correct) pool.push({ tex: intTex, feedback: "Estàs calculant la primitiva (integral), no la derivada.", errorType: INTEGRAL_CONFUSION, scope: 'rule:power' });
+
+        // POWER_FORGOT_R: conserva a, no baixa n com a factor
+        const forgotN = fmt(a, n - 1);
+        if (forgotN !== correct && !pool.find(d => d.tex === forgotN))
+            pool.push({ tex: forgotN, feedback: "Has reduït l'exponent, però has oblidat multiplicar pel valor de l'exponent n.", errorType: POWER_FORGOT_R, scope: 'rule:power' });
+
+        // POWER_FORGOT_R: baixa n però oblida el coeficient a (només si a≠1)
+        if (a !== 1) {
+            const forgotA = fmt(n, n - 1);
+            if (forgotA !== correct && !pool.find(d => d.tex === forgotA))
+                pool.push({ tex: forgotA, feedback: "Has baixat l'exponent n com a coeficient, però has oblidat el coeficient a de la funció original.", errorType: POWER_FORGOT_R, scope: 'rule:power' });
         }
-        const overDeriv = fmt(n - 1, n - 2);
-        if (overDeriv !== correct && !pool.find(d => d.tex === overDeriv)) pool.push({ tex: overDeriv, feedback: "Has derivat dues vegades. La regla de la potència s'aplica una sola vegada.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
-        const plusExp = fmt(n + 1, n);
-        if (plusExp !== correct && !pool.find(d => d.tex === plusExp)) pool.push({ tex: plusExp, feedback: "L'exponent ha de disminuir en 1, no augmentar.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
+
+        // POWER_WRONG_EXP: coeficient correcte, exponent no s'ha reduït
+        const wrongExp = fmt(a * n, n);
+        if (wrongExp !== correct && !pool.find(d => d.tex === wrongExp))
+            pool.push({ tex: wrongExp, feedback: "El coeficient és correcte, però l'exponent ha de reduir-se en 1: n passa a n−1.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
+
+        // NO_DERIVATIVE: funció original sense derivar
+        const original = fmt(a, n);
+        if (!pool.find(d => d.tex === original))
+            pool.push({ tex: original, feedback: "Aquesta és la funció original f(x), no la seva derivada f'(x).", errorType: NO_DERIVATIVE, scope: 'universal' });
+
+        // INTEGRAL_CONFUSION: primitiva a·x^{n+1}/(n+1)
+        if (n + 1 !== 0) {
+            const numStr = fmt(a, n + 1);
+            const den    = n + 1;
+            const intTex = Math.abs(den) === 1
+                ? (den === -1 ? `-${numStr}` : numStr)
+                : `\\frac{${numStr}}{${den}}`;
+            if (intTex !== correct && !pool.find(d => d.tex === intTex))
+                pool.push({ tex: intTex, feedback: "Estàs calculant la primitiva (integral), no la derivada.", errorType: INTEGRAL_CONFUSION, scope: 'rule:power' });
+        }
+
+        // POWER_WRONG_EXP: doble derivada per error (→ a(n-1)·x^{n-2})
+        const overDeriv = fmt(a * (n - 1), n - 2);
+        if (overDeriv !== correct && !pool.find(d => d.tex === overDeriv))
+            pool.push({ tex: overDeriv, feedback: "Has derivat dues vegades. La regla de la potència s'aplica una sola vegada.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
+
+        // POWER_WRONG_EXP: exponent augmentat en lloc de reduït (→ a(n+1)·x^n)
+        const plusExp = fmt(a * (n + 1), n);
+        if (plusExp !== correct && !pool.find(d => d.tex === plusExp))
+            pool.push({ tex: plusExp, feedback: "L'exponent ha de disminuir en 1, no augmentar.", errorType: POWER_WRONG_EXP, scope: 'rule:power' });
+
         return pool;
     }
 
@@ -460,7 +501,10 @@ window.DistractorLib = (() => {
         if (!scopeFilter || scopeFilter.length === 0) return pool;
         return pool.filter(d => scopeFilter.includes(d.scope));
     }
-    function buildPower(n)       { return _buildPowerPool(n); }
+    function buildPower(aOrN, n) {
+        // Accepta buildPower(n) [backward compat] o buildPower(a, n)
+        return n === undefined ? _buildPowerPool(1, aOrN) : _buildPowerPool(aOrN, n);
+    }
     function buildProduct(pair)  { return _buildProductPool(pair); }
     function buildQuotient(pair) { return _buildQuotientPool(pair); }
 

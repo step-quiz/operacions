@@ -162,6 +162,45 @@ function generatePowerInt() {
 }
 
 // =========================================================================
+// FAMÍLIA: a·x^n  (coeficient enter ≠ 0, ≠ 1)
+// =========================================================================
+/**
+ * Genera preguntes del tipus f(x) = a·x^n amb a∈{−3,−2,−1,2,3,4} i
+ * n∈{−3,−2,2,3,4,5}. Exclou a=1 (cobert per generatePowerInt).
+ * La derivada és f'(x) = an·x^{n−1}.
+ *
+ * Errors pedagògics específics d'aquesta família:
+ *   · Conserva a però no baixa n com a factor (→ a·x^{n-1})
+ *   · Baixa n però oblida el factor a (→ n·x^{n-1})
+ *   · Coef correcte però exponent no reduït (→ an·x^n)
+ */
+function generatePowerCoef() {
+    const aList = [-3, -2, -1, -1, 2, 2, 3, 3, 4];  // -1 i 2,3 més freqüents
+    const nList = [-3, -2, 2, 2, 3, 3, 4, 5];
+    const a     = aList[Math.floor(Math.random() * aList.length)];
+    const n     = nList[Math.floor(Math.random() * nList.length)];
+
+    const fmt         = MathEngine.formatPowerTerm;
+    const solutionTex = fmt(a * n, n - 1);
+    const pool        = DistractorLib.buildPower(a, n);
+    const fallbacks   = [
+        { tex: fmt(a, n - 1),     feedback: "Has reduït l'exponent però has oblidat multiplicar pel valor de n.", errorType: 'POWER_FORGOT_R',   scope: 'rule:power' },
+        { tex: fmt(a * n, n),     feedback: "El coeficient és correcte però l'exponent no s'ha reduït en 1.",    errorType: 'POWER_WRONG_EXP', scope: 'rule:power' },
+        { tex: fmt(a, n),         feedback: "Aquesta és la funció original, no la seva derivada.",                errorType: 'NO_DERIVATIVE',   scope: 'universal'  }
+    ];
+    const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
+    return {
+        promptTex:   `f(x) = ${fmt(a, n)}`,
+        solutionTex,
+        options: [
+            { tex: solutionTex, feedback: `Molt bé! Recorda: (${fmt(a, n)})' = ${solutionTex}.`, errorType: null, isCorrect: true },
+            ...distractors.map(d => ({ tex: d.tex, feedback: d.feedback, errorType: d.errorType, isCorrect: false }))
+        ],
+        meta: { family: 'power-rule', outerFn: 'power', innerFn: 'identity', params: { a, n }, ruleLabel: 'Regla de la potència' }
+    };
+}
+
+// =========================================================================
 // FAMÍLIES: logaritme
 // =========================================================================
 function generateLogKx() {
@@ -357,6 +396,7 @@ const FamilyRegistry = {
     'chain-exp-int':   generateExpKxInt,
     'chain-exp-frac':  generateExpKxFrac,
     'power':           generatePowerInt,
+    'power-coef':      generatePowerCoef,
     'log-kx':          generateLogKx,
     'log-xn':          generateLogXn,
     'log-linear':      generateLogLinear,
