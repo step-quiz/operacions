@@ -125,6 +125,7 @@ function checkAnswer(opt, clickedBtn) {
         recordAnswerToHistory(challengeData.promptTex, opt.tex, true);
         errorHistory.push({
             question:  challengeData.promptTex,
+            questionN: currentOperation,
             errorType: null,
             isCorrect: true,
             meta:      challengeData.meta
@@ -146,6 +147,7 @@ function checkAnswer(opt, clickedBtn) {
 
         errorHistory.push({
             question:  challengeData.promptTex,
+            questionN: currentOperation,
             errorType: opt.errorType,
             isCorrect: false,
             meta:      challengeData.meta
@@ -177,11 +179,132 @@ function _finishOp(levelPoints) {
         currentOperation++;
 
         if (currentOperation >= TOTAL_OPERATIONS) {
-            endSession();
+            showSessionSummary();   // resum pedagògic → crida endSession() intern
         } else {
             buildLevel();
         }
     }, waitTime);
+}
+
+// =========================================================================
+// 5. Resum pedagògic de sessió
+// =========================================================================
+
+/**
+ * Construeix i mostra el resum de la sessió a partir d'errorHistory.
+ * Amaga #game-screen i mostra #session-summary.
+ * El botó "Continua" crida endSession() de game-core.js.
+ */
+function showSessionSummary() {
+    // --- Estadístiques per pregunta ---
+    const byQuestion = {};
+    errorHistory.forEach(e => {
+        if (!byQuestion[e.questionN]) byQuestion[e.questionN] = [];
+        byQuestion[e.questionN].push(e);
+    });
+
+    let firstTry = 0, retried = 0, failed = 0;
+    Object.values(byQuestion).forEach(entries => {
+        const hasCorrect = entries.some(e => e.isCorrect);
+        const hasError   = entries.some(e => !e.isCorrect);
+        if (hasCorrect && !hasError)  firstTry++;
+        else if (hasCorrect)          retried++;
+        else                          failed++;
+    });
+
+    // --- Freqüència d'errors conceptuals ---
+    const errorCounts = {};
+    errorHistory
+        .filter(e => !e.isCorrect && e.errorType)
+        .forEach(e => { errorCounts[e.errorType] = (errorCounts[e.errorType] || 0) + 1; });
+
+    const sortedErrors = Object.entries(errorCounts)
+        .sort((a, b) => b[1] - a[1]);   // de més freqüent a menys
+
+    // --- Construeix el DOM del resum ---
+    const panel = document.getElementById('session-summary');
+    if (!panel) { endSession(); return; }
+
+    // Capçalera de puntuació
+    const maxScore = TOTAL_OPERATIONS * 10;
+    let html = `
+        <div class="summary-score">
+            <span class="summary-score-label">Puntuació final</span>
+            <span class="summary-score-value">${sessionScore} / ${maxScore}</span>
+        </div>
+        <div class="summary-stats">
+            <div class="summary-stat summary-stat--ok">
+                <span class="summary-stat-num">${firstTry}</span>
+                <span class="summary-stat-desc">correctes a la primera</span>
+            </div>
+            <div class="summary-stat summary-stat--warn">
+                <span class="summary-stat-num">${retried}</span>
+                <span class="summary-stat-desc">correctes al segon intent</span>
+            </div>
+            <div class="summary-stat summary-stat--err">
+                <span class="summary-stat-num">${failed}</span>
+                <span class="summary-stat-desc">sense resoldre</span>
+            </div>
+        </div>`;
+
+    if (sortedErrors.length > 0) {
+        html += `<div class="summary-errors-title">Errors conceptuals detectats</div>
+                 <div class="summary-errors-list">`;
+        sortedErrors.forEach(([type, count]) => {
+            const hint  = DistractorLib.FeedbackHints[type] || '';
+            const times = count === 1 ? '1 vegada' : `${count} vegades`;
+            html += `
+                <div class="summary-error-item">
+                    <div class="summary-error-header">
+                        <span class="summary-error-type">${_errorTypeLabel(type)}</span>
+                        <span class="summary-error-count">${times}</span>
+                    </div>
+                    ${hint ? `<div class="summary-error-hint">${hint}</div>` : ''}
+                </div>`;
+        });
+        html += `</div>`;
+    } else {
+        html += `<div class="summary-no-errors">Cap error conceptual detectat. Excel·lent!</div>`;
+    }
+
+    html += `<button class="summary-continue-btn" id="summary-continue-btn">Continua</button>`;
+
+    panel.innerHTML = html;
+
+    // Transició: amaga joc, mostra resum
+    const gameScreen = document.getElementById('game-screen');
+    if (gameScreen) gameScreen.style.display = 'none';
+    panel.style.display = 'block';
+
+    document.getElementById('summary-continue-btn')
+        .addEventListener('click', () => {
+            panel.style.display = 'none';
+            errorHistory = [];   // reset per a la sessió següent
+            endSession();
+        });
+}
+
+/**
+ * Tradueix un errorType intern a una etiqueta llegible per a l'alumne.
+ */
+function _errorTypeLabel(type) {
+    const labels = {
+        CHAIN_FORGOT:       'Regla de la cadena oblidada',
+        CHAIN_WRONG_COEF:   'Derivada interior incorrecta',
+        CHAIN_SIGN:         'Error de signe',
+        NO_DERIVATIVE:      'Funció no derivada',
+        INTEGRAL_CONFUSION: 'Confusió derivada / integral',
+        PRODUCT_FORGOT_SUM: 'Regla del producte mal aplicada',
+        PRODUCT_WRONG_ORDER:'Ordre incorrecte al producte',
+        QUOTIENT_SIGN:      'Signe incorrecte al quocient',
+        QUOTIENT_DENOM:     'Denominador del quocient incorrecte',
+        POWER_FORGOT_R:     'Coeficient de la potència oblidat',
+        POWER_WRONG_EXP:    'Exponent de la potència incorrecte',
+        LOG_INVERTED:       'Fracció del logaritme invertida',
+        LOG_FORGOT_CHAIN:   'Derivada interior del logaritme oblidada',
+        SIN_COS_SWAP:       'Confusió sin / cos en derivar',
+    };
+    return labels[type] || type;
 }
 
 // =========================================================================
