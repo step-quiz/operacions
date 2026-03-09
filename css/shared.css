@@ -93,7 +93,7 @@ h1 {
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     width: 100%;
-    max-width: 700px;
+    max-width: 910px;
     overflow: hidden;
     border: 1px solid var(--border-color);
     border-top: 6px solid var(--primary);
