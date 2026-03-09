@@ -30,12 +30,6 @@
             --primary-hover: #7e22ce;
         }
 
-        .function-box {
-            padding: 30px 20px; text-align: center; display: flex;
-            justify-content: center; align-items: center; flex-direction: column;
-            gap: 15px; font-size: 1.5em; font-weight: bold; min-height: 120px;
-        }
-
         .function-label {
             color: var(--text-muted);
             font-size: 0.8em;
@@ -43,15 +37,29 @@
             letter-spacing: 1px;
         }
 
+        .function-box {
+            padding: 15px 20px; /* Abans: 30px 20px */
+            text-align: center; display: flex;
+            justify-content: center; align-items: center; flex-direction: column;
+            gap: 10px; /* Abans: 15px */
+            font-size: 1.5em; font-weight: bold; 
+            min-height: 80px; /* Abans: 120px */
+        }
+
         .function-math {
-            font-size: 1.8em;
+            font-size: 1.1em; /* Reduït des de l'1.8em original (aprox 40% menys) */
             color: var(--primary-dark);
-            padding: 15px 30px;
+            padding: 10px 30px; /* Abans: 15px 30px */
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             border: 2px solid var(--primary-light);
         }
+
+/* Anul·lem el marge vertical automàtic de KaTeX per controlar l'alçada */
+.function-math .katex-display {
+    margin: 5px 0; 
+}
 
         .options-grid {
             display: grid;
