@@ -4,9 +4,16 @@ PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
 FITXER: css/derivades.css
 ROL: Estils específics per al joc de derivades.
 ARQUITECTURA:
-- Sobreescriu les variables de `shared.css` per adaptar els colors al joc.
+- Sobreescriu les variables de shared.css per adaptar els colors al joc.
 - Defineix la graella d'opcions (CSS Grid) i els contenidors de KaTeX.
 - Gestiona les animacions d'encert, error i estats dels botons.
+- FASE 4: Afegits estils per al feedback ampliat:
+    .feedback-correct  → text verd d'encert
+    .feedback-wrong    → text vermell d'error
+    .hint-box          → bloc explicatiu del tipus d'error conceptual
+    .solution-reveal   → fila amb la resposta correcta (KaTeX)
+    .solution-label    → etiqueta "La resposta correcta era:"
+    .solution-formula  → fórmula KaTeX de la solució
 DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 ============================================================================
 */
@@ -25,142 +32,206 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     --danger-light:  #fee2e2;
 }
 
-/* Contenidor de l'enunciat: Ara en horitzontal i compacte */
+/* ---- CONTENIDOR DE L'ENUNCIAT ---- */
 .function-box {
-    padding: 15px 20px; 
-    text-align: center; 
+    padding: 15px 20px;
+    text-align: center;
     display: flex;
-    justify-content: center; 
-    align-items: center; 
-    flex-direction: row; 
-    flex-wrap: wrap; 
-    gap: 15px; 
-    font-size: 1.5em; 
-    font-weight: bold; 
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 15px;
+    font-size: 1.5em;
+    font-weight: bold;
     min-height: 80px;
 }
 
 .function-label {
     color: var(--text-muted);
-    font-size: 0.9em; /* Una mica més gran perquè llegeixi bé al costat de la fòrmula */
+    font-size: 0.9em;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-/* La fòrmula f(x): Més petita i amb fons gris clar */
 .function-math {
     font-size: 1.1em;
     color: var(--primary-dark);
     padding: 10px 30px;
-    background: #f3f4f6; /* Gris clar */
+    background: #f3f4f6;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     border: 2px solid var(--border-light);
 }
 
-/* Anul·lem el marge vertical automàtic de KaTeX */
-.function-math .katex-display { 
-    margin: 5px 0; 
+.function-math .katex-display {
+    margin: 5px 0;
 }
 
-/* Graella de botons */
+/* ---- GRAELLA DE BOTONS ---- */
 .options-grid {
-    display: grid; 
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px; 
-    width: 100%; 
+    gap: 15px;
+    width: 100%;
     max-width: 600px;
-    margin: 20px auto; 
+    margin: 20px auto;
     padding: 0 15px;
 }
 
-/* Animació d'aparició per als botons */
 @keyframes popIn {
-    0% { opacity: 0; transform: scale(0.95); }
+    0%   { opacity: 0; transform: scale(0.95); }
     100% { opacity: 1; transform: scale(1); }
 }
 
-/* Els botons de les opcions */
 .btn-option {
-    padding: 20px 10px; 
-    font-size: 1.3em; 
+    padding: 20px 10px;
+    font-size: 1.3em;
     border-radius: 12px;
-    border: 2px solid var(--border-heavy); 
+    border: 2px solid var(--border-heavy);
     background: white;
-    color: var(--text-main); 
-    cursor: pointer; 
+    color: var(--text-main);
+    cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-    display: flex; 
-    justify-content: center; 
+    display: flex;
+    justify-content: center;
     align-items: center;
-    min-height: 80px; 
+    min-height: 80px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    
-    /* Ocult per defecte, l'animació es dispararà segons el delay del JS */
-    opacity: 0; 
+    opacity: 0;
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-.btn-option:focus-visible { 
-    outline: 3px solid var(--primary); 
-    outline-offset: 2px; 
+.btn-option:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
 }
 
 @media (hover: hover) {
-    .btn-option:hover { 
-        background: var(--primary-light); 
-        border-color: var(--primary); 
-        transform: translateY(-2px); 
+    .btn-option:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        transform: translateY(-2px);
     }
 }
 
-.btn-option:active { 
-    transform: scale(0.97); 
-}
+.btn-option:active { transform: scale(0.97); }
 
-/* Estils d'encert i error */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+    25%      { transform: translateX(-5px); }
+    75%      { transform: translateX(5px); }
 }
 
-.btn-option.error-shake { 
-    background-color: var(--danger-light) !important; 
-    border-color: var(--danger) !important; 
-    color: var(--danger) !important; 
-    animation: shake 0.3s; 
+.btn-option.error-shake {
+    background-color: var(--danger-light) !important;
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+    animation: shake 0.3s;
 }
 
-.btn-option.correct { 
-    background-color: var(--success) !important; 
-    border-color: var(--success) !important; 
-    color: white !important; 
+.btn-option.correct {
+    background-color: var(--success) !important;
+    border-color: var(--success) !important;
+    color: white !important;
 }
 
-/* Estat permanent per a una opció incorrecta seleccionada */
 .btn-option.wrong {
-    background-color: var(--danger-light) !important; /* Fons vermell suau */
-    border-color: var(--danger) !important;           /* Vora vermella */
-    color: var(--danger) !important;                  /* Text vermell */
-    pointer-events: none;                             /* Ja no es pot fer clic */
-    opacity: 0.7;                                     /* Una mica apagat perquè perdi jerarquia visual */
+    background-color: var(--danger-light) !important;
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+    pointer-events: none;
+    opacity: 0.7;
 }
 
-/* Adaptació per a mòbils */
+/* ================================================================
+   FASE 4: FEEDBACK AMPLIAT
+   ================================================================ */
+
+/* Text d'encert */
+.feedback-correct {
+    color: var(--success);
+}
+
+/* Text d'error (nivell 1) */
+.feedback-wrong {
+    color: var(--danger);
+}
+
+/* Hint ampliat (nivell 2): explicació conceptual del tipus d'error */
+.hint-box {
+    margin-top: 10px;
+    padding: 10px 16px;
+    background-color: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    color: #78350f;
+    font-size: 0.92em;
+    font-weight: normal;
+    line-height: 1.5;
+    text-align: left;
+    animation: fadeInDown 0.3s ease;
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Resposta correcta (nivell 3): apareix quan s'esgoten els intents */
+.solution-reveal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background-color: #f0fdf4;
+    border: 2px solid #bbf7d0;
+    border-radius: 8px;
+    animation: fadeInDown 0.4s ease;
+}
+
+.solution-label {
+    color: #047857;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.solution-formula {
+    color: #065f46;
+    font-size: 1.1em;
+}
+
+/* ================================================================
+   RESPONSIU
+   ================================================================ */
+
 @media (max-width: 480px) {
-    .options-grid { 
-        grid-template-columns: 1fr; 
-        gap: 10px; 
+    .options-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
-    .function-math { 
-        font-size: 1.2em; 
-        padding: 10px 20px; 
+    .function-math {
+        font-size: 1.2em;
+        padding: 10px 20px;
     }
-    .btn-option { 
-        min-height: 70px; 
-        font-size: 1.1em; 
-        padding: 15px 10px; 
+    .btn-option {
+        min-height: 70px;
+        font-size: 1.1em;
+        padding: 15px 10px;
+    }
+    .hint-box {
+        font-size: 0.88em;
+        padding: 8px 12px;
+    }
+    .solution-reveal {
+        flex-direction: column;
+        gap: 6px;
     }
 }
 
@@ -170,6 +241,6 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
 }
 
-.attempts-counter.blink { 
-    animation: attemptsBlink 0.2s linear 5; 
+.attempts-counter.blink {
+    animation: attemptsBlink 0.2s linear 5;
 }
