@@ -107,6 +107,13 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     outline-offset: 2px;
 }
 
+/* Evita que KaTeX parteixi expressions en dues línies dins els botons.
+   Cal cobrir tots dos spans que KaTeX genera (.katex i .katex-html). */
+.btn-option .katex,
+.btn-option .katex-html {
+    white-space: nowrap;
+}
+
 @media (hover: hover) {
     .btn-option:hover {
         background: var(--primary-light);
