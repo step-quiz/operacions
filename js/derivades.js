@@ -6,11 +6,6 @@
  * =========================================================================
  */
 
-// Tria un element a l'atzar d'una matriu
-function pickRandom(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-}
-
 // Calcula el Màxim Comú Divisor (MCD) per simplificar fraccions
 function gcd(a, b) {
     a = Math.abs(a);
