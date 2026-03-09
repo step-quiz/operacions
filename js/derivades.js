@@ -140,9 +140,20 @@ function updateUI() {
     katex.render(challengeData.questionTex, els.fxDisplay, { displayMode: true, throwOnError: false });
     
     els.optionsContainer.innerHTML = '';
+    
+    // El teu patró de retards (en segons):
+    // Índex 0 (Dalt-Esq - x2): 0.6s
+    // Índex 1 (Dalt-Dreta - x4): 1.4s (0.6 + 0.4 + 0.4)
+    // Índex 2 (Baix-Esq - x3): 1.0s (0.6 + 0.4)
+    // Índex 3 (Baix-Dreta - x5): 1.8s (0.6 + 0.4 + 0.4 + 0.4)
+    const delays = [0.6, 1.4, 1.0, 1.8];
+    
     challengeData.options.forEach((opt, index) => {
         const btn = document.createElement('button');
         btn.className = 'btn-option';
+        
+        // Apliquem la pausa específica a cada botó
+        btn.style.animationDelay = `${delays[index]}s`;
         
         const mathSpan = document.createElement('span');
         katex.render(`f'(x) = ${opt.tex}`, mathSpan, { displayMode: false, throwOnError: false });
