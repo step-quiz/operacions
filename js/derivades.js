@@ -1,9 +1,17 @@
-// js/derivades.js
-
 /**
- * =========================================================================
- * FUNCIONS MATEMÀTIQUES AUXILIARS
- * =========================================================================
+ * ============================================================================
+ * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+ * FITXER: js/derivades.js
+ * ROL: Controlador específic del joc i generació de coeficients (K).
+ * ARQUITECTURA:
+ * - Generadors Matemàtics: Conté la lògica per crear fraccions i enters purs 
+ * assegurant-se d'evitar artefactes visuals (com denominadors igual a 1).
+ * - Controlador DOM: Enllaça el banc de preguntes amb la interfície d'usuari, 
+ * renderitza fòrmules usant KaTeX i avalua respostes gestionant els estats.
+ * - Bootstrap: Actua com a punt d'arrencada (DOMContentLoaded), orquestrant 
+ * la injecció del core i validant dependències abans de mostrar el joc.
+ * DEPENDÈNCIES: Fitxer final. Requereix tots els JS i CSS previs carregats.
+ * ============================================================================
  */
 
 // Calcula el Màxim Comú Divisor (MCD) per simplificar fraccions
