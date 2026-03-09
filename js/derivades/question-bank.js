@@ -23,22 +23,70 @@
 // =========================================================================
 const SCOPE_EXP_KX = ['universal', 'linear-inner', 'family:exp'];
 
+/**
+ * Selecciona `count` distractors del pool garantint diversitat de errorType.
+ *
+ * Algorisme:
+ *  1. Deduplicació global (pool + fallbacks), excloent la solució correcta.
+ *  2. Agrupació per errorType.
+ *  3. Barreja aleatòria dins cada grup.
+ *  4. Round-robin entre grups: un per tipus per ronda fins arribar a `count`.
+ *     NO_DERIVATIVE va sempre primer (error pedagògic fonamental: l'alumne
+ *     ha de reconèixer que la funció original no és la derivada).
+ *
+ * Garantia: si hi ha ≥3 errorTypes al pool, els 3 distractors seran de
+ * tipus diferents. Si n'hi ha menys, es repeteix el tipus menys representat.
+ *
+ * @param {object[]} pool       Distractors principals (de distractor-lib)
+ * @param {string}   correctTex LaTeX de la solució correcta (s'exclou)
+ * @param {number}   count      Nombre de distractors a retornar (normalment 3)
+ * @param {object[]} fallbacks  Distractors de reserva si el pool és insuficient
+ * @returns {object[]}
+ */
 function _selectDistractors(pool, correctTex, count, fallbacks) {
+    // 1. Deduplicació: pool primer, fallbacks només si cal
     const seen  = new Set([correctTex]);
     const valid = [];
-    pool.forEach(d => {
+    [...pool, ...fallbacks].forEach(d => {
         if (d.tex && d.tex.trim() !== '' && !seen.has(d.tex)) {
             seen.add(d.tex);
             valid.push(d);
         }
     });
-    fallbacks.forEach(fb => {
-        if (valid.length < count && !seen.has(fb.tex)) {
-            seen.add(fb.tex);
-            valid.push(fb);
-        }
+
+    // Cas degenerat: menys candidats que count → retorna tots barrejats
+    if (valid.length <= count) return valid.sort(() => Math.random() - 0.5);
+
+    // 2. Agrupa per errorType i barreja dins cada grup
+    const byType = {};
+    valid.forEach(d => {
+        const t = d.errorType || 'OTHER';
+        if (!byType[t]) byType[t] = [];
+        byType[t].push(d);
     });
-    return valid.sort(() => Math.random() - 0.5).slice(0, count);
+    Object.values(byType).forEach(arr => arr.sort(() => Math.random() - 0.5));
+
+    // 3. Ordena els tipus: NO_DERIVATIVE primer (anchor pedagògic), resta aleatòria
+    const types = Object.keys(byType).sort(() => Math.random() - 0.5);
+    const ndIdx = types.indexOf('NO_DERIVATIVE');
+    if (ndIdx > 0) { types.splice(ndIdx, 1); types.unshift('NO_DERIVATIVE'); }
+
+    // 4. Round-robin: una ronda = un distractor per tipus
+    const result = [];
+    let round = 0;
+    while (result.length < count) {
+        let addedThisRound = false;
+        for (const t of types) {
+            if (result.length >= count) break;
+            if (round < byType[t].length) {
+                result.push(byType[t][round]);
+                addedThisRound = true;
+            }
+        }
+        if (!addedThisRound) break;   // tots els grups exhaurits
+        round++;
+    }
+    return result;
 }
 
 // =========================================================================
