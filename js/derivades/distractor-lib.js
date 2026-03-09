@@ -96,7 +96,10 @@ window.DistractorLib = (() => {
         pool.push(                          { tex: _trigTerm(k, 'sin', arg),  feedback: "La derivada de sin(u) és cos(u)·u', no sin(u)·u'. Sin i cos s'intercanvien en derivar.",                       errorType: SIN_COS_SWAP,   scope: 'family:sin' });
         pool.push(                          { tex: _trigTerm(-k, 'cos', arg), feedback: "La derivada de sin és +cos, no −cos. El signe negatiu apareix en la derivada de cos, no de sin.",               errorType: CHAIN_SIGN,     scope: 'family:sin' });
         pool.push(                          { tex: _trigTerm(-k, 'sin', arg), feedback: "Dos errors alhora: (sin u)' = cos(u)·u', no −sin(u)·u'.",                                                       errorType: SIN_COS_SWAP,   scope: 'family:sin' });
-        pool.push(                          { tex: `\\sin(${arg})`,           feedback: "Aquesta és la funció original, no la seva derivada.",                                                             errorType: NO_DERIVATIVE,  scope: 'universal'  });
+        // NO_DERIVATIVE: `\sin(arg)` — comprova que no coincideixi amb un SIN_COS_SWAP ja present
+        const sinOriginal = `\\sin(${arg})`;
+        if (!pool.find(d => d.tex === sinOriginal))
+            pool.push(                      { tex: sinOriginal,               feedback: "Aquesta és la funció original, no la seva derivada.",                                                             errorType: NO_DERIVATIVE,  scope: 'universal'  });
         if (Math.abs(k) > 1) {
             const den     = Math.abs(k);
             const intSign = k > 0 ? '-' : '';
@@ -473,8 +476,8 @@ window.DistractorLib = (() => {
         const wrongOrderTex = _sub(dfgTex, fdgTex);
         if (wrongOrderTex !== pair.solutionTex) pool.push({ tex: wrongOrderTex, feedback: "Has fet f'g − fg' en lloc de f'g + fg'. La resta és la regla del quocient, no la del producte.", errorType: PRODUCT_WRONG_ORDER, scope: 'rule:product' });
         pool.push({ tex: promptTex, feedback: "Aquesta és la funció original f(x)·g(x), no la seva derivada.", errorType: NO_DERIVATIVE, scope: 'universal' });
-        if (dfgTex !== pair.solutionTex && dfgTex !== promptTex) pool.push({ tex: dfgTex, feedback: "Has calculat f'·g però has oblidat el segon terme: + f·g'.", errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
-        if (fdgTex !== pair.solutionTex && fdgTex !== promptTex && fdgTex !== dfgTex) pool.push({ tex: fdgTex, feedback: "Has calculat f·g' però has oblidat el primer terme: f'·g + ...", errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
+        if (dfgTex !== pair.solutionTex && dfgTex !== promptTex && !pool.find(d => d.tex === dfgTex)) pool.push({ tex: dfgTex, feedback: "Has calculat f'·g però has oblidat el segon terme: + f·g'.", errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
+        if (fdgTex !== pair.solutionTex && fdgTex !== promptTex && !pool.find(d => d.tex === fdgTex)) pool.push({ tex: fdgTex, feedback: "Has calculat f·g' però has oblidat el primer terme: f'·g + ...", errorType: PRODUCT_FORGOT_SUM, scope: 'rule:product' });
         return pool;
     }
     function _buildQuotientPool(pair) {
