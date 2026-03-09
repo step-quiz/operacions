@@ -7,14 +7,11 @@
  * - Capa matemàtica completament independent: no depèn de cap fitxer de la
  *   plataforma compartida (utils, config, game-core) ni del controlador DOM.
  * - Exposa window.MathEngine com a namespace explícit i net.
- * - COMPATIBILITAT FASE 1: també exposa generateK, generateFractionK i
- *   formatK com a globals directes perquè banc-preguntes.js no necessiti
- *   canvis en aquesta fase. Aquestes globals es trauran a la Fase 3.
- * - Afegeix buildKVars i buildFracKVars: consoliden lògica duplicada que
- *   ara viu dins de banc-preguntes.js. Encara no s'usen, però ja estan
- *   disponibles per a la Fase 3.
+ * - FASE 3: Eliminades les globals de compatibilitat (generateK, formatK,
+ *   generateFractionK) que s'havien mantingut per a banc-preguntes.js.
+ *   Ara que question-bank.js usa MathEngine.* directament, ja no calen.
  * DEPENDÈNCIES: Requereix utils.js (randIntNonZero, pick). S'ha de carregar
- * DESPRÉS de utils.js i ABANS de banc-preguntes.js.
+ * DESPRÉS de utils.js i ABANS de distractor-lib.js.
  * ============================================================================
  */
 
@@ -52,9 +49,9 @@ window.MathEngine = (() => {
         const denoms = [2, 3, 4, 5];
         let q, p, common, finalDen;
         do {
-            q      = pick(denoms);
-            p      = randIntNonZero(-5, 5);
-            common = gcd(p, q);
+            q        = pick(denoms);
+            p        = randIntNonZero(-5, 5);
+            common   = gcd(p, q);
             finalDen = q / common;
         } while (finalDen === 1);
         return { num: p / common, den: finalDen };
@@ -77,13 +74,10 @@ window.MathEngine = (() => {
     }
 
     // -------------------------------------------------------------------------
-    // CONSTRUCTORS DE kVars (preparats per a Fase 3, no usats encara)
+    // CONSTRUCTORS DE kVars
     // -------------------------------------------------------------------------
 
-    /**
-     * Construeix l'objecte kVars complet a partir d'un K enter.
-     * Centralitza la lògica que ara viu duplicada dins de banc-preguntes.js.
-     */
+    /** Construeix kVars complet a partir d'un K enter. */
     function buildKVars(k) {
         const kSimple = formatK(k);
         const negK    = formatK(-k);
@@ -96,18 +90,14 @@ window.MathEngine = (() => {
         return {
             coef:    kSimple,
             negCoef: negK,
-            kx:      kSimple === ""  ? "x"  : kSimple === "-" ? "-x"  : `${kSimple}x`,
-            negKx:   negK    === ""  ? "x"  : negK    === "-" ? "-x"  : `${negK}x`,
-            plusK:   plusK,
+            kx:      kSimple === "" ? "x" : kSimple === "-" ? "-x" : `${kSimple}x`,
+            negKx:   negK    === "" ? "x" : negK    === "-" ? "-x" : `${negK}x`,
+            plusK,
             kInv:    kInvStr
         };
     }
 
-    /**
-     * Construeix l'objecte kVars complet a partir d'un K fraccionari {num, den}.
-     * Centralitza la lògica que ara viu duplicada dins de banc-preguntes.js.
-     * Inclou la variant aleatòria de notació (manera1: (p/q)x, manera2: px/q).
-     */
+    /** Construeix kVars complet a partir d'un K fraccionari {num, den}. */
     function buildFracKVars(frac) {
         const p    = frac.num;
         const q    = frac.den;
@@ -137,22 +127,14 @@ window.MathEngine = (() => {
             negCoef: negKCoefStr,
             kx:      kxStr,
             negKx:   negKxStr,
-            plusK:   plusK,
+            plusK,
             kInv:    kInvStr
         };
     }
 
     // -------------------------------------------------------------------------
-    // API PÚBLICA
+    // API PÚBLICA — només MathEngine, sense globals de compatibilitat
     // -------------------------------------------------------------------------
-    const api = { gcd, generateK, generateFractionK, formatK, buildKVars, buildFracKVars };
-
-    // COMPATIBILITAT FASE 1: globals directes per a banc-preguntes.js
-    // TODO: eliminar aquestes tres línies a la Fase 3
-    window.generateK         = generateK;
-    window.generateFractionK = generateFractionK;
-    window.formatK           = formatK;
-
-    return api;
+    return { gcd, generateK, generateFractionK, formatK, buildKVars, buildFracKVars };
 
 })();

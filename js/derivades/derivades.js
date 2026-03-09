@@ -4,24 +4,25 @@
  * FITXER: js/derivades/derivades.js
  * ROL: Controlador específic del joc de derivades.
  * ARQUITECTURA:
- * - En la Fase 1 del refactor, les funcions matemàtiques pures (generateK,
- *   generateFractionK, formatK, gcd) han migrat a math-engine.js.
- *   Aquest fitxer ja NO les defineix: les llegeix via window.MathEngine o
- *   com a globals de compatibilitat (vegeu math-engine.js).
- * - Controlador DOM: Enllaça el banc de preguntes amb la interfície d'usuari,
- *   renderitza fòrmules usant KaTeX i avalua respostes gestionant els estats.
- * - Bootstrap: Actua com a punt d'arrencada (DOMContentLoaded), orquestrant
- *   la injecció del core i validant dependències abans de mostrar el joc.
- * DEPENDÈNCIES: Fitxer final. Requereix tots els JS previs carregats:
- *   utils → config → game-core → math-engine → banc-preguntes → (aquest)
+ * - FASE 3: Llegeix el contracte formal del challenge (§4 del pla):
+ *   { promptTex, solutionTex, options, meta }
+ *   Les opcions ja arriben completes des de question-bank.js, incloent
+ *   errorType i isCorrect. El controlador no construeix ni filtra opcions.
+ * - recordAnswerToHistory() desa ara també errorType per a analítica futura.
+ *   NOTA: game-core.js és intocable (capa compartida), de manera que la
+ *   crida a recordAnswerToHistory() continua amb la signatura original
+ *   (question, answer, isCorrect). L'errorType es desa en un registre
+ *   paral·lel errorHistory[], disponible per a la Fase 4 (feedback ampliat).
+ * - Controlador DOM pur: demana un challenge a generateChallenge(),
+ *   el renderitza amb KaTeX, gestiona clics i avança el flux de joc.
+ * DEPENDÈNCIES: Fitxer final. Ordre requerit:
+ *   utils → config → game-core → math-engine → distractor-lib
+ *   → question-bank → (aquest, defer)
  * ============================================================================
  */
 
-/**
- * =========================================================================
- * LÒGICA DEL JOC (CONTROLADOR)
- * =========================================================================
- */
+// Registre paral·lel d'errorType per a la Fase 4 (no toca game-core.js)
+let errorHistory = [];
 
 let challengeData = null;
 const els = {
@@ -36,36 +37,22 @@ const els = {
 // 1. Construeix un nou nivell (una nova derivada)
 function buildLevel() {
     isTransitioning = false;
+    attemptsLeft    = MAX_INTENTS;
 
-    // Configurar intents des de config.js
-    attemptsLeft = MAX_INTENTS;
-
-    // Actualitzar UI de progrés
     els.lvlDisplay.innerText      = `Funció ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
     els.feedback.style.opacity    = '0';
 
-    // Triar pregunta del banc i generar dades
-    const bankItem    = pick(questionBank);
-    challengeData     = bankItem.generate();
+    // Genera el challenge amb el contracte formal
+    challengeData = generateChallenge();
 
-    // Renderitzar enunciat
-    katex.render(challengeData.questionTex, els.fxDisplay, { throwOnError: false });
+    // Renderitza l'enunciat
+    katex.render(challengeData.promptTex, els.fxDisplay, { throwOnError: false });
 
-    // Preparar totes les opcions (Correcta + Distractors)
-    const allOptions = [
-        {
-            tex:       challengeData.correctTex,
-            feedback:  "Molt bé! Resposta correcta.",
-            isCorrect: true
-        },
-        ...challengeData.distractors.map(d => ({ ...d, isCorrect: false }))
-    ];
+    // Les opcions ja arriben completes i en el format correcte des de question-bank.js
+    // El controlador només les barreja i crea els botons
+    const allOptions = [...challengeData.options].sort(() => Math.random() - 0.5);
 
-    // Barrejar opcions aleatòriament
-    allOptions.sort(() => Math.random() - 0.5);
-
-    // Netejar i crear botons
     els.optionsContainer.innerHTML = '';
     allOptions.forEach(opt => {
         const btn  = document.createElement('button');
@@ -87,26 +74,26 @@ function checkAnswer(opt, clickedBtn) {
     const feedbackContainer = els.feedback;
 
     if (opt.isCorrect) {
-        // --- RESPOSTA CORRECTA ---
         isTransitioning = true;
 
         feedbackContainer.innerHTML    = `<strong>${opt.feedback}</strong>`;
         feedbackContainer.style.color  = "var(--success)";
         feedbackContainer.style.opacity = '1';
 
-        recordAnswerToHistory(challengeData.questionTex, opt.tex, true);
+        // Desa a l'historial compartit (game-core.js, signatura intocable)
+        recordAnswerToHistory(challengeData.promptTex, opt.tex, true);
+        // Desa errorType al registre paral·lel (null = encert sense error)
+        errorHistory.push({ question: challengeData.promptTex, errorType: null, isCorrect: true, meta: challengeData.meta });
 
         const fails       = MAX_INTENTS - attemptsLeft;
         const levelPoints = Math.max(0, 10 - (fails * 2));
         sessionScore     += levelPoints;
         els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
 
-        // Desactivem tots els botons
         Array.from(els.optionsContainer.children).forEach(b => b.style.pointerEvents = 'none');
         _finishOp(levelPoints);
 
     } else {
-        // --- RESPOSTA INCORRECTA ---
         attemptsLeft--;
         els.attemptsDisplay.innerText  = `Intents: ${attemptsLeft}`;
 
@@ -116,15 +103,18 @@ function checkAnswer(opt, clickedBtn) {
 
         if (clickedBtn) clickedBtn.classList.add('wrong');
 
+        // Desa errorType al registre paral·lel
+        errorHistory.push({ question: challengeData.promptTex, errorType: opt.errorType, isCorrect: false, meta: challengeData.meta });
+
         if (attemptsLeft <= 0) {
             isTransitioning = true;
-            recordAnswerToHistory(challengeData.questionTex, opt.tex, false);
+            recordAnswerToHistory(challengeData.promptTex, opt.tex, false);
             _finishOp(0);
         }
     }
 }
 
-// 3. Finalitza l'operació actual i gestiona el flux cap a game-core.js
+// 3. Finalitza l'operació actual
 function _finishOp(levelPoints) {
     const waitTime = showMiniOverlay(levelPoints);
 
@@ -142,17 +132,12 @@ function _finishOp(levelPoints) {
 
 // 4. Arrencada automàtica
 window.addEventListener('DOMContentLoaded', () => {
-    // 1. Validem la configuració
-    if (typeof validateConfig === 'function') validateConfig();
-
-    // 2. Injectem l'HTML compartit (mini-overlay, pantalles finals)
+    if (typeof validateConfig  === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
 
-    // 3. Mostrem la pantalla i iniciem la sessió
     if (typeof startGame === 'function') {
         startGame();
     } else {
-        // Fallback per si no tenim game-core.js carregat
         const screen = document.getElementById('game-screen');
         if (screen) screen.style.display = 'block';
         buildLevel();
