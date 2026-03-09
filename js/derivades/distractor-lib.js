@@ -389,6 +389,7 @@ window.DistractorLib = (() => {
     function _mul(a, b) {
         if (a === '0' || b === '0') return '0';
         if (a === '1')  return b;
+        if (b === '1')  return a;
         if (a === '-1') return b.startsWith('-') ? b.slice(1) : `-${b}`;
         if (b.startsWith('-')) return `-${_mul(a, b.slice(1))}`;
         if (b.startsWith('\\frac')) return `${a}\\cdot ${b}`;

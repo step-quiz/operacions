@@ -243,20 +243,40 @@ function generateCosPoly2() {
 
 // =========================================================================
 // CATÀLEG DE PARELLS (producte i quocient)
+// Cada fila pre-calcula tots els camps que _buildProductPool /
+// _buildQuotientPool necessiten, perquè les operacions simbòliques de
+// _mul/_add/_sub no cobreixen totes les formes algebraiques complexes.
+// Camps:
+//   dfgTex  = f'·g    fdgTex = f·g'    g2Tex = g²
+//   solutionProduct   = f'g + fg'
+//   solutionQuotient  = (f'g − fg') / g²
 // =========================================================================
 const FUNCTION_PAIRS = [
-    { fTex:'x',    gTex:'e^{x}',    dfTex:'1',    dgTex:'e^{x}',        dfgTex:'e^{x}',      fdgTex:'xe^{x}',      g2Tex:'e^{2x}',    solutionProduct:'e^{x}+xe^{x}',         solutionQuotient:'\\frac{e^{x}-xe^{x}}{e^{2x}}' },
-    { fTex:'x^2',  gTex:'e^{x}',    dfTex:'2x',   dgTex:'e^{x}',        dfgTex:'2xe^{x}',    fdgTex:'x^2e^{x}',    g2Tex:'e^{2x}',    solutionProduct:'2xe^{x}+x^2e^{x}',     solutionQuotient:'\\frac{2xe^{x}-x^2e^{x}}{e^{2x}}' },
-    { fTex:'x',    gTex:'e^{2x}',   dfTex:'1',    dgTex:'2e^{2x}',      dfgTex:'e^{2x}',     fdgTex:'2xe^{2x}',    g2Tex:'e^{4x}',    solutionProduct:'e^{2x}+2xe^{2x}',      solutionQuotient:'\\frac{e^{2x}-2xe^{2x}}{e^{4x}}' },
-    { fTex:'x+1',  gTex:'e^{x}',    dfTex:'1',    dgTex:'e^{x}',        dfgTex:'e^{x}',      fdgTex:'(x+1)e^{x}',  g2Tex:'e^{2x}',    solutionProduct:'e^{x}+(x+1)e^{x}',     solutionQuotient:'\\frac{e^{x}-(x+1)e^{x}}{e^{2x}}' },
-    { fTex:'x-2',  gTex:'e^{x}',    dfTex:'1',    dgTex:'e^{x}',        dfgTex:'e^{x}',      fdgTex:'(x-2)e^{x}',  g2Tex:'e^{2x}',    solutionProduct:'e^{x}+(x-2)e^{x}',     solutionQuotient:'\\frac{e^{x}-(x-2)e^{x}}{e^{2x}}' },
-    { fTex:'x',    gTex:'\\ln(x)',  dfTex:'1',    dgTex:'\\frac{1}{x}', dfgTex:'\\ln(x)',    fdgTex:'1',           g2Tex:'\\ln^2(x)', solutionProduct:'\\ln(x)+1',             solutionQuotient:'\\frac{\\ln(x)-1}{\\ln^2(x)}' },
-    { fTex:'x^2',  gTex:'\\ln(x)',  dfTex:'2x',   dgTex:'\\frac{1}{x}', dfgTex:'2x\\ln(x)',  fdgTex:'x',           g2Tex:'\\ln^2(x)', solutionProduct:'2x\\ln(x)+x',           solutionQuotient:'\\frac{2x\\ln(x)-x}{\\ln^2(x)}' },
-    { fTex:'x^3',  gTex:'\\ln(x)',  dfTex:'3x^2', dgTex:'\\frac{1}{x}', dfgTex:'3x^2\\ln(x)',fdgTex:'x^2',         g2Tex:'\\ln^2(x)', solutionProduct:'3x^2\\ln(x)+x^2',       solutionQuotient:'\\frac{3x^2\\ln(x)-x^2}{\\ln^2(x)}' },
-    { fTex:'2x+1', gTex:'x^2',      dfTex:'2',    dgTex:'2x',           dfgTex:'2x^2',       fdgTex:'2x(2x+1)',    g2Tex:'x^4',       solutionProduct:'2x^2+2x(2x+1)',         solutionQuotient:'\\frac{2x^2-2x(2x+1)}{x^4}' },
-    { fTex:'x',    gTex:'x+3',      dfTex:'1',    dgTex:'1',            dfgTex:'x+3',        fdgTex:'x',           g2Tex:'(x+3)^2',   solutionProduct:'2x+3',                  solutionQuotient:'\\frac{3}{(x+3)^2}' },
-    { fTex:'2x-1', gTex:'e^{x}',    dfTex:'2',    dgTex:'e^{x}',        dfgTex:'2e^{x}',     fdgTex:'(2x-1)e^{x}', g2Tex:'e^{2x}',    solutionProduct:'2e^{x}+(2x-1)e^{x}',   solutionQuotient:'\\frac{2e^{x}-(2x-1)e^{x}}{e^{2x}}' },
-    { fTex:'x^2',  gTex:'x+2',      dfTex:'2x',   dgTex:'1',            dfgTex:'2x(x+2)',    fdgTex:'x^2',         g2Tex:'(x+2)^2',   solutionProduct:'2x(x+2)+x^2',           solutionQuotient:'\\frac{2x(x+2)-x^2}{(x+2)^2}' },
+    // --- polinomi × exponencial ---
+    { fTex:'x',    gTex:'e^{x}',    dfTex:'1',    dgTex:'e^{x}',        dfgTex:'e^{x}',        fdgTex:'xe^{x}',        g2Tex:'e^{2x}',     solutionProduct:'e^{x}+xe^{x}',              solutionQuotient:'\\frac{e^{x}-xe^{x}}{e^{2x}}' },
+    { fTex:'x^2',  gTex:'e^{x}',    dfTex:'2x',   dgTex:'e^{x}',        dfgTex:'2xe^{x}',      fdgTex:'x^2e^{x}',      g2Tex:'e^{2x}',     solutionProduct:'2xe^{x}+x^2e^{x}',          solutionQuotient:'\\frac{2xe^{x}-x^2e^{x}}{e^{2x}}' },
+    { fTex:'x^3',  gTex:'e^{x}',    dfTex:'3x^2', dgTex:'e^{x}',        dfgTex:'3x^2e^{x}',    fdgTex:'x^3e^{x}',      g2Tex:'e^{2x}',     solutionProduct:'3x^2e^{x}+x^3e^{x}',        solutionQuotient:'\\frac{3x^2e^{x}-x^3e^{x}}{e^{2x}}' },
+    { fTex:'x',    gTex:'e^{2x}',   dfTex:'1',    dgTex:'2e^{2x}',      dfgTex:'e^{2x}',       fdgTex:'2xe^{2x}',      g2Tex:'e^{4x}',     solutionProduct:'e^{2x}+2xe^{2x}',           solutionQuotient:'\\frac{e^{2x}-2xe^{2x}}{e^{4x}}' },
+    { fTex:'x+1',  gTex:'e^{x}',    dfTex:'1',    dgTex:'e^{x}',        dfgTex:'e^{x}',        fdgTex:'(x+1)e^{x}',    g2Tex:'e^{2x}',     solutionProduct:'e^{x}+(x+1)e^{x}',          solutionQuotient:'\\frac{e^{x}-(x+1)e^{x}}{e^{2x}}' },
+    { fTex:'x-2',  gTex:'e^{x}',    dfTex:'1',    dgTex:'e^{x}',        dfgTex:'e^{x}',        fdgTex:'(x-2)e^{x}',    g2Tex:'e^{2x}',     solutionProduct:'e^{x}+(x-2)e^{x}',          solutionQuotient:'\\frac{e^{x}-(x-2)e^{x}}{e^{2x}}' },
+    { fTex:'2x-1', gTex:'e^{x}',    dfTex:'2',    dgTex:'e^{x}',        dfgTex:'2e^{x}',       fdgTex:'(2x-1)e^{x}',   g2Tex:'e^{2x}',     solutionProduct:'2e^{x}+(2x-1)e^{x}',        solutionQuotient:'\\frac{2e^{x}-(2x-1)e^{x}}{e^{2x}}' },
+    // --- polinomi × logaritme ---
+    { fTex:'x',    gTex:'\\ln(x)',   dfTex:'1',    dgTex:'\\frac{1}{x}', dfgTex:'\\ln(x)',      fdgTex:'1',             g2Tex:'\\ln^2(x)',   solutionProduct:'\\ln(x)+1',                  solutionQuotient:'\\frac{\\ln(x)-1}{\\ln^2(x)}' },
+    { fTex:'x^2',  gTex:'\\ln(x)',   dfTex:'2x',   dgTex:'\\frac{1}{x}', dfgTex:'2x\\ln(x)',    fdgTex:'x',             g2Tex:'\\ln^2(x)',   solutionProduct:'2x\\ln(x)+x',                solutionQuotient:'\\frac{2x\\ln(x)-x}{\\ln^2(x)}' },
+    { fTex:'x^3',  gTex:'\\ln(x)',   dfTex:'3x^2', dgTex:'\\frac{1}{x}', dfgTex:'3x^2\\ln(x)',  fdgTex:'x^2',           g2Tex:'\\ln^2(x)',   solutionProduct:'3x^2\\ln(x)+x^2',            solutionQuotient:'\\frac{3x^2\\ln(x)-x^2}{\\ln^2(x)}' },
+    // --- polinomi × polinomi ---
+    { fTex:'2x+1', gTex:'x^2',       dfTex:'2',    dgTex:'2x',           dfgTex:'2x^2',         fdgTex:'2x(2x+1)',      g2Tex:'x^4',        solutionProduct:'2x^2+2x(2x+1)',              solutionQuotient:'\\frac{2x^2-2x(2x+1)}{x^4}' },
+    { fTex:'x',    gTex:'x+3',        dfTex:'1',    dgTex:'1',            dfgTex:'x+3',          fdgTex:'x',             g2Tex:'(x+3)^2',    solutionProduct:'2x+3',                       solutionQuotient:'\\frac{3}{(x+3)^2}' },
+    { fTex:'x+3',  gTex:'x^2',        dfTex:'1',    dgTex:'2x',           dfgTex:'x^2',          fdgTex:'2x(x+3)',       g2Tex:'x^4',        solutionProduct:'x^2+2x(x+3)',                solutionQuotient:'\\frac{x^2-2x(x+3)}{x^4}' },
+    { fTex:'x+1',  gTex:'x^2',        dfTex:'1',    dgTex:'2x',           dfgTex:'x^2',          fdgTex:'2x(x+1)',       g2Tex:'x^4',        solutionProduct:'x^2+2x(x+1)',                solutionQuotient:'\\frac{x^2-2x(x+1)}{x^4}' },
+    { fTex:'x^2',  gTex:'x+2',        dfTex:'2x',   dgTex:'1',            dfgTex:'2x(x+2)',      fdgTex:'x^2',           g2Tex:'(x+2)^2',    solutionProduct:'2x(x+2)+x^2',                solutionQuotient:'\\frac{2x(x+2)-x^2}{(x+2)^2}' },
+    { fTex:'x^2',  gTex:'x-1',        dfTex:'2x',   dgTex:'1',            dfgTex:'2x(x-1)',      fdgTex:'x^2',           g2Tex:'(x-1)^2',    solutionProduct:'2x(x-1)+x^2',                solutionQuotient:'\\frac{2x(x-1)-x^2}{(x-1)^2}' },
+    // --- polinomi × trigonomètrica ---
+    { fTex:'x',    gTex:'\\sin(x)',   dfTex:'1',    dgTex:'\\cos(x)',     dfgTex:'\\sin(x)',     fdgTex:'x\\cos(x)',     g2Tex:'\\sin^2(x)', solutionProduct:'\\sin(x)+x\\cos(x)',          solutionQuotient:'\\frac{\\sin(x)-x\\cos(x)}{\\sin^2(x)}' },
+    { fTex:'x',    gTex:'\\cos(x)',   dfTex:'1',    dgTex:'-\\sin(x)',    dfgTex:'\\cos(x)',     fdgTex:'-x\\sin(x)',    g2Tex:'\\cos^2(x)', solutionProduct:'\\cos(x)-x\\sin(x)',          solutionQuotient:'\\frac{\\cos(x)+x\\sin(x)}{\\cos^2(x)}' },
+    { fTex:'x^2',  gTex:'\\sin(x)',   dfTex:'2x',   dgTex:'\\cos(x)',     dfgTex:'2x\\sin(x)',   fdgTex:'x^2\\cos(x)',   g2Tex:'\\sin^2(x)', solutionProduct:'2x\\sin(x)+x^2\\cos(x)',      solutionQuotient:'\\frac{2x\\sin(x)-x^2\\cos(x)}{\\sin^2(x)}' },
+    { fTex:'e^{x}',gTex:'\\sin(x)',   dfTex:'e^{x}',dgTex:'\\cos(x)',     dfgTex:'e^{x}\\sin(x)',fdgTex:'e^{x}\\cos(x)',g2Tex:'\\sin^2(x)', solutionProduct:'e^{x}\\sin(x)+e^{x}\\cos(x)', solutionQuotient:'\\frac{e^{x}\\sin(x)-e^{x}\\cos(x)}{\\sin^2(x)}' },
+    { fTex:'e^{x}',gTex:'\\cos(x)',   dfTex:'e^{x}',dgTex:'-\\sin(x)',    dfgTex:'e^{x}\\cos(x)',fdgTex:'-e^{x}\\sin(x)',g2Tex:'\\cos^2(x)',solutionProduct:'e^{x}\\cos(x)-e^{x}\\sin(x)', solutionQuotient:'\\frac{e^{x}\\cos(x)+e^{x}\\sin(x)}{\\cos^2(x)}' },
 ];
 
 function generateProduct() {
