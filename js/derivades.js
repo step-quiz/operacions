@@ -110,24 +110,25 @@ function buildLevel() {
         katex.render(opt.tex, span, { throwOnError: false });
         btn.appendChild(span);
 
-        btn.onclick = () => checkAnswer(opt);
+        btn.onclick = () => checkAnswer(opt, btn);
         els.optionsContainer.appendChild(btn);
     });
 }
 
 // 2. Comprova la resposta seleccionada
-function checkAnswer(opt) {
+function checkAnswer(opt, clickedBtn) {
     if (isTransitioning) return;
 
     const feedbackContainer = els.feedback;
 
     if (opt.isCorrect) {
-        // RESPOSTA CORRECTA
+        // --- RESPOSTA CORRECTA ---
+        isTransitioning = true; // Bloquem interaccions ràpides immediatament
+        
         feedbackContainer.innerHTML = `<strong>${opt.feedback}</strong>`;
         feedbackContainer.style.color = "var(--success)";
         feedbackContainer.style.opacity = '1';
         
-        isTransitioning = true;
         recordAnswerToHistory(challengeData.questionTex, opt.tex, true);
         
         const fails = MAX_INTENTS - attemptsLeft;
@@ -135,11 +136,12 @@ function checkAnswer(opt) {
         sessionScore += levelPoints;
         els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
         
+        // Desactivem tots els botons perquè no es puguin clicar més
         Array.from(els.optionsContainer.children).forEach(b => b.style.pointerEvents = 'none');
         _finishOp(levelPoints);
 
     } else {
-        // RESPOSTA INCORRECTA
+        // --- RESPOSTA INCORRECTA ---
         attemptsLeft--;
         els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
         
@@ -147,14 +149,14 @@ function checkAnswer(opt) {
         feedbackContainer.style.color = "var(--danger)";
         feedbackContainer.style.opacity = '1';
 
-        // Buscar el botó clicat per posar-li l'estat visual d'error
-        const clickedBtn = Array.from(els.optionsContainer.children).find(b => b.textContent.includes(opt.tex) || b.innerHTML.includes(opt.tex));
+        // Utilitzem la referència directa al botó per pintar-lo de vermell
         if (clickedBtn) {
             clickedBtn.classList.add('wrong');
         }
 
+        // Si ens hem quedat sense intents, finalitzem l'operació amb 0 punts
         if (attemptsLeft <= 0) {
-            isTransitioning = true;
+            isTransitioning = true; // Bloquem interaccions ràpides
             recordAnswerToHistory(challengeData.questionTex, opt.tex, false);
             _finishOp(0);
         }
