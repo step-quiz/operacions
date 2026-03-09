@@ -246,5 +246,9 @@ function _finishOp(levelPoints) {
 // 3. Arrencada automàtica en carregar la pàgina
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof validateConfig === 'function') validateConfig();
+    
+    // INJECTEM L'HTML COMPARTIT ABANS DE COMENÇAR (Molt important!)
+    if (typeof injectSharedHTML === 'function') injectSharedHTML();
+    
     startGame(); // Cridem al game-core per iniciar l'estructura
 });
