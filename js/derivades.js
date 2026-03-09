@@ -187,10 +187,13 @@ function checkAnswer(selectedIndex, btnElement) {
     const isCorrect = challengeData.options[selectedIndex].isCorrect;
     
     if (!isCorrect) {
+        // 1. Fem el tremolor visual de "No" (això dura 0.3s)
         btnElement.classList.add('error-shake');
         setTimeout(() => btnElement.classList.remove('error-shake'), 300);
-        btnElement.style.pointerEvents = 'none';
-        btnElement.style.opacity = '0.5';
+        
+        // 2. Apliquem l'estat permanent de fallada (fons vermell, vora vermella, no clicable)
+        btnElement.classList.add('wrong');
+        
         if (typeof recordAnswerToHistory === 'function') {
             recordAnswerToHistory(challengeData.questionTex, "Incorrecte", false);
         }
@@ -198,6 +201,7 @@ function checkAnswer(selectedIndex, btnElement) {
         return;
     }
     
+    // Si és correcta...
     btnElement.classList.add('correct');
     if (typeof recordAnswerToHistory === 'function') {
         recordAnswerToHistory(challengeData.questionTex, "Correcte", true);
