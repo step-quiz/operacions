@@ -58,20 +58,81 @@ window.DistractorLib = (() => {
     // HINTS AMPLIATS PER errorType
     // =========================================================================
     const FeedbackHints = {
-        [CHAIN_FORGOT]:       "Recorda: si tens f(g(x)), la derivada és f'(g(x)) · g'(x). Has de multiplicar per la derivada de l'argument interior.",
-        [CHAIN_WRONG_COEF]:   "Has aplicat la regla de la cadena, però la derivada de l'argument interior no és correcta. Comprova tots els termes de p'(x).",
-        [CHAIN_SIGN]:         "Comprova el signe. La derivada de cos porta signe negatiu: (cos u)' = −sin(u)·u'. Si u' té termes negatius, el signe es propaga.",
-        [NO_DERIVATIVE]:      "Aquesta és la funció original, no la seva derivada. Recorda que has de derivar.",
-        [INTEGRAL_CONFUSION]: "Estàs calculant una primitiva (integral) en lloc d'una derivada. Les operacions són inverses.",
-        [PRODUCT_FORGOT_SUM]: "La regla del producte diu (fg)' = f'g + fg'. Necessites la suma de dos termes, no el producte de les derivades.",
-        [PRODUCT_WRONG_ORDER]:"Comprova l'ordre i el signe dels termes. Pots estar confonen la regla del producte amb la del quocient.",
-        [QUOTIENT_SIGN]:      "Al numerador de la regla del quocient, l'ordre és f'g − fg'. Revisa quin terme va primer i el signe.",
-        [QUOTIENT_DENOM]:     "El denominador de la regla del quocient és g², no g. No oblides elevar al quadrat.",
-        [POWER_FORGOT_R]:     "La regla de la potència diu (x^n)' = n·x^{n−1}. L'exponent n baixa i es posa com a coeficient davant.",
-        [POWER_WRONG_EXP]:    "L'exponent ha de ser n−1, no n. Quan l'exponent baixa, es redueix en 1.",
-        [LOG_INVERTED]:       "La derivada de ln(f(x)) és f'(x)/f(x). Comprova que la fracció no la tens girada.",
-        [LOG_FORGOT_CHAIN]:   "Has derivat el logaritme però has oblidat multiplicar per la derivada de l'argument interior: (ln f)' = f'/f.",
-        [SIN_COS_SWAP]:       "Atenció a quina funció trigonomètrica surt en derivar: (sin u)' = cos(u)·u' i (cos u)' = −sin(u)·u'. Sin i cos s'intercanvien, però amb signes diferents.",
+        // Nivell 2: explica el PERQUÈ de la regla, no repeteix l'error concret.
+        // El feedback immediat (opt.feedback) ja descriu l'error específic.
+        // El hint aporta la justificació conceptual o un truc mnemotècnic.
+
+        [CHAIN_FORGOT]:
+            "La regla de la cadena té dos factors obligatoris: f'(g(x)) · g'(x). " +
+            "El primer és la derivada de l'exterior avaluada a l'interior; el segon, la derivada de l'interior. " +
+            "Cap dels dos no pot mancar: si no apareix g'(x) com a factor, la cadena és incompleta.",
+
+        [CHAIN_WRONG_COEF]:
+            "Quan l'argument interior és un polinomi p(x), cal derivar-lo terme a terme: " +
+            "cada potència, cada coeficient lineal i cada constant. " +
+            "Un error habitual és oblidar un terme o calcular malament el coeficient d'un dels sumands de p'(x).",
+
+        [CHAIN_SIGN]:
+            "El signe és part de la derivada, no un detall. " +
+            "(sin u)' = +cos(u)·u', però (cos u)' = −sin(u)·u' — el negatiu és intrínsec a cos'. " +
+            "Si u' té termes negatius, el signe es propaga i pot canviar el resultat final.",
+
+        [NO_DERIVATIVE]:
+            "Quan una opció és idèntica a la funció de la pregunta, és una pista segura que no s'ha derivat. " +
+            "La derivada quasi sempre és una funció diferent de l'original " +
+            "(l'excepció notable és e^x, que és la seva pròpia derivada).",
+
+        [INTEGRAL_CONFUSION]:
+            "Derivar i integrar (calcular primitives) són operacions inverses. " +
+            "La derivada redueix el grau del polinomi o elimina factors; la primitiva l'augmenta. " +
+            "Si el resultat és 'més gran' que la funció original, probablement s'ha integrat en lloc de derivar.",
+
+        [PRODUCT_FORGOT_SUM]:
+            "La regla del producte és una suma de dos termes: (fg)' = f'g + fg'. " +
+            "La idea és que cada factor es deriva per torn mentre l'altre es manté. " +
+            "Si el resultat és un sol terme o un producte de derivades, no s'ha aplicat la regla.",
+
+        [PRODUCT_WRONG_ORDER]:
+            "(fg)' = f'g + fg' i (f/g)' = (f'g − fg')/g² semblen paregudes però difereixen en signe i denominador. " +
+            "La regla del producte sempre suma; la del quocient sempre resta (f' primer, f segon al numerador).",
+
+        [QUOTIENT_SIGN]:
+            "Al numerador de (f/g)', l'ordre importa: f'g − fg', mai fg' − f'g. " +
+            "La manera de recordar-ho: el numerador de la derivada sempre comença pel terme amb la derivada de dalt (f'), " +
+            "igual que en la regla del producte, però amb resta.",
+
+        [QUOTIENT_DENOM]:
+            "El denominador de (f/g)' és sempre g², no g. " +
+            "Geomètricament, elevar al quadrat prové d'aplicar la regla de la cadena a 1/g. " +
+            "Si el denominador no és el quadrat del denominador original, la fórmula és incompleta.",
+
+        [POWER_FORGOT_R]:
+            "La regla de la potència té dos canvis simultanis: l'exponent n baixa com a coeficient davant, " +
+            "i l'exponent es redueix en 1. Els dos han de passar alhora: (x^n)' = n·x^{n−1}. " +
+            "Oblidar qualsevol dels dos és un error parcial.",
+
+        [POWER_WRONG_EXP]:
+            "Quan derives x^n, l'exponent no es manté: passa de n a n−1. " +
+            "Pensa-ho com un 'descens': l'exponent baixa una posició. " +
+            "Si l'exponent del resultat és el mateix que el de la funció original, no s'ha aplicat el descens.",
+
+        [LOG_INVERTED]:
+            "L'origen de la fórmula: per la regla de la cadena, (ln f)' = (1/f) · f'. " +
+            "Llegit com a fracció, f' és sempre el numerador (el que 'ha canviat') " +
+            "i f és sempre el denominador (l'argument original del logaritme). " +
+            "Si tens f a dalt i f' a baix, has intercanviat els papers de numerador i denominador.",
+
+        [LOG_FORGOT_CHAIN]:
+            "Derivar ln(f(x)) és un procés en dos passos: " +
+            "(1) derivar el logaritme com si l'interior fos una variable simple → 1/f(x); " +
+            "(2) multiplicar per la derivada interior → f'(x). " +
+            "El resultat complet és f'(x)/f(x). Saltar el segon pas dóna 1/f en lloc de f'/f.",
+
+        [SIN_COS_SWAP]:
+            "Derivar intercanvia sin i cos, però amb una asimetria de signe: " +
+            "(sin u)' = +cos(u)·u' — sense negatiu; " +
+            "(cos u)' = −sin(u)·u' — amb negatiu. " +
+            "El negatiu pertany sempre a cos (tant en la derivada de cos com en la seva primitiva).",
     };
 
     // =========================================================================
