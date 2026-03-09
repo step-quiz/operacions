@@ -45,7 +45,7 @@ function buildLevel() {
     els.feedback.style.opacity    = '0';
     els.feedback.innerHTML        = '';
 
-    challengeData = QuestionBank.generateChallenge();
+    challengeData = generateChallenge();
 
     katex.render(challengeData.promptTex, els.fxDisplay, { throwOnError: false });
 
@@ -81,17 +81,32 @@ function renderFeedback(opt, showSolution = false) {
         return;
     }
 
-    // --- Nivell 1: feedback immediat ---
-    let html = `<span class="feedback-wrong">${opt.feedback}</span>`;
+    // --- Nivell 1: feedback immediat (innerHTML primer) ---
+    fc.innerHTML     = `<span class="feedback-wrong">${opt.feedback}</span>`;
+    fc.style.opacity = '1';
 
-    // --- Nivell 2: hint ampliat (si existeix per aquest errorType) ---
+    // --- Nivell 2: botó "+ ajuda" que desplega el hint (si existeix) ---
     const hint = DistractorLib.FeedbackHints[opt.errorType];
     if (hint) {
-        html += `<div class="hint-box">${hint}</div>`;
-    }
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className   = 'hint-toggle-btn';
+        toggleBtn.textContent = '+ ajuda';
 
-    fc.innerHTML     = html;
-    fc.style.opacity = '1';
+        const hintBox = document.createElement('div');
+        hintBox.className     = 'hint-box';
+        hintBox.textContent   = hint;
+        hintBox.style.display = 'none';
+
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = hintBox.style.display === 'none';
+            hintBox.style.display = isHidden ? 'block' : 'none';
+            toggleBtn.textContent = isHidden ? '− ajuda' : '+ ajuda';
+        });
+
+        fc.appendChild(document.createElement('br'));
+        fc.appendChild(toggleBtn);
+        fc.appendChild(hintBox);
+    }
 
     // --- Nivell 3: resposta correcta (quan s'esgoten els intents) ---
     if (showSolution && challengeData?.solutionTex) {
@@ -308,7 +323,7 @@ function _errorTypeLabel(type) {
 }
 
 // =========================================================================
-// 6. Arrencada automàtica
+// 5. Arrencada automàtica
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof validateConfig   === 'function') validateConfig();
