@@ -4,27 +4,26 @@
  * FITXER: js/derivades/derivades.js
  * ROL: Controlador específic del joc de derivades.
  * ARQUITECTURA:
- * - FASE 3: Llegeix el contracte formal del challenge (§4 del pla):
- *   { promptTex, solutionTex, options, meta }
- *   Les opcions ja arriben completes des de question-bank.js, incloent
- *   errorType i isCorrect. El controlador no construeix ni filtra opcions.
- * - recordAnswerToHistory() desa ara també errorType per a analítica futura.
- *   NOTA: game-core.js és intocable (capa compartida), de manera que la
- *   crida a recordAnswerToHistory() continua amb la signatura original
- *   (question, answer, isCorrect). L'errorType es desa en un registre
- *   paral·lel errorHistory[], disponible per a la Fase 4 (feedback ampliat).
- * - Controlador DOM pur: demana un challenge a generateChallenge(),
- *   el renderitza amb KaTeX, gestiona clics i avança el flux de joc.
+ * - FASE 4: Feedback ampliat per a l'alumne. Dos nivells de feedback:
+ *   1. Feedback immediat (opt.feedback): sempre visible en error.
+ *   2. Hint ampliat (DistractorLib.FeedbackHints[errorType]): explicació
+ *      conceptual del tipus d'error, visible en bloc separat sota el feedback.
+ *      Només apareix si existeix entrada a FeedbackHints per aquell errorType.
+ *   3. Resposta correcta: visible quan s'esgoten tots els intents, renderitzada
+ *      amb KaTeX dins el feedback container. game-core.js és intocable, de
+ *      manera que la resposta correcta s'injecta al feedback container propi
+ *      de derivades.js, no al mini-overlay de game-core.js.
+ * - errorHistory[]: registre paral·lel d'errorType iniciat a la Fase 3,
+ *   ara usat per construir el resum final d'errors conceptuals.
  * DEPENDÈNCIES: Fitxer final. Ordre requerit:
  *   utils → config → game-core → math-engine → distractor-lib
  *   → question-bank → (aquest, defer)
  * ============================================================================
  */
 
-// Registre paral·lel d'errorType per a la Fase 4 (no toca game-core.js)
-let errorHistory = [];
-
+let errorHistory  = [];
 let challengeData = null;
+
 const els = {
     fxDisplay:        document.getElementById('fx-display'),
     optionsContainer: document.getElementById('options-container'),
@@ -34,7 +33,9 @@ const els = {
     attemptsDisplay:  document.getElementById('attempts-display')
 };
 
-// 1. Construeix un nou nivell (una nova derivada)
+// =========================================================================
+// 1. Construeix un nou nivell
+// =========================================================================
 function buildLevel() {
     isTransitioning = false;
     attemptsLeft    = MAX_INTENTS;
@@ -42,48 +43,92 @@ function buildLevel() {
     els.lvlDisplay.innerText      = `Funció ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
     els.feedback.style.opacity    = '0';
+    els.feedback.innerHTML        = '';
 
-    // Genera el challenge amb el contracte formal
     challengeData = generateChallenge();
 
-    // Renderitza l'enunciat
     katex.render(challengeData.promptTex, els.fxDisplay, { throwOnError: false });
 
-    // Les opcions ja arriben completes i en el format correcte des de question-bank.js
-    // El controlador només les barreja i crea els botons
     const allOptions = [...challengeData.options].sort(() => Math.random() - 0.5);
 
     els.optionsContainer.innerHTML = '';
     allOptions.forEach(opt => {
         const btn  = document.createElement('button');
         btn.className = 'btn-option';
-
         const span = document.createElement('span');
         katex.render(opt.tex, span, { throwOnError: false });
         btn.appendChild(span);
-
         btn.onclick = () => checkAnswer(opt, btn);
         els.optionsContainer.appendChild(btn);
     });
 }
 
-// 2. Comprova la resposta seleccionada
+// =========================================================================
+// 2. Renderitza el feedback (dos nivells + resposta correcta opcional)
+// =========================================================================
+
+/**
+ * Renderitza el bloc de feedback complet dins els.feedback.
+ * @param {object}  opt            - L'opció clicada (té .feedback, .errorType, .isCorrect)
+ * @param {boolean} showSolution   - Si true, mostra la resposta correcta amb KaTeX
+ */
+function renderFeedback(opt, showSolution = false) {
+    const fc = els.feedback;
+
+    if (opt.isCorrect) {
+        fc.innerHTML          = `<strong class="feedback-correct">${opt.feedback}</strong>`;
+        fc.style.opacity      = '1';
+        return;
+    }
+
+    // --- Nivell 1: feedback immediat ---
+    let html = `<span class="feedback-wrong">${opt.feedback}</span>`;
+
+    // --- Nivell 2: hint ampliat (si existeix per aquest errorType) ---
+    const hint = DistractorLib.FeedbackHints[opt.errorType];
+    if (hint) {
+        html += `<div class="hint-box">${hint}</div>`;
+    }
+
+    fc.innerHTML     = html;
+    fc.style.opacity = '1';
+
+    // --- Nivell 3: resposta correcta (quan s'esgoten els intents) ---
+    if (showSolution && challengeData?.solutionTex) {
+        const solutionRow = document.createElement('div');
+        solutionRow.className = 'solution-reveal';
+
+        const label = document.createElement('span');
+        label.className  = 'solution-label';
+        label.innerText  = 'La resposta correcta era:';
+
+        const formula = document.createElement('span');
+        formula.className = 'solution-formula';
+        katex.render(challengeData.solutionTex, formula, { throwOnError: false });
+
+        solutionRow.appendChild(label);
+        solutionRow.appendChild(formula);
+        fc.appendChild(solutionRow);
+    }
+}
+
+// =========================================================================
+// 3. Comprova la resposta seleccionada
+// =========================================================================
 function checkAnswer(opt, clickedBtn) {
     if (isTransitioning) return;
 
-    const feedbackContainer = els.feedback;
-
     if (opt.isCorrect) {
         isTransitioning = true;
+        renderFeedback(opt);
 
-        feedbackContainer.innerHTML    = `<strong>${opt.feedback}</strong>`;
-        feedbackContainer.style.color  = "var(--success)";
-        feedbackContainer.style.opacity = '1';
-
-        // Desa a l'historial compartit (game-core.js, signatura intocable)
         recordAnswerToHistory(challengeData.promptTex, opt.tex, true);
-        // Desa errorType al registre paral·lel (null = encert sense error)
-        errorHistory.push({ question: challengeData.promptTex, errorType: null, isCorrect: true, meta: challengeData.meta });
+        errorHistory.push({
+            question:  challengeData.promptTex,
+            errorType: null,
+            isCorrect: true,
+            meta:      challengeData.meta
+        });
 
         const fails       = MAX_INTENTS - attemptsLeft;
         const levelPoints = Math.max(0, 10 - (fails * 2));
@@ -95,26 +140,35 @@ function checkAnswer(opt, clickedBtn) {
 
     } else {
         attemptsLeft--;
-        els.attemptsDisplay.innerText  = `Intents: ${attemptsLeft}`;
-
-        feedbackContainer.innerHTML    = `<span>${opt.feedback}</span>`;
-        feedbackContainer.style.color  = "var(--danger)";
-        feedbackContainer.style.opacity = '1';
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
 
         if (clickedBtn) clickedBtn.classList.add('wrong');
 
-        // Desa errorType al registre paral·lel
-        errorHistory.push({ question: challengeData.promptTex, errorType: opt.errorType, isCorrect: false, meta: challengeData.meta });
+        errorHistory.push({
+            question:  challengeData.promptTex,
+            errorType: opt.errorType,
+            isCorrect: false,
+            meta:      challengeData.meta
+        });
 
-        if (attemptsLeft <= 0) {
+        const isLastAttempt = attemptsLeft <= 0;
+
+        // Mostra la solució correcta només quan s'esgoten els intents
+        renderFeedback(opt, isLastAttempt);
+
+        if (isLastAttempt) {
             isTransitioning = true;
             recordAnswerToHistory(challengeData.promptTex, opt.tex, false);
-            _finishOp(0);
+            // Petit retard per deixar que l'alumne llegeixi la solució
+            // abans que aparegui el mini-overlay de game-core.js
+            setTimeout(() => _finishOp(0), 800);
         }
     }
 }
 
-// 3. Finalitza l'operació actual
+// =========================================================================
+// 4. Finalitza l'operació actual
+// =========================================================================
 function _finishOp(levelPoints) {
     const waitTime = showMiniOverlay(levelPoints);
 
@@ -130,9 +184,11 @@ function _finishOp(levelPoints) {
     }, waitTime);
 }
 
-// 4. Arrencada automàtica
+// =========================================================================
+// 5. Arrencada automàtica
+// =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    if (typeof validateConfig  === 'function') validateConfig();
+    if (typeof validateConfig   === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
 
     if (typeof startGame === 'function') {
