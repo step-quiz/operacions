@@ -1,10 +1,21 @@
-// js/banc-preguntes.js
-
 /**
- * =========================================================================
- * GENERADOR UNIVERSAL DE DISTRACTORS (Amb feedback pedagògic)
- * =========================================================================
+ * ============================================================================
+ * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+ * FITXER: js/banc-preguntes.js
+ * ROL: Motor pedagògic i generador de distractors (Matriu d'Errors).
+ * ARQUITECTURA MATEMÀTICA (Escalabilitat):
+ * - El disseny es basa en derivar funcions compostes f(x) = g(h(x)) 
+ * aplicant la regla de la cadena: f'(x) = g'(h(x)) * h'(x).
+ * - Abstracció modular: L'argument intern (h(x) = Kx) està totalment separat 
+ * de la funció principal (g). 
+ * - El generador injecta objectes `kVars` (variables algebraiques) i `fns` 
+ * (funcions g, dg, i integral) a una funció universal de distractors.
+ * - Actualment implementat per a g(x) = e^x, però preparat per escalar a 
+ * sinus, polinomis, etc., sense alterar la lògica central.
+ * DEPENDÈNCIES: Funcions auxiliars (generateK, formatK) viuen a derivades.js.
+ * ============================================================================
  */
+
 function buildChainRuleDistractors(kVars, fns) {
     const { coef, negCoef, kx, negKx, plusK, kInv } = kVars;
     const { g, dg, intG } = fns;
