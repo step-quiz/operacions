@@ -180,6 +180,7 @@
                 <div id="r3-grid" style="position: relative; width: 300px; height: 160px; margin: 20px auto 15px auto;">
                 </div>
                 <button class="btn-submit" id="btn-submit-r3" onclick="checkRepte3()">OK</button>
+                <div id="r3-msg" style="color: var(--danger); font-weight: bold; margin-top: 10px; min-height: 1.5em;"></div>
             </div>
 
         </div>
@@ -211,6 +212,7 @@
         
         btnSubmitVal:    document.getElementById('btn-submit-val'),
         btnSubmitR3:     document.getElementById('btn-submit-r3'),
+        r3Msg:           document.getElementById('r3-msg'), // Node per al missatge
         
         r3Title:         document.getElementById('r3-title'),
         r3Grid:          document.getElementById('r3-grid'),
@@ -276,8 +278,8 @@
         els.stepRepte3.classList.remove('active');
         els.opInstruction.classList.remove('active');
         
-        // Assegurem que el botó OK torni a estar visible pel següent repte 3
         els.btnSubmitR3.style.display = ''; 
+        if (els.r3Msg) els.r3Msg.innerText = ''; // Netegem el missatge residual si n'hi hagués
 
         if (els.valueInput.parentNode === els.expressionBox) {
             els.hiddenVault.appendChild(els.valueInput);
@@ -473,11 +475,18 @@
         if (isTransitioning || isPenalizing) return;
         const buttons = els.r3Grid.querySelectorAll('.btn-sign');
         let allCorrect = true;
+        let isMissing = false;
         
         buttons.forEach((btn, i) => {
             const isSelected = btn.classList.contains('selected');
             const isLessThanR = challengeData.nums[i] < challengeData.r;
-            if (isSelected !== isLessThanR) allCorrect = false;
+            if (isSelected !== isLessThanR) {
+                allCorrect = false;
+                // Si l'hauria d'haver seleccionat però no ho ha fet...
+                if (!isSelected && isLessThanR) {
+                    isMissing = true;
+                }
+            }
         });
 
         const stepQuestion = `Menors que ${challengeData.r}`;
@@ -487,6 +496,12 @@
             setTimeout(() => els.btnSubmitR3.classList.remove('error-shake'), 200);
             if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Error", false);
             
+            // 🟢 NOU: Si s'ha deixat d'escollir algun nombre correcte, li ho indiquem amb el missatge
+            if (isMissing && els.r3Msg) {
+                els.r3Msg.innerText = "Falta encara algun nombre.";
+                setTimeout(() => { els.r3Msg.innerText = ''; }, 2000);
+            }
+
             buttons.forEach((btn, i) => {
                 const isSelected = btn.classList.contains('selected');
                 const isLessThanR = challengeData.nums[i] < challengeData.r;
@@ -517,9 +532,7 @@
             }
         });
 
-        // 🟢 NOU: Només amaguem el botó OK. La graella es queda visible de fons!
         els.btnSubmitR3.style.display = 'none';
-        
         successEnd();
     }
 
