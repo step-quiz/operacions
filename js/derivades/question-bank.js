@@ -5,16 +5,11 @@
  * ROL: Registre de famílies de preguntes i selector per URL.
  * ARQUITECTURA:
  * - Cada generador retorna: { promptTex, solutionTex, options[], meta{} }
- * - FASE 8: Afegides dues famílies noves:
- *     'product'  → f(x) = f(x)·g(x), regla del producte (fg)' = f'g + fg'
- *     'quotient' → f(x) = f(x)/g(x), regla del quocient (f'g - fg')/g²
- *   Els parells de funcions es defineixen en catàlegs estàtics amb tots els
- *   camps precomputats per evitar generació algebraica dinàmica.
- *   URLs d'exemple:
- *     ?families=product
- *     ?families=quotient
- *     ?families=product,quotient
- *     ?families=chain-exp-int,power,product,quotient
+ * - FASE 8 (fix): Corregits dos bugs de la regla del producte/quocient:
+ *     1. _wrapIfNeeded(): afegeix parèntesis a fTex/gTex quan contenen + o -
+ *        a nivell arrel (evita f(x) = x+1 · x-1 sense parèntesis).
+ *     2. Eliminat el parell x²·x³ del catàleg (simplifica trivialment a x⁵
+ *        i x²/x³ a x^{-1}; no té valor pedagògic com a exercici de regles).
  * DEPENDÈNCIES: Requereix math-engine.js i distractor-lib.js.
  * ============================================================================
  */
@@ -67,6 +62,35 @@ function _fmtConst(a) {
     if (a ===  1) return '1';
     if (a === -1) return '-1';
     return String(a);
+}
+
+/**
+ * _wrapIfNeeded(tex)
+ * Retorna tex entre parèntesis si conté un + o - a nivell arrel
+ * (fora de claus LaTeX {}). Evita que "x+1 \cdot x-1" es mostri
+ * sense parèntesis quan s'usa com a factor d'un producte.
+ *
+ * Exemples:
+ *   'x^2'    → 'x^2'       (sense canvi)
+ *   'x+1'    → '(x+1)'     (afegeix parèntesis)
+ *   'x-1'    → '(x-1)'     (afegeix parèntesis)
+ *   'e^{2x}' → 'e^{2x}'    (el + és dins {}, no compta)
+ *   '\\ln(x)'→ '\\ln(x)'   (sense + ni - a nivell arrel)
+ */
+function _wrapIfNeeded(tex) {
+    let depth = 0;
+    for (let i = 0; i < tex.length; i++) {
+        const c = tex[i];
+        if (c === '{') { depth++; continue; }
+        if (c === '}') { depth--; continue; }
+        if (depth === 0) {
+            // + sempre indica suma visible
+            if (c === '+') return `(${tex})`;
+            // - només si no és el primer caràcter (evita "-x" que és un terme negatiu simple)
+            if (c === '-' && i > 0) return `(${tex})`;
+        }
+    }
+    return tex;
 }
 
 // =========================================================================
@@ -214,126 +238,117 @@ function generateLogPoly2() {
 // =========================================================================
 // CATÀLEG DE PARELLS DE FUNCIONS (producte i quocient)
 //
-// Cada entrada és un objecte amb TOTS els camps precomputats:
-//   fTex    → f(x) en LaTeX
-//   gTex    → g(x) en LaTeX
-//   dfTex   → f'(x) en LaTeX
-//   dgTex   → g'(x) en LaTeX
-//   dfgTex  → f'(x)·g(x) simplificat (primer terme de la regla del producte/quocient)
-//   fdgTex  → f(x)·g'(x) simplificat (segon terme)
-//   g2Tex   → g(x)² en LaTeX (per al denominador del quocient)
-//   solutionProduct  → (fg)' simplificat
-//   solutionQuotient → (f/g)' simplificat (ja dins \frac{}{})
-//
-// Estratègia: parells curts i nets per no generar expressions LaTeX massa llargues.
-// Prioritat pedagògica: barrejar tipus (polinomi·exp, polinomi·trig, polinomi²).
+// Criteris d'inclusió:
+// - Cap parell simplificable trivialment (x^a · x^b, x^a / x^b eliminats).
+// - fTex i gTex estan en forma canònica sense parèntesis externs;
+//   generateProduct() i generateQuotient() afegeixen parèntesis si cal
+//   via _wrapIfNeeded().
 // =========================================================================
-
 const FUNCTION_PAIRS = [
     // x · e^x
     {
-        fTex: 'x',          gTex: 'e^{x}',
-        dfTex: '1',         dgTex: 'e^{x}',
-        dfgTex: 'e^{x}',    fdgTex: 'xe^{x}',
+        fTex: 'x',           gTex: 'e^{x}',
+        dfTex: '1',          dgTex: 'e^{x}',
+        dfgTex: 'e^{x}',     fdgTex: 'xe^{x}',
         g2Tex: 'e^{2x}',
         solutionProduct:  'e^{x}+xe^{x}',
         solutionQuotient: '\\frac{e^{x}-xe^{x}}{e^{2x}}'
     },
     // x² · e^x
     {
-        fTex: 'x^2',        gTex: 'e^{x}',
-        dfTex: '2x',        dgTex: 'e^{x}',
-        dfgTex: '2xe^{x}',  fdgTex: 'x^2e^{x}',
+        fTex: 'x^2',         gTex: 'e^{x}',
+        dfTex: '2x',         dgTex: 'e^{x}',
+        dfgTex: '2xe^{x}',   fdgTex: 'x^2e^{x}',
         g2Tex: 'e^{2x}',
         solutionProduct:  '2xe^{x}+x^2e^{x}',
         solutionQuotient: '\\frac{2xe^{x}-x^2e^{x}}{e^{2x}}'
     },
     // x · e^{2x}
     {
-        fTex: 'x',          gTex: 'e^{2x}',
-        dfTex: '1',         dgTex: '2e^{2x}',
-        dfgTex: 'e^{2x}',   fdgTex: '2xe^{2x}',
+        fTex: 'x',           gTex: 'e^{2x}',
+        dfTex: '1',          dgTex: '2e^{2x}',
+        dfgTex: 'e^{2x}',    fdgTex: '2xe^{2x}',
         g2Tex: 'e^{4x}',
         solutionProduct:  'e^{2x}+2xe^{2x}',
         solutionQuotient: '\\frac{e^{2x}-2xe^{2x}}{e^{4x}}'
     },
     // (x+1) · e^x
     {
-        fTex: 'x+1',        gTex: 'e^{x}',
-        dfTex: '1',         dgTex: 'e^{x}',
-        dfgTex: 'e^{x}',    fdgTex: '(x+1)e^{x}',
+        fTex: 'x+1',         gTex: 'e^{x}',
+        dfTex: '1',          dgTex: 'e^{x}',
+        dfgTex: 'e^{x}',     fdgTex: '(x+1)e^{x}',
         g2Tex: 'e^{2x}',
         solutionProduct:  'e^{x}+(x+1)e^{x}',
         solutionQuotient: '\\frac{e^{x}-(x+1)e^{x}}{e^{2x}}'
     },
+    // (x-2) · e^x
+    {
+        fTex: 'x-2',         gTex: 'e^{x}',
+        dfTex: '1',          dgTex: 'e^{x}',
+        dfgTex: 'e^{x}',     fdgTex: '(x-2)e^{x}',
+        g2Tex: 'e^{2x}',
+        solutionProduct:  'e^{x}+(x-2)e^{x}',
+        solutionQuotient: '\\frac{e^{x}-(x-2)e^{x}}{e^{2x}}'
+    },
     // x · ln(x)
     {
-        fTex: 'x',          gTex: '\\ln(x)',
-        dfTex: '1',         dgTex: '\\frac{1}{x}',
-        dfgTex: '\\ln(x)',  fdgTex: '1',
+        fTex: 'x',           gTex: '\\ln(x)',
+        dfTex: '1',          dgTex: '\\frac{1}{x}',
+        dfgTex: '\\ln(x)',   fdgTex: '1',
         g2Tex: '\\ln^2(x)',
         solutionProduct:  '\\ln(x)+1',
         solutionQuotient: '\\frac{\\ln(x)-1}{\\ln^2(x)}'
     },
     // x² · ln(x)
     {
-        fTex: 'x^2',           gTex: '\\ln(x)',
-        dfTex: '2x',           dgTex: '\\frac{1}{x}',
-        dfgTex: '2x\\ln(x)',   fdgTex: 'x',
+        fTex: 'x^2',            gTex: '\\ln(x)',
+        dfTex: '2x',            dgTex: '\\frac{1}{x}',
+        dfgTex: '2x\\ln(x)',    fdgTex: 'x',
         g2Tex: '\\ln^2(x)',
         solutionProduct:  '2x\\ln(x)+x',
         solutionQuotient: '\\frac{2x\\ln(x)-x}{\\ln^2(x)}'
     },
     // x³ · ln(x)
     {
-        fTex: 'x^3',           gTex: '\\ln(x)',
-        dfTex: '3x^2',         dgTex: '\\frac{1}{x}',
-        dfgTex: '3x^2\\ln(x)', fdgTex: 'x^2',
+        fTex: 'x^3',             gTex: '\\ln(x)',
+        dfTex: '3x^2',           dgTex: '\\frac{1}{x}',
+        dfgTex: '3x^2\\ln(x)',   fdgTex: 'x^2',
         g2Tex: '\\ln^2(x)',
         solutionProduct:  '3x^2\\ln(x)+x^2',
         solutionQuotient: '\\frac{3x^2\\ln(x)-x^2}{\\ln^2(x)}'
     },
-    // x² · x³ = x⁵ (com a control pedagògic — la regla del producte ha de donar 5x⁴)
+    // (2x+1) · x²  [FIX: eliminat x²·x³ substituït per aquest]
     {
-        fTex: 'x^2',        gTex: 'x^3',
-        dfTex: '2x',        dgTex: '3x^2',
-        dfgTex: '2x^4',     fdgTex: '3x^4',
-        g2Tex: 'x^6',
-        solutionProduct:  '2x^4+3x^4',
-        solutionQuotient: '\\frac{2x^4-3x^4}{x^6}'
-    },
-    // (2x+1) · x²
-    {
-        fTex: '2x+1',       gTex: 'x^2',
-        dfTex: '2',         dgTex: '2x',
-        dfgTex: '2x^2',     fdgTex: '2x(2x+1)',
+        fTex: '2x+1',        gTex: 'x^2',
+        dfTex: '2',          dgTex: '2x',
+        dfgTex: '2x^2',      fdgTex: '2x(2x+1)',
         g2Tex: 'x^4',
         solutionProduct:  '2x^2+2x(2x+1)',
         solutionQuotient: '\\frac{2x^2-2x(2x+1)}{x^4}'
     },
     // x · (x+3)
     {
-        fTex: 'x',          gTex: 'x+3',
-        dfTex: '1',         dgTex: '1',
-        dfgTex: 'x+3',      fdgTex: 'x',
+        fTex: 'x',           gTex: 'x+3',
+        dfTex: '1',          dgTex: '1',
+        dfgTex: 'x+3',       fdgTex: 'x',
         g2Tex: '(x+3)^2',
         solutionProduct:  'x+3+x',
         solutionQuotient: '\\frac{x+3-x}{(x+3)^2}'
     },
     // (x+1) · (x-1)
     {
-        fTex: 'x+1',        gTex: 'x-1',
-        dfTex: '1',         dgTex: '1',
-        dfgTex: 'x-1',      fdgTex: 'x+1',
+        fTex: 'x+1',         gTex: 'x-1',
+        dfTex: '1',          dgTex: '1',
+        dfgTex: 'x-1',       fdgTex: 'x+1',
         g2Tex: '(x-1)^2',
         solutionProduct:  'x-1+x+1',
         solutionQuotient: '\\frac{x-1-(x+1)}{(x-1)^2}'
     },
     // x² · (x+2)
     {
-        fTex: 'x^2',         gTex: 'x+2',
-        dfTex: '2x',         dgTex: '1',
-        dfgTex: '2x(x+2)',   fdgTex: 'x^2',
+        fTex: 'x^2',          gTex: 'x+2',
+        dfTex: '2x',          dgTex: '1',
+        dfgTex: '2x(x+2)',    fdgTex: 'x^2',
         g2Tex: '(x+2)^2',
         solutionProduct:  '2x(x+2)+x^2',
         solutionQuotient: '\\frac{2x(x+2)-x^2}{(x+2)^2}'
@@ -345,7 +360,10 @@ const FUNCTION_PAIRS = [
 // =========================================================================
 function generateProduct() {
     const pair        = FUNCTION_PAIRS[Math.floor(Math.random() * FUNCTION_PAIRS.length)];
-    const promptTex   = `${pair.fTex}\\cdot ${pair.gTex}`;
+    // _wrapIfNeeded afegeix parèntesis si fTex o gTex contenen + o - a nivell arrel
+    const fDisplay    = _wrapIfNeeded(pair.fTex);
+    const gDisplay    = _wrapIfNeeded(pair.gTex);
+    const promptTex   = `${fDisplay}\\cdot ${gDisplay}`;
     const solutionTex = pair.solutionProduct;
     const pairCtx     = { ...pair, promptTex, solutionTex };
 
@@ -373,13 +391,14 @@ function generateProduct() {
 // =========================================================================
 function generateQuotient() {
     const pair        = FUNCTION_PAIRS[Math.floor(Math.random() * FUNCTION_PAIRS.length)];
+    // \frac{}{} ja proporciona separació visual; no calen parèntesis addicionals
     const promptTex   = `\\frac{${pair.fTex}}{${pair.gTex}}`;
     const solutionTex = pair.solutionQuotient;
     const pairCtx     = { ...pair, promptTex, solutionTex };
 
     const pool      = DistractorLib.buildQuotient(pairCtx);
     const fallbacks = [
-        { tex: promptTex,                          feedback: "Aquesta és la funció original, no la seva derivada.",                         errorType: 'NO_DERIVATIVE',   scope: 'universal'     },
+        { tex: promptTex,                              feedback: "Aquesta és la funció original, no la seva derivada.",                                      errorType: 'NO_DERIVATIVE',   scope: 'universal'     },
         { tex: `\\frac{${pair.dfTex}}{${pair.dgTex}}`, feedback: "Has derivat numerador i denominador per separat, però la regla del quocient és (f'g − fg')/g².", errorType: 'QUOTIENT_DENOM', scope: 'rule:quotient' },
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
