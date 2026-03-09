@@ -2,11 +2,8 @@
 
 /**
  * =========================================================================
- * GENERADOR UNIVERSAL DE DISTRACTORS (Regla de la Cadena: f(x) = g(Kx))
+ * GENERADOR UNIVERSAL DE DISTRACTORS (Amb feedback pedagògic)
  * =========================================================================
- * @param {Object} kVars - Objecte amb les cadenes de text de K ja formatades.
- * @param {Object} fns - Funcions { g, dg, intG } que retornen codi LaTeX.
- * @returns {Array} - Llista mestra amb tots els possibles errors cognitius.
  */
 function buildChainRuleDistractors(kVars, fns) {
     const { coef, negCoef, kx, negKx, plusK, kInv } = kVars;
@@ -14,28 +11,28 @@ function buildChainRuleDistractors(kVars, fns) {
 
     return [
         // --- ERRORS DE LA REGLA DE LA CADENA ---
-        `${dg(kx)}`,                           // 1. Oblida derivar a dins
-        `${coef}${g(kx)}`,                     // 2. Deriva a dins però no a fora
-        `${g(kx)}`,                            // 3. No deriva ni a dins ni a fora (copia l'enunciat)
+        { tex: `${dg(kx)}`, feedback: "Has oblidat aplicar la regla de la cadena." },
+        { tex: `${coef}${g(kx)}`, feedback: "No és aquesta la derivada." },
+        { tex: `${g(kx)}`, feedback: "No has derivat." },
         
         // --- ERRORS DE CONFUSIÓ AMB INTEGRALS ---
-        `${kInv}${dg(kx)}`,                    // 4. Multiplica per 1/K en lloc de K
-        `${kInv}${intG(kx)}`,                  // 5. Fa la integral completa perfectament
-        `${intG(kx)}`,                         // 6. Fa la integral només a fora
+        { tex: `${kInv}${dg(kx)}`, feedback: "Quan has aplicat la regla de la cadena, t'has equivocat en un coeficient." },
+        { tex: `${kInv}${intG(kx)}`, feedback: "Incorrecte: recorda que estem derivant." },
+        { tex: `${intG(kx)}`, feedback: "Incorrecte: recorda que estem derivant." },
         
         // --- ERRORS ALGÈBRICS I DE NOTACIÓ ---
-        `${coef}x${dg(kx)}`,                   // 7. Baixa la x (fals ús regla potències)
-        `${dg(`${coef}(x-1)`)}`,               // 8. Resta 1 a l'argument (fals ús regla potències)
-        `${dg(kx)} ${plusK}`,                  // 9. Suma K fora de la funció
-        `${dg('x')} ${plusK}`,                 // 10. Es menja la K de dins i la suma a fora
+        { tex: `${coef}x${dg(kx)}`, feedback: "No has aplicat correctament la regla de la cadena." },
+        { tex: `${dg(`${coef}(x-1)`)}`, feedback: "Compte, aquesta funció no es deriva com si fos un polinomi." },
+        { tex: `${dg(kx)} ${plusK}`, feedback: "No apliques correctament la regla de la cadena, perquè no hi va una suma." },
+        { tex: `${dg('x')} ${plusK}`, feedback: "No apliques correctament la regla de la cadena, perquè no hi va una suma." },
         
         // --- ERRORS D'OBLIDAR LA K DE L'ARGUMENT ---
-        `${dg('x')}`,                          // 11. Es menja la K de l'argument completament
-        `${coef}${dg('x')}`,                   // 12. Treu K fora però l'esborra de dins
+        { tex: `${dg('x')}`, feedback: "No és aquesta la derivada." },
+        { tex: `${coef}${dg('x')}`, feedback: "No has aplicat correctament la regla de la cadena." },
         
         // --- ERRORS DE SIGNE ---
-        `${dg(negKx)}`,                        // 13. Canvia el signe només a dins
-        `${negCoef}${dg(negKx)}`               // 14. Canvia el signe a dins i a fora
+        { tex: `${dg(negKx)}`, feedback: "Revisa els signes que has escrit i, a més, recorda aplicar la regla de la cadena." },
+        { tex: `${negCoef}${dg(negKx)}`, feedback: "Hi ha algun error amb els signes." }
     ];
 }
 
@@ -48,49 +45,44 @@ const questionBank = [
     {
         id: 'exp_kx_int', 
         generate: () => {
-            // 1. Variables de K
             const k = generateK();
             const kStr = formatK(k); 
             const kInvStr = k === -1 ? "-" : (k < 0 ? `-\\frac{1}{${Math.abs(k)}}` : `\\frac{1}{${k}}`);
             const plusK = k > 0 ? `+ ${k}` : `- ${Math.abs(k)}`;
             const negKStr = formatK(-k);
 
-            // 2. Empaquetem les variables per a la fàbrica
             const kVars = {
-                coef: kStr,
-                negCoef: negKStr,
-                kx: `${kStr}x`,
-                negKx: `${negKStr}x`,
-                plusK: plusK,
-                kInv: kInvStr
+                coef: kStr, negCoef: negKStr, kx: `${kStr}x`, negKx: `${negKStr}x`, plusK: plusK, kInv: kInvStr
             };
             
-            // 3. Definim el comportament de g(x) = e^x
             const fns = {
-                g:    (arg) => `e^{${arg}}`,
-                dg:   (arg) => `e^{${arg}}`,
-                intG: (arg) => `e^{${arg}}`
+                g: (arg) => `e^{${arg}}`, dg: (arg) => `e^{${arg}}`, intG: (arg) => `e^{${arg}}`
             };
 
-            // 4. Generem correcta i distractors
             const correctTex = `${kVars.coef}${fns.dg(kVars.kx)}`;
             const allDistractors = buildChainRuleDistractors(kVars, fns);
 
-            // 5. Filtrem col·lisions (duplicats o iguals a la correcta) i triem 3
-            const validDistractors = [...new Set(allDistractors.filter(d => d !== correctTex))];
+            // Filtre anti-col·lisions per a OBJECTES usant Map
+            const uniqueDistractorsMap = new Map();
+            allDistractors.forEach(distractor => {
+                if (distractor.tex !== correctTex && !uniqueDistractorsMap.has(distractor.tex)) {
+                    uniqueDistractorsMap.set(distractor.tex, distractor);
+                }
+            });
+
+            const validDistractors = Array.from(uniqueDistractorsMap.values());
             const selectedDistractors = validDistractors.sort(() => Math.random() - 0.5).slice(0, 3);
 
             return {
                 questionTex: `f(x) = e^{${kVars.kx}}`,
                 correctTex: correctTex,
-                distractorsTex: selectedDistractors
+                distractors: selectedDistractors // <-- Atenció: Ara es diu 'distractors' (array d'objectes), no distractorsTex
             };
         }
     },
     {
         id: 'exp_kx_frac', 
         generate: () => {
-            // 1. Variables de K (Fracció)
             const frac = generateFractionK();
             const p = frac.num;
             const q = frac.den;
@@ -98,18 +90,10 @@ const questionBank = [
             const sign = p < 0 ? "-" : "";
 
             const kCoefStr = p < 0 ? `-\\frac{${absP}}{${q}}` : `\\frac{${absP}}{${q}}`;
-
-            // --- EL CANVI DE UX ---
-            // Si el numerador original és 1 o -1, l'invers és un nombre sencer (q o -q)
-            const kInvStr = absP === 1 
-                ? (p < 0 ? `-${q}` : `${q}`) 
-                : (p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`);
-                
+            const kInvStr = absP === 1 ? (p < 0 ? `-${q}` : `${q}`) : (p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`);
             const negKCoefStr = p < 0 ? `\\frac{${absP}}{${q}}` : `-\\frac{${absP}}{${q}}`;
-
             const plusK = p > 0 ? `+ ${kCoefStr}` : kCoefStr;
 
-            // 2. Alternança de notació (Manera 1 vs Manera 2)
             const isManera2 = Math.random() < 0.5;
             let kxStr, negKxStr;
 
@@ -122,35 +106,32 @@ const questionBank = [
                 negKxStr = `${negKCoefStr}x`;
             }
 
-            // 3. Empaquetem per a la fàbrica
             const kVars = {
-                coef: kCoefStr,
-                negCoef: negKCoefStr,
-                kx: kxStr,
-                negKx: negKxStr,
-                plusK: plusK,
-                kInv: kInvStr
+                coef: kCoefStr, negCoef: negKCoefStr, kx: kxStr, negKx: negKxStr, plusK: plusK, kInv: kInvStr
             };
 
-            // 4. Funcions base per a e^x
             const fns = {
-                g:    (arg) => `e^{${arg}}`,
-                dg:   (arg) => `e^{${arg}}`,
-                intG: (arg) => `e^{${arg}}`
+                g: (arg) => `e^{${arg}}`, dg: (arg) => `e^{${arg}}`, intG: (arg) => `e^{${arg}}`
             };
 
-            // 5. Muntem-ho tot
             const correctTex = `${kVars.coef}${fns.dg(kVars.kx)}`;
             const allDistractors = buildChainRuleDistractors(kVars, fns);
 
-            const validDistractors = [...new Set(allDistractors.filter(d => d !== correctTex))];
+            const uniqueDistractorsMap = new Map();
+            allDistractors.forEach(distractor => {
+                if (distractor.tex !== correctTex && !uniqueDistractorsMap.has(distractor.tex)) {
+                    uniqueDistractorsMap.set(distractor.tex, distractor);
+                }
+            });
+
+            const validDistractors = Array.from(uniqueDistractorsMap.values());
             const selectedDistractors = validDistractors.sort(() => Math.random() - 0.5).slice(0, 3);
 
             return {
                 questionTex: `f(x) = e^{${kVars.kx}}`,
                 correctTex: correctTex,
-                distractorsTex: selectedDistractors
+                distractors: selectedDistractors // <-- Array d'objectes
             };
         }
     }
-];
+];s
