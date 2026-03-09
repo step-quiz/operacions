@@ -112,6 +112,90 @@ window.MathEngine = (() => {
     }
 
     // -------------------------------------------------------------------------
+    // FORMATADORS COMPARTITS (usats per distractor-lib.js i question-bank.js)
+    // Font única: elimina la duplicació entre els dos fitxers clients.
+    // -------------------------------------------------------------------------
+
+    /** "ax+b" → p.ex. 'x', '-x', '2x', '2x+3', '-x-1' */
+    function fmtLinear(a, b) {
+        const aPart = a ===  1 ? 'x' : a === -1 ? '-x' : `${a}x`;
+        if (b === 0) return aPart;
+        return `${aPart}${b > 0 ? `+${b}` : b}`;
+    }
+
+    /** "x²+bx+c" → p.ex. 'x^2', 'x^2+3x', 'x^2-2x+1' */
+    function fmtPoly2(b, c) {
+        let s = 'x^2';
+        if (b !== 0) s += b > 0 ? `+${b}x` : `${b}x`;
+        if (c !== 0) s += c > 0 ? `+${c}` : `${c}`;
+        return s;
+    }
+
+    /** Derivada de x²+bx+c → "2x+b" → p.ex. '2x', '2x+1', '2x-3' */
+    function fmtPoly2Deriv(b) {
+        if (b === 0)  return '2x';
+        if (b === 1)  return '2x+1';
+        if (b === -1) return '2x-1';
+        return b > 0 ? `2x+${b}` : `2x${b}`;
+    }
+
+    /** Constant enter com a string LaTeX: 1→'1', -1→'-1', 3→'3' */
+    function fmtConst(a) {
+        if (a ===  1) return '1';
+        if (a === -1) return '-1';
+        return String(a);
+    }
+
+    /** kx com a argument LaTeX: 1→'x', -1→'-x', 3→'3x' */
+    function kxArg(k) {
+        if (k ===  1) return 'x';
+        if (k === -1) return '-x';
+        return `${k}x`;
+    }
+
+    /** k·fn(arg) com a LaTeX: 1→'\\fn(arg)', -1→'-\\fn(arg)', k→'k\\fn(arg)' */
+    function trigTerm(k, fn, arg) {
+        const fnArg = `\\${fn}(${arg})`;
+        if (k ===  1) return fnArg;
+        if (k === -1) return `-${fnArg}`;
+        return `${k}${fnArg}`;
+    }
+
+    /**
+     * Determina si cal envolicar tex entre parèntesis analitzant la
+     * profunditat de claus LaTeX. Evita falsos positius quan els operadors
+     * + o − apareixen dins \frac{}{} o altres entorns amb claus.
+     * Exemples:
+     *   '2x+3'           → '(2x+3)'          ← + a profunditat 0
+     *   '2x'             → '2x'               ← cap operador a prof 0
+     *   '-x'             → '-x'               ← - a posició 0, no infix
+     *   '2x-1'           → '(2x-1)'           ← - infix a profunditat 0
+     *   '\\frac{x+1}{2}' → '\\frac{x+1}{2}'  ← + dins claus, prof > 0
+     */
+    function wrapIfNeeded(tex) {
+        let depth = 0;
+        for (let i = 0; i < tex.length; i++) {
+            const c = tex[i];
+            if (c === '{') { depth++; continue; }
+            if (c === '}') { depth--; continue; }
+            if (depth === 0) {
+                if (c === '+') return `(${tex})`;
+                if (c === '-' && i > 0) return `(${tex})`;
+            }
+        }
+        return tex;
+    }
+
+    /**
+     * Formata pDeriv·fn(arg) com a LaTeX.
+     * Posa parèntesis al factor si wrapIfNeeded ho determina.
+     * p.ex. polyCoefTrig('2x+3','cos','x^2+3x+1') → '(2x+3)\\cos(x^2+3x+1)'
+     */
+    function polyCoefTrig(pDeriv, fn, arg) {
+        return `${wrapIfNeeded(pDeriv)}\\${fn}(${arg})`;
+    }
+
+    // -------------------------------------------------------------------------
     // CONSTRUCTORS DE kVars (per a h(x) = kx)
     // -------------------------------------------------------------------------
 
@@ -177,6 +261,8 @@ window.MathEngine = (() => {
         gcd,
         generateK, generateKExp, generateFractionK,
         formatK, formatPowerTerm,
+        fmtLinear, fmtPoly2, fmtPoly2Deriv, fmtConst,
+        kxArg, trigTerm, wrapIfNeeded, polyCoefTrig,
         buildKVars, buildFracKVars
     };
 

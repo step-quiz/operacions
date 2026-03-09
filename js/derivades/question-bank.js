@@ -42,62 +42,16 @@ function _selectDistractors(pool, correctTex, count, fallbacks) {
 }
 
 // =========================================================================
-// AUXILIARS DE FORMAT
+// ÀLIES LOCALS → MathEngine (font única, evita duplicació)
 // =========================================================================
-function _fmtLinear(a, b) {
-    const aPart = a === 1 ? 'x' : a === -1 ? '-x' : `${a}x`;
-    if (b === 0) return aPart;
-    return `${aPart}${b > 0 ? `+${b}` : b}`;
-}
-function _fmtPoly2(b, c) {
-    let s = 'x^2';
-    if (b !== 0) s += b > 0 ? `+${b}x` : `${b}x`;
-    if (c !== 0) s += c > 0 ? `+${c}` : `${c}`;
-    return s;
-}
-function _fmtPoly2Deriv(b) {
-    if (b === 0)  return '2x';
-    if (b === 1)  return '2x+1';
-    if (b === -1) return '2x-1';
-    return b > 0 ? `2x+${b}` : `2x${b}`;
-}
-function _fmtConst(a) {
-    if (a ===  1) return '1';
-    if (a === -1) return '-1';
-    return String(a);
-}
-function _kxArg(k) {
-    if (k ===  1) return 'x';
-    if (k === -1) return '-x';
-    return `${k}x`;
-}
-function _trigTerm(k, fn, arg) {
-    const fnArg = `\\${fn}(${arg})`;
-    if (k ===  1) return fnArg;
-    if (k === -1) return `-${fnArg}`;
-    return `${k}${fnArg}`;
-}
-function _wrapIfNeeded(tex) {
-    let depth = 0;
-    for (let i = 0; i < tex.length; i++) {
-        const c = tex[i];
-        if (c === '{') { depth++; continue; }
-        if (c === '}') { depth--; continue; }
-        if (depth === 0) {
-            if (c === '+') return `(${tex})`;
-            if (c === '-' && i > 0) return `(${tex})`;
-        }
-    }
-    return tex;
-}
-/** Formata (pDeriv)·fn(arg) amb parèntesis al factor si cal.
- *  Delega la detecció a _wrapIfNeeded, que analitza la profunditat
- *  de claus LaTeX i evita falsos positius dins \frac{}{} i similars. */
-function _polyCoefTrig(pDeriv, fn, arg) {
-    const fnArg    = `\\${fn}(${arg})`;
-    const coefPart = _wrapIfNeeded(pDeriv);
-    return `${coefPart}${fnArg}`;
-}
+const _fmtLinear    = MathEngine.fmtLinear;
+const _fmtPoly2     = MathEngine.fmtPoly2;
+const _fmtPoly2Deriv= MathEngine.fmtPoly2Deriv;
+const _fmtConst     = MathEngine.fmtConst;
+const _kxArg        = MathEngine.kxArg;
+const _trigTerm     = MathEngine.trigTerm;
+const _wrapIfNeeded = MathEngine.wrapIfNeeded;
+const _polyCoefTrig = MathEngine.polyCoefTrig;
 
 // =========================================================================
 // FAMÍLIES: e^{kx}
