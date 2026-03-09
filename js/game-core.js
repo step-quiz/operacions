@@ -1,16 +1,18 @@
 /**
  * ============================================================================
  * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
- * FITXER: js/config.js
- * ROL: Gestió de la configuració de la partida i paràmetres URL.
+ * FITXER: js/game-core.js
+ * ROL: Motor d'estat global, injecció de DOM i seguretat.
  * ARQUITECTURA:
- * - Permet al professorat configurar la partida via paràmetres GET a la URL 
- * (ex: ?totalsessions=3&maxintents=2).
- * - Inclou mecanismes de seguretat defensiva i fallbacks (límits min/max) per 
- * evitar comportaments anòmals si l'usuari manipula la URL.
- * DEPENDÈNCIES: Requereix utils.js (per la funció getIntParam).
+ * - State Management: Controla la puntuació, les sessions i l'historial.
+ * - DOM Injection: Injecta dinàmicament interfícies compartides (teclat, 
+ * overlay de victòria, pantalla final) per no embrutar l'HTML específic.
+ * - Seguretat: Genera el codi de validació antifrau per al professorat i 
+ * saniteja les dades de l'historial (escapeHtml) per prevenir atacs XSS.
+ * DEPENDÈNCIES: Requereix utils.js i config.js.
  * ============================================================================
  */
+
 // ---- PALETA DE FONS (compartida) ---
 const bgColors = [
     '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
