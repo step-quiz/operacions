@@ -44,6 +44,12 @@ function generateFractionK() {
     return { num: p / common, den: q / common };
 }
 
+function formatK(k) {
+    if (k === 1) return "";
+    if (k === -1) return "-";
+    return k.toString();
+}
+
 /**
  * =========================================================================
  * LÒGICA DEL JOC (CONTROLADOR)
@@ -173,14 +179,21 @@ function _finishOp(levelPoints) {
 
 // 4. Arrencada automàtica
 window.addEventListener('DOMContentLoaded', () => {
+    // 1. Validem la configuració
     if (typeof validateConfig === 'function') validateConfig();
     
-    // Injectar la interfície compartida de game-core
-    const mainPanel = document.getElementById('main-panel');
-    if (mainPanel && typeof getSharedGameHTML === 'function') {
-        // (Opcional) Aquí podries injectar HTML si fos necessari
+    // 2. Injectem l'HTML compartit (teclats, pantalles finals)
+    if (typeof injectSharedHTML === 'function') {
+        injectSharedHTML();
     }
     
-    // Inicialitzar el primer nivell
-    buildLevel();
+    // 3. Mostrem la pantalla i iniciem la sessió (això treu el display:none)
+    if (typeof startGame === 'function') {
+        startGame(); 
+    } else {
+        // Fallback per si no tenim game-core.js carregat
+        const screen = document.getElementById('game-screen');
+        if (screen) screen.style.display = 'block';
+        buildLevel();
+    }
 });
