@@ -578,23 +578,37 @@
     const R1_SQ_MEDIUM = [{sq:4,r:2},{sq:9,r:3},{sq:16,r:4},{sq:25,r:5}];
 
     function generateRepte1(opIndex) {
-        for (let t = 0; t < 50; t++) {
-            let p;
-            {
-                let bases, squares, fc;
-                if (opIndex<=1) { bases=R1_BASES_EASY; squares=R1_SQ_EASY; fc=1; }
-                else if (opIndex<=3) { bases=R1_BASES_MEDIUM; squares=R1_SQ_MEDIUM; fc=1; }
-                else { bases=R1_BASES_HARD; squares=R1_SQ_MEDIUM; fc=randInt(2,5); }
-                const base=pick(bases), si=pick(squares);
-                p = { frontCoef:fc, radicand:base*si.sq, expectedSquare:si.sq, expectedRest:base, finalCoef:fc*si.r, finalRadicand:base };
-            }
-            const key = p.frontCoef+'|'+p.radicand;
-            if (!usedProblems.has(key)) { usedProblems.add(key); return p; }
-        }
-        const b=pick(R1_BASES_EASY), s=pick(R1_SQ_EASY);
-        return { frontCoef:1, radicand:b*s.sq, expectedSquare:s.sq, expectedRest:b, finalCoef:s.r, finalRadicand:b };
-    }
-
+        for (let t = 0; t < 50; t++) {
+            let p;
+            {
+                let bases, squares;
+                if (opIndex <= 1) { 
+                    bases = R1_BASES_EASY; 
+                    squares = R1_SQ_EASY; 
+                } else if (opIndex <= 3) { 
+                    bases = R1_BASES_MEDIUM; 
+                    squares = R1_SQ_MEDIUM; 
+                } else { 
+                    bases = R1_BASES_HARD; 
+                    squares = R1_SQ_MEDIUM; 
+                }
+                const base = pick(bases), si = pick(squares);
+                // Fixem sempre el coeficient frontal (frontCoef) a 1
+                p = { 
+                    frontCoef: 1, 
+                    radicand: base * si.sq, 
+                    expectedSquare: si.sq, 
+                    expectedRest: base, 
+                    finalCoef: si.r, // Com que frontCoef és 1, finalCoef és directament l'arrel extreta
+                    finalRadicand: base 
+                };
+            }
+            const key = p.frontCoef + '|' + p.radicand;
+            if (!usedProblems.has(key)) { usedProblems.add(key); return p; }
+        }
+        const b = pick(R1_BASES_EASY), s = pick(R1_SQ_EASY);
+        return { frontCoef: 1, radicand: b * s.sq, expectedSquare: s.sq, expectedRest: b, finalCoef: s.r, finalRadicand: b };
+    }
     function buildStepsRepte1(p) {
         r1FactorSquare = null;
         r1FactorRest = null;
