@@ -22,7 +22,8 @@ function formatK(k) {
 
 function generateK() {
     let k = 0;
-    while (k === 0) k = randInt(-6, 6);
+    // Ara només evitem el 0 i l'1 (permetem el -1)
+    while (k === 0 || k === 1) k = randInt(-6, 6);
     return k;
 }
 
