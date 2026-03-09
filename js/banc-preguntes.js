@@ -45,33 +45,60 @@ const questionBank = [
             };
         }
     },
-    {
+ {
         id: 'exp_kx_frac', 
         generate: () => {
             const frac = generateFractionK();
-            const kStr = frac.tex;
-            const kInvStr = invertFractionTex(frac);
-            const plusK = frac.num > 0 ? `+ ${kStr}` : kStr;
             
-            // Calculem -K per a les fraccions
-            const negNum = -frac.num;
-            const negSign = negNum < 0 ? "-" : "";
-            const negKStr = `${negSign}\\frac{${Math.abs(negNum)}}{${frac.den}}`;
+            // Extraiem numerador (p) i denominador (q)
+            const p = frac.num;
+            const q = frac.den;
+            const absP = Math.abs(p);
+            const sign = p < 0 ? "-" : "";
 
-            const correctTex = `${kStr}e^{${kStr}x}`;
+            // 1. Preparem el coeficient K aïllat (sense la x) per posar davant d'e
+            const kCoefStr = p < 0 ? `-\\frac{${absP}}{${q}}` : `\\frac{${absP}}{${q}}`;
+            
+            // 2. Preparem la inversa de K i el -K aïllats
+            const kInvStr = p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`;
+            const negKCoefStr = p < 0 ? `\\frac{${absP}}{${q}}` : `-\\frac{${absP}}{${q}}`;
+            
+            // Preparem la suma de +K al final
+            const plusK = p > 0 ? `+ ${kCoefStr}` : kCoefStr;
+
+            // --- LA MÀGIA: Manera 1 o Manera 2 per escriure Kx ---
+            const isManera2 = Math.random() < 0.5;
+            let kxStr, negKxStr;
+
+            if (isManera2) {
+                // Manera 2: px/q (Ex: 3x/5 o x/5)
+                // Si p=1 o p=-1, escrivim només "x" al numerador
+                const pxStr = absP === 1 ? "x" : `${absP}x`;
+                kxStr = `${sign}\\frac{${pxStr}}{${q}}`;
+                
+                // També calculem -Kx per als distractors
+                negKxStr = p < 0 ? `\\frac{${pxStr}}{${q}}` : `-\\frac{${pxStr}}{${q}}`;
+            } else {
+                // Manera 1: (p/q)x (Ex: 3/5 x)
+                kxStr = `${kCoefStr}x`;
+                negKxStr = `${negKCoefStr}x`;
+            }
+
+            // Ara muntem la resposta correcta i els distractors usant els blocs
+            const correctTex = `${kCoefStr}e^{${kxStr}}`;
 
             const allDistractors = [
-                `e^{${kStr}x}`,                       
-                `${kInvStr}e^{${kStr}x}`,            
-                `${kStr}xe^{${kStr}x}`,              
-                `e^{${kStr}(x-1)}`,                   
-                `e^{${kStr}x} ${plusK}`,              
+                `e^{${kxStr}}`,                       
+                `${kInvStr}e^{${kxStr}}`,            
+                `${kxStr}e^{${kxStr}}`,              
+                `e^{${kCoefStr}(x-1)}`,                   
+                `e^{${kxStr}} ${plusK}`,              
                 `e^x`,                                
-                `${kStr}e^x`,
+                `${kCoefStr}e^x`,
                 
-                // --- ELS TEUS 3 NOUS DISTRACTORS ---
-                `e^{${negKStr}x}`,
-                `${negKStr}e^{${negKStr}x}`,
+                // Distractors amb el signe canviat
+                `e^{${negKxStr}}`,
+                `${negKCoefStr}e^{${negKxStr}}`,
                 `e^x ${plusK}`
             ];
 
@@ -79,7 +106,7 @@ const questionBank = [
             const selectedDistractors = validDistractors.sort(() => Math.random() - 0.5).slice(0, 3);
 
             return {
-                questionTex: `f(x) = e^{${kStr}x}`,
+                questionTex: `f(x) = e^{${kxStr}}`,
                 correctTex: correctTex,
                 distractorsTex: selectedDistractors
             };
