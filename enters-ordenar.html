@@ -250,7 +250,8 @@
                 let randomIdx = randInt(0, 7);
                 nums[randomIdx] = randInt(-9, r - 1);
             }
-            data = { r, nums };
+            // 🟢 MEMÒRIA: Creem un array de 'locked' per saber quins botons ja han estat encertats
+            data = { r, nums, locked: Array(8).fill(false) };
         }
         return data;
     }
@@ -324,7 +325,6 @@
                 btn.innerText = num;
                 
                 const leftPercent = coordsCartesianes[i].x * 10;
-                // Ajust per encaixar millor en els 160px d'alçada
                 const topPercent  = (5.5 - coordsCartesianes[i].y) * 20; 
 
                 btn.style.position = 'absolute';
@@ -334,10 +334,20 @@
                 btn.style.minWidth = '50px';
                 btn.style.width = '50px';
                 
-                btn.onclick = function() {
-                    if (isPenalizing || isTransitioning) return;
-                    this.classList.toggle('selected');
-                };
+                // 🟢 RESTAURAR L'ESTAT: Si l'alumne ja l'havia encertat en un intent previ, es pinta de verd directament.
+                if (challengeData.locked[i]) {
+                    btn.classList.add('selected');
+                    btn.style.backgroundColor = 'var(--success)';
+                    btn.style.borderColor = 'var(--success)';
+                    btn.style.color = 'white';
+                    btn.style.pointerEvents = 'none';
+                } else {
+                    btn.onclick = function() {
+                        if (isPenalizing || isTransitioning) return;
+                        this.classList.toggle('selected');
+                    };
+                }
+                
                 els.r3Grid.appendChild(btn);
             });
             
@@ -471,19 +481,18 @@
             setTimeout(() => els.btnSubmitR3.classList.remove('error-shake'), 200);
             if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Error", false);
             
-            // UX PEDAGÒGICA: Fixem els que ha encertat i fem tremolar els errors
             buttons.forEach((btn, i) => {
                 const isSelected = btn.classList.contains('selected');
                 const isLessThanR = challengeData.nums[i] < challengeData.r;
 
                 if (isSelected && isLessThanR) {
-                    // Selecció correcta parcial -> La fixem en verd
+                    // 🟢 MEMÒRIA: Desem a l'objecte que l'alumne ja ha encertat aquest botó
+                    challengeData.locked[i] = true; 
                     btn.style.backgroundColor = 'var(--success)';
                     btn.style.borderColor = 'var(--success)';
                     btn.style.color = 'white';
-                    btn.style.pointerEvents = 'none'; // Ja no es pot treure
+                    btn.style.pointerEvents = 'none'; 
                 } else if (isSelected && !isLessThanR) {
-                    // S'ha equivocat marcant aquest -> Feedback vermell
                     btn.classList.add('error-shake');
                     setTimeout(() => btn.classList.remove('error-shake'), 400);
                 }
@@ -494,7 +503,6 @@
 
         if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Correcte", true);
         
-        // Si tot és correcte
         buttons.forEach((btn, i) => {
             btn.style.pointerEvents = 'none';
             if (challengeData.nums[i] < challengeData.r) {
