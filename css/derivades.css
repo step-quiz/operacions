@@ -2,17 +2,26 @@
     --bg-color:      #fdf4ff;
     --primary:       #9333ea;
     --primary-light: #f3e8ff;
+    --primary-dark:  #6b21a8;
     --primary-hover: #7e22ce;
+    --text-main:     #1e293b;
+    --text-muted:    #64748b;
+    --border-light:  #e2e8f0;
+    --border-heavy:  #cbd5e1;
+    --success:       #10b981;
+    --danger:        #ef4444;
+    --danger-light:  #fee2e2;
 }
 
+/* Contenidor de l'enunciat: Ara en horitzontal i compacte */
 .function-box {
     padding: 15px 20px; 
     text-align: center; 
     display: flex;
     justify-content: center; 
     align-items: center; 
-    flex-direction: row; /* Canviat a horitzontal */
-    flex-wrap: wrap; /* Perquè s'adapti bé en mòbils petits */
+    flex-direction: row; 
+    flex-wrap: wrap; 
     gap: 15px; 
     font-size: 1.5em; 
     font-weight: bold; 
@@ -21,55 +30,125 @@
 
 .function-label {
     color: var(--text-muted);
-    font-size: 0.8em;
+    font-size: 0.9em; /* Una mica més gran perquè llegeixi bé al costat de la fòrmula */
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
+/* La fòrmula f(x): Més petita i amb fons gris clar */
 .function-math {
     font-size: 1.1em;
     color: var(--primary-dark);
     padding: 10px 30px;
-    background: white;
+    background: #f3f4f6; /* Gris clar */
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    border: 2px solid var(--primary-light);
+    border: 2px solid var(--border-light);
 }
 
-.function-math .katex-display { margin: 5px 0; }
+/* Anul·lem el marge vertical automàtic de KaTeX */
+.function-math .katex-display { 
+    margin: 5px 0; 
+}
 
+/* Graella de botons */
 .options-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 15px; width: 100%; max-width: 600px;
-    margin: 20px auto; padding: 0 15px;
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px; 
+    width: 100%; 
+    max-width: 600px;
+    margin: 20px auto; 
+    padding: 0 15px;
 }
 
+/* Animació d'aparició per als botons */
+@keyframes popIn {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* Els botons de les opcions */
 .btn-option {
-    padding: 20px 10px; font-size: 1.3em; border-radius: 12px;
-    border: 2px solid var(--border-heavy); background: white;
-    color: var(--text-main); cursor: pointer; transition: all 0.2s ease;
-    display: flex; justify-content: center; align-items: center;
-    min-height: 80px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 20px 10px; 
+    font-size: 1.3em; 
+    border-radius: 12px;
+    border: 2px solid var(--border-heavy); 
+    background: white;
+    color: var(--text-main); 
+    cursor: pointer; 
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    min-height: 80px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    
+    /* Ocult per defecte, l'animació es dispararà segons el delay del JS */
+    opacity: 0; 
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-.btn-option:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-option:focus-visible { 
+    outline: 3px solid var(--primary); 
+    outline-offset: 2px; 
+}
 
 @media (hover: hover) {
-    .btn-option:hover { background: var(--primary-light); border-color: var(--primary); transform: translateY(-2px); }
+    .btn-option:hover { 
+        background: var(--primary-light); 
+        border-color: var(--primary); 
+        transform: translateY(-2px); 
+    }
 }
 
-.btn-option:active { transform: scale(0.97); }
-.btn-option.error-shake { background-color: var(--danger-light) !important; border-color: var(--danger) !important; color: var(--danger) !important; animation: shake 0.3s; }
-.btn-option.correct { background-color: var(--success) !important; border-color: var(--success) !important; color: white !important; }
+.btn-option:active { 
+    transform: scale(0.97); 
+}
 
+/* Estils d'encert i error */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.btn-option.error-shake { 
+    background-color: var(--danger-light) !important; 
+    border-color: var(--danger) !important; 
+    color: var(--danger) !important; 
+    animation: shake 0.3s; 
+}
+
+.btn-option.correct { 
+    background-color: var(--success) !important; 
+    border-color: var(--success) !important; 
+    color: white !important; 
+}
+
+/* Adaptació per a mòbils */
 @media (max-width: 480px) {
-    .options-grid { grid-template-columns: 1fr; gap: 10px; }
-    .function-math { font-size: 1.2em; padding: 10px 20px; }
-    .btn-option { min-height: 70px; font-size: 1.1em; padding: 15px 10px; }
+    .options-grid { 
+        grid-template-columns: 1fr; 
+        gap: 10px; 
+    }
+    .function-math { 
+        font-size: 1.2em; 
+        padding: 10px 20px; 
+    }
+    .btn-option { 
+        min-height: 70px; 
+        font-size: 1.1em; 
+        padding: 15px 10px; 
+    }
 }
 
+/* Animació de pèrdua d'intent */
 @keyframes attemptsBlink {
     0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
     50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
 }
-.attempts-counter.blink { animation: attemptsBlink 0.2s linear 5; }
+
+.attempts-counter.blink { 
+    animation: attemptsBlink 0.2s linear 5; 
+}
