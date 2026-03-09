@@ -85,7 +85,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 }
 
 .btn-option {
-    padding: 20px 10px;
+    padding: 16px 12px;
     font-size: 1.3em;
     border-radius: 12px;
     border: 2px solid var(--border-heavy);
@@ -97,9 +97,13 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     justify-content: center;
     align-items: center;
     min-height: 80px;
+    /* height: auto implícit — el botó s'estira verticalment si cal */
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     opacity: 0;
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    /* Evita desbordament horitzontal: l'interior pot reduir mida */
+    overflow: hidden;
+    min-width: 0;
 }
 
 .btn-option:focus-visible {
@@ -107,12 +111,17 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     outline-offset: 2px;
 }
 
-/* Evita que KaTeX parteixi expressions en dues línies dins els botons.
-   Cal cobrir tots dos spans que KaTeX genera (.katex i .katex-html). */
-.btn-option .katex,
+/* KaTeX dins botons: escalat automàtic per a expressions llargues.
+   Eliminem el nowrap per permetre que el contingut s'ajusti al botó,
+   però usem overflow:auto perquè expressions molt curtes no tronquin. */
 .btn-option .katex-html {
-    white-space: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Scrollbar invisible per no trencar l'estètica */
+    scrollbar-width: none;
 }
+.btn-option .katex-html::-webkit-scrollbar { display: none; }
 
 @media (hover: hover) {
     .btn-option:hover {
