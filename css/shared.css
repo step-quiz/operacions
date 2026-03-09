@@ -1,9 +1,18 @@
 ```css
-/* ============================================================
-   css/shared.css — Estils compartits per tots els jocs step-quiz
-   S'ha de carregar PRIMER a l'HTML. Després, cada joc carregarà 
-   el seu propi CSS per sobrescriure els colors del :root.
-   ============================================================ */
+/*
+============================================================================
+PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+FITXER: css/shared.css
+ROL: Estils globals i variables base compartides per tota la plataforma.
+ARQUITECTURA:
+- Utilitza variables CSS (:root) per permetre que futurs jocs puguin 
+  sobrescriure la paleta de colors fàcilment.
+- Inclou disseny responsiu (Mobile First) i accessibilitat (@media hover, 
+  focus-visible).
+- Conté els estils del teclat numèric customitzat i les pantalles finals.
+DEPENDÈNCIES: S'ha de carregar PRIMER a l'HTML, abans del CSS específic.
+============================================================================
+*/
 /* ---- VARIABLES BASE (fallbacks si el joc no les defineix) ---- */
 :root {
     --bg-color:      #f8fafc;
