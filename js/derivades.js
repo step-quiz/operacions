@@ -117,11 +117,11 @@ let challengeData = {};
 
 // 1. Aquesta funció la crida el teu game-core.js a startSession()
 function buildLevel() {
-    attemptsLeft = typeof MAX_INTENTS !== 'undefined' ? MAX_INTENTS : 2;
+    attemptsLeft = MAX_INTENTS;
     isTransitioning = false;
     
     // Agafem les dades de banc-preguntes.js
-    const bankItem = pickRandom(questionBank);
+    const bankItem = pick(questionBank);
     const rawData = bankItem.generate();
     
     // Homogeneïtzem l'opció correcta per convertir-la en objecte
@@ -212,7 +212,7 @@ function checkAnswer(opt, btnElement) {
     isTransitioning = true;
     recordAnswerToHistory(challengeData.questionTex, opt.tex, true);
     
-    const fails = (typeof MAX_INTENTS !== 'undefined' ? MAX_INTENTS : 2) - attemptsLeft;
+    const fails = MAX_INTENTS - attemptsLeft;
     const levelPoints = Math.max(0, 10 - (fails * 2));
     sessionScore += levelPoints;
     els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
