@@ -123,10 +123,14 @@ window.MathEngine = (() => {
         return `${aPart}${b > 0 ? `+${b}` : b}`;
     }
 
-    /** "x²+bx+c" → p.ex. 'x^2', 'x^2+3x', 'x^2-2x+1' */
+    /** "x²+bx+c" → p.ex. 'x^2', 'x^2+3x', 'x^2-2x+1', 'x^2-x+2' */
     function fmtPoly2(b, c) {
         let s = 'x^2';
-        if (b !== 0) s += b > 0 ? `+${b}x` : `${b}x`;
+        if (b !== 0) {
+            if      (b ===  1) s += '+x';
+            else if (b === -1) s += '-x';
+            else               s += b > 0 ? `+${b}x` : `${b}x`;
+        }
         if (c !== 0) s += c > 0 ? `+${c}` : `${c}`;
         return s;
     }
@@ -219,8 +223,13 @@ window.MathEngine = (() => {
         };
     }
 
-    /** Construeix kVars complet a partir d'un K fraccionari {num, den}. */
-    function buildFracKVars(frac) {
+    /**
+     * Construeix kVars complet a partir d'un K fraccionari {num, den}.
+     * @param {object}  frac          - { num, den } fracció simplificada
+     * @param {boolean} [useInline]   - Si true, usa estil "px/q"; si false, "\frac{p}{q}x".
+     *                                  Per defecte aleatori (compatibilitat enrere).
+     */
+    function buildFracKVars(frac, useInline) {
         const p    = frac.num;
         const q    = frac.den;
         const absP = Math.abs(p);
@@ -233,7 +242,9 @@ window.MathEngine = (() => {
             : (p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`);
         const plusK = p > 0 ? `+ ${kCoefStr}` : kCoefStr;
 
-        const isManera2 = Math.random() < 0.5;
+        // useInline: true → "px/q", false → "\frac{p}{q}x"
+        // Si no s'especifica, es tria aleatòriament per compatibilitat enrere.
+        const isManera2 = useInline !== undefined ? useInline : Math.random() < 0.5;
         let kxStr, negKxStr;
         if (isManera2) {
             const pxStr = absP === 1 ? "x" : `${absP}x`;

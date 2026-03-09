@@ -44,7 +44,7 @@ function eq(label, actual, expected) {
 // ============================================================================
 // CÀRREGA DE MÒDULS (vm.runInThisContext → globals reals)
 // ============================================================================
-const SRC = path.join(__dirname, '..');
+const SRC = __dirname;
 
 // Globals que necessiten els fitxers
 global.window = { location: { search: '' } };
@@ -72,7 +72,12 @@ loadFile('distractor-lib.js');
 global.DistractorLib = window.DistractorLib;
 
 loadFile('question-bank.js');
-// Ara _selectDistractors, FamilyRegistry, activeFamilies estan al scope global
+global.QuestionBank   = window.QuestionBank;
+// Àlies de conveniència per als tests (evita QuestionBank.X per tot arreu)
+const FamilyRegistry  = QuestionBank.FamilyRegistry;
+const activeFamilies  = QuestionBank.activeFamilies;
+const _selectDistractors = QuestionBank._testing._selectDistractors;
+const FUNCTION_PAIRS  = QuestionBank._testing.FUNCTION_PAIRS;
 
 // ============================================================================
 // SUITE 1: MathEngine — funcions pures
@@ -114,7 +119,7 @@ eq('fmtLinear(-1,-2)', MathEngine.fmtLinear(-1, -2),  '-x-2');
 suite('MathEngine › fmtPoly2');
 eq('fmtPoly2(0,0)',    MathEngine.fmtPoly2(0, 0),     'x^2');
 eq('fmtPoly2(2,0)',    MathEngine.fmtPoly2(2, 0),     'x^2+2x');
-eq('fmtPoly2(-1,0)',   MathEngine.fmtPoly2(-1, 0),    'x^2-1x');
+eq('fmtPoly2(-1,0)',   MathEngine.fmtPoly2(-1, 0),    'x^2-x');     // b=-1 no genera -1x
 eq('fmtPoly2(0,3)',    MathEngine.fmtPoly2(0, 3),     'x^2+3');
 eq('fmtPoly2(2,-1)',   MathEngine.fmtPoly2(2, -1),    'x^2+2x-1');
 eq('fmtPoly2(-3,2)',   MathEngine.fmtPoly2(-3, 2),    'x^2-3x+2');
@@ -488,8 +493,43 @@ suite('buildActiveFamilies › URL selector');
     ok('URL invàlida → fallback a totes (n=18)', fallback.length === 18);
 }
 
-suite('Bugs UX/UI corregits');
+// ============================================================================
+// SUITE 5b: FUNCTION_PAIRS — validació estructural de les 21 files
+// Comprova que cada camp obligatori existeix, que solutionProduct segueix
+// el patró dfgTex+fdgTex i que solutionQuotient conté el denominador g2Tex.
+// No requereix un avaluador simbòlic: detecta errors d'omissió i d'inversió.
+// ============================================================================
+suite('FUNCTION_PAIRS › validació estructural');
 {
+    const REQUIRED_KEYS = ['fTex','gTex','dfTex','dgTex','dfgTex','fdgTex','g2Tex','solutionProduct','solutionQuotient'];
+
+    ok(`21 parells definits`, QuestionBank._testing.FUNCTION_PAIRS.length === 21,
+       `n = ${QuestionBank._testing.FUNCTION_PAIRS.length}`);
+
+    QuestionBank._testing.FUNCTION_PAIRS.forEach((p, i) => {
+        const id = `pair[${i}] (${p.fTex}/${p.gTex})`;
+
+        // Tots els camps obligatoris presents i no buits
+        const missingKeys = REQUIRED_KEYS.filter(k => !p[k] || typeof p[k] !== 'string');
+        ok(`${id} — camps obligatoris presents`, missingKeys.length === 0,
+           missingKeys.length ? `falten: ${missingKeys.join(', ')}` : '');
+
+        // solutionProduct ha de contenir dfgTex i fdgTex com a substrings
+        const prodOk = p.solutionProduct.includes(p.dfgTex) && p.solutionProduct.includes(p.fdgTex);
+        ok(`${id} — solutionProduct conté dfgTex i fdgTex`, prodOk,
+           prodOk ? '' : `solutionProduct="${p.solutionProduct}" | dfgTex="${p.dfgTex}" | fdgTex="${p.fdgTex}"`);
+
+        // solutionQuotient ha de contenir g2Tex com a denominador
+        const quotOk = p.solutionQuotient.includes(p.g2Tex);
+        ok(`${id} — solutionQuotient conté g2Tex`, quotOk,
+           quotOk ? '' : `solutionQuotient="${p.solutionQuotient}" | g2Tex="${p.g2Tex}"`);
+
+        // solutionProduct i solutionQuotient no poden ser el mateix
+        ok(`${id} — product ≠ quotient`, p.solutionProduct !== p.solutionQuotient);
+    });
+}
+
+suite('Bugs UX/UI corregits');{
     // Bug 1: x^3·e^x vs x^3e^x — generateProduct no ha de tenir opcions duplicades semànticament
     // Comprovem amb el parell (x^3, e^x) concretament
     const pairX3Ex = FUNCTION_PAIRS.find(p => p.fTex === 'x^3' && p.gTex === 'e^{x}');
@@ -526,6 +566,7 @@ suite('Bugs UX/UI corregits');
         simplified ? `rebut: ${simplified.tex}` : 'absent');
 
     // Bug 3: 0 no ha d'aparèixer com a opció per a cap família exponencial
+    const generateExpKxInt = FamilyRegistry['chain-exp-int'];
     let sawZero = false;
     for (let i = 0; i < 30; i++) {
         const q = generateExpKxInt();

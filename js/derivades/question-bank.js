@@ -5,6 +5,14 @@
  * ROL: Registre de famílies de preguntes i selector per URL.
  * ARQUITECTURA:
  * - Cada generador retorna: { promptTex, solutionTex, options[], meta{} }
+ * - Encapsulat com a IIFE → window.QuestionBank (mateix patró que MathEngine
+ *   i DistractorLib). Cap símbol intern pol·lueix el scope global.
+ * - API pública:
+ *     generateChallenge()  → repte aleatori de la família activa
+ *     FamilyRegistry       → mapa id → funció generadora
+ *     activeFamilies       → llista de generadors actius (segons URL)
+ *     _testing             → { _selectDistractors, FUNCTION_PAIRS }
+ *                            (exposat exclusivament per a run-tests.js)
  * - FASE 10: Afegides dues famílies trigonomètriques amb argument polinòmic:
  *     'chain-sin-poly2' → f(x) = sin(x²+bx+c), f'(x) = (2x+b)·cos(x²+bx+c)
  *     'chain-cos-poly2' → f(x) = cos(x²+bx+c), f'(x) = −(2x+b)·sin(x²+bx+c)
@@ -17,6 +25,8 @@
  * DEPENDÈNCIES: Requereix math-engine.js i distractor-lib.js.
  * ============================================================================
  */
+
+window.QuestionBank = (() => {
 
 // =========================================================================
 // AUXILIAR INTERN
@@ -524,3 +534,16 @@ function generateChallenge() {
     const generator = activeFamilies[Math.floor(Math.random() * activeFamilies.length)];
     return generator();
 }
+
+// =========================================================================
+// API PÚBLICA
+// =========================================================================
+return {
+    generateChallenge,
+    FamilyRegistry,
+    activeFamilies,
+    // _testing: accessible per run-tests.js, no per al codi de producció
+    _testing: { _selectDistractors, FUNCTION_PAIRS }
+};
+
+})();

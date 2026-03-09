@@ -45,7 +45,7 @@ function buildLevel() {
     els.feedback.style.opacity    = '0';
     els.feedback.innerHTML        = '';
 
-    challengeData = generateChallenge();
+    challengeData = QuestionBank.generateChallenge();
 
     katex.render(challengeData.promptTex, els.fxDisplay, { throwOnError: false });
 
@@ -308,7 +308,7 @@ function _errorTypeLabel(type) {
 }
 
 // =========================================================================
-// 5. Arrencada automàtica
+// 6. Arrencada automàtica
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof validateConfig   === 'function') validateConfig();
