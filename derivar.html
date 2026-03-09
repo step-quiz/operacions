@@ -20,27 +20,27 @@
     </script>
 
     <!--
-        ORDRE DE CÀRREGA — Fase 2
+        ORDRE DE CÀRREGA — Fase 3
         Capa compartida (intocable):
           utils → config → game-core
-        Capa específica de derivades:
-          math-engine → distractor-lib → banc-preguntes → derivades (defer)
+        Capa específica de derivades (js/derivades/):
+          math-engine → distractor-lib → question-bank → derivades (defer)
 
-        CANVIS respecte Fase 1:
-        - Afegit distractor-lib.js entre math-engine i banc-preguntes.
-        - banc-preguntes.js ara crida DistractorLib.build() amb scope explícit.
-        - MathEngine.buildKVars() i buildFracKVars() usats directament
-          des de banc-preguntes (els TODO de Fase 3 estan complerts per a
-          les funcions buildKVars/buildFracKVars).
-        - Les globals de compatibilitat generateK/formatK es mantenen
-          fins a la Fase 3 (TODO marcat a math-engine.js).
+        CANVIS respecte Fase 2:
+        - banc-preguntes.js ELIMINAT. Pot esborrar-se del projecte.
+        - question-bank.js (nou) el substitueix completament.
+        - math-engine.js sense globals de compatibilitat (TODO complert).
+        - derivades.js llegeix el contracte formal: promptTex, solutionTex,
+          options[], meta{}.
+        - Selector de famílies actiu: ?families=chain-exp-int,chain-exp-frac
+          Si absent, totes les famílies del FamilyRegistry s'activen.
     -->
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
     <script src="js/game-core.js"></script>
     <script src="js/derivades/math-engine.js"></script>
     <script src="js/derivades/distractor-lib.js"></script>
-    <script src="js/banc-preguntes.js"></script>
+    <script src="js/derivades/question-bank.js"></script>
     <script defer src="js/derivades/derivades.js"></script>
 
     <link rel="stylesheet" href="css/shared.css?v=1">
