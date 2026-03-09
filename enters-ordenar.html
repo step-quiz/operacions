@@ -119,14 +119,13 @@
             .btn-submit { padding: 12px 30px; font-size: 1em; }
         }
         
-        /* Ajustos extra per a dispositius ultra-estrets (menors de 350px com l'iPhone SE antic) */
         @media (max-width: 350px) {
             .expression-box { font-size: 1.1em; gap: 4px; }
             .btn-sign { font-size: 0.85em; }
             #r3-grid { 
                 transform: scale(0.85); 
                 transform-origin: top center; 
-                margin-bottom: -40px !important; /* Compensem l'alçada per la reducció d'escala */
+                margin-bottom: -20px !important; 
             }
         }
 
@@ -179,7 +178,7 @@
 
             <div class="step-container" id="step-repte3">
                 <div class="step-title" id="r3-title"></div>
-                <div id="r3-grid" style="position: relative; width: 300px; height: 300px; margin: 0 auto 15px auto;">
+                <div id="r3-grid" style="position: relative; width: 300px; height: 160px; margin: 20px auto 15px auto;">
                 </div>
                 <button class="btn-submit" id="btn-submit-r3" onclick="checkRepte3()">OK</button>
             </div>
@@ -217,7 +216,6 @@
         r3Title:         document.getElementById('r3-title'),
         r3Grid:          document.getElementById('r3-grid'),
         
-        // Input dinàmic
         hiddenVault:     document.getElementById('hidden-vault'),
         valueInput:      document.getElementById('value-input')
     };
@@ -273,7 +271,6 @@
         els.stepRepte3.classList.remove('active');
         els.opInstruction.classList.remove('active');
 
-        // SEGURETAT TECLAT TÀCTIL: Abans d'esborrar l'expressionBox, rescatem l'input si estava allà
         if (els.valueInput.parentNode === els.expressionBox) {
             els.hiddenVault.appendChild(els.valueInput);
         }
@@ -296,7 +293,6 @@
                 <span class="token-num highlight">${formatNum(challengeData.q)}</span>
             `;
             
-            // Re-inserim l'input original al lloc del placeholder
             const placeholder = document.getElementById('input-placeholder');
             placeholder.replaceWith(els.valueInput);
             
@@ -328,9 +324,9 @@
                 btn.innerText = num;
                 
                 const leftPercent = coordsCartesianes[i].x * 10;
-// La Y màxima és 5. Multipliquem per 20 (ja que 100% / 5 = 20%)
-// Restem sobre 5.5 per donar un petit marge a la part superior
-                const topPercent  = (5.5 - coordsCartesianes[i].y) * 20;
+                // Ajust per encaixar millor en els 160px d'alçada
+                const topPercent  = (5.5 - coordsCartesianes[i].y) * 20; 
+
                 btn.style.position = 'absolute';
                 btn.style.left = `${leftPercent}%`;
                 btn.style.top = `${topPercent}%`;
@@ -447,12 +443,11 @@
         
         if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, rawValue, true);
         
-        // Substituïm visualment però NO destrüim l'input per no trencar el custom keyboard
         const resolvedSpan = document.createElement('span');
         resolvedSpan.className = 'token-num resolved-num';
         resolvedSpan.innerText = userAnswer;
         els.valueInput.parentNode.insertBefore(resolvedSpan, els.valueInput);
-        els.hiddenVault.appendChild(els.valueInput); // El guardem de nou a la caixa forta
+        els.hiddenVault.appendChild(els.valueInput);
         
         els.stepRepte2.classList.remove('active');
         successEnd();
@@ -475,11 +470,31 @@
             els.btnSubmitR3.classList.add('error-shake');
             setTimeout(() => els.btnSubmitR3.classList.remove('error-shake'), 200);
             if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Error", false);
+            
+            // UX PEDAGÒGICA: Fixem els que ha encertat i fem tremolar els errors
+            buttons.forEach((btn, i) => {
+                const isSelected = btn.classList.contains('selected');
+                const isLessThanR = challengeData.nums[i] < challengeData.r;
+
+                if (isSelected && isLessThanR) {
+                    // Selecció correcta parcial -> La fixem en verd
+                    btn.style.backgroundColor = 'var(--success)';
+                    btn.style.borderColor = 'var(--success)';
+                    btn.style.color = 'white';
+                    btn.style.pointerEvents = 'none'; // Ja no es pot treure
+                } else if (isSelected && !isLessThanR) {
+                    // S'ha equivocat marcant aquest -> Feedback vermell
+                    btn.classList.add('error-shake');
+                    setTimeout(() => btn.classList.remove('error-shake'), 400);
+                }
+            });
+
             penalize(); return;
         }
 
         if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Correcte", true);
         
+        // Si tot és correcte
         buttons.forEach((btn, i) => {
             btn.style.pointerEvents = 'none';
             if (challengeData.nums[i] < challengeData.r) {
@@ -519,7 +534,6 @@
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
     if (typeof validateConfig === 'function') validateConfig();
     
-    // Incialitzem el teclat tàctil sobre l'input protegit
     if (typeof initCustomKeyboard === 'function') initCustomKeyboard({ allowNegative: true });
     
     if (typeof startGame === 'function') startGame();
