@@ -103,7 +103,7 @@ function _polyCoefTrig(pDeriv, fn, arg) {
 // FAMÍLIES: e^{kx}
 // =========================================================================
 function generateExpKxInt() {
-    const k   = MathEngine.generateK();
+    const k   = MathEngine.generateKExp();   // exclou k=±1 (derivada trivial)
     const kv  = MathEngine.buildKVars(k);
     const fns = { g: arg => `e^{${arg}}`, dg: arg => `e^{${arg}}`, intG: arg => `e^{${arg}}` };
     const solutionTex = `${kv.coef}${fns.dg(kv.kx)}`;

@@ -44,6 +44,23 @@ window.MathEngine = (() => {
         return randIntNonZero(-6, 6);
     }
 
+    /**
+     * CAS 1b: K enter per a la família e^{kx}, exclou k=±1.
+     * Amb k=1 la derivada és la mateixa funció (trivial); amb k=−1 la regla
+     * de la cadena és invisible per a l'alumne. Tots dos casos s'eliminen.
+     * Distribució pedagògica: valors petits més freqüents.
+     *   25% → 2 | 25% → −2 | 25% → 3 | 25% → uniform ≠ 0, ≠ ±1
+     */
+    function generateKExp() {
+        const r = Math.random();
+        if (r < 0.25) return  2;
+        if (r < 0.50) return -2;
+        if (r < 0.75) return  3;
+        let k;
+        do { k = randIntNonZero(-6, 6); } while (Math.abs(k) === 1);
+        return k;
+    }
+
     /** CAS 2: K fraccionari p/q, simplificat, amb denominador final ≠ 1 */
     function generateFractionK() {
         const denoms = [2, 3, 4, 5];
@@ -158,7 +175,7 @@ window.MathEngine = (() => {
     // -------------------------------------------------------------------------
     return {
         gcd,
-        generateK, generateFractionK,
+        generateK, generateKExp, generateFractionK,
         formatK, formatPowerTerm,
         buildKVars, buildFracKVars
     };
