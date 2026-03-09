@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Derivades">
+    <link rel="icon" href="icon.png">
+    <title>Càlcul de Derivades</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    6,
+            defaultIntents:       2,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!--
+        ORDRE DE CÀRREGA — Fase 3
+        Capa compartida (intocable):
+          utils → config → game-core
+        Capa específica de derivades (js/derivades/):
+          math-engine → distractor-lib → question-bank → derivades (defer)
+
+        CANVIS respecte Fase 2:
+        - banc-preguntes.js ELIMINAT. Pot esborrar-se del projecte.
+        - question-bank.js (nou) el substitueix completament.
+        - math-engine.js sense globals de compatibilitat (TODO complert).
+        - derivades.js llegeix el contracte formal: promptTex, solutionTex,
+          options[], meta{}.
+        - Selector de famílies actiu: ?families=chain-exp-int,chain-exp-frac
+          Si absent, totes les famílies del FamilyRegistry s'activen.
+    -->
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/game-core.js"></script>
+    <script src="js/derivades/math-engine.js"></script>
+    <script src="js/derivades/distractor-lib.js"></script>
+    <script src="js/derivades/question-bank.js"></script>
+    <script defer src="js/derivades/derivades.js"></script>
+
+    <link rel="stylesheet" href="css/shared.css?v=1">
+    <link rel="stylesheet" href="css/derivades.css?v=1">
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Càlcul de Derivades</h1>
+</div>
+
+<div class="panel" id="main-panel">
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 3</div>
+                <div class="level-text"   id="lvl-display">Funció 1 de 6</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 2</div>
+        </div>
+
+        <div class="function-box">
+            <div class="function-label">Troba la derivada de:</div>
+            <div id="fx-display" class="function-math"></div>
+        </div>
+
+        <div id="options-container" class="options-grid"></div>
+        <div id="missatge-feedback" style="min-height: 40px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 1.1em; opacity: 0; transition: opacity 0.3s;">
+        </div>
+    </div>
+
+    <!--
+        Resum pedagògic de sessió (Millora 4).
+        Ocult per defecte. derivades.js l'omple i el mostra
+        en acabar la sessió, abans de cridar endSession().
+    -->
+    <div id="session-summary" style="display:none;"></div>
+</div>
+
+</body>
+</html>
