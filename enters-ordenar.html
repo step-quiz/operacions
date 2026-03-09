@@ -56,6 +56,18 @@
         .token-op.error-shake   { background-color: var(--danger-light) !important; border-color: var(--danger) !important; color: var(--danger) !important; animation: shake 0.2s; }
         .token-op.auto-selected { background-color: var(--primary-light); border-color: var(--primary); color: #334155; }
 
+        /* NOU ESTIL: Casella integrada ("fill in the blanks") */
+        input[type="text"].inline-input {
+            width: 80px; font-family: inherit; font-size: 1em;
+            font-weight: bold; padding: 5px; text-align: center;
+            border: 3px solid var(--primary); border-radius: 8px; outline: none;
+            background-color: white; color: var(--primary-hover);
+            margin: 0 5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        input[type="text"].inline-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px var(--primary-light); }
+        input[type="text"].inline-input.error-shake { background-color: var(--danger-light); border-color: var(--danger); color: var(--danger); animation: shake 0.2s; }
+
         .op-instruction { display: none; padding: 0 20px 14px 20px; text-align: center; color: #475569; font-weight: 600; font-size: 1em; }
         .op-instruction.active { display: block; }
 
@@ -93,25 +105,18 @@
         .btn-sign.error-shake { background-color: var(--danger-light); border-color: var(--danger); color: var(--danger); animation: shake 0.2s; }
         .btn-sign.selected    { background-color: var(--primary-light); border-color: var(--primary); color: var(--primary-hover); transform: scale(0.95); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
 
-        .value-input-group { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
-
-        input[type="text"]#value-input {
-            width: 130px; font-family: 'Courier New', Courier, monospace; font-size: 1.5em;
-            font-weight: bold; padding: 12px; text-align: center;
-            border: 2px solid var(--border-heavy); border-radius: 6px; outline: none;
-        }
-        input[type="text"]#value-input:focus { border-color: #0ea5e9; }
+        .value-input-group { display: flex; align-items: center; justify-content: center; width: 100%; }
 
         @media (max-width: 480px) {
             .expression-box { font-size: 1.3em; padding: 20px 10px; gap: 6px; min-height: 80px; }
             .token-num  { padding: 5px; }
             .token-op   { font-size: 0.9em; padding: 6px 10px; }
+            input[type="text"].inline-input { width: 60px; padding: 2px; border-width: 2px; }
             .resolution-panel { padding: 20px 15px; }
             .sub-problem { font-size: 1.3em; }
             .sign-buttons { gap: 8px; }
             .btn-sign   { padding: 12px 5px; font-size: 0.95em; min-width: 0; }
-            input[type="text"]#value-input { width: 100px; font-size: 1.3em; padding: 10px; }
-            .btn-submit { padding: 12px 20px; font-size: 0.9em; }
+            .btn-submit { padding: 12px 30px; font-size: 1em; } /* OK botó més ample per al repte 2 */
         }
         @media (max-width: 350px) {
             .expression-box { font-size: 1.1em; gap: 4px; }
@@ -160,9 +165,7 @@
             </div>
 
             <div class="step-container" id="step-repte2">
-                <div class="step-title">Quin nombre hi pot anar?</div>
                 <div class="value-input-group">
-                    <input type="text" id="value-input" autocomplete="off" aria-label="Resultat numèric">
                     <button class="btn-submit" id="btn-submit-val" onclick="checkRepte2()">OK</button>
                 </div>
             </div>
@@ -197,7 +200,6 @@
         stepRepte2:      document.getElementById('step-repte2'),
         stepRepte3:      document.getElementById('step-repte3'),
         
-        valueInput:      document.getElementById('value-input'),
         btnSubmitVal:    document.getElementById('btn-submit-val'),
         btnSubmitR3:     document.getElementById('btn-submit-r3'),
         
@@ -230,15 +232,11 @@
             let nums = [];
             for (let i = 0; i < 8; i++) nums.push(randInt(-9, 9));
             
-            // 🟢 CANVI 1: Assegurar com a mínim un correcte
             let hasValid = nums.some(num => num < r);
             if (!hasValid) {
                 let randomIdx = randInt(0, 7);
-                // Triem un valor per a l'índex aleatori que sigui segurament menor que r
-                // Si r és -7, r-1 és -8. randInt(-9, -8) triarà -9 o -8, tots dos vàlids.
                 nums[randomIdx] = randInt(-9, r - 1);
             }
-            
             data = { r, nums };
         }
         return data;
@@ -270,21 +268,22 @@
             els.stepRepte1.classList.add('active');
 
         } else if (challengeType === 2) {
+            // NOU: Casella d'input directament on anava l'interrogant
             els.expressionBox.innerHTML = `
                 <span class="token-num highlight">${formatNum(challengeData.p)}</span>
                 <span class="token-num" style="background:transparent">&lt;</span>
-                <span class="token-op auto-selected">?</span>
+                <input type="text" id="inline-value-input" class="inline-input" autocomplete="off" aria-label="Resultat numèric">
                 <span class="token-num" style="background:transparent">&lt;</span>
                 <span class="token-num highlight">${formatNum(challengeData.q)}</span>
             `;
             els.subProblem.innerText = "Completa l'interrogant";
             els.stepRepte2.classList.add('active');
-            els.valueInput.value = '';
             
+            const inlineInput = document.getElementById('inline-value-input');
             if (typeof isTouchDevice === 'function' && isTouchDevice()) {
-                if (typeof showCustomKeyboard === 'function') showCustomKeyboard(els.valueInput);
+                if (typeof showCustomKeyboard === 'function') showCustomKeyboard(inlineInput);
             } else {
-                els.valueInput.focus();
+                inlineInput.focus();
             }
 
         } else if (challengeType === 3) {
@@ -292,34 +291,24 @@
             els.subProblem.style.display    = 'none';
             
             els.r3Title.innerText = `Selecciona els nombres que siguin menors que ${challengeData.r}`;
-            
             els.r3Grid.innerHTML = '';
             
-            // 🟢 CANVI 2: Coordenades per a la constel·lació
-            // Definides per a un contenidor de 300x300, usant transform: translate(-50%, -50%)
             const coords = [
-                { x: 120, y: 50  }, // A dalt, esquerra
-                { x: 180, y: 50  }, // A dalt, dreta
-                { x: 250, y: 100 }, // A dalt, dreta, més avall
-                { x: 50,  y: 100 }, // A dalt, esquerra, més avall
-                { x: 220, y: 180 }, // Mig, dreta
-                { x: 80,  y: 180 }, // Mig, esquerra
-                { x: 180, y: 250 }, // A baix, dreta
-                { x: 120, y: 250 }  // A baix, esquerra
+                { x: 120, y: 50  }, { x: 180, y: 50  }, { x: 250, y: 100 },
+                { x: 50,  y: 100 }, { x: 220, y: 180 }, { x: 80,  y: 180 },
+                { x: 180, y: 250 }, { x: 120, y: 250 }
             ];
 
             challengeData.nums.forEach((num, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'btn-sign';
                 btn.innerText = num;
-                
-                // Apliquem la posició absoluta basant-nos en el centre exacte
                 btn.style.position = 'absolute';
                 btn.style.left = `${coords[i].x}px`;
                 btn.style.top = `${coords[i].y}px`;
-                btn.style.transform = 'translate(-50%, -50%)'; // Posiciona pel centre del botó
+                btn.style.transform = 'translate(-50%, -50%)';
                 btn.style.minWidth = '50px';
-                btn.style.width = '50px'; // Forcem una amplada per coordenades precises
+                btn.style.width = '50px';
                 
                 btn.onclick = function() {
                     if (isPenalizing || isTransitioning) return;
@@ -400,12 +389,16 @@
 
     function checkRepte2() {
         if (isTransitioning || isPenalizing) return;
-        const rawValue = els.valueInput.value.trim();
+        const inlineInput = document.getElementById('inline-value-input');
+        if (!inlineInput) return;
+        
+        const rawValue = inlineInput.value.trim();
         if (rawValue === '') return;
 
         if (!/^-?\d+$/.test(rawValue)) {
+             inlineInput.classList.add('error-shake');
              els.btnSubmitVal.classList.add('error-shake');
-             setTimeout(() => els.btnSubmitVal.classList.remove('error-shake'), 200);
+             setTimeout(() => { inlineInput.classList.remove('error-shake'); els.btnSubmitVal.classList.remove('error-shake'); }, 200);
              penalize(); return;
         }
 
@@ -413,44 +406,36 @@
         const stepQuestion = `Enter entre ${challengeData.p} i ${challengeData.q}`;
 
         if (userAnswer <= challengeData.p || userAnswer >= challengeData.q) {
+            inlineInput.classList.add('error-shake');
             els.btnSubmitVal.classList.add('error-shake');
-            setTimeout(() => els.btnSubmitVal.classList.remove('error-shake'), 200);
+            setTimeout(() => { inlineInput.classList.remove('error-shake'); els.btnSubmitVal.classList.remove('error-shake'); }, 200);
             if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, rawValue, false);
             penalize();
             
             if (typeof isTouchDevice === 'function' && isTouchDevice()) {
-                if (typeof kbMarkForOverwrite === 'function') kbMarkForOverwrite(els.valueInput);
+                if (typeof kbMarkForOverwrite === 'function') kbMarkForOverwrite(inlineInput);
             } else {
-                els.valueInput.value = ''; els.valueInput.focus();
+                inlineInput.value = ''; inlineInput.focus();
             }
             return;
         }
         
         if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, rawValue, true);
-        els.expressionBox.innerHTML = `
-            <span class="token-num highlight">${formatNum(challengeData.p)}</span>
-            <span class="token-num" style="background:transparent">&lt;</span>
-            <span class="token-num resolved-num">${userAnswer}</span>
-            <span class="token-num" style="background:transparent">&lt;</span>
-            <span class="token-num highlight">${formatNum(challengeData.q)}</span>
-        `;
+        // Canviem el camp de text per un text fix ("span") un cop encertat
+        inlineInput.outerHTML = `<span class="token-num resolved-num">${userAnswer}</span>`;
         els.stepRepte2.classList.remove('active');
         successEnd();
     }
 
     function checkRepte3() {
         if (isTransitioning || isPenalizing) return;
-        
         const buttons = els.r3Grid.querySelectorAll('.btn-sign');
         let allCorrect = true;
         
         buttons.forEach((btn, i) => {
             const isSelected = btn.classList.contains('selected');
             const isLessThanR = challengeData.nums[i] < challengeData.r;
-            
-            if (isSelected !== isLessThanR) {
-                allCorrect = false;
-            }
+            if (isSelected !== isLessThanR) allCorrect = false;
         });
 
         const stepQuestion = `Menors que ${challengeData.r}`;
@@ -464,9 +449,8 @@
 
         if (typeof recordAnswerToHistory === 'function') recordAnswerToHistory(stepQuestion, "Correcte", true);
         
-        // Efecte de guanyar als botons (sense canviar el contingut, només color)
         buttons.forEach((btn, i) => {
-            btn.style.pointerEvents = 'none'; // Desactivar clics
+            btn.style.pointerEvents = 'none';
             if (challengeData.nums[i] < challengeData.r) {
                 btn.style.backgroundColor = 'var(--success)';
                 btn.style.borderColor = 'var(--success)';
