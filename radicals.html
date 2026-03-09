@@ -733,33 +733,36 @@
         addEqualsTo(els.expressionBox);
     }
 
-    function buildRepte2OrigNodes(container, p) {
-        if (p.type === 'prod_simple') {
-            container.appendChild(buildRadicalSpan(1, p.r1, ''));
-            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '·';
-            container.appendChild(op);
-            container.appendChild(buildRadicalSpan(1, p.r2, ''));
-        } else if (p.type === 'quot_simple') {
-            container.appendChild(buildRadicalSpan(1, p.numRad, ''));
-            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '/';
-            container.appendChild(op);
-            container.appendChild(buildRadicalSpan(1, p.denRad, ''));
-        } else if (p.type === 'prod_coef') {
-            container.appendChild(buildRadicalSpan(p.c1, p.r1, ''));
-            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '·';
-            container.appendChild(op);
-            container.appendChild(buildRadicalSpan(p.c2, p.r2, ''));
-        } else if (p.type === 'quot_coef') {
-            const frac = document.createElement('span'); frac.className = 'frac-display';
-            const num = document.createElement('span'); num.className = 'frac-num-row';
-            num.appendChild(buildRadicalSpan(p.a, p.b, ''));
-            const den = document.createElement('span'); den.className = 'frac-den-row';
-            den.appendChild(buildRadicalSpan(p.d, p.e, ''));
-            frac.appendChild(num); frac.appendChild(den);
-            container.appendChild(frac);
-        }
-    }
-
+function buildRepte2OrigNodes(container, p) {
+        if (p.type === 'prod_simple') {
+            container.appendChild(buildRadicalSpan(1, p.r1, ''));
+            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '·';
+            container.appendChild(op);
+            container.appendChild(buildRadicalSpan(1, p.r2, ''));
+        } else if (p.type === 'quot_simple') {
+            // AQUÍ ESTÀ EL CANVI: Ara fem servir la mateixa estructura de fracció que a quot_coef
+            const frac = document.createElement('span'); frac.className = 'frac-display';
+            const num = document.createElement('span'); num.className = 'frac-num-row';
+            num.appendChild(buildRadicalSpan(1, p.numRad, ''));
+            const den = document.createElement('span'); den.className = 'frac-den-row';
+            den.appendChild(buildRadicalSpan(1, p.denRad, ''));
+            frac.appendChild(num); frac.appendChild(den);
+            container.appendChild(frac);
+        } else if (p.type === 'prod_coef') {
+            container.appendChild(buildRadicalSpan(p.c1, p.r1, ''));
+            const op = document.createElement('span'); op.className = 'radical-op'; op.innerText = '·';
+            container.appendChild(op);
+            container.appendChild(buildRadicalSpan(p.c2, p.r2, ''));
+        } else if (p.type === 'quot_coef') {
+            const frac = document.createElement('span'); frac.className = 'frac-display';
+            const num = document.createElement('span'); num.className = 'frac-num-row';
+            num.appendChild(buildRadicalSpan(p.a, p.b, ''));
+            const den = document.createElement('span'); den.className = 'frac-den-row';
+            den.appendChild(buildRadicalSpan(p.d, p.e, ''));
+            frac.appendChild(num); frac.appendChild(den);
+            container.appendChild(frac);
+        }
+    }
     function addSimplifyStepsDecompose(steps, p, frontCoef, radicandN) {
         r2FactorSquare = null; r2FactorRest = null;
         r2DecompA = null; r2DecompB = null;
