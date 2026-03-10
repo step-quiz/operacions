@@ -101,29 +101,29 @@ function renderSVG(cloud, yr) {
     // Eix X (y=0) — si és dins del rang
     if (yr.min <= 0 && yr.max >= 0) {
         const py = ty(0);
-        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#94a3b8" stroke-width="1.8"/>`);
+        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#000000" stroke-width="2"/>`);
     }
 
     // Eix Y (x=0) — sempre present
     const px0 = tx(0);
-    lines.push(`<line x1="${px0.toFixed(1)}" y1="${mt}" x2="${px0.toFixed(1)}" y2="${mt+ph}" stroke="#94a3b8" stroke-width="1.8"/>`);
+    lines.push(`<line x1="${px0.toFixed(1)}" y1="${mt}" x2="${px0.toFixed(1)}" y2="${mt+ph}" stroke="#000000" stroke-width="2"/>`);
 
     // Etiquetes eix Y (major ticks)
     for (let y = yr.min; y <= yr.max; y += yr.majorStep) {
         const py = ty(y);
-        lines.push(`<text x="${ml - 6}" y="${(py + 4).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11" fill="#64748b">${y}</text>`);
-        lines.push(`<line x1="${ml - 3}" y1="${py.toFixed(1)}" x2="${ml}" y2="${py.toFixed(1)}" stroke="#94a3b8" stroke-width="1"/>`);
+        lines.push(`<text x="${ml - 6}" y="${(py + 4).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" fill="#000000">${y}</text>`);
+        lines.push(`<line x1="${ml - 3}" y1="${py.toFixed(1)}" x2="${ml}" y2="${py.toFixed(1)}" stroke="#000000" stroke-width="1"/>`);
     }
 
     // Etiquetes eix X
     for (let x = xMin; x <= xMax; x++) {
         const px = tx(x);
-        lines.push(`<text x="${px.toFixed(1)}" y="${mt + ph + 20}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="11" fill="#64748b">${x}</text>`);
-        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt + ph}" x2="${px.toFixed(1)}" y2="${mt + ph + 4}" stroke="#94a3b8" stroke-width="1"/>`);
+        lines.push(`<text x="${px.toFixed(1)}" y="${mt + ph + 20}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="14" fill="#000000">${x}</text>`);
+        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt + ph}" x2="${px.toFixed(1)}" y2="${mt + ph + 4}" stroke="#000000" stroke-width="1"/>`);
     }
 
     // Marc exterior
-    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`);
+    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="none" stroke="#000000" stroke-width="1.5"/>`);
 
     // Punts del núvol
     cloud.forEach(pt => {
