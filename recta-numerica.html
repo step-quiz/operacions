@@ -50,17 +50,22 @@
             <span id="attempts-display">Intents: 2</span>
         </div>
 
-        <!-- Gràfic SVG (omplert per JS) -->
-        <div id="graph-container"></div>
+        <!-- Cos principal: columna esquerra (B) + columna dreta (A) -->
+        <div class="game-body">
 
-        <!-- Text de la pregunta -->
-        <div id="question-prompt"></div>
+            <!-- Columna esquerra 40%: pregunta + opcions + feedback -->
+            <div class="game-left">
+                <div id="question-prompt"></div>
+                <div id="options-container" class="options-grid"></div>
+                <div id="feedback" class="feedback-area"></div>
+            </div>
 
-        <!-- Botons d'opcions (grid o list, assignat per JS) -->
-        <div id="options-container" class="options-grid"></div>
+            <!-- Columna dreta 60%: gràfic SVG -->
+            <div class="game-right">
+                <div id="graph-container"></div>
+            </div>
 
-        <!-- Feedback per a l'alumne -->
-        <div id="feedback" class="feedback-area"></div>
+        </div>
 
     </div>
 
