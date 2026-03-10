@@ -8,9 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    /* ================================================================
-       VARIABLES — mateixa paleta que l'app
-       ================================================================ */
     :root {
       --primary:       #0077b6;
       --primary-light: #e0f4ff;
@@ -43,7 +40,6 @@
       padding: 14px 16px 10px;
     }
 
-    /* ---- TÍTOL ---- */
     .title-row {
       display: flex; align-items: center; gap: 14px;
       margin-bottom: 10px;
@@ -62,7 +58,6 @@
     .home-icon-link:hover { opacity: 1; }
     .home-icon-link img   { width: 100%; height: 100%; object-fit: contain; }
 
-    /* ---- PANELL PRINCIPAL ---- */
     .panel {
       background: var(--panel);
       border-radius: var(--radius);
@@ -77,9 +72,7 @@
       min-height: 0;
     }
 
-    /* ================================================================
-       CAPÇALERA ESTIL VÍDEO
-       ================================================================ */
+    /* ---- CAPÇALERA ---- */
     .tut-header {
       background: var(--primary-dark);
       color: white;
@@ -97,11 +90,8 @@
       top: 50%;
       transform: translateY(-50%);
     }
-    #btn-next {
-      display: block;
-    }
+    #btn-next { display: block; }
 
-    /* Punt vermell parpellejant (● REC) */
     .rec-dot {
       width: 10px; height: 10px;
       background: #ef4444; border-radius: 50%;
@@ -115,7 +105,6 @@
       font-size: 1.056em; font-weight: 600; letter-spacing: 0.3px;
     }
 
-    /* ---- BARRA DE PROGRÉS (timeline) ---- */
     .progress-track { height: 4px; background: var(--border); flex-shrink: 0; }
     .progress-fill  {
       height: 100%;
@@ -124,9 +113,7 @@
       width: 0%;
     }
 
-    /* ================================================================
-       COS PRINCIPAL: DOS COLUMNES
-       ================================================================ */
+    /* ---- COS ---- */
     .game-body {
       display: flex; flex-direction: row;
       flex: 1 1 0; min-height: 0;
@@ -145,7 +132,6 @@
       overflow-y: auto; min-height: 0;
     }
 
-    /* ---- CHIP DE TIPUS DE PREGUNTA ---- */
     .example-chip {
       display: inline-block;
       background: var(--primary-light);
@@ -156,8 +142,6 @@
       text-transform: uppercase; letter-spacing: 0.6px;
       align-self: flex-start;
     }
-
-    /* ---- PREGUNTA ---- */
     .question-prompt {
       font-size: 1.04em; font-weight: 600;
       color: var(--primary-dark); line-height: 1.45;
@@ -165,8 +149,6 @@
       min-height: calc(1.04em * 1.45 * 4);
       display: flex; align-items: flex-start;
     }
-
-    /* ---- HINT SOTA LA PREGUNTA ---- */
     .question-hint {
       font-size: 0.85em; font-weight: 500;
       color: var(--muted);
@@ -184,8 +166,8 @@
     }
     @keyframes shake {
       0%,100% { transform: translateX(0); }
-      25%      { transform: translateX(-5px); }
-      75%      { transform: translateX(5px); }
+      25%     { transform: translateX(-5px); }
+      75%     { transform: translateX(5px); }
     }
 
     .btn-option {
@@ -228,23 +210,25 @@
       background: var(--danger) !important;
     }
 
-    /* ================================================================
-       GRÀFIC + BOMBOLLA
-       ================================================================ */
+    /* ---- GRÀFIC + BOMBOLLA ---- */
     #graph-wrap {
       position: relative; width: 100%;
     }
     #graph-wrap svg { display: block; width: 100%; height: auto; }
 
-    /* ---- BOMBOLLA DE NARRACIÓ ---- */
+    /* ================================================================
+       BOMBOLLA DE NARRACIÓ
+       Ara situada als quadrants Q2 (dalt-esquerra) i Q3 (baix-esquerra)
+       La fletxa decorativa apunta cap a la DRETA (cap al contingut)
+       ================================================================ */
     .narration-bubble {
       position: absolute;
       width: 36%;
       background: white;
       border: 2px solid var(--primary);
-      border-left: 5px solid var(--primary);
+      border-right: 5px solid var(--primary);
       border-radius: 10px;
-      padding: 11px 13px 11px 12px;
+      padding: 11px 12px 11px 13px;
       box-shadow: 0 5px 22px rgba(0,119,182,0.18);
       font-size: 0.87em; line-height: 1.55;
       color: var(--text);
@@ -254,32 +238,30 @@
         opacity 0.22s ease,
         transform 0.22s ease;
     }
-    /* Fletxa apuntant esquerra (cap al gràfic) */
+    /* Fletxa apuntant cap a la dreta */
     .narration-bubble::before {
       content: ''; position: absolute;
-      left: -10px; top: 20px;
+      right: -10px; left: auto; top: 20px;
       border: 5px solid transparent;
-      border-right-color: var(--primary);
+      border-left-color: var(--primary);
     }
     .narration-bubble::after {
       content: ''; position: absolute;
-      left: -6px; top: 22px;
+      right: -6px; left: auto; top: 22px;
       border: 3px solid transparent;
-      border-right-color: white;
+      border-left-color: white;
     }
     .narration-bubble.fade-out {
       opacity: 0; transform: translateY(-7px);
     }
-    /* Dues posicions possibles */
-    .narration-bubble.pos-right-top    { top:  3%; left: 62%; }
-    .narration-bubble.pos-right-bottom { top: 57%; left: 62%; }
+    /* Q2: dalt-esquerra  /  Q3: baix-esquerra */
+    .narration-bubble.pos-left-top    { top:  3%; left: 2%; }
+    .narration-bubble.pos-left-bottom { top: 57%; left: 2%; }
 
     .bubble-icon { display: block; font-size: 1.15em; margin-bottom: 4px; }
     .narration-bubble b { color: var(--primary-dark); }
 
-    /* ================================================================
-       PEU DE PÀGINA
-       ================================================================ */
+    /* ---- BOTÓ SEGÜENT ---- */
     @keyframes blink-shake {
       0%              { opacity: 1;    transform: translateX(0); }
       8%, 24%, 40%    { transform: translateX(-5px); }
@@ -309,9 +291,7 @@
     .btn-next-step.btn-next-example        { background: #ede9fe; color: #4c1d95; }
     .btn-next-step.btn-next-example:hover  { background: #ddd6fe; }
 
-    /* ================================================================
-       RESPONSIU
-       ================================================================ */
+    /* ---- RESPONSIU ---- */
     @media (max-width: 780px) {
       body { overflow: auto; height: auto; }
       .game-body { flex-direction: column-reverse; }
@@ -324,7 +304,7 @@
         width: 100% !important;
         top: auto !important; left: auto !important;
         margin-top: 10px;
-        border-left-width: 2px;
+        border-right-width: 2px;
       }
       .narration-bubble::before,
       .narration-bubble::after { display: none; }
@@ -338,7 +318,6 @@
 </head>
 <body>
 
-<!-- Capçalera de pàgina -->
 <div class="title-row">
   <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
     <img src="icon.png" alt="Inici" onerror="this.style.display='none'">
@@ -346,10 +325,8 @@
   <h1>Tutorial — Lectura de Gràfiques</h1>
 </div>
 
-<!-- Panell principal -->
 <div class="panel">
 
-  <!-- Barra superior estil gravació de vídeo -->
   <div class="tut-header">
     <div class="tut-header-left">
       <span class="rec-dot" title="Tutorial en curs"></span>
@@ -360,15 +337,12 @@
     </div>
   </div>
 
-  <!-- Barra de progrés (timeline) -->
   <div class="progress-track">
     <div class="progress-fill" id="progress-fill"></div>
   </div>
 
-  <!-- Cos: columna esquerra + columna dreta -->
   <div class="game-body">
 
-    <!-- Esquerra: chip + pregunta + opcions -->
     <div class="game-left">
       <span class="example-chip" id="example-chip">Q1 · Temperatura avui</span>
       <div class="question-prompt" id="tut-question"></div>
@@ -376,11 +350,10 @@
       <div class="options-list"    id="tut-options"></div>
     </div>
 
-    <!-- Dreta: gràfic SVG + bombolla flotant -->
     <div class="game-right">
       <div id="graph-wrap">
         <div id="tut-graph"></div>
-        <div class="narration-bubble pos-right-top" id="narration-bubble">
+        <div class="narration-bubble pos-left-top" id="narration-bubble">
           <span class="bubble-icon" id="bubble-icon">👀</span>
           <div id="narration-text"></div>
         </div>
@@ -389,12 +362,8 @@
 
   </div>
 
-
 </div>
 
-<!-- ================================================================
-     SCRIPT: dades del tutorial + renderitzador SVG + controlador
-     ================================================================ -->
 <script>
 'use strict';
 
@@ -413,10 +382,10 @@ const TEXTS = {
   e1_opt1:     '3 ºC',
   e1_opt2:     '4 ºC',
   e1_opt3:     '1 ºC',
-  e1_s1: 'L\'eix horitzontal representa els dies.<br>Els nombres negatius són <b>el passat</b> i els nombres positius són <b>el futur</b>).',
+  e1_s1: 'L\'eix horitzontal representa els dies.<br>Els nombres negatius són <b>el passat</b> i els nombres positius són <b>el futur</b>.',
   e1_s2: 'Busca la temperatura quan <b>x = 0</b>. Ressegueix l\'eix vertical per trobar-ho.',
-  e1_s3: '«2 ºC» seria incorrecte! <br>El punt que busquem està situat més amunt',
-  e1_s4: '<b>✅ «4 ºC» és la resposta correcta.</b> Veus el punt (0,4)?<br> Avui la temperatura és de <b>4 graus sobre zero</b>.',
+  e1_s3: '«2 ºC» seria incorrecte!<br>El punt que busquem està situat més amunt.',
+  e1_s4: '<b>✅ «4 ºC» és la resposta correcta.</b> Veus el punt (0,4)?<br>Avui la temperatura és de <b>4 graus sobre zero</b>.',
 
   // --- Exemple 2: Temperatura ahir ---
   e2_chip:     'Q2 · Temperatura ahir',
@@ -425,10 +394,10 @@ const TEXTS = {
   e2_opt1:     '\u22122 ºC',
   e2_opt2:     '3 ºC',
   e2_opt3:     '4 ºC',
-  e2_s1: 'Llegeix la pregunta, a l\'esquerra.<br>La paraula \'ahir\' vol dir <b>x = −1</b>. <br> Localitza x = −1 a l\'eix horitzontal.',
+  e2_s1: 'Llegeix la pregunta, a l\'esquerra.<br>La paraula \'ahir\' vol dir <b>x = −1</b>.<br>Localitza x = −1 a l\'eix horitzontal.',
   e2_s2: 'Ara mira el punt blau sobre aquesta posició. Fins a quin valor de y arriba?',
   e2_s3: '«1 ºC» seria incorrecte! Veus que la temperatura és superior?',
-  e2_s4: '<b>✅ «3 ºC» és correcte.<br></b> El punt és (-1,3).<br> Ahir la temperatura va ser de <b>3 graus sobre zero</b>.',
+  e2_s4: '<b>✅ «3 ºC» és correcte.</b><br>El punt és (−1, 3).<br>Ahir la temperatura va ser de <b>3 graus sobre zero</b>.',
 
   // --- Exemple 3: Frase correcta ---
   e3_chip:     'Q4 · Frase correcta',
@@ -437,10 +406,10 @@ const TEXTS = {
   e3_opt1:     'Avui, la temperatura és de 2 graus sobre zero',
   e3_opt2:     'Ahir, la temperatura era de 2 graus sota zero',
   e3_opt3:     'Entre ahir i avui, la temperatura baixa',
-  e3_s1: 'Llegim les frases que veiem a l\'esquerra i hem d\'escollir quina és certa.<br> Només n\'hi ha una!',
-  e3_s2: 'La primera frase és <b>falsa</b>!<br> No és cert que demà estiguem a 1ºC.',
+  e3_s1: 'Llegim les frases que veiem a l\'esquerra i hem d\'escollir quina és certa.<br>Només n\'hi ha una!',
+  e3_s2: 'La primera frase és <b>falsa</b>!<br>No és cert que demà estiguem a 1ºC.',
   e3_s3: 'La segona frase diu que <b>avui</b> estem a 2ºC. És cert?',
-  e3_s4: '<b>✅ Correcte!</b> El punt és (0,2).<br>Avui la temperatura és de <b>2 graus sobre zero</b>.<br> La frase és certa!',
+  e3_s4: '<b>✅ Correcte!</b> El punt és (0, 2).<br>Avui la temperatura és de <b>2 graus sobre zero</b>.<br>La frase és certa!',
 
 };
 
@@ -456,7 +425,6 @@ const TUTORIAL = [
   // EXEMPLE 1 — Q1: Temperatura avui
   // Cloud: [(-2,3),(-1,2),(0,4),(1,3),(2,1)]
   // Resposta correcta: 4 ºC  (opció índex 2)
-  // Distractor mostrat: 2 ºC (opció índex 0) → punt d'ahir (x=-1)
   // ================================================================
   {
     chip:     TEXTS.e1_chip,
@@ -473,27 +441,28 @@ const TUTORIAL = [
     steps: [
       {
         narration: TEXTS.e1_s1,
-        highlight:  { type:'column', x:0, label:'avui (x = 0)', arrowTarget:[3.5, 0] },
+        highlight:  { type:'column', x:0, label:'avui (x = 0)',
+                      arrowOrigin:[-0.5, 2.5], arrowTarget:[3.5, 0] },
         btnStates:  ['','','',''],
-        pos: 'right-top', icon: '👀',
+        pos: 'left-top', icon: '👀',
       },
       {
         narration: TEXTS.e1_s2,
         highlight:  { type:'point', x:0, y:4 },
         btnStates:  ['','','',''],
-        pos: 'right-bottom', icon: '🔎',
+        pos: 'left-bottom', icon: '🔎',
       },
       {
         narration: TEXTS.e1_s3,
         highlight:  { type:'point-wrong', x:0, y:2 },
         btnStates:  ['wrong','','',''],
-        pos: 'right-top', icon: '❌',
+        pos: 'left-top', icon: '❌',
       },
       {
         narration: TEXTS.e1_s4,
         highlight:  { type:'point-correct', x:0, y:4 },
         btnStates:  ['wrong','','correct',''],
-        pos: 'right-bottom', icon: '✅',
+        pos: 'left-bottom', icon: '✅',
       },
     ],
   },
@@ -501,8 +470,7 @@ const TUTORIAL = [
   // ================================================================
   // EXEMPLE 2 — Q2: Temperatura d'un altre dia
   // Cloud: [(-3,-2),(-1,3),(0,1),(2,4)]
-  // Pregunta: ahir (x=-1) → resposta: 3 ºC (opció índex 2)
-  // Distractor: 1 ºC (opció índex 0) → punt d'avui (x=0)
+  // Resposta correcta: 3 ºC (opció índex 2)
   // ================================================================
   {
     chip:     TEXTS.e2_chip,
@@ -518,27 +486,28 @@ const TUTORIAL = [
     steps: [
       {
         narration: TEXTS.e2_s1,
-        highlight:  { type:'column', x:-1, label:'ahir (x = \u22121)', arrowTarget:[-1, 0.25] },
+        highlight:  { type:'column', x:-1, label:'ahir (x = \u22121)',
+                      arrowOrigin:[-0.5, 2.5], arrowTarget:[-1, 0.25] },
         btnStates:  ['','','',''],
-        pos: 'right-top', icon: '👀',
+        pos: 'left-top', icon: '👀',
       },
       {
         narration: TEXTS.e2_s2,
         highlight:  { type:'point', x:-1, y:3 },
         btnStates:  ['','','',''],
-        pos: 'right-top', icon: '🔎',
+        pos: 'left-top', icon: '🔎',
       },
       {
         narration: TEXTS.e2_s3,
         highlight:  { type:'point-wrong', x:-1, y:1 },
         btnStates:  ['wrong','','',''],
-        pos: 'right-top', icon: '❌',
+        pos: 'left-top', icon: '❌',
       },
       {
         narration: TEXTS.e2_s4,
         highlight:  { type:'point-correct', x:-1, y:3 },
         btnStates:  ['wrong','','correct',''],
-        pos: 'right-top', icon: '✅',
+        pos: 'left-top', icon: '✅',
       },
     ],
   },
@@ -546,8 +515,7 @@ const TUTORIAL = [
   // ================================================================
   // EXEMPLE 3 — Q4: Selecciona la frase correcta
   // Cloud: [(-2,-1),(-1,2),(0,2),(1,4),(3,1)]
-  // Correcta: opció índex 1 ("Avui, la temperatura és de 2 graus sobre zero")
-  // Distractor: opció índex 0 ("Demà… 1 grau") → x=1 és y=4, no y=1
+  // Resposta correcta: opció índex 1
   // ================================================================
   {
     chip:     TEXTS.e3_chip,
@@ -563,27 +531,27 @@ const TUTORIAL = [
     steps: [
       {
         narration: TEXTS.e3_s1,
-        highlight:  { type:'arrow', x1:1.2, y1:2, x2:-5.25, y2:1 },
+        highlight:  null,
         btnStates:  ['','','',''],
-        pos: 'right-top', icon: '👀',
+        pos: 'left-top', icon: '👀',
       },
       {
         narration: TEXTS.e3_s2,
         highlight:  { type:'arrows-to', x:1, y:1 },
         btnStates:  ['wrong','','',''],
-        pos: 'right-bottom', icon: '⚠️',
+        pos: 'left-bottom', icon: '⚠️',
       },
       {
         narration: TEXTS.e3_s3,
         highlight:  { type:'point', x:0, y:2 },
         btnStates:  ['wrong','','',''],
-        pos: 'right-top', icon: '🔎',
+        pos: 'left-top', icon: '🔎',
       },
       {
         narration: TEXTS.e3_s4,
         highlight:  null,
         btnStates:  ['wrong','correct','',''],
-        pos: 'right-top', icon: '✅',
+        pos: 'left-top', icon: '✅',
       },
     ],
   },
@@ -592,15 +560,11 @@ const TUTORIAL = [
 
 
 /* ================================================================
-   GENERACIÓ SVG — adaptat de recta-numerica.js
-   Afegits respecte a l'original:
-     - Etiqueta sobre la columna destacada
-     - Línies de projecció (dashed) per als punts destacats
-     - Overlays de punt: pulsació (blue), ×wrong (red), ✓correct (green)
+   GENERACIÓ SVG
    ================================================================ */
 function buildSVG(cloudPts, yr, hl) {
     const W=560, H=420, ml=20, mr=20, mt=20, mb=20;
-    const pw=W-ml-mr, ph=H-mt-mb;           // pw=520, ph=380
+    const pw=W-ml-mr, ph=H-mt-mb;
     const xMin=-5, xMax=5;
     const f  = n => (+n).toFixed(1);
     const tx = x => ml + (x-xMin)/(xMax-xMin)*pw;
@@ -608,35 +572,27 @@ function buildSVG(cloudPts, yr, hl) {
     const px0 = tx(0);
     const py0 = (yr.min<=0&&yr.max>=0) ? ty(0) : mt+ph;
 
-    const s = []; // SVG elements (strings)
+    const s = [];
 
-    // --- Defs: marcador de fletxa burdeus ---
     s.push(`<defs>
         <marker id="arrow-burgundy" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
             <path d="M0,0 L0,7 L9,3.5 z" fill="#800020"/>
         </marker>
     </defs>`);
 
-    // --- Fons blanc ---
     s.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#fff"/>`);
 
-    // --- Columna destacada (davant del fons, darrera del grid) ---
+    // --- Columna destacada ---
     if (hl?.type==='column') {
-        const cw = pw/(xMax-xMin);          // amplada d'una unitat x = 52px
+        const cw = pw/(xMax-xMin);
         s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#0077b6" opacity="0.09" rx="3"/>`);
-        // Etiqueta desplaçada a l'esquerra per evitar col·lisió amb l'eix Y
         s.push(`<text x="${f(tx(hl.x)-18)}" y="${mt+15}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#0077b6">${hl.label||`x=${hl.x}`}</text>`);
-        // Fletxa burdeus: comença a la dreta de la columna i apunta al arrowTarget
+        const [ox, oy] = hl.arrowOrigin || [hl.x + 1.2, 2];
         const [atx, aty] = hl.arrowTarget || [hl.x, 0];
-        const arrowX1 = f(tx(hl.x + 1.2));
-        const arrowY1 = f(ty(2));
-        const arrowX2 = f(tx(atx));
-        const arrowY2 = f(ty(aty));
-        s.push(`<line x1="${arrowX1}" y1="${arrowY1}" x2="${arrowX2}" y2="${arrowY2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
+        s.push(`<line x1="${f(tx(ox))}" y1="${f(ty(oy))}" x2="${f(tx(atx))}" y2="${f(ty(aty))}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
     }
 
-    // --- Segments burdeus convergents (type:'arrows-to') ---
-    // Indiquen on HAURIA d'estar el punt si la frase fos certa
+    // --- Segments convergents ---
     if (hl?.type==='arrows-to') {
         const tx2 = f(tx(hl.x)), ty2 = f(ty(hl.y));
         const origins = [
@@ -649,74 +605,63 @@ function buildSVG(cloudPts, yr, hl) {
         });
     }
 
-    // --- Fletxa burdeus lliure (type:'arrow') ---
+    // --- Fletxa lliure ---
     if (hl?.type==='arrow') {
-        const ax1 = f(tx(hl.x1)), ay1 = f(ty(hl.y1));
-        const ax2 = f(tx(hl.x2)), ay2 = f(ty(hl.y2));
-        s.push(`<line x1="${ax1}" y1="${ay1}" x2="${ax2}" y2="${ay2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
+        s.push(`<line x1="${f(tx(hl.x1))}" y1="${f(ty(hl.y1))}" x2="${f(tx(hl.x2))}" y2="${f(ty(hl.y2))}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
     }
 
-    // --- Grid vertical (cada 1 unitat x) ---
-    for (let x=xMin; x<=xMax; x++) {
+    // --- Grid ---
+    for (let x=xMin; x<=xMax; x++)
         s.push(`<line x1="${f(tx(x))}" y1="${mt}" x2="${f(tx(x))}" y2="${mt+ph}" stroke="#c8d6e0" stroke-width="0.7"/>`);
-    }
-    // --- Grid horitzontal major ---
-    for (let y=yr.min; y<=yr.max; y+=yr.majorStep) {
+    for (let y=yr.min; y<=yr.max; y+=yr.majorStep)
         s.push(`<line x1="${ml}" y1="${f(ty(y))}" x2="${ml+pw}" y2="${f(ty(y))}" stroke="#9aaab8" stroke-width="1"/>`);
-    }
 
-    // --- Eixos principals ---
+    // --- Eixos ---
     s.push(`<line x1="${ml}" y1="${f(py0)}" x2="${ml+pw}" y2="${f(py0)}" stroke="#000" stroke-width="2"/>`);
     s.push(`<line x1="${f(px0)}" y1="${mt}" x2="${f(px0)}" y2="${mt+ph}" stroke="#000" stroke-width="2"/>`);
 
-    // --- Etiquetes eix Y ---
+    // --- Etiquetes Y ---
     for (let y=yr.min; y<=yr.max; y+=yr.majorStep) {
         if (y===0) continue;
         const py=ty(y);
         s.push(`<line x1="${f(px0-4)}" y1="${f(py)}" x2="${f(px0+4)}" y2="${f(py)}" stroke="#000" stroke-width="1.5"/>`);
         s.push(`<text x="${f(px0-8)}" y="${f(py+5)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${y}</text>`);
     }
-    // --- Etiquetes eix X ---
+    // --- Etiquetes X ---
     for (let x=xMin; x<=xMax; x++) {
         if (x===0) continue;
         const px=tx(x);
         s.push(`<line x1="${f(px)}" y1="${f(py0-4)}" x2="${f(px)}" y2="${f(py0+4)}" stroke="#000" stroke-width="1.5"/>`);
         s.push(`<text x="${f(px)}" y="${f(py0+20)}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${x}</text>`);
     }
-    // "0" a la intersecció dels eixos
     s.push(`<text x="${f(px0-8)}" y="${f(py0+20)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">0</text>`);
 
-    // --- Punts del núvol (capa base) ---
+    // --- Punts ---
     cloudPts.forEach(([cx,cy]) => {
         s.push(`<circle cx="${f(tx(cx))}" cy="${f(ty(cy))}" r="7" fill="#0077b6" stroke="white" stroke-width="2.5"/>`);
     });
 
-    // --- Línies de projecció (dashed) per als punts destacats ---
-    // Ajuden l'alumne a llegir les coordenades del punt
+    // --- Línies de projecció ---
     const PROJ_TYPES = ['point','point-correct','point-wrong'];
     if (hl && PROJ_TYPES.includes(hl.type)) {
         const hx=tx(hl.x), hy=ty(hl.y);
         const cols = { 'point':'#0077b6', 'point-correct':'#059669', 'point-wrong':'#dc2626' };
         const c = cols[hl.type];
-        // Horitzontal: del punt fins a l'eix Y
         s.push(`<line x1="${ml}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
-        // Vertical: del punt fins a l'eix X
         s.push(`<line x1="${f(hx)}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(py0)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
     }
 
-    // --- Overlay: punt a destacar (pulsació blava) ---
+    // --- Overlay: punt blau pulsant ---
     if (hl?.type==='point') {
         const hx=tx(hl.x), hy=ty(hl.y);
-        // Anell pulsant
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#00b4d8" stroke-width="2.5">
             <animate attributeName="r"       from="9"   to="23"  dur="1.25s" repeatCount="indefinite"/>
             <animate attributeName="opacity" from="0.8" to="0"   dur="1.25s" repeatCount="indefinite"/>
         </circle>`);
-        // Punt recolorit en accent
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="#00b4d8" stroke="white" stroke-width="2.5"/>`);
     }
 
-    // --- Overlay: punt erroni (rodona + × vermell) ---
+    // --- Overlay: punt erroni ---
     if (hl?.type==='point-wrong') {
         const hx=tx(hl.x), hy=ty(hl.y);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>`);
@@ -726,12 +671,11 @@ function buildSVG(cloudPts, yr, hl) {
         s.push(`<line x1="${f(hx+d)}" y1="${f(hy-d)}" x2="${f(hx-d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
     }
 
-    // --- Overlay: punt correcte (rodona + ✓ verd) ---
+    // --- Overlay: punt correcte ---
     if (hl?.type==='point-correct') {
         const hx=tx(hl.x), hy=ty(hl.y);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#d1fae5" stroke="#059669" stroke-width="2"/>`);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#059669" stroke="white"  stroke-width="2.5"/>`);
-        // Marca de verificació
         s.push(`<polyline points="${f(hx-5)},${f(hy+1)} ${f(hx-1)},${f(hy+4.5)} ${f(hx+5)},${f(hy-4)}" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
     }
 
@@ -742,10 +686,9 @@ function buildSVG(cloudPts, yr, hl) {
 /* ================================================================
    ESTAT I NAVEGACIÓ
    ================================================================ */
-let exIdx   = 0;   // índex de l'exemple actual (0–2)
-let stepIdx = 0;   // índex del pas dins l'exemple
+let exIdx   = 0;
+let stepIdx = 0;
 
-// Nombre total de passos (per calcular el % de la barra de progrés)
 const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
 
 function globalStep() {
@@ -756,26 +699,20 @@ function globalStep() {
 
 
 /* ================================================================
-   RENDER — actualitza tota la UI per a l'estat actual
+   RENDER
    ================================================================ */
 function render() {
     const ex   = TUTORIAL[exIdx];
     const step = ex.steps[stepIdx];
     const gs   = globalStep();
 
-    // -- Capçalera vídeo --
     document.getElementById('example-label').textContent = `Exemple ${exIdx+1} de ${TUTORIAL.length}`;
+    document.getElementById('progress-fill').style.width = Math.round(gs / TOTAL_STEPS * 100) + '%';
 
-    // Barra de progrés
-    document.getElementById('progress-fill').style.width =
-        Math.round(gs / TOTAL_STEPS * 100) + '%';
-
-    // -- Columna esquerra --
     document.getElementById('example-chip').textContent      = ex.chip;
     document.getElementById('tut-question').textContent      = ex.question;
     document.getElementById('tut-question-hint').textContent = ex.hint || '';
 
-    // Opcions: recrea els botons amb l'estat del pas actual
     const optEl = document.getElementById('tut-options');
     optEl.innerHTML = '';
     ex.options.forEach((opt, i) => {
@@ -784,16 +721,14 @@ function render() {
         const st = step.btnStates[i];
         if (st === 'wrong')   btn.classList.add('wrong');
         if (st === 'correct') btn.classList.add('correct');
-        btn.style.pointerEvents  = 'none';  // tutorial: no és interactiu
+        btn.style.pointerEvents  = 'none';
         btn.style.animationDelay = `${i * 55}ms`;
         btn.textContent = opt.text;
         optEl.appendChild(btn);
     });
 
-    // -- Columna dreta: gràfic SVG --
     document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, step.highlight);
 
-    // -- Bombolla de narració: fade out → canvia contingut → fade in --
     const bubble  = document.getElementById('narration-bubble');
     const textEl  = document.getElementById('narration-text');
     const iconEl  = document.getElementById('bubble-icon');
@@ -802,11 +737,9 @@ function render() {
     setTimeout(() => {
         textEl.innerHTML   = step.narration;
         iconEl.textContent = step.icon;
-        // Canvia la classe de posició (anima top via CSS transition) i elimina fade-out
         bubble.className   = `narration-bubble pos-${step.pos}`;
     }, 210);
 
-    // -- Botó Següent --
     const isLastStep = stepIdx === ex.steps.length - 1;
     const isLastEx   = exIdx   === TUTORIAL.length  - 1;
     const btnNext    = document.getElementById('btn-next');
@@ -829,16 +762,12 @@ function render() {
    ================================================================ */
 document.getElementById('btn-next').addEventListener('click', () => {
     const ex = TUTORIAL[exIdx];
-
     if (stepIdx < ex.steps.length - 1) {
-        // Pas següent dins el mateix exemple
         stepIdx++;
     } else if (exIdx < TUTORIAL.length - 1) {
-        // Exemple següent
         exIdx++;
         stepIdx = 0;
     } else {
-        // Tutorial completat → ves al joc
         window.location.href = 'recta-numerica.html';
         return;
     }
@@ -851,25 +780,19 @@ document.getElementById('btn-next').addEventListener('click', () => {
    ================================================================ */
 render();
 
-// Helper: dispara el blink-and-shake del botó Següent
 function triggerAttention() {
     const btn = document.getElementById('btn-next');
-    // Si ja s'està animant, reinicia-la
     btn.classList.remove('attention');
-    void btn.offsetWidth; // reflow per reiniciar l'animació CSS
+    void btn.offsetWidth;
     btn.classList.add('attention');
     btn.addEventListener('animationend', () => btn.classList.remove('attention'), { once: true });
 }
 
-// Blink-and-shake inicial: 4s després de carregar
 setTimeout(triggerAttention, 4000);
 
-// Blink-and-shake quan l'usuari clica qualsevol lloc que NO sigui el botó
 document.addEventListener('click', (e) => {
     const btn = document.getElementById('btn-next');
-    if (!btn.contains(e.target)) {
-        triggerAttention();
-    }
+    if (!btn.contains(e.target)) triggerAttention();
 });
 </script>
 
