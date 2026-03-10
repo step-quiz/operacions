@@ -64,8 +64,9 @@ const els = {
  * @returns {string}         Markup SVG complet
  */
 function renderSVG(cloud, yr) {
-    const W = 560, H = 400;
-    const ml = 52, mr = 14, mt = 14, mb = 34;
+    const W = 560, H = 420;
+    // Marges reduïts: les etiquetes van sobre els eixos, no al voltant del rectangle
+    const ml = 20, mr = 20, mt = 20, mb = 20;
     const pw = W - ml - mr;
     const ph = H - mt - mb;
 
@@ -73,59 +74,66 @@ function renderSVG(cloud, yr) {
     const tx = x => ml + (x - xMin) / (xMax - xMin) * pw;
     const ty = y => mt + ph - (y - yr.min) / (yr.max - yr.min) * ph;
 
+    // Posicions dels eixos en coordenades SVG
+    const px0 = tx(0);                              // Eix Y (x=0)
+    const py0 = (yr.min <= 0 && yr.max >= 0)        // Eix X (y=0)
+        ? ty(0) : mt + ph;
+
     const lines = [];
 
-    // Fons
-    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#f8fafc"/>`);
+    // Fons blanc pur — sense rectangle de frontera
+    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#ffffff"/>`);
 
-    // Grid menor (línies subtils)
+    // Grid menor (rangs mitjà/gran)
     if (yr.minorStep < yr.majorStep) {
         for (let y = yr.min; y <= yr.max; y += yr.minorStep) {
             const py = ty(y);
-            lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#e2e8f0" stroke-width="0.7"/>`);
+            lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#b8c4ce" stroke-width="0.7"/>`);
         }
     }
 
-    // Grid vertical (sempre cada 1 unitat de x)
+    // Grid vertical (cada 1 unitat de x)
     for (let x = xMin; x <= xMax; x++) {
         const px = tx(x);
-        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${mt+ph}" stroke="#e2e8f0" stroke-width="0.7"/>`);
+        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${mt+ph}" stroke="#b8c4ce" stroke-width="0.7"/>`);
     }
 
     // Grid major Y
     for (let y = yr.min; y <= yr.max; y += yr.majorStep) {
         const py = ty(y);
-        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#cbd5e1" stroke-width="1"/>`);
+        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#9aaab8" stroke-width="1"/>`);
     }
 
-    // Eix X (y=0) — si és dins del rang
-    if (yr.min <= 0 && yr.max >= 0) {
-        const py = ty(0);
-        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#000000" stroke-width="2"/>`);
-    }
+    // Eix X (y=0)
+    lines.push(`<line x1="${ml}" y1="${py0.toFixed(1)}" x2="${ml+pw}" y2="${py0.toFixed(1)}" stroke="#000000" stroke-width="2"/>`);
 
-    // Eix Y (x=0) — sempre present
-    const px0 = tx(0);
+    // Eix Y (x=0)
     lines.push(`<line x1="${px0.toFixed(1)}" y1="${mt}" x2="${px0.toFixed(1)}" y2="${mt+ph}" stroke="#000000" stroke-width="2"/>`);
 
-    // Etiquetes eix Y (major ticks)
+    // Etiquetes eix Y — sobre l'eix Y, a l'esquerra de la línia
     for (let y = yr.min; y <= yr.max; y += yr.majorStep) {
+        if (y === 0) continue;   // el 0 es posa a la intersecció
         const py = ty(y);
-        lines.push(`<text x="${ml - 6}" y="${(py + 4).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" fill="#000000">${y}</text>`);
-        lines.push(`<line x1="${ml - 3}" y1="${py.toFixed(1)}" x2="${ml}" y2="${py.toFixed(1)}" stroke="#000000" stroke-width="1"/>`);
+        // Tick sobre l'eix Y
+        lines.push(`<line x1="${(px0-4).toFixed(1)}" y1="${py.toFixed(1)}" x2="${(px0+4).toFixed(1)}" y2="${py.toFixed(1)}" stroke="#000000" stroke-width="1.5"/>`);
+        // Text a l'esquerra de l'eix Y
+        lines.push(`<text x="${(px0-8).toFixed(1)}" y="${(py+5).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000000">${y}</text>`);
     }
 
-    // Etiquetes eix X
+    // Etiquetes eix X — sobre l'eix X, sota la línia
     for (let x = xMin; x <= xMax; x++) {
+        if (x === 0) continue;   // el 0 es posa a la intersecció
         const px = tx(x);
-        lines.push(`<text x="${px.toFixed(1)}" y="${mt + ph + 20}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="14" fill="#000000">${x}</text>`);
-        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt + ph}" x2="${px.toFixed(1)}" y2="${mt + ph + 4}" stroke="#000000" stroke-width="1"/>`);
+        // Tick sobre l'eix X
+        lines.push(`<line x1="${px.toFixed(1)}" y1="${(py0-4).toFixed(1)}" x2="${px.toFixed(1)}" y2="${(py0+4).toFixed(1)}" stroke="#000000" stroke-width="1.5"/>`);
+        // Text sota l'eix X
+        lines.push(`<text x="${px.toFixed(1)}" y="${(py0+20).toFixed(1)}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000000">${x}</text>`);
     }
 
-    // Marc exterior
-    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="none" stroke="#000000" stroke-width="1.5"/>`);
+    // Etiqueta "0" a la intersecció dels eixos
+    lines.push(`<text x="${(px0-8).toFixed(1)}" y="${(py0+20).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000000">0</text>`);
 
-    // Punts del núvol
+    // Punts del núvol (dibuixats al final, per davant de tot)
     cloud.forEach(pt => {
         const px = tx(pt.x), py = ty(pt.y);
         lines.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="7" fill="#0077b6" stroke="white" stroke-width="2.5"/>`);
