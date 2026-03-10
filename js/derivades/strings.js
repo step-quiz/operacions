@@ -88,7 +88,7 @@ const Hints = {
     // -------------------------------------------------------
 
     POWER_FORGOT_R:
-        "Per derivar xⁿ, l'exponent disminueix en 1 unitat. I cal multiplicar pel coeficient adequat. " +
+        "Per derivar xⁿ, has disminuït l'exponent en 1 unitat, però cal multiplicar pel coeficient 'n'. " +
         "Exemple: per derivar 7x³, escriurem aquesta resposta: 21·x².",
 
     POWER_WRONG_EXP:
