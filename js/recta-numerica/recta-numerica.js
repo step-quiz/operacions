@@ -64,9 +64,9 @@ const els = {
  * @returns {string}         Markup SVG complet
  */
 function renderSVG(cloud, yr) {
-    const W = 560, H = 420;
-    // Marges reduïts: les etiquetes van sobre els eixos, no al voltant del rectangle
-    const ml = 20, mr = 20, mt = 20, mb = 20;
+    const W = 700, H = 420;
+    // mr ampli per a etiqueta X; mt ampli per a etiqueta Y per sobre del pla
+    const ml = 20, mr = 130, mt = 30, mb = 20;
     const pw = W - ml - mr;
     const ph = H - mt - mb;
 
@@ -133,11 +133,11 @@ function renderSVG(cloud, yr) {
     // Etiqueta "0" a la intersecció dels eixos
     lines.push(`<text x="${(px0-8).toFixed(1)}" y="${(py0+20).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000000">0</text>`);
 
-    // Etiqueta eix X: "x: temps (dies)" — a la dreta de l'eix horitzontal
-    lines.push(`<text x="${(ml + pw + 6).toFixed(1)}" y="${(py0 + 5).toFixed(1)}" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" fill="#000000">x: temps (dies)</text>`);
+    // Etiqueta eix X: "x: temps (dies)" — a la dreta de l'eix horitzontal, dins marge mr ampliat
+    lines.push(`<text x="${(ml + pw + 8).toFixed(1)}" y="${(py0 + 5).toFixed(1)}" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" fill="#000000">x: temps (dies)</text>`);
 
-    // Etiqueta eix Y: "y: temperatura (ºC)" — a dalt de l'eix vertical
-    lines.push(`<text x="${(px0 + 6).toFixed(1)}" y="${(mt + 14).toFixed(1)}" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" fill="#000000">y: temperatura (ºC)</text>`);
+    // Etiqueta eix Y: "y: temperatura (ºC)" — a FORA del pla, per sobre del valor màxim
+    lines.push(`<text x="${(px0 + 6).toFixed(1)}" y="${(mt - 4).toFixed(1)}" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000000">y: temperatura (ºC)</text>`);
 
     // Punts del núvol (dibuixats al final, per davant de tot)
     cloud.forEach(pt => {
