@@ -235,10 +235,10 @@ body {
     border-color: var(--danger) !important;
     background: var(--danger) !important;
 }
-.options-list .btn-option.reveal-correct::before,
-.options-grid .btn-option.reveal-correct::before {
-    border-color: var(--warn) !important;
-    background: var(--warn) !important;
+.options-list .btn-option.reveal-answer::before,
+.options-grid .btn-option.reveal-answer::before {
+    border-color: #6ee7b7 !important;
+    background: #6ee7b7 !important;
 }
 
 @media (hover: hover) {
@@ -268,11 +268,11 @@ body {
     animation: shake 0.25s forwards;
 }
 
-/* Estat: correcte revelat (quan s'esgoten els intents) */
-.btn-option.reveal-correct {
-    background: var(--warn-light) !important;
-    border-color: var(--warn) !important;
-    color: var(--warn) !important;
+/* Estat: correcte revelat quan s'esgoten els intents (verd clar, no taronja) */
+.btn-option.reveal-answer {
+    background: #d1fae5 !important;   /* verd molt clar */
+    border-color: #6ee7b7 !important; /* verd menta */
+    color: #065f46 !important;        /* verd fosc llegible */
 }
 
 @keyframes shake {
@@ -302,6 +302,11 @@ body {
     background: #f1f5f9;
     border: 1.5px solid #cbd5e1;
     color: #000000;
+}
+.feedback-neutral {
+    background: #f8fafc;
+    border: 1.5px solid #94a3b8;
+    color: #334155;
 }
 
 /* ---- RESUM FINAL ---- */
