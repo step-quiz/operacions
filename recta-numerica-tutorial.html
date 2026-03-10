@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial — Lectura de Gràfiques</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ================================================================
+       VARIABLES — mateixa paleta que l'app
+       ================================================================ */
+    :root {
+      --primary:       #0077b6;
+      --primary-light: #e0f4ff;
+      --primary-dark:  #023e8a;
+      --accent:        #00b4d8;
+      --bg:            #f0f9ff;
+      --panel:         #ffffff;
+      --text:          #0f172a;
+      --muted:         #64748b;
+      --border:        #e2e8f0;
+      --success:       #059669;
+      --success-light: #d1fae5;
+      --danger:        #dc2626;
+      --danger-light:  #fee2e2;
+      --radius:        10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 16px 10px;
+    }
+
+    /* ---- TÍTOL ---- */
+    .title-row {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 10px;
+      width: 100%; max-width: 80vw;
+      justify-content: center;
+    }
+    .title-row h1 {
+      font-size: 1.35em; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--primary-dark);
+    }
+    .home-icon-link {
+      width: 42px; height: 42px; opacity: 0.7;
+      transition: opacity 0.2s; display: block; flex-shrink: 0;
+    }
+    .home-icon-link:hover { opacity: 1; }
+    .home-icon-link img   { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ---- PANELL PRINCIPAL ---- */
+    .panel {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      border: 1px solid var(--border);
+      border-top: 5px solid var(--primary);
+      width: 100%; max-width: 80vw;
+      overflow: hidden;
+      flex: 1 1 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ================================================================
+       CAPÇALERA ESTIL VÍDEO
+       ================================================================ */
+    .tut-header {
+      background: var(--primary-dark);
+      color: white;
+      padding: 9px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 8px;
+    }
+    .tut-header-left { display: flex; align-items: center; gap: 9px; }
+
+    /* Punt vermell parpellejant (● REC) */
+    .rec-dot {
+      width: 10px; height: 10px;
+      background: #ef4444; border-radius: 50%;
+      animation: rec-blink 1.6s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes rec-blink {
+      0%,100% { opacity: 1; } 50% { opacity: 0.2; }
+    }
+    #example-label {
+      font-size: 0.88em; font-weight: 600; letter-spacing: 0.3px;
+    }
+
+    /* Tres punts de progrés (un per exemple) */
+    .tut-dots { display: flex; gap: 7px; align-items: center; }
+    .tut-dot {
+      width: 11px; height: 11px; border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+      border: 2px solid rgba(255,255,255,0.38);
+      transition: background 0.35s, border-color 0.35s, transform 0.25s;
+    }
+    .tut-dot.active {
+      background: white; border-color: white;
+      transform: scale(1.2);
+    }
+    .tut-dot.done { background: var(--accent); border-color: var(--accent); }
+
+    #step-label {
+      font-size: 0.8em; font-family: monospace;
+      opacity: 0.72; white-space: nowrap;
+    }
+
+    /* ---- BARRA DE PROGRÉS (timeline) ---- */
+    .progress-track { height: 4px; background: var(--border); flex-shrink: 0; }
+    .progress-fill  {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      transition: width 0.55s cubic-bezier(0.4,0,0.2,1);
+      width: 0%;
+    }
+
+    /* ================================================================
+       COS PRINCIPAL: DOS COLUMNES
+       ================================================================ */
+    .game-body {
+      display: flex; flex-direction: row;
+      flex: 1 1 0; min-height: 0;
+    }
+    .game-left {
+      width: 30%; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      padding: 14px 12px 14px 18px;
+      border-right: 1px solid var(--border);
+      overflow-y: auto; min-height: 0;
+    }
+    .game-right {
+      width: 70%; flex-shrink: 0;
+      display: flex; align-items: flex-start;
+      padding: 10px 14px 10px 10px;
+      overflow-y: auto; min-height: 0;
+    }
+
+    /* ---- CHIP DE TIPUS DE PREGUNTA ---- */
+    .example-chip {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: 0.72em; font-weight: 800;
+      padding: 3px 10px; border-radius: 20px;
+      margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      align-self: flex-start;
+    }
+
+    /* ---- PREGUNTA ---- */
+    .question-prompt {
+      font-size: 1.04em; font-weight: 600;
+      color: var(--primary-dark); line-height: 1.45;
+      margin-bottom: 12px;
+      min-height: calc(1.04em * 1.45 * 4);
+      display: flex; align-items: flex-start;
+    }
+
+    /* ---- OPCIONS ---- */
+    .options-list { display: flex; flex-direction: column; gap: 7px; }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-5px); }
+      75%      { transform: translateX(5px); }
+    }
+
+    .btn-option {
+      padding: 10px 12px;
+      font-family: 'Barlow', sans-serif; font-size: 0.97em; font-weight: 600;
+      border-radius: var(--radius); border: 2px solid var(--border);
+      background: white; color: var(--text);
+      cursor: default;
+      text-align: left; line-height: 1.35;
+      transition: background 0.15s, border-color 0.15s;
+      opacity: 0;
+      animation: popIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+      min-height: 46px;
+      display: flex; align-items: center;
+      gap: 10px; padding-left: 11px;
+    }
+    .btn-option::before {
+      content: ''; flex-shrink: 0;
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--border); background: white;
+    }
+    .btn-option.correct {
+      background: var(--success-light) !important;
+      border-color: var(--success) !important;
+      color: var(--success) !important;
+    }
+    .btn-option.correct::before {
+      border-color: var(--success) !important;
+      background: var(--success) !important;
+    }
+    .btn-option.wrong {
+      background: var(--danger-light) !important;
+      border-color: var(--danger) !important;
+      color: var(--danger) !important;
+      animation: shake 0.28s forwards !important;
+    }
+    .btn-option.wrong::before {
+      border-color: var(--danger) !important;
+      background: var(--danger) !important;
+    }
+
+    /* ================================================================
+       GRÀFIC + BOMBOLLA
+       ================================================================ */
+    #graph-wrap {
+      position: relative; width: 100%;
+    }
+    #graph-wrap svg { display: block; width: 100%; height: auto; }
+
+    /* ---- BOMBOLLA DE NARRACIÓ ---- */
+    .narration-bubble {
+      position: absolute;
+      width: 43%;
+      background: white;
+      border: 2px solid var(--primary);
+      border-left: 5px solid var(--primary);
+      border-radius: 10px;
+      padding: 11px 13px 11px 12px;
+      box-shadow: 0 5px 22px rgba(0,119,182,0.18);
+      font-size: 0.87em; line-height: 1.55;
+      color: var(--text);
+      z-index: 20;
+      transition:
+        top    0.45s cubic-bezier(0.25,0.8,0.25,1),
+        opacity 0.22s ease,
+        transform 0.22s ease;
+    }
+    /* Fletxa apuntant esquerra (cap al gràfic) */
+    .narration-bubble::before {
+      content: ''; position: absolute;
+      left: -10px; top: 20px;
+      border: 5px solid transparent;
+      border-right-color: var(--primary);
+    }
+    .narration-bubble::after {
+      content: ''; position: absolute;
+      left: -6px; top: 22px;
+      border: 3px solid transparent;
+      border-right-color: white;
+    }
+    .narration-bubble.fade-out {
+      opacity: 0; transform: translateY(-7px);
+    }
+    /* Dues posicions possibles */
+    .narration-bubble.pos-right-top    { top:  3%; left: 52%; }
+    .narration-bubble.pos-right-bottom { top: 57%; left: 52%; }
+
+    .bubble-icon { display: block; font-size: 1.15em; margin-bottom: 4px; }
+    .narration-bubble b { color: var(--primary-dark); }
+
+    /* ================================================================
+       PEU DE PÀGINA
+       ================================================================ */
+    .tut-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      background: #f8fafc; flex-shrink: 0;
+    }
+    .footer-hint {
+      font-size: 0.8em; color: var(--muted); font-style: italic;
+    }
+    .btn-next-step {
+      padding: 11px 26px;
+      background: var(--primary); color: white;
+      font-family: 'Barlow', sans-serif; font-size: 1em; font-weight: 700;
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    .btn-next-step:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-next-step:active { transform: scale(0.97); }
+    .btn-next-step.btn-finish              { background: var(--success); }
+    .btn-next-step.btn-finish:hover        { background: #047857; }
+    .btn-next-step.btn-next-example        { background: #7c3aed; }
+    .btn-next-step.btn-next-example:hover  { background: #5b21b6; }
+
+    /* ================================================================
+       RESPONSIU
+       ================================================================ */
+    @media (max-width: 780px) {
+      body { overflow: auto; height: auto; }
+      .game-body { flex-direction: column-reverse; }
+      .game-left, .game-right { width: 100%; border-right: none; }
+      .game-left  { border-top: 1px solid var(--border); padding: 12px; }
+      .game-right { padding: 10px 10px 2px; }
+      #graph-wrap { position: relative; }
+      .narration-bubble {
+        position: relative !important;
+        width: 100% !important;
+        top: auto !important; left: auto !important;
+        margin-top: 10px;
+        border-left-width: 2px;
+      }
+      .narration-bubble::before,
+      .narration-bubble::after { display: none; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 8px 8px 16px; }
+      .title-row h1 { font-size: 1.1em; }
+      .tut-header   { padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Capçalera de pàgina -->
+<div class="title-row">
+  <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+    <img src="icon.png" alt="Inici" onerror="this.style.display='none'">
+  </a>
+  <h1>Tutorial — Lectura de Gràfiques</h1>
+</div>
+
+<!-- Panell principal -->
+<div class="panel">
+
+  <!-- Barra superior estil gravació de vídeo -->
+  <div class="tut-header">
+    <div class="tut-header-left">
+      <span class="rec-dot" title="Tutorial en curs"></span>
+      <span id="example-label">Exemple 1 de 3</span>
+    </div>
+    <div class="tut-dots">
+      <span class="tut-dot" id="dot-0"></span>
+      <span class="tut-dot" id="dot-1"></span>
+      <span class="tut-dot" id="dot-2"></span>
+    </div>
+    <span id="step-label">Pas 1 de 4</span>
+  </div>
+
+  <!-- Barra de progrés (timeline) -->
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <!-- Cos: columna esquerra + columna dreta -->
+  <div class="game-body">
+
+    <!-- Esquerra: chip + pregunta + opcions -->
+    <div class="game-left">
+      <span class="example-chip" id="example-chip">Q1 · Temperatura avui</span>
+      <div class="question-prompt" id="tut-question"></div>
+      <div class="options-list"   id="tut-options"></div>
+    </div>
+
+    <!-- Dreta: gràfic SVG + bombolla flotant -->
+    <div class="game-right">
+      <div id="graph-wrap">
+        <div id="tut-graph"></div>
+        <div class="narration-bubble pos-right-top" id="narration-bubble">
+          <span class="bubble-icon" id="bubble-icon">👀</span>
+          <div id="narration-text"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Peu: hint + botó Següent -->
+  <div class="tut-footer">
+    <span class="footer-hint" id="footer-hint">Clica «Següent» per avançar pas a pas</span>
+    <button class="btn-next-step" id="btn-next">Següent →</button>
+  </div>
+
+</div>
+
+<!-- ================================================================
+     SCRIPT: dades del tutorial + renderitzador SVG + controlador
+     ================================================================ -->
+<script>
+'use strict';
+
+/* ================================================================
+   DADES DEL TUTORIAL
+   Cada exemple té: chip, question, cloud, yRange, options i steps.
+   Cada step té: narration, highlight, btnStates, pos, icon.
+   ================================================================ */
+const TUTORIAL = [
+
+  // ================================================================
+  // EXEMPLE 1 — Q1: Temperatura avui
+  // Cloud: [(-2,3),(-1,2),(0,4),(1,3),(2,1)]
+  // Resposta correcta: 4 ºC  (opció índex 2)
+  // Distractor mostrat: 2 ºC (opció índex 0) → punt d'ahir (x=-1)
+  // ================================================================
+  {
+    chip:     'Q1 · Temperatura avui',
+    question: 'Quina temperatura fa avui?',
+    cloud:    [[-2,3],[-1,2],[0,4],[1,3],[2,1]],
+    yRange:   { min:-6, max:6, majorStep:1 },
+    options:  [
+      { text: '2 ºC', correct: false },
+      { text: '3 ºC', correct: false },
+      { text: '4 ºC', correct: true  },
+      { text: '1 ºC', correct: false },
+    ],
+    steps: [
+      {
+        narration: 'Observa el gràfic. L\'eix horitzontal (x) representa els dies: <b>avui és x = 0</b>. A l\'esquerra hi ha el passat (valors negatius) i a la dreta el futur (valors positius).',
+        highlight:  { type:'column', x:0, label:'avui (x = 0)' },
+        btnStates:  ['','','',''],
+        pos: 'right-top', icon: '👀',
+      },
+      {
+        narration: 'Busca el <b>punt blau a x = 0</b>. Les línies de punts t\'ajuden a llegir: segueix horitzontalment fins a l\'eix vertical per saber la temperatura.',
+        highlight:  { type:'point', x:0, y:4 },
+        btnStates:  ['','','',''],
+        pos: 'right-bottom', icon: '🔎',
+      },
+      {
+        narration: '<b>❌ «2 ºC» no és correcte.</b> Aquell punt és a x = −1 (ahir), no a x = 0 (avui). Error molt comú: llegir el punt del dia equivocat!',
+        highlight:  { type:'point-wrong', x:-1, y:2 },
+        btnStates:  ['wrong','','',''],
+        pos: 'right-top', icon: '⚠️',
+      },
+      {
+        narration: '<b>✅ «4 ºC» és la resposta correcta!</b> El punt a x = 0 arriba fins a y = 4. Les línies de punts ho confirmen: avui la temperatura és de <b>4 graus sobre zero</b>.',
+        highlight:  { type:'point-correct', x:0, y:4 },
+        btnStates:  ['wrong','','correct',''],
+        pos: 'right-bottom', icon: '✅',
+      },
+    ],
+  },
+
+  // ================================================================
+  // EXEMPLE 2 — Q2: Temperatura d'un altre dia
+  // Cloud: [(-3,-2),(-1,3),(0,1),(2,4)]
+  // Pregunta: ahir (x=-1) → resposta: 3 ºC (opció índex 2)
+  // Distractor: 1 ºC (opció índex 0) → punt d'avui (x=0)
+  // ================================================================
+  {
+    chip:     'Q2 · Temperatura ahir',
+    question: 'Quina temperatura feia ahir?',
+    cloud:    [[-3,-2],[-1,3],[0,1],[2,4]],
+    yRange:   { min:-6, max:6, majorStep:1 },
+    options:  [
+      { text: '1 ºC',       correct: false },
+      { text: '\u22122 ºC', correct: false },
+      { text: '3 ºC',       correct: true  },
+      { text: '4 ºC',       correct: false },
+    ],
+    steps: [
+      {
+        narration: 'La pregunta parla d\'<b>ahir</b>. A l\'eix x, ahir és <b>x = −1</b>. Primer pas: localitza x = −1 a l\'eix horitzontal.',
+        highlight:  { type:'column', x:-1, label:'ahir (x = \u22121)' },
+        btnStates:  ['','','',''],
+        pos: 'right-top', icon: '👀',
+      },
+      {
+        narration: 'Hem trobat x = −1. Ara mira el punt blau sobre aquesta posició. Les línies de punts t\'indiquen fins a quin valor de y arriba a l\'eix vertical.',
+        highlight:  { type:'point', x:-1, y:3 },
+        btnStates:  ['','','',''],
+        pos: 'right-top', icon: '🔎',
+      },
+      {
+        narration: '<b>❌ «1 ºC» és incorrecte.</b> Aquell és el valor d\'avui (x = 0), no d\'ahir. Quan la pregunta diu un dia concret, hem d\'anar sempre al punt d\'aquell dia!',
+        highlight:  { type:'point-wrong', x:0, y:1 },
+        btnStates:  ['wrong','','',''],
+        pos: 'right-top', icon: '⚠️',
+      },
+      {
+        narration: '<b>✅ «3 ºC» és correcte!</b> El punt a x = −1 arriba fins a y = 3. Ahir la temperatura era de <b>3 graus sobre zero</b>.',
+        highlight:  { type:'point-correct', x:-1, y:3 },
+        btnStates:  ['wrong','','correct',''],
+        pos: 'right-top', icon: '✅',
+      },
+    ],
+  },
+
+  // ================================================================
+  // EXEMPLE 3 — Q4: Selecciona la frase correcta
+  // Cloud: [(-2,-1),(-1,2),(0,2),(1,4),(3,1)]
+  // Correcta: opció índex 1 ("Avui, la temperatura és de 2 graus sobre zero")
+  // Distractor: opció índex 0 ("Demà… 1 grau") → x=1 és y=4, no y=1
+  // ================================================================
+  {
+    chip:     'Q4 · Frase correcta',
+    question: 'Selecciona la frase correcta:',
+    cloud:    [[-2,-1],[-1,2],[0,2],[1,4],[3,1]],
+    yRange:   { min:-6, max:6, majorStep:1 },
+    options:  [
+      { text: "Demà, la temperatura estarà d'1 grau sobre zero",  correct: false },
+      { text: 'Avui, la temperatura és de 2 graus sobre zero',    correct: true  },
+      { text: 'Ahir, la temperatura era de 2 graus sota zero',    correct: false },
+      { text: 'Entre ahir i avui, la temperatura baixa',          correct: false },
+    ],
+    steps: [
+      {
+        narration: 'A les preguntes Q4 <b>no podem adivinar</b>: hem de verificar cada opció mirant el gràfic una per una, punt a punt.',
+        highlight:  null,
+        btnStates:  ['','','',''],
+        pos: 'right-top', icon: '👀',
+      },
+      {
+        narration: 'Primera opció: "Demà (x = 1) la temperatura serà d\'1 grau sobre zero". Busca x = 1 al gràfic: el punt arriba a y = 4, <b>no a y = 1</b>. Fals!',
+        highlight:  { type:'point-wrong', x:1, y:4 },
+        btnStates:  ['wrong','','',''],
+        pos: 'right-bottom', icon: '⚠️',
+      },
+      {
+        narration: 'Segona opció: "Avui (x = 0) la temperatura és de 2 graus sobre zero". Busca x = 0 i llegeix y a l\'eix vertical...',
+        highlight:  { type:'point', x:0, y:2 },
+        btnStates:  ['wrong','','',''],
+        pos: 'right-top', icon: '🔎',
+      },
+      {
+        narration: '<b>✅ Correcte!</b> El punt a x = 0 arriba fins a y = 2. Les línies de punts ho confirmen: avui la temperatura és de <b>2 graus sobre zero</b>. La frase és totalment certa!',
+        highlight:  { type:'point-correct', x:0, y:2 },
+        btnStates:  ['wrong','correct','',''],
+        pos: 'right-top', icon: '✅',
+      },
+    ],
+  },
+
+]; // fi TUTORIAL
+
+
+/* ================================================================
+   GENERACIÓ SVG — adaptat de recta-numerica.js
+   Afegits respecte a l'original:
+     - Etiqueta sobre la columna destacada
+     - Línies de projecció (dashed) per als punts destacats
+     - Overlays de punt: pulsació (blue), ×wrong (red), ✓correct (green)
+   ================================================================ */
+function buildSVG(cloudPts, yr, hl) {
+    const W=560, H=420, ml=20, mr=20, mt=20, mb=20;
+    const pw=W-ml-mr, ph=H-mt-mb;           // pw=520, ph=380
+    const xMin=-5, xMax=5;
+    const f  = n => (+n).toFixed(1);
+    const tx = x => ml + (x-xMin)/(xMax-xMin)*pw;
+    const ty = y => mt + ph - (y-yr.min)/(yr.max-yr.min)*ph;
+    const px0 = tx(0);
+    const py0 = (yr.min<=0&&yr.max>=0) ? ty(0) : mt+ph;
+
+    const s = []; // SVG elements (strings)
+
+    // --- Fons blanc ---
+    s.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#fff"/>`);
+
+    // --- Columna destacada (davant del fons, darrera del grid) ---
+    if (hl?.type==='column') {
+        const cw = pw/(xMax-xMin);          // amplada d'una unitat x = 52px
+        s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#0077b6" opacity="0.09" rx="3"/>`);
+        // Etiqueta a la part superior de la columna (dins del viewBox)
+        s.push(`<text x="${f(tx(hl.x))}" y="${mt+15}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#0077b6">${hl.label||`x=${hl.x}`}</text>`);
+    }
+
+    // --- Grid vertical (cada 1 unitat x) ---
+    for (let x=xMin; x<=xMax; x++) {
+        s.push(`<line x1="${f(tx(x))}" y1="${mt}" x2="${f(tx(x))}" y2="${mt+ph}" stroke="#c8d6e0" stroke-width="0.7"/>`);
+    }
+    // --- Grid horitzontal major ---
+    for (let y=yr.min; y<=yr.max; y+=yr.majorStep) {
+        s.push(`<line x1="${ml}" y1="${f(ty(y))}" x2="${ml+pw}" y2="${f(ty(y))}" stroke="#9aaab8" stroke-width="1"/>`);
+    }
+
+    // --- Eixos principals ---
+    s.push(`<line x1="${ml}" y1="${f(py0)}" x2="${ml+pw}" y2="${f(py0)}" stroke="#000" stroke-width="2"/>`);
+    s.push(`<line x1="${f(px0)}" y1="${mt}" x2="${f(px0)}" y2="${mt+ph}" stroke="#000" stroke-width="2"/>`);
+
+    // --- Etiquetes eix Y ---
+    for (let y=yr.min; y<=yr.max; y+=yr.majorStep) {
+        if (y===0) continue;
+        const py=ty(y);
+        s.push(`<line x1="${f(px0-4)}" y1="${f(py)}" x2="${f(px0+4)}" y2="${f(py)}" stroke="#000" stroke-width="1.5"/>`);
+        s.push(`<text x="${f(px0-8)}" y="${f(py+5)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${y}</text>`);
+    }
+    // --- Etiquetes eix X ---
+    for (let x=xMin; x<=xMax; x++) {
+        if (x===0) continue;
+        const px=tx(x);
+        s.push(`<line x1="${f(px)}" y1="${f(py0-4)}" x2="${f(px)}" y2="${f(py0+4)}" stroke="#000" stroke-width="1.5"/>`);
+        s.push(`<text x="${f(px)}" y="${f(py0+20)}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${x}</text>`);
+    }
+    // "0" a la intersecció dels eixos
+    s.push(`<text x="${f(px0-8)}" y="${f(py0+20)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">0</text>`);
+
+    // --- Punts del núvol (capa base) ---
+    cloudPts.forEach(([cx,cy]) => {
+        s.push(`<circle cx="${f(tx(cx))}" cy="${f(ty(cy))}" r="7" fill="#0077b6" stroke="white" stroke-width="2.5"/>`);
+    });
+
+    // --- Línies de projecció (dashed) per als punts destacats ---
+    // Ajuden l'alumne a llegir les coordenades del punt
+    const PROJ_TYPES = ['point','point-correct','point-wrong'];
+    if (hl && PROJ_TYPES.includes(hl.type)) {
+        const hx=tx(hl.x), hy=ty(hl.y);
+        const cols = { 'point':'#0077b6', 'point-correct':'#059669', 'point-wrong':'#dc2626' };
+        const c = cols[hl.type];
+        // Horitzontal: del punt fins a l'eix Y
+        s.push(`<line x1="${ml}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
+        // Vertical: del punt fins a l'eix X
+        s.push(`<line x1="${f(hx)}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(py0)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
+    }
+
+    // --- Overlay: punt a destacar (pulsació blava) ---
+    if (hl?.type==='point') {
+        const hx=tx(hl.x), hy=ty(hl.y);
+        // Anell pulsant
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#00b4d8" stroke-width="2.5">
+            <animate attributeName="r"       from="9"   to="23"  dur="1.25s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" from="0.8" to="0"   dur="1.25s" repeatCount="indefinite"/>
+        </circle>`);
+        // Punt recolorit en accent
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="#00b4d8" stroke="white" stroke-width="2.5"/>`);
+    }
+
+    // --- Overlay: punt erroni (rodona + × vermell) ---
+    if (hl?.type==='point-wrong') {
+        const hx=tx(hl.x), hy=ty(hl.y);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>`);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#dc2626" stroke="white"  stroke-width="2.5"/>`);
+        const d=4.5;
+        s.push(`<line x1="${f(hx-d)}" y1="${f(hy-d)}" x2="${f(hx+d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
+        s.push(`<line x1="${f(hx+d)}" y1="${f(hy-d)}" x2="${f(hx-d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
+    }
+
+    // --- Overlay: punt correcte (rodona + ✓ verd) ---
+    if (hl?.type==='point-correct') {
+        const hx=tx(hl.x), hy=ty(hl.y);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#d1fae5" stroke="#059669" stroke-width="2"/>`);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#059669" stroke="white"  stroke-width="2.5"/>`);
+        // Marca de verificació
+        s.push(`<polyline points="${f(hx-5)},${f(hy+1)} ${f(hx-1)},${f(hy+4.5)} ${f(hx+5)},${f(hy-4)}" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
+    }
+
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" overflow="visible" style="width:100%;height:auto;display:block">${s.join('')}</svg>`;
+}
+
+
+/* ================================================================
+   ESTAT I NAVEGACIÓ
+   ================================================================ */
+let exIdx   = 0;   // índex de l'exemple actual (0–2)
+let stepIdx = 0;   // índex del pas dins l'exemple
+
+// Nombre total de passos (per calcular el % de la barra de progrés)
+const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
+
+function globalStep() {
+    let n = 0;
+    for (let i = 0; i < exIdx; i++) n += TUTORIAL[i].steps.length;
+    return n + stepIdx;
+}
+
+
+/* ================================================================
+   RENDER — actualitza tota la UI per a l'estat actual
+   ================================================================ */
+function render() {
+    const ex   = TUTORIAL[exIdx];
+    const step = ex.steps[stepIdx];
+    const gs   = globalStep();
+
+    // -- Capçalera vídeo --
+    document.getElementById('example-label').textContent = `Exemple ${exIdx+1} de ${TUTORIAL.length}`;
+    document.getElementById('step-label').textContent    = `Pas ${stepIdx+1} de ${ex.steps.length}`;
+
+    // Dots: done / active / pendent
+    TUTORIAL.forEach((_, i) => {
+        const d = document.getElementById(`dot-${i}`);
+        d.className = 'tut-dot' + (i < exIdx ? ' done' : i === exIdx ? ' active' : '');
+    });
+
+    // Barra de progrés
+    document.getElementById('progress-fill').style.width =
+        Math.round(gs / TOTAL_STEPS * 100) + '%';
+
+    // -- Columna esquerra --
+    document.getElementById('example-chip').textContent  = ex.chip;
+    document.getElementById('tut-question').textContent  = ex.question;
+
+    // Opcions: recrea els botons amb l'estat del pas actual
+    const optEl = document.getElementById('tut-options');
+    optEl.innerHTML = '';
+    ex.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        const st = step.btnStates[i];
+        if (st === 'wrong')   btn.classList.add('wrong');
+        if (st === 'correct') btn.classList.add('correct');
+        btn.style.pointerEvents  = 'none';  // tutorial: no és interactiu
+        btn.style.animationDelay = `${i * 55}ms`;
+        btn.textContent = opt.text;
+        optEl.appendChild(btn);
+    });
+
+    // -- Columna dreta: gràfic SVG --
+    document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, step.highlight);
+
+    // -- Bombolla de narració: fade out → canvia contingut → fade in --
+    const bubble  = document.getElementById('narration-bubble');
+    const textEl  = document.getElementById('narration-text');
+    const iconEl  = document.getElementById('bubble-icon');
+
+    bubble.classList.add('fade-out');
+    setTimeout(() => {
+        textEl.innerHTML   = step.narration;
+        iconEl.textContent = step.icon;
+        // Canvia la classe de posició (anima top via CSS transition) i elimina fade-out
+        bubble.className   = `narration-bubble pos-${step.pos}`;
+    }, 210);
+
+    // -- Botó Següent --
+    const isLastStep = stepIdx === ex.steps.length - 1;
+    const isLastEx   = exIdx   === TUTORIAL.length  - 1;
+    const btnNext    = document.getElementById('btn-next');
+    const footerHint = document.getElementById('footer-hint');
+
+    if (isLastStep && isLastEx) {
+        btnNext.textContent = '🎮 Ves a jugar!';
+        btnNext.className   = 'btn-next-step btn-finish';
+        footerHint.textContent = 'Has completat el tutorial. Ara a practicar!';
+    } else if (isLastStep) {
+        btnNext.textContent = 'Exemple següent →';
+        btnNext.className   = 'btn-next-step btn-next-example';
+        footerHint.textContent = 'Continua amb el pròxim exemple';
+    } else {
+        btnNext.textContent = 'Següent →';
+        btnNext.className   = 'btn-next-step';
+        footerHint.textContent = 'Clica «Següent» per avançar pas a pas';
+    }
+}
+
+
+/* ================================================================
+   CLIC AL BOTÓ SEGÜENT
+   ================================================================ */
+document.getElementById('btn-next').addEventListener('click', () => {
+    const ex = TUTORIAL[exIdx];
+
+    if (stepIdx < ex.steps.length - 1) {
+        // Pas següent dins el mateix exemple
+        stepIdx++;
+    } else if (exIdx < TUTORIAL.length - 1) {
+        // Exemple següent
+        exIdx++;
+        stepIdx = 0;
+    } else {
+        // Tutorial completat → ves al joc
+        window.location.href = 'recta-numerica.html';
+        return;
+    }
+    render();
+});
+
+
+/* ================================================================
+   ARRENCADA
+   ================================================================ */
+render();
+</script>
+
+</body>
+</html>
