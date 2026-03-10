@@ -33,17 +33,17 @@ const Hints = {
     // -------------------------------------------------------
 
     CHAIN_FORGOT:
-        "Per aplicar la regla de la cadena, caldrà multiplicar 2 expressions: A·B. " +
-        "A: és la derivada de la funció exterior, però avaluada a l'interior. " +
-        "B: és la derivada de la funció interior. " +
+        "Per aplicar la regla de la cadena, caldrà multiplicar A·B.\n" +
+        "A: és la derivada de la funció exterior, però avaluada a l'interior.\n" +
+        "B: és la derivada de la funció interior.\n" +
         "Exemple: per derivar sin(x²), escrivim: cos(x²) · (2x).",
 
     CHAIN_WRONG_COEF:
-        "Per derivar un polinomi p(x), cal derivar terme a terme. " +
+        "Per derivar un polinomi p(x), cal derivar terme a terme.\n" +
         "Exemple: per derivar 5x²+3x, escrivim: 10x+3.",
 
     CHAIN_SIGN:
-        "Quan derivem, un signe negatiu és equivalent a tenir (-1) multiplicant. " +
+        "Quan derivem, un signe negatiu és equivalent a tenir (-1) multiplicant.\n" +
         "Exemple: per derivar (−cos x), escriurem −(−sin(x)) i ho simplifiquem a sin(x).",
 
     // -------------------------------------------------------
@@ -55,7 +55,7 @@ const Hints = {
         "Exemple: si has de derivar sin(x), respondre sin(x) és escriure la funció original, no la derivada.",
 
     INTEGRAL_CONFUSION:
-        "Atenció, potser has integrat per error. Aquí has de derivar. " +
+        "Atenció, potser has integrat per error. Aquí has de derivar.\n" +
         "Exemple: la derivada de x³ és 3x²; seria un error escriure x⁴/4.",
 
     // -------------------------------------------------------
@@ -63,11 +63,11 @@ const Hints = {
     // -------------------------------------------------------
 
     PRODUCT_FORGOT_SUM:
-        "Per derivar un producte f·g, la fórmula és aquesta: (f·g)' = f'·g + f·g'. " +
+        "Per derivar un producte f·g, la fórmula és aquesta: (f·g)' = f'·g + f·g'.\n" +
         "Exemple: la derivada de (x²·sin x) és aquesta: 2x·sin(x) + x²·cos(x).",
 
     PRODUCT_WRONG_ORDER:
-        "Per derivar un producte f·g, recorda que hi ha una suma a la fórmula: (f·g)' = f'·g + f·g'. " +
+        "Per derivar un producte f·g, recorda que hi ha una suma a la fórmula: (f·g)' = f'·g + f·g'.\n" +
         "Exemple: la derivada de (x²·sin x) és aquesta: 2x·sin(x) + x²·cos(x).",
 
     // -------------------------------------------------------
@@ -75,12 +75,12 @@ const Hints = {
     // -------------------------------------------------------
 
     QUOTIENT_SIGN:
-        "Per derivar un quocient f/g, hem de construir el numerador així: f'·g − f·g'. " +
-        "Exemple: per derivar (x²/sin x), el numerador de la resposta és: 2x·sin(x) − x²·cos(x). " +
+        "Per derivar un quocient f/g, hem de construir el numerador així: f'·g − f·g'.\n" +
+        "Exemple: per derivar (x²/sin x), el numerador de la resposta és: 2x·sin(x) − x²·cos(x).\n" +
         "A banda, recorda que el denominador seria, en aquest cas: sin²(x).",
 
     QUOTIENT_DENOM:
-        "Per derivar un quocient f/g, recorda que el denominador de la teva resposta ha de ser g². " +
+        "Per derivar un quocient f/g, recorda que el denominador de la teva resposta ha de ser g².\n" +
         "Exemple: per derivar (x/sin x), el denominador de la resposta és: sin²(x).",
 
     // -------------------------------------------------------
@@ -88,11 +88,11 @@ const Hints = {
     // -------------------------------------------------------
 
     POWER_FORGOT_R:
-        "Per derivar x^n, l'exponent disminueix en 1 unitat. I cal multiplicar pel coeficient adequat. " +
+        "Per derivar x^n, l'exponent disminueix en 1 unitat. I cal multiplicar pel coeficient adequat.\n" +
         "Exemple: per derivar 7x³, escriurem aquesta resposta: 21·x².",
 
     POWER_WRONG_EXP:
-        "Quan derivem x^n, l'exponent disminueix en 1 unitat. " +
+        "Quan derivem x^n, l'exponent disminueix en 1 unitat.\n" +
         "Exemple: per derivar x³, escriurem 3x². Seria un error escriure 3x³.",
 
     // -------------------------------------------------------
@@ -100,15 +100,15 @@ const Hints = {
     // -------------------------------------------------------
 
     LOG_INVERTED:
-        "La derivada de ln(f) és f'/f: la derivada de l'argument va al numerador, i l'argument al denominador. " +
+        "La derivada de ln(f) és f'/f: la derivada de l'argument va al numerador, i l'argument al denominador.\n" +
         "Exemple: per derivar ln(x²), escriurem aquesta resposta: 2x/x², que simplifica a 2/x.",
 
     LOG_FORGOT_CHAIN:
-        "Per derivar ln(f(x)), cal fer 2 passos: primer escriure 1/f(x), i després multiplicar per la derivada de f(x). " +
+        "Per derivar ln(f(x)), cal fer 2 passos: primer escriure 1/f(x), i després multiplicar per la derivada de f(x).\n" +
         "Exemple: per derivar ln(x²+1), escriurem aquesta resposta: (1/(x²+1))·(2x), que simplifica a 2x/(x²+1).",
 
     LOG_FORGOT_DIVIDE:
-        "Per derivar ln(f(x)), el resultat és una fracció: la derivada de f(x) al numerador, i f(x) al denominador. " +
+        "Per derivar ln(f(x)), el resultat és una fracció: la derivada de f(x) al numerador, i f(x) al denominador.\n" +
         "Exemple: per derivar ln(sin x), escriurem aquesta resposta: cos(x)/sin(x). Seria un error escriure només cos(x).",
 
     // -------------------------------------------------------
@@ -116,7 +116,7 @@ const Hints = {
     // -------------------------------------------------------
 
     SIN_COS_SWAP:
-        "Quan derivem, sin i cos s'intercanvien. Però atenció: la derivada de cos porta signe negatiu. " +
+        "Quan derivem, sin i cos s'intercanvien. Però atenció: la derivada de cos porta signe negatiu.\n" +
         "Exemple: la derivada de sin(x) és cos(x); la derivada de cos(x) és −sin(x).",
 };
 
