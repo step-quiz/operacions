@@ -10,7 +10,7 @@ FONT: Barlow (Google Fonts)
 
 /* ---- VARIABLES ---- */
 :root {
-    --panel-width:   86vw;
+    --panel-width:   92vw;
     --primary:       #0077b6;
     --primary-light: #e0f4ff;
     --primary-dark:  #023e8a;
@@ -156,6 +156,16 @@ body {
     min-height: 0;
 }
 
+/* ---- ETIQUETA EIX X (HTML, fora del SVG) ---- */
+.axis-label-x {
+    text-align: right;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.85em;
+    color: #000000;
+    padding-right: 4px;
+    margin-top: 2px;
+}
+
 /* ---- GRÀFIC SVG ---- */
 #graph-container {
     width: 100%;
@@ -174,10 +184,10 @@ body {
     color: var(--primary-dark);
     line-height: 1.45;
     margin-bottom: 14px;
-    /* Altura fixa = 4 línies: font-size * line-height * 4 ≈ 1.05em * 1.45 * 4 */
-    min-height: calc(1.05em * 1.45 * 4);
+    /* Altura fixa = 3 línies: font-size * line-height * 3 */
+    min-height: calc(1.05em * 1.45 * 3);
     display: flex;
-    align-items: flex-start;
+    align-items: flex-end;
 }
 
 /* ---- OPCIONS: GRID (Q1/Q2) ---- */
