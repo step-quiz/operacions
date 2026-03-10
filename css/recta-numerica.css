@@ -288,9 +288,9 @@ body {
     color: #065f46;
 }
 .feedback-wrong {
-    background: var(--danger-light);
-    border: 1.5px solid var(--danger);
-    color: #7f1d1d;
+    background: #f1f5f9;
+    border: 1.5px solid #cbd5e1;
+    color: #000000;
 }
 
 /* ---- RESUM FINAL ---- */
