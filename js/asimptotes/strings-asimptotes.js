@@ -1,118 +1,108 @@
 /**
- * ============================================================================
- * PROJECTE: Asímptotes i Límits Laterals
- * FITXER: js/asimptotes/strings-asimptotes.js
- * ROL: Font única de tots els textos visibles a l'alumne.
- * ============================================================================
+ * strings-asimptotes.js — font única de tots els textos i LaTeX visibles.
+ * Totes les funcions que retornen math retornen strings LaTeX vàlids per KaTeX.
  */
 window.StringsA = (() => {
-
     const INF = Infinity;
 
-    // ---- etiquetes de valors ------------------------------------------------
+    // ---- LaTeX de valors ------------------------------------------------
 
-    function xLabel(a) {
+    function xTeX(a) {
         if (a === 0)  return 'x = 0';
         if (a > 0)    return `x = ${a}`;
-        return `x = −${-a}`;
+        return `x = -${-a}`;
     }
 
-    function yLabel(b) {
+    function yTeX(b) {
         if (b === 0)  return 'y = 0';
         if (b > 0)    return `y = ${b}`;
-        return `y = −${-b}`;
+        return `y = -${-b}`;
     }
 
-    function limitLabel(v) {
-        if (v === INF)   return '+∞';
-        if (v === -INF)  return '−∞';
-        if (v === null)  return 'No existeix (fora del domini)';
+    function limitTeX(v) {
+        if (v === INF)   return '+\\infty';
+        if (v === -INF)  return '-\\infty';
+        if (v === null)  return '\\nexists';
         if (v === 0)     return '0';
-        return `${v < 0 ? '−' : ''}${Math.abs(v)}`;
+        return v < 0 ? `-${Math.abs(v)}` : `${v}`;
     }
 
-    function oaLabel(m, b) {
-        const bPart = b === 0 ? '' : b > 0 ? ` + ${b}` : ` − ${-b}`;
+    function oaTeX(m, b) {
+        const bPart = b === 0 ? '' : b > 0 ? ` + ${b}` : ` - ${-b}`;
         return `y = x${bPart}`;
     }
 
-    function aLabel(a) {
-        if (a === 0)  return '0';
-        if (a > 0)    return `${a}`;
-        return `−${-a}`;
-    }
+    // ---- LaTeX de la funció ------------------------------------------------
 
-    // ---- display HTML de la funció ------------------------------------------
-
-    function funcHTML(func) {
-        if (func.numStr !== null) {
-            return `f(x) = <span class="mfrac"><span class="mnum">${func.numStr}</span><span class="mden">${func.denStr}</span></span>`;
+    function funcTeX(func) {
+        if (func.family === 'rational-simple' || func.family === 'rational-11' || func.family === 'rational-21') {
+            return `f(x) = \\dfrac{${func.numStr}}{${func.denStr}}`;
         }
-        // Expressió directa (log, exp)
-        const expr = func.exprStr
-            .replace('e^', 'e<sup>')
-            .replace(/\)$/, ')</sup>');
-        // Millor: replacements específics
-        return `f(x) = ${_formatExpr(func.exprStr)}`;
+        if (func.family === 'logarithmic') {
+            return `f(x) = \\ln\\!\\left(${func.denStr}\\right)`;
+        }
+        if (func.family === 'exponential') {
+            return `f(x) = e^{\\frac{1}{${func.denStr}}}`;
+        }
+        return 'f(x)';
     }
 
-    function _formatExpr(s) {
-        // e^(1/(x−a)) → e<sup>1/(x−a)</sup>
-        const expMatch = s.match(/^e\^\((.+)\)$/);
-        if (expMatch) return `e<sup>${expMatch[1]}</sup>`;
-        // ln(...)
-        const lnMatch = s.match(/^ln\((.+)\)$/);
-        if (lnMatch) return `ln(${lnMatch[1]})`;
-        return s;
+    // ---- LaTeX dels prompts ------------------------------------------------
+
+    function qVATeX(func) {
+        return `\\text{Asímptota vertical de }\\quad ${funcTeX(func)}`;
     }
 
-    // ---- prompts de preguntes -----------------------------------------------
-
-    function qVAPrompt(func) {
-        return `Troba l'asímptota vertical de:<div class="math-display">${funcHTML(func)}</div>`;
+    function qLateralTeX(func, a, side) {
+        const sup  = side === 'right' ? '^{+}' : '^{-}';
+        const aStr = a === 0 ? '0' : a > 0 ? `${a}` : `(-${-a})`;
+        return `\\lim_{x \\to ${aStr}${sup}} ${funcTeX(func)}`;
     }
 
-    function qLateralPrompt(func, a, side) {
-        const sideStr = side === 'right' ? '⁺' : '⁻';
-        const aStr    = aLabel(a);
-        return `Calcula el límit lateral:<div class="math-display"><span class="mlimit">lim <sub>x → ${aStr}${sideStr}</sub> ${funcHTML(func)}</span></div>`;
+    function qHATeX(func) {
+        return `\\text{Asímptota horitzontal de }\\quad ${funcTeX(func)}`;
     }
 
-    function qHAPrompt(func) {
-        return `Troba l'asímptota horitzontal de:<div class="math-display">${funcHTML(func)}</div>`;
+    function qOATeX(func) {
+        return `\\text{Asímptota obliqua de }\\quad ${funcTeX(func)}`;
     }
 
-    function qOAPrompt(func) {
-        return `Troba l'asímptota obliqua de:<div class="math-display">${funcHTML(func)}</div>`;
-    }
+    // ---- Etiquetes de label per a les preguntes (no-math) ------------------
 
-    // ---- feedbacks ----------------------------------------------------------
+    const labels = {
+        Q_VA:      'Asímptota vertical',
+        Q_LATERAL: 'Límit lateral',
+        Q_HA:      'Asímptota horitzontal',
+        Q_OA:      'Asímptota obliqua',
+    };
+
+    // ---- Feedbacks (text pla) ----------------------------------------------
 
     const feedback = {
-        correct_va:      a      => `✓ Correcte! L'asímptota vertical és ${xLabel(a)}.`,
-        correct_no_va:   ()     => `✓ Correcte! Aquesta funció no té asímptota vertical.`,
-        correct_lateral: v      => `✓ Correcte! El límit lateral és ${limitLabel(v)}.`,
-        correct_ha:      b      => `✓ Correcte! L'asímptota horitzontal és ${yLabel(b)}.`,
-        correct_no_ha:   ()     => `✓ Correcte! Aquesta funció no té asímptota horitzontal.`,
-        correct_oa:      (m, b) => `✓ Correcte! L'asímptota obliqua és ${oaLabel(m, b)}.`,
-        correct_no_oa:   ()     => `✓ Correcte! Aquesta funció no té asímptota obliqua.`,
-        wrong_va:        'Recorda: l\'AV es troba igualment a x = a quan el denominador s\'anul·la.',
-        wrong_lateral:   'Analitza el signe quan x s\'acosta al punt des de cada costat.',
+        correct_va:      a      => `Correcte! L'asímptota vertical és x = ${a}.`,
+        correct_no_va:   ()     => `Correcte! Aquesta funció no té asímptota vertical.`,
+        correct_lateral: v      => v === INF || v === -INF
+            ? `Correcte! El límit lateral és ${v === INF ? '+∞' : '−∞'}.`
+            : `Correcte! El límit lateral és ${v}.`,
+        correct_ha:      b      => `Correcte! L'asímptota horitzontal és y = ${b}.`,
+        correct_no_ha:   ()     => `Correcte! Aquesta funció no té asímptota horitzontal.`,
+        correct_oa:      (m, b) => `Correcte! L'asímptota obliqua és y = x${b === 0 ? '' : b > 0 ? ` + ${b}` : ` − ${-b}`}.`,
+        correct_no_oa:   ()     => `Correcte! Aquesta funció no té asímptota obliqua.`,
+        wrong_va:        'Recorda: l\'AV es troba en els punts on s\'anul·la el denominador.',
+        wrong_lateral:   'Analitza el signe de la funció quan x s\'acosta al punt des de cada costat.',
         wrong_ha:        'Calcula lim f(x) quan x → +∞ i x → −∞.',
         wrong_oa:        'Fes la divisió polinòmica del numerador entre el denominador.',
     };
 
-    // ---- etiquetes UI -------------------------------------------------------
-
-    const NO_VA = 'No té asímptota vertical';
-    const NO_HA = 'No té asímptota horitzontal';
-    const NO_OA = 'No té asímptota obliqua';
+    // ---- Etiquetes per a opcions sense LaTeX --------------------------------
+    const NO_VA_TEX = '\\text{No té asímptota vertical}';
+    const NO_HA_TEX = '\\text{No té asímptota horitzontal}';
+    const NO_OA_TEX = '\\text{No té asímptota obliqua}';
 
     return {
-        xLabel, yLabel, limitLabel, oaLabel, aLabel,
-        funcHTML,
-        qVAPrompt, qLateralPrompt, qHAPrompt, qOAPrompt,
-        feedback,
-        NO_VA, NO_HA, NO_OA
+        xTeX, yTeX, limitTeX, oaTeX, funcTeX,
+        qVATeX, qLateralTeX, qHATeX, qOATeX,
+        labels, feedback,
+        NO_VA_TEX, NO_HA_TEX, NO_OA_TEX
     };
 })();
