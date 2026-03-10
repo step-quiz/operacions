@@ -264,11 +264,22 @@
     .tut-footer {
       padding: 12px 20px;
       border-top: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: flex-end; align-items: center;
       background: #f8fafc; flex-shrink: 0;
     }
-    .footer-hint {
-      font-size: 0.8em; color: var(--muted); font-style: italic;
+
+    @keyframes blink-shake {
+      0%              { opacity: 1;    transform: translateX(0); }
+      8%, 24%, 40%    { transform: translateX(-5px); }
+      16%, 32%, 48%   { transform: translateX(5px); }
+      56%             { transform: translateX(-3px); }
+      64%             { transform: translateX(3px); }
+      72%, 100%       { opacity: 1;    transform: translateX(0); }
+      10%, 30%, 50%, 70%  { opacity: 0.35; }
+      20%, 40%, 60%, 80%  { opacity: 1; }
+    }
+    .btn-next-step.attention {
+      animation: blink-shake 3s ease-in-out forwards;
     }
     .btn-next-step {
       padding: 11px 26px;
@@ -363,7 +374,6 @@
 
   <!-- Peu: hint + botó Següent -->
   <div class="tut-footer">
-    <span class="footer-hint" id="footer-hint">Clica «Següent» per avançar pas a pas</span>
     <button class="btn-next-step" id="btn-next">Següent →</button>
   </div>
 
@@ -555,10 +565,10 @@ function buildSVG(cloudPts, yr, hl) {
         s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#0077b6" opacity="0.09" rx="3"/>`);
         // Etiqueta a la part superior de la columna (dins del viewBox)
         s.push(`<text x="${f(tx(hl.x))}" y="${mt+15}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#0077b6">${hl.label||`x=${hl.x}`}</text>`);
-        // Fletxa burdeus: des de sota la bombolla cap a l'eix horitzontal
+        // Fletxa burdeus: des de sota la bombolla cap a (1,0) de l'eix horitzontal
         const arrowX1 = f(W * 0.60);
         const arrowY1 = f(H * 0.34);
-        const arrowX2 = f(tx(hl.x));
+        const arrowX2 = f(tx(1));
         const arrowY2 = f(py0 - 10);
         s.push(`<line x1="${arrowX1}" y1="${arrowY1}" x2="${arrowX2}" y2="${arrowY2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
     }
@@ -716,20 +726,16 @@ function render() {
     const isLastStep = stepIdx === ex.steps.length - 1;
     const isLastEx   = exIdx   === TUTORIAL.length  - 1;
     const btnNext    = document.getElementById('btn-next');
-    const footerHint = document.getElementById('footer-hint');
 
     if (isLastStep && isLastEx) {
         btnNext.textContent = '🎮 Ves a jugar!';
         btnNext.className   = 'btn-next-step btn-finish';
-        footerHint.textContent = 'Has completat el tutorial. Ara a practicar!';
     } else if (isLastStep) {
         btnNext.textContent = 'Exemple següent →';
         btnNext.className   = 'btn-next-step btn-next-example';
-        footerHint.textContent = 'Continua amb el pròxim exemple';
     } else {
         btnNext.textContent = 'Següent →';
         btnNext.className   = 'btn-next-step';
-        footerHint.textContent = 'Clica «Següent» per avançar pas a pas';
     }
 }
 
@@ -760,6 +766,13 @@ document.getElementById('btn-next').addEventListener('click', () => {
    ARRENCADA
    ================================================================ */
 render();
+
+// Blink-and-shake del botó Següent: comença 4s després de carregar, dura 3s
+setTimeout(() => {
+    const btn = document.getElementById('btn-next');
+    btn.classList.add('attention');
+    btn.addEventListener('animationend', () => btn.classList.remove('attention'), { once: true });
+}, 4000);
 </script>
 
 </body>
