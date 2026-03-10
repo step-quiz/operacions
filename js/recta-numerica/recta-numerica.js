@@ -136,6 +136,9 @@ function renderSVG(cloud, yr) {
     // Etiqueta eix Y: a la línia superior del viewBox (y=16), alineada amb el títol de la pregunta
     lines.push(`<text x="${(px0 + 6).toFixed(1)}" y="16" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000000">y: temperatura (ºC)</text>`);
 
+    // Etiqueta eix X: a sobre de l'extrem dret de l'eix, text-anchor="end" per no sortir del viewBox
+    lines.push(`<text x="${(ml + pw).toFixed(1)}" y="${(py0 - 7).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000000">x: temps (dies)</text>`);
+
     // Punts del núvol (dibuixats al final, per davant de tot)
     cloud.forEach(pt => {
         const px = tx(pt.x), py = ty(pt.y);
@@ -165,8 +168,7 @@ function buildLevel() {
     els.attDisplay.classList.remove('danger');
 
     // Dibuixa el gràfic
-    els.graphContainer.innerHTML = renderSVG(cloud, yRange) +
-        '<div class="axis-label-x"><em><strong>x: temps (dies)</strong></em></div>';
+    els.graphContainer.innerHTML = renderSVG(cloud, yRange);
 
     // Mostra la pregunta
     els.prompt.textContent = challengeData.prompt;
