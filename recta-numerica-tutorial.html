@@ -91,11 +91,14 @@
       position: relative;
     }
     .tut-header-left { display: flex; align-items: center; gap: 9px; }
-    #btn-next {
+    #btn-next-wrap {
       position: absolute;
       right: 20px;
       top: 50%;
       transform: translateY(-50%);
+    }
+    #btn-next {
+      display: block;
     }
 
     /* Punt vermell parpellejant (● REC) */
@@ -352,7 +355,9 @@
       <span class="rec-dot" title="Tutorial en curs"></span>
       <span id="example-label">Exemple 1 de 3</span>
     </div>
-    <button class="btn-next-step" id="btn-next">Següent →</button>
+    <div id="btn-next-wrap">
+      <button class="btn-next-step" id="btn-next">Següent →</button>
+    </div>
   </div>
 
   <!-- Barra de progrés (timeline) -->
