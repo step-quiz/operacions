@@ -157,6 +157,15 @@
       display: flex; align-items: flex-start;
     }
 
+    /* ---- HINT SOTA LA PREGUNTA ---- */
+    .question-hint {
+      font-size: 0.85em; font-weight: 500;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
     /* ---- OPCIONS ---- */
     .options-list { display: flex; flex-direction: column; gap: 7px; }
 
@@ -352,7 +361,8 @@
     <div class="game-left">
       <span class="example-chip" id="example-chip">Q1 · Temperatura avui</span>
       <div class="question-prompt" id="tut-question"></div>
-      <div class="options-list"   id="tut-options"></div>
+      <div class="question-hint"   id="tut-question-hint"></div>
+      <div class="options-list"    id="tut-options"></div>
     </div>
 
     <!-- Dreta: gràfic SVG + bombolla flotant -->
@@ -393,6 +403,7 @@ const TUTORIAL = [
   {
     chip:     'Q1 · Temperatura avui',
     question: 'Quina temperatura fa avui?',
+    hint:     "La paraula «avui» significa que x = 0",
     cloud:    [[-2,3],[-1,2],[0,4],[1,3],[2,1]],
     yRange:   { min:-6, max:6, majorStep:1 },
     options:  [
@@ -415,10 +426,10 @@ const TUTORIAL = [
         pos: 'right-bottom', icon: '🔎',
       },
       {
-        narration: '<b>❌ «2 ºC» no és correcte.</b> Aquell punt és a x = −1 (ahir), no a x = 0 (avui). Error molt comú: llegir el punt del dia equivocat!',
-        highlight:  { type:'point-wrong', x:-1, y:2 },
+        narration: '❌ «2 ºC» no és correcte. Com pots veure, el punt que busquem està situat més amunt',
+        highlight:  { type:'point-wrong', x:0, y:2 },
         btnStates:  ['wrong','','',''],
-        pos: 'right-top', icon: '⚠️',
+        pos: 'right-top', icon: '❌',
       },
       {
         narration: '<b>✅ «4 ºC» és la resposta correcta!</b> El punt a x = 0 arriba fins a y = 4. Les línies de punts ho confirmen: avui la temperatura és de <b>4 graus sobre zero</b>.',
@@ -680,8 +691,9 @@ function render() {
         Math.round(gs / TOTAL_STEPS * 100) + '%';
 
     // -- Columna esquerra --
-    document.getElementById('example-chip').textContent  = ex.chip;
-    document.getElementById('tut-question').textContent  = ex.question;
+    document.getElementById('example-chip').textContent      = ex.chip;
+    document.getElementById('tut-question').textContent      = ex.question;
+    document.getElementById('tut-question-hint').textContent = ex.hint || '';
 
     // Opcions: recrea els botons amb l'estat del pas actual
     const optEl = document.getElementById('tut-options');
