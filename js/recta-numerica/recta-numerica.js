@@ -314,7 +314,7 @@ function _showSummary() {
         : scoreOver10Raw.toFixed(2).replace('.', ',');
 
     // Emoji de trofeu basat en percentatge
-    const trophy = pct >= 90 ? '🏆' : pct >= 70 ? '🥈' : pct >= 50 ? '🥉' : '📊';
+    const trophy = pct >= 90 ? '🌟' : pct >= 70 ? '😊' : pct >= 50 ? '🙂' : '💪';
 
     els.summaryScreen.innerHTML = `
         <div class="summary-wrap">
@@ -322,7 +322,7 @@ function _showSummary() {
             <h2 class="summary-title">Partida completada</h2>
             <div class="summary-score-row">
                 <span class="summary-score-label">Puntuació</span>
-                <span class="summary-score-value">${scoreOver10} / 10</span>
+                <span class="summary-score-value">${scoreOver10}</span>
             </div>
             <div class="summary-bar-bg">
                 <div class="summary-bar-fill" style="width:${pct}%"></div>
