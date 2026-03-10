@@ -88,11 +88,11 @@ const Hints = {
     // -------------------------------------------------------
 
     POWER_FORGOT_R:
-        "Per derivar x^n, l'exponent disminueix en 1 unitat. I cal multiplicar pel coeficient adequat. " +
+        "Per derivar xⁿ, l'exponent disminueix en 1 unitat. I cal multiplicar pel coeficient adequat. " +
         "Exemple: per derivar 7x³, escriurem aquesta resposta: 21·x².",
 
     POWER_WRONG_EXP:
-        "Quan derivem x^n, l'exponent disminueix en 1 unitat. " +
+        "Quan derivem xⁿ, l'exponent disminueix en 1 unitat. " +
         "Exemple: per derivar x³, escriurem 3x². Seria un error escriure 3x³.",
 
     // -------------------------------------------------------
@@ -207,7 +207,7 @@ const Feedback = {
     no_derivative_fx:         "Aquesta és la funció original f(x), no la seva derivada f'(x).",
 
     // ------------------------------------------------------------------
-    // POTÈNCIA  x^n  i  a·x^n
+    // POTÈNCIA  xⁿ  i  a·xⁿ
     // ------------------------------------------------------------------
     power: {
         forgot_n:             "Falta el coeficient: l'exponent n ha de baixar davant com a factor.",
@@ -230,14 +230,14 @@ const Feedback = {
     },
 
     // ------------------------------------------------------------------
-    // LOGARITME  ln(x^n)
+    // LOGARITME  ln(xⁿ)
     // ------------------------------------------------------------------
     log_xn: {
         forgot_chain:         "Has escrit 1/(argument) però has oblidat multiplicar per la derivada de l'argument interior.",
-        not_simplified:       "Gairebé bé: has calculat (1/x^n)·n però no has simplificat x^{n-1}/x^n = 1/x.",
+        not_simplified:       "Gairebé bé: has calculat (1/xⁿ)·n però no has simplificat x^{n-1}/xⁿ = 1/x.",
         inverted:             "La derivada de ln(f) és f'/f, no f/f'. La fracció va al revés.",
-        property_no_deriv:    "Has usat la propietat ln(x^n) = n·ln(x), però ara hauries de derivar n·ln(x) per obtenir n/x.",
-        derived_as_power:     "Has derivat x^n com si fos una potència sola, però aquí és l'argument d'un logaritme.",
+        property_no_deriv:    "Has usat la propietat ln(xⁿ) = n·ln(x), però ara hauries de derivar n·ln(x) per obtenir n/x.",
+        derived_as_power:     "Has derivat xⁿ com si fos una potència sola, però aquí és l'argument d'un logaritme.",
     },
 
     // ------------------------------------------------------------------
