@@ -112,30 +112,55 @@ body {
 }
 #attempts-display.danger { color: var(--danger); border-color: var(--danger); }
 
+/* ---- LAYOUT DOS COLUMNES ---- */
+.game-body {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.game-left {
+    width: 40%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 14px 16px 20px;
+    border-right: 1px solid var(--border);
+}
+
+.game-right {
+    width: 60%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px 12px 12px;
+}
+
 /* ---- GRÀFIC SVG ---- */
 #graph-container {
-    padding: 16px 20px 8px;
+    width: 100%;
 }
 #graph-container svg {
     border-radius: 6px;
     display: block;
+    width: 100%;
+    height: auto;
 }
 
 /* ---- PREGUNTA ---- */
 #question-prompt {
-    padding: 12px 20px 8px;
-    font-size: 1.2em;
+    font-size: 1.05em;
     font-weight: 600;
     color: var(--primary-dark);
-    line-height: 1.4;
+    line-height: 1.45;
+    margin-bottom: 14px;
 }
 
 /* ---- OPCIONS: GRID (Q1/Q2) ---- */
 .options-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 10px 20px 16px;
+    gap: 8px;
 }
 
 /* ---- OPCIONS: LIST (Q3/Q4) ---- */
@@ -143,7 +168,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 10px 20px 16px;
 }
 
 /* ---- BOTÓ D'OPCIÓ ---- */
@@ -153,9 +177,9 @@ body {
 }
 
 .btn-option {
-    padding: 14px 16px;
+    padding: 11px 13px;
     font-family: 'Barlow', sans-serif;
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: 600;
     border-radius: var(--radius);
     border: 2px solid var(--border);
@@ -167,12 +191,45 @@ body {
     transition: background 0.15s, border-color 0.15s, transform 0.1s;
     opacity: 0;
     animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    min-height: 52px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.options-list .btn-option { text-align: left; justify-content: flex-start; }
+
+/* Botons de llista: indicador circular a l'esquerra */
+.options-list .btn-option {
+    text-align: left;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-left: 12px;
+}
+.options-list .btn-option::before {
+    content: '';
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    transition: border-color 0.15s, background 0.15s;
+}
+.options-list .btn-option:hover::before {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+.options-list .btn-option.correct::before {
+    border-color: var(--success) !important;
+    background: var(--success) !important;
+}
+.options-list .btn-option.wrong::before {
+    border-color: var(--danger) !important;
+    background: var(--danger) !important;
+}
+.options-list .btn-option.reveal-correct::before {
+    border-color: var(--warn) !important;
+    background: var(--warn) !important;
+}
 
 @media (hover: hover) {
     .btn-option:hover {
@@ -216,7 +273,7 @@ body {
 /* ---- FEEDBACK ---- */
 .feedback-area {
     min-height: 40px;
-    margin: 0 20px 16px;
+    margin-top: 10px;
     padding: 10px 14px;
     border-radius: 8px;
     font-size: 0.95em;
@@ -312,16 +369,27 @@ body {
 .btn-restart:active { transform: scale(0.97); }
 
 /* ---- RESPONSIU ---- */
+
+/* Panell ample: ampliem el max-width per aprofitar l'espai */
+.panel { max-width: 960px; }
+.title-row { max-width: 960px; }
+
+/* Tablet: columnes més estretes però mantenim layout horitzontal */
+@media (max-width: 780px) {
+    .game-body { flex-direction: column-reverse; }
+    .game-left, .game-right { width: 100%; border-right: none; }
+    .game-left  { border-top: 1px solid var(--border); padding: 14px 14px 14px 14px; }
+    .game-right { padding: 12px 14px 4px; }
+}
+
 @media (max-width: 600px) {
     body { padding: 10px 10px 30px; }
     .title-row h1  { font-size: 1.15em; }
     .game-header   { padding: 10px 14px; }
-    #graph-container { padding: 10px 12px 4px; }
-    #question-prompt { font-size: 1.05em; padding: 10px 14px 6px; }
-    .options-grid, .options-list { padding: 8px 14px 12px; }
+    #question-prompt { font-size: 1em; }
     .options-grid  { grid-template-columns: 1fr 1fr; gap: 8px; }
-    .btn-option    { font-size: 1em; padding: 12px 10px; min-height: 46px; }
-    .feedback-area { margin: 0 14px 12px; font-size: 0.9em; }
+    .btn-option    { font-size: 0.95em; padding: 10px 8px; min-height: 44px; }
+    .feedback-area { font-size: 0.9em; }
 }
 
 @media (max-width: 400px) {
