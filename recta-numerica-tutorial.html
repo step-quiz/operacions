@@ -85,7 +85,7 @@
       color: white;
       padding: 9px 20px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
       gap: 8px;
@@ -261,13 +261,6 @@
     /* ================================================================
        PEU DE PÀGINA
        ================================================================ */
-    .tut-footer {
-      padding: 12px 20px;
-      border-top: 1px solid var(--border);
-      display: flex; justify-content: flex-end; align-items: center;
-      background: #f8fafc; flex-shrink: 0;
-    }
-
     @keyframes blink-shake {
       0%              { opacity: 1;    transform: translateX(0); }
       8%, 24%, 40%    { transform: translateX(-5px); }
@@ -282,19 +275,20 @@
       animation: blink-shake 3s ease-in-out forwards;
     }
     .btn-next-step {
-      padding: 11px 26px;
-      background: var(--primary); color: white;
-      font-family: 'Barlow', sans-serif; font-size: 1em; font-weight: 700;
-      border: none; border-radius: 8px; cursor: pointer;
+      padding: 8px 20px;
+      background: white; color: #0f172a;
+      font-family: 'Barlow', sans-serif; font-size: 0.97em; font-weight: 700;
+      border: none; border-radius: 7px; cursor: pointer;
       transition: background 0.2s, transform 0.1s;
       letter-spacing: 0.3px;
+      white-space: nowrap;
     }
-    .btn-next-step:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-next-step:hover  { background: #e2e8f0; }
     .btn-next-step:active { transform: scale(0.97); }
-    .btn-next-step.btn-finish              { background: var(--success); }
-    .btn-next-step.btn-finish:hover        { background: #047857; }
-    .btn-next-step.btn-next-example        { background: #7c3aed; }
-    .btn-next-step.btn-next-example:hover  { background: #5b21b6; }
+    .btn-next-step.btn-finish              { background: #d1fae5; color: #065f46; }
+    .btn-next-step.btn-finish:hover        { background: #a7f3d0; }
+    .btn-next-step.btn-next-example        { background: #ede9fe; color: #4c1d95; }
+    .btn-next-step.btn-next-example:hover  { background: #ddd6fe; }
 
     /* ================================================================
        RESPONSIU
@@ -342,6 +336,7 @@
       <span class="rec-dot" title="Tutorial en curs"></span>
       <span id="example-label">Exemple 1 de 3</span>
     </div>
+    <button class="btn-next-step" id="btn-next">Següent →</button>
   </div>
 
   <!-- Barra de progrés (timeline) -->
@@ -372,10 +367,6 @@
 
   </div>
 
-  <!-- Peu: hint + botó Següent -->
-  <div class="tut-footer">
-    <button class="btn-next-step" id="btn-next">Següent →</button>
-  </div>
 
 </div>
 
