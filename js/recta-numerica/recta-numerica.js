@@ -1,0 +1,315 @@
+/**
+ * ============================================================================
+ * PROJECTE: Recta Numèrica Doble
+ * FITXER: js/recta-numerica/recta-numerica.js
+ * ROL: Controlador DOM. Dibuixa el gràfic SVG i gestiona el bucle de joc.
+ *
+ * PARÀMETRES URL:
+ *   ?nivell=1|2|3   Nivell de dificultat (defecte: 2)
+ *   ?preguntes=N    Nombre de preguntes per partida (defecte: 6)
+ *
+ * DEPENDÈNCIES (ordre de càrrega):
+ *   cloud-engine.js → strings.js → distractor-lib.js → question-bank.js → (aquest, defer)
+ * ============================================================================
+ */
+
+// ============================================================================
+// CONFIGURACIÓ
+// ============================================================================
+const _params       = new URLSearchParams(window.location.search);
+const GAME_LEVEL    = Math.min(3, Math.max(1, parseInt(_params.get('nivell')    || '2', 10)));
+const TOTAL_Q       = Math.min(12, Math.max(3, parseInt(_params.get('preguntes') || '6', 10)));
+const MAX_INTENTS   = 2;
+const PTS_FIRST     = 10;
+const PTS_SECOND    = 5;
+
+// ============================================================================
+// ESTAT DEL JOC
+// ============================================================================
+let currentQ       = 0;
+let score          = 0;
+let attemptsLeft   = MAX_INTENTS;
+let isAnswered     = false;
+let challengeData  = null;
+let cloud          = null;
+let yRange         = null;
+
+// Historial per al resum final
+let history = [];   // [{type, correct, pointsEarned}]
+
+// ============================================================================
+// ELEMENTS DOM
+// ============================================================================
+const els = {
+    gameScreen:   document.getElementById('game-screen'),
+    summaryScreen:document.getElementById('summary-screen'),
+    graphContainer:document.getElementById('graph-container'),
+    prompt:       document.getElementById('question-prompt'),
+    options:      document.getElementById('options-container'),
+    feedback:     document.getElementById('feedback'),
+    scoreDisplay: document.getElementById('score-display'),
+    qDisplay:     document.getElementById('q-display'),
+    levelDisplay: document.getElementById('level-display'),
+    attDisplay:   document.getElementById('attempts-display'),
+};
+
+// ============================================================================
+// SVG — RENDERITZACIÓ DEL GRÀFIC
+// ============================================================================
+
+/**
+ * Genera l'SVG del gràfic.
+ * @param {object[]} cloud   Punts {x, y}
+ * @param {object}   yr      Rang Y {min, max, majorStep, minorStep}
+ * @returns {string}         Markup SVG complet
+ */
+function renderSVG(cloud, yr) {
+    const W = 560, H = 400;
+    const ml = 52, mr = 14, mt = 14, mb = 34;
+    const pw = W - ml - mr;
+    const ph = H - mt - mb;
+
+    const xMin = -5, xMax = 5;
+    const tx = x => ml + (x - xMin) / (xMax - xMin) * pw;
+    const ty = y => mt + ph - (y - yr.min) / (yr.max - yr.min) * ph;
+
+    const lines = [];
+
+    // Fons
+    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#f8fafc"/>`);
+
+    // Grid menor (línies subtils)
+    if (yr.minorStep < yr.majorStep) {
+        for (let y = yr.min; y <= yr.max; y += yr.minorStep) {
+            const py = ty(y);
+            lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#e2e8f0" stroke-width="0.7"/>`);
+        }
+    }
+
+    // Grid vertical (sempre cada 1 unitat de x)
+    for (let x = xMin; x <= xMax; x++) {
+        const px = tx(x);
+        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${mt+ph}" stroke="#e2e8f0" stroke-width="0.7"/>`);
+    }
+
+    // Grid major Y
+    for (let y = yr.min; y <= yr.max; y += yr.majorStep) {
+        const py = ty(y);
+        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#cbd5e1" stroke-width="1"/>`);
+    }
+
+    // Eix X (y=0) — si és dins del rang
+    if (yr.min <= 0 && yr.max >= 0) {
+        const py = ty(0);
+        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#94a3b8" stroke-width="1.8"/>`);
+    }
+
+    // Eix Y (x=0) — sempre present
+    const px0 = tx(0);
+    lines.push(`<line x1="${px0.toFixed(1)}" y1="${mt}" x2="${px0.toFixed(1)}" y2="${mt+ph}" stroke="#94a3b8" stroke-width="1.8"/>`);
+
+    // Etiquetes eix Y (major ticks)
+    for (let y = yr.min; y <= yr.max; y += yr.majorStep) {
+        const py = ty(y);
+        lines.push(`<text x="${ml - 6}" y="${(py + 4).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11" fill="#64748b">${y}</text>`);
+        lines.push(`<line x1="${ml - 3}" y1="${py.toFixed(1)}" x2="${ml}" y2="${py.toFixed(1)}" stroke="#94a3b8" stroke-width="1"/>`);
+    }
+
+    // Etiquetes eix X
+    for (let x = xMin; x <= xMax; x++) {
+        const px = tx(x);
+        lines.push(`<text x="${px.toFixed(1)}" y="${mt + ph + 20}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="11" fill="#64748b">${x}</text>`);
+        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt + ph}" x2="${px.toFixed(1)}" y2="${mt + ph + 4}" stroke="#94a3b8" stroke-width="1"/>`);
+    }
+
+    // Marc exterior
+    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`);
+
+    // Punts del núvol
+    cloud.forEach(pt => {
+        const px = tx(pt.x), py = ty(pt.y);
+        lines.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="7" fill="#0077b6" stroke="white" stroke-width="2.5"/>`);
+    });
+
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">${lines.join('')}</svg>`;
+}
+
+// ============================================================================
+// CICLE DE JOC
+// ============================================================================
+
+function buildLevel() {
+    isAnswered   = false;
+    attemptsLeft = MAX_INTENTS;
+
+    // Genera nou núvol i rang per a cada pregunta
+    yRange        = CloudEngine.chooseYRange();
+    cloud         = CloudEngine.generateCloud(yRange);
+    challengeData = QuestionBank.generateChallenge(cloud, yRange, GAME_LEVEL);
+
+    // Actualitza capçalera
+    els.qDisplay.textContent     = `Pregunta ${currentQ + 1} de ${TOTAL_Q}`;
+    els.scoreDisplay.textContent = `Punts: ${score}`;
+    els.attDisplay.textContent   = `Intents: ${attemptsLeft}`;
+    els.attDisplay.classList.remove('danger');
+
+    // Dibuixa el gràfic
+    els.graphContainer.innerHTML = renderSVG(cloud, yRange);
+
+    // Mostra la pregunta
+    els.prompt.textContent = challengeData.prompt;
+
+    // Feedback buit
+    els.feedback.innerHTML   = '';
+    els.feedback.className   = 'feedback-area';
+    els.feedback.style.opacity = '0';
+
+    // Crea els botons d'opcions
+    const isGrid = challengeData.layout === 'grid';
+    els.options.className = isGrid ? 'options-grid' : 'options-list';
+    els.options.innerHTML = '';
+
+    challengeData.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.textContent = opt.text;
+        btn.style.animationDelay = `${idx * 60}ms`;
+        btn.addEventListener('click', () => checkAnswer(opt, btn));
+        els.options.appendChild(btn);
+    });
+}
+
+function checkAnswer(opt, btn) {
+    if (isAnswered) return;
+
+    if (opt.isCorrect) {
+        isAnswered = true;
+        const pts  = attemptsLeft === MAX_INTENTS ? PTS_FIRST : PTS_SECOND;
+        score     += pts;
+
+        // Estil botó correcte
+        btn.classList.add('correct');
+        _disableAllButtons();
+
+        history.push({ type: challengeData.type, correct: true, pointsEarned: pts });
+
+        _showFeedback(opt.feedback, 'correct');
+        els.scoreDisplay.textContent = `Punts: ${score}`;
+
+        setTimeout(() => _nextQuestion(), 1600);
+
+    } else {
+        attemptsLeft--;
+        btn.classList.add('wrong');
+        els.attDisplay.textContent = `Intents: ${attemptsLeft}`;
+
+        if (attemptsLeft <= 0) {
+            // Esgotats els intents
+            isAnswered = true;
+            _disableAllButtons();
+            _highlightCorrectButton();
+            history.push({ type: challengeData.type, correct: false, pointsEarned: 0 });
+
+            const correctOpt = challengeData.options.find(o => o.isCorrect);
+            _showFeedback(`✗ Resposta incorrecta. La correcta era: "${correctOpt.text}"`, 'wrong');
+            setTimeout(() => _nextQuestion(), 2200);
+
+        } else {
+            els.attDisplay.classList.add('danger');
+            _showFeedback(`✗ Incorrecte. ${opt.feedback}`, 'wrong');
+        }
+    }
+}
+
+function _nextQuestion() {
+    currentQ++;
+    if (currentQ >= TOTAL_Q) {
+        _showSummary();
+    } else {
+        buildLevel();
+    }
+}
+
+function _disableAllButtons() {
+    Array.from(els.options.querySelectorAll('.btn-option'))
+        .forEach(b => { b.style.pointerEvents = 'none'; });
+}
+
+function _highlightCorrectButton() {
+    const correctOpt = challengeData.options.find(o => o.isCorrect);
+    Array.from(els.options.querySelectorAll('.btn-option')).forEach(btn => {
+        if (btn.textContent === correctOpt.text) btn.classList.add('reveal-correct');
+    });
+}
+
+function _showFeedback(text, type) {
+    els.feedback.textContent  = text;
+    els.feedback.className    = `feedback-area feedback-${type}`;
+    els.feedback.style.opacity = '1';
+}
+
+// ============================================================================
+// PANTALLA DE RESUM FINAL
+// ============================================================================
+function _showSummary() {
+    els.gameScreen.style.display   = 'none';
+    els.summaryScreen.style.display = 'block';
+
+    const maxScore  = TOTAL_Q * PTS_FIRST;
+    const firstTry  = history.filter(h => h.correct && h.pointsEarned === PTS_FIRST).length;
+    const secondTry = history.filter(h => h.correct && h.pointsEarned === PTS_SECOND).length;
+    const failed    = history.filter(h => !h.correct).length;
+    const pct       = Math.round(score / maxScore * 100);
+
+    // Emoji de trofeu basat en percentatge
+    const trophy = pct >= 90 ? '🏆' : pct >= 70 ? '🥈' : pct >= 50 ? '🥉' : '📊';
+
+    els.summaryScreen.innerHTML = `
+        <div class="summary-wrap">
+            <div class="summary-trophy">${trophy}</div>
+            <h2 class="summary-title">Partida completada</h2>
+            <div class="summary-score-row">
+                <span class="summary-score-label">Puntuació</span>
+                <span class="summary-score-value">${score} / ${maxScore}</span>
+            </div>
+            <div class="summary-bar-bg">
+                <div class="summary-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="summary-stats">
+                <div class="summary-stat summary-stat--ok">
+                    <span class="stat-num">${firstTry}</span>
+                    <span class="stat-desc">al primer intent</span>
+                </div>
+                <div class="summary-stat summary-stat--warn">
+                    <span class="stat-num">${secondTry}</span>
+                    <span class="stat-desc">al segon intent</span>
+                </div>
+                <div class="summary-stat summary-stat--err">
+                    <span class="stat-num">${failed}</span>
+                    <span class="stat-desc">sense resoldre</span>
+                </div>
+            </div>
+            <button class="btn-restart" id="btn-restart">Torna a jugar</button>
+        </div>`;
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+        currentQ = 0; score = 0; history = [];
+        els.summaryScreen.style.display = 'none';
+        els.gameScreen.style.display    = 'block';
+        buildLevel();
+    });
+}
+
+// ============================================================================
+// INICIALITZACIÓ
+// ============================================================================
+window.addEventListener('DOMContentLoaded', () => {
+    // Mostra el nivell a la capçalera
+    if (els.levelDisplay) {
+        const lbls = { 1: 'Nivell fàcil', 2: 'Nivell mitjà', 3: 'Nivell difícil' };
+        els.levelDisplay.textContent = lbls[GAME_LEVEL] || `Nivell ${GAME_LEVEL}`;
+    }
+
+    els.gameScreen.style.display = 'block';
+    buildLevel();
+});
