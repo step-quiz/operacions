@@ -154,6 +154,10 @@ body {
     color: var(--primary-dark);
     line-height: 1.45;
     margin-bottom: 14px;
+    /* Altura fixa = 4 línies: font-size * line-height * 4 ≈ 1.05em * 1.45 * 4 */
+    min-height: calc(1.05em * 1.45 * 4);
+    display: flex;
+    align-items: flex-start;
 }
 
 /* ---- OPCIONS: GRID (Q1/Q2) ---- */
