@@ -52,7 +52,7 @@ body {
     gap: 14px;
     margin-bottom: 16px;
     width: 100%;
-    max-width: 780px;
+    max-width: 90vw;
     justify-content: center;
 }
 .title-row h1 {
@@ -80,7 +80,7 @@ body {
     border: 1px solid var(--border);
     border-top: 5px solid var(--primary);
     width: 100%;
-    max-width: 780px;
+    max-width: 90vw;
     overflow: hidden;
 }
 
@@ -120,7 +120,7 @@ body {
 }
 
 .game-left {
-    width: 40%;
+    width: 25%;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -129,7 +129,7 @@ body {
 }
 
 .game-right {
-    width: 60%;
+    width: 75%;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -158,8 +158,8 @@ body {
 
 /* ---- OPCIONS: GRID (Q1/Q2) ---- */
 .options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
@@ -370,10 +370,6 @@ body {
 
 /* ---- RESPONSIU ---- */
 
-/* Panell ample: ampliem el max-width per aprofitar l'espai */
-.panel { max-width: 960px; }
-.title-row { max-width: 960px; }
-
 /* Tablet: columnes més estretes però mantenim layout horitzontal */
 @media (max-width: 780px) {
     .game-body { flex-direction: column-reverse; }
@@ -387,12 +383,11 @@ body {
     .title-row h1  { font-size: 1.15em; }
     .game-header   { padding: 10px 14px; }
     #question-prompt { font-size: 1em; }
-    .options-grid  { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .options-grid  { gap: 8px; }
     .btn-option    { font-size: 0.95em; padding: 10px 8px; min-height: 44px; }
     .feedback-area { font-size: 0.9em; }
 }
 
 @media (max-width: 400px) {
-    .options-grid { grid-template-columns: 1fr; }
     .title-row h1 { font-size: 1em; letter-spacing: 0.5px; }
 }
