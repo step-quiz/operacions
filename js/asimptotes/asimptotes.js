@@ -346,8 +346,8 @@ function _showNextButton() {
 // RESUM FINAL
 // ============================================================================
 function _showSummary() {
-    els.gameScreen.style.display    = 'none';
-    els.summaryScreen.style.display = 'block';
+    els.gameScreen.classList.add('hidden');
+    els.summaryScreen.classList.remove('hidden');
 
     const maxScore  = TOTAL_Q * PTS_FIRST;
     const firstTry  = history.filter(h => h.correct && h.pointsEarned === PTS_FIRST).length;
@@ -392,8 +392,8 @@ function _showSummary() {
 
     document.getElementById('btn-restart').addEventListener('click', () => {
         currentQ = 0; score = 0; history = [];
-        els.summaryScreen.style.display = 'none';
-        els.gameScreen.style.display    = 'block';
+        els.summaryScreen.classList.add('hidden');
+        els.gameScreen.classList.remove('hidden');
         buildLevel();
     });
 }
@@ -406,6 +406,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const lbls = { 1: 'Nivell fàcil', 2: 'Nivell mitjà', 3: 'Nivell difícil' };
         els.levelDisplay.textContent = lbls[GAME_LEVEL] || `Nivell ${GAME_LEVEL}`;
     }
-    els.gameScreen.style.display = 'block';
+    els.gameScreen.classList.remove('hidden');
     buildLevel();
 });
