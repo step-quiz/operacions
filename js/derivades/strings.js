@@ -51,7 +51,7 @@ const Hints = {
     // -------------------------------------------------------
 
     NO_DERIVATIVE:
-        "Aquesta opció és idèntica a la funció original: no s'ha derivat res. " +
+        "Aquesta opció és idèntica a la funció original: no s'ha derivat res.\n" +
         "Exemple: si has de derivar sin(x), respondre sin(x) és escriure la funció original, no la derivada.",
 
     INTEGRAL_CONFUSION:
