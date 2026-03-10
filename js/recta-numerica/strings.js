@@ -45,8 +45,8 @@ window.Strings = (() => {
      * Mostra el valor amb − tipogràfic per als negatius.
      */
     function numLabel(y) {
-        if (y === 0) return '0';
-        return y > 0 ? `${y}` : `\u2212${Math.abs(y)}`;   // −  (U+2212)
+        if (y === 0) return '0 ºC';
+        return y > 0 ? `${y} ºC` : `\u2212${Math.abs(y)} ºC`;   // −  (U+2212)
     }
 
     /**

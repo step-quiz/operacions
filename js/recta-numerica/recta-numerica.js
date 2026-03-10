@@ -133,6 +133,12 @@ function renderSVG(cloud, yr) {
     // Etiqueta "0" a la intersecció dels eixos
     lines.push(`<text x="${(px0-8).toFixed(1)}" y="${(py0+20).toFixed(1)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000000">0</text>`);
 
+    // Etiqueta eix X: "x: temps (dies)" — a la dreta de l'eix horitzontal
+    lines.push(`<text x="${(ml + pw + 6).toFixed(1)}" y="${(py0 + 5).toFixed(1)}" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" fill="#000000">x: temps (dies)</text>`);
+
+    // Etiqueta eix Y: "y: temperatura (ºC)" — a dalt de l'eix vertical
+    lines.push(`<text x="${(px0 + 6).toFixed(1)}" y="${(mt + 14).toFixed(1)}" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" fill="#000000">y: temperatura (ºC)</text>`);
+
     // Punts del núvol (dibuixats al final, per davant de tot)
     cloud.forEach(pt => {
         const px = tx(pt.x), py = ty(pt.y);
