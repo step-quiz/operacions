@@ -10,6 +10,7 @@ FONT: Barlow (Google Fonts)
 
 /* ---- VARIABLES ---- */
 :root {
+    --panel-width:   85vw;
     --primary:       #0077b6;
     --primary-light: #e0f4ff;
     --primary-dark:  #023e8a;
@@ -53,7 +54,7 @@ body {
     gap: 14px;
     margin-bottom: 16px;
     width: 100%;
-    max-width: 85vw;
+    max-width: var(--panel-width);
     justify-content: center;
 }
 .title-row h1 {
@@ -81,7 +82,7 @@ body {
     border: 1px solid var(--border);
     border-top: 5px solid var(--primary);
     width: 100%;
-    max-width: 85vw;
+    max-width: var(--panel-width);
     overflow: hidden;
     flex: 1 1 0;          /* ocupa l'altura restant després del title-row */
     display: flex;
