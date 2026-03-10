@@ -121,7 +121,7 @@ function generateExpKxInt() {
     const solutionTex = `${kv.coef}${fns.dg(kv.kx)}`;
     const pool      = DistractorLib.build(kv, fns, SCOPE_EXP_KX);
     const fallbacks = [
-        { tex: `e^{${kv.kx}}+C`, feedback: "Això sembla una integral, no una derivada.",             errorType: 'INTEGRAL_CONFUSION', scope: 'family:exp' },
+        { tex: `e^{${kv.kx}}+${k}`, feedback: "Això sembla una integral, no una derivada.",           errorType: 'INTEGRAL_CONFUSION', scope: 'family:exp' },
         { tex: `x e^{x-1}`,       feedback: "No apliquis la regla de la potència a una exponencial.", errorType: 'POWER_WRONG_EXP',    scope: 'family:exp' }
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
