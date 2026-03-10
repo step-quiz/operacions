@@ -160,33 +160,27 @@ function renderSVG(func) {
     lines.push(`<text x="${(ml+pw).toFixed(1)}" y="${(py0-8).toFixed(1)}" text-anchor="end" font-family="Barlow,sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">x</text>`);
     lines.push(`<text x="${(px0+6).toFixed(1)}" y="16" font-family="Barlow,sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">y</text>`);
 
-    // Asímptotes verticals (vermell)
+    // Asímptotes verticals (vermell, sense etiqueta)
     func.va.forEach(a => {
         if (a < xMin || a > xMax) return;
         const px = tx(a);
-        const aStr = a > 0 ? `x = ${a}` : a < 0 ? `x = -${-a}` : 'x = 0';
         lines.push(`<line x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${mt+ph}" stroke="#e53e3e" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>`);
-        lines.push(`<text x="${(px+5).toFixed(1)}" y="${(mt+14).toFixed(1)}" font-family="Barlow,sans-serif" font-size="12" fill="#e53e3e" font-weight="600">${aStr}</text>`);
     });
 
-    // Asímptota horitzontal (blau)
+    // Asímptota horitzontal (blau, sense etiqueta)
     if (func.ha !== null && func.ha !== undefined) {
         const h = func.ha;
         if (h >= yMin && h <= yMax) {
             const py = ty(h);
-            const hStr = h > 0 ? `y = ${h}` : h < 0 ? `y = -${-h}` : 'y = 0';
             lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>`);
-            lines.push(`<text x="${(ml+4).toFixed(1)}" y="${(py-5).toFixed(1)}" font-family="Barlow,sans-serif" font-size="12" fill="#2b6cb0" font-weight="600">${hStr}</text>`);
         }
     }
 
-    // Asímptota obliqua (verd)
+    // Asímptota obliqua (verd, sense etiqueta)
     if (func.oa) {
         const { m, b } = func.oa;
         const py1 = ty(m * xMin + b), py2 = ty(m * xMax + b);
-        const bStr = b === 0 ? '' : b > 0 ? ` + ${b}` : ` - ${-b}`;
         lines.push(`<line x1="${ml}" y1="${py1.toFixed(1)}" x2="${ml+pw}" y2="${py2.toFixed(1)}" stroke="#276749" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>`);
-        lines.push(`<text x="${(ml+4).toFixed(1)}" y="${(ty(m*xMin+b)-5).toFixed(1)}" font-family="Barlow,sans-serif" font-size="12" fill="#276749" font-weight="600">y = x${bStr}</text>`);
     }
 
     // Corba
@@ -207,15 +201,15 @@ function _yStep(yMin, yMax) {
 }
 
 function _buildCurvePaths(func, tx, ty, xMin, xMax, yMin, yMax) {
-    const N    = 600;
-    const eps  = (xMax - xMin) * 0.018;
+    const N     = 600;
+    const eps   = (xMax - xMin) * 0.018;
     const yClip = (yMax - yMin) * 1.1;
     const paths = [];
     const breaks = [-Infinity, ...(func.va || []).slice().sort((a,b)=>a-b), Infinity];
     const intervals = [];
     for (let i = 0; i < breaks.length - 1; i++) {
-        const lo = Math.max(xMin + 0.01, breaks[i] + eps);
-        const hi = Math.min(xMax - 0.01, breaks[i+1] - eps);
+        const lo = Math.max(xMin + 0.01, breaks[i]   === -Infinity ? xMin : breaks[i]   + eps);
+        const hi = Math.min(xMax - 0.01, breaks[i+1] ===  Infinity ? xMax : breaks[i+1] - eps);
         if (lo < hi) intervals.push([lo, hi]);
     }
     intervals.forEach(([lo, hi]) => {
@@ -225,7 +219,7 @@ function _buildCurvePaths(func, tx, ty, xMin, xMax, yMin, yMax) {
             if (!func.domain(x)) { d += ' '; continue; }
             const y = func.fn(x);
             if (!isFinite(y) || isNaN(y)) { d += ' '; continue; }
-            const cy = Math.max(yMin - yClip, Math.min(yMax + yClip, y));
+            const cy  = Math.max(yMin - yClip, Math.min(yMax + yClip, y));
             const cmd = (d === '' || d.endsWith(' '))
                 ? `M ${tx(x).toFixed(2)} ${ty(cy).toFixed(2)}`
                 : ` L ${tx(x).toFixed(2)} ${ty(cy).toFixed(2)}`;
