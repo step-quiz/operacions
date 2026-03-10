@@ -1,0 +1,433 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu d'Integrals (Vanilla JS)
+FITXER: css/integrals.css
+ROL: Estils específics per al joc d'integrals.
+ARQUITECTURA:
+- Sobreescriu les variables de shared.css per adaptar els colors al joc.
+  Paleta: verd esmeralda (#059669), mirall de derivades.css en estructura.
+- Defineix la graella d'opcions (CSS Grid) i els contenidors de KaTeX.
+- Gestiona les animacions d'encert, error i estats dels botons.
+- Conté estils per al feedback ampliat:
+    .feedback-correct  → text verd d'encert
+    .feedback-wrong    → text fosc d'error
+    .hint-box          → bloc explicatiu del tipus d'error conceptual
+    .solution-reveal   → fila amb la primitiva correcta (KaTeX)
+    .solution-label    → etiqueta "La primitiva correcta era:"
+    .solution-formula  → fórmula KaTeX de la solució
+DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
+============================================================================
+*/
+:root {
+    --bg-color:      #f0fdf4;
+    --primary:       #059669;
+    --primary-light: #d1fae5;
+    --primary-dark:  #065f46;
+    --primary-hover: #047857;
+    --text-main:     #1e293b;
+    --text-muted:    #64748b;
+    --border-light:  #e2e8f0;
+    --border-heavy:  #cbd5e1;
+    --success:       #10b981;
+    --danger:        #ef4444;
+    --danger-light:  #fee2e2;
+}
+
+/* ---- CONTENIDOR DE L'ENUNCIAT ---- */
+.function-box {
+    padding: 15px 20px;
+    padding-left: 15px;
+    text-align: left;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 15px;
+    font-size: 1.5em;
+    font-weight: bold;
+    min-height: 80px;
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.function-label {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.function-math {
+    font-size: 1.1em;
+    color: var(--primary-dark);
+    padding: 10px 30px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 2px solid var(--border-light);
+}
+
+.function-math .katex-display {
+    margin: 5px 0;
+}
+
+/* ---- GRAELLA DE BOTONS ---- */
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    width: 100%;
+    max-width: 780px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+@keyframes popIn {
+    0%   { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.btn-option {
+    padding: 16px 12px;
+    font-size: 1.3em;
+    border-radius: 12px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    opacity: 0;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.btn-option:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* KaTeX dins botons: escalat automàtic per a expressions llargues */
+.btn-option .katex-html {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+.btn-option .katex-html::-webkit-scrollbar { display: none; }
+
+@media (hover: hover) {
+    .btn-option:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+}
+
+.btn-option:active { transform: scale(0.97); }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-5px); }
+    75%      { transform: translateX(5px); }
+}
+
+.btn-option.error-shake {
+    background-color: var(--danger-light) !important;
+    border-color:     var(--danger) !important;
+    color:            var(--danger) !important;
+    animation: shake 0.3s;
+}
+
+.btn-option.correct {
+    background-color: var(--success) !important;
+    border-color:     var(--success) !important;
+    color:            white !important;
+}
+
+.btn-option.wrong {
+    background-color: var(--danger-light) !important;
+    border-color:     var(--danger) !important;
+    color:            var(--danger) !important;
+    pointer-events:   none;
+    opacity:          0.7;
+}
+
+/* ================================================================
+   FEEDBACK AMPLIAT
+   ================================================================ */
+
+/* Text d'encert */
+.feedback-correct {
+    color: var(--success);
+}
+
+/* Text d'error (nivell 1) */
+.feedback-wrong {
+    color:       var(--text-main);
+    font-weight: normal;
+}
+
+/* Hint ampliat (nivell 2) */
+.hint-box {
+    margin-top:    8px;
+    padding:       10px 16px;
+    background:    #fffbeb;
+    border-left:   4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    color:         #78350f;
+    font-size:     0.92em;
+    font-weight:   normal;
+    line-height:   1.5;
+    text-align:    left;
+    animation:     fadeInDown 0.3s ease;
+}
+
+/* Botó que desplega el hint */
+.hint-toggle-btn {
+    display:       inline-block;
+    margin-top:    8px;
+    padding:       3px 10px;
+    font-size:     0.78em;
+    font-weight:   600;
+    color:         #92400e;
+    background:    #fef3c7;
+    border:        1px solid #f59e0b;
+    border-radius: 99px;
+    cursor:        pointer;
+    transition:    background 0.15s ease;
+    user-select:   none;
+}
+.hint-toggle-btn:hover { background: #fde68a; }
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Primitiva correcta (nivell 3): apareix quan s'esgoten els intents */
+.solution-reveal {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    flex-wrap:       wrap;
+    gap:             10px;
+    margin-top:      12px;
+    padding:         10px 16px;
+    background:      #f0fdf4;
+    border:          2px solid #bbf7d0;
+    border-radius:   8px;
+    animation:       fadeInDown 0.4s ease;
+}
+
+.solution-label {
+    color:          #047857;
+    font-size:      0.9em;
+    font-weight:    600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space:    nowrap;
+}
+
+.solution-formula {
+    color:     #065f46;
+    font-size: 1.1em;
+}
+
+/* ================================================================
+   RESPONSIU
+   ================================================================ */
+
+@media (max-width: 480px) {
+    .options-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .function-math {
+        font-size: 1.2em;
+        padding: 10px 20px;
+    }
+    .btn-option {
+        min-height: 70px;
+        font-size:  1.1em;
+        padding:    15px 10px;
+    }
+    .hint-box {
+        font-size: 0.88em;
+        padding:   8px 12px;
+    }
+    .solution-reveal {
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+/* Animació de pèrdua d'intent */
+@keyframes attemptsBlink {
+    0%, 100% { background-color: #d1fae5; border-color: #d1d5db; color: #334155; }
+    50%      { background-color: #e5e7eb; border-color: #059669; color: #334155; }
+}
+
+.attempts-counter.blink {
+    animation: attemptsBlink 0.2s linear 5;
+}
+
+/* ================================================================
+   RESUM PEDAGÒGIC DE SESSIÓ (#session-summary)
+   ================================================================ */
+
+#session-summary {
+    padding:   24px 20px 28px;
+    animation: fadeInDown 0.4s ease;
+}
+
+/* Puntuació total */
+.summary-score {
+    display:       flex;
+    flex-direction:column;
+    align-items:   center;
+    gap:           4px;
+    margin-bottom: 20px;
+}
+.summary-score-label {
+    font-size:      0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color:          var(--text-muted);
+}
+.summary-score-value {
+    font-size:   2em;
+    font-weight: 800;
+    color:       var(--primary-dark);
+}
+
+/* Tres estadístiques */
+.summary-stats {
+    display:         flex;
+    justify-content: center;
+    gap:             12px;
+    margin-bottom:   24px;
+    flex-wrap:       wrap;
+}
+.summary-stat {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    gap:             4px;
+    padding:         12px 16px;
+    border-radius:   10px;
+    min-width:       90px;
+    border:          2px solid transparent;
+}
+.summary-stat--ok   { background: #f0fdf4; border-color: #bbf7d0; }
+.summary-stat--warn { background: #fffbeb; border-color: #fde68a; }
+.summary-stat--err  { background: #fef2f2; border-color: #fecaca; }
+
+.summary-stat-num {
+    font-size:   1.8em;
+    font-weight: 800;
+    line-height: 1;
+}
+.summary-stat--ok   .summary-stat-num { color: #047857; }
+.summary-stat--warn .summary-stat-num { color: #b45309; }
+.summary-stat--err  .summary-stat-num { color: #b91c1c; }
+
+.summary-stat-desc {
+    font-size:  0.78em;
+    text-align: center;
+    color:      var(--text-muted);
+    line-height:1.3;
+}
+
+/* Títol de la secció d'errors */
+.summary-errors-title {
+    font-size:      0.82em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color:          var(--text-muted);
+    font-weight:    700;
+    margin-bottom:  10px;
+    text-align:     center;
+}
+
+/* Llista d'errors conceptuals */
+.summary-errors-list {
+    display:       flex;
+    flex-direction:column;
+    gap:           8px;
+    margin-bottom: 24px;
+}
+.summary-error-item {
+    background:    #fffbeb;
+    border-left:   4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding:       10px 14px;
+    animation:     fadeInDown 0.3s ease;
+}
+.summary-error-header {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     baseline;
+    gap:             8px;
+    margin-bottom:   4px;
+}
+.summary-error-type {
+    font-weight: 700;
+    font-size:   0.92em;
+    color:       #78350f;
+}
+.summary-error-count {
+    font-size:     0.78em;
+    color:         #92400e;
+    white-space:   nowrap;
+    background:    #fef3c7;
+    padding:       1px 8px;
+    border-radius: 99px;
+}
+.summary-error-hint {
+    font-size:   0.88em;
+    color:       #78350f;
+    line-height: 1.5;
+}
+
+/* Missatge quan no hi ha errors */
+.summary-no-errors {
+    text-align:    center;
+    color:         #047857;
+    font-weight:   600;
+    font-size:     1em;
+    background:    #f0fdf4;
+    border:        2px solid #bbf7d0;
+    border-radius: 10px;
+    padding:       14px;
+    margin-bottom: 24px;
+}
+
+/* Botó de continuar */
+.summary-continue-btn {
+    display:       block;
+    margin:        0 auto;
+    padding:       12px 36px;
+    background:    var(--primary);
+    color:         white;
+    border:        none;
+    border-radius: 10px;
+    font-size:     1em;
+    font-weight:   700;
+    cursor:        pointer;
+    transition:    background 0.2s ease, transform 0.15s ease;
+}
+.summary-continue-btn:hover  { background: var(--primary-hover); transform: translateY(-1px); }
+.summary-continue-btn:active { transform: scale(0.97); }
+
+@media (max-width: 480px) {
+    .summary-stats   { gap: 8px; }
+    .summary-stat    { min-width: 75px; padding: 10px 10px; }
+    .summary-stat-num{ font-size: 1.5em; }
+}

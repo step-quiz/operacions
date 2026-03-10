@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Integrals indefinides">
+    <link rel="icon" href="icon.png">
+    <title>Càlcul d'Integrals</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    6,
+            defaultIntents:       2,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!--
+        ORDRE DE CÀRREGA
+        Capa compartida (intocable):
+          utils → config → game-core
+        Capa específica d'integrals (js/integrals/):
+          math-engine → strings → distractor-lib → question-bank → integrals (defer)
+
+        SELECTOR DE FAMÍLIES (URL):
+          ?families=int-power              → sols potències bàsiques
+          ?families=int-power-coef         → sols potències amb coeficient
+          ?families=int-exp-kx             → sols exponencials
+          ?families=int-power,int-exp-kx   → potències + exponencials
+          (sense paràmetre → totes les famílies)
+    -->
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/game-core.js"></script>
+    <script src="js/integrals/math-engine.js"></script>
+    <script src="js/integrals/strings.js"></script>
+    <script src="js/integrals/distractor-lib.js"></script>
+    <script src="js/integrals/question-bank.js"></script>
+    <script defer src="js/integrals/integrals.js"></script>
+
+    <link rel="stylesheet" href="css/shared.css?v=1">
+    <link rel="stylesheet" href="css/integrals.css?v=1">
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Càlcul d'Integrals</h1>
+</div>
+
+<div class="panel" id="main-panel">
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Integral 1 de 6</div>
+            </div>
+            <div class="score-text"      id="score-display">Punts: 0</div>
+            <div id="attempts-display"   class="attempts-counter">Intents: 2</div>
+        </div>
+
+        <div class="function-box">
+            <div class="function-label">Calcula la integral:</div>
+            <div id="fx-display" class="function-math"></div>
+        </div>
+
+        <div id="options-container" class="options-grid"></div>
+        <div id="missatge-feedback"
+             style="min-height: 40px; margin-top: 15px; text-align: center;
+                    font-size: 1.1em; opacity: 0; transition: opacity 0.3s;">
+        </div>
+    </div>
+
+    <!--
+        Resum pedagògic de sessió.
+        Ocult per defecte. integrals.js l'omple i el mostra
+        en acabar la sessió, abans de cridar endSession().
+    -->
+    <div id="session-summary" style="display:none;"></div>
+</div>
+
+</body>
+</html>
