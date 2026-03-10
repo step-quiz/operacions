@@ -379,6 +379,27 @@ body {
 .btn-restart:hover  { background: var(--primary-dark); transform: translateY(-1px); }
 .btn-restart:active { transform: scale(0.97); }
 
+/* ---- BOTÓ SEGÜENT PREGUNTA (quan s'esgoten els intents) ---- */
+.btn-next {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 13px 16px;
+    background: var(--primary);
+    color: white;
+    font-family: 'Barlow', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    text-align: center;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    animation: popIn 0.25s ease forwards;
+}
+.btn-next:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-next:active { transform: scale(0.97); }
+
 /* ---- RESPONSIU ---- */
 
 /* Tablet: columnes més estretes però mantenim layout horitzontal */
