@@ -145,7 +145,7 @@ function renderSVG(cloud, yr) {
         lines.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="7" fill="#0077b6" stroke="white" stroke-width="2.5"/>`);
     });
 
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">${lines.join('')}</svg>`;
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block">${lines.join('')}</svg>`;
 }
 
 // ============================================================================
