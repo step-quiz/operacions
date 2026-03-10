@@ -100,7 +100,7 @@ const Hints = {
     // -------------------------------------------------------
 
     LOG_INVERTED:
-        "La derivada de ln(f) és f'/f: la derivada de l'argument va al numerador, i l'argument al denominador.\n" +
+        "Per trobar la derivada de ln(f(x)) escriurem una fracció. El numerador és f(x) i el denominador és f'(x).\n" +
         "Exemple: per derivar ln(x²), escriurem aquesta resposta: 2x/x², que simplifica a 2/x.",
 
     LOG_FORGOT_CHAIN:
