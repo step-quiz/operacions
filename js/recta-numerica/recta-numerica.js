@@ -216,25 +216,32 @@ function checkAnswer(opt, btn) {
         els.attDisplay.textContent = `Intents: ${attemptsLeft}`;
 
         if (attemptsLeft <= 0) {
-            // Esgotats els intents: elimina les opcions incorrectes, revela la correcta en verd clar
+            // Esgotats els intents: ordre B) feedback → A) resposta correcta → C) botó següent
             isAnswered = true;
             history.push({ type: challengeData.type, correct: false, pointsEarned: 0 });
 
+            // Amaga totes les opcions immediatament
             Array.from(els.options.querySelectorAll('.btn-option')).forEach(b => {
                 b.style.pointerEvents = 'none';
-                const optData = challengeData.options.find(o => {
-                    // Compara per text (el primer fill de text, ignorant el ::before)
-                    return b.textContent.trim() === o.text.trim();
-                });
-                if (optData && optData.isCorrect) {
-                    b.classList.add('reveal-answer');
-                } else {
-                    b.style.display = 'none';
-                }
+                b.style.display = 'none';
             });
 
+            // B) Missatge — immediatament
             _showFeedback('Ja has gastat tots els intents. Aquí tens la resposta correcta.', 'neutral');
-            _showNextButton();
+
+            // A) Resposta correcta — després de 0.4s
+            setTimeout(() => {
+                Array.from(els.options.querySelectorAll('.btn-option')).forEach(b => {
+                    const optData = challengeData.options.find(o => b.textContent.trim() === o.text.trim());
+                    if (optData && optData.isCorrect) {
+                        b.style.display = '';
+                        b.classList.add('reveal-answer');
+                    }
+                });
+
+                // C) Botó següent — després de 0.6s addicionals (1.0s total)
+                setTimeout(() => _showNextButton(), 600);
+            }, 400);
 
         } else {
             els.attDisplay.classList.add('danger');
