@@ -522,7 +522,7 @@ const TUTORIAL = [
       },
       {
         narration: 'Primera opció: "Demà (x = 1) la temperatura serà d\'1 grau sobre zero". Busca x = 1 al gràfic: el punt arriba a y = 4, <b>no a y = 1</b>. Fals!',
-        highlight:  { type:'point-wrong', x:1, y:4 },
+        highlight:  { type:'arrows-to', x:1, y:1 },
         btnStates:  ['wrong','','',''],
         pos: 'right-bottom', icon: '⚠️',
       },
@@ -585,6 +585,23 @@ function buildSVG(cloudPts, yr, hl) {
         const arrowX2 = f(tx(hl.x));
         const arrowY2 = f(ty(0) + 10);  // +10px per no tapar el tick de l'eix
         s.push(`<line x1="${arrowX1}" y1="${arrowY1}" x2="${arrowX2}" y2="${arrowY2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
+    }
+
+    // --- Fletxes burdeus convergents (type:'arrows-to') ---
+    // Indiquen on HAURIA d'estar el punt si la frase fos certa
+    if (hl?.type==='arrows-to') {
+        const tx2 = f(tx(hl.x)), ty2 = f(ty(hl.y));
+        // Tres fletxes des de direccions diferents, totes apuntant al (x,y)
+        const origins = [
+            [hl.x - 1.8, hl.y + 2.2],   // des de dalt-esquerra
+            [hl.x + 0.0, hl.y + 2.5],   // des de dalt
+            [hl.x + 1.8, hl.y + 2.2],   // des de dalt-dreta
+        ];
+        origins.forEach(([ox, oy]) => {
+            s.push(`<line x1="${f(tx(ox))}" y1="${f(ty(oy))}" x2="${tx2}" y2="${ty2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.85"/>`);
+        });
+        // Cercle buit burdeus al punt diana
+        s.push(`<circle cx="${tx2}" cy="${ty2}" r="12" fill="none" stroke="#800020" stroke-width="2" stroke-dasharray="4,2" opacity="0.7"/>`);
     }
 
     // --- Fletxa burdeus lliure (type:'arrow') ---
