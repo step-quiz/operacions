@@ -167,6 +167,10 @@ function buildLevel() {
     // Mostra la pregunta
     els.prompt.textContent = challengeData.prompt;
 
+    // Esborra botó "Següent" si existia
+    const oldNext = document.getElementById('btn-next');
+    if (oldNext) oldNext.remove();
+
     // Feedback buit
     els.feedback.innerHTML   = '';
     els.feedback.className   = 'feedback-area';
@@ -220,7 +224,7 @@ function checkAnswer(opt, btn) {
 
             const correctOpt = challengeData.options.find(o => o.isCorrect);
             _showFeedback(`✗ Resposta incorrecta. La correcta era: "${correctOpt.text}"`, 'wrong');
-            setTimeout(() => _nextQuestion(), 2200);
+            _showNextButton();
 
         } else {
             els.attDisplay.classList.add('danger');
@@ -254,6 +258,16 @@ function _showFeedback(text, type) {
     els.feedback.textContent  = text;
     els.feedback.className    = `feedback-area feedback-${type}`;
     els.feedback.style.opacity = '1';
+}
+
+function _showNextButton() {
+    const btn = document.createElement('button');
+    btn.id        = 'btn-next';
+    btn.className = 'btn-next';
+    btn.textContent = 'Següent pregunta →';
+    btn.addEventListener('click', () => _nextQuestion());
+    // Insereix sota el feedback
+    els.feedback.insertAdjacentElement('afterend', btn);
 }
 
 // ============================================================================
