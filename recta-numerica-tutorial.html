@@ -426,7 +426,7 @@ const TUTORIAL = [
     steps: [
       {
         narration: 'Observa el gràfic. L\'eix horitzontal (x) representa els dies: <b>avui és x = 0</b>. A l\'esquerra hi ha el passat (valors negatius) i a la dreta el futur (valors positius).',
-        highlight:  { type:'column', x:0, label:'avui (x = 0)' },
+        highlight:  { type:'column', x:0, label:'avui (x = 0)', arrowTarget:[3.5, 0] },
         btnStates:  ['','','',''],
         pos: 'right-top', icon: '👀',
       },
@@ -471,7 +471,7 @@ const TUTORIAL = [
     steps: [
       {
         narration: 'La pregunta parla d\'<b>ahir</b>. A l\'eix x, ahir és <b>x = −1</b>. Primer pas: localitza x = −1 a l\'eix horitzontal.',
-        highlight:  { type:'column', x:-1, label:'ahir (x = \u22121)' },
+        highlight:  { type:'column', x:-1, label:'ahir (x = \u22121)', arrowTarget:[-1, 0.25] },
         btnStates:  ['','','',''],
         pos: 'right-top', icon: '👀',
       },
@@ -534,7 +534,7 @@ const TUTORIAL = [
       },
       {
         narration: '<b>✅ Correcte!</b> El punt a x = 0 arriba fins a y = 2. Les línies de punts ho confirmen: avui la temperatura és de <b>2 graus sobre zero</b>. La frase és totalment certa!',
-        highlight:  { type:'point-correct', x:0, y:2 },
+        highlight:  null,
         btnStates:  ['wrong','correct','',''],
         pos: 'right-top', icon: '✅',
       },
@@ -579,29 +579,27 @@ function buildSVG(cloudPts, yr, hl) {
         s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#0077b6" opacity="0.09" rx="3"/>`);
         // Etiqueta desplaçada a l'esquerra per evitar col·lisió amb l'eix Y
         s.push(`<text x="${f(tx(hl.x)-18)}" y="${mt+15}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#0077b6">${hl.label||`x=${hl.x}`}</text>`);
-        // Fletxa burdeus: comença a la dreta de la columna i apunta exactament a (hl.x, 0)
+        // Fletxa burdeus: comença a la dreta de la columna i apunta al arrowTarget
+        const [atx, aty] = hl.arrowTarget || [hl.x, 0];
         const arrowX1 = f(tx(hl.x + 1.2));
         const arrowY1 = f(ty(2));
-        const arrowX2 = f(tx(hl.x));
-        const arrowY2 = f(ty(0) + 10);  // +10px per no tapar el tick de l'eix
+        const arrowX2 = f(tx(atx));
+        const arrowY2 = f(ty(aty));
         s.push(`<line x1="${arrowX1}" y1="${arrowY1}" x2="${arrowX2}" y2="${arrowY2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
     }
 
-    // --- Fletxes burdeus convergents (type:'arrows-to') ---
+    // --- Segments burdeus convergents (type:'arrows-to') ---
     // Indiquen on HAURIA d'estar el punt si la frase fos certa
     if (hl?.type==='arrows-to') {
         const tx2 = f(tx(hl.x)), ty2 = f(ty(hl.y));
-        // Tres fletxes des de direccions diferents, totes apuntant al (x,y)
         const origins = [
-            [hl.x - 1.8, hl.y + 2.2],   // des de dalt-esquerra
-            [hl.x + 0.0, hl.y + 2.5],   // des de dalt
-            [hl.x + 1.8, hl.y + 2.2],   // des de dalt-dreta
+            [hl.x - 1.8, hl.y + 2.2],
+            [hl.x + 0.0, hl.y + 2.5],
+            [hl.x + 1.8, hl.y + 2.2],
         ];
         origins.forEach(([ox, oy]) => {
-            s.push(`<line x1="${f(tx(ox))}" y1="${f(ty(oy))}" x2="${tx2}" y2="${ty2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.85"/>`);
+            s.push(`<line x1="${f(tx(ox))}" y1="${f(ty(oy))}" x2="${tx2}" y2="${ty2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" opacity="0.85"/>`);
         });
-        // Cercle buit burdeus al punt diana
-        s.push(`<circle cx="${tx2}" cy="${ty2}" r="12" fill="none" stroke="#800020" stroke-width="2" stroke-dasharray="4,2" opacity="0.7"/>`);
     }
 
     // --- Fletxa burdeus lliure (type:'arrow') ---
