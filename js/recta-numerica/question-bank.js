@@ -177,7 +177,15 @@ window.QuestionBank = (() => {
      * @returns {object}         Challenge complet
      */
     function generateChallenge(cloud, yRange, level) {
-        const types = ['Q1', 'Q2', 'Q3', 'Q4'];
+        // Nivell 1: només Q1 i Q2 (lectura directa)
+        // Nivell 2: Q1, Q2 i Q3 (afegeix recompte)
+        // Nivell 3: Q1, Q2, Q3 i Q4 (afegeix frases)
+        const typesByLevel = {
+            1: ['Q1', 'Q2'],
+            2: ['Q1', 'Q2', 'Q3'],
+            3: ['Q1', 'Q2', 'Q3', 'Q4'],
+        };
+        const types = typesByLevel[level] || typesByLevel[2];
         const type  = _pick(types);
         switch (type) {
             case 'Q1': return generateQ1(cloud, yRange, level);

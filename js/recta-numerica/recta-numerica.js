@@ -151,7 +151,7 @@ function buildLevel() {
     attemptsLeft = MAX_INTENTS;
 
     // Genera nou núvol i rang per a cada pregunta
-    yRange        = CloudEngine.chooseYRange();
+    yRange        = CloudEngine.chooseYRange(GAME_LEVEL);
     cloud         = CloudEngine.generateCloud(yRange);
     challengeData = QuestionBank.generateChallenge(cloud, yRange, GAME_LEVEL);
 

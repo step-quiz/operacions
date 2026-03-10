@@ -38,11 +38,21 @@ window.CloudEngine = (() => {
      *   10% → [-5, 20]  majorStep=5  minorStep=1
      *   10% → [-10, 40] majorStep=10 minorStep=5
      */
-    function chooseYRange() {
+    function chooseYRange(level) {
         const r = Math.random();
+        if (level === 1) {
+            // Nivell fàcil: sempre rang petit ±6
+            return { min: -6, max: 6, majorStep: 1, minorStep: 1, type: 'small' };
+        }
+        if (level === 2) {
+            // Nivell mitjà: 80% petit, 20% mitjà, 0% gran
+            if (r < 0.80) return { min: -6,  max:  6, majorStep:  1, minorStep: 1, type: 'small'  };
+            return               { min: -5,  max: 20, majorStep:  5, minorStep: 1, type: 'medium' };
+        }
+        // Nivell 3 (difícil): probabilitats originals
         if (r < 0.80) return { min: -6,  max:  6, majorStep:  1, minorStep: 1, type: 'small'  };
         if (r < 0.90) return { min: -5,  max: 20, majorStep:  5, minorStep: 1, type: 'medium' };
-        return              { min: -10, max: 40, majorStep: 10, minorStep: 5, type: 'large'  };
+        return               { min: -10, max: 40, majorStep: 10, minorStep: 5, type: 'large'  };
     }
 
     /**
