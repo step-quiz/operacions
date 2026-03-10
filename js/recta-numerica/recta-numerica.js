@@ -171,6 +171,11 @@ function buildLevel() {
     const oldNext = document.getElementById('btn-next');
     if (oldNext) oldNext.remove();
 
+    // Restaura el feedback a la posició original (després de les opcions)
+    if (els.feedback.previousElementSibling !== els.options) {
+        els.options.parentNode.insertBefore(els.feedback, els.options.nextSibling);
+    }
+
     // Feedback buit
     els.feedback.innerHTML   = '';
     els.feedback.className   = 'feedback-area';
@@ -226,10 +231,11 @@ function checkAnswer(opt, btn) {
                 b.style.display = 'none';
             });
 
-            // B) Missatge — immediatament
+            // B) Mou el feedback ABANS del contenidor d'opcions al DOM, i mostra'l
+            els.options.parentNode.insertBefore(els.feedback, els.options);
             _showFeedback('Ja has gastat tots els intents. Aquí tens la resposta correcta.', 'neutral');
 
-            // A) Resposta correcta — després de 0.4s
+            // A) Resposta correcta — després de 0.8s
             setTimeout(() => {
                 Array.from(els.options.querySelectorAll('.btn-option')).forEach(b => {
                     const optData = challengeData.options.find(o => b.textContent.trim() === o.text.trim());
@@ -239,9 +245,9 @@ function checkAnswer(opt, btn) {
                     }
                 });
 
-                // C) Botó següent — després de 0.6s addicionals (1.0s total)
-                setTimeout(() => _showNextButton(), 600);
-            }, 400);
+                // C) Botó següent — després de 1.2s addicionals (2.0s total)
+                setTimeout(() => _showNextButton(), 1200);
+            }, 800);
 
         } else {
             els.attDisplay.classList.add('danger');
