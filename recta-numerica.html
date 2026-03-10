@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva — Lectura de gràfiques: temperatura i temps">
+    <title>Recta Numèrica Doble</title>
+
+    <!--
+        PARÀMETRES URL:
+          ?nivell=1     Distractors simples (errors obvis)
+          ?nivell=2     Distractors mitjans (per defecte)
+          ?nivell=3     Distractors elaborats (errors subtils)
+          ?preguntes=N  Nombre de preguntes (per defecte: 6)
+
+        EXEMPLE:
+          recta-numerica.html?nivell=1&preguntes=4
+    -->
+
+    <!-- Google Font: Barlow -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/recta-numerica.css">
+</head>
+<body>
+
+<!-- Capçalera amb títol -->
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici" onerror="this.style.display='none'">
+    </a>
+    <h1>Lectura de Gràfiques</h1>
+</div>
+
+<!-- Panell principal -->
+<div class="panel" id="main-panel">
+
+    <!-- Pantalla de joc -->
+    <div id="game-screen" style="display:none;">
+
+        <!-- Capçalera del joc -->
+        <div class="game-header">
+            <div class="header-left">
+                <span id="level-display"></span>
+                <span id="q-display">Pregunta 1 de 6</span>
+            </div>
+            <span id="score-display">Punts: 0</span>
+            <span id="attempts-display">Intents: 2</span>
+        </div>
+
+        <!-- Gràfic SVG (omplert per JS) -->
+        <div id="graph-container"></div>
+
+        <!-- Text de la pregunta -->
+        <div id="question-prompt"></div>
+
+        <!-- Botons d'opcions (grid o list, assignat per JS) -->
+        <div id="options-container" class="options-grid"></div>
+
+        <!-- Feedback per a l'alumne -->
+        <div id="feedback" class="feedback-area"></div>
+
+    </div>
+
+    <!-- Pantalla de resum final (omplerta per JS) -->
+    <div id="summary-screen"></div>
+
+</div>
+
+<!--
+    ORDRE DE CÀRREGA:
+    cloud-engine → strings → distractor-lib → question-bank → recta-numerica (defer)
+-->
+<script src="js/recta-numerica/cloud-engine.js"></script>
+<script src="js/recta-numerica/strings.js"></script>
+<script src="js/recta-numerica/distractor-lib.js"></script>
+<script src="js/recta-numerica/question-bank.js"></script>
+<script defer src="js/recta-numerica/recta-numerica.js"></script>
+
+</body>
+</html>
