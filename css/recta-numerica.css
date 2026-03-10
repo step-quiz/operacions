@@ -198,13 +198,15 @@ body {
 }
 
 /* Botons de llista: indicador circular a l'esquerra */
-.options-list .btn-option {
+.options-list .btn-option,
+.options-grid .btn-option {
     text-align: left;
     justify-content: flex-start;
     gap: 12px;
     padding-left: 12px;
 }
-.options-list .btn-option::before {
+.options-list .btn-option::before,
+.options-grid .btn-option::before {
     content: '';
     flex-shrink: 0;
     width: 20px;
@@ -214,19 +216,23 @@ body {
     background: white;
     transition: border-color 0.15s, background 0.15s;
 }
-.options-list .btn-option:hover::before {
+.options-list .btn-option:hover::before,
+.options-grid .btn-option:hover::before {
     border-color: var(--primary);
     background: var(--primary-light);
 }
-.options-list .btn-option.correct::before {
+.options-list .btn-option.correct::before,
+.options-grid .btn-option.correct::before {
     border-color: var(--success) !important;
     background: var(--success) !important;
 }
-.options-list .btn-option.wrong::before {
+.options-list .btn-option.wrong::before,
+.options-grid .btn-option.wrong::before {
     border-color: var(--danger) !important;
     background: var(--danger) !important;
 }
-.options-list .btn-option.reveal-correct::before {
+.options-list .btn-option.reveal-correct::before,
+.options-grid .btn-option.reveal-correct::before {
     border-color: var(--warn) !important;
     background: var(--warn) !important;
 }
