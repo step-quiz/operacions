@@ -10,7 +10,7 @@ FONT: Barlow (Google Fonts)
 
 /* ---- VARIABLES ---- */
 :root {
-    --panel-width:   85vw;
+    --panel-width:   80vw;
     --primary:       #0077b6;
     --primary-light: #e0f4ff;
     --primary-dark:  #023e8a;
