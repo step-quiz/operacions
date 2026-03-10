@@ -52,7 +52,7 @@ const Hints = {
 
     NO_DERIVATIVE:
         "Aquesta opció és idèntica a la funció original: no s'ha derivat res.\n" +
-        "Exemple: si has de derivar sin(x), respondre sin(x) és escriure la funció original, no la derivada.",
+        "Exemple: si has de derivar sin(x), no pots respondre sin(x). Has de respondre cos(x).",
 
     INTEGRAL_CONFUSION:
         "Atenció, potser has integrat per error. Aquí has de derivar.\n" +
@@ -116,8 +116,7 @@ const Hints = {
     // -------------------------------------------------------
 
     SIN_COS_SWAP:
-        "Quan derivem, sin i cos s'intercanvien. Però atenció: la derivada de cos porta signe negatiu.\n" +
-        "Exemple: la derivada de sin(x) és cos(x); la derivada de cos(x) és −sin(x).",
+        "Recorda: la derivada de sin(x) és cos(x); la derivada de cos(x) és −sin(x).",
 };
 
 
