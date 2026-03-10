@@ -285,7 +285,7 @@ function _showNextButton() {
     btn.textContent = 'Següent pregunta →';
     btn.addEventListener('click', () => _nextQuestion());
     // Insereix sota el feedback
-    els.feedback.insertAdjacentElement('afterend', btn);
+    els.options.insertAdjacentElement('afterend', btn);
 }
 
 // ============================================================================
