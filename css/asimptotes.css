@@ -412,3 +412,13 @@ html, body {
     .title-row h1 { font-size: .9rem; }
     .btn-option   { font-size: .8rem; padding: 9px 10px 9px 32px; }
 }
+
+/* ---- VISIBILITAT ---- */
+.hidden { display: none !important; }
+
+#game-screen {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+}
