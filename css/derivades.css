@@ -191,6 +191,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     line-height: 1.5;
     text-align: left;
     animation: fadeInDown 0.3s ease;
+    white-space: pre-line;   /* ← afegir aquesta línia */
 }
 
 /* Botó que desplega el hint */
