@@ -19,7 +19,7 @@
 const _params       = new URLSearchParams(window.location.search);
 const GAME_LEVEL    = Math.min(3, Math.max(1, parseInt(_params.get('nivell')    || '2', 10)));
 const TOTAL_Q       = Math.min(12, Math.max(3, parseInt(_params.get('preguntes') || '6', 10)));
-const MAX_INTENTS   = 2;
+const MAX_INTENTS   = 3;
 const PTS_FIRST     = 10;
 const PTS_SECOND    = 5;
 
@@ -216,14 +216,24 @@ function checkAnswer(opt, btn) {
         els.attDisplay.textContent = `Intents: ${attemptsLeft}`;
 
         if (attemptsLeft <= 0) {
-            // Esgotats els intents
+            // Esgotats els intents: elimina les opcions incorrectes, revela la correcta en verd clar
             isAnswered = true;
-            _disableAllButtons();
-            _highlightCorrectButton();
             history.push({ type: challengeData.type, correct: false, pointsEarned: 0 });
 
-            const correctOpt = challengeData.options.find(o => o.isCorrect);
-            _showFeedback(`✗ Resposta incorrecta. La correcta era: "${correctOpt.text}"`, 'wrong');
+            Array.from(els.options.querySelectorAll('.btn-option')).forEach(b => {
+                b.style.pointerEvents = 'none';
+                const optData = challengeData.options.find(o => {
+                    // Compara per text (el primer fill de text, ignorant el ::before)
+                    return b.textContent.trim() === o.text.trim();
+                });
+                if (optData && optData.isCorrect) {
+                    b.classList.add('reveal-answer');
+                } else {
+                    b.style.display = 'none';
+                }
+            });
+
+            _showFeedback('Ja has gastat tots els intents. Aquí tens la resposta correcta.', 'neutral');
             _showNextButton();
 
         } else {
@@ -247,12 +257,7 @@ function _disableAllButtons() {
         .forEach(b => { b.style.pointerEvents = 'none'; });
 }
 
-function _highlightCorrectButton() {
-    const correctOpt = challengeData.options.find(o => o.isCorrect);
-    Array.from(els.options.querySelectorAll('.btn-option')).forEach(btn => {
-        if (btn.textContent === correctOpt.text) btn.classList.add('reveal-correct');
-    });
-}
+// _highlightCorrectButton eliminat: la lògica ara és dins checkAnswer
 
 function _showFeedback(text, type) {
     els.feedback.textContent  = text;
