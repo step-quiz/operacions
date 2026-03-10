@@ -259,8 +259,9 @@ body {
     background: var(--danger-light) !important;
     border-color: var(--danger) !important;
     color: var(--danger) !important;
+    opacity: 1 !important;
     pointer-events: none;
-    animation: shake 0.25s;
+    animation: shake 0.25s forwards;
 }
 
 /* Estat: correcte revelat (quan s'esgoten els intents) */
