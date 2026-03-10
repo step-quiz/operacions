@@ -260,7 +260,7 @@ function generateSinKxInt() {
     const arg         = _kxArg(k);
     const solutionTex = _trigTerm(k, 'cos', arg);
     const pool      = DistractorLib.buildTrig('sin', k);
-    const fallbacks = [{ tex:`\\cos(${arg})`, feedback:"Has derivat sin a cos, però has oblidat multiplicar per k.", errorType:'CHAIN_FORGOT', scope:'family:sin' }, { tex:_trigTerm(k,'sin',arg), feedback:"La derivada de sin és cos, no sin.", errorType:'SIN_COS_SWAP', scope:'family:sin' }, { tex:`\\sin(${arg})`, feedback:"Aquesta és la funció original.", errorType:'NO_DERIVATIVE', scope:'universal' }];
+    const fallbacks = [{ tex:`\\cos(${arg})`, feedback:"Has derivat 'sin → cos', però has oblidat multiplicar per k.", errorType:'CHAIN_FORGOT', scope:'family:sin' }, { tex:_trigTerm(k,'sin',arg), feedback:"La derivada de sin és cos, no sin.", errorType:'SIN_COS_SWAP', scope:'family:sin' }, { tex:`\\sin(${arg})`, feedback:"Aquesta és la funció original.", errorType:'NO_DERIVATIVE', scope:'universal' }];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
     return { promptTex:`f(x) = \\sin(${arg})`, solutionTex, options:[{ tex:solutionTex, feedback:"Molt bé! Recorda: (sin(kx))' = k·cos(kx).", errorType:null, isCorrect:true }, ...distractors.map(d=>({ tex:d.tex, feedback:d.feedback, errorType:d.errorType, isCorrect:false }))], meta:{ family:'chain-rule', outerFn:'sin', innerFn:'linear-int', params:{k}, ruleLabel:'Regla de la cadena' } };
 }
@@ -270,7 +270,7 @@ function generateCosKxInt() {
     const arg         = _kxArg(k);
     const solutionTex = _trigTerm(-k, 'sin', arg);
     const pool      = DistractorLib.buildTrig('cos', k);
-    const fallbacks = [{ tex:_trigTerm(k,'sin',arg), feedback:"Has derivat cos a sin, però has oblidat el signe negatiu.", errorType:'CHAIN_SIGN', scope:'family:cos' }, { tex:_trigTerm(-k,'cos',arg), feedback:"Has posat el signe negatiu però cos no s'ha convertit en sin.", errorType:'SIN_COS_SWAP', scope:'family:cos' }, { tex:`\\cos(${arg})`, feedback:"Aquesta és la funció original.", errorType:'NO_DERIVATIVE', scope:'universal' }];
+    const fallbacks = [{ tex:_trigTerm(k,'sin',arg), feedback:"Has derivat 'cos → sin', però has oblidat el signe negatiu.", errorType:'CHAIN_SIGN', scope:'family:cos' }, { tex:_trigTerm(-k,'cos',arg), feedback:"Has posat el signe negatiu però cos no s'ha convertit en sin.", errorType:'SIN_COS_SWAP', scope:'family:cos' }, { tex:`\\cos(${arg})`, feedback:"Aquesta és la funció original.", errorType:'NO_DERIVATIVE', scope:'universal' }];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
     return { promptTex:`f(x) = \\cos(${arg})`, solutionTex, options:[{ tex:solutionTex, feedback:"Molt bé! Recorda: (cos(kx))' = −k·sin(kx).", errorType:null, isCorrect:true }, ...distractors.map(d=>({ tex:d.tex, feedback:d.feedback, errorType:d.errorType, isCorrect:false }))], meta:{ family:'chain-rule', outerFn:'cos', innerFn:'linear-int', params:{k}, ruleLabel:'Regla de la cadena' } };
 }
@@ -288,7 +288,7 @@ function generateSinPoly2() {
 
     const pool      = DistractorLib.buildTrig('sin-poly2', { b, c });
     const fallbacks = [
-        { tex: `\\cos(${arg})`,                          feedback: "Has derivat sin a cos, però has oblidat multiplicar per p'(x) = 2x+b.",                        errorType: 'CHAIN_FORGOT',    scope: 'family:sin-poly2' },
+        { tex: `\\cos(${arg})`,                          feedback: "Has derivat 'sin → cos', però has oblidat multiplicar per p'(x) = 2x+b.",                        errorType: 'CHAIN_FORGOT',    scope: 'family:sin-poly2' },
         { tex: _polyCoefTrig(pDeriv, 'sin', arg),        feedback: "Has multiplicat per p'(x), però la derivada de sin és cos, no sin.",                           errorType: 'SIN_COS_SWAP',    scope: 'family:sin-poly2' },
         { tex: `-${_polyCoefTrig(pDeriv, 'cos', arg)}`,  feedback: "La derivada de sin és +cos·p', no −cos·p'. El signe negatiu és de la derivada de cos.",        errorType: 'CHAIN_SIGN',      scope: 'family:sin-poly2' },
         { tex: `\\sin(${arg})`,                          feedback: "Aquesta és la funció original, no la seva derivada.",                                           errorType: 'NO_DERIVATIVE',   scope: 'universal'         }
@@ -319,9 +319,9 @@ function generateCosPoly2() {
 
     const pool      = DistractorLib.buildTrig('cos-poly2', { b, c });
     const fallbacks = [
-        { tex: _polyCoefTrig(pDeriv, 'sin', arg),        feedback: "Has derivat cos a sin i has multiplicat per p'(x), però falta el signe negatiu: (cos u)' = −sin(u)·u'.", errorType: 'CHAIN_SIGN',    scope: 'family:cos-poly2' },
+        { tex: _polyCoefTrig(pDeriv, 'sin', arg),        feedback: "Has derivat 'cos → sin' i has multiplicat per p'(x), però falta el signe negatiu: (cos u)' = −sin(u)·u'.", errorType: 'CHAIN_SIGN',    scope: 'family:cos-poly2' },
         { tex: `-${_polyCoefTrig(pDeriv, 'cos', arg)}`,  feedback: "Has posat el signe negatiu, però la derivada de cos és −sin, no −cos.",                               errorType: 'SIN_COS_SWAP',  scope: 'family:cos-poly2' },
-        { tex: `-\\sin(${arg})`,                         feedback: "Has derivat cos a −sin, però has oblidat multiplicar per p'(x) = 2x+b.",                              errorType: 'CHAIN_FORGOT',  scope: 'family:cos-poly2' },
+        { tex: `-\\sin(${arg})`,                         feedback: "Has derivat 'cos → −sin', però has oblidat multiplicar per p'(x) = 2x+b.",                              errorType: 'CHAIN_FORGOT',  scope: 'family:cos-poly2' },
         { tex: `\\cos(${arg})`,                          feedback: "Aquesta és la funció original, no la seva derivada.",                                                  errorType: 'NO_DERIVATIVE', scope: 'universal'         }
     ];
     const distractors = _selectDistractors(pool, solutionTex, 3, fallbacks);
@@ -413,7 +413,7 @@ function generateExpSin() {
     const solutionTex = '\\cos(x)e^{\\sin(x)}';
     const pool        = DistractorLib.buildCompound('exp-sin');
     const fallbacks   = [
-        { tex: 'e^{\\cos(x)}',               feedback: "Has derivat l'argument però has substituït dins l'exponencial en lloc de multiplicar.", errorType: 'CHAIN_WRONG_COEF', scope: 'family:exp-sin' },
+        { tex: 'e^{\\cos(x)}',               feedback: "Has derivat l'argument, però has substituït dins l'exponencial en lloc de multiplicar.", errorType: 'CHAIN_WRONG_COEF', scope: 'family:exp-sin' },
         { tex: 'e^{\\sin(x)}',               feedback: "Aquesta és la funció original, no la seva derivada.",                                   errorType: 'NO_DERIVATIVE',    scope: 'universal' },
         { tex: '\\cos(x)',                    feedback: "Has calculat la derivada de l'interior, però has oblidat multiplicar per e^{sin(x)}.",  errorType: 'CHAIN_FORGOT',     scope: 'family:exp-sin' }
     ];
@@ -457,7 +457,7 @@ function generateLnSin() {
     const solutionTex = '\\frac{\\cos(x)}{\\sin(x)}';
     const pool        = DistractorLib.buildCompound('ln-sin');
     const fallbacks   = [
-        { tex: '\\frac{1}{\\sin(x)}',         feedback: "Has derivat el logaritme però has oblidat multiplicar per la derivada interior cos(x).",  errorType: 'LOG_FORGOT_CHAIN', scope: 'family:ln-sin' },
+        { tex: '\\frac{1}{\\sin(x)}',         feedback: "Has derivat el logaritme, però has oblidat multiplicar per la derivada interior cos(x).",  errorType: 'LOG_FORGOT_CHAIN', scope: 'family:ln-sin' },
         { tex: '\\frac{\\sin(x)}{\\cos(x)}',  feedback: "La derivada de ln(f) és f'/f, no f/f'. Tens la fracció invertida.",                       errorType: 'LOG_INVERTED',     scope: 'family:ln-sin' },
         { tex: '\\ln(\\sin(x))',               feedback: "Aquesta és la funció original, no la seva derivada.",                                     errorType: 'NO_DERIVATIVE',    scope: 'universal' }
     ];
@@ -479,7 +479,7 @@ function generateLnCos() {
     const solutionTex = '\\frac{-\\sin(x)}{\\cos(x)}';
     const pool        = DistractorLib.buildCompound('ln-cos');
     const fallbacks   = [
-        { tex: '\\frac{1}{\\cos(x)}',         feedback: "Has derivat el logaritme però has oblidat multiplicar per la derivada interior −sin(x).", errorType: 'LOG_FORGOT_CHAIN', scope: 'family:ln-cos' },
+        { tex: '\\frac{1}{\\cos(x)}',         feedback: "Has derivat el logaritme, però has oblidat multiplicar per la derivada interior −sin(x).", errorType: 'LOG_FORGOT_CHAIN', scope: 'family:ln-cos' },
         { tex: '\\frac{\\sin(x)}{\\cos(x)}',  feedback: "Has oblidat el signe negatiu. La derivada de cos(x) és −sin(x), no +sin(x).",            errorType: 'CHAIN_SIGN',       scope: 'family:ln-cos' },
         { tex: '\\ln(\\cos(x))',               feedback: "Aquesta és la funció original, no la seva derivada.",                                     errorType: 'NO_DERIVATIVE',    scope: 'universal' }
     ];
