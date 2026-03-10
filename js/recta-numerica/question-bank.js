@@ -124,7 +124,9 @@ window.QuestionBank = (() => {
         }
 
         const correctCount = cloudY.filter(y => y === queryY).length;
-        const options = D.buildCountOptions(correctCount).map(opt => ({
+        const options = D.buildCountOptions(correctCount)
+            .sort((a, b) => a.count - b.count)
+            .map(opt => ({
             text:      opt.label,
             isCorrect: opt.isCorrect,
             feedback:  opt.isCorrect
