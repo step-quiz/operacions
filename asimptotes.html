@@ -4,53 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asímptotes i Límits Laterals</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <script src="js/asimptotes/function-engine.js"></script>
+    <script src="js/asimptotes/strings-asimptotes.js"></script>
+    <script src="js/asimptotes/question-bank-asimptotes.js"></script>
+    <script defer src="js/asimptotes/asimptotes.js"></script>
+
     <link rel="stylesheet" href="css/asimptotes.css">
 </head>
 <body>
 
 <div class="title-row">
-    <h1>Asímptotes verticals &amp; horitzontals / oblíqüies</h1>
+    <h1>Asímptotes i Límits Laterals</h1>
 </div>
 
 <div class="panel">
+    <div id="game-screen" style="display:none;">
 
-    <!-- PANTALLA DE JOC -->
-    <div id="game-screen">
-
-        <div class="game-header">
-            <span id="q-display">Pregunta 1 de 6</span>
-            <span class="badge" id="level-display">Nivell mitjà</span>
-            <span id="score-display">Punts: 0</span>
-            <span id="attempts-display">Intents: 3</span>
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="level-display">Nivell mitjà</div>
+                <div class="level-text"   id="lvl-display">Pregunta 1 de 6</div>
+            </div>
+            <span class="badge" id="type-display"></span>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div class="attempts-counter" id="attempts-display">Intents: 3</div>
         </div>
 
         <div class="game-body">
 
-            <!-- Columna esquerra: pregunta + opcions + feedback -->
+            <!-- Esquerra: pregunta + opcions + feedback -->
             <div class="game-left">
-                <div id="question-prompt"></div>
-                <div id="options-container" class="options-list"></div>
-                <div id="feedback" class="feedback-area" style="opacity:0"></div>
+                <div class="function-box">
+                    <div class="function-label">Calcula:</div>
+                    <div id="fx-display" class="function-math"></div>
+                </div>
+                <div id="options-container" class="options-grid"></div>
+                <div id="missatge-feedback" style="opacity:0;"></div>
             </div>
 
-            <!-- Columna dreta: gràfic SVG -->
-            <div class="game-right">
-                <div id="graph-container"></div>
+            <!-- Dreta: gràfic SVG -->
+            <div class="game-right" id="graph-right">
+                <div id="graph-canvas"></div>
             </div>
 
         </div>
     </div>
 
-    <!-- PANTALLA DE RESUM -->
-    <div id="summary-screen" class="hidden"></div>
-
+    <div id="session-summary" style="display:none;"></div>
 </div>
-
-<!-- JS: ordre important -->
-<script src="js/asimptotes/function-engine.js"></script>
-<script src="js/asimptotes/strings-asimptotes.js"></script>
-<script src="js/asimptotes/question-bank-asimptotes.js"></script>
-<script src="js/asimptotes/asimptotes.js"></script>
 
 </body>
 </html>
