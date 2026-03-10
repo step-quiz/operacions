@@ -426,7 +426,7 @@ const TUTORIAL = [
         pos: 'right-bottom', icon: '🔎',
       },
       {
-        narration: '❌ «2 ºC» no és correcte. Com pots veure, el punt que busquem està situat més amunt',
+        narration: '«2 ºC» no és correcte. Com pots veure, el punt que busquem està situat més amunt',
         highlight:  { type:'point-wrong', x:0, y:2 },
         btnStates:  ['wrong','','',''],
         pos: 'right-top', icon: '❌',
@@ -771,12 +771,26 @@ document.getElementById('btn-next').addEventListener('click', () => {
    ================================================================ */
 render();
 
-// Blink-and-shake del botó Següent: comença 4s després de carregar, dura 3s
-setTimeout(() => {
+// Helper: dispara el blink-and-shake del botó Següent
+function triggerAttention() {
     const btn = document.getElementById('btn-next');
+    // Si ja s'està animant, reinicia-la
+    btn.classList.remove('attention');
+    void btn.offsetWidth; // reflow per reiniciar l'animació CSS
     btn.classList.add('attention');
     btn.addEventListener('animationend', () => btn.classList.remove('attention'), { once: true });
-}, 4000);
+}
+
+// Blink-and-shake inicial: 4s després de carregar
+setTimeout(triggerAttention, 4000);
+
+// Blink-and-shake quan l'usuari clica qualsevol lloc que NO sigui el botó
+document.addEventListener('click', (e) => {
+    const btn = document.getElementById('btn-next');
+    if (!btn.contains(e.target)) {
+        triggerAttention();
+    }
+});
 </script>
 
 </body>
