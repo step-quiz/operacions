@@ -85,12 +85,18 @@
       color: white;
       padding: 9px 20px;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       flex-shrink: 0;
-      gap: 8px;
+      position: relative;
     }
     .tut-header-left { display: flex; align-items: center; gap: 9px; }
+    #btn-next {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
 
     /* Punt vermell parpellejant (● REC) */
     .rec-dot {
@@ -471,10 +477,10 @@ const TUTORIAL = [
         pos: 'right-top', icon: '🔎',
       },
       {
-        narration: '<b>❌ «1 ºC» és incorrecte.</b> Aquell és el valor d\'avui (x = 0), no d\'ahir. Quan la pregunta diu un dia concret, hem d\'anar sempre al punt d\'aquell dia!',
-        highlight:  { type:'point-wrong', x:0, y:1 },
+        narration: '«1 ºC» és incorrecte. Veus que la temperatura és superior?',
+        highlight:  { type:'point-wrong', x:-1, y:1 },
         btnStates:  ['wrong','','',''],
-        pos: 'right-top', icon: '⚠️',
+        pos: 'right-top', icon: '❌',
       },
       {
         narration: '<b>✅ «3 ºC» és correcte!</b> El punt a x = −1 arriba fins a y = 3. Ahir la temperatura era de <b>3 graus sobre zero</b>.',
@@ -568,10 +574,10 @@ function buildSVG(cloudPts, yr, hl) {
         s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#0077b6" opacity="0.09" rx="3"/>`);
         // Etiqueta desplaçada a l'esquerra per evitar col·lisió amb l'eix Y
         s.push(`<text x="${f(tx(hl.x)-18)}" y="${mt+15}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#0077b6">${hl.label||`x=${hl.x}`}</text>`);
-        // Fletxa burdeus: P(1.2, 2) → Q(0.7, 0.1) en coordenades de dades
-        const arrowX1 = f(tx(1.2));
+        // Fletxa burdeus: P(hl.x+1.2, 2) → Q(hl.x+0.7, 0.1) en coordenades de dades
+        const arrowX1 = f(tx(hl.x + 1.2));
         const arrowY1 = f(ty(2));
-        const arrowX2 = f(tx(0.7));
+        const arrowX2 = f(tx(hl.x + 0.7));
         const arrowY2 = f(ty(0.1));
         s.push(`<line x1="${arrowX1}" y1="${arrowY1}" x2="${arrowX2}" y2="${arrowY2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
     }
