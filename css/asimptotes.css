@@ -34,6 +34,7 @@
 
 html, body {
     height: 100%;
+    display: flex;          /* ← aquesta línia faltava */
     overflow: hidden;
     font-family: 'Barlow', sans-serif;
     background: #f0f4f8;
