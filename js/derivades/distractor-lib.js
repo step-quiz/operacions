@@ -293,14 +293,14 @@ window.DistractorLib = (() => {
             { tex: `${coef}${g(kx)}`,        feedback: S.chain_generic.not_derivative_coef, errorType: NO_DERIVATIVE,      scope: 'universal'    },
             { tex: `${g(kx)}`,               feedback: S.chain_generic.not_derived,         errorType: NO_DERIVATIVE,      scope: 'universal'    },
             { tex: `${kInv}${dg(kx)}`,       feedback: S.chain_generic.wrong_coef_generic,  errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
-            { tex: `${coef}x${dg(kx)}`,      feedback: S.chain_generic.wrong_coef_x,        errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
-            { tex: `${dg(kx)} ${plusK}`,     feedback: S.chain_generic.wrong_coef_sum,      errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
+            { tex: `${coef}x${dg(kx)}`,      feedback: S.chain_generic.forgot_chain_coef,   errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
+            { tex: `${dg(kx)} ${plusK}`,     feedback: S.chain_generic.forgot_chain_sum,    errorType: CHAIN_WRONG_COEF,   scope: 'linear-inner' },
             { tex: `${coef}${dg('x')}`,      feedback: S.chain_generic.forgot_chain_coef,   errorType: CHAIN_FORGOT,       scope: 'linear-inner' },
             { tex: `${dg('x')} ${plusK}`,    feedback: S.chain_generic.forgot_chain_sum,    errorType: CHAIN_FORGOT,       scope: 'linear-inner' },
-            { tex: `${dg('x')}`,             feedback: S.chain_generic.not_derivative_x,    errorType: CHAIN_FORGOT,       scope: 'universal'    },
+            { tex: `${dg('x')}`,             feedback: S.chain_generic.not_derivative_coef, errorType: CHAIN_FORGOT,       scope: 'universal'    },
             { tex: `${dg(negKx)}`,           feedback: S.chain_generic.sign_error,          errorType: CHAIN_SIGN,         scope: 'linear-inner' },
             { tex: `${negCoef}${dg(negKx)}`, feedback: S.chain_generic.sign_error_neg,      errorType: CHAIN_SIGN,         scope: 'linear-inner' },
-            { tex: `${kInv}${intG(kx)}`,     feedback: S.chain_generic.integral_coef,       errorType: INTEGRAL_CONFUSION, scope: 'family:exp'   },
+            { tex: `${kInv}${intG(kx)}`,     feedback: S.chain_generic.integral_plain,      errorType: INTEGRAL_CONFUSION, scope: 'family:exp'   },
             { tex: `${intG(kx)}`,            feedback: S.chain_generic.integral_plain,       errorType: INTEGRAL_CONFUSION, scope: 'family:exp'   },
             { tex: `${dg(`${coef}(x-1)`)}`,  feedback: S.chain_generic.power_wrong_exp,     errorType: POWER_WRONG_EXP,    scope: 'family:exp'   },
         ];
@@ -531,7 +531,7 @@ window.DistractorLib = (() => {
         const S_exp     = isSin ? S.exp_sin : S.exp_cos;
 
         // NO_DERIVATIVE: funció original
-        pool.push({ tex: `e^{${gTex}}`, feedback: S_exp.no_derivative, errorType: NO_DERIVATIVE, scope: `family:exp-${trig}` });
+        pool.push({ tex: `e^{${gTex}}`, feedback: S.no_derivative, errorType: NO_DERIVATIVE, scope: `family:exp-${trig}` });
 
         // CHAIN_FORGOT: dinàmic — inclou el valor concret de gPrime i gTex
         pool.push({ tex: gPrime, feedback: `Has calculat la derivada de l'interior (${gPrime}), però has oblidat multiplicar per l'exterior e^{${gTex}}.`, errorType: CHAIN_FORGOT, scope: `family:exp-${trig}` });
@@ -577,7 +577,7 @@ window.DistractorLib = (() => {
         const S_ln  = isSin ? S.ln_sin : S.ln_cos;
 
         // NO_DERIVATIVE
-        pool.push({ tex: `\\ln(${gTex})`, feedback: S_ln.no_derivative, errorType: NO_DERIVATIVE, scope: `family:ln-${trig}` });
+        pool.push({ tex: `\\ln(${gTex})`, feedback: S.no_derivative, errorType: NO_DERIVATIVE, scope: `family:ln-${trig}` });
 
         // LOG_FORGOT_CHAIN: dinàmic — inclou el valor concret de gTex
         pool.push({ tex: `\\frac{1}{${gTex}}`, feedback: `Has derivat ln com a 1/${gTex}, però has oblidat multiplicar per la derivada interior (ln f)' = f'/f.`, errorType: LOG_FORGOT_CHAIN, scope: `family:ln-${trig}` });
