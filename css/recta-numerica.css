@@ -153,7 +153,7 @@ body {
     flex-direction: column;
     align-items: flex-start;
     padding: 12px 16px 12px 12px;
-    overflow-y: auto;
+    overflow: hidden;   /* [ROUND 1 — era overflow-y:auto; evita que punts quedin fora de vista] */
     min-height: 0;
 }
 
@@ -170,14 +170,14 @@ body {
 /* ---- GRÀFIC SVG ---- */
 #graph-container {
     width: 100%;
+    flex: 1 1 0;        /* [ROUND 1 — omple l'alçada disponible dins .game-right] */
+    min-height: 0;
 }
 #graph-container svg {
     border-radius: 6px;
     display: block;
-    /* Altura fixa basada en el viewport: sempre consistent, mai talla punts */
-    height: calc(100vh - 120px);  /* 100vh menys la game-header */
-    width: auto;
-    max-width: 100%;
+    width: 100%;        /* [ROUND 1 — omple el #graph-container, que ara té alçada flex definida] */
+    height: 100%;
 }
 
 /* ---- PREGUNTA ---- */
