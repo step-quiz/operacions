@@ -4,16 +4,396 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asímptotes i Límits Laterals</title>
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap');
 
-    <script src="js/asimptotes/function-engine.js"></script>
-    <script src="js/asimptotes/strings-asimptotes.js"></script>
-    <script src="js/asimptotes/question-bank-asimptotes.js"></script>
-    <script defer src="js/asimptotes/asimptotes.js"></script>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <link rel="stylesheet" href="css/asimptotes.css">
+:root {
+    --bg-color:      #f0f6ff;
+    --primary:       #2563eb;
+    --primary-light: #dbeafe;
+    --primary-dark:  #1d4ed8;
+    --primary-hover: #1e40af;
+    --text-main:     #1e293b;
+    --text-muted:    #64748b;
+    --border-light:  #e2e8f0;
+    --border-heavy:  #cbd5e1;
+    --success:       #10b981;
+    --danger:        #ef4444;
+    --danger-light:  #fee2e2;
+}
+
+html { height: 100%; }
+body {
+    height: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg-color);
+    color: var(--text-main);
+    overflow: hidden;
+}
+
+/* ---- CAPÇALERA ---- */
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 6px;
+}
+.title-row h1 {
+    font-size: clamp(.95rem, 1.8vw, 1.2rem);
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+/* ---- PANELL ---- */
+.panel {
+    max-width: 98vw;
+    width: 98vw;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.08);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ---- HEADER INFO ---- */
+.header-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.header-left { display: flex; flex-direction: column; gap: 1px; }
+.session-text { font-size: .82rem; }
+.level-text   { font-size: .75rem; color: var(--text-muted); }
+.score-text   { color: var(--primary-dark); font-weight: 700; }
+.badge {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: .78rem;
+    font-weight: 600;
+}
+.attempts-counter { font-weight: 700; color: var(--text-muted); }
+.attempts-counter.danger { color: var(--danger); }
+
+/* ---- GAME SCREEN ---- */
+#game-screen {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+/* ---- LAYOUT DUES COLUMNES ---- */
+.game-body {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+/* Columna esquerra */
+.game-left {
+    width: 36%;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 12px 14px 16px;
+    border-right: 1px solid var(--border-light);
+    overflow-y: auto;
+    gap: 0;
+}
+
+/* Columna dreta */
+.game-right {
+    width: 64%;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ---- FUNCTION BOX ---- */
+.function-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.function-label {
+    color: var(--text-muted);
+    font-size: .78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+/* [ROUND 2 — color instrucció principal: blau → negre] */
+.function-math {
+    font-size: 1em;
+    color: #111;
+    padding: 12px 16px;
+    background: #f0f6ff;
+    border-radius: 10px;
+    border: 2px solid var(--border-light);
+    overflow-x: auto;
+}
+
+/* ---- OPCIONS 2×2 ---- */
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+}
+
+@keyframes popIn {
+    0%   { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.btn-option {
+    padding: 14px 10px;
+    font-size: 1em;
+    border-radius: 10px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 64px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.04);
+    opacity: 0;
+    animation: popIn .3s cubic-bezier(.175,.885,.32,1.275) forwards;
+    overflow: hidden;
+    min-width: 0;
+}
+
+@media (hover: hover) {
+    .btn-option:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+}
+.btn-option:active { transform: scale(.97); }
+.btn-option:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+.btn-option .katex-html {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+.btn-option .katex-html::-webkit-scrollbar { display: none; }
+
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25%     { transform: translateX(-5px); }
+    75%     { transform: translateX(5px); }
+}
+.btn-option.correct {
+    background: var(--success) !important;
+    border-color: var(--success) !important;
+    color: white !important;
+}
+.btn-option.wrong {
+    background: var(--danger-light) !important;
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+    opacity: 1 !important;
+    pointer-events: none;
+    cursor: not-allowed;
+    animation: shake .3s;
+}
+
+/* ---- FEEDBACK ---- */
+#missatge-feedback {
+    font-size: .88rem;
+    min-height: 36px;
+    transition: opacity .3s;
+    margin-top: 10px;
+    text-align: center;
+}
+.feedback-correct { color: var(--success); font-weight: 700; }
+.feedback-wrong   { color: var(--text-main); }
+
+.solution-reveal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f0fdf4;
+    border: 2px solid #bbf7d0;
+    border-radius: 8px;
+}
+.solution-label {
+    color: #047857;
+    font-size: .82em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+}
+.solution-formula { color: #065f46; font-size: 1em; }
+
+/* ---- GRÀFIC SVG ---- */
+#graph-canvas {
+    width: 100%;
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+#graph-canvas svg {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 6px;
+}
+
+/* [ROUND 1 — panell toggle asímptotes] */
+.asymptote-toggle-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+.asymptote-toggle-label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex: 1;
+}
+.asymptote-toggle-btns {
+    display: flex;
+    gap: 4px;
+}
+.btn-asym {
+    padding: 3px 14px;
+    font-size: .78rem;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1.5px solid var(--border-heavy);
+    background: white;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.btn-asym.active-on {
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: white;
+}
+.btn-asym.active-off {
+    background: #f1f5f9;
+    border-color: var(--border-heavy);
+    color: var(--text-muted);
+}
+
+/* ---- RESUM FINAL ---- */
+#session-summary { padding: 24px 20px 28px; overflow-y: auto; }
+.summary-score { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 20px; }
+.summary-score-label { font-size: .82em; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+.summary-score-value { font-size: 2.2em; font-weight: 800; color: var(--primary-dark); }
+
+.summary-stats { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.summary-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 16px; border-radius: 10px; min-width: 90px; border: 2px solid transparent; }
+.summary-stat--ok   { background: #f0fdf4; border-color: #bbf7d0; }
+.summary-stat--warn { background: #fffbeb; border-color: #fde68a; }
+.summary-stat--err  { background: #fef2f2; border-color: #fecaca; }
+.summary-stat-num { font-size: 1.8em; font-weight: 800; line-height: 1; }
+.summary-stat--ok   .summary-stat-num { color: #047857; }
+.summary-stat--warn .summary-stat-num { color: #b45309; }
+.summary-stat--err  .summary-stat-num { color: #b91c1c; }
+.summary-stat-desc { font-size: .78em; text-align: center; color: var(--text-muted); line-height: 1.3; }
+
+.summary-errors-title { font-size: .82em; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-bottom: 10px; text-align: center; }
+.summary-errors-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.summary-error-item { background: #eff6ff; border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; padding: 10px 14px; }
+.summary-error-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.summary-error-type  { font-weight: 700; font-size: .92em; color: var(--primary-dark); }
+.summary-error-count { font-size: .78em; color: var(--primary); background: var(--primary-light); padding: 1px 8px; border-radius: 99px; white-space: nowrap; }
+.summary-no-errors { text-align: center; color: #047857; font-weight: 600; background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 10px; padding: 14px; margin-bottom: 24px; }
+
+.summary-continue-btn {
+    display: block; margin: 0 auto; padding: 12px 36px;
+    background: var(--primary); color: white; border: none; border-radius: 10px;
+    font-family: 'Barlow', sans-serif; font-size: 1em; font-weight: 700; cursor: pointer;
+    transition: background .2s, transform .15s;
+}
+.summary-continue-btn:hover  { background: var(--primary-hover); transform: translateY(-1px); }
+.summary-continue-btn:active { transform: scale(.97); }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 780px) {
+    body { overflow: auto; }
+    .game-body { flex-direction: column; }
+    .game-left  { width: 100%; border-right: none; border-bottom: 1px solid var(--border-light); }
+    .game-right { width: 100%; }
+    #graph-container svg { height: 40vh; }
+}
+@media (max-width: 560px) {
+    .options-grid { grid-template-columns: 1fr; }
+}
+
+/* ---- TOGGLE GRÀFICA ---- */
+.btn-toggle-graph {
+    display: block;
+    width: calc(100% - 0px);
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border: 2px dashed var(--primary);
+    border-radius: 10px;
+    font-family: 'Barlow', sans-serif;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+    text-align: center;
+}
+.btn-toggle-graph:hover:not(:disabled) {
+    background: #bfdbfe;
+    border-color: var(--primary-dark);
+}
+.btn-toggle-graph.revealed {
+    background: #fef9c3;
+    border: 2px solid #f59e0b;
+    color: #92400e;
+    cursor: default;
+}
+    </style>
 </head>
 <body>
 
@@ -23,7 +403,6 @@
 
 <div class="panel">
     <div id="game-screen" style="display:none;">
-
         <div class="header-info">
             <div class="header-left">
                 <div class="session-text" id="level-display">Nivell mitjà</div>
@@ -35,8 +414,6 @@
         </div>
 
         <div class="game-body">
-
-            <!-- Esquerra: pregunta + opcions + feedback -->
             <div class="game-left">
                 <div class="function-box">
                     <div class="function-label">Calcula:</div>
@@ -46,16 +423,804 @@
                 <div id="missatge-feedback" style="opacity:0;"></div>
             </div>
 
-            <!-- Dreta: gràfic SVG -->
             <div class="game-right" id="graph-right">
                 <div id="graph-canvas"></div>
             </div>
-
         </div>
     </div>
 
     <div id="session-summary" style="display:none;"></div>
 </div>
+
+<!-- =====================================================================
+     FUNCTION ENGINE
+     ===================================================================== -->
+<script>
+window.FunctionEngine = (() => {
+    const INF = Infinity;
+    function _randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+    function _pick(arr)     { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function _xMinusA(a) {
+        if (a === 0) return 'x';
+        return a < 0 ? `x + ${-a}` : `x - ${a}`;
+    }
+
+    function _makeRationalSimple() {
+        const k = _pick([1, 2, 3, -1, -2, -3]);
+        const a = _pick([-3, -2, -1, 1, 2, 3]);
+        const numStr = k === 1 ? '1' : k === -1 ? '-1' : (k < 0 ? `-${-k}` : `${k}`);
+        return { family: 'rational-simple', numStr, denStr: _xMinusA(a),
+            fn: x => k / (x - a),
+            va: [a], ha: 0, oa: null,
+            domain: x => Math.abs(x - a) > 1e-9,
+            vaLimits: { [a]: { left: k > 0 ? -INF : INF, right: k > 0 ? INF : -INF } },
+            xRange: [-6, 6], yRange: [-8, 8],
+            params: { k, a } };
+    }
+
+    function _makeRational11() {
+        const p = _pick([1, 2, -1, -2, 3, -3]);
+        const a = _pick([-3, -2, -1, 1, 2, 3]);
+        let q; do { q = _randInt(-5, 5); } while (p * a + q === 0);
+        const numAtA = p * a + q;
+        const pPart  = p === 1 ? 'x' : p === -1 ? '-x' : `${p}x`;
+        const qPart  = q === 0 ? '' : q > 0 ? ` + ${q}` : ` - ${-q}`;
+        return { family: 'rational-11', numStr: `${pPart}${qPart}`, denStr: _xMinusA(a),
+            fn: x => (p * x + q) / (x - a),
+            va: [a], ha: p, oa: null,
+            domain: x => Math.abs(x - a) > 1e-9,
+            vaLimits: { [a]: { left: numAtA > 0 ? -INF : INF, right: numAtA > 0 ? INF : -INF } },
+            xRange: [-6, 6], yRange: [p - 10, p + 10],
+            params: { p, q, a, numAtA } };
+    }
+
+    function _makeRational21() {
+        const a = _pick([-3, -2, -1, 1, 2, 3]);
+        let b, c;
+        do { b = _randInt(-3, 3); c = _randInt(-4, 4); } while (a*a + b*a + c === 0);
+        const rem = a*a + a*b + c;
+        const oaB = a + b;
+        const bPart = b === 0 ? '' : b > 0 ? ` + ${b}x` : ` - ${-b}x`;
+        const cPart = c === 0 ? '' : c > 0 ? ` + ${c}` : ` - ${-c}`;
+        return { family: 'rational-21', numStr: `x^2${bPart}${cPart}`, denStr: _xMinusA(a),
+            fn: x => (x*x + b*x + c) / (x - a),
+            va: [a], ha: null, oa: { m: 1, b: oaB },
+            domain: x => Math.abs(x - a) > 1e-9,
+            vaLimits: { [a]: { left: rem > 0 ? -INF : INF, right: rem > 0 ? INF : -INF } },
+            xRange: [-6, 6], yRange: [-15, 15],
+            params: { a, b, c, rem, oaB } };
+    }
+
+    function _makeLogarithmic() {
+        const a = _pick([-3, -2, -1, 0, 1, 2, 3]);
+        return { family: 'logarithmic', numStr: null, denStr: _xMinusA(a),
+            fn: x => x > a ? Math.log(x - a) : NaN,
+            va: [a], ha: null, oa: null,
+            domain: x => x > a,
+            vaLimits: { [a]: { left: null, right: -INF } },
+            xRange: [a - 1.5, a + 8], yRange: [-4, 4],
+            params: { a } };
+    }
+
+    function _makeExponential() {
+        const a = _pick([-2, -1, 0, 1, 2]);
+        return { family: 'exponential', numStr: null, denStr: _xMinusA(a),
+            fn: x => Math.abs(x - a) > 1e-9 ? Math.exp(1 / (x - a)) : NaN,
+            va: [a], ha: 1, oa: null,
+            domain: x => Math.abs(x - a) > 1e-9,
+            vaLimits: { [a]: { left: 0, right: INF } },
+            xRange: [a - 5, a + 5], yRange: [-0.5, 8],
+            params: { a } };
+    }
+
+    const _generators = {
+        'rational-simple': _makeRationalSimple, 'rational-11': _makeRational11,
+        'rational-21': _makeRational21, 'logarithmic': _makeLogarithmic,
+        'exponential': _makeExponential,
+    };
+
+    function generateFunction(level) {
+        const byLevel = {
+            1: ['rational-simple'],
+            2: ['rational-simple', 'rational-11', 'logarithmic'],
+            3: ['rational-simple', 'rational-11', 'rational-21', 'logarithmic', 'exponential'],
+        };
+        return _generators[_pick(byLevel[level] || byLevel[2])]();
+    }
+
+    return { generateFunction };
+})();
+</script>
+
+<!-- =====================================================================
+     STRINGS
+     ===================================================================== -->
+<script>
+window.StringsA = (() => {
+    const INF = Infinity;
+
+    function xTeX(a) {
+        if (a === 0)  return 'x = 0';
+        if (a > 0)    return `x = ${a}`;
+        return `x = -${-a}`;
+    }
+    function yTeX(b) {
+        if (b === 0)  return 'y = 0';
+        if (b > 0)    return `y = ${b}`;
+        return `y = -${-b}`;
+    }
+    function limitTeX(v) {
+        if (v === INF)   return '+\\infty';
+        if (v === -INF)  return '-\\infty';
+        if (v === null)  return '\\nexists';
+        if (v === 0)     return '0';
+        return v < 0 ? `-${Math.abs(v)}` : `${v}`;
+    }
+    function oaTeX(m, b) {
+        const bPart = b === 0 ? '' : b > 0 ? ` + ${b}` : ` - ${-b}`;
+        return `y = x${bPart}`;
+    }
+    function funcTeX(func) {
+        if (func.family === 'rational-simple' || func.family === 'rational-11' || func.family === 'rational-21') {
+            return `f(x) = \\dfrac{${func.numStr}}{${func.denStr}}`;
+        }
+        if (func.family === 'logarithmic') {
+            return `f(x) = \\ln\\!\\left(${func.denStr}\\right)`;
+        }
+        if (func.family === 'exponential') {
+            return `f(x) = e^{\\frac{1}{${func.denStr}}}`;
+        }
+        return 'f(x)';
+    }
+
+    // [ROUND 2 — fórmula sense prefix "f(x) =", per als prompts de límit lateral]
+    function funcBodyTeX(func) {
+        if (func.family === 'rational-simple' || func.family === 'rational-11' || func.family === 'rational-21') {
+            return `\\dfrac{${func.numStr}}{${func.denStr}}`;
+        }
+        if (func.family === 'logarithmic') {
+            return `\\ln\\!\\left(${func.denStr}\\right)`;
+        }
+        if (func.family === 'exponential') {
+            return `e^{\\frac{1}{${func.denStr}}}`;
+        }
+        return 'f(x)';
+    }
+
+    // [ROUND 2 — prompts d'asímptota: "Troba l'equació de l'asímptota..."]
+    function qVATeX(func) { return `\\text{Troba l'equació de l'asímptota vertical de}\\quad ${funcTeX(func)}`; }
+    // [ROUND 2 — prompt de límit lateral: "Calcula aquest límit:" + fórmula sense "f(x) ="]
+    function qLateralTeX(func, a, side) {
+        const sup  = side === 'right' ? '^{+}' : '^{-}';
+        const aStr = a === 0 ? '0' : a > 0 ? `${a}` : `(-${-a})`;
+        return `\\text{Calcula aquest límit:}\\quad \\lim_{x \\to ${aStr}${sup}} ${funcBodyTeX(func)}`;
+    }
+    function qHATeX(func) { return `\\text{Troba l'equació de l'asímptota horitzontal de}\\quad ${funcTeX(func)}`; }
+    function qOATeX(func) { return `\\text{Troba l'equació de l'asímptota obliqua de}\\quad ${funcTeX(func)}`; }
+
+    const labels = {
+        Q_VA:      'Asímptota vertical',
+        Q_LATERAL: 'Límit lateral',
+        Q_HA:      'Asímptota horitzontal',
+        Q_OA:      'Asímptota obliqua',
+    };
+
+    const feedback = {
+        correct_va:      a      => `Correcte! L'asímptota vertical és x = ${a}.`,
+        correct_no_va:   ()     => `Correcte! Aquesta funció no té asímptota vertical.`,
+        correct_lateral: v      => v === INF || v === -INF
+            ? `Correcte! El límit lateral és ${v === INF ? '+∞' : '−∞'}.`
+            : `Correcte! El límit lateral és ${v}.`,
+        correct_ha:      b      => `Correcte! L'asímptota horitzontal és y = ${b}.`,
+        correct_no_ha:   ()     => `Correcte! Aquesta funció no té asímptota horitzontal.`,
+        correct_oa:      (m, b) => `Correcte! L'asímptota obliqua és y = x${b === 0 ? '' : b > 0 ? ` + ${b}` : ` − ${-b}`}.`,
+        correct_no_oa:   ()     => `Correcte! Aquesta funció no té asímptota obliqua.`,
+        wrong_va:        'Recorda: l\'AV es troba en els punts on s\'anul·la el denominador.',
+        wrong_lateral:   'Analitza el signe de la funció quan x s\'acosta al punt des de cada costat.',
+        wrong_ha:        'Calcula lim f(x) quan x → +∞ i x → −∞.',
+        wrong_oa:        'Fes la divisió polinòmica del numerador entre el denominador.',
+    };
+
+    const NO_VA_TEX = '\\text{No té asímptota vertical}';
+    const NO_HA_TEX = '\\text{No té asímptota horitzontal}';
+    const NO_OA_TEX = '\\text{No té asímptota obliqua}';
+
+    return {
+        xTeX, yTeX, limitTeX, oaTeX, funcTeX,
+        qVATeX, qLateralTeX, qHATeX, qOATeX,
+        labels, feedback,
+        NO_VA_TEX, NO_HA_TEX, NO_OA_TEX
+    };
+})();
+</script>
+
+<!-- =====================================================================
+     QUESTION BANK
+     ===================================================================== -->
+<script>
+window.QuestionBankA = (() => {
+    const S   = StringsA;
+    const INF = Infinity;
+
+    function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function _shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+    function _xDistractors(correct) {
+        return _shuffle([-4,-3,-2,-1,0,1,2,3,4].filter(v => v !== correct)).slice(0, 3);
+    }
+    function _yDistractors(correct) {
+        return _shuffle([-4,-3,-2,-1,0,1,2,3,4].filter(v => v !== correct)).slice(0, 3);
+    }
+    function _limitDistractors(correct) {
+        return _shuffle([INF, -INF, 0, 1, -1, 2, -2].filter(v => v !== correct)).slice(0, 3);
+    }
+
+    function generateQVA(func) {
+        const hasVA = func.va.length > 0;
+        const correct = hasVA ? func.va[0] : null;
+        let options;
+        if (hasVA) {
+            options = _shuffle([
+                { tex: S.xTeX(correct), isCorrect: true,  feedback: S.feedback.correct_va(correct), errorType: null },
+                ..._xDistractors(correct).map(w => ({ tex: S.xTeX(w), isCorrect: false, feedback: S.feedback.wrong_va, errorType: 'VA_WRONG' }))
+            ]);
+        } else {
+            options = _shuffle([
+                { tex: S.NO_VA_TEX, isCorrect: true, feedback: S.feedback.correct_no_va(), errorType: null },
+                ..._shuffle([-3,-2,-1,1,2,3]).slice(0,3).map(w => ({ tex: S.xTeX(w), isCorrect: false, feedback: S.feedback.wrong_va, errorType: 'VA_WRONG' }))
+            ]);
+        }
+        return { promptTex: S.qVATeX(func), solutionTex: hasVA ? S.xTeX(correct) : S.NO_VA_TEX, options, type: 'Q_VA', meta: { correct, hasVA } };
+    }
+
+    function generateQLateral(func) {
+        const a    = func.va[0];
+        let side   = func.family === 'logarithmic' ? 'right' : _pick(['left', 'right']);
+        const lims = func.vaLimits[a];
+        let correctV = side === 'right' ? lims.right : lims.left;
+        if (correctV === null) { side = 'right'; correctV = lims.right; }
+        const options = _shuffle([
+            { tex: S.limitTeX(correctV), isCorrect: true, feedback: S.feedback.correct_lateral(correctV), errorType: null },
+            ..._limitDistractors(correctV).map(w => ({ tex: S.limitTeX(w), isCorrect: false, feedback: S.feedback.wrong_lateral, errorType: 'LATERAL_WRONG' }))
+        ]);
+        return { promptTex: S.qLateralTeX(func, a, side), solutionTex: S.limitTeX(correctV), options, type: 'Q_LATERAL', meta: { a, side, correct: correctV } };
+    }
+
+    function generateQHA(func) {
+        const hasHA = func.ha !== null;
+        const correct = func.ha;
+        let options;
+        if (hasHA) {
+            options = _shuffle([
+                { tex: S.yTeX(correct), isCorrect: true, feedback: S.feedback.correct_ha(correct), errorType: null },
+                ..._yDistractors(correct).map(w => ({ tex: S.yTeX(w), isCorrect: false, feedback: S.feedback.wrong_ha, errorType: 'HA_WRONG' }))
+            ]);
+        } else {
+            options = _shuffle([
+                { tex: S.NO_HA_TEX, isCorrect: true, feedback: S.feedback.correct_no_ha(), errorType: null },
+                ..._shuffle([-2,-1,0,1,2,3]).slice(0,3).map(w => ({ tex: S.yTeX(w), isCorrect: false, feedback: S.feedback.wrong_ha, errorType: 'HA_WRONG' }))
+            ]);
+        }
+        return { promptTex: S.qHATeX(func), solutionTex: hasHA ? S.yTeX(correct) : S.NO_HA_TEX, options, type: 'Q_HA', meta: { correct, hasHA } };
+    }
+
+    function generateQOA(func) {
+        const hasOA = func.oa !== null;
+        let options;
+        if (hasOA) {
+            const { m, b } = func.oa;
+            const wrongs   = _shuffle([-3,-2,-1,0,1,2,3].filter(v => v !== b)).slice(0,3).map(wb => S.oaTeX(m, wb));
+            options = _shuffle([
+                { tex: S.oaTeX(m, b), isCorrect: true, feedback: S.feedback.correct_oa(m, b), errorType: null },
+                ...wrongs.map(w => ({ tex: w, isCorrect: false, feedback: S.feedback.wrong_oa, errorType: 'OA_WRONG' }))
+            ]);
+        } else {
+            const fakeOAs = _shuffle([-2,-1,1,2]).slice(0,3).map(b => S.oaTeX(1, b));
+            options = _shuffle([
+                { tex: S.NO_OA_TEX, isCorrect: true, feedback: S.feedback.correct_no_oa(), errorType: null },
+                ...fakeOAs.map(w => ({ tex: w, isCorrect: false, feedback: S.feedback.wrong_oa, errorType: 'OA_WRONG' }))
+            ]);
+        }
+        const solutionTex = hasOA ? S.oaTeX(func.oa.m, func.oa.b) : S.NO_OA_TEX;
+        return { promptTex: S.qOATeX(func), solutionTex, options, type: 'Q_OA', meta: { hasOA, oa: func.oa } };
+    }
+
+    function generateChallenge(func, level) {
+        let types = { 1: ['Q_VA','Q_LATERAL'], 2: ['Q_VA','Q_LATERAL','Q_HA'], 3: ['Q_VA','Q_LATERAL','Q_HA','Q_OA'] }[level] || ['Q_VA','Q_LATERAL','Q_HA'];
+        if (!func.oa && func.family !== 'rational-21') types = types.filter(t => t !== 'Q_OA');
+        if (func.ha === null && func.family === 'logarithmic') types = types.filter(t => t !== 'Q_HA');
+        if (func.va.length === 0) types = types.filter(t => t !== 'Q_LATERAL');
+        const type = _pick(types);
+        switch (type) {
+            case 'Q_VA':      return generateQVA(func);
+            case 'Q_LATERAL': return generateQLateral(func);
+            case 'Q_HA':      return generateQHA(func);
+            case 'Q_OA':      return generateQOA(func);
+        }
+    }
+
+    return { generateChallenge };
+})();
+</script>
+
+<!-- =====================================================================
+     CONTROLADOR PRINCIPAL
+     ===================================================================== -->
+<script defer>
+// [ROUND 1 — bloc TEXTS centralitzat amb tots els strings de la UI]
+const TEXTS = {
+    title:              'Asímptotes i Límits Laterals',
+    calcLabel:          'Calcula:',
+    levelNames:         { 1: 'Nivell fàcil', 2: 'Nivell mitjà', 3: 'Nivell difícil' },
+    questionCounter:    (cur, tot) => `Pregunta ${cur} de ${tot}`,
+    scoreLabel:         pts  => `Punts: ${pts}`,
+    attemptsLabel:      att  => `Intents: ${att}`,
+    btnShowGraph:       '👁 Mostrar gràfica de la funció',
+    // [ROUND 1 — strings del panell toggle asímptotes]
+    asymToggleLabel:    'Mostrar asímptotes',
+    asymBtnOn:          'On',
+    asymBtnOff:         'Off',
+    solutionWas:        'La resposta correcta era:',
+    summaryScoreLabel:  'Puntuació',
+    summaryFirstTry:    'al primer intent',
+    summarySecondTry:   'al segon intent',
+    summaryFailed:      'sense resoldre',
+    summaryErrTitle:    'Errors per tipus de pregunta',
+    summaryErrOnce:     '1 vegada',
+    summaryErrTimes:    n => `${n} vegades`,
+    summaryNoErrors:    trophy => `Cap error! Excel·lent! ${trophy}`,
+    summaryRestartBtn:  'Torna a jugar',
+    errorTypeLabels: {
+        Q_VA:      'Asímptota vertical',
+        Q_LATERAL: 'Límit lateral',
+        Q_HA:      'Asímptota horitzontal',
+        Q_OA:      'Asímptota obliqua',
+    },
+};
+
+const _params    = new URLSearchParams(window.location.search);
+const GAME_LEVEL = Math.min(3, Math.max(1, parseInt(_params.get('nivell')     || '2', 10)));
+const TOTAL_Q    = Math.min(12, Math.max(3, parseInt(_params.get('preguntes') || '6', 10)));
+const MAX_INTENTS = 3;  // nombre màxim d'intents per pregunta
+const PTS_FIRST   = 10; // punts per encert al primer intent
+
+let currentQ      = 0;
+let score         = 0;
+let attemptsLeft  = MAX_INTENTS;
+let isAnswered    = false;
+let challengeData = null;
+let currentFunc   = null;
+let history       = [];
+let graphRevealed = false;
+
+const els = {
+    gameScreen:    document.getElementById('game-screen'),
+    summaryScreen: document.getElementById('session-summary'),
+    fxDisplay:     document.getElementById('fx-display'),
+    typeDisplay:   document.getElementById('type-display'),
+    options:       document.getElementById('options-container'),
+    feedback:      document.getElementById('missatge-feedback'),
+    scoreDisplay:  document.getElementById('score-display'),
+    lvlDisplay:    document.getElementById('lvl-display'),
+    attDisplay:    document.getElementById('attempts-display'),
+    levelDisplay:  document.getElementById('level-display'),
+};
+
+// ============================================================================
+// BUILD LEVEL
+// ============================================================================
+function buildLevel() {
+    isAnswered   = false;
+    attemptsLeft = MAX_INTENTS;
+
+    els.lvlDisplay.textContent   = TEXTS.questionCounter(currentQ + 1, TOTAL_Q);
+    els.scoreDisplay.textContent = TEXTS.scoreLabel(score);
+    els.attDisplay.textContent   = TEXTS.attemptsLabel(attemptsLeft);
+    els.attDisplay.classList.remove('danger');
+
+    els.feedback.style.opacity = '0';
+    els.feedback.innerHTML     = '';
+
+    currentFunc   = FunctionEngine.generateFunction(GAME_LEVEL);
+    challengeData = QuestionBankA.generateChallenge(currentFunc, GAME_LEVEL);
+
+    katex.render(challengeData.promptTex, els.fxDisplay, {
+        throwOnError: false, displayMode: true
+    });
+
+    if (els.typeDisplay) {
+        els.typeDisplay.textContent = StringsA.labels[challengeData.type] || '';
+    }
+
+    // Gràfic SVG: pre-renderitzat però amagat fins que l'alumne el demani
+    graphRevealed = false;
+    const gc = document.getElementById('graph-canvas');
+    if (gc && currentFunc.fn) {
+        gc.innerHTML = renderSVG(currentFunc);
+        gc.style.display = 'none';
+    }
+
+    // Construeix la columna dreta
+    const gr = document.getElementById('graph-right');
+    if (gr) {
+        gr.innerHTML = '';
+
+        // Botó "Mostrar gràfica"
+        const toggleBtn = document.createElement('button');
+        toggleBtn.id        = 'btn-toggle-graph';
+        toggleBtn.className = 'btn-toggle-graph';
+        toggleBtn.textContent = TEXTS.btnShowGraph;
+        toggleBtn.addEventListener('click', () => {
+            if (graphRevealed) return;
+            graphRevealed = true;
+            toggleBtn.remove();
+
+            // [ROUND 1 — panell On/Off asímptotes, visible quan es revela la gràfica]
+            const bar = _buildAsymToggleBar();
+            gr.insertBefore(bar, gc);
+            gc.style.display = '';
+        });
+
+        gr.appendChild(toggleBtn);
+        gr.appendChild(gc);
+    }
+
+    // Opcions
+    els.options.innerHTML = '';
+    [...challengeData.options].forEach((opt, idx) => {
+        const btn  = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.style.animationDelay = `${idx * 60}ms`; // escalonat d'animació
+        const span = document.createElement('span');
+        katex.render(opt.tex, span, { throwOnError: false });
+        btn.appendChild(span);
+        btn.addEventListener('click', () => checkAnswer(opt, btn));
+        els.options.appendChild(btn);
+    });
+}
+
+// [ROUND 1 — crea el panell "Mostrar asímptotes · On / Off"]
+function _buildAsymToggleBar() {
+    // Comença en estat "Off": asímptotes amagades per defecte
+    let asymVisible = false;
+
+    const bar = document.createElement('div');
+    bar.className = 'asymptote-toggle-bar';
+
+    const label = document.createElement('span');
+    label.className   = 'asymptote-toggle-label';
+    label.textContent = TEXTS.asymToggleLabel;
+
+    const btnGroup = document.createElement('div');
+    btnGroup.className = 'asymptote-toggle-btns';
+
+    const btnOn  = document.createElement('button');
+    const btnOff = document.createElement('button');
+    btnOn.className  = 'btn-asym';
+    btnOff.className = 'btn-asym active-off'; // Off actiu per defecte
+    btnOn.textContent  = TEXTS.asymBtnOn;
+    btnOff.textContent = TEXTS.asymBtnOff;
+
+    function _applyState() {
+        const g = document.getElementById('asym-group');
+        if (g) g.style.display = asymVisible ? '' : 'none';
+        btnOn.className  = asymVisible ? 'btn-asym active-on'  : 'btn-asym';
+        btnOff.className = asymVisible ? 'btn-asym'            : 'btn-asym active-off';
+    }
+
+    btnOn.addEventListener('click',  () => { asymVisible = true;  _applyState(); });
+    btnOff.addEventListener('click', () => { asymVisible = false; _applyState(); });
+
+    btnGroup.appendChild(btnOn);
+    btnGroup.appendChild(btnOff);
+    bar.appendChild(label);
+    bar.appendChild(btnGroup);
+    return bar;
+}
+
+// ============================================================================
+// SVG
+// ============================================================================
+function renderSVG(func) {
+    const W = 560, H = 420;
+    const ml = 35, mr = 20, mt = 30, mb = 30;
+    const pw = W - ml - mr, ph = H - mt - mb;
+
+    const [xMin, xMax] = func.xRange || [-6, 6];
+    const [yMin, yMax] = func.yRange || [-8, 8];
+
+    const tx = x => ml + (x - xMin) / (xMax - xMin) * pw;
+    const ty = y => mt + ph - (y - yMin) / (yMax - yMin) * ph;
+    const px0 = tx(0);
+    const py0 = (yMin <= 0 && yMax >= 0) ? ty(0) : mt + ph;
+
+    const lines = [];
+    lines.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#ffffff"/>`);
+
+    // Grid
+    const xStep = (xMax - xMin) <= 14 ? 1 : 2;
+    for (let x = Math.ceil(xMin); x <= xMax; x += xStep) {
+        const px = tx(x);
+        lines.push(`<line x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${mt+ph}" stroke="#b8c4ce" stroke-width="0.7"/>`);
+    }
+    const yStepMinor = _yStep(yMin, yMax);
+    for (let y = Math.ceil(yMin/yStepMinor)*yStepMinor; y <= yMax; y += yStepMinor) {
+        const py = ty(y);
+        lines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="${y % (yStepMinor*2) === 0 ? '#9aaab8' : '#b8c4ce'}" stroke-width="${y % (yStepMinor*2) === 0 ? 1 : 0.7}"/>`);
+    }
+
+    // Eixos
+    lines.push(`<line x1="${ml}" y1="${py0.toFixed(1)}" x2="${ml+pw}" y2="${py0.toFixed(1)}" stroke="#000" stroke-width="2"/>`);
+    lines.push(`<line x1="${px0.toFixed(1)}" y1="${mt}" x2="${px0.toFixed(1)}" y2="${mt+ph}" stroke="#000" stroke-width="2"/>`);
+
+    // Etiquetes Y
+    const yStepLabel = yStepMinor * (yMax - yMin > 12 ? 2 : 1);
+    for (let y = Math.ceil(yMin/yStepLabel)*yStepLabel; y <= yMax; y += yStepLabel) {
+        if (y === 0) continue;
+        const py = ty(y);
+        lines.push(`<line x1="${(px0-4).toFixed(1)}" y1="${py.toFixed(1)}" x2="${(px0+4).toFixed(1)}" y2="${py.toFixed(1)}" stroke="#000" stroke-width="1.5"/>`);
+        lines.push(`<text x="${(px0-8).toFixed(1)}" y="${(py+5).toFixed(1)}" text-anchor="end" font-family="Barlow,sans-serif" font-size="13" font-weight="500" fill="#000">${y}</text>`);
+    }
+    // Etiquetes X
+    for (let x = Math.ceil(xMin); x <= xMax; x += xStep) {
+        if (x === 0) continue;
+        const px = tx(x);
+        lines.push(`<line x1="${px.toFixed(1)}" y1="${(py0-4).toFixed(1)}" x2="${px.toFixed(1)}" y2="${(py0+4).toFixed(1)}" stroke="#000" stroke-width="1.5"/>`);
+        lines.push(`<text x="${px.toFixed(1)}" y="${(py0+18).toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="13" font-weight="500" fill="#000">${x}</text>`);
+    }
+    lines.push(`<text x="${(px0-8).toFixed(1)}" y="${(py0+18).toFixed(1)}" text-anchor="end" font-family="Barlow,sans-serif" font-size="13" font-weight="500" fill="#000">0</text>`);
+
+    // Títols eixos
+    lines.push(`<text x="${(ml+pw).toFixed(1)}" y="${(py0-8).toFixed(1)}" text-anchor="end" font-family="Barlow,sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">x</text>`);
+    lines.push(`<text x="${(px0+6).toFixed(1)}" y="16" font-family="Barlow,sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">y</text>`);
+
+    // [ROUND 1 — asímptotes agrupades en un <g> ocult per defecte; el toggle On/Off commuta display]
+    const asymLines = [];
+
+    // Asímptotes verticals (vermell)
+    func.va.forEach(a => {
+        if (a < xMin || a > xMax) return;
+        const px = tx(a);
+        asymLines.push(`<line x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${mt+ph}" stroke="#e53e3e" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>`);
+    });
+
+    // Asímptota horitzontal (blau)
+    if (func.ha !== null && func.ha !== undefined) {
+        const h = func.ha;
+        if (h >= yMin && h <= yMax) {
+            const py = ty(h);
+            asymLines.push(`<line x1="${ml}" y1="${py.toFixed(1)}" x2="${ml+pw}" y2="${py.toFixed(1)}" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>`);
+        }
+    }
+
+    // Asímptota obliqua (verd)
+    if (func.oa) {
+        const { m, b } = func.oa;
+        const py1 = ty(m * xMin + b), py2 = ty(m * xMax + b);
+        asymLines.push(`<line x1="${ml}" y1="${py1.toFixed(1)}" x2="${ml+pw}" y2="${py2.toFixed(1)}" stroke="#276749" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>`);
+    }
+
+    // Grup d'asímptotes ocult per defecte (display:none); el toggle On/Off l'activa
+    lines.push(`<g id="asym-group" display="none">${asymLines.join('')}</g>`);
+
+    // Corba
+    const pathData = _buildCurvePaths(func, tx, ty, xMin, xMax, yMin, yMax);
+    pathData.forEach(d => {
+        lines.push(`<path d="${d}" fill="none" stroke="#0077b6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
+    });
+
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">${lines.join('')}</svg>`;
+}
+
+function _yStep(yMin, yMax) {
+    const span = yMax - yMin;
+    if (span <= 8)  return 1;
+    if (span <= 16) return 2;
+    if (span <= 30) return 5;
+    return 10;
+}
+
+function _buildCurvePaths(func, tx, ty, xMin, xMax, yMin, yMax) {
+    const N     = 600;
+    const eps   = (xMax - xMin) * 0.018;
+    const yClip = (yMax - yMin) * 1.1;
+    const paths = [];
+    const breaks = [-Infinity, ...(func.va || []).slice().sort((a,b)=>a-b), Infinity];
+    const intervals = [];
+    for (let i = 0; i < breaks.length - 1; i++) {
+        const lo = Math.max(xMin + 0.01, breaks[i]   === -Infinity ? xMin : breaks[i]   + eps);
+        const hi = Math.min(xMax - 0.01, breaks[i+1] ===  Infinity ? xMax : breaks[i+1] - eps);
+        if (lo < hi) intervals.push([lo, hi]);
+    }
+    intervals.forEach(([lo, hi]) => {
+        let d = '';
+        for (let i = 0; i <= N; i++) {
+            const x = lo + (hi - lo) * i / N;
+            if (!func.domain(x)) { d += ' '; continue; }
+            const y = func.fn(x);
+            if (!isFinite(y) || isNaN(y)) { d += ' '; continue; }
+            const cy  = Math.max(yMin - yClip, Math.min(yMax + yClip, y));
+            const cmd = (d === '' || d.endsWith(' '))
+                ? `M ${tx(x).toFixed(2)} ${ty(cy).toFixed(2)}`
+                : ` L ${tx(x).toFixed(2)} ${ty(cy).toFixed(2)}`;
+            d += cmd;
+        }
+        d.split(' M ').filter(s => s.trim()).forEach(seg => {
+            const full = seg.startsWith('M') ? seg : 'M ' + seg;
+            if (full.includes('L')) paths.push(full);
+        });
+    });
+    return paths;
+}
+
+// ============================================================================
+// CHECK ANSWER
+// ============================================================================
+function checkAnswer(opt, clickedBtn) {
+    if (isAnswered) return;
+
+    if (opt.isCorrect) {
+        isAnswered = true;
+        let pts = attemptsLeft === MAX_INTENTS ? PTS_FIRST
+                : attemptsLeft === 2           ? 5
+                : 0;
+        if (graphRevealed && pts > 0) pts = Math.floor(pts / 2);
+        score += pts;
+
+        clickedBtn.classList.add('correct');
+        _disableAll();
+        history.push({ type: challengeData.type, correct: true, pointsEarned: pts });
+        _renderFeedback(opt, false);
+        els.scoreDisplay.textContent = TEXTS.scoreLabel(score);
+        setTimeout(() => _next(), 1600);
+
+    } else {
+        attemptsLeft--;
+        clickedBtn.classList.add('wrong');
+        els.attDisplay.textContent = TEXTS.attemptsLabel(attemptsLeft);
+        els.attDisplay.classList.add('danger');
+        history.push({ type: challengeData.type, correct: false, pointsEarned: 0 });
+
+        const isLast = attemptsLeft <= 0;
+        _renderFeedback(opt, isLast);
+
+        if (isLast) {
+            isAnswered = true;
+            _disableAll();
+            setTimeout(() => _next(), 2200);
+        }
+    }
+}
+
+function _renderFeedback(opt, showSolution) {
+    const fc = els.feedback;
+
+    if (opt.isCorrect) {
+        fc.innerHTML = `<strong class="feedback-correct">✓ ${opt.feedback}</strong>`;
+        fc.style.opacity = '1';
+        return;
+    }
+
+    fc.innerHTML = `<span class="feedback-wrong">${opt.feedback}</span>`;
+    fc.style.opacity = '1';
+
+    if (showSolution && challengeData?.solutionTex) {
+        const row = document.createElement('div');
+        row.className = 'solution-reveal';
+        const label = document.createElement('span');
+        label.className   = 'solution-label';
+        label.textContent = TEXTS.solutionWas;
+        const formula = document.createElement('span');
+        formula.className = 'solution-formula';
+        katex.render(challengeData.solutionTex, formula, { throwOnError: false });
+        row.appendChild(label);
+        row.appendChild(formula);
+        fc.appendChild(row);
+    }
+}
+
+function _disableAll() {
+    Array.from(els.options.querySelectorAll('.btn-option'))
+        .forEach(b => { b.style.pointerEvents = 'none'; });
+}
+
+function _next() {
+    currentQ++;
+    if (currentQ >= TOTAL_Q) _showSummary();
+    else buildLevel();
+}
+
+// ============================================================================
+// RESUM FINAL
+// ============================================================================
+function _showSummary() {
+    els.gameScreen.style.display = 'none';
+
+    const maxScore  = TOTAL_Q * PTS_FIRST;
+    const firstTry  = history.filter(h => h.correct && h.pointsEarned === PTS_FIRST).length;
+    const retried   = history.filter(h => h.correct && h.pointsEarned === 5).length;
+    const failed    = history.filter(h => !h.correct).length;
+    const pct       = Math.round(score / maxScore * 100);
+
+    const scoreOver10Raw = score / maxScore * 10;
+    const scoreOver10 = Number.isInteger(scoreOver10Raw)
+        ? String(scoreOver10Raw)
+        : scoreOver10Raw.toFixed(2).replace('.', ',');
+
+    const trophy = pct >= 90 ? '🌟' : pct >= 70 ? '😊' : pct >= 50 ? '🙂' : '💪';
+
+    const byType = {};
+    history.filter(h => !h.correct).forEach(h => {
+        byType[h.type] = (byType[h.type] || 0) + 1;
+    });
+    const sortedErrors = Object.entries(byType).sort((a,b) => b[1]-a[1]);
+
+    let errorsHTML = '';
+    if (sortedErrors.length > 0) {
+        errorsHTML = `<div class="summary-errors-title">${TEXTS.summaryErrTitle}</div>
+        <div class="summary-errors-list">` +
+        sortedErrors.map(([type, count]) => `
+            <div class="summary-error-item">
+                <div class="summary-error-header">
+                    <span class="summary-error-type">${TEXTS.errorTypeLabels[type] || type}</span>
+                    <span class="summary-error-count">${count === 1 ? TEXTS.summaryErrOnce : TEXTS.summaryErrTimes(count)}</span>
+                </div>
+            </div>`).join('') +
+        `</div>`;
+    } else {
+        errorsHTML = `<div class="summary-no-errors">${TEXTS.summaryNoErrors(trophy)}</div>`;
+    }
+
+    els.summaryScreen.innerHTML = `
+        <div class="summary-score">
+            <span class="summary-score-label">${TEXTS.summaryScoreLabel}</span>
+            <span class="summary-score-value">${scoreOver10}</span>
+        </div>
+        <div class="summary-stats">
+            <div class="summary-stat summary-stat--ok">
+                <span class="summary-stat-num">${firstTry}</span>
+                <span class="summary-stat-desc">${TEXTS.summaryFirstTry}</span>
+            </div>
+            <div class="summary-stat summary-stat--warn">
+                <span class="summary-stat-num">${retried}</span>
+                <span class="summary-stat-desc">${TEXTS.summarySecondTry}</span>
+            </div>
+            <div class="summary-stat summary-stat--err">
+                <span class="summary-stat-num">${failed}</span>
+                <span class="summary-stat-desc">${TEXTS.summaryFailed}</span>
+            </div>
+        </div>
+        ${errorsHTML}
+        <button class="summary-continue-btn" id="btn-restart">${TEXTS.summaryRestartBtn}</button>
+    `;
+    els.summaryScreen.style.display = 'block';
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+        currentQ = 0; score = 0; history = [];
+        els.summaryScreen.style.display = 'none';
+        els.gameScreen.style.display    = 'flex';
+        buildLevel();
+    });
+}
+
+// ============================================================================
+// INICI
+// ============================================================================
+window.addEventListener('DOMContentLoaded', () => {
+    if (els.levelDisplay) {
+        els.levelDisplay.textContent = TEXTS.levelNames[GAME_LEVEL] || '';
+    }
+    els.gameScreen.style.display = 'flex';
+    buildLevel();
+});
+</script>
 
 </body>
 </html>
