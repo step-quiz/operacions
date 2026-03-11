@@ -530,9 +530,28 @@ function buildActiveFamilies() {
 
 const activeFamilies = buildActiveFamilies();
 
+// [ROUND 1 — Anti-col·lisió: evita repetir el mateix promptTex dins una sessió]
+const _usedPrompts = new Set();
+
+// Nombre màxim de reintents abans de rendir-se (evita bucle infinit si el
+// pool de famílies actives és molt petit i tots els prompts estan exhaurits).
+const _MAX_RETRIES = 12;
+
 function generateChallenge() {
-    const generator = activeFamilies[Math.floor(Math.random() * activeFamilies.length)];
-    return generator();
+    let challenge;
+    let attempts = 0;
+    do {
+        const generator = activeFamilies[Math.floor(Math.random() * activeFamilies.length)];
+        challenge = generator();
+        attempts++;
+    } while (_usedPrompts.has(challenge.promptTex) && attempts < _MAX_RETRIES);
+    _usedPrompts.add(challenge.promptTex);
+    return challenge;
+}
+
+// [ROUND 1 — resetSession: neteja l'historial de prompts per a la sessió nova]
+function resetSession() {
+    _usedPrompts.clear();
 }
 
 // =========================================================================
@@ -540,6 +559,7 @@ function generateChallenge() {
 // =========================================================================
 return {
     generateChallenge,
+    resetSession,       // [ROUND 1 — Anti-col·lisió]
     FamilyRegistry,
     activeFamilies,
     // _testing: accessible per run-tests.js, no per al codi de producció

@@ -295,6 +295,8 @@ function showSessionSummary() {
         .addEventListener('click', () => {
             panel.style.display = 'none';
             errorHistory = [];   // reset per a la sessió següent
+            // [ROUND 1 — Anti-col·lisió: reset per a la sessió nova]
+            if (typeof QuestionBank !== 'undefined') QuestionBank.resetSession();
             endSession();
         });
 }
@@ -329,6 +331,9 @@ function _errorTypeLabel(type) {
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof validateConfig   === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
+
+    // [ROUND 1 — Anti-col·lisió: reset per a la primera sessió]
+    if (typeof QuestionBank !== 'undefined') QuestionBank.resetSession();
 
     if (typeof startGame === 'function') {
         startGame();

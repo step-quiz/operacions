@@ -99,8 +99,9 @@ const Hints = {
     // Logaritme
     // -------------------------------------------------------
 
+    // [ROUND 1 — Bug fix: numerador i denominador estaven descrits al revés]
     LOG_INVERTED:
-        "Per trobar la derivada de ln(f(x)) escriurem una fracció. El numerador és f(x) i el denominador és f'(x).\n" +
+        "Per trobar la derivada de ln(f(x)) escriurem una fracció. El numerador és f'(x) i el denominador és f(x).\n" +
         "Exemple: per derivar ln(x²), escriurem aquesta resposta: 2x/x², que simplifica a 2/x.",
 
     LOG_FORGOT_CHAIN:
