@@ -554,21 +554,10 @@
             
             if (firstVisibleInput) {
                 firstVisibleInput.value = '';
-                
-                // 🟢 CANVI 2 DEFINITIU: Vinculem el teclat custom sempre que la casella es fa visible
-                if (typeof registerKbInput === 'function') {
-                    inputs.forEach(inp => { 
-                        if (inp.offsetParent !== null) registerKbInput(inp); 
-                    });
-                }
 
-                // Detecció tàctil a prova de bales
-                const isTouchEnv = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (typeof isTouchDevice === 'function' && isTouchDevice());
-                
-                if (isTouchEnv) {
-                    if (typeof showCustomKeyboard === 'function') {
-                        showCustomKeyboard(firstVisibleInput);
-                    }
+                // [CANVIS 1+3] Unificada detecció tàctil a isTouchDevice(); eliminada crida a registerKbInput inexistent
+                if (isTouchDevice()) {
+                    showCustomKeyboard(firstVisibleInput);
                 } else {
                     setTimeout(() => {
                         firstVisibleInput.focus();
@@ -674,7 +663,7 @@
     }
     // ---- COMPROVAR VALOR ----
     function checkValue() {
-        if (isTransitioning) return;
+        if (isTransitioning || isPenalizing) return; // [CANVI 4] Afegit guard isPenalizing
         const activeStep = document.querySelector('.step-container.active');
         if (!activeStep) return;
         const stepId = activeStep.id;
@@ -972,21 +961,8 @@ function finishSuccess() {
     validateConfig();
     initCustomKeyboard({ allowNegative: true });
 
-    // 🟢 CANVI 1 DEFINITIU: Detecció tàctil robusta i activació forçada
-    const isTouchEnv = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-    
-    document.querySelectorAll('input[type="text"].math-cell').forEach(inp => {
-        inp.removeAttribute('readonly'); 
-        if (isTouchEnv) inp.setAttribute('inputmode', 'none'); // Només apaguem el natiu al mòbil
-        
-        // Si toquem manualment qualsevol casella, aixequem el teclat custom
-        inp.addEventListener('focus', function() {
-            if (isTouchEnv && typeof showCustomKeyboard === 'function') {
-                showCustomKeyboard(this);
-            }
-        });
-    });
-
+    // [CANVI 2] Eliminat bloc redundant de detecció tàctil manual:
+    // showCustomKeyboard ja gestiona inputmode/readonly i _kbDirectTapBound.
     showScreen('menu-screen');    
 
         window.addEventListener('load', () => {
