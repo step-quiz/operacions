@@ -291,13 +291,25 @@
         const fullName = type === 'mcd' ? 'màxim comú divisor' : 'mínim comú múltiple';
         const answer = type === 'mcd' ? mcdValue : mcmValue;
 
+        // [CANVI 4] Guardem els valors actius per a checkCurrentCell
+        _activeAnswer = answer;
+        _activeLabel  = label;
+
         els.mcdMcmZone.innerHTML = `<div class="both-factorizations"><div class="fact-row row-a">${formatFactorization(numberA, factorsA)}</div><div class="fact-row row-b">${formatFactorization(numberB, factorsB)}</div></div>`;
 
         els.resolutionPanel.style.display = 'flex';
         els.stepInstruction.innerHTML = `Quin és el <span style="color: var(--accent); font-weight: bold;">${fullName}</span> de ${numberA} i ${numberB}?`;
         els.errorMsg.textContent = '';
-        els.inputZone.innerHTML = `<div class="input-row"><input type="number" class="factor-input" id="mcd-mcm-input" autocomplete="off" aria-label="${label}"><button class="btn-submit" id="btn-mcd-mcm-submit" onclick="checkMcdMcm(${answer}, '${label}')">OK</button></div>`;
-        document.getElementById('mcd-mcm-input').focus();
+        // [CANVI 2] type="text" en lloc de type="number" (evita teclat natiu en mòbil)
+        els.inputZone.innerHTML = `<div class="input-row"><input type="text" class="factor-input" id="mcd-mcm-input" autocomplete="off" aria-label="${label}"><button class="btn-submit" id="btn-mcd-mcm-submit" onclick="checkMcdMcm(${answer}, '${label}')">OK</button></div>`;
+
+        // [CANVI 3] Focus condicional: teclat custom en tàctil, focus natiu en escriptori
+        const inp = document.getElementById('mcd-mcm-input');
+        if (isTouchDevice()) {
+            showCustomKeyboard(inp);
+        } else {
+            inp.focus();
+        }
     }
 
     function checkMcdMcm(answer, label) {
@@ -318,6 +330,7 @@
         }
 
         els.errorMsg.textContent = '';
+        hideCustomKeyboard(); // [CANVI 5] Tanca el teclat custom en encertar
         els.resolutionPanel.style.display = 'none';
 
         if (label === 'MCM') {
@@ -336,6 +349,7 @@
 
     function finishExercise(levelPoints) {
         isTransitioning = true;
+        hideCustomKeyboard(); // [CANVI 5] Tanca el teclat custom en finalitzar
         els.resolutionPanel.style.display = 'none';
         els.mcdMcmZone.style.display = 'none';
         els.phaseBanner.style.display = 'none';
@@ -409,10 +423,23 @@
     });
 
     // ============================================================
+    // TECLAT CUSTOM — variables d'estat i checkCurrentCell
+    // ============================================================
+    // [CANVI 4] Variables que guarden quin MCD/MCM s'està demanant ara
+    let _activeAnswer = 0;
+    let _activeLabel  = '';
+
+    // [CANVI 4] Botó → del teclat custom crida sempre checkCurrentCell
+    function checkCurrentCell() {
+        if (_activeAnswer !== 0) checkMcdMcm(_activeAnswer, _activeLabel);
+    }
+
+    // ============================================================
     // ARRENCADA
     // ============================================================
     injectSharedHTML();
     validateConfig();
+    initCustomKeyboard({ allowNegative: false }); // [CANVI 1] Inicialitza listeners del teclat custom
     startGame();
 </script>
 </body>
