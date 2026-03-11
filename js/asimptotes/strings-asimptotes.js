@@ -79,19 +79,19 @@ window.StringsA = (() => {
     // ---- Feedbacks (text pla) ----------------------------------------------
 
     const feedback = {
-        correct_va:      a      => `Correcte! L'asímptota vertical és x = ${a}.`,
-        correct_no_va:   ()     => `Correcte! Aquesta funció no té asímptota vertical.`,
+        correct_va:      a      => `Correcte.`,
+        correct_no_va:   ()     => `Correcte.`,
         correct_lateral: v      => v === INF || v === -INF
             ? `Correcte! El límit lateral és ${v === INF ? '+∞' : '−∞'}.`
             : `Correcte! El límit lateral és ${v}.`,
-        correct_ha:      b      => `Correcte! L'asímptota horitzontal és y = ${b}.`,
-        correct_no_ha:   ()     => `Correcte! Aquesta funció no té asímptota horitzontal.`,
-        correct_oa:      (m, b) => `Correcte! L'asímptota obliqua és y = x${b === 0 ? '' : b > 0 ? ` + ${b}` : ` − ${-b}`}.`,
-        correct_no_oa:   ()     => `Correcte! Aquesta funció no té asímptota obliqua.`,
-        wrong_va:        'Recorda: l\'AV es troba en els punts on s\'anul·la el denominador.',
-        wrong_lateral:   'Analitza el signe de la funció quan x s\'acosta al punt des de cada costat.',
-        wrong_ha:        'Calcula lim f(x) quan x → +∞ i x → −∞.',
-        wrong_oa:        'Fes la divisió polinòmica del numerador entre el denominador.',
+        correct_ha:      b      => `Correcte.`,
+        correct_no_ha:   ()     => `Correcte, aquesta funció no té asímptota horitzontal.`,
+        correct_oa:      (m, b) => `Correcte.`,
+        correct_no_oa:   ()     => `Correcte, aquesta funció no té asímptota obliqua.`,
+        wrong_va:        'Recorda: estudia els valors on el límit no sigui un nombre finit.',
+        wrong_lateral:   'Analitza el signe de la funció quan x està prou a prop del límit.',
+        wrong_ha:        'Calcula lim f(x) quan x pren valors tan grans com vulguem (→ +∞ i x → −∞).',
+        wrong_oa:        'Simplifica la teva funció racional.',
     };
 
     // ---- Etiquetes per a opcions sense LaTeX --------------------------------
