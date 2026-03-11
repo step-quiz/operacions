@@ -485,6 +485,11 @@ function showHint(key){
     else if(key==='DV'){h.innerHTML=`Multiplica numerador i denominador pel <strong>conjugat</strong> del denominador.`}
     h.classList.add('visible');
 }
+/* [ROUND 2 — amaga el hint quan la resposta és correcta] */
+function hideHint(key){
+    const h=document.getElementById('hint'+key);
+    if(h)h.classList.remove('visible');
+}
 
 // ════════════════════════════════════════════════════════════════════
 // SUMA / RESTA
@@ -505,7 +510,7 @@ function initSumaResta(){
 function enterSR(){if(genericEnter2('panel-sumaresta')!=='check')return;checkSR()}
 function checkSR(){
     const r=genericCheck2(document.getElementById('sr-re'),document.getElementById('sr-im'),expectedRe,expectedIm,srLocked,'errCntSR','SR',document.getElementById('fbSR'));
-    if(r==='ok'){hideCustomKeyboard();finished=true;
+    if(r==='ok'){hideCustomKeyboard();hideHint('SR');finished=true; /* [ROUND 2] */
         document.getElementById('exDispSR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} )&ensp;${opSign}&ensp;( ${fmtComplex(z2.re,z2.im)} )`;
         document.getElementById('answerSR').innerHTML=`<div class="answer-final">= ${fmtComplex(expectedRe,expectedIm)}</div>`;
         document.getElementById('resSR').innerHTML=`<div class="result-box anim-fade-in-up"><div class="result-title">✅ Correcte!</div><button class="btn-check-sm" style="margin:16px auto 0;display:block" onclick="initSumaResta()">Exercici nou</button></div>`;
@@ -532,7 +537,7 @@ function initProducte(){
 function enterPR(){if(genericEnter2('panel-producte')!=='check')return;checkPR()}
 function checkPR(){
     const r=genericCheck2(document.getElementById('pr-re'),document.getElementById('pr-im'),expectedRe,expectedIm,prLocked,'errCntPR','PR',document.getElementById('fbPR'));
-    if(r==='ok'){hideCustomKeyboard();finished=true;
+    if(r==='ok'){hideCustomKeyboard();hideHint('PR');finished=true; /* [ROUND 2] */
         document.getElementById('exDispPR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} ) · ( ${fmtComplex(z2.re,z2.im)} )`;
         document.getElementById('answerPR').innerHTML=`<div class="answer-final">= ${fmtComplex(expectedRe,expectedIm)}</div>`;
         document.getElementById('resPR').innerHTML=`<div class="result-box anim-fade-in-up"><div class="result-title">✅ Correcte!</div><button class="btn-check-sm" style="margin:16px auto 0;display:block" onclick="initProducte()">Exercici nou</button></div>`;
@@ -647,7 +652,7 @@ function checkDV1(){
     const allOk=Object.values(results).every(v=>v);
 
     if(allOk){
-        fb.innerText='';hideCustomKeyboard();
+        fb.innerText='';hideCustomKeyboard();hideHint('DV'); /* [ROUND 2] */
         ids.forEach(o=>{o.inp.disabled=true;o.inp.classList.add('confirmed','anim-flash');o.inp.classList.remove('locked-ok')});
         dvPhase=2;
         setTimeout(()=>showDVstep2(),400);
@@ -777,7 +782,7 @@ function checkDV2(){
     const allOk=groupResults.every(r=>r.ok);
 
     if(allOk){
-        fb.innerText='';hideCustomKeyboard();finished=true;
+        fb.innerText='';hideCustomKeyboard();hideHint('DV');finished=true; /* [ROUND 2] */
         const z1h=fmtComplex(z1.re,z1.im),z2h=fmtComplex(z2.re,z2.im);
         document.getElementById('dvEnunciat').innerHTML=htmlFrac(z1h,z2h,'frac-big')+`<span>&ensp;=</span>`;
         // Resultat elegant
