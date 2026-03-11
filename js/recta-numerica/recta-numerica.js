@@ -364,7 +364,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // [ROUND 5 — botó Tutorial: fade-out 2s → navegació a la URL del tutorial]
     const TUTORIAL_URL   = 'https://step-quiz.net/recta-numerica-tutorial';
-    const FADE_DURATION  = 2000;   /* ms — ha de coincidir amb transition: opacity 2s del CSS */
+    const FADE_DURATION  = 1500;   /* ms — [ROUND 6: reduït de 2000 a 1500] ha de coincidir amb transition: opacity 1.5s del CSS */
     const btnTutorial    = document.getElementById('btn-tutorial');
     const fadeOverlay    = document.getElementById('fade-overlay');
     if (btnTutorial && fadeOverlay) {
