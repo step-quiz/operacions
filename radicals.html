@@ -328,7 +328,7 @@
         const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
         const sign = document.createElement('span'); sign.className = 'schema-sign'; sign.innerText = '√'; container.appendChild(sign);
         const bar = document.createElement('span'); bar.className = 'schema-radicand-bar';
-        const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'schema-input'; inp.id = 'step-input'; inp.autocomplete = 'off'; // [CANVI 2] bar.appendChild(inp); container.appendChild(bar);
+        const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'schema-input'; inp.id = 'step-input'; inp.autocomplete = 'off'; bar.appendChild(inp); container.appendChild(bar); // [CANVI 2]
     }
 
     function schemaTwoRadInputs(container) {
@@ -362,11 +362,11 @@
     function schemaCoefAndRadInput(container) {
         container.innerHTML = '';
         const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
-        const inpC = document.createElement('input'); inpC.type = 'text'; inpC.className = 'schema-input'; inpC.id = 'step-input-c'; inpC.autocomplete = 'off'; // [CANVI 2] container.appendChild(inpC);
+        const inpC = document.createElement('input'); inpC.type = 'text'; inpC.className = 'schema-input'; inpC.id = 'step-input-c'; inpC.autocomplete = 'off'; container.appendChild(inpC); // [CANVI 2]
         const dot = document.createElement('span'); dot.className = 'schema-dot'; dot.innerText = '·'; container.appendChild(dot);
         const sign = document.createElement('span'); sign.className = 'schema-sign'; sign.innerText = '√'; container.appendChild(sign);
         const bar = document.createElement('span'); bar.className = 'schema-radicand-bar';
-        const inpB = document.createElement('input'); inpB.type = 'text'; inpB.className = 'schema-input'; inpB.id = 'step-input-b2'; inpB.autocomplete = 'off'; // [CANVI 2] bar.appendChild(inpB); container.appendChild(bar);
+        const inpB = document.createElement('input'); inpB.type = 'text'; inpB.className = 'schema-input'; inpB.id = 'step-input-b2'; inpB.autocomplete = 'off'; bar.appendChild(inpB); container.appendChild(bar); // [CANVI 2]
     }
 
     // ============================================================
