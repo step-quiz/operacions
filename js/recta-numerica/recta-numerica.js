@@ -362,6 +362,20 @@ window.addEventListener('DOMContentLoaded', () => {
         els.levelDisplay.textContent = lbls[GAME_LEVEL] || `Nivell ${GAME_LEVEL}`;
     }
 
+    // [ROUND 5 — botó Tutorial: fade-out 2s → navegació a la URL del tutorial]
+    const TUTORIAL_URL   = 'https://step-quiz.net/recta-numerica-tutorial';
+    const FADE_DURATION  = 2000;   /* ms — ha de coincidir amb transition: opacity 2s del CSS */
+    const btnTutorial    = document.getElementById('btn-tutorial');
+    const fadeOverlay    = document.getElementById('fade-overlay');
+    if (btnTutorial && fadeOverlay) {
+        btnTutorial.addEventListener('click', () => {
+            fadeOverlay.classList.add('active');   // dispara la transició CSS d'opacitat 0→1
+            setTimeout(() => {
+                window.location.href = TUTORIAL_URL;
+            }, FADE_DURATION);
+        });
+    }
+
     els.gameScreen.style.display = 'block';
     buildLevel();
 });
