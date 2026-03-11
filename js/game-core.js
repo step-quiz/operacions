@@ -377,7 +377,13 @@ function showCustomKeyboard(inp) {
 function hideCustomKeyboard() {
     const kb = document.getElementById('customKeyboard');
     if (kb) kb.classList.remove('kb-visible');
-    if (_kbActiveInput) _kbActiveInput.classList.remove('kb-active-input');
+    if (_kbActiveInput) {
+        _kbActiveInput.classList.remove('kb-active-input');
+        // Restaurem els atributs que showCustomKeyboard havia injectat,
+        // necessari quan l'input és dinàmic (es recrea via innerHTML cada pas).
+        _kbActiveInput.removeAttribute('readonly');
+        _kbActiveInput.removeAttribute('inputmode');
+    }
     _kbActiveInput = null;
     _kbClearOnNext = false;
 }
