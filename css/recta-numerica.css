@@ -170,14 +170,18 @@ body {
 /* ---- GRÀFIC SVG ---- */
 #graph-container {
     width: 100%;
-    /* [ROUND 4 — sense flex:1; el contenidor pren l'alçada dictada per l'aspect-ratio del SVG] */
 }
 #graph-container svg {
     border-radius: 6px;
     display: block;
-    width: 100%;
-    aspect-ratio: 560 / 420;  /* [ROUND 4 — ratio fix del viewBox; mides sempre proporcionals i consistents] */
+    /* [ROUND 5 — amplada màxima possible que garanteix que el gràfic sencer cabi verticalment.
+       180px = title-row + game-header + padding combinats.
+       Si el viewport és alt: width=100% (ocupa tot l'ample).
+       Si el viewport és baix: width es redueix per mantenir el ratio 560:420 sense sortir del fold.
+       aspect-ratio + height:auto garanteix proporcions sempre consistents.] */
+    width: min(100%, calc((100vh - 180px) * 560 / 420));
     height: auto;
+    aspect-ratio: 560 / 420;
 }
 
 /* ---- PREGUNTA ---- */
@@ -438,6 +442,42 @@ body {
 .btn-next:hover  { background: var(--primary-dark); transform: translateY(-1px); }
 .btn-next:active { transform: scale(0.97); }
 
+/* ---- BOTÓ TUTORIAL + ICONA REC — [ROUND 5] ---- */
+.btn-tutorial {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-tutorial:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-tutorial:active { transform: scale(0.97); }
+
+.rec-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #ff3b30;   /* vermell REC — valor fix intencionat */
+    box-shadow: 0 0 0 2px rgba(255,59,48,0.35);
+    animation: rec-blink 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+@keyframes rec-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.25; }
+}
+
 /* ---- RESPONSIU ---- */
 
 /* Tablet: columnes més estretes però mantenim layout horitzontal */
@@ -460,4 +500,56 @@ body {
 
 @media (max-width: 400px) {
     .title-row h1 { font-size: 1em; letter-spacing: 0.5px; }
+    .btn-tutorial { font-size: 0.75em; padding: 6px 10px; }
+}
+
+/* ---- BOTÓ TUTORIAL + ICONA REC — [ROUND 5] ---- */
+.btn-tutorial {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-tutorial:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-tutorial:active { transform: scale(0.97); }
+
+.rec-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #ff3b30;   /* vermell REC — valor fix intencionat */
+    box-shadow: 0 0 0 2px rgba(255,59,48,0.35);
+    animation: rec-blink 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+@keyframes rec-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.25; }
+}
+
+/* ---- OVERLAY FADE-OUT — [ROUND 5] ---- */
+#fade-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: opacity 2s ease;   /* 2 s de fade-out, segons especificació */
+}
+#fade-overlay.active {
+    opacity: 1;
+    pointer-events: all;
 }
