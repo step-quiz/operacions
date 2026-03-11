@@ -551,7 +551,7 @@
         }    
     // ---- COMPROVAR VALOR ----
 function checkValue() {
-            if (isTransitioning) return;
+            if (isTransitioning || isPenalizing) return;
 
             const rawValue = els.valueInput.value.trim();
             if (rawValue === '') return;
@@ -645,9 +645,11 @@ function checkValue() {
     // ---- TECLAT FÍSIC ----
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault();
-            if (isTransitioning || els.gameScreen.style.display === 'none') return;
-            if (els.stepValue.classList.contains('active')) checkValue();
+            // Només interceptem l'Enter quan estem efectivament actius al pas de valor.
+            if (els.gameScreen.style.display !== 'none' && els.stepValue.classList.contains('active')) {
+                e.preventDefault();
+                if (!isTransitioning) checkValue();
+            }
         }
     });
 
