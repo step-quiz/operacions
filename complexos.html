@@ -415,6 +415,33 @@ function selectInputContent(inp){
 }
 function triggerShake(inp){inp.classList.remove('anim-shake');void inp.offsetWidth;inp.classList.add('anim-shake')}
 
+/* [ROUND 1 — signe dinàmic: − al span, valor absolut a l'input] */
+function setupImSignHandlers(imInp){
+    if(!imInp||!imInp.dataset.signId)return;
+    // Teclat físic: la tecla '-' commuta el span en lloc d'escriure al valor
+    imInp.addEventListener('keydown',e=>{
+        if(e.key==='-'){e.preventDefault();
+            const span=document.getElementById(imInp.dataset.signId);
+            if(span)span.textContent=(span.textContent.trim()==='−')?'+':'−';
+        }
+    });
+    // Salvaguarda: si '-' arriba a l'input (p.ex. enganxar), el mou al span
+    imInp.addEventListener('input',()=>{
+        if(imInp.value.startsWith('-')){
+            const span=document.getElementById(imInp.dataset.signId);
+            if(span){span.textContent='−';imInp.value=imInp.value.slice(1)}
+        }
+    });
+}
+function readSignedImValue(inp){
+    if(!inp)return NaN;
+    const span=inp.dataset.signId?document.getElementById(inp.dataset.signId):null;
+    const sign=(span&&span.textContent.trim()==='−')?-1:1;
+    const v=parseStrictInt(inp.value);
+    if(isNaN(v))return NaN;
+    return v===0?0:v*sign;
+}
+
 // ─── VALIDACIÓ GENÈRICA 2 INPUTS (re+im) ─────────────────────────
 function genericEnter2(panelId){
     const panel=document.getElementById(panelId);
@@ -434,7 +461,7 @@ function genericCheck2(inpRe,inpIm,expRe,expIm,locked,errSpan,hintKey,fb){
     const reT=inpRe?inpRe.value.trim():'',imT=inpIm?inpIm.value.trim():'';
     const reE=!locked.re&&(reT===''||reT==='-'),imE=!locked.im&&(imT===''||imT==='-');
     if(reE||imE){fb.style.color='var(--warning)';fb.innerText='⚠️ Cal omplir la part real i la part imaginària.';if(reE)focusInput(inpRe);else focusInput(inpIm);return'empty'}
-    const eRe=locked.re?expRe:parseStrictInt(reT),eIm=locked.im?expIm:parseStrictInt(imT);
+    const eRe=locked.re?expRe:parseStrictInt(reT),eIm=locked.im?expIm:readSignedImValue(inpIm); /* [ROUND 1] */
     if(!locked.re&&isNaN(eRe)){fb.style.color='var(--warning)';fb.innerText='⚠️ Escriu un número.';focusInput(inpRe);return'nan'}
     if(!locked.im&&isNaN(eIm)){fb.style.color='var(--warning)';fb.innerText='⚠️ Escriu un número.';focusInput(inpIm);return'nan'}
     const reOk=eRe===expRe,imOk=eIm===expIm;
@@ -469,8 +496,9 @@ function initSumaResta(){
     document.getElementById('errCntSR').textContent='0';
     document.getElementById('exDispSR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} )&ensp;${opSign}&ensp;( ${fmtComplex(z2.re,z2.im)} )&ensp;= ?`;
     const h=document.getElementById('hintSR');h.classList.remove('visible');h.innerHTML='';
-    document.getElementById('answerSR').innerHTML=`<div class="answer-inline"><span class="answer-label">Escriu el resultat:</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-re"><span class="answer-symbol">+</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-im"><span class="answer-symbol-i">·&thinsp;i</span></div>`;
+    document.getElementById('answerSR').innerHTML=`<div class="answer-inline"><span class="answer-label">Escriu el resultat:</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-re"><span class="answer-symbol" id="sign-sr">+</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="sr-im" data-sign-id="sign-sr"><span class="answer-symbol-i">·&thinsp;i</span></div>`;
     setupInput(document.getElementById('sr-re'));setupInput(document.getElementById('sr-im'));
+    setupImSignHandlers(document.getElementById('sr-im')); /* [ROUND 1] */
     document.getElementById('fbSR').innerText='';document.getElementById('fbSR').classList.remove('fade-out');document.getElementById('resSR').innerHTML='';
     if(isTouchDevice())showCustomKeyboard(document.getElementById('sr-re'));else setTimeout(()=>document.getElementById('sr-re').focus(),T_FOCUS_DELAY);
 }
@@ -495,8 +523,9 @@ function initProducte(){
     document.getElementById('errCntPR').textContent='0';
     document.getElementById('exDispPR').innerHTML=`( ${fmtComplex(z1.re,z1.im)} ) · ( ${fmtComplex(z2.re,z2.im)} )&ensp;= ?`;
     const h=document.getElementById('hintPR');h.classList.remove('visible');h.innerHTML='';
-    document.getElementById('answerPR').innerHTML=`<div class="answer-inline"><span class="answer-label">Escriu el resultat:</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-re"><span class="answer-symbol">+</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-im"><span class="answer-symbol-i">·&thinsp;i</span></div>`;
+    document.getElementById('answerPR').innerHTML=`<div class="answer-inline"><span class="answer-label">Escriu el resultat:</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-re"><span class="answer-symbol" id="sign-pr">+</span><input type="text" inputmode="numeric" autocomplete="off" class="step-input" id="pr-im" data-sign-id="sign-pr"><span class="answer-symbol-i">·&thinsp;i</span></div>`;
     setupInput(document.getElementById('pr-re'));setupInput(document.getElementById('pr-im'));
+    setupImSignHandlers(document.getElementById('pr-im')); /* [ROUND 1] */
     document.getElementById('fbPR').innerText='';document.getElementById('fbPR').classList.remove('fade-out');document.getElementById('resPR').innerHTML='';
     if(isTouchDevice())showCustomKeyboard(document.getElementById('pr-re'));else setTimeout(()=>document.getElementById('pr-re').focus(),T_FOCUS_DELAY);
 }
@@ -665,14 +694,14 @@ function showDVstep2(){
     }
 
     if(imExact){
-        imagPart=`<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-ir">`;
-        dvStep2Groups.push({type:'int',ids:['dv-ir'],exp:q/k,locked:false});
+        imagPart=`<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-ir" data-sign-id="sign-dv">`;
+        dvStep2Groups.push({type:'int',ids:['dv-ir'],exp:q/k,locked:false,isIm:true}); /* [ROUND 1] */
     } else {
         imagPart=htmlFrac(
-            `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-in">`,
+            `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-in" data-sign-id="sign-dv">`,
             `<input type="text" inputmode="numeric" autocomplete="off" class="step-input step-input-sm" id="dv-id">`,
             'frac-input');
-        dvStep2Groups.push({type:'frac',ids:['dv-in','dv-id'],expNum:q,expDen:k,locked:false});
+        dvStep2Groups.push({type:'frac',ids:['dv-in','dv-id'],expNum:q,expDen:k,locked:false,isIm:true}); /* [ROUND 1] */
     }
 
     // Substituir contingut del step1: fracció compacta = inputs resultat
@@ -681,11 +710,14 @@ function showDVstep2(){
         ${compactFrac}
         <span class="answer-symbol" style="font-size:1.1rem">=</span>
         ${realPart}
-        <span class="answer-symbol" style="font-size:1.1rem">+</span>
+        <span class="answer-symbol" id="sign-dv" style="font-size:1.1rem">+</span>
         ${imagPart}
         <span class="answer-symbol-i" style="font-size:1rem">·&thinsp;i</span>`;
 
     dvStep2Groups.forEach(g=>g.ids.forEach(id=>setupInput(document.getElementById(id))));
+    /* [ROUND 1] Setup sign handler per al camp im */
+    const imGrp=dvStep2Groups.find(g=>g.isIm);
+    if(imGrp)setupImSignHandlers(document.getElementById(imGrp.ids[0]));
     const first=document.getElementById(dvStep2Groups[0].ids[0]);
     if(isTouchDevice())showCustomKeyboard(first);else setTimeout(()=>first.focus(),T_FOCUS_DELAY);
     setTimeout(()=>step1.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
@@ -728,11 +760,13 @@ function checkDV2(){
     const groupResults=dvStep2Groups.map(g=>{
         if(g.locked)return{g,ok:true};
         if(g.type==='int'){
-            const v=parseStrictInt(document.getElementById(g.ids[0]).value);
+            const inp=document.getElementById(g.ids[0]);
+            const v=g.isIm?readSignedImValue(inp):parseStrictInt(inp.value); /* [ROUND 1] */
             return{g,ok:v===g.exp};
         } else {
             // Fracció: validar per equivalència (producte creuat)
-            const num=parseStrictInt(document.getElementById(g.ids[0]).value);
+            const numInp=document.getElementById(g.ids[0]);
+            const num=g.isIm?readSignedImValue(numInp):parseStrictInt(numInp.value); /* [ROUND 1] */
             const den=parseStrictInt(document.getElementById(g.ids[1]).value);
             if(den===0)return{g,ok:false};
             // num/den === expNum/expDen  <=>  num*expDen === expNum*den
@@ -825,10 +859,19 @@ function initCustomKeyboard(){
             }else if(key==='enter'){
                 onEnterPressed();
             }else if(key==='-'){
-                if(kbClearOnNext){activeKbInput.value='-';kbClearOnNext=false;activeKbInput.classList.remove('kb-selected')}
-                else{if(activeKbInput.value===''||activeKbInput.value==='-')activeKbInput.value=activeKbInput.value==='-'?'':'-'}
+                /* [ROUND 1] Im fields: commuta el span de signe en lloc d'escriure '-' */
+                if(activeKbInput.dataset.signId){
+                    const span=document.getElementById(activeKbInput.dataset.signId);
+                    if(span)span.textContent=(span.textContent.trim()==='−')?'+':'−';
+                }else{
+                    if(kbClearOnNext){activeKbInput.value='-';kbClearOnNext=false;activeKbInput.classList.remove('kb-selected')}
+                    else{if(activeKbInput.value===''||activeKbInput.value==='-')activeKbInput.value=activeKbInput.value==='-'?'':'-'}
+                }
             }else{
-                if(kbClearOnNext){activeKbInput.value='';kbClearOnNext=false;activeKbInput.classList.remove('kb-selected')}
+                if(kbClearOnNext){activeKbInput.value='';kbClearOnNext=false;activeKbInput.classList.remove('kb-selected');
+                    /* [ROUND 1] Reset signe a '+' quan s'esborral contingut per sobreescriure */
+                    if(activeKbInput.dataset.signId){const s=document.getElementById(activeKbInput.dataset.signId);if(s)s.textContent='+'}
+                }
                 if(activeKbInput.value==='-0')activeKbInput.value='-';
                 activeKbInput.value+=key;
             }

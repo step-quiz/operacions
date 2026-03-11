@@ -587,6 +587,7 @@
     let divIdx     = 0;
     let debugRoots = [];
     let errorCount = 0;   // comptador d'errors de l'exercici
+    let continueAutoTimer = null;  // [ROUND 2 — ref global al timer de showContinue, per cancel·lar-lo des de selectCandidate]
 
     // ─── GENERACIÓ DEL POLINOMI ──────────────────────────────────────────────
     function randInt(min, max) {
@@ -844,6 +845,9 @@
     // ─── SELECCIÓ D'UN CANDIDAT ──────────────────────────────────────────────
     function selectCandidate(r, btnClicked) {
         if (finished) return;
+        // [ROUND 2 — cancel·lem el timer d'auto-avanç per evitar la race condition]
+        if (continueAutoTimer !== null) { clearTimeout(continueAutoTimer); continueAutoTimer = null; }
+        document.getElementById('nextStepSlot').innerHTML = '';
         if (currentR !== null) clearCurrentAttempt();
         document.querySelectorAll('.btn-candidate').forEach(b => {
             if (!b.classList.contains('tried-wrong')) b.classList.remove('active');
@@ -1088,7 +1092,7 @@
         slot.innerHTML = '';
 
         const advance = () => {
-            triedWrong.clear();
+            // [ROUND 1 — triedWrong NO s'esborra: si r no era arrel de p(x), tampoc pot ser-ho del quocient]
             currentR = null; stepIdx = 0; results = []; divIdx++;
             document.getElementById('feedback').innerText = '';
             msg.innerHTML = ''; msg.classList.remove('fade-out');
@@ -1101,11 +1105,12 @@
         const btn = document.createElement('button');
         btn.className   = 'btn-check-sm';
         btn.textContent = 'Següent pas';
-        btn.onclick = () => { clearTimeout(autoTimer); advance(); };
+        // [ROUND 2 — usa continueAutoTimer global perquè selectCandidate també el pugui cancel·lar]
+        btn.onclick = () => { clearTimeout(continueAutoTimer); continueAutoTimer = null; advance(); };
         slot.appendChild(btn);
         document.getElementById('actionArea').innerHTML = '';
 
-        const autoTimer = setTimeout(() => {
+        continueAutoTimer = setTimeout(() => {
             msg.classList.add('fade-out');
             setTimeout(() => advance(), T_FADE_OUT_WAIT);
         }, T_ROOT_MSG_VISIBLE);
