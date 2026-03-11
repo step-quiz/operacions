@@ -60,10 +60,10 @@ window.Strings = (() => {
 
     /** Verb de temps per a un dia concret */
     function verbTense(x) {
-        // Present/passat → "era" (o "és" per a avui), futur → "estarà"
-        if (x  <  0) return 'era';
+        // Present/passat → "era" (o "és" per a avui), futur → "serà"
+        if (x  <  0) return 'va ser';
         if (x === 0) return 'és';
-        return 'estarà';
+        return 'es preveu que sigui';
     }
 
     // ---- PROMPTS --------------------------------------------------------
@@ -73,13 +73,13 @@ window.Strings = (() => {
 
     /** Pregunta Q2 */
     function q2Prompt(x) {
-        if (x < 0) return `Quina temperatura feia ${dayLabel(x)}?`;
-        return `Quina temperatura farà ${dayLabel(x)}?`;
+        if (x < 0) return `Quina temperatura va fer ${dayLabel(x)}?`;
+        return `Quina temperatura es preveu que hi haurà ${dayLabel(x)}?`;
     }
 
     /** Pregunta Q3 */
     function q3Prompt(y) {
-        return `Hi ha algun dia representat al gràfic on la temperatura sigui exactament de ${tempLabel(y)}?`;
+        return `Hi ha algun dia on la temperatura sigui exactament ${tempLabel(y)}?`;
     }
 
     /** Pregunta Q4 */
@@ -89,14 +89,14 @@ window.Strings = (() => {
 
     const feedback = {
         correct_generic:    '✓ Correcte!',
-        correct_q1:         (y)    => `✓ Correcte! Avui la temperatura és de ${tempLabel(y)}.`,
+        correct_q1:         (y)    => `✓ Correcte! Avui la temperatura és ${tempLabel(y)}.`,
         correct_q2:         (x, y) => `✓ Correcte! ${capitalize(dayLabel(x))}, la temperatura ${verbTense(x)} de ${tempLabel(y)}.`,
         correct_q3_zero:    (y)    => `✓ Correcte! Cap punt del gràfic té una temperatura de ${tempLabel(y)}.`,
         correct_q3_some:    (n, y) => `✓ Correcte! Hi ha ${n === 1 ? '1 dia' : `${n} dies`} amb temperatura de ${tempLabel(y)}.`,
         correct_q4:         '✓ Correcte! Has llegit bé el gràfic.',
-        wrong_q1q2:         'Busca bé el punt a l\'eix horitzontal i llegeix el valor a l\'eix vertical.',
-        wrong_q3:           'Compta amb cura els punts que tenen exactament aquesta temperatura.',
-        wrong_q4:           'Llegeix amb cura cada valor del gràfic abans de triar.',
+        wrong_q1q2:         'Busca bé el quin dia toca, a l\'eix horitzontal, i després llegeix el valor a l\'eix vertical.',
+        wrong_q3:           'Torna a comptar els punts que tenen exactament aquesta temperatura.',
+        wrong_q4:           'Llegeix atentament el gràfic abans de triar.',
     };
 
     function capitalize(s) {
