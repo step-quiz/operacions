@@ -190,11 +190,14 @@ window.DistractorLib = (() => {
             opts.push({ type: 'direct', text, isCorrect: true });
         });
 
-        // C2: Canvi entre dies consecutius
+        // C2: Canvi entre dies consecutius — [ROUND 1 — format comparatiu: "dia1 era més alta/baixa que dia2"]
         for (let i = 0; i < sorted.length - 1; i++) {
             const p1 = sorted[i], p2 = sorted[i + 1];
             const delta = p2.y - p1.y;
-            const text  = `Entre ${S.dayLabel(p1.x)} i ${S.dayLabel(p2.x)}, la temperatura ${S.changeLabel(delta)}`;
+            if (delta === 0) continue;   // igual → no hi ha comparació significativa
+            const cmp  = delta > 0 ? 'més alta' : 'més baixa';
+            const verb = p1.x < 0 ? 'era' : p1.x === 0 ? 'és' : 'serà';
+            const text = `${S.capitalize(S.dayLabel(p1.x))}, la temperatura ${verb} ${cmp} que ${S.dayLabel(p2.x)}`;
             trueTexts.add(text);
             opts.push({ type: 'change', text, isCorrect: true });
         }
@@ -251,16 +254,17 @@ window.DistractorLib = (() => {
             });
         });
 
-        // F3: Canvi de direcció incorrecte
+        // F3: Canvi de direcció incorrecte — [ROUND 1 — format comparatiu: cmp invertida]
         for (let i = 0; i < sorted.length - 1; i++) {
             const p1    = sorted[i], p2 = sorted[i + 1];
             const delta = p2.y - p1.y;
             if (delta === 0) continue;
-            const wrongChange = delta > 0 ? S.changeLabel(-1) : S.changeLabel(1);
-            const absD        = Math.abs(delta);
-            const falseLevel  = absD === 1 ? 3 : absD <= 3 ? 2 : 1;
+            const wrongCmp   = delta > 0 ? 'més baixa' : 'més alta';   // invers del correcte
+            const verb       = p1.x < 0 ? 'era' : p1.x === 0 ? 'és' : 'serà';
+            const absD       = Math.abs(delta);
+            const falseLevel = absD === 1 ? 3 : absD <= 3 ? 2 : 1;
             if (falseLevel > level) continue;
-            const text = `Entre ${S.dayLabel(p1.x)} i ${S.dayLabel(p2.x)}, la temperatura ${wrongChange}`;
+            const text = `${S.capitalize(S.dayLabel(p1.x))}, la temperatura ${verb} ${wrongCmp} que ${S.dayLabel(p2.x)}`;
             if (!trueTexts.has(text)) opts.push({ type: 'change', text, isCorrect: false, falseLevel });
         }
 

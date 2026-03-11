@@ -33,6 +33,8 @@ window.QuestionBank = (() => {
         return a;
     }
     function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    /* [ROUND 1 — _sortDesc: ordena opcions numèriques de major a menor] */
+    function _sortDesc(arr) { return [...arr].sort((a, b) => b - a); }
 
     // =========================================================================
     // Q1: Quina temperatura fa avui?
@@ -42,7 +44,7 @@ window.QuestionBank = (() => {
         const correctY  = today.y;
         const wrong3    = D.buildDirectRead(correctY, cloud, yRange, 0, level);
 
-        const allY = _shuffle([correctY, ...wrong3]);
+        const allY = _sortDesc([correctY, ...wrong3]);   /* [ROUND 1 — ordenació descendent] */
         const options = allY.map(y => ({
             text:      S.numLabel(y),
             value:     y,
@@ -71,7 +73,7 @@ window.QuestionBank = (() => {
         const correctY   = pt.y;
         const wrong3     = D.buildDirectRead(correctY, cloud, yRange, pt.x, level);
 
-        const allY = _shuffle([correctY, ...wrong3]);
+        const allY = _sortDesc([correctY, ...wrong3]);   /* [ROUND 1 — ordenació descendent] */
         const options = allY.map(y => ({
             text:      S.numLabel(y),
             value:     y,
