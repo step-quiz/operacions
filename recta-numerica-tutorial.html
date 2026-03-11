@@ -567,7 +567,7 @@ function buildSVG(cloudPts, yr, hl) {
     s.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#fff"/>`);
 
     // --- Columna destacada ---
-    if (hl?.type==='column') {
+    if (hl && hl.type==='column') {
         const cw = pw/(xMax-xMin);
         s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#6b7c2e" opacity="0.09" rx="3"/>`);
         s.push(`<text x="${f(tx(hl.x)-18)}" y="${mt+15}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#6b7c2e">${hl.label||`x=${hl.x}`}</text>`);
@@ -577,7 +577,7 @@ function buildSVG(cloudPts, yr, hl) {
     }
 
     // --- Segments convergents ---
-    if (hl?.type==='arrows-to') {
+    if (hl && hl.type==='arrows-to') {
         const tx2 = f(tx(hl.x)), ty2 = f(ty(hl.y));
         const origins = [
             [hl.x - 1.8, hl.y + 2.2],
@@ -590,7 +590,7 @@ function buildSVG(cloudPts, yr, hl) {
     }
 
     // --- Fletxa lliure ---
-    if (hl?.type==='arrow') {
+    if (hl && hl.type==='arrow') {
         s.push(`<line x1="${f(tx(hl.x1))}" y1="${f(ty(hl.y1))}" x2="${f(tx(hl.x2))}" y2="${f(ty(hl.y2))}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
     }
 
@@ -636,7 +636,7 @@ function buildSVG(cloudPts, yr, hl) {
     }
 
     // --- Overlay: punt blau pulsant ---
-    if (hl?.type==='point') {
+    if (hl && hl.type==='point') {
         const hx=tx(hl.x), hy=ty(hl.y);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#8fa840" stroke-width="2.5">
             <animate attributeName="r"       from="9"   to="23"  dur="1.25s" repeatCount="indefinite"/>
@@ -646,7 +646,7 @@ function buildSVG(cloudPts, yr, hl) {
     }
 
     // --- Overlay: punt erroni ---
-    if (hl?.type==='point-wrong') {
+    if (hl && hl.type==='point-wrong') {
         const hx=tx(hl.x), hy=ty(hl.y);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>`);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#dc2626" stroke="white"  stroke-width="2.5"/>`);
@@ -656,7 +656,7 @@ function buildSVG(cloudPts, yr, hl) {
     }
 
     // --- Overlay: punt correcte ---
-    if (hl?.type==='point-correct') {
+    if (hl && hl.type==='point-correct') {
         const hx=tx(hl.x), hy=ty(hl.y);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#d1fae5" stroke="#059669" stroke-width="2"/>`);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#059669" stroke="white"  stroke-width="2.5"/>`);
