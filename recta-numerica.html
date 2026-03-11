@@ -26,13 +26,20 @@
 </head>
 <body>
 
-<!-- Capçalera amb títol -->
+<!-- Capçalera amb títol — [ROUND 5 — afegit botó Tutorial amb icona REC] -->
 <div class="title-row">
     <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
         <img src="icon.png" alt="Inici" onerror="this.style.display='none'">
     </a>
     <h1>Lectura de Gràfiques</h1>
+    <button class="btn-tutorial" id="btn-tutorial" aria-label="Veure tutorial">
+        <span class="rec-dot" aria-hidden="true"></span>
+        Tutorial
+    </button>
 </div>
+
+<!-- Overlay de fade-out — [ROUND 5] -->
+<div id="fade-overlay"></div>
 
 <!-- Panell principal -->
 <div class="panel" id="main-panel">
