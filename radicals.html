@@ -328,7 +328,7 @@
         const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
         const sign = document.createElement('span'); sign.className = 'schema-sign'; sign.innerText = '√'; container.appendChild(sign);
         const bar = document.createElement('span'); bar.className = 'schema-radicand-bar';
-        const inp = document.createElement('input'); inp.type = 'number'; inp.className = 'schema-input'; inp.id = 'step-input'; inp.autocomplete = 'off'; bar.appendChild(inp); container.appendChild(bar);
+        const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'schema-input'; inp.id = 'step-input'; inp.autocomplete = 'off'; // [CANVI 2] bar.appendChild(inp); container.appendChild(bar);
     }
 
     function schemaTwoRadInputs(container) {
@@ -336,11 +336,11 @@
         const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
         const sign1 = document.createElement('span'); sign1.className = 'schema-sign'; sign1.innerText = '√'; container.appendChild(sign1);
         const bar1 = document.createElement('span'); bar1.className = 'schema-radicand-bar';
-        const inp1 = document.createElement('input'); inp1.type = 'number'; inp1.className = 'schema-input'; inp1.id = 'step-input-a'; inp1.autocomplete = 'off'; bar1.appendChild(inp1); container.appendChild(bar1);
+        const inp1 = document.createElement('input'); inp1.type = 'text'; inp1.className = 'schema-input'; inp1.id = 'step-input-a'; inp1.autocomplete = 'off'; bar1.appendChild(inp1); container.appendChild(bar1); // [CANVI 2]
         const dot = document.createElement('span'); dot.className = 'schema-dot'; dot.innerText = '·'; container.appendChild(dot);
         const sign2 = document.createElement('span'); sign2.className = 'schema-sign'; sign2.innerText = '√'; container.appendChild(sign2);
         const bar2 = document.createElement('span'); bar2.className = 'schema-radicand-bar';
-        const inp2 = document.createElement('input'); inp2.type = 'number'; inp2.className = 'schema-input'; inp2.id = 'step-input-b'; inp2.autocomplete = 'off'; bar2.appendChild(inp2); container.appendChild(bar2);
+        const inp2 = document.createElement('input'); inp2.type = 'text'; inp2.className = 'schema-input'; inp2.id = 'step-input-b'; inp2.autocomplete = 'off'; bar2.appendChild(inp2); container.appendChild(bar2); // [CANVI 2]
     }
 
     function schemaCoefTwoRadInputs(container, coefVal) {
@@ -352,21 +352,21 @@
         }
         const sign1 = document.createElement('span'); sign1.className = 'schema-sign'; sign1.innerText = '√'; container.appendChild(sign1);
         const bar1 = document.createElement('span'); bar1.className = 'schema-radicand-bar';
-        const inp1 = document.createElement('input'); inp1.type = 'number'; inp1.className = 'schema-input'; inp1.id = 'step-input-a'; inp1.autocomplete = 'off'; bar1.appendChild(inp1); container.appendChild(bar1);
+        const inp1 = document.createElement('input'); inp1.type = 'text'; inp1.className = 'schema-input'; inp1.id = 'step-input-a'; inp1.autocomplete = 'off'; bar1.appendChild(inp1); container.appendChild(bar1); // [CANVI 2]
         const dot = document.createElement('span'); dot.className = 'schema-dot'; dot.innerText = '·'; container.appendChild(dot);
         const sign2 = document.createElement('span'); sign2.className = 'schema-sign'; sign2.innerText = '√'; container.appendChild(sign2);
         const bar2 = document.createElement('span'); bar2.className = 'schema-radicand-bar';
-        const inp2 = document.createElement('input'); inp2.type = 'number'; inp2.className = 'schema-input'; inp2.id = 'step-input-b'; inp2.autocomplete = 'off'; bar2.appendChild(inp2); container.appendChild(bar2);
+        const inp2 = document.createElement('input'); inp2.type = 'text'; inp2.className = 'schema-input'; inp2.id = 'step-input-b'; inp2.autocomplete = 'off'; bar2.appendChild(inp2); container.appendChild(bar2); // [CANVI 2]
     }
 
     function schemaCoefAndRadInput(container) {
         container.innerHTML = '';
         const eq = document.createElement('span'); eq.className = 'schema-equals'; eq.innerText = '='; container.appendChild(eq);
-        const inpC = document.createElement('input'); inpC.type = 'number'; inpC.className = 'schema-input'; inpC.id = 'step-input-c'; inpC.autocomplete = 'off'; container.appendChild(inpC);
+        const inpC = document.createElement('input'); inpC.type = 'text'; inpC.className = 'schema-input'; inpC.id = 'step-input-c'; inpC.autocomplete = 'off'; // [CANVI 2] container.appendChild(inpC);
         const dot = document.createElement('span'); dot.className = 'schema-dot'; dot.innerText = '·'; container.appendChild(dot);
         const sign = document.createElement('span'); sign.className = 'schema-sign'; sign.innerText = '√'; container.appendChild(sign);
         const bar = document.createElement('span'); bar.className = 'schema-radicand-bar';
-        const inpB = document.createElement('input'); inpB.type = 'number'; inpB.className = 'schema-input'; inpB.id = 'step-input-b2'; inpB.autocomplete = 'off'; bar.appendChild(inpB); container.appendChild(bar);
+        const inpB = document.createElement('input'); inpB.type = 'text'; inpB.className = 'schema-input'; inpB.id = 'step-input-b2'; inpB.autocomplete = 'off'; // [CANVI 2] bar.appendChild(inpB); container.appendChild(bar);
     }
 
     // ============================================================
@@ -379,9 +379,12 @@
         step.buildSchema(els.stepSchema);
         els.currentStep.classList.add('active');
         els.resolutionPanel.style.display = 'flex';
+        // [CANVI 4] Focus condicional: teclat custom en tàctil, focus natiu en escriptori
         setTimeout(() => {
             const first = els.stepSchema.querySelector('input');
-            if (first) first.focus();
+            if (first) {
+                if (isTouchDevice()) { showCustomKeyboard(first); } else { first.focus(); }
+            }
         }, 100);
     }
 
@@ -399,7 +402,10 @@
         const inputs = els.stepSchema.querySelectorAll('input');
         inputs.forEach(inp => inp.value = '');
         const first = els.stepSchema.querySelector('input');
-        if (first) first.focus();
+        // [CANVI 4] Focus condicional en error
+        if (first) {
+            if (isTouchDevice()) { kbMarkForOverwrite(first); showCustomKeyboard(first); } else { first.focus(); }
+        }
     }
 
     function checkStep() {
@@ -441,7 +447,8 @@
         const userVal = parseStrictInt(raw);
         if (isNaN(userVal) || userVal !== step.answer) {
             flashError(); penalize();
-            if (attemptsLeft > 0) { inp.value = ''; inp.focus(); }
+            // [CANVI 4] Focus condicional en error de pas simple
+            if (attemptsLeft > 0) { inp.value = ''; if (isTouchDevice()) { kbMarkForOverwrite(inp); showCustomKeyboard(inp); } else { inp.focus(); } }
             return;
         }
 
@@ -543,6 +550,7 @@
         isTransitioning = true;
         showFinalResult();
         els.currentStep.classList.remove('active');
+        hideCustomKeyboard(); // [CANVI 6] Tanca el teclat custom en finalitzar
         els.resolutionPanel.style.display = 'none';
 
         let pts;
@@ -936,20 +944,35 @@ function buildRepte2OrigNodes(container, p) {
     // TECLAT
     // ============================================================
     document.addEventListener('keydown', (e) => {
+        // [CANVI 3] preventDefault només quan el joc és actiu (evita bloquejar la pantalla de selecció)
         if (e.key === 'Enter') {
-            e.preventDefault();
-            if (isTransitioning || isPenalizing) return;
-            if (els.selectionScreen.style.display !== 'none') return;
-            if (els.gameScreen.style.display !== 'none') checkStep();
+            if (els.gameScreen.style.display !== 'none' && els.resolutionPanel.style.display !== 'none') {
+                e.preventDefault();
+                if (!isTransitioning && !isPenalizing) checkStep();
+            }
         }
     });
 
     // ============================================================
     // ARRENCADA
     // ============================================================
+    // [CANVI 5] Botó → del teclat custom: salta al primer input buit de l'esquema actiu;
+    // si tots plens (o cap) → valida el pas.
+    function checkCurrentCell() {
+        const inputs = Array.from(els.stepSchema.querySelectorAll('input'));
+        if (!inputs.length) return;
+        const firstEmpty = inputs.find(i => i.value.trim() === '');
+        if (firstEmpty) {
+            showCustomKeyboard(firstEmpty);
+        } else {
+            checkStep();
+        }
+    }
+
     registerScreens(['selection-screen', 'game-screen', 'session-end-screen', 'final-screen']);
     injectSharedHTML();
     validateConfig();
+    initCustomKeyboard({ allowNegative: false }); // [CANVI 1] Activa listeners del teclat custom
     showScreen('selection-screen');
 </script>
 </body>

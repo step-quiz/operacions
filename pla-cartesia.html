@@ -194,9 +194,9 @@
 
         <div class="coord-input-area" id="coord-input-area">
             <span class="coord-label">(</span>
-            <input type="number" class="coord-input" id="input-x" placeholder="x" autocomplete="off">
+            <input type="text" class="coord-input" id="input-x" placeholder="x" autocomplete="off"><!-- [CANVI 2] type="text" evita teclat natiu en mòbil -->
             <span class="coord-label">,</span>
-            <input type="number" class="coord-input" id="input-y" placeholder="y" autocomplete="off">
+            <input type="text" class="coord-input" id="input-y" placeholder="y" autocomplete="off"><!-- [CANVI 2] -->
             <span class="coord-label">)</span>
             <button class="btn-submit" id="btn-coord-submit" onclick="checkCoordInput()">OK</button>
         </div>
@@ -249,10 +249,15 @@
     </div>
 </div>
 
+<!-- [CANVI 1] game-core.js carregat per obtenir les funcions del teclat custom.
+     NO es crida injectSharedHTML() perquè aquest joc ja té el seu propi overlay i pantalles. -->
+<script src="js/game-core.js"></script>
+
 <script>
     // ============================================================
     // CODI ESPECÍFIC DE FUNCIONS I GRÀFIQUES
-    // NOTA: NO usa game-core.js (lògica de seccions pròpia)
+    // NOTA: game-core.js carregat NOMÉS pel teclat custom.
+    //       Lògica de seccions, overlay i pantalles: pròpia d'aquest joc.
     //       SÍ usa utils.js (randInt, pick) i config.js (TOTAL_OPERATIONS, etc.)
     // ============================================================
 
@@ -499,7 +504,8 @@
             els.gamePrompt.innerHTML = 'Quines són les coordenades del punt <strong>' + pointLabel + '</strong>?';
             els.coordInputArea.classList.add('active');
             els.inputX.value = ''; els.inputY.value = '';
-            els.inputX.focus();
+            // [CANVI 4] Focus condicional
+            if (isTouchDevice()) { showCustomKeyboard(els.inputX); } else { els.inputX.focus(); }
             updateWrapHeight();
             setTimeout(function() { scrollCanvasToPoint(targetX, targetY); }, 150);
         }
@@ -564,7 +570,8 @@
             els.quadrantArea.classList.remove('active');
             els.coordInputArea.classList.add('active');
             els.inputX.value = ''; els.inputY.value = '';
-            els.inputX.focus();
+            // [CANVI 4] Focus condicional
+            if (isTouchDevice()) { showCustomKeyboard(els.inputX); } else { els.inputX.focus(); }
             updateWrapHeight();
             document.querySelector('.canvas-wrap').scrollTo({ top: 0 });
         }
@@ -667,7 +674,9 @@
                 els.feedbackBar.innerText = '✗ El teu punt és ' + quadrantPrep(givenQ) + '. Necessitem que estigui ' + quadrantPrep(targetQuadrant);
                 els.feedbackBar.className = 'feedback-bar wrong';
                 penalize();
-                els.inputX.value = ''; els.inputY.value = ''; els.inputX.focus();
+                els.inputX.value = ''; els.inputY.value = '';
+                // [CANVI 4] Focus condicional en error
+                if (isTouchDevice()) { kbMarkForOverwrite(els.inputX); showCustomKeyboard(els.inputX); } else { els.inputX.focus(); }
             }
             return;
         }
@@ -689,7 +698,9 @@
             els.feedbackBar.innerText = '✗ (' + ux + ', ' + uy + ') no és correcte' + hint;
             els.feedbackBar.className = 'feedback-bar wrong';
             penalize();
-            els.inputX.value = ''; els.inputY.value = ''; els.inputX.focus();
+            els.inputX.value = ''; els.inputY.value = '';
+            // [CANVI 4] Focus condicional en error
+            if (isTouchDevice()) { kbMarkForOverwrite(els.inputX); showCustomKeyboard(els.inputX); } else { els.inputX.focus(); }
         }
     }
 
@@ -798,10 +809,14 @@
 
     // ---- TECLAT I RESIZE ----
     document.addEventListener('keydown', function(e) {
+        // [CANVI 3] preventDefault només quan el joc és actiu i hi ha inputs de coordenades visibles
         if (e.key === 'Enter') {
-            e.preventDefault();
-            if (isTransitioning || isPenalizing) return;
-            if (els.gameScreen.style.display !== 'none' && (exerciseMode === 'identify' || exerciseMode === 'quadrant-give')) checkCoordInput();
+            if (els.gameScreen.style.display !== 'none'
+                && (exerciseMode === 'identify' || exerciseMode === 'quadrant-give')
+                && els.coordInputArea.classList.contains('active')) {
+                e.preventDefault();
+                if (!isTransitioning && !isPenalizing) checkCoordInput();
+            }
         }
     });
 
@@ -814,6 +829,47 @@
             if (answered) drawPoint(targetX, targetY, '#10b981', pointLabel, 9);
         }
     });
+
+    // [CANVI 5] Botó → del teclat custom: salta de input-x a input-y si x és ple i y buit;
+    // si tots dos plens (o buits) → valida.
+    function checkCurrentCell() {
+        const xFull = els.inputX && els.inputX.value.trim() !== '';
+        const yFull = els.inputY && els.inputY.value.trim() !== '';
+        if (xFull && !yFull) {
+            showCustomKeyboard(els.inputY);
+        } else if (!xFull && yFull) {
+            showCustomKeyboard(els.inputX);
+        } else {
+            checkCoordInput();
+        }
+    }
+
+    // [CANVI 1] Injectem manualment el teclat custom al panel (sense injectSharedHTML,
+    // que duplicaria l'overlay i les pantalles ja existents en aquest joc).
+    (function injectCustomKeyboard() {
+        const panel = document.querySelector('.panel');
+        if (!panel || document.getElementById('customKeyboard')) return;
+        const kb = document.createElement('div');
+        kb.id = 'customKeyboard';
+        kb.innerHTML = `
+            <div class="kb-grid">
+                <button class="kb-btn" data-key="7">7</button>
+                <button class="kb-btn" data-key="8">8</button>
+                <button class="kb-btn" data-key="9">9</button>
+                <button class="kb-btn kb-del" data-key="del">⌫</button>
+                <button class="kb-btn" data-key="4">4</button>
+                <button class="kb-btn" data-key="5">5</button>
+                <button class="kb-btn" data-key="6">6</button>
+                <button class="kb-btn kb-minus" data-key="-">−</button>
+                <button class="kb-btn" data-key="1">1</button>
+                <button class="kb-btn" data-key="2">2</button>
+                <button class="kb-btn" data-key="3">3</button>
+                <button class="kb-btn kb-enter" data-key="enter">→</button>
+                <button class="kb-btn kb-zero" data-key="0">0</button>
+            </div>`;
+        panel.appendChild(kb);
+    })();
+    initCustomKeyboard({ allowNegative: true }); // [CANVI 1] Activa listeners del teclat custom
 
     // Comencem directament al selector de seccions
     goToSections();
