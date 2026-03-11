@@ -296,12 +296,15 @@
     };
     const ctx = els.canvas.getContext('2d');
 
-    const bgColors = ['#f0f4ff','#eff6ff','#f0fdf4','#fefce8','#fff1f2','#f5f3ff','#ecfeff','#fdf4ff','#fffbeb','#faf5ff'];
+    // [BUGFIX] bgColors ja declarat per game-core.js — usem pcBgColors per evitar conflicte de let/const
+    const pcBgColors = ['#f0f4ff','#eff6ff','#f0fdf4','#fefce8','#fff1f2','#f5f3ff','#ecfeff','#fdf4ff','#fffbeb','#faf5ff'];
 
     // ---- ESTAT ----
     let currentSection = '3a', difficultyLevel = 2;
-    let currentOperation = 0, sessionScore = 0, allResults = [];
-    let attemptsLeft = MAX_INTENTS, isTransitioning = false, isPenalizing = false;
+    // [BUGFIX] currentOperation i sessionScore ja declarats per game-core.js
+    let allResults = [];
+    // [BUGFIX] attemptsLeft i isTransitioning ja declarats per game-core.js
+    let isPenalizing = false;
     let exerciseMode = 'place', targetX = 0, targetY = 0, answered = false, pointLabel = 'A';
     let targetQuadrant = 'Q1';
     const POINT_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -509,7 +512,7 @@
             updateWrapHeight();
             setTimeout(function() { scrollCanvasToPoint(targetX, targetY); }, 150);
         }
-        els.body.style.backgroundColor = bgColors[currentOperation % bgColors.length];
+        els.body.style.backgroundColor = pcBgColors[currentOperation % pcBgColors.length];
     }
 
     // ---- 3a — ELS 4 QUADRANTS ----
@@ -575,7 +578,7 @@
             updateWrapHeight();
             document.querySelector('.canvas-wrap').scrollTo({ top: 0 });
         }
-        els.body.style.backgroundColor = bgColors[currentOperation % bgColors.length];
+        els.body.style.backgroundColor = pcBgColors[currentOperation % pcBgColors.length];
     }
 
     function updateGameUI() {
