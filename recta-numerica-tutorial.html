@@ -9,11 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary:       #0077b6;
-      --primary-light: #e0f4ff;
-      --primary-dark:  #023e8a;
-      --accent:        #00b4d8;
-      --bg:            #f0f9ff;
+      --primary:       #6b7c2e;
+      --primary-light: #eef2dc;
+      --primary-dark:  #3d4a10;
+      --accent:        #8fa840;
+      --bg:            #f4f7e8;
       --panel:         #ffffff;
       --text:          #0f172a;
       --muted:         #64748b;
@@ -85,25 +85,13 @@
     }
     .tut-header-left { display: flex; align-items: center; gap: 9px; }
     #btn-next-wrap {
-      position: absolute;
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
+      display: flex;
+      justify-content: center;
+      width: 100%;
     }
     #btn-next { display: block; }
 
-    .rec-dot {
-      width: 10px; height: 10px;
-      background: #ef4444; border-radius: 50%;
-      animation: rec-blink 1.6s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-    @keyframes rec-blink {
-      0%,100% { opacity: 1; } 50% { opacity: 0.2; }
-    }
-    #example-label {
-      font-size: 1.056em; font-weight: 600; letter-spacing: 0.3px;
-    }
+
 
     .progress-track { height: 4px; background: var(--border); flex-shrink: 0; }
     .progress-fill  {
@@ -143,7 +131,7 @@
       align-self: flex-start;
     }
     .question-prompt {
-      font-size: 1.04em; font-weight: 600;
+      font-size: 1.456em; font-weight: 600;
       color: var(--primary-dark); line-height: 1.45;
       margin-bottom: 12px;
       min-height: calc(1.04em * 1.45 * 4);
@@ -278,7 +266,7 @@
     .btn-next-step {
       padding: 8px 20px;
       background: white; color: #0f172a;
-      font-family: 'Barlow', sans-serif; font-size: 0.97em; font-weight: 700;
+      font-family: 'Barlow', sans-serif; font-size: 1.164em; font-weight: 700;
       border: none; border-radius: 7px; cursor: pointer;
       transition: background 0.2s, transform 0.1s;
       letter-spacing: 0.3px;
@@ -328,10 +316,6 @@
 <div class="panel">
 
   <div class="tut-header">
-    <div class="tut-header-left">
-      <span class="rec-dot" title="Tutorial en curs"></span>
-      <span id="example-label">Exemple 1 de 3</span>
-    </div>
     <div id="btn-next-wrap">
       <button class="btn-next-step" id="btn-next">Següent →</button>
     </div>
@@ -585,8 +569,8 @@ function buildSVG(cloudPts, yr, hl) {
     // --- Columna destacada ---
     if (hl?.type==='column') {
         const cw = pw/(xMax-xMin);
-        s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#0077b6" opacity="0.09" rx="3"/>`);
-        s.push(`<text x="${f(tx(hl.x)-18)}" y="${mt+15}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#0077b6">${hl.label||`x=${hl.x}`}</text>`);
+        s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#6b7c2e" opacity="0.09" rx="3"/>`);
+        s.push(`<text x="${f(tx(hl.x)-18)}" y="${mt+15}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#6b7c2e">${hl.label||`x=${hl.x}`}</text>`);
         const [ox, oy] = hl.arrowOrigin || [hl.x + 1.2, 2];
         const [atx, aty] = hl.arrowTarget || [hl.x, 0];
         s.push(`<line x1="${f(tx(ox))}" y1="${f(ty(oy))}" x2="${f(tx(atx))}" y2="${f(ty(aty))}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
@@ -612,9 +596,9 @@ function buildSVG(cloudPts, yr, hl) {
 
     // --- Grid ---
     for (let x=xMin; x<=xMax; x++)
-        s.push(`<line x1="${f(tx(x))}" y1="${mt}" x2="${f(tx(x))}" y2="${mt+ph}" stroke="#c8d6e0" stroke-width="0.7"/>`);
+        s.push(`<line x1="${f(tx(x))}" y1="${mt}" x2="${f(tx(x))}" y2="${mt+ph}" stroke="#cdd9b0" stroke-width="0.7"/>`);
     for (let y=yr.min; y<=yr.max; y+=yr.majorStep)
-        s.push(`<line x1="${ml}" y1="${f(ty(y))}" x2="${ml+pw}" y2="${f(ty(y))}" stroke="#9aaab8" stroke-width="1"/>`);
+        s.push(`<line x1="${ml}" y1="${f(ty(y))}" x2="${ml+pw}" y2="${f(ty(y))}" stroke="#b5c47a" stroke-width="1"/>`);
 
     // --- Eixos ---
     s.push(`<line x1="${ml}" y1="${f(py0)}" x2="${ml+pw}" y2="${f(py0)}" stroke="#000" stroke-width="2"/>`);
@@ -638,14 +622,14 @@ function buildSVG(cloudPts, yr, hl) {
 
     // --- Punts ---
     cloudPts.forEach(([cx,cy]) => {
-        s.push(`<circle cx="${f(tx(cx))}" cy="${f(ty(cy))}" r="7" fill="#0077b6" stroke="white" stroke-width="2.5"/>`);
+        s.push(`<circle cx="${f(tx(cx))}" cy="${f(ty(cy))}" r="7" fill="#6b7c2e" stroke="white" stroke-width="2.5"/>`);
     });
 
     // --- Línies de projecció ---
     const PROJ_TYPES = ['point','point-correct','point-wrong'];
     if (hl && PROJ_TYPES.includes(hl.type)) {
         const hx=tx(hl.x), hy=ty(hl.y);
-        const cols = { 'point':'#0077b6', 'point-correct':'#059669', 'point-wrong':'#dc2626' };
+        const cols = { 'point':'#6b7c2e', 'point-correct':'#059669', 'point-wrong':'#dc2626' };
         const c = cols[hl.type];
         s.push(`<line x1="${ml}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
         s.push(`<line x1="${f(hx)}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(py0)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
@@ -654,11 +638,11 @@ function buildSVG(cloudPts, yr, hl) {
     // --- Overlay: punt blau pulsant ---
     if (hl?.type==='point') {
         const hx=tx(hl.x), hy=ty(hl.y);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#00b4d8" stroke-width="2.5">
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#8fa840" stroke-width="2.5">
             <animate attributeName="r"       from="9"   to="23"  dur="1.25s" repeatCount="indefinite"/>
             <animate attributeName="opacity" from="0.8" to="0"   dur="1.25s" repeatCount="indefinite"/>
         </circle>`);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="#00b4d8" stroke="white" stroke-width="2.5"/>`);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="#8fa840" stroke="white" stroke-width="2.5"/>`);
     }
 
     // --- Overlay: punt erroni ---
@@ -706,7 +690,6 @@ function render() {
     const step = ex.steps[stepIdx];
     const gs   = globalStep();
 
-    document.getElementById('example-label').textContent = `Exemple ${exIdx+1} de ${TUTORIAL.length}`;
     document.getElementById('progress-fill').style.width = Math.round(gs / TOTAL_STEPS * 100) + '%';
 
     document.getElementById('example-chip').textContent      = ex.chip;
