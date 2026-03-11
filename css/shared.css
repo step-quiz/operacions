@@ -410,9 +410,11 @@ input[type="number"] { -moz-appearance: textfield; }
         max-height: 100svh;
     }
 
-    /* Columna dreta: el teclat, centrat verticalment, sense marge superior */
+    /* Columna dreta: el teclat fixat al mínim imprescindible.
+       243px = 3×48 + 64 (botons) + 3×5 (gaps) + 2×10 (padding).   */
     #customKeyboard {
-        flex: 0 0 auto;
+        flex: 0 0 243px;
+        width: 243px;
         margin-top: 0;
         padding: 10px 10px 12px;
         border-top: none;
