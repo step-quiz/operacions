@@ -138,12 +138,13 @@ body {
     gap: 8px;
     margin-bottom: 14px;
 }
+/* [ROUND 3 — function-label ara mostra la pregunta, sense majúscules forçades] */
+/* [ROUND 4 — font-size +30%: .85rem → 1.1rem] */
 .function-label {
     color: var(--text-muted);
-    font-size: .78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0;
 }
 /* [ROUND 2 — color instrucció principal: blau → negre] */
 .function-math {
@@ -275,7 +276,7 @@ body {
     border-radius: 6px;
 }
 
-/* [ROUND 1 — panell toggle asímptotes] */
+/* [ROUND 4 — botons On/Off immediatament al costat del text, no al final de la barra] */
 .asymptote-toggle-bar {
     display: flex;
     align-items: center;
@@ -291,7 +292,7 @@ body {
     font-size: .78rem;
     font-weight: 600;
     color: var(--text-muted);
-    flex: 1;
+    /* [ROUND 4 — eliminat flex:1 perquè els botons vagin just al costat] */
 }
 .asymptote-toggle-btns {
     display: flex;
@@ -416,7 +417,7 @@ body {
         <div class="game-body">
             <div class="game-left">
                 <div class="function-box">
-                    <div class="function-label">Calcula:</div>
+                    <div class="function-label"></div>
                     <div id="fx-display" class="function-math"></div>
                 </div>
                 <div id="options-container" class="options-grid"></div>
@@ -588,16 +589,15 @@ window.StringsA = (() => {
         return 'f(x)';
     }
 
-    // [ROUND 2 — prompts d'asímptota: "Troba l'equació de l'asímptota..."]
-    function qVATeX(func) { return `\\text{Troba l'equació de l'asímptota vertical de}\\quad ${funcTeX(func)}`; }
-    // [ROUND 2 — prompt de límit lateral: "Calcula aquest límit:" + fórmula sense "f(x) ="]
+    // [ROUND 3 — prompts: fórmula pura sense text, el text va a .function-label]
+    function qVATeX(func)      { return funcTeX(func); }
     function qLateralTeX(func, a, side) {
         const sup  = side === 'right' ? '^{+}' : '^{-}';
         const aStr = a === 0 ? '0' : a > 0 ? `${a}` : `(-${-a})`;
-        return `\\text{Calcula aquest límit:}\\quad \\lim_{x \\to ${aStr}${sup}} ${funcBodyTeX(func)}`;
+        return `\\lim_{x \\to ${aStr}${sup}} ${funcBodyTeX(func)}`;
     }
-    function qHATeX(func) { return `\\text{Troba l'equació de l'asímptota horitzontal de}\\quad ${funcTeX(func)}`; }
-    function qOATeX(func) { return `\\text{Troba l'equació de l'asímptota obliqua de}\\quad ${funcTeX(func)}`; }
+    function qHATeX(func)      { return funcTeX(func); }
+    function qOATeX(func)      { return funcTeX(func); }
 
     const labels = {
         Q_VA:      'Asímptota vertical',
@@ -677,7 +677,7 @@ window.QuestionBankA = (() => {
                 ..._shuffle([-3,-2,-1,1,2,3]).slice(0,3).map(w => ({ tex: S.xTeX(w), isCorrect: false, feedback: S.feedback.wrong_va, errorType: 'VA_WRONG' }))
             ]);
         }
-        return { promptTex: S.qVATeX(func), solutionTex: hasVA ? S.xTeX(correct) : S.NO_VA_TEX, options, type: 'Q_VA', meta: { correct, hasVA } };
+        return { promptTex: S.qVATeX(func), promptLabel: 'Q_VA', solutionTex: hasVA ? S.xTeX(correct) : S.NO_VA_TEX, options, type: 'Q_VA', meta: { correct, hasVA } };
     }
 
     function generateQLateral(func) {
@@ -690,7 +690,7 @@ window.QuestionBankA = (() => {
             { tex: S.limitTeX(correctV), isCorrect: true, feedback: S.feedback.correct_lateral(correctV), errorType: null },
             ..._limitDistractors(correctV).map(w => ({ tex: S.limitTeX(w), isCorrect: false, feedback: S.feedback.wrong_lateral, errorType: 'LATERAL_WRONG' }))
         ]);
-        return { promptTex: S.qLateralTeX(func, a, side), solutionTex: S.limitTeX(correctV), options, type: 'Q_LATERAL', meta: { a, side, correct: correctV } };
+        return { promptTex: S.qLateralTeX(func, a, side), promptLabel: 'Q_LATERAL', solutionTex: S.limitTeX(correctV), options, type: 'Q_LATERAL', meta: { a, side, correct: correctV } };
     }
 
     function generateQHA(func) {
@@ -708,7 +708,7 @@ window.QuestionBankA = (() => {
                 ..._shuffle([-2,-1,0,1,2,3]).slice(0,3).map(w => ({ tex: S.yTeX(w), isCorrect: false, feedback: S.feedback.wrong_ha, errorType: 'HA_WRONG' }))
             ]);
         }
-        return { promptTex: S.qHATeX(func), solutionTex: hasHA ? S.yTeX(correct) : S.NO_HA_TEX, options, type: 'Q_HA', meta: { correct, hasHA } };
+        return { promptTex: S.qHATeX(func), promptLabel: 'Q_HA', solutionTex: hasHA ? S.yTeX(correct) : S.NO_HA_TEX, options, type: 'Q_HA', meta: { correct, hasHA } };
     }
 
     function generateQOA(func) {
@@ -729,7 +729,7 @@ window.QuestionBankA = (() => {
             ]);
         }
         const solutionTex = hasOA ? S.oaTeX(func.oa.m, func.oa.b) : S.NO_OA_TEX;
-        return { promptTex: S.qOATeX(func), solutionTex, options, type: 'Q_OA', meta: { hasOA, oa: func.oa } };
+        return { promptTex: S.qOATeX(func), promptLabel: 'Q_OA', solutionTex, options, type: 'Q_OA', meta: { hasOA, oa: func.oa } };
     }
 
     function generateChallenge(func, level) {
@@ -763,6 +763,13 @@ const TEXTS = {
     scoreLabel:         pts  => `Punts: ${pts}`,
     attemptsLabel:      att  => `Intents: ${att}`,
     btnShowGraph:       '👁 Mostrar gràfica de la funció',
+    // [ROUND 3 — etiquetes de pregunta per a cada tipus, mostrades sobre el contenidor blau]
+    promptLabels: {
+        Q_VA:      'Quina és l\'equació de l\'asímptota vertical?',
+        Q_LATERAL: 'Quin és el valor d\'aquest límit?',
+        Q_HA:      'Quina és l\'equació de l\'asímptota horitzontal?',
+        Q_OA:      'Quina és l\'equació de l\'asímptota obliqua?',
+    },
     // [ROUND 1 — strings del panell toggle asímptotes]
     asymToggleLabel:    'Mostrar asímptotes',
     asymBtnOn:          'On',
@@ -834,6 +841,12 @@ function buildLevel() {
     katex.render(challengeData.promptTex, els.fxDisplay, {
         throwOnError: false, displayMode: true
     });
+
+    // [ROUND 3 — mostra la pregunta sobre el contenidor blau, no el text fix "Calcula:"]
+    const labelEl = els.fxDisplay.closest('.function-box')?.querySelector('.function-label');
+    if (labelEl) {
+        labelEl.textContent = TEXTS.promptLabels[challengeData.promptLabel] || '';
+    }
 
     if (els.typeDisplay) {
         els.typeDisplay.textContent = StringsA.labels[challengeData.type] || '';
@@ -910,7 +923,9 @@ function _buildAsymToggleBar() {
 
     function _applyState() {
         const g = document.getElementById('asym-group');
-        if (g) g.style.display = asymVisible ? '' : 'none';
+        // [ROUND 4 — bug fix: display="none" és un SVG presentation attribute;
+        //  cal setAttribute per sobreescriure'l, style.display no té prioritat]
+        if (g) g.setAttribute('display', asymVisible ? 'inline' : 'none');
         btnOn.className  = asymVisible ? 'btn-asym active-on'  : 'btn-asym';
         btnOff.className = asymVisible ? 'btn-asym'            : 'btn-asym active-off';
     }
