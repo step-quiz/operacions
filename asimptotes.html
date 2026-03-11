@@ -66,34 +66,34 @@ body {
     overflow: hidden;
 }
 
-/* ---- HEADER INFO ---- */
+/* [ROUND 5 — header-left en fila horitzontal; font +20%] */
 .header-info {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 8px 16px;
     border-bottom: 1px solid var(--border-light);
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--text-muted);
     flex-shrink: 0;
-    flex-wrap: wrap;
+}
+.header-left {
+    display: flex;
+    align-items: center;
     gap: 6px;
 }
-.header-left { display: flex; flex-direction: column; gap: 1px; }
-.session-text { font-size: .82rem; }
-.level-text   { font-size: .75rem; color: var(--text-muted); }
-.score-text   { color: var(--primary-dark); font-weight: 700; }
-.badge {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: .78rem;
-    font-weight: 600;
+.session-text {
+    font-size: calc(.82rem * 1.2); /* +20% */
+    font-weight: 700;
+    color: var(--text-muted);
 }
-.attempts-counter { font-weight: 700; color: var(--text-muted); }
-.attempts-counter.danger { color: var(--danger); }
+.level-text {
+    font-size: calc(.75rem * 1.2); /* +20% */
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.session-sep {
+    color: var(--border-heavy);
+    font-weight: 400;
+    font-size: 1rem;
+}
 
 /* ---- GAME SCREEN ---- */
 #game-screen {
@@ -405,13 +405,12 @@ body {
 <div class="panel">
     <div id="game-screen" style="display:none;">
         <div class="header-info">
+            <!-- [ROUND 5 — eliminats badge, score i attempts; level i pregunta en fila horitzontal] -->
             <div class="header-left">
-                <div class="session-text" id="level-display">Nivell mitjà</div>
-                <div class="level-text"   id="lvl-display">Pregunta 1 de 6</div>
+                <span class="session-text" id="level-display">Nivell mitjà</span>
+                <span class="session-sep">·</span>
+                <span class="level-text" id="lvl-display">Pregunta 1 de 6</span>
             </div>
-            <span class="badge" id="type-display"></span>
-            <div class="score-text" id="score-display">Punts: 0</div>
-            <div class="attempts-counter" id="attempts-display">Intents: 3</div>
         </div>
 
         <div class="game-body">
@@ -811,12 +810,10 @@ const els = {
     gameScreen:    document.getElementById('game-screen'),
     summaryScreen: document.getElementById('session-summary'),
     fxDisplay:     document.getElementById('fx-display'),
-    typeDisplay:   document.getElementById('type-display'),
+    // [ROUND 5 — eliminats typeDisplay, scoreDisplay, attDisplay (suprimits del header)]
     options:       document.getElementById('options-container'),
     feedback:      document.getElementById('missatge-feedback'),
-    scoreDisplay:  document.getElementById('score-display'),
     lvlDisplay:    document.getElementById('lvl-display'),
-    attDisplay:    document.getElementById('attempts-display'),
     levelDisplay:  document.getElementById('level-display'),
 };
 
@@ -828,9 +825,7 @@ function buildLevel() {
     attemptsLeft = MAX_INTENTS;
 
     els.lvlDisplay.textContent   = TEXTS.questionCounter(currentQ + 1, TOTAL_Q);
-    els.scoreDisplay.textContent = TEXTS.scoreLabel(score);
-    els.attDisplay.textContent   = TEXTS.attemptsLabel(attemptsLeft);
-    els.attDisplay.classList.remove('danger');
+    // [ROUND 5 — scoreDisplay, attDisplay i typeDisplay eliminats del header]
 
     els.feedback.style.opacity = '0';
     els.feedback.innerHTML     = '';
@@ -848,9 +843,7 @@ function buildLevel() {
         labelEl.textContent = TEXTS.promptLabels[challengeData.promptLabel] || '';
     }
 
-    if (els.typeDisplay) {
-        els.typeDisplay.textContent = StringsA.labels[challengeData.type] || '';
-    }
+    // [ROUND 5 — typeDisplay eliminat del header]
 
     // Gràfic SVG: pre-renderitzat però amagat fins que l'alumne el demani
     graphRevealed = false;
@@ -1093,14 +1086,13 @@ function checkAnswer(opt, clickedBtn) {
         _disableAll();
         history.push({ type: challengeData.type, correct: true, pointsEarned: pts });
         _renderFeedback(opt, false);
-        els.scoreDisplay.textContent = TEXTS.scoreLabel(score);
+        // [ROUND 5 — scoreDisplay eliminat]
         setTimeout(() => _next(), 1600);
 
     } else {
         attemptsLeft--;
         clickedBtn.classList.add('wrong');
-        els.attDisplay.textContent = TEXTS.attemptsLabel(attemptsLeft);
-        els.attDisplay.classList.add('danger');
+        // [ROUND 5 — attDisplay eliminat]
         history.push({ type: challengeData.type, correct: false, pointsEarned: 0 });
 
         const isLast = attemptsLeft <= 0;
