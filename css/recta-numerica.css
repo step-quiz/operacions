@@ -442,7 +442,8 @@ body {
 .btn-next:hover  { background: var(--primary-dark); transform: translateY(-1px); }
 .btn-next:active { transform: scale(0.97); }
 
-/* ---- BOTÓ TUTORIAL + ICONA REC — [ROUND 5] ---- */
+
+/* ---- BOTÓ TUTORIAL + ICONA REC — [ROUND 5 / actualitzat R6] ---- */
 .btn-tutorial {
     display: flex;
     align-items: center;
@@ -470,12 +471,33 @@ body {
     border-radius: 50%;
     background: #ff3b30;   /* vermell REC — valor fix intencionat */
     box-shadow: 0 0 0 2px rgba(255,59,48,0.35);
-    animation: rec-blink 1.2s ease-in-out infinite;
+    /* [ROUND 6 — 4 cicles d'1s de parpelleig, després s'apaga definitivament] */
+    animation:
+        rec-blink 1s ease-in-out 4,
+        rec-off   0s linear 1 4s forwards;
     flex-shrink: 0;
 }
 @keyframes rec-blink {
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.25; }
+}
+@keyframes rec-off {
+    to { opacity: 0; }
+}
+
+/* ---- OVERLAY FADE-OUT — [ROUND 5] ---- */
+#fade-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: opacity 1.5s ease;   /* [ROUND 6 — 1500ms, segons especificació] */
+}
+#fade-overlay.active {
+    opacity: 1;
+    pointer-events: all;
 }
 
 /* ---- RESPONSIU ---- */
@@ -501,55 +523,4 @@ body {
 @media (max-width: 400px) {
     .title-row h1 { font-size: 1em; letter-spacing: 0.5px; }
     .btn-tutorial { font-size: 0.75em; padding: 6px 10px; }
-}
-
-/* ---- BOTÓ TUTORIAL + ICONA REC — [ROUND 5] ---- */
-.btn-tutorial {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 16px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 0.9em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: white;
-    background: var(--primary);
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.2s, transform 0.1s;
-}
-.btn-tutorial:hover  { background: var(--primary-dark); transform: translateY(-1px); }
-.btn-tutorial:active { transform: scale(0.97); }
-
-.rec-dot {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: #ff3b30;   /* vermell REC — valor fix intencionat */
-    box-shadow: 0 0 0 2px rgba(255,59,48,0.35);
-    animation: rec-blink 1.2s ease-in-out infinite;
-    flex-shrink: 0;
-}
-@keyframes rec-blink {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.25; }
-}
-
-/* ---- OVERLAY FADE-OUT — [ROUND 5] ---- */
-#fade-overlay {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 9999;
-    transition: opacity 2s ease;   /* 2 s de fade-out, segons especificació */
-}
-#fade-overlay.active {
-    opacity: 1;
-    pointer-events: all;
 }
