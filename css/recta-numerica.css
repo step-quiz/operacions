@@ -174,12 +174,10 @@ body {
 #graph-container svg {
     border-radius: 6px;
     display: block;
-    /* [ROUND 8 — solució definitiva: dimensions fixes 560×420px.
-       max-width evita que sobrepassi el contenidor en pantalles estretes.
-       Tots els punts sempre visibles per construcció (cloud-engine garanteix
-       x∈[-5,5] i y∈[p,q] dins el viewBox). Cap càlcul de viewport necessari.] */
-    width: 100%;
-    max-width: 560px;
+    /* [ROUND 9 — width=90% de .game-right; aspect-ratio 560:420 calcula l'alçada automàticament.
+       Robust a qualsevol viewport, zoom o plataforma. Tots els punts sempre visibles
+       per construcció (cloud-engine garanteix x∈[-5,5] i y∈[p,q] dins el viewBox).] */
+    width: 90%;
     height: auto;
     aspect-ratio: 560 / 420;
     height: auto;
