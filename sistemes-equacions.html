@@ -117,6 +117,66 @@
             background: #d1fae5; font-weight: bold; pointer-events: none;
         }
 
+        /* ── BOTONS DE SELECCIÓ ──────────────────────────────── */
+        .schema-btns {
+            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+            margin: 4px 0 12px;
+        }
+        .schema-btn {
+            padding: 11px 22px; border: 2.5px solid var(--primary); border-radius: 8px;
+            background: white; color: var(--primary); font-weight: bold; font-size: .95em;
+            cursor: pointer; transition: all .15s; font-family: inherit; touch-action: manipulation;
+        }
+        .schema-btn:active { transform: scale(.95); }
+        @media (hover:hover) { .schema-btn:hover { background: var(--primary); color: white; } }
+        .schema-btn.selected { background: var(--primary); color: white; border-color: var(--primary-dark); }
+        .schema-btn.error-flash {
+            border-color: var(--danger); background: var(--danger-light); color: var(--danger);
+            animation: shake .25s;
+        }
+
+        /* Botó ± per canviar el signe d'un terme inline */
+        .sign-toggle-btn {
+            padding: 8px 14px; border: 2.5px solid var(--primary); border-radius: 8px;
+            background: white; color: var(--primary); font-weight: bold; font-size: 1.05em;
+            cursor: pointer; transition: all .15s; font-family: 'Courier New', monospace;
+            touch-action: manipulation; min-width: 44px; vertical-align: middle;
+        }
+        .sign-toggle-btn:active { transform: scale(.95); }
+        @media (hover:hover) { .sign-toggle-btn:hover { background: var(--primary-light); } }
+        .sign-toggle-btn.neg { background: var(--primary-light); }
+
+        /* ── PANELL DE RESOLUCIÓ ─────────────────────────────── */
+        .resolution-panel {
+            background-color: var(--bg-color); border-top: 1px solid var(--border-color);
+            padding: 25px 20px; display: none; flex-direction: column; align-items: center;
+            width: 100%;
+        }
+        .step-container        { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn .3s; }
+        .step-container.active { display: flex; }
+        .step-title {
+            font-size: 1.05em; color: #475569; margin-bottom: 12px;
+            font-weight: bold; text-align: center; line-height: 1.45;
+            max-width: 560px;
+        }
+        #step-feedback {
+            margin-top: 6px; font-size: .95em; color: var(--text-muted);
+            text-align: center; min-height: 1.3em;
+        }
+        #step-feedback.important { color: #b45309; font-weight: bold; }
+        #step-feedback.error     { color: #dc2626; font-weight: bold; }
+        #step-feedback.success   { color: var(--success); font-weight: bold; }
+
+        /* Botó OK */
+        .btn-submit-schema {
+            background-color: #475569; color: white; border: none;
+            padding: 12px 28px; font-size: 1em; font-weight: bold; border-radius: 6px;
+            cursor: pointer; text-transform: uppercase; touch-action: manipulation; margin-top: 14px;
+        }
+        .btn-submit-schema:active { transform: scale(.95); }
+        @media (hover:hover) { .btn-submit-schema:hover { background-color: #334155; } }
+        .btn-submit-schema.error-shake { background-color: var(--danger); animation: shake .25s; }
+
         /* ── OVERLAY ─────────────────────────────────────────── */
         #mini-victory-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%; height: auto;
@@ -125,11 +185,6 @@
             padding: 0 20px 24px; pointer-events: none;
             border-radius: 0 0 8px 8px; border-top: none;
         }
-
-        /* ── FEEDBACK ────────────────────────────────────────── */
-        #step-feedback.important { color: #b45309; font-weight: bold; }
-        #step-feedback.error     { color: #dc2626; font-weight: bold; }
-        #step-feedback.success   { color: var(--success); font-weight: bold; }
 
         /* ── RESPONSIU ───────────────────────────────────────── */
         @media (max-width: 480px) {
@@ -271,7 +326,7 @@ function eqText(a, b, c) {
         s += `${sign}${babs}y`;
     }
     if (s === '') s = '0';
-    return `${s} = ${c}`;
+    return c !== null ? `${s} = ${c}` : s;
 }
 
 // ================================================================
@@ -388,9 +443,27 @@ function buildSchemaRow(parts) {
     };
 }
 
-// ================================================================
-// GENERADORS DE PROBLEMES
-// ================================================================
+// Helper: crea un parell [botó±] [input] dins un contenidor, retorna { btn, inp, getSignedValue }
+// correctVal: valor esperat (per inicialitzar el signe del botó al valor correcte)
+function mkSignedInput(id, width, correctVal) {
+    let sign = correctVal >= 0 ? 1 : -1;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sign-toggle-btn' + (sign < 0 ? ' neg' : '');
+    btn.textContent = sign < 0 ? '−' : '+';
+    btn.onclick = () => {
+        sign *= -1;
+        btn.textContent = sign < 0 ? '−' : '+';
+        btn.classList.toggle('neg', sign < 0);
+    };
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'schema-input-sm';
+    inp.id = id; inp.autocomplete = 'off';
+    if (width) inp.style.width = width + 'px';
+    return { btn, inp, getSignedValue: () => sign * Math.abs(parseNum(inp.value)) };
+}
+
+
 
 // ── REPTE 1: Substitució ─────────────────────────────────────────
 // Genera un sistema on una variable té coeficient 1 o -1 (fàcil d'aïllar)
@@ -593,48 +666,67 @@ function buildStepsRepte1(p) {
         validate: () => selectedOption === varAil,
     });
 
-    // PAS 3 — Escriure l'expressió aïllada: varAil = [coefVar]·varAltra + [const]
-    // Inputs separats: coeficient i terme independent
+    // PAS 3 — Escriure l'expressió aïllada: varAil = [±][coef]·varAltra [±] [const]
     steps.push({
         title: `Aïlla ${varAil} a la ${eqIdx === 1 ? 'primera' : 'segona'} equació:`,
-        buildSchema: buildSchemaRow([
-            `${varAil} =`,
-            { id: 'iso-coef', width: 52 },
-            `${varAltra} +`,
-            { id: 'iso-const', width: 52 },
-        ]),
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            els.stepBtns.innerHTML = '';
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;font-family:"Courier New",monospace;font-weight:bold;font-size:1.15em;';
+
+            row.appendChild(mkSpan(`${varAil} =`));
+
+            const siC = mkSignedInput('iso-coef',  52, isoCoefVar);
+            row.appendChild(siC.btn);
+            row.appendChild(siC.inp);
+            row.appendChild(mkSpan(varAltra));
+
+            const siK = mkSignedInput('iso-const', 52, isoConst);
+            row.appendChild(siK.btn);
+            row.appendChild(siK.inp);
+
+            c._getVC = siC.getSignedValue;
+            c._getVK = siK.getSignedValue;
+            c.appendChild(row);
+        },
         buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
-            const vc = parseNum(document.getElementById('iso-coef')?.value ?? '');
-            const vk = parseNum(document.getElementById('iso-const')?.value ?? '');
-            return !isNaN(vc) && !isNaN(vk) && vc === isoCoefVar && vk === isoConst;
+            const vc = els.stepSchema._getVC?.();
+            const vk = els.stepSchema._getVK?.();
+            if (isNaN(vc) || isNaN(vk)) return false;
+            return vc === isoCoefVar && vk === isoConst;
         },
         onCorrect: () => {
-            // Mostra l'expressió aïllada a l'expression-box
             addExprRow(`${varAil} = ${isoExprText()}`, 'sys-isolated');
         },
     });
 
-    // PAS 4 — Resoldre l'equació resultant: coefResultat·varResultat = constResultat
-    // L'alumne ha d'escriure el coeficient resultant i la constant
-    const coefResAbs = Math.abs(coefResultat);
-    const coefResSign = coefResultat < 0 ? '−' : '';
+    // PAS 4 — Resoldre l'equació resultant: [±coef]·varResultat = [±const]
     steps.push({
         title: `Substitueix a l'altra equació. Quina equació obtens en ${varResultat}?`,
-        buildSchema: buildSchemaRow([
-            { id: 'res-coef', width: 52 },
-            `${varResultat} =`,
-            { id: 'res-const', width: 52 },
-        ]),
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            els.stepBtns.innerHTML = '';
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;font-family:"Courier New",monospace;font-weight:bold;font-size:1.15em;';
+            const siC = mkSignedInput('res-coef',  52, coefResultat);
+            const siK = mkSignedInput('res-const', 52, constResultat);
+            row.appendChild(siC.btn); row.appendChild(siC.inp);
+            row.appendChild(mkSpan(`${varResultat} =`));
+            row.appendChild(siK.btn); row.appendChild(siK.inp);
+            c._getVC = siC.getSignedValue;
+            c._getVK = siK.getSignedValue;
+            c.appendChild(row);
+        },
         buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
-            // Acceptem coefResultat·varResultat = constResultat
-            const vc = parseNum(document.getElementById('res-coef')?.value ?? '');
-            const vk = parseNum(document.getElementById('res-const')?.value ?? '');
-            return !isNaN(vc) && !isNaN(vk) && vc === coefResultat && vk === constResultat;
+            const vc = els.stepSchema._getVC?.();
+            const vk = els.stepSchema._getVK?.();
+            if (isNaN(vc) || isNaN(vk)) return false;
+            return vc === coefResultat && vk === constResultat;
         },
     });
-
     // PAS 5 — Valor de varResultat
     steps.push({
         title: `Quant val ${varResultat}?`,
@@ -743,19 +835,29 @@ function buildStepsRepte2(p) {
         });
     }
 
-    // PAS 3 — Resultat de la suma: coefAlt·altaVar = cSum
+    // PAS 3 — Resultat de la suma: [±coefAlt]·altaVar = [±cSum]
     steps.push({
         title: `Suma les dues equacions. Quina equació obtens?`,
-        buildSchema: buildSchemaRow([
-            { id: 'sum-coef', width: 52 },
-            `${altaVar} =`,
-            { id: 'sum-const', width: 52 },
-        ]),
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            els.stepBtns.innerHTML = '';
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;font-family:"Courier New",monospace;font-weight:bold;font-size:1.15em;';
+            const siC = mkSignedInput('sum-coef',  52, coefAlt);
+            const siK = mkSignedInput('sum-const', 52, cSum);
+            row.appendChild(siC.btn); row.appendChild(siC.inp);
+            row.appendChild(mkSpan(`${altaVar} =`));
+            row.appendChild(siK.btn); row.appendChild(siK.inp);
+            c._getVC = siC.getSignedValue;
+            c._getVK = siK.getSignedValue;
+            c.appendChild(row);
+        },
         buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
-            const vc = parseNum(document.getElementById('sum-coef')?.value ?? '');
-            const vk = parseNum(document.getElementById('sum-const')?.value ?? '');
-            return !isNaN(vc) && !isNaN(vk) && vc === coefAlt && vk === cSum;
+            const vc = els.stepSchema._getVC?.();
+            const vk = els.stepSchema._getVK?.();
+            if (isNaN(vc) || isNaN(vk)) return false;
+            return vc === coefAlt && vk === cSum;
         },
     });
 
