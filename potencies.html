@@ -206,7 +206,7 @@
     </a>
     <h1>Potències</h1>
 </div>
-<div class="subtitle">ESO — Propietats i operacions</div>
+
 
 <div class="panel" id="main-panel">
 
@@ -540,13 +540,13 @@ function buildStepsRepte1(p) {
 
     // PAS 1: triar l'operació amb exponents
     const step1 = {
-        title: `Regla: ${info.label} — Quina operació fas amb els exponents?`,
+        title: `En aquest cas, quina operació cal fer amb els exponents?`,
         hideBtnOk: true,   /* [ROUND 1 — auto-submit, no cal OK] */
         buildSchema: buildEmpty(),
         buildBtns: buildBtnSelect([
-            { label: 'Suma  (+)',        value: 'suma'        },
-            { label: 'Resta  (−)',       value: 'resta'       },
-            { label: 'Multiplica  (×)',  value: 'multiplica'  },
+            { label: 'Sumar',       value: 'suma'        },
+            { label: 'Restar',      value: 'resta'       },
+            { label: 'Multiplicar', value: 'multiplica'  },
         ]),
         validate: () => {
             if (selectedOption === null) return false;
