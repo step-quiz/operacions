@@ -292,6 +292,8 @@
 
 </div>
 
+<div id="fade-overlay" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:9999;transition:opacity 2s ease;"></div>
+
 <script>
 'use strict';
 
@@ -459,25 +461,36 @@ function _globalStep() {
 
 function _advance() {
     clearInterval(timerIntv);
-    const ex = TUTORIAL[exIdx];
-    if (stepIdx < ex.steps.length - 1) {
-        stepIdx++;
-        _transition();
-    } else if (exIdx < TUTORIAL.length - 1) {
-        exIdx++; stepIdx = 0;
-        _transition();
-    } else {
-        window.location.href = 'recta-numerica.html';
+    const ex         = TUTORIAL[exIdx];
+    const isLastStep = stepIdx === ex.steps.length - 1;
+    const isLastEx   = exIdx   === TUTORIAL.length  - 1;
+
+    if (isLastStep && isLastEx) {
+        // Fade-out 2s, llavors navega
+        const overlay = document.getElementById('fade-overlay');
+        overlay.style.pointerEvents = 'all';
+        overlay.style.opacity       = '1';
+        setTimeout(() => { window.location.href = 'recta-numerica.html'; }, 2000);
+        return;
     }
+
+    if (isLastStep) { exIdx++; stepIdx = 0; }
+    else            { stepIdx++; }
+    _transition();
 }
 
 function _transition() {
     const body = document.getElementById('game-body');
     body.classList.add('fading');
     setTimeout(() => {
-        render();
+        // Renderitza tot excepte la narració (oculta)
+        render(/* hideNarration = */ true);
         body.classList.remove('fading');
-        startTimer();
+        // Després de 0.8s, mostra la narració i inicia el timer
+        setTimeout(() => {
+            _showNarration();
+            startTimer();
+        }, 800);
     }, 220);
 }
 
@@ -528,7 +541,7 @@ function applyFocus(focus) {
 /* ================================================================
    RENDER
    ================================================================ */
-function render() {
+function render(hideNarration = false) {
     const ex   = TUTORIAL[exIdx];
     const step = ex.steps[stepIdx];
 
@@ -556,7 +569,10 @@ function render() {
     // Gràfic
     document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, step.highlight);
 
-    // Narrador
+    // Narrador — ocult fins que _showNarration() el mostri
+    const narrationBox = document.querySelector('.narration-box');
+    narrationBox.style.opacity    = hideNarration ? '0' : '1';
+    narrationBox.style.transition = 'opacity 0.4s ease';
     document.getElementById('narration-icon').textContent = step.icon;
     document.getElementById('narration-text').innerHTML   = step.narration;
 
@@ -567,9 +583,13 @@ function render() {
     const isLastStep = stepIdx === ex.steps.length - 1;
     const isLastEx   = exIdx   === TUTORIAL.length  - 1;
     const btn = document.getElementById('btn-next');
-    if      (isLastStep && isLastEx) { btn.textContent = '🎮 Ves a jugar!';       btn.className = 'btn-next btn-finish';  }
-    else if (isLastStep)             { btn.textContent = 'Exemple següent →';     btn.className = 'btn-next btn-next-ex'; }
-    else                             { btn.textContent = 'Seg\u00fcent \u2192';   btn.className = 'btn-next';             }
+    if      (isLastStep && isLastEx) { btn.textContent = '🎮 Ves a jugar!';     btn.className = 'btn-next btn-finish';  }
+    else if (isLastStep)             { btn.textContent = 'Exemple seg\u00fcent \u2192'; btn.className = 'btn-next btn-next-ex'; }
+    else                             { btn.textContent = 'Seg\u00fcent \u2192'; btn.className = 'btn-next';             }
+}
+
+function _showNarration() {
+    document.querySelector('.narration-box').style.opacity = '1';
 }
 
 /* ================================================================
@@ -686,8 +706,11 @@ document.addEventListener('keydown', e => {
 /* ================================================================
    ARRENCADA
    ================================================================ */
-render();
-startTimer();
+render(/* hideNarration = */ true);
+setTimeout(() => {
+    _showNarration();
+    startTimer();
+}, 800);
 </script>
 
 </body>
