@@ -491,25 +491,51 @@ function genRepte1(opIdx) {
 }
 
 // ── REPTE 2: Base negativa ───────────────────────────────────────
-// [ROUND 5 — restriccions: |b|∈[2,12]; exp màxim segons base per evitar números gegants]
+// [ROUND 6 — 4 casos garantits: (−t)^parell · (−t)^senar · −t^parell · −t^senar
+//            Es barregen a l'inici de cada sessió; opIdx 0-3 en tria un cada vegada]
 function maxExpForBase(b) {
     if (b <= 2) return 6;
     if (b <= 4) return 4;
     if (b <= 5) return 3;
-    return 3;  // |b|>5
+    return 3;
 }
 
+// Ordre aleatori dels 4 casos, generat una vegada per sessió
+let repte2CaseOrder = null;
+
 function genRepte2(opIdx) {
-    const base = rand(2, 9);
-    const maxExp = maxExpForBase(base);
-    const exp  = rand(2, maxExp);
-    // opIdx 0,1 → sempre parèntesis; 2,3 → barreja
-    const hasParen = (opIdx <= 1) ? true : pick([true, false]);
-    const rawVal   = intPow(base, exp);
-    const result   = hasParen
+    // Reinicia l'ordre al primer exercici de cada sessió
+    if (opIdx === 0 || repte2CaseOrder === null) {
+        // Els 4 casos: [hasParen, wantEven]
+        const cases = [
+            { hasParen: true,  wantEven: true  },   // (−t)^parell
+            { hasParen: true,  wantEven: false },   // (−t)^senar
+            { hasParen: false, wantEven: true  },   // −t^parell
+            { hasParen: false, wantEven: false },   // −t^senar
+        ];
+        // Fisher-Yates shuffle
+        for (let i = cases.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cases[i], cases[j]] = [cases[j], cases[i]];
+        }
+        repte2CaseOrder = cases;
+    }
+
+    const { hasParen, wantEven } = repte2CaseOrder[opIdx % 4];
+    const base    = rand(2, 9);
+    const maxExp  = maxExpForBase(base);
+    // Tria un exponent parell o senar dins del rang permès
+    const expPool = [];
+    for (let e = 2; e <= maxExp; e++) {
+        if ((e % 2 === 0) === wantEven) expPool.push(e);
+    }
+    const exp = expPool.length > 0 ? pick(expPool) : (wantEven ? 2 : 3);
+
+    const rawVal = intPow(base, exp);
+    const result = hasParen
         ? (exp % 2 === 0 ?  rawVal : -rawVal)
-        : -rawVal;   // −a^n sempre negatiu
-    const isEven   = (exp % 2 === 0);
+        : -rawVal;   // −t^n → sempre negatiu independentment de n
+    const isEven = (exp % 2 === 0);
     return { type: 'baseneg', base, exp, hasParen, rawVal, result, isEven };
 }
 
