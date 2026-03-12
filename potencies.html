@@ -669,18 +669,15 @@ function buildStepsRepte2(p) {
         validate: () => {
             if (selectedOption === null) return false;
             return selectedOption === signExpected;
-        },
-        onCorrect: () => {
-            if (els.stepFeedback) {
-                els.stepFeedback.innerText = signExplanation;
-                els.stepFeedback.className = '';
-            }
         }
+        // [ROUND 7 — onCorrect eliminat: l'explicació es mostra al pas 2 com a feedback permanent]
     };
 
     // PAS 2: calcular el valor numèric — input inline  [ROUND 5]
     const step2 = {
         title: `Calcula el resultat:`,
+        // [ROUND 7 — initFeedback: es mostra immediatament quan arriba el pas 2]
+        initFeedback: signExplanation,
         buildSchema: (c) => { c.innerHTML = ''; els.stepBtns.innerHTML = ''; },
         appendToExpr: (box) => {
             const inp = document.createElement('input');
@@ -769,7 +766,18 @@ function buildStepsRepte3(p) {
 // ================================================================
 
 function showCurrentStep() {
-    if (els.stepFeedback) { els.stepFeedback.innerText = ''; els.stepFeedback.className = ''; }
+    const step = currentSteps[currentStepIdx];
+
+    // [ROUND 7 — initFeedback: feedback permanent precarregat; altrament neteja]
+    if (els.stepFeedback) {
+        if (step.initFeedback) {
+            els.stepFeedback.innerText  = step.initFeedback;
+            els.stepFeedback.className  = 'important';
+        } else {
+            els.stepFeedback.innerText  = '';
+            els.stepFeedback.className  = '';
+        }
+    }
 
     const step = currentSteps[currentStepIdx];
     els.stepTitle.innerHTML = step.title;
@@ -847,7 +855,11 @@ function checkStep() {
     const step = currentSteps[currentStepIdx];
 
     // Tots els passos usen validate()
-    if (els.stepFeedback) { els.stepFeedback.innerText = ''; els.stepFeedback.className = ''; }
+    // [ROUND 7 — preserva initFeedback si n'hi ha; altrament neteja]
+    if (els.stepFeedback && !step.initFeedback) {
+        els.stepFeedback.innerText = '';
+        els.stepFeedback.className = '';
+    }
     const res = step.validate();
 
     if (res !== true) {
