@@ -102,6 +102,24 @@
         /* Espai extra a la dreta de la base per no solapar l'input */
         .expr-base-sup-pad { margin-right: 2.2em; }
 
+        /* [ROUND 5 — input inline per al resultat numèric directe (Repte 2, pas 2)] */
+        .expr-inline-input {
+            display: inline-block;
+            width: 90px; height: 52px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.75em; font-weight: bold; text-align: center;
+            border: 2.5px solid var(--primary); border-radius: 8px;
+            background: var(--primary-light); outline: none; color: #1e293b;
+            vertical-align: middle; margin-left: 6px;
+            -moz-appearance: textfield;
+        }
+        .expr-inline-input:focus { background: #c7d2fe; box-shadow: 0 0 0 3px rgba(79,70,229,.25); }
+        .expr-inline-input::-webkit-inner-spin-button,
+        .expr-inline-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .expr-inline-input.error-flash {
+            border-color: var(--danger); background: var(--danger-light); animation: shake .25s;
+        }
+
         /* ── SCHEMA ROW ──────────────────────────────────────── */
         .schema-row {
             display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
@@ -473,9 +491,18 @@ function genRepte1(opIdx) {
 }
 
 // ── REPTE 2: Base negativa ───────────────────────────────────────
+// [ROUND 5 — restriccions: |b|∈[2,12]; exp màxim segons base per evitar números gegants]
+function maxExpForBase(b) {
+    if (b <= 2) return 6;
+    if (b <= 4) return 4;
+    if (b <= 5) return 3;
+    return 3;  // |b|>5
+}
+
 function genRepte2(opIdx) {
     const base = rand(2, 9);
-    const exp  = rand(2, 5);
+    const maxExp = maxExpForBase(base);
+    const exp  = rand(2, maxExp);
     // opIdx 0,1 → sempre parèntesis; 2,3 → barreja
     const hasParen = (opIdx <= 1) ? true : pick([true, false]);
     const rawVal   = intPow(base, exp);
@@ -596,23 +623,22 @@ function buildStepsRepte2(p) {
     // Missatge explicatiu segons el cas
     let signExplanation;
     if (!p.hasParen) {
-        signExplanation = `Atenció: sense parèntesis, l'exponent sols afecta ${p.base}, no el signe. El resultat és sempre negatiu.`;
+        signExplanation = `Sense parèntesis, l'exponent sols afecta ${p.base}, no el signe → resultat sempre negatiu.`;
     } else if (p.isEven) {
-        signExplanation = `Exponent parell → nombre senar de factors negatius → resultat positiu.`;
+        signExplanation = `Exponent parell → nombre parell de factors negatius → resultat positiu.`;
     } else {
         signExplanation = `Exponent senar → nombre senar de factors negatius → resultat negatiu.`;
     }
 
-    // PAS 1: determinar el signe
+    // PAS 1: determinar el signe  [ROUND 5 — títol únic; 3 botons amb Zero com a distractor]
     const step1 = {
-        title: p.hasParen
-            ? `L'expressió (−${p.base})${p.exp} s'avalua amb ${p.exp} factor${p.exp>1?'s':''} de (−${p.base}). Quin és el signe del resultat?`
-            : `Atenció: sense parèntesis, −${p.base}${p.exp} significa −(${p.base}${p.exp}). Quin és el signe?`,
+        title: `El resultat de la potència serà positiu, negatiu o zero?`,
         buildSchema: buildEmpty(),
-        hideBtnOk: true,   /* [ROUND 1 — auto-submit, no cal OK] */
+        hideBtnOk: true,
         buildBtns: buildBtnSelect([
-            { label: 'Positiu (+)', value: 'positiu' },
-            { label: 'Negatiu (−)', value: 'negatiu' },
+            { label: 'Negatiu', value: 'negatiu' },
+            { label: 'Zero',    value: 'zero'    },
+            { label: 'Positiu', value: 'positiu' },
         ]),
         validate: () => {
             if (selectedOption === null) return false;
@@ -626,11 +652,18 @@ function buildStepsRepte2(p) {
         }
     };
 
-    // PAS 2: calcular el valor (pot ser negatiu)
+    // PAS 2: calcular el valor numèric — input inline  [ROUND 5]
     const step2 = {
-        title: `Calcula el valor numèric (amb el signe corresponent):`,
-        buildSchema: buildOneInput(null),
-        buildBtns:   (c) => { els.stepBtns.innerHTML = ''; },
+        title: `Calcula el resultat:`,
+        buildSchema: (c) => { c.innerHTML = ''; els.stepBtns.innerHTML = ''; },
+        appendToExpr: (box) => {
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'expr-inline-input';
+            inp.id = 'step-input'; inp.autocomplete = 'off';
+            box.appendChild(inp);
+        },
+        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const inp = document.getElementById('step-input');
             if (!inp) return false;
@@ -746,10 +779,10 @@ function showCurrentStep() {
 }
 
 function flashError() {
-    // [ROUND 2 — busca inputs tant a schema-row com a expression-box]
+    // [ROUND 2+5 — busca inputs tant a schema-row com a expression-box]
     const allInputs = [
         ...els.stepSchema.querySelectorAll('input'),
-        ...els.expressionBox.querySelectorAll('.expr-sup-input')
+        ...els.expressionBox.querySelectorAll('.expr-sup-input, .expr-inline-input')
     ];
     allInputs.forEach(inp => {
         inp.classList.add('error-flash');
@@ -766,10 +799,10 @@ function flashError() {
 }
 
 function clearAndFocus() {
-    // [ROUND 2 — buida inputs tant a schema-row com a expression-box]
+    // [ROUND 2+5 — buida inputs tant a schema-row com a expression-box]
     const allInputs = [
         ...els.stepSchema.querySelectorAll('input'),
-        ...els.expressionBox.querySelectorAll('.expr-sup-input')
+        ...els.expressionBox.querySelectorAll('.expr-sup-input, .expr-inline-input')
     ];
     allInputs.forEach(inp => { inp.value = ''; });
     const first = allInputs[0] || null;
