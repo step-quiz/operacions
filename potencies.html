@@ -772,7 +772,7 @@ function buildStepsRepte3(p) {
     } else {
         // from_sci: un sol pas, calcula el valor decimal enter
         const step1 = {
-            title: `Expressa el resultat sense fer servir potències:`,
+            title: `Expressa el nombre sense fer servir potències:`,
             buildSchema: (c) => { c.innerHTML = ''; els.stepBtns.innerHTML = ''; },
             appendToExpr: (box) => {
                 // [ROUND 10 — amplada de l'input basada en el nombre de caràcters del resultat]
