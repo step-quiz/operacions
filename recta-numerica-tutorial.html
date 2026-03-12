@@ -227,6 +227,7 @@
       display: flex; align-items: flex-start; gap: 10px;
       box-shadow: 0 2px 10px rgba(107,124,46,0.12);
       flex-shrink: 0;
+      opacity: 0;   /* invisible per defecte; _showNarration() la fa apareixer */
     }
     .narration-icon { font-size: 1.375em; flex-shrink: 0; margin-top: 1px; line-height: 1; }
     .narration-text { font-size: 1.045em; line-height: 1.58; color: var(--text); }
@@ -310,10 +311,10 @@ const TUTORIAL = [
   {
     chip:     'Exemple 1 \u00b7 Llegir un punt',
     question: 'Quina temperatura feia fa 3 dies?',
-    cloud:    [[-3,3],[-1,-1],[0,2],[2,1]],
+    cloud:    [[-3,5],[-1,-1],[0,2],[2,1]],
     yRange:   { min:-6, max:6, majorStep:1 },
     options: [
-      { text: '3 \u00baC'       },   // idx 0 — correcta
+      { text: '5 \u00baC'       },   // idx 0 — correcta
       { text: '2 \u00baC'       },   // idx 1
       { text: '1 \u00baC'       },   // idx 2
       { text: '\u22121 \u00baC' },   // idx 3
@@ -335,22 +336,22 @@ const TUTORIAL = [
       },
       {
         icon:      '👁️',
-        narration: 'Veus el punt sobre x\u00a0=\u00a0−3? Ressegueix-lo horitzontalment fins a l\'eix Y. Arriba a <b>y\u00a0=\u00a03</b>.',
-        highlight: { type:'point', x:-3, y:3 },
+        narration: 'Veus el punt sobre x\u00a0=\u00a0−3? Ressegueix-lo horitzontalment fins a l\'eix Y. Arriba a <b>y\u00a0=\u00a05</b>.',
+        highlight: { type:'point', x:-3, y:5 },
         btnStates: ['','','',''],
         focus:     'graph',
       },
       {
         icon:      '❌',
-        narration: 'Si haguessis triat <b>−1\u00a0ºC</b>, seria incorrecte. El punt a x\u00a0=\u00a0−3 és a y\u00a0=\u00a03, no a y\u00a0=\u00a0−1.',
-        highlight: { type:'point', x:-3, y:3 },
+        narration: 'Si haguessis triat <b>−1\u00a0ºC</b>, seria incorrecte. El punt a x\u00a0=\u00a0−3 és a y\u00a0=\u00a05, no a y\u00a0=\u00a0−1.',
+        highlight: { type:'point', x:-3, y:5 },
         btnStates: ['','','','wrong'],
         focus:     'option-3',
       },
       {
         icon:      '✅',
-        narration: '<b>3\u00a0ºC és la resposta correcta.</b> El punt és (−3,\u00a03): tres graus sobre zero.',
-        highlight: { type:'point-correct', x:-3, y:3 },
+        narration: '<b>5\u00a0ºC és la resposta correcta.</b> El punt és (−3,\u00a05): cinc graus sobre zero.',
+        highlight: { type:'point-correct', x:-3, y:5 },
         btnStates: ['correct','','','wrong'],
         focus:     'option-0',
       },
@@ -569,10 +570,10 @@ function render(hideNarration = false) {
     // Gràfic
     document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, step.highlight);
 
-    // Narrador — ocult fins que _showNarration() el mostri
+    // Narrador — sempre invisible en renderitzar; _showNarration() el fa apareixer
     const narrationBox = document.querySelector('.narration-box');
-    narrationBox.style.opacity    = hideNarration ? '0' : '1';
-    narrationBox.style.transition = 'opacity 0.4s ease';
+    narrationBox.style.transition = 'none';
+    narrationBox.style.opacity    = '0';
     document.getElementById('narration-icon').textContent = step.icon;
     document.getElementById('narration-text').innerHTML   = step.narration;
 
@@ -589,7 +590,9 @@ function render(hideNarration = false) {
 }
 
 function _showNarration() {
-    document.querySelector('.narration-box').style.opacity = '1';
+    const box = document.querySelector('.narration-box');
+    box.style.transition = 'opacity 0.4s ease';
+    box.style.opacity    = '1';
 }
 
 /* ================================================================
