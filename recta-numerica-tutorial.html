@@ -471,11 +471,11 @@ function _advance() {
     const isLastEx   = exIdx   === TUTORIAL.length  - 1;
 
     if (isLastStep && isLastEx) {
-        // Fade-out 2s, llavors navega
+        // Fade-out 1.2s, llavors navega
         const overlay = document.getElementById('fade-overlay');
         overlay.style.pointerEvents = 'all';
         overlay.style.opacity       = '1';
-        setTimeout(() => { window.location.href = 'recta-numerica.html'; }, 2000);
+        setTimeout(() => { window.location.href = 'recta-numerica.html'; }, 1200);
         return;
     }
 
