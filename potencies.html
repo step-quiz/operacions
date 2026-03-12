@@ -705,6 +705,7 @@ function buildStepsRepte3(p) {
         // [ROUND 9 — un sol pas: dos inputs inline  displayVal = ? · 10^?]
         // [ROUND 13 — validació parcial: mantissa correcta → verda+bloquejada; exponent continua editable]
         let mantissaLocked = false;
+        let expLocked      = false;
 
         const step1 = {
             title: `Escriu la base i l'exponent:`,
@@ -732,64 +733,82 @@ function buildStepsRepte3(p) {
                 const inpE = document.getElementById('step-input-exp');
                 if (!inpM || !inpE) return false;
 
-                // Si la mantissa ja estava bloquejada, avalua només l'exponent
-                if (mantissaLocked) {
-                    const eVal = parseNum(inpE.value.trim());
-                    if (isNaN(eVal) || eVal !== p.exp) return false;
-                    return true;
+                // Helper per bloquejar un input en verd
+                function lockGreen(inp) {
+                    inp.readOnly = true;
+                    inp.style.color       = 'var(--success)';
+                    inp.style.borderColor = 'var(--success)';
+                    inp.style.background  = '#d1fae5';
+                    inp.style.fontWeight  = 'bold';
                 }
 
-                const rawM = inpM.value.trim();
-                const rawE = inpE.value.trim();
-                if (rawM === '') return false;
+                // Si tots dos ja estan bloquejats → verificació final (no hauria de passar)
+                if (mantissaLocked && expLocked) return true;
 
-                // Punt decimal en lloc de coma → avís suau (sense penalitzar)
-                if (rawM.includes('.')) {
-                    if (els.stepFeedback) {
-                        els.stepFeedback.innerText = 'Recorda que has de fer servir coma decimal (,)';
-                        els.stepFeedback.className = 'important';
+                // ── Avaluació de l'exponent ──────────────────────────────
+                if (!expLocked) {
+                    const rawE = inpE.value.trim();
+                    if (rawE !== '') {
+                        const eVal = parseNum(rawE);
+                        if (!isNaN(eVal) && eVal === p.exp) {
+                            expLocked = true;
+                            lockGreen(inpE);
+                        }
                     }
-                    return false;
                 }
 
-                const mVal = parseFloat(rawM.replace(',', '.'));
-                if (isNaN(mVal)) return false;
-
-                // Comprova notació científica canònica: 1 ≤ |m| < 10
-                if (Math.abs(mVal) < 1 || Math.abs(mVal) >= 10) {
-                    if (els.stepFeedback) {
-                        els.stepFeedback.innerText = 'Els càlculs són correctes, però no és notació científica. Corregeix la mantissa.';
-                        els.stepFeedback.className = 'important';
+                // ── Avaluació de la mantissa ─────────────────────────────
+                if (!mantissaLocked) {
+                    const rawM = inpM.value.trim();
+                    if (rawM === '') {
+                        // Focus a mantissa si és buida
+                        setTimeout(() => { if (!isTouchDevice()) inpM.focus(); }, 50);
+                        return false;
                     }
-                    return false;
+                    if (rawM.includes('.')) {
+                        if (els.stepFeedback) {
+                            els.stepFeedback.innerText = 'Recorda que has de fer servir coma decimal (,)';
+                            els.stepFeedback.className = 'important';
+                        }
+                        return false;
+                    }
+                    const mVal = parseFloat(rawM.replace(',', '.'));
+                    if (!isNaN(mVal)) {
+                        if (Math.abs(mVal) < 1 || Math.abs(mVal) >= 10) {
+                            if (els.stepFeedback) {
+                                els.stepFeedback.innerText = 'Els càlculs són correctes, però no és notació científica. Corregeix la mantissa.';
+                                els.stepFeedback.className = 'important';
+                            }
+                            return false;
+                        }
+                        if (Math.abs(mVal - p.mantissaNum) < 1e-9) {
+                            mantissaLocked = true;
+                            lockGreen(inpM);
+                        }
+                    }
                 }
 
-                // Mantissa canònica correcta?
-                if (Math.abs(mVal - p.mantissaNum) > 1e-9) return false;
+                // ── Tots dos correctes → èxit ────────────────────────────
+                if (mantissaLocked && expLocked) return true;
 
-                // ✓ Mantissa correcta → bloquejar-la en verd
-                mantissaLocked = true;
-                inpM.readOnly = true;
-                inpM.style.color         = 'var(--success)';
-                inpM.style.borderColor   = 'var(--success)';
-                inpM.style.background    = '#d1fae5';
-                inpM.style.fontWeight    = 'bold';
-
-                // Comprova si l'exponent ja és present i correcte
-                if (rawE !== '') {
-                    const eVal = parseNum(rawE);
-                    if (!isNaN(eVal) && eVal === p.exp) return true;
-                }
-
-                // Mantissa OK però exponent pendent → soft warning, focus a l'exponent
+                // ── Un de sol correcte → feedback i focus al que falta ───
                 if (els.stepFeedback) {
-                    els.stepFeedback.innerText = 'Mantissa correcta! Ara escriu l\'exponent.';
-                    els.stepFeedback.className = 'important';
+                    if (mantissaLocked && !expLocked) {
+                        els.stepFeedback.innerText = 'Mantissa correcta! Ara escriu l\'exponent.';
+                        els.stepFeedback.className = 'important';
+                        setTimeout(() => {
+                            const t = document.getElementById('step-input-exp');
+                            if (t) { if (isTouchDevice()) showCustomKeyboard(t); else t.focus(); }
+                        }, 50);
+                    } else if (expLocked && !mantissaLocked) {
+                        els.stepFeedback.innerText = 'Exponent correcte! Ara escriu la mantissa.';
+                        els.stepFeedback.className = 'important';
+                        setTimeout(() => {
+                            const t = document.getElementById('step-input-mant');
+                            if (t) { if (isTouchDevice()) showCustomKeyboard(t); else t.focus(); }
+                        }, 50);
+                    }
                 }
-                setTimeout(() => {
-                    const inpE2 = document.getElementById('step-input-exp');
-                    if (inpE2) { if (isTouchDevice()) showCustomKeyboard(inpE2); else inpE2.focus(); }
-                }, 50);
                 return false;
             },
             onCorrect: () => {
