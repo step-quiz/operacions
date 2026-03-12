@@ -179,7 +179,7 @@
                 <div class="level-text"   id="lvl-display"></div>
             </div>
             <div class="score-text"    id="score-display">Punts: 0</div>
-            <div id="attempts-display" class="attempts-counter"></div>
+            <div id="attempts-display" class="attempts-counter" style="display:none;"></div>
         </div>
 
         <div class="expression-box" id="expression-box"></div>
@@ -879,8 +879,7 @@ function checkStep() {
         const hasSoftWarning = els.stepFeedback && els.stepFeedback.innerText !== '';
         if (!hasSoftWarning) {
             flashError();
-            penalize();
-            if (attemptsLeft > 0) clearAndFocus();
+            clearAndFocus();
         }
         return;
     }
@@ -907,20 +906,7 @@ function showCorrectAnswer(p) {
 // PENALITZACIÓ
 // ================================================================
 function penalize() {
-    if (isPenalizing || isTransitioning) return;
-    isPenalizing = true;
-    els.attemptsDisplay.classList.add('blink');
-    setTimeout(() => {
-        els.attemptsDisplay.classList.remove('blink');
-        attemptsLeft--;
-        isPenalizing = false;
-        updateUI();
-        if (attemptsLeft <= 0) {
-            isTransitioning = true;
-            els.resolutionPanel.style.display = 'none';
-            finalizeProblem(0);
-        }
-    }, 900);
+    // Intents desactivats en aquesta activitat — no s'usa
 }
 
 function finalizeProblem(forcedPoints) {
@@ -930,9 +916,7 @@ function finalizeProblem(forcedPoints) {
     els.currentStep.classList.remove('active');
     els.resolutionPanel.style.display = 'none';
 
-    const pts = (forcedPoints !== null)
-        ? forcedPoints
-        : Math.max(0, 10 - (MAX_INTENTS - attemptsLeft) * 2);
+    const pts = forcedPoints !== null ? forcedPoints : 10;
 
     if (pts === 0) showCorrectAnswer(currentProblem);
 
@@ -964,8 +948,7 @@ function updateUI() {
     els.lvlDisplay.innerText     = `Exercici ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
     els.scoreDisplay.innerText   = `Punts: ${sessionScore}`;
     if (els.attemptsDisplay) {
-        els.attemptsDisplay.innerText   = `Intents: ${attemptsLeft}`;
-        els.attemptsDisplay.style.color = attemptsLeft <= 1 ? 'var(--danger)' : '';
+        els.attemptsDisplay.innerText = '';
     }
 }
 
