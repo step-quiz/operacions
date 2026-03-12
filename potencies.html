@@ -79,6 +79,29 @@
         .expr-frac-den { padding: 4px 8px 2px; }
         .expr-result   { color: var(--success); }
 
+        /* [ROUND 2 — input com a exponent real dins l'expression-box] */
+        .expr-base-sup { display: inline-block; position: relative; }
+        .expr-sup-input {
+            position: absolute;
+            top: -0.45em;          /* puja l'input com un exponent real */
+            left: 100%;
+            width: 42px; height: 36px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.48em;     /* ~0.96em a nivell de body */
+            font-weight: bold; text-align: center;
+            border: 2.5px solid var(--primary); border-radius: 6px;
+            background: var(--primary-light); outline: none; color: #1e293b;
+            -moz-appearance: textfield;
+        }
+        .expr-sup-input:focus { background: #c7d2fe; box-shadow: 0 0 0 3px rgba(79,70,229,.25); }
+        .expr-sup-input::-webkit-inner-spin-button,
+        .expr-sup-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .expr-sup-input.error-flash {
+            border-color: var(--danger); background: var(--danger-light); animation: shake .25s;
+        }
+        /* Espai extra a la dreta de la base per no solapar l'input */
+        .expr-base-sup-pad { margin-right: 2.2em; }
+
         /* ── SCHEMA ROW ──────────────────────────────────────── */
         .schema-row {
             display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
@@ -531,19 +554,20 @@ function buildStepsRepte1(p) {
         }
     };
 
-    // PAS 2: aplicar l'operació i escriure l'exponent resultant
+    // PAS 2: input superíndex inline a l'expression-box
     const step2 = {
-        title: `Correcte! ${p.m} ${info.sym} ${p.n} = ${p.result} — Escriu la potència resultant (exponent ${p.result}):`,
-        buildSchema: (c) => {
-            c.innerHTML = '';
-            els.stepBtns.innerHTML = '';
-            c.appendChild(mkSpan('=', 'schema-eq'));
-            c.appendChild(mkSpan(`${p.base}`, 'schema-text'));
-            c.appendChild(mkSpan('^', 'schema-eq'));
+        title: `Escriu l'exponent:`,   /* [ROUND 2] */
+        buildSchema: (c) => { c.innerHTML = ''; els.stepBtns.innerHTML = ''; },
+        // [ROUND 2 — appendToExpr: afegeix "base^[input]" directament a l'expression-box]
+        appendToExpr: (box) => {
+            const wrapper = document.createElement('span');
+            wrapper.className = 'expr-base-sup expr-base-sup-pad';
+            wrapper.appendChild(mkSpan(String(p.base)));
             const inp = document.createElement('input');
-            inp.type = 'text'; inp.className = 'schema-input';
+            inp.type = 'text'; inp.className = 'expr-sup-input';
             inp.id = 'step-input'; inp.autocomplete = 'off';
-            c.appendChild(inp);
+            wrapper.appendChild(inp);
+            box.appendChild(wrapper);
         },
         buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
@@ -688,8 +712,16 @@ function showCurrentStep() {
     const step = currentSteps[currentStepIdx];
     els.stepTitle.innerHTML = step.title;
 
-    // Construeix el DOM de l'esquema
-    step.buildSchema(els.stepSchema);
+    // [ROUND 2 — si el pas té appendToExpr, afegeix l'input directament a l'expression-box
+    //            i amaga la schema-row; altrament, usa el flux normal]
+    if (step.appendToExpr) {
+        step.appendToExpr(els.expressionBox);
+        els.stepSchema.style.display = 'none';
+        els.stepSchema.innerHTML = '';
+    } else {
+        els.stepSchema.style.display = '';
+        step.buildSchema(els.stepSchema);
+    }
 
     // Construeix botons (si n'hi ha)
     if (step.buildBtns) step.buildBtns(els.stepBtns);
@@ -700,9 +732,10 @@ function showCurrentStep() {
     els.currentStep.classList.add('active');
     els.resolutionPanel.style.display = 'flex';
 
-    // Focus al primer input (si existeix)
+    // Focus al primer input (schema-row o expression-box)
     setTimeout(() => {
-        const first = els.stepSchema.querySelector('input');
+        const first = els.stepSchema.querySelector('input')
+                   || els.expressionBox.querySelector('.expr-sup-input');
         if (first) {
             if (isTouchDevice()) { showCustomKeyboard(first); } else { first.focus(); }
         }
@@ -710,8 +743,12 @@ function showCurrentStep() {
 }
 
 function flashError() {
-    // Flash inputs
-    els.stepSchema.querySelectorAll('input').forEach(inp => {
+    // [ROUND 2 — busca inputs tant a schema-row com a expression-box]
+    const allInputs = [
+        ...els.stepSchema.querySelectorAll('input'),
+        ...els.expressionBox.querySelectorAll('.expr-sup-input')
+    ];
+    allInputs.forEach(inp => {
         inp.classList.add('error-flash');
         setTimeout(() => inp.classList.remove('error-flash'), 300);
     });
@@ -726,8 +763,13 @@ function flashError() {
 }
 
 function clearAndFocus() {
-    els.stepSchema.querySelectorAll('input').forEach(inp => { inp.value = ''; });
-    const first = els.stepSchema.querySelector('input');
+    // [ROUND 2 — buida inputs tant a schema-row com a expression-box]
+    const allInputs = [
+        ...els.stepSchema.querySelectorAll('input'),
+        ...els.expressionBox.querySelectorAll('.expr-sup-input')
+    ];
+    allInputs.forEach(inp => { inp.value = ''; });
+    const first = allInputs[0] || null;
     if (first) {
         if (isTouchDevice()) { kbMarkForOverwrite(first); showCustomKeyboard(first); }
         else { first.focus(); }
