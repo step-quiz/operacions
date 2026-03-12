@@ -180,6 +180,7 @@
             text-align: center; min-height: 1.3em;
         }
         #step-feedback.important { color: #b45309; font-weight: bold; }
+        #step-feedback.error     { color: #dc2626; font-weight: bold; }
 
         .btn-submit-schema {
             background-color: #475569; color: white; border: none;
@@ -796,23 +797,37 @@ function buildStepsRepte3(p) {
                 // ── Tots dos correctes → èxit ────────────────────────────
                 if (mantissaLocked && expLocked) return true;
 
-                // ── Un de sol correcte → feedback i focus al que falta ───
-                if (els.stepFeedback) {
-                    if (mantissaLocked && !expLocked) {
-                        els.stepFeedback.innerText = 'Mantissa correcta! Ara escriu l\'exponent.';
-                        els.stepFeedback.className = 'important';
-                        setTimeout(() => {
-                            const t = document.getElementById('step-input-exp');
-                            if (t) { if (isTouchDevice()) showCustomKeyboard(t); else t.focus(); }
-                        }, 50);
-                    } else if (expLocked && !mantissaLocked) {
-                        els.stepFeedback.innerText = 'Exponent correcte! Ara escriu la mantissa.';
-                        els.stepFeedback.className = 'important';
-                        setTimeout(() => {
-                            const t = document.getElementById('step-input-mant');
-                            if (t) { if (isTouchDevice()) showCustomKeyboard(t); else t.focus(); }
-                        }, 50);
+                // ── Un de sol correcte → missatge vermell + input vermell al camp incorrecte ───
+                const inpMref = document.getElementById('step-input-mant');
+                const inpEref = document.getElementById('step-input-exp');
+
+                function markRed(inp) {
+                    inp.style.color       = '#dc2626';
+                    inp.style.borderColor = '#dc2626';
+                    inp.style.background  = '#fee2e2';
+                    inp.style.fontWeight  = 'bold';
+                }
+
+                if (mantissaLocked && !expLocked) {
+                    if (inpEref && inpEref.value.trim() !== '') markRed(inpEref);
+                    if (els.stepFeedback) {
+                        els.stepFeedback.innerText = 'Exponent incorrecte.';
+                        els.stepFeedback.className = 'error';
                     }
+                    setTimeout(() => {
+                        const t = document.getElementById('step-input-exp');
+                        if (t) { if (isTouchDevice()) showCustomKeyboard(t); else t.focus(); }
+                    }, 50);
+                } else if (expLocked && !mantissaLocked) {
+                    if (inpMref && inpMref.value.trim() !== '') markRed(inpMref);
+                    if (els.stepFeedback) {
+                        els.stepFeedback.innerText = 'Mantissa incorrecta.';
+                        els.stepFeedback.className = 'error';
+                    }
+                    setTimeout(() => {
+                        const t = document.getElementById('step-input-mant');
+                        if (t) { if (isTouchDevice()) showCustomKeyboard(t); else t.focus(); }
+                    }, 50);
                 }
                 return false;
             },
@@ -925,7 +940,16 @@ function clearAndFocus() {
         ...els.stepSchema.querySelectorAll('input'),
         ...els.expressionBox.querySelectorAll('.expr-sup-input, .expr-inline-input')
     ];
-    allInputs.forEach(inp => { if (!inp.readOnly) inp.value = ''; });
+    allInputs.forEach(inp => {
+        if (!inp.readOnly) {
+            inp.value = '';
+            // Restablir estil si estava marcat en vermell
+            inp.style.color       = '';
+            inp.style.borderColor = '';
+            inp.style.background  = '';
+            inp.style.fontWeight  = '';
+        }
+    });
     const first = allInputs[0] || null;
     if (first) {
         if (isTouchDevice()) { kbMarkForOverwrite(first); showCustomKeyboard(first); }
