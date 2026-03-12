@@ -46,7 +46,7 @@
       justify-content: center;
     }
     .title-row h1 {
-      font-size: 1.35em; font-weight: 700;
+      font-size: 1.485em; font-weight: 700;
       text-transform: uppercase; letter-spacing: 1.5px;
       color: var(--primary-dark);
     }
@@ -83,36 +83,30 @@
       flex-shrink: 0;
     }
     .step-counter {
-      font-size: 0.78em; font-weight: 700;
+      font-size: 0.858em; font-weight: 700;
       background: rgba(255,255,255,0.15);
       padding: 3px 10px; border-radius: 20px;
       white-space: nowrap; flex-shrink: 0;
     }
-    .example-chip {
-      font-size: 0.75em; font-weight: 800;
-      background: var(--accent);
-      color: white;
-      padding: 3px 10px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: 0.4px;
-      white-space: nowrap; flex-shrink: 0;
-    }
+    .example-chip { display: none; }
     .header-spacer { flex: 1 1 0; }
 
     .btn-pause {
-      background: rgba(255,255,255,0.12);
-      border: 1.5px solid rgba(255,255,255,0.3);
-      color: white; font-size: 0.9em;
-      width: 32px; height: 32px; border-radius: 50%;
+      background: white;
+      border: 2px solid #ea580c;
+      color: #ea580c; font-size: 0.99em; font-weight: 800;
+      width: 34px; height: 34px; border-radius: 50%;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s; flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(234,88,12,0.2);
     }
-    .btn-pause:hover { background: rgba(255,255,255,0.25); }
+    .btn-pause:hover { background: #fff7ed; }
 
     .btn-next {
-      padding: 6px 16px;
+      padding: 6px 18px;
       background: white; color: var(--primary-dark);
-      font-family: 'Barlow', sans-serif; font-size: 0.92em; font-weight: 700;
+      font-family: 'Barlow', sans-serif; font-size: 1.012em; font-weight: 700;
       border: none; border-radius: 7px; cursor: pointer;
       transition: background 0.15s, transform 0.1s;
       white-space: nowrap; flex-shrink: 0;
@@ -124,9 +118,9 @@
     .btn-next.btn-next-ex       { background: #ede9fe; color: #4c1d95; }
     .btn-next.btn-next-ex:hover { background: #ddd6fe; }
 
-    /* ---- BARRA TIMER ---- */
+    /* ---- BARRA TIMER — creix d'esquerra a dreta, taronja ---- */
     .timer-track { height: 5px; background: rgba(0,0,0,0.08); flex-shrink: 0; }
-    .timer-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), var(--primary-dark)); width: 100%; }
+    .timer-fill  { height: 100%; background: linear-gradient(90deg, #f97316, #ea580c); width: 0%; }
 
     /* ---- COS ---- */
     .game-body {
@@ -161,7 +155,7 @@
       transition: opacity 0.3s ease;
     }
     .question-hint {
-      font-size: 0.82em; font-weight: 500;
+      font-size: 0.902em; font-weight: 500;
       color: var(--muted); font-style: italic;
       margin-bottom: 10px; line-height: 1.4; min-height: 1em;
       transition: opacity 0.3s ease;
@@ -180,7 +174,7 @@
 
     .btn-option {
       padding: 9px 11px;
-      font-family: 'Barlow', sans-serif; font-size: 0.91em; font-weight: 600;
+      font-family: 'Barlow', sans-serif; font-size: 1.001em; font-weight: 600;
       border-radius: var(--radius); border: 2px solid var(--border);
       background: white; color: var(--text);
       cursor: default; pointer-events: none;
@@ -234,8 +228,8 @@
       box-shadow: 0 2px 10px rgba(107,124,46,0.12);
       flex-shrink: 0;
     }
-    .narration-icon { font-size: 1.25em; flex-shrink: 0; margin-top: 1px; line-height: 1; }
-    .narration-text { font-size: 0.95em; line-height: 1.58; color: var(--text); }
+    .narration-icon { font-size: 1.375em; flex-shrink: 0; margin-top: 1px; line-height: 1; }
+    .narration-text { font-size: 1.045em; line-height: 1.58; color: var(--text); }
     .narration-text b { color: var(--primary-dark); }
 
     /* ---- CLASSES FOCUS ---- */
@@ -288,11 +282,11 @@
       <div class="options-list"    id="tut-options"></div>
     </div>
     <div class="game-right">
-      <div id="tut-graph"></div>
       <div class="narration-box">
         <span class="narration-icon" id="narration-icon">👀</span>
         <div  class="narration-text" id="narration-text"></div>
       </div>
+      <div id="tut-graph"></div>
     </div>
   </div>
 
@@ -434,7 +428,7 @@ function startTimer() {
     timerLastMs  = Date.now();
     isPaused     = false;
     _setPauseIcon();
-    _setFill(100);
+    _setFill(0);
     timerIntv = setInterval(_tick, 60);
 }
 
@@ -443,7 +437,7 @@ function _tick() {
     const now = Date.now();
     timerElapsed += now - timerLastMs;
     timerLastMs   = now;
-    _setFill(Math.max(0, 100 - timerElapsed / STEP_MS * 100));
+    _setFill(Math.min(100, timerElapsed / STEP_MS * 100));
     if (timerElapsed >= STEP_MS) { clearInterval(timerIntv); _advance(); }
 }
 
@@ -545,7 +539,9 @@ function render() {
     const ex   = TUTORIAL[exIdx];
     const step = ex.steps[stepIdx];
 
-    document.getElementById('step-counter').textContent = `Pas ${_globalStep() + 1} de ${TOTAL_STEPS}`;
+    const gs  = _globalStep();
+    const pct = gs === TOTAL_STEPS - 1 ? 100 : (gs + 1) * 10;
+    document.getElementById('step-counter').textContent = `Completat: ${pct}%`;
     document.getElementById('example-chip').textContent = ex.chip;
     document.getElementById('tut-question').textContent = ex.question;
     document.getElementById('tut-hint').textContent     = '';
