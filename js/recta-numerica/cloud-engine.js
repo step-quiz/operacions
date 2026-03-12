@@ -94,7 +94,7 @@ window.CloudEngine = (() => {
                 const delta = jumpSet.has(i)
                     ? _randInt(jumpMin, jumpMax) * (Math.random() < 0.5 ? 1 : -1)
                     : _randInt(-smoothMax, smoothMax);
-                y = _clamp(y + delta, min, max);
+                y = _clamp(y + delta, min + margin, max - margin);
             }
         }
         return points;
