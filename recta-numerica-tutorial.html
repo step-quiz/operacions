@@ -322,35 +322,35 @@ const TUTORIAL = [
     steps: [
       {
         icon:      '📖',
-        narration: 'Llegeix la <b>pregunta</b>, a l\'esquerra. Ens demana la temperatura de <b>fa 3 dies</b>. El primer pas és sempre llegir la pregunta!',
+        narration: 'Llegeix la <b>pregunta</b>, a l\'esquerra. Ens demana la temperatura de <b>fa 3 dies</b>.<br>El primer pas és sempre llegir la pregunta!',
         highlight: null,
         btnStates: ['','','',''],
         focus:     'question',
       },
       {
         icon:      '🔎',
-        narration: '<b>«Fa 3 dies»</b> correspon a x\u00a0=\u00a0−3. Localitza x\u00a0=\u00a0−3 a l\'eix horitzontal del gràfic.',
+        narration: '<b>«Fa 3 dies»</b> correspon a x\u00a0=\u00a0−3.<br>Localitza x\u00a0=\u00a0−3 a l\'eix horitzontal del gràfic.',
         highlight: { type:'column', x:-3, label:'fa 3 dies \u2192 x\u00a0=\u00a0\u22123' },
         btnStates: ['','','',''],
         focus:     'graph',
       },
       {
         icon:      '👁️',
-        narration: 'Veus el punt sobre x\u00a0=\u00a0−3? Ressegueix-lo horitzontalment fins a l\'eix Y. Arriba a <b>y\u00a0=\u00a05</b>.',
+        narration: 'Veus el punt sobre x\u00a0=\u00a0−3? Quina altura li correspon?<br>Arriba a <b>y\u00a0=\u00a05</b>.',
         highlight: { type:'point', x:-3, y:5 },
         btnStates: ['','','',''],
         focus:     'graph',
       },
       {
         icon:      '❌',
-        narration: 'Si haguessis triat <b>−1\u00a0ºC</b>, seria incorrecte. El punt a x\u00a0=\u00a0−3 és a y\u00a0=\u00a05, no a y\u00a0=\u00a0−1.',
+        narration: 'Si haguessis triat <b>−1\u00a0ºC</b>, seria incorrecte.<br>El punt a x\u00a0=\u00a0−3 és a y\u00a0=\u00a05, no a y\u00a0=\u00a0−1.',
         highlight: { type:'point', x:-3, y:5 },
         btnStates: ['','','','wrong'],
         focus:     'option-3',
       },
       {
         icon:      '✅',
-        narration: '<b>5\u00a0ºC és la resposta correcta.</b> El punt és (−3,\u00a05): cinc graus sobre zero.',
+        narration: '<b>5\u00a0ºC és la resposta correcta.</b> El punt és (−3,\u00a05): fa 3 dies tenim 5 graus sobre zero.',
         highlight: { type:'point-correct', x:-3, y:5 },
         btnStates: ['correct','','','wrong'],
         focus:     'option-0',
@@ -377,7 +377,7 @@ const TUTORIAL = [
     steps: [
       {
         icon:      '📋',
-        narration: 'Hi ha <b>4 frases</b>. Hem d\'analitzar cadascuna i comprovar-la al gràfic. Observa com ho fem. Només n\'hi ha una de certa.',
+        narration: 'Hi ha <b>4 frases</b>. Hem d\'analitzar cadascuna i comprovar-la al gràfic.<br>Observa com ho fem. Només n\'hi ha una de certa.',
         highlight: null,
         btnStates: ['','','',''],
         focus:     'options',
@@ -391,7 +391,7 @@ const TUTORIAL = [
       },
       {
         icon:      '✅',
-        narration: 'Frase 1: <b>«Avui, 2 graus sobre zero.»</b> Comprova x\u00a0=\u00a00: el punt és a y\u00a0=\u00a02. <b>Cert!</b> Les altres tres frases son totes falses.',
+        narration: 'Frase 1: <b>«Avui, 2 graus sobre zero.»</b> Comprova x\u00a0=\u00a00: el punt és a y\u00a0=\u00a02. <b>Cert!</b><br>Les altres tres frases son totes falses.',
         highlight: { type:'point-correct', x:0, y:2 },
         btnStates: ['correct','wrong','wrong','wrong'],
         focus:     'option-0',
