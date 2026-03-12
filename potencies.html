@@ -775,7 +775,12 @@ function buildStepsRepte3(p) {
                     const mVal = parseFloat(rawM.replace(',', '.'));
                     if (!isNaN(mVal)) {
                         if (Math.abs(mVal) < 1 || Math.abs(mVal) >= 10) {
-                            if (els.stepFeedback) {
+                            // Comprova si el producte és correcte abans de dir "no és notació científica"
+                            const eVal = parseNum(inpE.value.trim());
+                            const productOk = !isNaN(eVal) &&
+                                Math.abs(mVal * Math.pow(10, eVal) - p.mantissaNum * Math.pow(10, p.exp))
+                                    < Math.abs(p.mantissaNum * Math.pow(10, p.exp)) * 1e-9;
+                            if (productOk && els.stepFeedback) {
                                 els.stepFeedback.innerText = 'Els càlculs són correctes, però no és notació científica. Corregeix la mantissa.';
                                 els.stepFeedback.className = 'important';
                             }
