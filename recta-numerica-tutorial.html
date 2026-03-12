@@ -264,11 +264,11 @@
 <div class="panel">
 
   <div class="tut-header">
-    <span class="step-counter" id="step-counter">Pas 1 de 9</span>
-    <span class="example-chip"  id="example-chip"></span>
-    <div class="header-spacer"></div>
+    <span class="step-counter" id="step-counter">Completat: 10%</span>
     <button class="btn-pause" id="btn-pause" aria-label="Pausa/repren">⏸</button>
     <button class="btn-next"  id="btn-next">Següent →</button>
+    <div class="header-spacer"></div>
+    <span class="example-chip"  id="example-chip"></span>
   </div>
 
   <div class="timer-track">
@@ -525,7 +525,7 @@ function applyFocus(focus) {
 
     } else if (focus.startsWith('option-')) {
         const idx = parseInt(focus.split('-')[1]);
-        graphEl.classList.add('dim');
+        // El gràfic resta visible: la narració demana verificar-hi un punt
         questionEl.style.opacity = '0.15';
         hintEl.style.opacity     = '0.15';
         opts.forEach((o, i) => { if (i !== idx) o.classList.add('dim'); });
