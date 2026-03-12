@@ -772,9 +772,20 @@ function buildStepsRepte3(p) {
     } else {
         // from_sci: un sol pas, calcula el valor decimal enter
         const step1 = {
-            title: `Calcula el valor decimal de ${p.mantissaStr} × 10<sup style="font-size:.75em;vertical-align:super">${p.exp}</sup>:`,
-            buildSchema: buildOneInput(null),
-            buildBtns:   () => { els.stepBtns.innerHTML = ''; },
+            title: `Expressa el resultat sense fer servir potències:`,
+            buildSchema: (c) => { c.innerHTML = ''; els.stepBtns.innerHTML = ''; },
+            appendToExpr: (box) => {
+                // [ROUND 10 — amplada de l'input basada en el nombre de caràcters del resultat]
+                const resultStr = String(p.value).replace('-', '').replace(',', '.');
+                const nChars    = resultStr.length + 2;  // +2 marge
+                const pxWidth   = Math.max(80, nChars * 18);
+                const inp = document.createElement('input');
+                inp.type = 'text'; inp.className = 'expr-inline-input';
+                inp.id = 'step-input'; inp.autocomplete = 'off';
+                inp.style.width = pxWidth + 'px';
+                box.appendChild(inp);
+            },
+            buildBtns: () => { els.stepBtns.innerHTML = ''; },
             validate: () => {
                 const inp = document.getElementById('step-input');
                 if (!inp) return false;
