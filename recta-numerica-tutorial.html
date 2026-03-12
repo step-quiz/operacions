@@ -354,7 +354,7 @@ const TUTORIAL = [
       },
       {
         icon:      '✅',
-        narration: '<b>5\u00a0ºC és la resposta correcta.</b> El punt és (−3,\u00a05): fa 3 dies tenim 5 graus sobre zero.',
+        narration: '<b>5\u00a0ºC és la resposta correcta.</b> Veiem el punt (−3,\u00a05).<br>Fa 3 dies, teníem 5 graus de temperatura.',
         highlight: { type:'point-correct', x:-3, y:5 },
         btnStates: ['correct','','','wrong'],
         focus:     'option-0',
@@ -381,21 +381,21 @@ const TUTORIAL = [
     steps: [
       {
         icon:      '📋',
-        narration: 'Hi ha <b>4 frases</b>. Hem d\'analitzar cadascuna i comprovar-la al gràfic.<br>Observa com ho fem. Només n\'hi ha una de certa.',
+        narration: 'Hi ha <b>4 frases</b>. Hem d\'analitzar cadascuna i comprovar-la al gràfic.<br>Observa com ho fem.<br>Només hi ha una frase certa, les altres són falses.',
         highlight: null,
         btnStates: ['','','',''],
         focus:     'options',
       },
       {
         icon:      '❌',
-        narration: 'Frase 3: <b>«D\'aquí 3 dies, 4\u00a0ºC.»</b> Comprova x\u00a0=\u00a03: el punt és a y\u00a0=\u00a01, no a y\u00a0=\u00a04. <b>Fals!</b>',
+        narration: 'Si escollim la frase 3, ens <b>equivoquem segur!</b><br>Comprova x\u00a0=\u00a03: el punt és a y\u00a0=\u00a01, no a y\u00a0=\u00a04.',
         highlight: { type:'point', x:3, y:1 },
         btnStates: ['','','wrong',''],
         focus:     'option-2',
       },
       {
         icon:      '✅',
-        narration: 'Frase 1: <b>«Avui, 2 graus sobre zero.»</b> Comprova x\u00a0=\u00a00: el punt és a y\u00a0=\u00a02. <b>Cert!</b><br>Les altres tres frases son totes falses.',
+        narration: 'Si escollim la frase 1, encertem: <b>«Avui, 2 graus sobre zero.»</b> Comprova x\u00a0=\u00a00: el punt és a y\u00a0=\u00a02. <b>Cert!</b><br>Les altres tres frases son totes falses.',
         highlight: { type:'point-correct', x:0, y:2 },
         btnStates: ['correct','wrong','wrong','wrong'],
         focus:     'option-0',
