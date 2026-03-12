@@ -702,46 +702,72 @@ function buildStepsRepte2(p) {
 // ── Repte 3 ─────────────────────────────────────────────────────
 function buildStepsRepte3(p) {
     if (p.dir === 'to_sci') {
-        // PAS 1 (botons): la coma es mou a l'esquerra o a la dreta?
-        const dirBtns = p.exp >= 0 ? 'dreta' : 'esquerra';
+        // [ROUND 9 — un sol pas: dos inputs inline  displayVal = ? · 10^?]
         const step1 = {
-            title: `El nombre ${p.displayVal} es pot escriure com ${p.mantissaStr} × 10^?. Cap on s'ha mogut la coma decimal?`,
-            buildSchema: buildEmpty(),
-            hideBtnOk: true,   /* [ROUND 1 — auto-submit, no cal OK] */
-            buildBtns: buildBtnSelect([
-                { label: '← Esquerra', value: 'esquerra' },
-                { label: 'Dreta →',    value: 'dreta'    },
-            ]),
-            validate: () => {
-                if (selectedOption === null) return false;
-                return selectedOption === dirBtns;
+            title: `Escriu la base i l'exponent:`,
+            buildSchema: (c) => { c.innerHTML = ''; els.stepBtns.innerHTML = ''; },
+            appendToExpr: (box) => {
+                // Input mantissa
+                const inpM = document.createElement('input');
+                inpM.type = 'text'; inpM.className = 'expr-inline-input';
+                inpM.id = 'step-input-mant'; inpM.autocomplete = 'off';
+                box.appendChild(inpM);
+                // " · 10"
+                box.appendChild(mkSpan('&thinsp;·&thinsp;10', 'expr-op'));
+                // Input exponent (superíndex)
+                const wrapExp = document.createElement('span');
+                wrapExp.className = 'expr-base-sup expr-base-sup-pad';
+                const inpE = document.createElement('input');
+                inpE.type = 'text'; inpE.className = 'expr-sup-input';
+                inpE.id = 'step-input-exp'; inpE.autocomplete = 'off';
+                wrapExp.appendChild(inpE);
+                box.appendChild(wrapExp);
             },
-            onCorrect: () => {
-                if (els.stepFeedback) {
-                    els.stepFeedback.innerText = p.exp >= 0
-                        ? `La coma s'ha mogut ${p.expAbs} posicions a la dreta → exponent positiu.`
-                        : `La coma s'ha mogut ${p.expAbs} posicions a l'esquerra → exponent negatiu.`;
-                }
-            }
-        };
-
-        // PAS 2: escriure l'exponent (enter, pot ser negatiu)
-        const step2 = {
-            title: `Quantes posicions s'ha mogut la coma? Escriu l'exponent de 10 (amb signe si cal):`,
-            buildSchema: buildOneInput(`${p.mantissaStr}&thinsp;×&thinsp;10`),
-            buildBtns:   () => { els.stepBtns.innerHTML = ''; },
+            buildBtns: () => { els.stepBtns.innerHTML = ''; },
             validate: () => {
-                const inp = document.getElementById('step-input');
-                if (!inp) return false;
-                const v = parseNum(inp.value);
-                return !isNaN(v) && v === p.exp;
+                const inpM = document.getElementById('step-input-mant');
+                const inpE = document.getElementById('step-input-exp');
+                if (!inpM || !inpE) return false;
+
+                const rawM = inpM.value.trim();
+                const rawE = inpE.value.trim();
+                if (rawM === '' || rawE === '') return false;
+
+                // Punt decimal en lloc de coma → avís suau (sense penalitzar)
+                if (rawM.includes('.')) {
+                    if (els.stepFeedback) {
+                        els.stepFeedback.innerText = 'Recorda que has de fer servir coma decimal (,)';
+                        els.stepFeedback.className = 'important';
+                    }
+                    return false;
+                }
+
+                const mVal = parseFloat(rawM.replace(',', '.'));
+                const eVal = parseNum(rawE);
+                if (isNaN(mVal) || isNaN(eVal)) return false;
+
+                // Comprova que mVal · 10^eVal coincideix amb el nombre original
+                const reconstructed = mVal * Math.pow(10, eVal);
+                const expected       = p.mantissaNum * Math.pow(10, p.exp);
+                if (Math.abs(reconstructed - expected) > Math.abs(expected) * 1e-9) return false;
+
+                // Matemàticament correcte — comprova notació científica canònica: 1 ≤ |m| < 10
+                if (Math.abs(mVal) < 1 || Math.abs(mVal) >= 10) {
+                    if (els.stepFeedback) {
+                        els.stepFeedback.innerText = 'Els càlculs són correctes, però no és notació científica. Corregeix la mantissa.';
+                        els.stepFeedback.className = 'important';
+                    }
+                    return false;
+                }
+
+                return true;
             },
             onCorrect: () => {
                 const expStr = p.exp < 0 ? `(${p.exp})` : String(p.exp);
-                showResult(`${p.mantissaStr}&thinsp;×&thinsp;10<sup class="expr-sup">${expStr}</sup>`);
+                showResult(`${p.mantissaStr}&thinsp;·&thinsp;10<sup class="expr-sup">${expStr}</sup>`);
             }
         };
-        return [step1, step2];
+        return [step1];
 
     } else {
         // from_sci: un sol pas, calcula el valor decimal enter
@@ -769,14 +795,11 @@ function showCurrentStep() {
     const step = currentSteps[currentStepIdx];
 
     // [ROUND 7 — initFeedback: feedback permanent precarregat; altrament neteja]
+    // [ROUND 8 — visualització de initFeedback deshabilitada temporalment]
     if (els.stepFeedback) {
-        if (step.initFeedback) {
-            els.stepFeedback.innerText  = step.initFeedback;
-            els.stepFeedback.className  = 'important';
-        } else {
-            els.stepFeedback.innerText  = '';
-            els.stepFeedback.className  = '';
-        }
+        els.stepFeedback.innerText = '';
+        els.stepFeedback.className = '';
+        /* DISABLED: if (step.initFeedback) { ... } */
     }
 
     els.stepTitle.innerHTML = step.title;
@@ -862,9 +885,13 @@ function checkStep() {
     const res = step.validate();
 
     if (res !== true) {
-        flashError();
-        penalize();
-        if (attemptsLeft > 0) clearAndFocus();
+        // [ROUND 9 — si validate ha escrit un avís suau al feedback, no penalitzar ni buidar]
+        const hasSoftWarning = els.stepFeedback && els.stepFeedback.innerText !== '';
+        if (!hasSoftWarning) {
+            flashError();
+            penalize();
+            if (attemptsLeft > 0) clearAndFocus();
+        }
         return;
     }
 
