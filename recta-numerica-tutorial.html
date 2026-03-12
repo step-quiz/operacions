@@ -366,7 +366,7 @@ const TUTORIAL = [
   {
     chip:     'Exemple 2 \u00b7 Frase correcta',
     question: 'Selecciona la frase correcta:',
-    cloud:    [[-2,-1],[-1,2],[0,2],[1,4],[3,1]],
+    cloud:    [[-2,-1],[-1,0],[0,2],[1,4],[3,1]],
     yRange:   { min:-6, max:6, majorStep:1 },
     options: [
       { text: 'Avui, la temperatura és de 2 graus sobre zero'              },  // idx 0 — CERTA
@@ -587,6 +587,7 @@ function render(hideNarration = false) {
     if      (isLastStep && isLastEx) { btn.textContent = '🎮 Ves a jugar!';     btn.className = 'btn-next btn-finish';  }
     else if (isLastStep)             { btn.textContent = 'Exemple seg\u00fcent \u2192'; btn.className = 'btn-next btn-next-ex'; }
     else                             { btn.textContent = 'Seg\u00fcent \u2192'; btn.className = 'btn-next';             }
+    btn.blur();   // evita que la barra espaiadora el dispari involuntàriament
 }
 
 function _showNarration() {
