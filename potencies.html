@@ -56,15 +56,9 @@
                 transform: translateY(-2px); box-shadow: 0 4px 15px rgba(79,70,229,.15);
             }
         }
-        .selection-icon {
-            font-family: 'Courier New', monospace; font-size: 1.3em; font-weight: bold;
-            color: var(--primary); background: var(--primary-light);
-            width: 54px; height: 54px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .selection-icon sup { font-size: .6em; vertical-align: super; line-height: 0; }
-        .selection-text h3  { margin: 0 0 4px 0; color: #334155; font-size: 1.05em; }
-        .selection-text p   { margin: 0; color: var(--text-muted); font-size: .9em; }
+        /* [ROUND 1 — .selection-icon eliminat; fonts +40%] */
+        .selection-text h3  { margin: 0 0 4px 0; color: #334155; font-size: 1.47em; }
+        .selection-text p   { margin: 0; color: var(--text-muted); font-size: 1.26em; }
 
         /* ── EXPRESSION BOX ──────────────────────────────────── */
         .expression-box {
@@ -172,8 +166,7 @@
             .expression-box { font-size: 1.6em; padding: 28px 12px; min-height: 90px; }
             .schema-row     { font-size: 1.25em; }
             .schema-input   { width: 50px; height: 44px; }
-            .selection-icon { width: 46px; height: 46px; font-size: 1.1em; }
-            .schema-btn     { padding: 9px 16px; font-size: .88em; }
+            .selection-btn     { padding: 9px 16px; font-size: .88em; }
         }
         @media (max-width: 350px) {
             .expression-box { font-size: 1.35em; }
@@ -196,11 +189,10 @@
 
     <!-- ── PANTALLA DE SELECCIÓ ── -->
     <div id="selection-screen">
-        <h2>Tria un repte</h2>
+        <h2>Selecciona un repte</h2>
         <div class="selection-cards">
 
             <button class="selection-card" onclick="selectRepte(1)">
-                <div class="selection-icon">a<sup>n</sup></div>
                 <div class="selection-text">
                     <h3>Propietats de les potències</h3>
                     <p>Producte, quocient i potència de potència</p>
@@ -208,7 +200,6 @@
             </button>
 
             <button class="selection-card" onclick="selectRepte(2)">
-                <div class="selection-icon">−a<sup>n</sup></div>
                 <div class="selection-text">
                     <h3>Base negativa</h3>
                     <p>Distingeix (−a)<sup>n</sup> de −a<sup>n</sup></p>
@@ -216,7 +207,6 @@
             </button>
 
             <button class="selection-card" onclick="selectRepte(3)">
-                <div class="selection-icon">×10</div>
                 <div class="selection-text">
                     <h3>Notació científica</h3>
                     <p>Passa nombres a notació científica i viceversa</p>
@@ -404,6 +394,7 @@ function buildEmpty() {
 }
 
 // Inserta botons de selecció a step-btns (rep contenidor com a paràmetre, per consistència)
+// [ROUND 1 — clicar un botó ja valida el pas directament, sense necessitat del botó OK]
 function buildBtnSelect(options) {
     return (_c) => {
         els.stepBtns.innerHTML = '';
@@ -416,6 +407,8 @@ function buildBtnSelect(options) {
                 wrap.querySelectorAll('.schema-btn').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selectedOption = opt.value;
+                // Auto-submit: no cal botó OK per als passos de botons
+                if (!isTransitioning && !isPenalizing) checkStep();
             };
             wrap.appendChild(btn);
         });
@@ -525,6 +518,7 @@ function buildStepsRepte1(p) {
     // PAS 1: triar l'operació amb exponents
     const step1 = {
         title: `Regla: ${info.label} — Quina operació fas amb els exponents?`,
+        hideBtnOk: true,   /* [ROUND 1 — auto-submit, no cal OK] */
         buildSchema: buildEmpty(),
         buildBtns: buildBtnSelect([
             { label: 'Suma  (+)',        value: 'suma'        },
@@ -588,6 +582,7 @@ function buildStepsRepte2(p) {
             ? `L'expressió (−${p.base})${p.exp} s'avalua amb ${p.exp} factor${p.exp>1?'s':''} de (−${p.base}). Quin és el signe del resultat?`
             : `Atenció: sense parèntesis, −${p.base}${p.exp} significa −(${p.base}${p.exp}). Quin és el signe?`,
         buildSchema: buildEmpty(),
+        hideBtnOk: true,   /* [ROUND 1 — auto-submit, no cal OK] */
         buildBtns: buildBtnSelect([
             { label: 'Positiu (+)', value: 'positiu' },
             { label: 'Negatiu (−)', value: 'negatiu' },
@@ -629,6 +624,7 @@ function buildStepsRepte3(p) {
         const step1 = {
             title: `El nombre ${p.displayVal} es pot escriure com ${p.mantissaStr} × 10^?. Cap on s'ha mogut la coma decimal?`,
             buildSchema: buildEmpty(),
+            hideBtnOk: true,   /* [ROUND 1 — auto-submit, no cal OK] */
             buildBtns: buildBtnSelect([
                 { label: '← Esquerra', value: 'esquerra' },
                 { label: 'Dreta →',    value: 'dreta'    },
@@ -697,6 +693,9 @@ function showCurrentStep() {
 
     // Construeix botons (si n'hi ha)
     if (step.buildBtns) step.buildBtns(els.stepBtns);
+
+    // [ROUND 1 — ocultar botó OK en passos de botons (auto-submit); mostrar-lo en passos d'input]
+    els.btnSubmitStep.style.display = step.hideBtnOk ? 'none' : '';
 
     els.currentStep.classList.add('active');
     els.resolutionPanel.style.display = 'flex';
