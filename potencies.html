@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Potències">
+    <link rel="icon" href="icon.png">
+    <title>Potències — ESO</title>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    4,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ── Variables de color ─────────────────────────────── */
+        :root {
+            --primary:       #4f46e5;
+            --primary-light: #e0e7ff;
+            --primary-hover: #4338ca;
+            --primary-dark:  #3730a3;
+            --bg-color:      #f5f3ff;
+        }
+
+        /* ── Overrides de shared.css ────────────────────────── */
+        h1           { color: var(--primary-dark); }
+        .header-info { background-color: #eef2ff; }
+        .level-text  { color: var(--primary-dark); }
+        .score-text  { color: var(--primary); }
+        .panel       { border-top-color: var(--primary); }
+
+        /* ── PANTALLA DE SELECCIÓ ────────────────────────────── */
+        #selection-screen    { padding: 30px 20px; text-align: center; }
+        #selection-screen h2 { color: #334155; font-size: 1.4em; margin-bottom: 20px; }
+        .selection-cards {
+            display: flex; flex-direction: column; gap: 12px;
+            max-width: 440px; margin: 0 auto;
+        }
+        .selection-card {
+            background: white; border: 2px solid var(--border-heavy); border-radius: 10px;
+            padding: 20px 18px; cursor: pointer; transition: all .2s; text-align: left;
+            display: flex; align-items: center; gap: 16px; font-family: inherit; width: 100%;
+        }
+        .selection-card:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+        .selection-card:active { transform: scale(0.97); }
+        @media (hover:hover) {
+            .selection-card:hover {
+                border-color: var(--primary); background: var(--primary-light);
+                transform: translateY(-2px); box-shadow: 0 4px 15px rgba(79,70,229,.15);
+            }
+        }
+        .selection-icon {
+            font-family: 'Courier New', monospace; font-size: 1.3em; font-weight: bold;
+            color: var(--primary); background: var(--primary-light);
+            width: 54px; height: 54px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .selection-icon sup { font-size: .6em; vertical-align: super; line-height: 0; }
+        .selection-text h3  { margin: 0 0 4px 0; color: #334155; font-size: 1.05em; }
+        .selection-text p   { margin: 0; color: var(--text-muted); font-size: .9em; }
+
+        /* ── EXPRESSION BOX ──────────────────────────────────── */
+        .expression-box {
+            padding: 35px 20px; text-align: center;
+            display: flex; justify-content: center; align-items: center;
+            flex-wrap: wrap; gap: 6px;
+            font-size: 2em; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; min-height: 115px; line-height: 1.8;
+        }
+        .expr-sup  { font-size: .52em; vertical-align: super; line-height: 0; }
+        .expr-op   { padding: 0 6px; color: #475569; }
+        .expr-eq   { padding: 0 10px; color: var(--text-muted); }
+        .expr-frac {
+            display: inline-flex; flex-direction: column; align-items: center;
+            vertical-align: middle; font-size: .8em; gap: 0;
+        }
+        .expr-frac-num { padding: 2px 8px 4px; border-bottom: 3px solid currentColor; }
+        .expr-frac-den { padding: 4px 8px 2px; }
+        .expr-result   { color: var(--success); }
+
+        /* ── SCHEMA ROW ──────────────────────────────────────── */
+        .schema-row {
+            display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+            gap: 6px; font-family: 'Courier New', Courier, monospace; font-weight: bold;
+            font-size: 1.5em; margin-bottom: 12px; animation: fadeIn .3s;
+            min-height: 60px;
+        }
+        .schema-text     { color: #334155; white-space: nowrap; }
+        .schema-text sup { font-size: .52em; vertical-align: super; line-height: 0; }
+        .schema-eq       { padding: 0 8px; color: var(--text-muted); }
+        .schema-input {
+            width: 60px; height: 50px;
+            font-family: 'Courier New', Courier, monospace; font-size: .9em; font-weight: bold;
+            text-align: center; border: 3px solid var(--primary); border-radius: 8px;
+            background: var(--primary-light); outline: none; color: #1e293b;
+            -moz-appearance: textfield;
+        }
+        .schema-input:focus { background: #c7d2fe; box-shadow: 0 0 0 3px rgba(79,70,229,.25); }
+        .schema-input::-webkit-inner-spin-button,
+        .schema-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .schema-input.error-flash {
+            border-color: var(--danger); background: var(--danger-light); animation: shake .25s;
+        }
+
+        /* ── BOTONS DE SELECCIÓ (dins el pas) ────────────────── */
+        .schema-btns {
+            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+            margin: 4px 0 12px;
+        }
+        .schema-btn {
+            padding: 11px 22px; border: 2.5px solid var(--primary); border-radius: 8px;
+            background: white; color: var(--primary); font-weight: bold; font-size: .95em;
+            cursor: pointer; transition: all .15s; font-family: inherit; touch-action: manipulation;
+        }
+        .schema-btn:active { transform: scale(.95); }
+        @media (hover:hover) { .schema-btn:hover { background: var(--primary); color: white; } }
+        .schema-btn.selected { background: var(--primary); color: white; border-color: var(--primary-dark); }
+        .schema-btn.error-flash {
+            border-color: var(--danger); background: var(--danger-light); color: var(--danger);
+            animation: shake .25s;
+        }
+
+        /* ── PANELL DE RESOLUCIÓ ─────────────────────────────── */
+        .resolution-panel {
+            background-color: var(--bg-color); border-top: 1px solid var(--border-color);
+            padding: 25px 20px; display: none; flex-direction: column; align-items: center;
+            width: 100%;
+        }
+        .step-container       { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn .3s; }
+        .step-container.active { display: flex; }
+        .step-title {
+            font-size: 1.05em; color: #475569; margin-bottom: 12px;
+            font-weight: bold; text-align: center; line-height: 1.45;
+            max-width: 560px;
+        }
+        #step-feedback {
+            margin-top: 6px; font-size: .95em; color: var(--text-muted);
+            text-align: center; min-height: 1.3em;
+        }
+        #step-feedback.important { color: #b45309; font-weight: bold; }
+
+        .btn-submit-schema {
+            background-color: #475569; color: white; border: none;
+            padding: 12px 28px; font-size: 1em; font-weight: bold; border-radius: 6px;
+            cursor: pointer; text-transform: uppercase; touch-action: manipulation; margin-top: 14px;
+        }
+        .btn-submit-schema:active { transform: scale(.95); }
+        @media (hover:hover) { .btn-submit-schema:hover { background-color: #334155; } }
+        .btn-submit-schema.error-shake { background-color: var(--danger); animation: shake .25s; }
+
+        /* ── MISC ────────────────────────────────────────────── */
+        .attempts-counter.blink { animation: attemptsBlink .2s linear 5; }
+        @keyframes attemptsBlink {
+            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
+            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
+        }
+        #mini-victory-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,.4); z-index: 100; justify-content: flex-end;
+            padding: 0 20px 40px; pointer-events: none; border-radius: 8px; border-top: none;
+        }
+
+        /* ── RESPONSIU ───────────────────────────────────────── */
+        @media (max-width: 480px) {
+            .expression-box { font-size: 1.6em; padding: 28px 12px; min-height: 90px; }
+            .schema-row     { font-size: 1.25em; }
+            .schema-input   { width: 50px; height: 44px; }
+            .selection-icon { width: 46px; height: 46px; font-size: 1.1em; }
+            .schema-btn     { padding: 9px 16px; font-size: .88em; }
+        }
+        @media (max-width: 350px) {
+            .expression-box { font-size: 1.35em; }
+            .schema-row     { font-size: 1.1em; }
+            .schema-input   { width: 44px; height: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Potències</h1>
+</div>
+<div class="subtitle">ESO — Propietats i operacions</div>
+
+<div class="panel" id="main-panel">
+
+    <!-- ── PANTALLA DE SELECCIÓ ── -->
+    <div id="selection-screen">
+        <h2>Tria un repte</h2>
+        <div class="selection-cards">
+
+            <button class="selection-card" onclick="selectRepte(1)">
+                <div class="selection-icon">a<sup>n</sup></div>
+                <div class="selection-text">
+                    <h3>Propietats de les potències</h3>
+                    <p>Producte, quocient i potència de potència</p>
+                </div>
+            </button>
+
+            <button class="selection-card" onclick="selectRepte(2)">
+                <div class="selection-icon">−a<sup>n</sup></div>
+                <div class="selection-text">
+                    <h3>Base negativa</h3>
+                    <p>Distingeix (−a)<sup>n</sup> de −a<sup>n</sup></p>
+                </div>
+            </button>
+
+            <button class="selection-card" onclick="selectRepte(3)">
+                <div class="selection-icon">×10</div>
+                <div class="selection-text">
+                    <h3>Notació científica</h3>
+                    <p>Passa nombres a notació científica i viceversa</p>
+                </div>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- ── PANTALLA DE JOC ── -->
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display"></div>
+                <div class="level-text"   id="lvl-display"></div>
+            </div>
+            <div class="score-text"    id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter"></div>
+        </div>
+
+        <div class="expression-box" id="expression-box"></div>
+
+        <div class="resolution-panel" id="resolution-panel">
+            <div class="step-container" id="current-step">
+                <div  class="step-title" id="step-title"></div>
+                <div  class="schema-row" id="step-schema"></div>
+                <div  id="step-btns"></div>
+                <div  id="step-feedback"></div>
+                <button class="btn-submit-schema" id="btn-submit-step" onclick="checkStep()">OK</button>
+            </div>
+        </div>
+    </div>
+    <!-- #mini-victory-overlay, #session-end-screen, #final-screen → injectats per injectSharedHTML() -->
+</div>
+
+<script src="js/game-core.js"></script>
+<script>
+
+// ================================================================
+// DOM
+// ================================================================
+const els = {
+    body:            document.body,
+    selectionScreen: document.getElementById('selection-screen'),
+    gameScreen:      document.getElementById('game-screen'),
+    sessionDisplay:  document.getElementById('session-display'),
+    lvlDisplay:      document.getElementById('lvl-display'),
+    scoreDisplay:    document.getElementById('score-display'),
+    attemptsDisplay: document.getElementById('attempts-display'),
+    expressionBox:   document.getElementById('expression-box'),
+    resolutionPanel: document.getElementById('resolution-panel'),
+    currentStep:     document.getElementById('current-step'),
+    stepTitle:       document.getElementById('step-title'),
+    stepSchema:      document.getElementById('step-schema'),
+    stepBtns:        document.getElementById('step-btns'),
+    stepFeedback:    document.getElementById('step-feedback'),
+    btnSubmitStep:   document.getElementById('btn-submit-step'),
+};
+
+// ================================================================
+// ESTAT
+// ================================================================
+let selectedRepte  = 0;
+let isPenalizing   = false;
+let usedProblems   = new Set();
+let currentProblem = null;
+let currentSteps   = [];
+let currentStepIdx = 0;
+let selectedOption = null;   // per als passos de botons
+
+// ================================================================
+// UTILITATS MATEMÀTIQUES
+// ================================================================
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr)       { return arr[Math.floor(Math.random() * arr.length)]; }
+function intPow(b, e)    { return Math.round(Math.pow(b, e)); }
+
+// Parseja enters estrictes, inclou negatius
+function parseNum(s) {
+    const clean = s.trim().replace(',', '.');
+    if (!/^-?\d+(\.\d+)?$/.test(clean)) return NaN;
+    return parseFloat(clean);
+}
+
+// ================================================================
+// RENDERITZACIÓ DE L'EXPRESSION BOX
+// ================================================================
+
+// Crea un <span> amb innerHTML (helper)
+function mkSpan(html, cls) {
+    const el = document.createElement('span');
+    if (cls) el.className = cls;
+    el.innerHTML = html;
+    return el;
+}
+
+// Crea una potència base^exp com a node DOM
+// exp negatiu → mostra entre parèntesis
+function powNode(base, exp) {
+    const expStr = (exp < 0) ? `(${exp})` : String(exp);
+    return mkSpan(`${base}<sup class="expr-sup">${expStr}</sup>`);
+}
+
+function clearExpr()  { els.expressionBox.innerHTML = ''; }
+function addEqSign()  { els.expressionBox.appendChild(mkSpan('=', 'expr-eq')); }
+
+// Renderitza l'expressió del problema a l'expression-box (sense '= ?')
+function renderExpr(p) {
+    clearExpr();
+    switch (p.type) {
+        case 'prod':
+            els.expressionBox.appendChild(powNode(p.base, p.m));
+            els.expressionBox.appendChild(mkSpan('·', 'expr-op'));
+            els.expressionBox.appendChild(powNode(p.base, p.n));
+            break;
+
+        case 'quot': {
+            const frac = document.createElement('span'); frac.className = 'expr-frac';
+            const num  = document.createElement('span'); num.className  = 'expr-frac-num';
+            const den  = document.createElement('span'); den.className  = 'expr-frac-den';
+            num.appendChild(powNode(p.base, p.m));
+            den.appendChild(powNode(p.base, p.n));
+            frac.appendChild(num); frac.appendChild(den);
+            els.expressionBox.appendChild(frac);
+            break;
+        }
+
+        case 'powpow':
+            els.expressionBox.appendChild(
+                mkSpan(`(${p.base}<sup class="expr-sup">${p.m}</sup>)<sup class="expr-sup">${p.n}</sup>`)
+            );
+            break;
+
+        case 'baseneg':
+            els.expressionBox.appendChild(
+                mkSpan(p.hasParen
+                    ? `(−${p.base})<sup class="expr-sup">${p.exp}</sup>`
+                    : `−${p.base}<sup class="expr-sup">${p.exp}</sup>`)
+            );
+            break;
+
+        case 'notsci':
+            if (p.dir === 'to_sci') {
+                els.expressionBox.appendChild(mkSpan(p.displayVal));
+            } else {
+                const expStr = (p.exp < 0) ? `(${p.exp})` : String(p.exp);
+                els.expressionBox.appendChild(
+                    mkSpan(`${p.mantissaStr}&thinsp;×&thinsp;10<sup class="expr-sup">${expStr}</sup>`)
+                );
+            }
+            break;
+    }
+    addEqSign();
+}
+
+// Afegeix el resultat final (en verd) a l'expression-box
+function showResult(html) {
+    els.expressionBox.appendChild(mkSpan(html, 'expr-result'));
+}
+
+// ================================================================
+// CONSTRUCTORS D'ESQUEMA (step-schema + step-btns)
+// ================================================================
+
+// Esquema amb un sol input: [prefixHTML] = [INPUT]
+function buildOneInput(prefixHTML) {
+    return (c) => {
+        c.innerHTML = '';
+        els.stepBtns.innerHTML = '';
+        if (prefixHTML) c.appendChild(mkSpan(prefixHTML, 'schema-text'));
+        c.appendChild(mkSpan('=', 'schema-eq'));
+        const inp = document.createElement('input');
+        inp.type = 'text'; inp.className = 'schema-input';
+        inp.id = 'step-input'; inp.autocomplete = 'off';
+        c.appendChild(inp);
+    };
+}
+
+// Esquema buit (el contingut va als botons)
+function buildEmpty() {
+    return (c) => {
+        c.innerHTML = '';
+        // els.stepBtns s'omple a buildBtnSelect
+    };
+}
+
+// Inserta botons de selecció a step-btns (rep contenidor com a paràmetre, per consistència)
+function buildBtnSelect(options) {
+    return (_c) => {
+        els.stepBtns.innerHTML = '';
+        selectedOption = null;
+        const wrap = document.createElement('div'); wrap.className = 'schema-btns';
+        options.forEach(opt => {
+            const btn = document.createElement('button'); btn.className = 'schema-btn';
+            btn.textContent = opt.label;
+            btn.onclick = () => {
+                wrap.querySelectorAll('.schema-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedOption = opt.value;
+            };
+            wrap.appendChild(btn);
+        });
+        els.stepBtns.appendChild(wrap);
+    };
+}
+
+// ================================================================
+// GENERADORS DE PROBLEMES
+// ================================================================
+
+// ── REPTE 1: Propietats ──────────────────────────────────────────
+function genRepte1(opIdx) {
+    const BASES_GRANS  = [2, 3, 4, 5, 10];
+    const BASES_PETITES= [2, 3, 4, 5];
+
+    // Progressió: primer prod/quot, després s'hi afegeix powpow
+    const types = opIdx <= 1
+        ? pick(['prod', 'quot'])
+        : pick(['prod', 'quot', 'powpow']);
+
+    if (types === 'prod') {
+        const base = pick(BASES_GRANS);
+        const m = rand(1, 5), n = rand(1, 5);
+        return { type: 'prod', base, m, n, result: m + n };
+    }
+    if (types === 'quot') {
+        const base = pick(BASES_GRANS);
+        const n = rand(1, 4), m = n + rand(1, 4);
+        return { type: 'quot', base, m, n, result: m - n };
+    }
+    // powpow
+    const base = pick(BASES_PETITES);
+    const m = rand(2, 4), n = rand(2, 4);
+    return { type: 'powpow', base, m, n, result: m * n };
+}
+
+// ── REPTE 2: Base negativa ───────────────────────────────────────
+function genRepte2(opIdx) {
+    const base = rand(2, 9);
+    const exp  = rand(2, 5);
+    // opIdx 0,1 → sempre parèntesis; 2,3 → barreja
+    const hasParen = (opIdx <= 1) ? true : pick([true, false]);
+    const rawVal   = intPow(base, exp);
+    const result   = hasParen
+        ? (exp % 2 === 0 ?  rawVal : -rawVal)
+        : -rawVal;   // −a^n sempre negatiu
+    const isEven   = (exp % 2 === 0);
+    return { type: 'baseneg', base, exp, hasParen, rawVal, result, isEven };
+}
+
+// ── REPTE 3: Notació científica ──────────────────────────────────
+function genRepte3(opIdx) {
+    // Mantissa: un dígit enter + un decimal (ex: 3,4)
+    // Garanteix que sigui sempre X,Y (no 0,...)
+    const mantInt = rand(1, 9);
+    const mantDec = rand(0, 9);
+    const mantissaStr = mantDec === 0
+        ? `${mantInt}`
+        : `${mantInt},${mantDec}`;
+    const mantissaNum = mantDec === 0
+        ? mantInt
+        : parseFloat(`${mantInt}.${mantDec}`);
+
+    const expAbs = rand(2, 6);
+
+    // Direcció: parells → to_sci; senars → from_sci
+    const dir = (opIdx % 2 === 0) ? 'to_sci' : 'from_sci';
+
+    if (dir === 'to_sci') {
+        // opIdx 0,2 → nombres grans (exp positiu); opIdx 1,3 → pot ser negatiu
+        const expSign = (opIdx <= 1) ? 1 : pick([1, -1]);
+        const exp     = expSign * expAbs;
+        const val     = mantissaNum * Math.pow(10, exp);
+
+        let displayVal;
+        if (exp >= 0) {
+            displayVal = String(Math.round(val));
+        } else {
+            // Nombre petit: mostra amb comma, longitud adequada
+            const decimals = expAbs + (mantDec > 0 ? 1 : 0);
+            displayVal = val.toFixed(decimals).replace('.', ',');
+        }
+        return { type: 'notsci', dir, displayVal, mantissaStr, mantissaNum, exp, expAbs };
+    } else {
+        // from_sci: sempre exponent positiu → resultat enter (més fàcil de validar)
+        const exp   = expAbs;
+        const value = Math.round(mantissaNum * Math.pow(10, exp));
+        return { type: 'notsci', dir, mantissaStr, mantissaNum, exp, value };
+    }
+}
+
+// ================================================================
+// CONSTRUCTORS DE PASSOS
+// ================================================================
+
+// ── Repte 1 ─────────────────────────────────────────────────────
+const PROP_INFO = {
+    prod:   { label: 'aᵐ · aⁿ = aᵐ⁺ⁿ', opLabel: 'suma',       opValue: 'suma',      sym: '+' },
+    quot:   { label: 'aᵐ / aⁿ = aᵐ⁻ⁿ', opLabel: 'resta',      opValue: 'resta',     sym: '−' },
+    powpow: { label: '(aᵐ)ⁿ = aᵐ·ⁿ',  opLabel: 'multiplica',  opValue: 'multiplica',sym: '×' },
+};
+
+function buildStepsRepte1(p) {
+    const info = PROP_INFO[p.type];
+
+    // PAS 1: triar l'operació amb exponents
+    const step1 = {
+        title: `Regla: ${info.label} — Quina operació fas amb els exponents?`,
+        buildSchema: buildEmpty(),
+        buildBtns: buildBtnSelect([
+            { label: 'Suma  (+)',        value: 'suma'        },
+            { label: 'Resta  (−)',       value: 'resta'       },
+            { label: 'Multiplica  (×)',  value: 'multiplica'  },
+        ]),
+        validate: () => {
+            if (selectedOption === null) return false;
+            return selectedOption === info.opValue;
+        }
+    };
+
+    // PAS 2: aplicar l'operació i escriure l'exponent resultant
+    const step2 = {
+        title: `Correcte! ${p.m} ${info.sym} ${p.n} = ${p.result} — Escriu la potència resultant (exponent ${p.result}):`,
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            els.stepBtns.innerHTML = '';
+            c.appendChild(mkSpan('=', 'schema-eq'));
+            c.appendChild(mkSpan(`${p.base}`, 'schema-text'));
+            c.appendChild(mkSpan('^', 'schema-eq'));
+            const inp = document.createElement('input');
+            inp.type = 'text'; inp.className = 'schema-input';
+            inp.id = 'step-input'; inp.autocomplete = 'off';
+            c.appendChild(inp);
+        },
+        buildBtns: () => { els.stepBtns.innerHTML = ''; },
+        validate: () => {
+            const inp = document.getElementById('step-input');
+            if (!inp) return false;
+            const v = parseNum(inp.value);
+            return !isNaN(v) && v === p.result;
+        },
+        onCorrect: () => {
+            showResult(`${p.base}<sup class="expr-sup">${p.result}</sup>`);
+        }
+    };
+
+    return [step1, step2];
+}
+
+// ── Repte 2 ─────────────────────────────────────────────────────
+function buildStepsRepte2(p) {
+    const signExpected = (p.hasParen && p.isEven) ? 'positiu'
+                       : (!p.hasParen)             ? 'negatiu'
+                       :                             'negatiu';  // parens + senar
+
+    // Missatge explicatiu segons el cas
+    let signExplanation;
+    if (!p.hasParen) {
+        signExplanation = `Atenció: sense parèntesis, l'exponent sols afecta ${p.base}, no el signe. El resultat és sempre negatiu.`;
+    } else if (p.isEven) {
+        signExplanation = `Exponent parell → nombre senar de factors negatius → resultat positiu.`;
+    } else {
+        signExplanation = `Exponent senar → nombre senar de factors negatius → resultat negatiu.`;
+    }
+
+    // PAS 1: determinar el signe
+    const step1 = {
+        title: p.hasParen
+            ? `L'expressió (−${p.base})${p.exp} s'avalua amb ${p.exp} factor${p.exp>1?'s':''} de (−${p.base}). Quin és el signe del resultat?`
+            : `Atenció: sense parèntesis, −${p.base}${p.exp} significa −(${p.base}${p.exp}). Quin és el signe?`,
+        buildSchema: buildEmpty(),
+        buildBtns: buildBtnSelect([
+            { label: 'Positiu (+)', value: 'positiu' },
+            { label: 'Negatiu (−)', value: 'negatiu' },
+        ]),
+        validate: () => {
+            if (selectedOption === null) return false;
+            return selectedOption === signExpected;
+        },
+        onCorrect: () => {
+            if (els.stepFeedback) {
+                els.stepFeedback.innerText = signExplanation;
+                els.stepFeedback.className = '';
+            }
+        }
+    };
+
+    // PAS 2: calcular el valor (pot ser negatiu)
+    const step2 = {
+        title: `Calcula el valor numèric (amb el signe corresponent):`,
+        buildSchema: buildOneInput(null),
+        buildBtns:   (c) => { els.stepBtns.innerHTML = ''; },
+        validate: () => {
+            const inp = document.getElementById('step-input');
+            if (!inp) return false;
+            const v = parseNum(inp.value);
+            return !isNaN(v) && v === p.result;
+        },
+        onCorrect: () => showResult(String(p.result))
+    };
+
+    return [step1, step2];
+}
+
+// ── Repte 3 ─────────────────────────────────────────────────────
+function buildStepsRepte3(p) {
+    if (p.dir === 'to_sci') {
+        // PAS 1 (botons): la coma es mou a l'esquerra o a la dreta?
+        const dirBtns = p.exp >= 0 ? 'dreta' : 'esquerra';
+        const step1 = {
+            title: `El nombre ${p.displayVal} es pot escriure com ${p.mantissaStr} × 10^?. Cap on s'ha mogut la coma decimal?`,
+            buildSchema: buildEmpty(),
+            buildBtns: buildBtnSelect([
+                { label: '← Esquerra', value: 'esquerra' },
+                { label: 'Dreta →',    value: 'dreta'    },
+            ]),
+            validate: () => {
+                if (selectedOption === null) return false;
+                return selectedOption === dirBtns;
+            },
+            onCorrect: () => {
+                if (els.stepFeedback) {
+                    els.stepFeedback.innerText = p.exp >= 0
+                        ? `La coma s'ha mogut ${p.expAbs} posicions a la dreta → exponent positiu.`
+                        : `La coma s'ha mogut ${p.expAbs} posicions a l'esquerra → exponent negatiu.`;
+                }
+            }
+        };
+
+        // PAS 2: escriure l'exponent (enter, pot ser negatiu)
+        const step2 = {
+            title: `Quantes posicions s'ha mogut la coma? Escriu l'exponent de 10 (amb signe si cal):`,
+            buildSchema: buildOneInput(`${p.mantissaStr}&thinsp;×&thinsp;10`),
+            buildBtns:   () => { els.stepBtns.innerHTML = ''; },
+            validate: () => {
+                const inp = document.getElementById('step-input');
+                if (!inp) return false;
+                const v = parseNum(inp.value);
+                return !isNaN(v) && v === p.exp;
+            },
+            onCorrect: () => {
+                const expStr = p.exp < 0 ? `(${p.exp})` : String(p.exp);
+                showResult(`${p.mantissaStr}&thinsp;×&thinsp;10<sup class="expr-sup">${expStr}</sup>`);
+            }
+        };
+        return [step1, step2];
+
+    } else {
+        // from_sci: un sol pas, calcula el valor decimal enter
+        const step1 = {
+            title: `Calcula el valor decimal de ${p.mantissaStr} × 10<sup style="font-size:.75em;vertical-align:super">${p.exp}</sup>:`,
+            buildSchema: buildOneInput(null),
+            buildBtns:   () => { els.stepBtns.innerHTML = ''; },
+            validate: () => {
+                const inp = document.getElementById('step-input');
+                if (!inp) return false;
+                const v = parseNum(inp.value);
+                return !isNaN(v) && v === p.value;
+            },
+            onCorrect: () => showResult(String(p.value))
+        };
+        return [step1];
+    }
+}
+
+// ================================================================
+// SISTEMA GENÈRIC DE PASSOS
+// ================================================================
+
+function showCurrentStep() {
+    if (els.stepFeedback) { els.stepFeedback.innerText = ''; els.stepFeedback.className = ''; }
+
+    const step = currentSteps[currentStepIdx];
+    els.stepTitle.innerHTML = step.title;
+
+    // Construeix el DOM de l'esquema
+    step.buildSchema(els.stepSchema);
+
+    // Construeix botons (si n'hi ha)
+    if (step.buildBtns) step.buildBtns(els.stepBtns);
+
+    els.currentStep.classList.add('active');
+    els.resolutionPanel.style.display = 'flex';
+
+    // Focus al primer input (si existeix)
+    setTimeout(() => {
+        const first = els.stepSchema.querySelector('input');
+        if (first) {
+            if (isTouchDevice()) { showCustomKeyboard(first); } else { first.focus(); }
+        }
+    }, 120);
+}
+
+function flashError() {
+    // Flash inputs
+    els.stepSchema.querySelectorAll('input').forEach(inp => {
+        inp.classList.add('error-flash');
+        setTimeout(() => inp.classList.remove('error-flash'), 300);
+    });
+    // Flash botons seleccionats (si és un pas de botons)
+    els.stepBtns.querySelectorAll('.schema-btn.selected').forEach(btn => {
+        btn.classList.add('error-flash');
+        setTimeout(() => btn.classList.remove('error-flash'), 300);
+    });
+    // Flash botó OK
+    els.btnSubmitStep.classList.add('error-shake');
+    setTimeout(() => els.btnSubmitStep.classList.remove('error-shake'), 300);
+}
+
+function clearAndFocus() {
+    els.stepSchema.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+    const first = els.stepSchema.querySelector('input');
+    if (first) {
+        if (isTouchDevice()) { kbMarkForOverwrite(first); showCustomKeyboard(first); }
+        else { first.focus(); }
+    }
+    // Desselecciona botons
+    els.stepBtns.querySelectorAll('.schema-btn').forEach(b => b.classList.remove('selected'));
+    selectedOption = null;
+}
+
+function checkStep() {
+    if (isTransitioning || isPenalizing) return;
+
+    const step = currentSteps[currentStepIdx];
+
+    // Tots els passos usen validate()
+    if (els.stepFeedback) { els.stepFeedback.innerText = ''; els.stepFeedback.className = ''; }
+    const res = step.validate();
+
+    if (res !== true) {
+        flashError();
+        penalize();
+        if (attemptsLeft > 0) clearAndFocus();
+        return;
+    }
+
+    if (step.onCorrect) step.onCorrect();
+    currentStepIdx++;
+
+    if (currentStepIdx >= currentSteps.length) {
+        finalizeProblem();
+    } else {
+        // Petit delay per veure el feedback d'onCorrect si n'hi ha
+        setTimeout(() => showCurrentStep(), step.onCorrect ? 600 : 0);
+    }
+}
+
+// ================================================================
+// SELECCIÓ DE REPTE I FLUX DE JOC
+// ================================================================
+
+function selectRepte(n) {
+    selectedRepte = n;
+    startGame();
+}
+
+function updateUI() {
+    els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText      = `Exercici ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.attemptsDisplay.className = 'attempts-counter';
+    if (attemptsLeft < 3) els.attemptsDisplay.classList.add('danger');
+}
+
+function buildLevel() {
+    attemptsLeft   = MAX_INTENTS;
+    isTransitioning = false;
+    isPenalizing    = false;
+
+    if (currentOperation === 0) usedProblems = new Set();
+
+    // Color de fons progressiu
+    const ci = (currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length;
+    els.body.style.backgroundColor = bgColors[ci];
+
+    // Genera el problema
+    let p, key;
+    let tries = 0;
+    do {
+        if      (selectedRepte === 1) p = genRepte1(currentOperation);
+        else if (selectedRepte === 2) p = genRepte2(currentOperation);
+        else                           p = genRepte3(currentOperation);
+        key = JSON.stringify({ t: p.type, ...p });
+        tries++;
+    } while (usedProblems.has(key) && tries < 30);
+    usedProblems.add(key);
+    currentProblem = p;
+
+    // Renderitza l'expressió
+    renderExpr(p);
+
+    // Construeix els passos
+    if      (selectedRepte === 1) currentSteps = buildStepsRepte1(p);
+    else if (selectedRepte === 2) currentSteps = buildStepsRepte2(p);
+    else                           currentSteps = buildStepsRepte3(p);
+
+    currentStepIdx = 0;
+    showCurrentStep();
+    updateUI();
+}
+
+function penalize() {
+    if (isPenalizing || isTransitioning) return;
+    isPenalizing = true;
+    els.attemptsDisplay.classList.add('blink');
+    setTimeout(() => {
+        els.attemptsDisplay.classList.remove('blink');
+        attemptsLeft--;
+        isPenalizing = false;
+        updateUI();
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;
+            els.resolutionPanel.style.display = 'none';
+            finalizeProblem(0);
+        }
+    }, 900);
+}
+
+function finalizeProblem(forcedPoints) {
+    if (forcedPoints === undefined) forcedPoints = null;
+    isTransitioning = true;
+    hideCustomKeyboard();
+    els.currentStep.classList.remove('active');
+    els.resolutionPanel.style.display = 'none';
+
+    const pts = (forcedPoints !== null)
+        ? forcedPoints
+        : Math.max(0, 10 - (MAX_INTENTS - attemptsLeft) * 2);
+
+    sessionScore += pts;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+    const waitTime = showMiniOverlay(pts);
+    setTimeout(() => {
+        hideMiniOverlay();
+        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+            endSession();
+        } else {
+            currentOperation++;
+            buildLevel();
+        }
+    }, waitTime);
+}
+
+// ================================================================
+// TECLAT
+// ================================================================
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        if (els.gameScreen.style.display !== 'none' &&
+            els.resolutionPanel.style.display !== 'none') {
+            e.preventDefault();
+            if (!isTransitioning && !isPenalizing) checkStep();
+        }
+    }
+});
+
+function checkCurrentCell() {
+    const inputs = Array.from(els.stepSchema.querySelectorAll('input'));
+    if (!inputs.length) {
+        checkStep();
+        return;
+    }
+    const firstEmpty = inputs.find(i => i.value.trim() === '');
+    if (firstEmpty) { showCustomKeyboard(firstEmpty); }
+    else            { checkStep(); }
+}
+
+// ================================================================
+// ARRENCADA
+// ================================================================
+registerScreens(['selection-screen', 'game-screen', 'session-end-screen', 'final-screen']);
+injectSharedHTML();
+validateConfig();
+initCustomKeyboard({ allowNegative: true });
+showScreen('selection-screen');
+
+</script>
+</body>
+</html>
