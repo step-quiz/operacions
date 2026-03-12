@@ -216,7 +216,7 @@
     #tut-graph { width: 100%; transition: opacity 0.3s ease; }
     #tut-graph svg { display: block; width: 90%; height: auto; }
 
-    /* ---- NARRADOR (sota el gràfic, en flux) ---- */
+    /* ---- NARRADOR (sobre el gràfic, en flux) ---- */
     .narration-box {
       width: 90%;
       background: white;
@@ -240,6 +240,10 @@
     /* ---- RESPONSIVE ---- */
     @media (max-width: 780px) {
       body { overflow: auto; height: auto; }
+      /* FIX mòbil vertical: .panel ja no pot créixer amb flex perquè body
+         no té altura definida. Li donem un mínim explícit perquè el
+         game-body tingui espai real i no col·lapsi a zero. */
+      .panel { flex: none; min-height: 580px; }
       .game-body { flex-direction: column-reverse; }
       .game-left, .game-right { width: 100%; border-right: none; }
       .game-left  { border-top: 1px solid var(--border); padding: 12px; }
@@ -299,14 +303,14 @@
 'use strict';
 
 /* ================================================================
-   DADES DEL TUTORIAL  —  2 exemples, 9 passos totals
+   DADES DEL TUTORIAL  —  2 exemples, 8 passos totals
    ================================================================ */
 const TUTORIAL = [
 
   // ----------------------------------------------------------------
   // EXEMPLE 1 — Q2: Quina temperatura feia fa 3 dies?  (x = −3)
-  // Cloud: [(-3,3), (-1,-1), (0,2), (2,1)]
-  // Opcions descendent: 3 ºC (idx 0, correcta), 2, 1, −1
+  // Cloud: [(-3,5), (-1,-1), (0,2), (2,1)]
+  // Opcions descendent: 5 ºC (idx 0, correcta), 2, 1, −1
   // ----------------------------------------------------------------
   {
     chip:     'Exemple 1 \u00b7 Llegir un punt',
@@ -360,7 +364,7 @@ const TUTORIAL = [
 
   // ----------------------------------------------------------------
   // EXEMPLE 2 — Q4: Selecciona la frase correcta
-  // Cloud: [(-2,-1), (-1,2), (0,2), (1,4), (3,1)]
+  // Cloud: [(-2,-1), (-1,0), (0,2), (1,4), (3,1)]
   // Opció 0 és l'única correcta
   // ----------------------------------------------------------------
   {
@@ -484,10 +488,8 @@ function _transition() {
     const body = document.getElementById('game-body');
     body.classList.add('fading');
     setTimeout(() => {
-        // Renderitza tot excepte la narració (oculta)
-        render(/* hideNarration = */ true);
+        render();
         body.classList.remove('fading');
-        // Després de 0.8s, mostra la narració i inicia el timer
         setTimeout(() => {
             _showNarration();
             startTimer();
@@ -542,7 +544,7 @@ function applyFocus(focus) {
 /* ================================================================
    RENDER
    ================================================================ */
-function render(hideNarration = false) {
+function render() {
     const ex   = TUTORIAL[exIdx];
     const step = ex.steps[stepIdx];
 
@@ -584,9 +586,9 @@ function render(hideNarration = false) {
     const isLastStep = stepIdx === ex.steps.length - 1;
     const isLastEx   = exIdx   === TUTORIAL.length  - 1;
     const btn = document.getElementById('btn-next');
-    if      (isLastStep && isLastEx) { btn.textContent = '🎮 Ves a jugar!';     btn.className = 'btn-next btn-finish';  }
-    else if (isLastStep)             { btn.textContent = 'Exemple seg\u00fcent \u2192'; btn.className = 'btn-next btn-next-ex'; }
-    else                             { btn.textContent = 'Seg\u00fcent \u2192'; btn.className = 'btn-next';             }
+    if      (isLastStep && isLastEx) { btn.textContent = '🎮 Ves a jugar!';              btn.className = 'btn-next btn-finish';  }
+    else if (isLastStep)             { btn.textContent = 'Exemple seg\u00fcent \u2192';  btn.className = 'btn-next btn-next-ex'; }
+    else                             { btn.textContent = 'Seg\u00fcent \u2192';          btn.className = 'btn-next';             }
     btn.blur();   // evita que la barra espaiadora el dispari involuntàriament
 }
 
@@ -655,7 +657,7 @@ function buildSVG(cloudPts, yr, hl) {
         s.push(`<circle cx="${f(tx(cx))}" cy="${f(ty(cy))}" r="7" fill="#6b7c2e" stroke="white" stroke-width="2.5"/>`);
     });
 
-    // Línies de projecció (per a point, point-correct, point-wrong)
+    // Línies de projecció
     const PROJ = ['point','point-correct','point-wrong'];
     if (hl && PROJ.includes(hl.type)) {
         const hx=tx(hl.x), hy=ty(hl.y);
@@ -710,7 +712,7 @@ document.addEventListener('keydown', e => {
 /* ================================================================
    ARRENCADA
    ================================================================ */
-render(/* hideNarration = */ true);
+render();
 setTimeout(() => {
     _showNarration();
     startTimer();
