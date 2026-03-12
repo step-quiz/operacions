@@ -712,11 +712,11 @@ function buildStepsRepte3(p) {
                 inpM.type = 'text'; inpM.className = 'expr-inline-input';
                 inpM.id = 'step-input-mant'; inpM.autocomplete = 'off';
                 box.appendChild(inpM);
-                // " · 10"
-                box.appendChild(mkSpan('&thinsp;·&thinsp;10', 'expr-op'));
-                // Input exponent (superíndex)
+                // " · " i "10^[input]" — "10" dins del wrapper per tenir superíndex real
+                box.appendChild(mkSpan('&thinsp;·&thinsp;', 'expr-op'));
                 const wrapExp = document.createElement('span');
                 wrapExp.className = 'expr-base-sup expr-base-sup-pad';
+                wrapExp.appendChild(mkSpan('10'));
                 const inpE = document.createElement('input');
                 inpE.type = 'text'; inpE.className = 'expr-sup-input';
                 inpE.id = 'step-input-exp'; inpE.autocomplete = 'off';
