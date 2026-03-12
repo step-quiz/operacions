@@ -23,9 +23,7 @@
       --danger:        #dc2626;
       --danger-light:  #fee2e2;
       --radius:        10px;
-      --burgundy:      #800020;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -40,10 +38,11 @@
       padding: 14px 16px 10px;
     }
 
+    /* ---- CAPÇALERA PÀGINA ---- */
     .title-row {
       display: flex; align-items: center; gap: 14px;
       margin-bottom: 10px;
-      width: 100%; max-width: 80vw;
+      width: 100%; max-width: 82vw;
       justify-content: center;
     }
     .title-row h1 {
@@ -56,15 +55,16 @@
       transition: opacity 0.2s; display: block; flex-shrink: 0;
     }
     .home-icon-link:hover { opacity: 1; }
-    .home-icon-link img   { width: 100%; height: 100%; object-fit: contain; }
+    .home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
 
+    /* ---- PANELL ---- */
     .panel {
       background: var(--panel);
       border-radius: var(--radius);
       box-shadow: 0 4px 20px rgba(0,0,0,0.07);
       border: 1px solid var(--border);
       border-top: 5px solid var(--primary);
-      width: 100%; max-width: 80vw;
+      width: 100%; max-width: 82vw;
       overflow: hidden;
       flex: 1 1 0;
       display: flex;
@@ -72,109 +72,128 @@
       min-height: 0;
     }
 
-    /* ---- CAPÇALERA ---- */
+    /* ---- CAPÇALERA TUTORIAL ---- */
     .tut-header {
       background: var(--primary-dark);
       color: white;
-      padding: 9px 20px;
+      padding: 8px 16px;
       display: flex;
-      justify-content: center;
       align-items: center;
+      gap: 10px;
       flex-shrink: 0;
-      position: relative;
     }
-    .tut-header-left { display: flex; align-items: center; gap: 9px; }
-    #btn-next-wrap {
-      display: flex;
-      justify-content: center;
-      width: 100%;
+    .step-counter {
+      font-size: 0.78em; font-weight: 700;
+      background: rgba(255,255,255,0.15);
+      padding: 3px 10px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
     }
-    #btn-next { display: block; }
-
-
-
-    .progress-track { height: 4px; background: var(--border); flex-shrink: 0; }
-    .progress-fill  {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--primary));
-      transition: width 0.55s cubic-bezier(0.4,0,0.2,1);
-      width: 0%;
+    .example-chip {
+      font-size: 0.75em; font-weight: 800;
+      background: var(--accent);
+      color: white;
+      padding: 3px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      white-space: nowrap; flex-shrink: 0;
     }
+    .header-spacer { flex: 1 1 0; }
+
+    .btn-pause {
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      color: white; font-size: 0.9em;
+      width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s; flex-shrink: 0;
+    }
+    .btn-pause:hover { background: rgba(255,255,255,0.25); }
+
+    .btn-next {
+      padding: 6px 16px;
+      background: white; color: var(--primary-dark);
+      font-family: 'Barlow', sans-serif; font-size: 0.92em; font-weight: 700;
+      border: none; border-radius: 7px; cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-next:hover  { background: #e2e8f0; }
+    .btn-next:active { transform: scale(0.97); }
+    .btn-next.btn-finish        { background: #d1fae5; color: #065f46; }
+    .btn-next.btn-finish:hover  { background: #a7f3d0; }
+    .btn-next.btn-next-ex       { background: #ede9fe; color: #4c1d95; }
+    .btn-next.btn-next-ex:hover { background: #ddd6fe; }
+
+    /* ---- BARRA TIMER ---- */
+    .timer-track { height: 5px; background: rgba(0,0,0,0.08); flex-shrink: 0; }
+    .timer-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), var(--primary-dark)); width: 100%; }
 
     /* ---- COS ---- */
     .game-body {
       display: flex; flex-direction: row;
       flex: 1 1 0; min-height: 0;
+      transition: opacity 0.22s ease;
     }
+    .game-body.fading { opacity: 0; pointer-events: none; }
+
     .game-left {
       width: 30%; flex-shrink: 0;
       display: flex; flex-direction: column;
       padding: 14px 12px 14px 18px;
       border-right: 1px solid var(--border);
       overflow-y: auto; min-height: 0;
+      transition: opacity 0.3s ease;
     }
     .game-right {
       width: 70%; flex-shrink: 0;
-      display: flex; align-items: flex-start;
+      display: flex; flex-direction: column;
+      align-items: flex-start;
       padding: 10px 14px 10px 10px;
       overflow-y: auto; min-height: 0;
+      gap: 8px;
     }
 
-    .example-chip {
-      display: inline-block;
-      background: var(--primary-light);
-      color: var(--primary-dark);
-      font-size: 0.72em; font-weight: 800;
-      padding: 3px 10px; border-radius: 20px;
-      margin-bottom: 10px;
-      text-transform: uppercase; letter-spacing: 0.6px;
-      align-self: flex-start;
-    }
+    /* ---- PREGUNTA ---- */
     .question-prompt {
-      font-size: 1.456em; font-weight: 600;
+      font-size: 1.08em; font-weight: 600;
       color: var(--primary-dark); line-height: 1.45;
-      margin-bottom: 12px;
-      min-height: calc(1.04em * 1.45 * 4);
-      display: flex; align-items: flex-start;
+      margin-bottom: 8px;
+      transition: opacity 0.3s ease;
     }
     .question-hint {
-      font-size: 0.85em; font-weight: 500;
-      color: var(--muted);
-      font-style: italic;
-      margin-bottom: 12px;
-      line-height: 1.4;
+      font-size: 0.82em; font-weight: 500;
+      color: var(--muted); font-style: italic;
+      margin-bottom: 10px; line-height: 1.4; min-height: 1em;
+      transition: opacity 0.3s ease;
     }
 
     /* ---- OPCIONS ---- */
-    .options-list { display: flex; flex-direction: column; gap: 7px; }
+    .options-list {
+      display: flex; flex-direction: column; gap: 7px;
+      transition: opacity 0.3s ease;
+    }
 
     @keyframes popIn {
-      from { opacity: 0; transform: translateY(6px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0)   scale(1);    }
-    }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25%     { transform: translateX(-5px); }
-      75%     { transform: translateX(5px); }
+      from { opacity: 0; transform: translateY(5px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .btn-option {
-      padding: 10px 12px;
-      font-family: 'Barlow', sans-serif; font-size: 0.97em; font-weight: 600;
+      padding: 9px 11px;
+      font-family: 'Barlow', sans-serif; font-size: 0.91em; font-weight: 600;
       border-radius: var(--radius); border: 2px solid var(--border);
       background: white; color: var(--text);
-      cursor: default;
+      cursor: default; pointer-events: none;
       text-align: left; line-height: 1.35;
-      transition: background 0.15s, border-color 0.15s;
       opacity: 0;
-      animation: popIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
-      min-height: 46px;
-      display: flex; align-items: center;
-      gap: 10px; padding-left: 11px;
+      animation: popIn 0.22s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+      min-height: 42px;
+      display: flex; align-items: center; gap: 9px; padding-left: 10px;
+      transition: opacity 0.3s ease;
     }
     .btn-option::before {
       content: ''; flex-shrink: 0;
-      width: 18px; height: 18px; border-radius: 50%;
+      width: 16px; height: 16px; border-radius: 50%;
       border: 2px solid var(--border); background: white;
     }
     .btn-option.correct {
@@ -183,124 +202,59 @@
       color: var(--success) !important;
     }
     .btn-option.correct::before {
-      border-color: var(--success) !important;
-      background: var(--success) !important;
+      border-color: var(--success) !important; background: var(--success) !important;
     }
     .btn-option.wrong {
       background: var(--danger-light) !important;
       border-color: var(--danger) !important;
       color: var(--danger) !important;
-      opacity: 1 !important;
-      animation: shake 0.28s forwards !important;
     }
     .btn-option.wrong::before {
-      border-color: var(--danger) !important;
-      background: var(--danger) !important;
+      border-color: var(--danger) !important; background: var(--danger) !important;
+    }
+    /* Opció no focal: sense animació, directament atenuada */
+    .btn-option.dim {
+      opacity: 0.15 !important;
+      animation: none !important;
     }
 
-    /* ---- GRÀFIC + BOMBOLLA ---- */
-    #graph-wrap {
-      position: relative; width: 100%;
-    }
-    #graph-wrap svg { display: block; width: 100%; height: auto; }
+    /* ---- SVG ---- */
+    #tut-graph { width: 100%; transition: opacity 0.3s ease; }
+    #tut-graph svg { display: block; width: 90%; height: auto; }
 
-    /* ================================================================
-       BOMBOLLA DE NARRACIÓ
-       Ara situada als quadrants Q2 (dalt-esquerra) i Q3 (baix-esquerra)
-       La fletxa decorativa apunta cap a la DRETA (cap al contingut)
-       ================================================================ */
-    .narration-bubble {
-      position: absolute;
-      width: 45%;
+    /* ---- NARRADOR (sota el gràfic, en flux) ---- */
+    .narration-box {
+      width: 90%;
       background: white;
       border: 2px solid var(--primary);
-      border-right: 5px solid var(--primary);
-      border-radius: 10px;
-      padding: 11px 12px 11px 13px;
-      box-shadow: 0 5px 22px rgba(0,119,182,0.18);
-      font-size: 1.1em; line-height: 1.6;
-      color: var(--text);
-      z-index: 20;
-      transition:
-        top    0.45s cubic-bezier(0.25,0.8,0.25,1),
-        opacity 0.22s ease,
-        transform 0.22s ease;
+      border-left: 5px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+      box-shadow: 0 2px 10px rgba(107,124,46,0.12);
+      flex-shrink: 0;
     }
-    /* Fletxa apuntant cap a la dreta */
-    .narration-bubble::before {
-      content: ''; position: absolute;
-      right: -10px; left: auto; top: 20px;
-      border: 5px solid transparent;
-      border-left-color: var(--primary);
-    }
-    .narration-bubble::after {
-      content: ''; position: absolute;
-      right: -6px; left: auto; top: 22px;
-      border: 3px solid transparent;
-      border-left-color: white;
-    }
-    .narration-bubble.fade-out {
-      opacity: 0; transform: translateY(-7px);
-    }
-    /* Q2: dalt-esquerra  /  Q3: baix-esquerra */
-    .narration-bubble.pos-left-top    { top:  3%; left: 2%; }
-    .narration-bubble.pos-left-bottom { top: 57%; left: 2%; }
+    .narration-icon { font-size: 1.25em; flex-shrink: 0; margin-top: 1px; line-height: 1; }
+    .narration-text { font-size: 0.95em; line-height: 1.58; color: var(--text); }
+    .narration-text b { color: var(--primary-dark); }
 
-    .bubble-icon { display: block; font-size: 1.15em; margin-bottom: 4px; }
-    .narration-bubble b { color: var(--primary-dark); }
+    /* ---- CLASSES FOCUS ---- */
+    .game-left.dim { opacity: 0.15; }
+    #tut-graph.dim { opacity: 0.15; }
 
-    /* ---- BOTÓ SEGÜENT ---- */
-    @keyframes blink-shake {
-      0%              { opacity: 1;    transform: translateX(0); }
-      8%, 24%, 40%    { transform: translateX(-5px); }
-      16%, 32%, 48%   { transform: translateX(5px); }
-      56%             { transform: translateX(-3px); }
-      64%             { transform: translateX(3px); }
-      72%, 100%       { opacity: 1;    transform: translateX(0); }
-      10%, 30%, 50%, 70%  { opacity: 0.35; }
-      20%, 40%, 60%, 80%  { opacity: 1; }
-    }
-    .btn-next-step.attention {
-      animation: blink-shake 3s ease-in-out forwards;
-    }
-    .btn-next-step {
-      padding: 8px 20px;
-      background: white; color: #0f172a;
-      font-family: 'Barlow', sans-serif; font-size: 1.164em; font-weight: 700;
-      border: none; border-radius: 7px; cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-    }
-    .btn-next-step:hover  { background: #e2e8f0; }
-    .btn-next-step:active { transform: scale(0.97); }
-    .btn-next-step.btn-finish              { background: #d1fae5; color: #065f46; }
-    .btn-next-step.btn-finish:hover        { background: #a7f3d0; }
-    .btn-next-step.btn-next-example        { background: #ede9fe; color: #4c1d95; }
-    .btn-next-step.btn-next-example:hover  { background: #ddd6fe; }
-
-    /* ---- RESPONSIU ---- */
+    /* ---- RESPONSIVE ---- */
     @media (max-width: 780px) {
       body { overflow: auto; height: auto; }
       .game-body { flex-direction: column-reverse; }
       .game-left, .game-right { width: 100%; border-right: none; }
       .game-left  { border-top: 1px solid var(--border); padding: 12px; }
-      .game-right { padding: 10px 10px 2px; }
-      #graph-wrap { position: relative; }
-      .narration-bubble {
-        position: relative !important;
-        width: 100% !important;
-        top: auto !important; left: auto !important;
-        margin-top: 10px;
-        border-right-width: 2px;
-      }
-      .narration-bubble::before,
-      .narration-bubble::after { display: none; }
+      .game-right { padding: 10px; }
+      #tut-graph svg, .narration-box { width: 100%; }
     }
     @media (max-width: 600px) {
       body { padding: 8px 8px 16px; }
-      .title-row h1 { font-size: 1.1em; }
-      .tut-header   { padding: 8px 12px; }
+      .title-row h1 { font-size: 1.05em; }
+      .tut-header   { padding: 7px 10px; gap: 7px; }
     }
   </style>
 </head>
@@ -316,34 +270,30 @@
 <div class="panel">
 
   <div class="tut-header">
-    <div id="btn-next-wrap">
-      <button class="btn-next-step" id="btn-next">Següent →</button>
-    </div>
+    <span class="step-counter" id="step-counter">Pas 1 de 9</span>
+    <span class="example-chip"  id="example-chip"></span>
+    <div class="header-spacer"></div>
+    <button class="btn-pause" id="btn-pause" aria-label="Pausa/repren">⏸</button>
+    <button class="btn-next"  id="btn-next">Següent →</button>
   </div>
 
-  <div class="progress-track">
-    <div class="progress-fill" id="progress-fill"></div>
+  <div class="timer-track">
+    <div class="timer-fill" id="timer-fill"></div>
   </div>
 
-  <div class="game-body">
-
-    <div class="game-left">
-      <span class="example-chip" id="example-chip">Q1 · Temperatura avui</span>
+  <div class="game-body" id="game-body">
+    <div class="game-left" id="game-left">
       <div class="question-prompt" id="tut-question"></div>
-      <div class="question-hint"   id="tut-question-hint"></div>
+      <div class="question-hint"   id="tut-hint"></div>
       <div class="options-list"    id="tut-options"></div>
     </div>
-
     <div class="game-right">
-      <div id="graph-wrap">
-        <div id="tut-graph"></div>
-        <div class="narration-bubble pos-left-top" id="narration-bubble">
-          <span class="bubble-icon" id="bubble-icon">👀</span>
-          <div id="narration-text"></div>
-        </div>
+      <div id="tut-graph"></div>
+      <div class="narration-box">
+        <span class="narration-icon" id="narration-icon">👀</span>
+        <div  class="narration-text" id="narration-text"></div>
       </div>
     </div>
-
   </div>
 
 </div>
@@ -352,335 +302,241 @@
 'use strict';
 
 /* ================================================================
-   TEXTOS EDITABLES
-   Totes les frases del tutorial en un sol lloc.
-   Per modificar qualsevol text, editeu NOMÉS aquest bloc.
-   ================================================================ */
-const TEXTS = {
-
-  // --- Exemple 1: Temperatura avui ---
-  e1_chip:     ' · P1 · ',
-  e1_question: 'Quina temperatura fa avui?',
-  e1_hint:     'La paraula «avui» significa que x = 0',
-  e1_opt0:     '2 ºC',
-  e1_opt1:     '3 ºC',
-  e1_opt2:     '4 ºC',
-  e1_opt3:     '1 ºC',
-  e1_s1: 'L\'eix horitzontal representa els dies.<br>Els nombres negatius són <b>el passat</b> i els nombres positius són <b>el futur</b>.',
-  e1_s2: 'Busca la temperatura quan <b>x = 0</b>. Ressegueix l\'eix vertical per trobar-ho.',
-  e1_s3: '«2 ºC» seria incorrecte!<br>El punt que busquem està situat més amunt.',
-  e1_s4: '<b>«4 ºC» és la resposta correcta.</b> Veus el punt (0,4)?<br>Avui la temperatura és de <b>4 graus sobre zero</b>.',
-
-  // --- Exemple 2: Temperatura ahir ---
-  e2_chip:     ' · P2 · ',
-  e2_question: 'Quina temperatura feia ahir?',
-  e2_opt0:     '1 ºC',
-  e2_opt1:     '\u22122 ºC',
-  e2_opt2:     '3 ºC',
-  e2_opt3:     '4 ºC',
-  e2_s1: 'Llegeix la pregunta, a l\'esquerra.<br>La paraula \'ahir\' vol dir <b>x = −1</b>.<br>Localitza x = −1 a l\'eix horitzontal.',
-  e2_s2: 'Ara mira el punt blau sobre aquesta posició. Fins a quin valor de y arriba?',
-  e2_s3: '«1 ºC» seria incorrecte! Veus que la temperatura és superior?',
-  e2_s4: '<b>«3 ºC» és correcte.</b><br>El punt és (−1, 3).',
-
-  // --- Exemple 3: Frase correcta ---
-  e3_chip:     ' · P3 · ',
-  e3_question: 'Selecciona la frase correcta:',
-  e3_opt0:     'Demà, la temperatura estarà d\'1 grau sobre zero',
-  e3_opt1:     'Avui, la temperatura és de 2 graus sobre zero',
-  e3_opt2:     'Ahir, la temperatura era de 2 graus sota zero',
-  e3_opt3:     'Entre ahir i avui, la temperatura baixa',
-  e3_s1: 'Veus que hi ha 4 frases, a l\'esquerra?<br> Hem d\'escollir quina és certa.<br>Atenció, que només n\'hi ha una!',
-  e3_s2: 'La primera frase és <b>falsa</b>!<br>La previsió per demà no és 1ºC, sinó 4ºC',
-  e3_s3: 'La segona frase diu que <b>avui</b> estem a 2ºC. Creus que és això cert?',
-  e3_s4: '<b>Correcte!</b> El punt és (0, 2).<br>Avui la temperatura és de <b>2 graus sobre zero</b>.<br>La frase és certa!',
-
-};
-
-
-/* ================================================================
-   DADES DEL TUTORIAL
-   Cada exemple té: chip, question, cloud, yRange, options i steps.
-   Cada step té: narration, highlight, btnStates, pos, icon.
+   DADES DEL TUTORIAL  —  2 exemples, 9 passos totals
    ================================================================ */
 const TUTORIAL = [
 
-  // ================================================================
-  // EXEMPLE 1 — Q1: Temperatura avui
-  // Cloud: [(-2,3),(-1,2),(0,4),(1,3),(2,1)]
-  // Resposta correcta: 4 ºC  (opció índex 2)
-  // ================================================================
+  // ----------------------------------------------------------------
+  // EXEMPLE 1 — Q2: Quina temperatura feia fa 3 dies?  (x = −3)
+  // Cloud: [(-3,3), (-1,-1), (0,2), (2,1)]
+  // Opcions descendent: 3 ºC (idx 0, correcta), 2, 1, −1
+  // ----------------------------------------------------------------
   {
-    chip:     TEXTS.e1_chip,
-    question: TEXTS.e1_question,
-    hint:     TEXTS.e1_hint,
-    cloud:    [[-2,3],[-1,2],[0,4],[1,3],[2,1]],
+    chip:     'Exemple 1 \u00b7 Llegir un punt',
+    question: 'Quina temperatura feia fa 3 dies?',
+    cloud:    [[-3,3],[-1,-1],[0,2],[2,1]],
     yRange:   { min:-6, max:6, majorStep:1 },
-    options:  [
-      { text: TEXTS.e1_opt0, correct: false },
-      { text: TEXTS.e1_opt1, correct: false },
-      { text: TEXTS.e1_opt2, correct: true  },
-      { text: TEXTS.e1_opt3, correct: false },
+    options: [
+      { text: '3 \u00baC'       },   // idx 0 — correcta
+      { text: '2 \u00baC'       },   // idx 1
+      { text: '1 \u00baC'       },   // idx 2
+      { text: '\u22121 \u00baC' },   // idx 3
     ],
     steps: [
       {
-        narration: TEXTS.e1_s1,
-        highlight:  { type:'column', x:0, label:'avui (x = 0)',
-                      arrowOrigin:[-0.5, 2.5], arrowTarget:[3.5, 0] },
-        btnStates:  ['','','',''],
-        pos: 'left-top', icon: '👀',
+        icon:      '📖',
+        narration: 'Llegeix la <b>pregunta</b>, a l\'esquerra. Ens demana la temperatura de <b>fa 3 dies</b>. El primer pas és sempre llegir la pregunta!',
+        highlight: null,
+        btnStates: ['','','',''],
+        focus:     'question',
       },
       {
-        narration: TEXTS.e1_s2,
-        highlight:  { type:'point', x:0, y:4 },
-        btnStates:  ['','','',''],
-        pos: 'left-bottom', icon: '🔎',
+        icon:      '🔎',
+        narration: '<b>«Fa 3 dies»</b> correspon a x\u00a0=\u00a0−3. Localitza x\u00a0=\u00a0−3 a l\'eix horitzontal del gràfic.',
+        highlight: { type:'column', x:-3, label:'fa 3 dies \u2192 x\u00a0=\u00a0\u22123' },
+        btnStates: ['','','',''],
+        focus:     'graph',
       },
       {
-        narration: TEXTS.e1_s3,
-        highlight:  { type:'point-wrong', x:0, y:2 },
-        btnStates:  ['wrong','','',''],
-        pos: 'left-top', icon: '❌',
+        icon:      '👁️',
+        narration: 'Veus el punt sobre x\u00a0=\u00a0−3? Ressegueix-lo horitzontalment fins a l\'eix Y. Arriba a <b>y\u00a0=\u00a03</b>.',
+        highlight: { type:'point', x:-3, y:3 },
+        btnStates: ['','','',''],
+        focus:     'graph',
       },
       {
-        narration: TEXTS.e1_s4,
-        highlight:  { type:'point-correct', x:0, y:4 },
-        btnStates:  ['wrong','','correct',''],
-        pos: 'left-bottom', icon: '✅',
+        icon:      '❌',
+        narration: 'Si haguessis triat <b>−1\u00a0ºC</b>, seria incorrecte. El punt a x\u00a0=\u00a0−3 és a y\u00a0=\u00a03, no a y\u00a0=\u00a0−1.',
+        highlight: { type:'point', x:-3, y:3 },
+        btnStates: ['','','','wrong'],
+        focus:     'option-3',
+      },
+      {
+        icon:      '✅',
+        narration: '<b>3\u00a0ºC és la resposta correcta.</b> El punt és (−3,\u00a03): tres graus sobre zero.',
+        highlight: { type:'point-correct', x:-3, y:3 },
+        btnStates: ['correct','','','wrong'],
+        focus:     'option-0',
       },
     ],
   },
 
-  // ================================================================
-  // EXEMPLE 2 — Q2: Temperatura d'un altre dia
-  // Cloud: [(-3,-2),(-1,3),(0,1),(2,4)]
-  // Resposta correcta: 3 ºC (opció índex 2)
-  // ================================================================
+  // ----------------------------------------------------------------
+  // EXEMPLE 2 — Q4: Selecciona la frase correcta
+  // Cloud: [(-2,-1), (-1,2), (0,2), (1,4), (3,1)]
+  // Opció 0 és l'única correcta
+  // ----------------------------------------------------------------
   {
-    chip:     TEXTS.e2_chip,
-    question: TEXTS.e2_question,
-    cloud:    [[-3,-2],[-1,3],[0,1],[2,4]],
-    yRange:   { min:-6, max:6, majorStep:1 },
-    options:  [
-      { text: TEXTS.e2_opt0, correct: false },
-      { text: TEXTS.e2_opt1, correct: false },
-      { text: TEXTS.e2_opt2, correct: true  },
-      { text: TEXTS.e2_opt3, correct: false },
-    ],
-    steps: [
-      {
-        narration: TEXTS.e2_s1,
-        highlight:  { type:'column', x:-1, label:'ahir (x = \u22121)',
-                      arrowOrigin:[-0.5, 2.5], arrowTarget:[-1, 0.25] },
-        btnStates:  ['','','',''],
-        pos: 'left-top', icon: '👀',
-      },
-      {
-        narration: TEXTS.e2_s2,
-        highlight:  { type:'point', x:-1, y:3 },
-        btnStates:  ['','','',''],
-        pos: 'left-top', icon: '🔎',
-      },
-      {
-        narration: TEXTS.e2_s3,
-        highlight:  { type:'point-wrong', x:-1, y:1 },
-        btnStates:  ['wrong','','',''],
-        pos: 'left-top', icon: '❌',
-      },
-      {
-        narration: TEXTS.e2_s4,
-        highlight:  { type:'point-correct', x:-1, y:3 },
-        btnStates:  ['wrong','','correct',''],
-        pos: 'left-top', icon: '✅',
-      },
-    ],
-  },
-
-  // ================================================================
-  // EXEMPLE 3 — Q4: Selecciona la frase correcta
-  // Cloud: [(-2,-1),(-1,2),(0,2),(1,4),(3,1)]
-  // Resposta correcta: opció índex 1
-  // ================================================================
-  {
-    chip:     TEXTS.e3_chip,
-    question: TEXTS.e3_question,
+    chip:     'Exemple 2 \u00b7 Frase correcta',
+    question: 'Selecciona la frase correcta:',
     cloud:    [[-2,-1],[-1,2],[0,2],[1,4],[3,1]],
     yRange:   { min:-6, max:6, majorStep:1 },
-    options:  [
-      { text: TEXTS.e3_opt0, correct: false },
-      { text: TEXTS.e3_opt1, correct: true  },
-      { text: TEXTS.e3_opt2, correct: false },
-      { text: TEXTS.e3_opt3, correct: false },
+    options: [
+      { text: 'Avui, la temperatura és de 2 graus sobre zero'              },  // idx 0 — CERTA
+      { text: 'Ahir, la temperatura va ser de 2 graus sota zero'           },  // idx 1 — falsa
+      { text: 'D\'aquí 3 dies, la temperatura serà de 4 graus sobre zero'  },  // idx 2 — falsa
+      { text: 'Entre avui i demà, la temperatura baixarà'                  },  // idx 3 — falsa
     ],
     steps: [
       {
-        narration: TEXTS.e3_s1,
-        highlight:  null,
-        btnStates:  ['','','',''],
-        pos: 'left-top', icon: '👀',
+        icon:      '📋',
+        narration: 'Hi ha <b>4 frases</b>. Hem d\'analitzar cadascuna i comprovar-la al gràfic. Observa com ho fem. Només n\'hi ha una de certa.',
+        highlight: null,
+        btnStates: ['','','',''],
+        focus:     'options',
       },
       {
-        narration: TEXTS.e3_s2,
-        highlight:  { type:'arrows-to', x:1, y:1 },
-        btnStates:  ['wrong','','',''],
-        pos: 'left-bottom', icon: '⚠️',
+        icon:      '❌',
+        narration: 'Frase 2: <b>«Ahir, 2 graus sota zero.»</b> Comprova x\u00a0=\u00a0−1: el punt és a y\u00a0=\u00a02, no a y\u00a0=\u00a0−2. <b>Fals!</b>',
+        highlight: { type:'point', x:-1, y:2 },
+        btnStates: ['','wrong','',''],
+        focus:     'option-1',
       },
       {
-        narration: TEXTS.e3_s3,
-        highlight:  { type:'point', x:0, y:2 },
-        btnStates:  ['wrong','','',''],
-        pos: 'left-top', icon: '🔎',
+        icon:      '❌',
+        narration: 'Frase 3: <b>«D\'aquí 3 dies, 4\u00a0ºC.»</b> Comprova x\u00a0=\u00a03: el punt és a y\u00a0=\u00a01, no a y\u00a0=\u00a04. <b>Fals!</b>',
+        highlight: { type:'point', x:3, y:1 },
+        btnStates: ['','wrong','wrong',''],
+        focus:     'option-2',
       },
       {
-        narration: TEXTS.e3_s4,
-        highlight:  null,
-        btnStates:  ['wrong','correct','',''],
-        pos: 'left-top', icon: '✅',
+        icon:      '✅',
+        narration: 'Frase 1: <b>«Avui, 2 graus sobre zero.»</b> Comprova x\u00a0=\u00a00: el punt és a y\u00a0=\u00a02. <b>Cert!</b> Les altres tres frases son totes falses.',
+        highlight: { type:'point-correct', x:0, y:2 },
+        btnStates: ['correct','wrong','wrong','wrong'],
+        focus:     'option-0',
       },
     ],
   },
 
-]; // fi TUTORIAL
+];
 
-
-/* ================================================================
-   GENERACIÓ SVG
-   ================================================================ */
-function buildSVG(cloudPts, yr, hl) {
-    const W=560, H=420, ml=20, mr=20, mt=20, mb=20;
-    const pw=W-ml-mr, ph=H-mt-mb;
-    const xMin=-5, xMax=5;
-    const f  = n => (+n).toFixed(1);
-    const tx = x => ml + (x-xMin)/(xMax-xMin)*pw;
-    const ty = y => mt + ph - (y-yr.min)/(yr.max-yr.min)*ph;
-    const px0 = tx(0);
-    const py0 = (yr.min<=0&&yr.max>=0) ? ty(0) : mt+ph;
-
-    const s = [];
-
-    s.push(`<defs>
-        <marker id="arrow-burgundy" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <path d="M0,0 L0,7 L9,3.5 z" fill="#800020"/>
-        </marker>
-    </defs>`);
-
-    s.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#fff"/>`);
-
-    // --- Columna destacada ---
-    if (hl && hl.type==='column') {
-        const cw = pw/(xMax-xMin);
-        s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#6b7c2e" opacity="0.09" rx="3"/>`);
-        s.push(`<text x="${f(tx(hl.x)-18)}" y="${mt+15}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="11.5" font-weight="700" fill="#6b7c2e">${hl.label||`x=${hl.x}`}</text>`);
-        const [ox, oy] = hl.arrowOrigin || [hl.x + 1.2, 2];
-        const [atx, aty] = hl.arrowTarget || [hl.x, 0];
-        s.push(`<line x1="${f(tx(ox))}" y1="${f(ty(oy))}" x2="${f(tx(atx))}" y2="${f(ty(aty))}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
-    }
-
-    // --- Segments convergents ---
-    if (hl && hl.type==='arrows-to') {
-        const tx2 = f(tx(hl.x)), ty2 = f(ty(hl.y));
-        const origins = [
-            [hl.x - 1.8, hl.y + 2.2],
-            [hl.x + 0.0, hl.y + 2.5],
-            [hl.x + 1.8, hl.y + 2.2],
-        ];
-        origins.forEach(([ox, oy]) => {
-            s.push(`<line x1="${f(tx(ox))}" y1="${f(ty(oy))}" x2="${tx2}" y2="${ty2}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" opacity="0.85"/>`);
-        });
-    }
-
-    // --- Fletxa lliure ---
-    if (hl && hl.type==='arrow') {
-        s.push(`<line x1="${f(tx(hl.x1))}" y1="${f(ty(hl.y1))}" x2="${f(tx(hl.x2))}" y2="${f(ty(hl.y2))}" stroke="#800020" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arrow-burgundy)" opacity="0.9"/>`);
-    }
-
-    // --- Grid ---
-    for (let x=xMin; x<=xMax; x++)
-        s.push(`<line x1="${f(tx(x))}" y1="${mt}" x2="${f(tx(x))}" y2="${mt+ph}" stroke="#cdd9b0" stroke-width="0.7"/>`);
-    for (let y=yr.min; y<=yr.max; y+=yr.majorStep)
-        s.push(`<line x1="${ml}" y1="${f(ty(y))}" x2="${ml+pw}" y2="${f(ty(y))}" stroke="#b5c47a" stroke-width="1"/>`);
-
-    // --- Eixos ---
-    s.push(`<line x1="${ml}" y1="${f(py0)}" x2="${ml+pw}" y2="${f(py0)}" stroke="#000" stroke-width="2"/>`);
-    s.push(`<line x1="${f(px0)}" y1="${mt}" x2="${f(px0)}" y2="${mt+ph}" stroke="#000" stroke-width="2"/>`);
-
-    // --- Etiquetes Y ---
-    for (let y=yr.min; y<=yr.max; y+=yr.majorStep) {
-        if (y===0) continue;
-        const py=ty(y);
-        s.push(`<line x1="${f(px0-4)}" y1="${f(py)}" x2="${f(px0+4)}" y2="${f(py)}" stroke="#000" stroke-width="1.5"/>`);
-        s.push(`<text x="${f(px0-8)}" y="${f(py+5)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${y}</text>`);
-    }
-    // --- Etiquetes X ---
-    for (let x=xMin; x<=xMax; x++) {
-        if (x===0) continue;
-        const px=tx(x);
-        s.push(`<line x1="${f(px)}" y1="${f(py0-4)}" x2="${f(px)}" y2="${f(py0+4)}" stroke="#000" stroke-width="1.5"/>`);
-        s.push(`<text x="${f(px)}" y="${f(py0+20)}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${x}</text>`);
-    }
-    s.push(`<text x="${f(px0-8)}" y="${f(py0+20)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">0</text>`);
-
-    // --- Punts ---
-    cloudPts.forEach(([cx,cy]) => {
-        s.push(`<circle cx="${f(tx(cx))}" cy="${f(ty(cy))}" r="7" fill="#6b7c2e" stroke="white" stroke-width="2.5"/>`);
-    });
-
-    // --- Línies de projecció ---
-    const PROJ_TYPES = ['point','point-correct','point-wrong'];
-    if (hl && PROJ_TYPES.includes(hl.type)) {
-        const hx=tx(hl.x), hy=ty(hl.y);
-        const cols = { 'point':'#6b7c2e', 'point-correct':'#059669', 'point-wrong':'#dc2626' };
-        const c = cols[hl.type];
-        s.push(`<line x1="${ml}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
-        s.push(`<line x1="${f(hx)}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(py0)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"/>`);
-    }
-
-    // --- Overlay: punt blau pulsant ---
-    if (hl && hl.type==='point') {
-        const hx=tx(hl.x), hy=ty(hl.y);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#8fa840" stroke-width="2.5">
-            <animate attributeName="r"       from="9"   to="23"  dur="1.25s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" from="0.8" to="0"   dur="1.25s" repeatCount="indefinite"/>
-        </circle>`);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="#8fa840" stroke="white" stroke-width="2.5"/>`);
-    }
-
-    // --- Overlay: punt erroni ---
-    if (hl && hl.type==='point-wrong') {
-        const hx=tx(hl.x), hy=ty(hl.y);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>`);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#dc2626" stroke="white"  stroke-width="2.5"/>`);
-        const d=4.5;
-        s.push(`<line x1="${f(hx-d)}" y1="${f(hy-d)}" x2="${f(hx+d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
-        s.push(`<line x1="${f(hx+d)}" y1="${f(hy-d)}" x2="${f(hx-d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
-    }
-
-    // --- Overlay: punt correcte ---
-    if (hl && hl.type==='point-correct') {
-        const hx=tx(hl.x), hy=ty(hl.y);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#d1fae5" stroke="#059669" stroke-width="2"/>`);
-        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#059669" stroke="white"  stroke-width="2.5"/>`);
-        s.push(`<polyline points="${f(hx-5)},${f(hy+1)} ${f(hx-1)},${f(hy+4.5)} ${f(hx+5)},${f(hy-4)}" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
-    }
-
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" overflow="visible" style="width:100%;height:auto;display:block">${s.join('')}</svg>`;
-}
-
+const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
 
 /* ================================================================
-   ESTAT I NAVEGACIÓ
+   ESTAT
    ================================================================ */
 let exIdx   = 0;
 let stepIdx = 0;
 
-const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
+/* ================================================================
+   TIMER  —  10 s per pas, amb pausa
+   ================================================================ */
+const STEP_MS    = 10000;
+let timerElapsed = 0;
+let timerLastMs  = null;
+let timerIntv    = null;
+let isPaused     = false;
 
-function globalStep() {
+function startTimer() {
+    clearInterval(timerIntv);
+    timerElapsed = 0;
+    timerLastMs  = Date.now();
+    isPaused     = false;
+    _setPauseIcon();
+    _setFill(100);
+    timerIntv = setInterval(_tick, 60);
+}
+
+function _tick() {
+    if (isPaused) return;
+    const now = Date.now();
+    timerElapsed += now - timerLastMs;
+    timerLastMs   = now;
+    _setFill(Math.max(0, 100 - timerElapsed / STEP_MS * 100));
+    if (timerElapsed >= STEP_MS) { clearInterval(timerIntv); _advance(); }
+}
+
+function _setFill(pct) {
+    document.getElementById('timer-fill').style.width = pct + '%';
+}
+
+function togglePause() {
+    if (isPaused) { isPaused = false; timerLastMs = Date.now(); }
+    else          { isPaused = true; }
+    _setPauseIcon();
+}
+
+function _setPauseIcon() {
+    document.getElementById('btn-pause').textContent = isPaused ? '▶' : '⏸';
+}
+
+/* ================================================================
+   NAVEGACIÓ
+   ================================================================ */
+function _globalStep() {
     let n = 0;
     for (let i = 0; i < exIdx; i++) n += TUTORIAL[i].steps.length;
     return n + stepIdx;
 }
 
+function _advance() {
+    clearInterval(timerIntv);
+    const ex = TUTORIAL[exIdx];
+    if (stepIdx < ex.steps.length - 1) {
+        stepIdx++;
+        _transition();
+    } else if (exIdx < TUTORIAL.length - 1) {
+        exIdx++; stepIdx = 0;
+        _transition();
+    } else {
+        window.location.href = 'recta-numerica.html';
+    }
+}
+
+function _transition() {
+    const body = document.getElementById('game-body');
+    body.classList.add('fading');
+    setTimeout(() => {
+        render();
+        body.classList.remove('fading');
+        startTimer();
+    }, 220);
+}
+
+/* ================================================================
+   FOCUS  —  ressalta un element, atenua la resta
+   ================================================================ */
+function applyFocus(focus) {
+    const graphEl    = document.getElementById('tut-graph');
+    const leftEl     = document.getElementById('game-left');
+    const questionEl = document.getElementById('tut-question');
+    const hintEl     = document.getElementById('tut-hint');
+    const optListEl  = document.getElementById('tut-options');
+    const opts       = optListEl.querySelectorAll('.btn-option');
+
+    // Reset
+    graphEl.classList.remove('dim');
+    leftEl.classList.remove('dim');
+    questionEl.style.opacity = '';
+    hintEl.style.opacity     = '';
+    optListEl.classList.remove('dim');
+    opts.forEach(o => o.classList.remove('dim'));
+
+    if (!focus) return;
+
+    if (focus === 'question') {
+        graphEl.classList.add('dim');
+        optListEl.classList.add('dim');
+
+    } else if (focus === 'graph') {
+        questionEl.style.opacity = '0.15';
+        hintEl.style.opacity     = '0.15';
+        optListEl.classList.add('dim');
+
+    } else if (focus === 'options') {
+        graphEl.classList.add('dim');
+        questionEl.style.opacity = '0.15';
+        hintEl.style.opacity     = '0.15';
+
+    } else if (focus.startsWith('option-')) {
+        const idx = parseInt(focus.split('-')[1]);
+        graphEl.classList.add('dim');
+        questionEl.style.opacity = '0.15';
+        hintEl.style.opacity     = '0.15';
+        opts.forEach((o, i) => { if (i !== idx) o.classList.add('dim'); });
+    }
+}
 
 /* ================================================================
    RENDER
@@ -688,14 +544,13 @@ function globalStep() {
 function render() {
     const ex   = TUTORIAL[exIdx];
     const step = ex.steps[stepIdx];
-    const gs   = globalStep();
 
-    document.getElementById('progress-fill').style.width = Math.round(gs / TOTAL_STEPS * 100) + '%';
+    document.getElementById('step-counter').textContent = `Pas ${_globalStep() + 1} de ${TOTAL_STEPS}`;
+    document.getElementById('example-chip').textContent = ex.chip;
+    document.getElementById('tut-question').textContent = ex.question;
+    document.getElementById('tut-hint').textContent     = '';
 
-    document.getElementById('example-chip').textContent      = ex.chip;
-    document.getElementById('tut-question').textContent      = ex.question;
-    document.getElementById('tut-question-hint').textContent = ex.hint || '';
-
+    // Opcions
     const optEl = document.getElementById('tut-options');
     optEl.innerHTML = '';
     ex.options.forEach((opt, i) => {
@@ -704,79 +559,139 @@ function render() {
         const st = step.btnStates[i];
         if (st === 'wrong')   btn.classList.add('wrong');
         if (st === 'correct') btn.classList.add('correct');
-        btn.style.pointerEvents  = 'none';
-        btn.style.animationDelay = `${i * 55}ms`;
+        btn.style.animationDelay = `${i * 50}ms`;
         btn.textContent = opt.text;
         optEl.appendChild(btn);
     });
 
+    // Gràfic
     document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, step.highlight);
 
-    const bubble  = document.getElementById('narration-bubble');
-    const textEl  = document.getElementById('narration-text');
-    const iconEl  = document.getElementById('bubble-icon');
+    // Narrador
+    document.getElementById('narration-icon').textContent = step.icon;
+    document.getElementById('narration-text').innerHTML   = step.narration;
 
-    bubble.classList.add('fade-out');
-    setTimeout(() => {
-        textEl.innerHTML   = step.narration;
-        iconEl.textContent = step.icon;
-        bubble.className   = `narration-bubble pos-${step.pos}`;
-    }, 210);
+    // Focus
+    applyFocus(step.focus);
 
+    // Botó Següent
     const isLastStep = stepIdx === ex.steps.length - 1;
     const isLastEx   = exIdx   === TUTORIAL.length  - 1;
-    const btnNext    = document.getElementById('btn-next');
-
-    if (isLastStep && isLastEx) {
-        btnNext.textContent = '🎮 Ves a jugar!';
-        btnNext.className   = 'btn-next-step btn-finish';
-    } else if (isLastStep) {
-        btnNext.textContent = 'Exemple següent →';
-        btnNext.className   = 'btn-next-step btn-next-example';
-    } else {
-        btnNext.textContent = 'Següent →';
-        btnNext.className   = 'btn-next-step';
-    }
+    const btn = document.getElementById('btn-next');
+    if      (isLastStep && isLastEx) { btn.textContent = '🎮 Ves a jugar!';       btn.className = 'btn-next btn-finish';  }
+    else if (isLastStep)             { btn.textContent = 'Exemple següent →';     btn.className = 'btn-next btn-next-ex'; }
+    else                             { btn.textContent = 'Seg\u00fcent \u2192';   btn.className = 'btn-next';             }
 }
 
+/* ================================================================
+   GENERACIÓ SVG
+   ================================================================ */
+function buildSVG(cloudPts, yr, hl) {
+    const W=560, H=420, ml=20, mr=20, mt=20, mb=20;
+    const pw=W-ml-mr, ph=H-mt-mb;
+    const xMin=-5, xMax=5;
+    const f   = n => (+n).toFixed(1);
+    const tx  = x => ml + (x-xMin)/(xMax-xMin)*pw;
+    const ty  = y => mt + ph - (y-yr.min)/(yr.max-yr.min)*ph;
+    const px0 = tx(0);
+    const py0 = (yr.min<=0 && yr.max>=0) ? ty(0) : mt+ph;
+    const s   = [];
+
+    s.push(`<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#800020"/></marker></defs>`);
+    s.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#fff"/>`);
+
+    // Columna destacada
+    if (hl && hl.type==='column') {
+        const cw = pw/(xMax-xMin);
+        s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#6b7c2e" opacity="0.09" rx="3"/>`);
+        s.push(`<text x="${f(tx(hl.x))}" y="${mt+14}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="11" font-weight="700" fill="#6b7c2e">${hl.label||`x=${hl.x}`}</text>`);
+    }
+
+    // Grid
+    for (let x=xMin; x<=xMax; x++)
+        s.push(`<line x1="${f(tx(x))}" y1="${mt}" x2="${f(tx(x))}" y2="${mt+ph}" stroke="#cdd9b0" stroke-width="0.7"/>`);
+    for (let y=yr.min; y<=yr.max; y+=yr.majorStep)
+        s.push(`<line x1="${ml}" y1="${f(ty(y))}" x2="${ml+pw}" y2="${f(ty(y))}" stroke="#b5c47a" stroke-width="1"/>`);
+
+    // Eixos
+    s.push(`<line x1="${ml}" y1="${f(py0)}" x2="${ml+pw}" y2="${f(py0)}" stroke="#000" stroke-width="2"/>`);
+    s.push(`<line x1="${f(px0)}" y1="${mt}" x2="${f(px0)}" y2="${mt+ph}" stroke="#000" stroke-width="2"/>`);
+
+    // Etiquetes Y
+    for (let y=yr.min; y<=yr.max; y+=yr.majorStep) {
+        if (y===0) continue;
+        const py=ty(y);
+        s.push(`<line x1="${f(px0-4)}" y1="${f(py)}" x2="${f(px0+4)}" y2="${f(py)}" stroke="#000" stroke-width="1.5"/>`);
+        s.push(`<text x="${f(px0-8)}" y="${f(py+5)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${y}</text>`);
+    }
+    // Etiquetes X
+    for (let x=xMin; x<=xMax; x++) {
+        if (x===0) continue;
+        const px=tx(x);
+        s.push(`<line x1="${f(px)}" y1="${f(py0-4)}" x2="${f(px)}" y2="${f(py0+4)}" stroke="#000" stroke-width="1.5"/>`);
+        s.push(`<text x="${f(px)}" y="${f(py0+20)}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${x}</text>`);
+    }
+    s.push(`<text x="${f(px0-8)}" y="${f(py0+20)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">0</text>`);
+
+    // Títols eixos
+    s.push(`<text x="${f(px0+6)}" y="15" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">y: temperatura (ºC)</text>`);
+    s.push(`<text x="${f(ml+pw)}" y="${f(py0-7)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">x: temps (dies)</text>`);
+
+    // Punts del núvol
+    cloudPts.forEach(([cx,cy]) => {
+        s.push(`<circle cx="${f(tx(cx))}" cy="${f(ty(cy))}" r="7" fill="#6b7c2e" stroke="white" stroke-width="2.5"/>`);
+    });
+
+    // Línies de projecció (per a point, point-correct, point-wrong)
+    const PROJ = ['point','point-correct','point-wrong'];
+    if (hl && PROJ.includes(hl.type)) {
+        const hx=tx(hl.x), hy=ty(hl.y);
+        const c = { point:'#6b7c2e', 'point-correct':'#059669', 'point-wrong':'#dc2626' }[hl.type];
+        s.push(`<line x1="${ml}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.55"/>`);
+        s.push(`<line x1="${f(hx)}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(py0)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.55"/>`);
+    }
+
+    // Punt pulsant
+    if (hl && hl.type==='point') {
+        const hx=tx(hl.x), hy=ty(hl.y);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#8fa840" stroke-width="2.5"><animate attributeName="r" from="9" to="23" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.75" to="0" dur="1.2s" repeatCount="indefinite"/></circle>`);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="#8fa840" stroke="white" stroke-width="2.5"/>`);
+    }
+
+    // Punt incorrecte
+    if (hl && hl.type==='point-wrong') {
+        const hx=tx(hl.x), hy=ty(hl.y), d=4.5;
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>`);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#dc2626" stroke="white"  stroke-width="2.5"/>`);
+        s.push(`<line x1="${f(hx-d)}" y1="${f(hy-d)}" x2="${f(hx+d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
+        s.push(`<line x1="${f(hx+d)}" y1="${f(hy-d)}" x2="${f(hx-d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
+    }
+
+    // Punt correcte
+    if (hl && hl.type==='point-correct') {
+        const hx=tx(hl.x), hy=ty(hl.y);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#d1fae5" stroke="#059669" stroke-width="2"/>`);
+        s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#059669" stroke="white"  stroke-width="2.5"/>`);
+        s.push(`<polyline points="${f(hx-5)},${f(hy+1)} ${f(hx-1)},${f(hy+4.5)} ${f(hx+5)},${f(hy-4)}" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
+    }
+
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" overflow="visible" style="width:90%;height:auto;display:block">${s.join('')}</svg>`;
+}
 
 /* ================================================================
-   CLIC AL BOTÓ SEGÜENT
+   EVENTS
    ================================================================ */
 document.getElementById('btn-next').addEventListener('click', () => {
-    const ex = TUTORIAL[exIdx];
-    if (stepIdx < ex.steps.length - 1) {
-        stepIdx++;
-    } else if (exIdx < TUTORIAL.length - 1) {
-        exIdx++;
-        stepIdx = 0;
-    } else {
-        window.location.href = 'recta-numerica.html';
-        return;
-    }
-    render();
+    clearInterval(timerIntv);
+    _advance();
 });
-
+document.getElementById('btn-pause').addEventListener('click', togglePause);
 
 /* ================================================================
    ARRENCADA
    ================================================================ */
 render();
-
-function triggerAttention() {
-    const btn = document.getElementById('btn-next');
-    btn.classList.remove('attention');
-    void btn.offsetWidth;
-    btn.classList.add('attention');
-    btn.addEventListener('animationend', () => btn.classList.remove('attention'), { once: true });
-}
-
-setTimeout(triggerAttention, 4000);
-
-document.addEventListener('click', (e) => {
-    const btn = document.getElementById('btn-next');
-    if (!btn.contains(e.target)) triggerAttention();
-});
+startTimer();
 </script>
 
 </body>
