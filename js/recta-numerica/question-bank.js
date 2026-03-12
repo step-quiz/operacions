@@ -98,15 +98,21 @@ window.QuestionBank = (() => {
     function generateQ3(cloud, yRange, level) {
         const cloudY = cloud.map(p => p.y);
 
+        // Marge segur: mateix càlcul que cloud-engine per garantir
+        // que queryY sempre és un valor visible al gràfic
+        const span   = yRange.max - yRange.min;
+        const margin = Math.max(1, Math.round(span * 0.15));
+        const minY   = yRange.min + margin;
+        const maxY   = yRange.max - margin;
+
         // Tria el valor Y a consultar:
         // 50% → valor que SÍ existeix al núvol (count ≥ 1)
         // 50% → valor proper que NO existeix (count = 0)
         let queryY;
         if (Math.random() < 0.5) {
-            queryY = _pick(cloudY);   // existeix segur
+            queryY = _pick(cloudY);   // existeix segur (cloud-engine ja garanteix els marges)
         } else {
-            // Valor proper als existents però absent
-            const minY = yRange.min, maxY = yRange.max;
+            // Valor proper als existents però absent, dins el rang visible
             const absent = [];
             for (let y = minY; y <= maxY; y++) {
                 if (!cloudY.includes(y)) absent.push(y);
