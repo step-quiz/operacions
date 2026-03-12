@@ -398,7 +398,7 @@ function renderExpr(p) {
             } else {
                 const expStr = (p.exp < 0) ? `(${p.exp})` : String(p.exp);
                 els.expressionBox.appendChild(
-                    mkSpan(`${p.mantissaStr}&thinsp;×&thinsp;10<sup class="expr-sup">${expStr}</sup>`)
+                    mkSpan(`${p.mantissaStr}&thinsp;·&thinsp;10<sup class="expr-sup">${expStr}</sup>`)
                 );
             }
             break;
@@ -703,6 +703,9 @@ function buildStepsRepte2(p) {
 function buildStepsRepte3(p) {
     if (p.dir === 'to_sci') {
         // [ROUND 9 — un sol pas: dos inputs inline  displayVal = ? · 10^?]
+        // [ROUND 13 — validació parcial: mantissa correcta → verda+bloquejada; exponent continua editable]
+        let mantissaLocked = false;
+
         const step1 = {
             title: `Escriu la base i l'exponent:`,
             buildSchema: (c) => { c.innerHTML = ''; els.stepBtns.innerHTML = ''; },
@@ -729,9 +732,16 @@ function buildStepsRepte3(p) {
                 const inpE = document.getElementById('step-input-exp');
                 if (!inpM || !inpE) return false;
 
+                // Si la mantissa ja estava bloquejada, avalua només l'exponent
+                if (mantissaLocked) {
+                    const eVal = parseNum(inpE.value.trim());
+                    if (isNaN(eVal) || eVal !== p.exp) return false;
+                    return true;
+                }
+
                 const rawM = inpM.value.trim();
                 const rawE = inpE.value.trim();
-                if (rawM === '' || rawE === '') return false;
+                if (rawM === '') return false;
 
                 // Punt decimal en lloc de coma → avís suau (sense penalitzar)
                 if (rawM.includes('.')) {
@@ -743,15 +753,9 @@ function buildStepsRepte3(p) {
                 }
 
                 const mVal = parseFloat(rawM.replace(',', '.'));
-                const eVal = parseNum(rawE);
-                if (isNaN(mVal) || isNaN(eVal)) return false;
+                if (isNaN(mVal)) return false;
 
-                // Comprova que mVal · 10^eVal coincideix amb el nombre original
-                const reconstructed = mVal * Math.pow(10, eVal);
-                const expected       = p.mantissaNum * Math.pow(10, p.exp);
-                if (Math.abs(reconstructed - expected) > Math.abs(expected) * 1e-9) return false;
-
-                // Matemàticament correcte — comprova notació científica canònica: 1 ≤ |m| < 10
+                // Comprova notació científica canònica: 1 ≤ |m| < 10
                 if (Math.abs(mVal) < 1 || Math.abs(mVal) >= 10) {
                     if (els.stepFeedback) {
                         els.stepFeedback.innerText = 'Els càlculs són correctes, però no és notació científica. Corregeix la mantissa.';
@@ -760,7 +764,33 @@ function buildStepsRepte3(p) {
                     return false;
                 }
 
-                return true;
+                // Mantissa canònica correcta?
+                if (Math.abs(mVal - p.mantissaNum) > 1e-9) return false;
+
+                // ✓ Mantissa correcta → bloquejar-la en verd
+                mantissaLocked = true;
+                inpM.readOnly = true;
+                inpM.style.color         = 'var(--success)';
+                inpM.style.borderColor   = 'var(--success)';
+                inpM.style.background    = '#d1fae5';
+                inpM.style.fontWeight    = 'bold';
+
+                // Comprova si l'exponent ja és present i correcte
+                if (rawE !== '') {
+                    const eVal = parseNum(rawE);
+                    if (!isNaN(eVal) && eVal === p.exp) return true;
+                }
+
+                // Mantissa OK però exponent pendent → soft warning, focus a l'exponent
+                if (els.stepFeedback) {
+                    els.stepFeedback.innerText = 'Mantissa correcta! Ara escriu l\'exponent.';
+                    els.stepFeedback.className = 'important';
+                }
+                setTimeout(() => {
+                    const inpE2 = document.getElementById('step-input-exp');
+                    if (inpE2) { if (isTouchDevice()) showCustomKeyboard(inpE2); else inpE2.focus(); }
+                }, 50);
+                return false;
             },
             onCorrect: () => {
                 const expStr = p.exp < 0 ? `(${p.exp})` : String(p.exp);
@@ -835,10 +865,10 @@ function showCurrentStep() {
     els.currentStep.classList.add('active');
     els.resolutionPanel.style.display = 'flex';
 
-    // Focus al primer input (schema-row o expression-box)
+    // Focus al primer input editable (schema-row o expression-box)
     setTimeout(() => {
         const first = els.stepSchema.querySelector('input')
-                   || els.expressionBox.querySelector('.expr-sup-input');
+                   || els.expressionBox.querySelector('input:not([readonly])');
         if (first) {
             if (isTouchDevice()) { showCustomKeyboard(first); } else { first.focus(); }
         }
@@ -871,7 +901,7 @@ function clearAndFocus() {
         ...els.stepSchema.querySelectorAll('input'),
         ...els.expressionBox.querySelectorAll('.expr-sup-input, .expr-inline-input')
     ];
-    allInputs.forEach(inp => { inp.value = ''; });
+    allInputs.forEach(inp => { if (!inp.readOnly) inp.value = ''; });
     const first = allInputs[0] || null;
     if (first) {
         if (isTouchDevice()) { kbMarkForOverwrite(first); showCustomKeyboard(first); }
@@ -1006,7 +1036,7 @@ function showCorrectAnswer(p) {
         case 'notsci':
             if (p.dir === 'to_sci') {
                 const expStr = p.exp < 0 ? `(${p.exp})` : String(p.exp);
-                showResult(`${p.mantissaStr}&thinsp;×&thinsp;10<sup class="expr-sup">${expStr}</sup>`);
+                showResult(`${p.mantissaStr}&thinsp;·&thinsp;10<sup class="expr-sup">${expStr}</sup>`);
             } else {
                 showResult(String(p.value));
             }
