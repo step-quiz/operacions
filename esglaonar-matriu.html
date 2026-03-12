@@ -26,7 +26,10 @@
             --border: #e2e8f0;
         }
 
-        * { box-sizing: border-box; }
+        .home-icon-link { display:block; width:36px; height:36px; flex-shrink:0; opacity:.7; transition:opacity .2s ease; }
+        .home-icon-link:hover { opacity:1; }
+        .home-icon-link img { width:100%; height:100%; object-fit:contain; }
+
 
         body {
             font-family: 'DM Sans', system-ui, sans-serif;
@@ -141,7 +144,7 @@
             align-items: center;
             justify-content: center;
             font-size: 1.25rem;
-            font-family: 'DM Mono', 'Courier New', monospace;
+            font-family: 'DM Sans', system-ui, sans-serif;
             font-weight: 500;
             color: var(--gris-text);
             animation: cellIn 0.25s ease-out both;
@@ -173,7 +176,7 @@
             border-radius: 10px;
             font-size: 1.15rem;
             font-weight: 600;
-            font-family: 'DM Mono', 'Courier New', monospace;
+            font-family: 'DM Sans', system-ui, sans-serif;
             background: #f8faff;
             color: var(--primary);
             transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
@@ -361,6 +364,9 @@
 
 <div class="app-card">
     <div class="toolbar">
+        <a href="https://step-quiz.net" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+            <img src="icon.png" alt="Inici">
+        </a>
         <label>Mida matriu:
             <select id="sizeSelect" onchange="initApp()">
                 <option value="4" selected>3×4</option>
@@ -374,24 +380,31 @@
             </select>
         </label>
         <label>Operació:
-            <select id="orderSelect" onchange="renderStep()">
+            <select id="orderSelect" onchange="onOrderChange()">
                 <option value="pivotFirst" selected>Fi → aFj + bFi</option>
                 <option value="targetFirst">Fi → aFi + bFj</option>
+                <option value="swap">Fi ↔ Fj</option>
+            </select>
+        </label>
+        <label id="swapRowsLabel" style="display:none;">
+            <select id="swapA" onchange="renderStep()">
+                <option value="0">F1</option><option value="1">F2</option><option value="2">F3</option>
+            </select>
+            ↔
+            <select id="swapB" onchange="renderStep()">
+                <option value="0">F1</option><option value="1" selected>F2</option><option value="2">F3</option>
             </select>
         </label>
     </div>
 
     <div class="gauss-container" id="mainContainer">
-        <div class="matrix-wrapper" id="wrapperLeft">
-            <div class="matrix-title" id="titleLeft"></div>
-            <div id="matrixLeft" class="matrix"></div>
-        </div>
+        <div id="historyChain" style="display:flex; align-items:center; gap:25px; flex-wrap:wrap;"></div>
 
         <div id="centralPanel" class="equivalence-panel">
             <div id="opText" style="color:var(--primary); font-weight:700; font-size:1.35rem; margin-bottom:10px; font-family:'DM Sans',system-ui,sans-serif;"></div>
             <div class="tilde">~</div>
             <div style="width: 100%;">
-                <div style="display:flex; justify-content:flex-end; gap:8px; font-size:0.78rem; margin-bottom:6px; color:var(--gris-fosc); font-weight:500;">
+                <div id="helpRow" style="display:flex; justify-content:flex-end; gap:8px; font-size:0.78rem; margin-bottom:6px; color:var(--gris-fosc); font-weight:500;">
                     <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">Mostrar Ajuda <input type="checkbox" id="helpToggle" checked onchange="updateHelp()"></label>
                 </div>
                 <div id="scaffold" class="dashed-box">
@@ -416,6 +429,7 @@
 
 <script>
     let matrix = [];
+    let matrixHistory = [];
     let currentCols = 4;
     let isManualMode = false;
     let currentStepIdx = 0;
@@ -450,7 +464,7 @@
         document.getElementById('wrapperRight').style.display = "flex";
 
         if (isManualMode) renderManualInput();
-        else { generateSmartMatrix(); renderStep(); }
+        else { generateSmartMatrix(); matrixHistory = [matrix.map(r=>[...r])]; renderStep(); }
     }
 
     function generateSmartMatrix() {
@@ -489,19 +503,28 @@
     function renderManualInput() {
         document.getElementById('centralPanel').style.display = "none";
         document.getElementById('wrapperRight').style.display = "none";
-        document.getElementById('titleLeft').innerText = "Defineix la matriu";
         document.getElementById('feedback').innerText = "";
 
-        const mLeft = document.getElementById('matrixLeft');
-        mLeft.innerHTML = '';
+        const chain = document.getElementById('historyChain');
+        chain.innerHTML = '';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'matrix-wrapper';
+        const title = document.createElement('div');
+        title.className = 'matrix-title';
+        title.innerText = 'Defineix la matriu';
+        const grid = document.createElement('div');
+        grid.className = 'matrix';
         for (let i = 0; i < 3 * currentCols; i++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.style.animationDelay = `${i * 0.02}s`;
             if (currentCols === 4 && (i % currentCols) === 3) cell.classList.add('sep-column');
             cell.innerHTML = `<input type="number" class="manual-cell" placeholder="?" onfocus="this.select()">`;
-            mLeft.appendChild(cell);
+            grid.appendChild(cell);
         }
+        wrapper.appendChild(title);
+        wrapper.appendChild(grid);
+        chain.appendChild(wrapper);
 
         document.getElementById('sideAction').innerHTML = `<button id="mainBtn" class="btn-check" onclick="setManualMatrix()">Establir aquesta matriu</button>`;
 
@@ -537,46 +560,47 @@
 
         document.getElementById('centralPanel').style.display = "flex";
         document.getElementById('wrapperRight').style.display = "flex";
-        document.getElementById('titleLeft').innerText = "";
 
         matrix = m;
+        matrixHistory = [matrix.map(r=>[...r])];
         isManualMode = false;
         renderStep();
     }
 
     function renderStep() {
         const step = steps[currentStepIdx];
-        document.getElementById('matrixTitleRight').innerText = step.label;
         const order = document.getElementById('orderSelect').value;
+
+        // ── MODE PERMUTACIÓ ──
+        if (order === 'swap') {
+            document.getElementById('helpRow').style.display = 'none';
+            document.getElementById('scaffold').style.opacity = '0';
+            document.getElementById('matrixTitleRight').innerText = 'Matriu permutada';
+            document.getElementById('opText').innerHTML = '';
+
+            renderHistoryChain();
+            previewSwap();
+
+            document.getElementById('sideAction').innerHTML =
+                `<button class="btn-check" onclick="applySwap()">Aplicar permutació</button>`;
+            return;
+        }
+
+        // ── MODE OPERACIÓ DE FILA ──
+        document.getElementById('helpRow').style.display = '';
+        document.getElementById('matrixTitleRight').innerText = step.label;
         const targetL = `F<sub>${step.tRow+1}</sub>`;
-        const pivotL = `F<sub>${step.pRow+1}</sub>`;
+        const pivotL  = `F<sub>${step.pRow+1}</sub>`;
 
         if (order === "pivotFirst") {
             document.getElementById('opText').innerHTML = `${targetL} ⮕ <input type="number" id="cLeft" class="op-input" onfocus="this.select()"> ${pivotL} + <input type="number" id="cRight" class="op-input" onfocus="this.select()"> ${targetL}`;
         } else {
             document.getElementById('opText').innerHTML = `${targetL} ⮕ <input type="number" id="cLeft" class="op-input" onfocus="this.select()"> ${targetL} + <input type="number" id="cRight" class="op-input" onfocus="this.select()"> ${pivotL}`;
         }
-
         document.getElementById('cLeft').addEventListener('input', updateHelp);
         document.getElementById('cRight').addEventListener('input', updateHelp);
 
-        const mLeft = document.getElementById('matrixLeft');
-        mLeft.innerHTML = '';
-        matrix.forEach((row, i) => {
-            row.forEach((val, j) => {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
-                if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
-                let isA21Done = (currentStepIdx > 0 && i === 1 && j === 0);
-                let isA31Done = (currentStepIdx > 1 && i === 2 && j === 0);
-                let isA32Done = (exerciseFinished && i === 2 && j === 1);
-                if (val === 0 && (isA21Done || isA31Done || isA32Done)) {
-                    cell.innerHTML = `<span class="boxed-zero">0</span>`;
-                } else { cell.innerText = val; }
-                mLeft.appendChild(cell);
-            });
-        });
+        renderHistoryChain();
 
         const mRight = document.getElementById('matrixRight');
         mRight.innerHTML = '';
@@ -592,8 +616,43 @@
                 mRight.appendChild(cell);
             });
         });
-        document.getElementById('sideAction').innerHTML = `<button id="mainBtn" class="btn-check" onclick="checkStep()">Comprovar</button>`;
+        document.getElementById('sideAction').innerHTML =
+            `<button id="mainBtn" class="btn-check" onclick="checkStep()">Comprovar</button>`;
         updateHelp();
+    }
+
+    function renderHistoryChain() {
+        const chain = document.getElementById('historyChain');
+        chain.innerHTML = '';
+        matrixHistory.forEach((mat, idx) => {
+            if (idx > 0) {
+                const tilde = document.createElement('div');
+                tilde.className = 'tilde';
+                tilde.style.cssText = 'font-size:3.5rem; opacity:0.6; margin:0 -5px;';
+                tilde.innerText = '~';
+                chain.appendChild(tilde);
+            }
+            const wrapper = document.createElement('div');
+            wrapper.className = 'matrix-wrapper';
+            const grid = document.createElement('div');
+            grid.className = 'matrix';
+            mat.forEach((row, i) => row.forEach((val, j) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
+                if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
+                // boxed zeros per als passos ja fets
+                let isA21Done = (currentStepIdx > 0 && i === 1 && j === 0);
+                let isA31Done = (currentStepIdx > 1 && i === 2 && j === 0);
+                let isA32Done = (exerciseFinished && i === 2 && j === 1);
+                if (val === 0 && idx === matrixHistory.length - 1 && (isA21Done || isA31Done || isA32Done)) {
+                    cell.innerHTML = `<span class="boxed-zero">0</span>`;
+                } else { cell.innerText = val; }
+                grid.appendChild(cell);
+            }));
+            wrapper.appendChild(grid);
+            chain.appendChild(wrapper);
+        });
     }
 
     function updateHelp() {
@@ -624,6 +683,75 @@
         document.getElementById('strategyCheck').style.display = (isZero && (valL!==0 || valR!==0)) ? "block" : "none";
     }
 
+    function onOrderChange() {
+        const isSwap = document.getElementById('orderSelect').value === 'swap';
+        document.getElementById('swapRowsLabel').style.display = isSwap ? '' : 'none';
+        renderStep();
+    }
+
+    function previewSwap() {
+        const rowA = parseInt(document.getElementById('swapA').value);
+        const rowB = parseInt(document.getElementById('swapB').value);
+        let prev = matrix.map(r => [...r]);
+        [prev[rowA], prev[rowB]] = [prev[rowB], prev[rowA]];
+        const mRight = document.getElementById('matrixRight');
+        mRight.innerHTML = '';
+        prev.forEach((row, i) => row.forEach((val, j) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
+            if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
+            if (i === rowA || i === rowB) {
+                cell.style.color = 'var(--primary)';
+                cell.style.fontWeight = '700';
+                cell.style.background = 'rgba(37,99,235,0.07)';
+                cell.style.borderRadius = '6px';
+            }
+            cell.innerText = val;
+            mRight.appendChild(cell);
+        }));
+    }
+
+    function applySwap() {
+        const rowA = parseInt(document.getElementById('swapA').value);
+        const rowB = parseInt(document.getElementById('swapB').value);
+        if (rowA === rowB) {
+            const fb = document.getElementById('feedback');
+            fb.innerText = `⚠️ Tria dues files diferents.`;
+            fb.style.color = 'var(--warning)';
+            return;
+        }
+        [matrix[rowA], matrix[rowB]] = [matrix[rowB], matrix[rowA]];
+        matrixHistory.push(matrix.map(r=>[...r]));
+
+        renderHistoryChain();
+        const mRight = document.getElementById('matrixRight');
+        mRight.innerHTML = '';
+        matrix.forEach((row, i) => row.forEach((val, j) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
+            if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
+            if (i === rowA || i === rowB) {
+                cell.style.color = 'var(--primary)';
+                cell.style.fontWeight = '700';
+                cell.style.background = 'rgba(37,99,235,0.07)';
+                cell.style.borderRadius = '6px';
+            }
+            cell.innerText = val;
+            mRight.appendChild(cell);
+        }));
+        document.getElementById('matrixTitleRight').innerText = 'Matriu permutada';
+
+        triggerSuccessFeedback(`✅ Files F${rowA+1} i F${rowB+1} permutades.`);
+        setTimeout(() => {
+            const sel = document.getElementById('orderSelect');
+            sel.value = 'pivotFirst';
+            document.getElementById('swapRowsLabel').style.display = 'none';
+            renderStep();
+        }, 1200);
+    }
+
     function checkStep() {
         const step = steps[currentStepIdx];
         const order = document.getElementById('orderSelect').value;
@@ -635,6 +763,13 @@
         if (isNaN(valL) || isNaN(valR) || res.some(isNaN)) {
             fb.innerText = `⚠️ Omple tota la fila.`;
             fb.style.color = "var(--warning)";
+            fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        const targetCoeff = (order === "pivotFirst") ? valR : valL;
+        if (targetCoeff === 0) {
+            fb.innerText = "❌ El coeficient de Fi ha de ser diferent de zero: si fos 0 estaríes substituint la fila (operació no invertible), no combinant-la.";
+            fb.style.color = "var(--danger)";
             fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
@@ -650,6 +785,7 @@
         if (res.every((val, j) => val === (valL * rowL[j] + valR * rowR[j]))) {
             triggerSuccessFeedback(`✅ Pas correcte.`);
             matrix[step.tRow] = [...res];
+            matrixHistory.push(matrix.map(r=>[...r]));
             setTimeout(() => {
                 if (currentStepIdx < steps.length - 1) { currentStepIdx++; renderStep(); }
                 else { exerciseFinished = true; finishExercise(); }
@@ -678,23 +814,7 @@
             <div style="color:var(--success); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;">Matriu ja esglaonada ✓</div>
             <button class="btn-mini" onclick="initApp()">Nou exercici</button>
         `;
-        const mLeft = document.getElementById('matrixLeft');
-        mLeft.innerHTML = '';
-        matrix.forEach((row, i) => {
-            row.forEach((val, j) => {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
-                if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
-                let isA21Done = (i === 1 && j === 0 && val === 0);
-                let isA31Done = (i === 2 && j === 0 && val === 0);
-                let isA32Done = (i === 2 && j === 1 && val === 0);
-                if (isA21Done || isA31Done || isA32Done) {
-                    cell.innerHTML = `<span class="boxed-zero">0</span>`;
-                } else { cell.innerText = val; }
-                mLeft.appendChild(cell);
-            });
-        });
+        renderHistoryChain();
         const mRight = document.getElementById('matrixRight');
         mRight.innerHTML = '';
         matrix.forEach((row, i) => row.forEach((val, j) => {
