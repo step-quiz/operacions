@@ -52,6 +52,11 @@
             margin-top: 5px;
         }
 
+        .title-row { display:flex; align-items:center; justify-content:center; gap:14px; }
+        .home-icon-link { display:block; width:58px; height:58px; flex-shrink:0; opacity:.75; transition:opacity .2s ease; }
+        .home-icon-link:hover { opacity:1; }
+        .home-icon-link img { width:100%; height:100%; object-fit:contain; }
+
         /* SELECTOR DE NIVELL */
         .difficulty-selector {
             display: flex;
@@ -230,7 +235,12 @@ border-radius: 8px;
     </style>
 </head>
 <body>
-    <h1>La funció i la seva derivada</h1>
+    <div class="title-row">
+        <a href="https://step-quiz.net" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+            <img src="icon.png" alt="Inici">
+        </a>
+        <h1>La funció i la seva derivada</h1>
+    </div>
 
     <div class="difficulty-selector">
         <button class="lvl-btn active" onclick="setDifficulty(1, this)">Nivell 1</button>

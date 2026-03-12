@@ -54,6 +54,11 @@
             margin: 8px 0 16px;
         }
 
+        .title-row { display:flex; align-items:center; justify-content:center; gap:14px; }
+        .home-icon-link { display:block; width:58px; height:58px; flex-shrink:0; opacity:.75; transition:opacity .2s ease; }
+        .home-icon-link:hover { opacity:1; }
+        .home-icon-link img { width:100%; height:100%; object-fit:contain; }
+
         .toolbar {
             display: flex;
             gap: 2rem;
@@ -477,7 +482,12 @@
 </head>
 <body>
 
-<h1>Regla de Ruffini</h1>
+<div class="title-row">
+    <a href="https://step-quiz.net" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Regla de Ruffini</h1>
+</div>
 
 <div class="app-card">
     <div class="toolbar">
