@@ -381,16 +381,9 @@ const TUTORIAL = [
       },
       {
         icon:      '❌',
-        narration: 'Frase 2: <b>«Ahir, 2 graus sota zero.»</b> Comprova x\u00a0=\u00a0−1: el punt és a y\u00a0=\u00a02, no a y\u00a0=\u00a0−2. <b>Fals!</b>',
-        highlight: { type:'point', x:-1, y:2 },
-        btnStates: ['','wrong','',''],
-        focus:     'option-1',
-      },
-      {
-        icon:      '❌',
         narration: 'Frase 3: <b>«D\'aquí 3 dies, 4\u00a0ºC.»</b> Comprova x\u00a0=\u00a03: el punt és a y\u00a0=\u00a01, no a y\u00a0=\u00a04. <b>Fals!</b>',
         highlight: { type:'point', x:3, y:1 },
-        btnStates: ['','wrong','wrong',''],
+        btnStates: ['','','wrong',''],
         focus:     'option-2',
       },
       {
@@ -539,8 +532,8 @@ function render() {
     const ex   = TUTORIAL[exIdx];
     const step = ex.steps[stepIdx];
 
-    const gs  = _globalStep();
-    const pct = gs === TOTAL_STEPS - 1 ? 100 : (gs + 1) * 10;
+    const gs   = _globalStep();
+    const pct  = [0, 15, 30, 45, 60, 75, 90, 100][gs] ?? 100;
     document.getElementById('step-counter').textContent = `Completat: ${pct}%`;
     document.getElementById('example-chip').textContent = ex.chip;
     document.getElementById('tut-question').textContent = ex.question;
@@ -682,6 +675,13 @@ document.getElementById('btn-next').addEventListener('click', () => {
     _advance();
 });
 document.getElementById('btn-pause').addEventListener('click', togglePause);
+
+document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && e.target.tagName !== 'BUTTON') {
+        e.preventDefault();
+        togglePause();
+    }
+});
 
 /* ================================================================
    ARRENCADA
