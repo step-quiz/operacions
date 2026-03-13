@@ -2,13 +2,7 @@
  * ============================================================================
  * PROJECTE: Vocabulari Matemàtic
  * FITXER: js/vocabulari/vocabulari.js
- * ROL: Controlador principal del joc. Gestiona l'estat, renderitza el DOM
- *      i coordina els dos modes (A: drag & drop, B: escriptura lliure).
- * ARQUITECTURA:
- * - Cap global implícita: tot encapsulat en l'àmbit d'aquest mòdul.
- * - Cap dependència de game-core.js, utils.js ni shared.css.
- * - Llegeix la configuració de la URL (?modalitat=B&ops=6&intents=3).
- * - Usa VocabFigures (dades) i VocabEngine (lògica pura).
+ * ROL: Controlador principal del joc.
  * DEPENDÈNCIES: vocabulari-figures.js, vocabulari-engine.js
  * ============================================================================
  */
@@ -17,40 +11,49 @@
     'use strict';
 
     // =========================================================================
-    // CONFIG — paràmetres URL amb fallbacks i límits defensius
+    // CONFIG — URL params amb fallbacks i límits defensius
     // =========================================================================
-    const _p         = new URLSearchParams(window.location.search);
+    const _p          = new URLSearchParams(window.location.search);
+    const MODALITAT   = (_p.get('modalitat') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
+    const TOTAL_OPS   = Math.min(30, Math.max(1, parseInt(_p.get('ops')      || '4', 10) || 4));
+    const MAX_INTENTS = Math.min(10, Math.max(1, parseInt(_p.get('intents')  || '4', 10) || 4));
+    const TOTAL_SESS  = Math.min(20, Math.max(1, parseInt(_p.get('sessions') || '1', 10) || 1));
 
-    const MODALITAT  = (_p.get('modalitat') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
-    const TOTAL_OPS  = Math.min(30, Math.max(1, parseInt(_p.get('ops')     || '4',  10) || 4));
-    const MAX_INTENTS= Math.min(10, Math.max(1, parseInt(_p.get('intents') || '4',  10) || 4));
-    const TOTAL_SESS = Math.min(20, Math.max(1, parseInt(_p.get('sessions')|| '1',  10) || 1));
-
-    // Paleta de fons rotativa entre figures
     const BG_COLORS = [
         '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
         '#f5f3ff', '#ecfeff', '#fdf4ff', '#fffbeb', '#faf5ff'
     ];
 
     // =========================================================================
-    // ESTAT
+    // DETECCIÓ DE DISPOSITIU TÀCTIL
+    // Utilitzada per ajustar el comportament de l'input en mode B:
+    //  - Tàctil: scrollIntoView per garantir que el camp és visible
+    //            quan apareix el teclat virtual del sistema.
+    //  - No tàctil: focus directe, sense scroll addicional.
     // =========================================================================
-    let _figures       = [];   // llista ordenada de figures per a la partida
-    let _figActual     = null;
-    let _etTotal       = 0;    // total d'etiquetes de la figura actual
-    let _etOK          = 0;    // etiquetes col·locades correctament
-    let _writeIdx      = 0;    // índex del mode B
-    let _intents       = 0;    // intents restants
-    let _punts         = 0;    // punts de la sessió actual
-    let _puntsTotal    = [];   // punts per sessió (per al resum)
-    let _historial     = [];   // [{pregunta, resposta, ok}]
-    let _sessio        = 0;    // sessió actual (0-indexed)
-    let _op            = 0;    // operació actual dins la sessió (0-indexed)
-    let _isPenalizing  = false;
-    let _isTransiting  = false;
+    function _isTouchDevice() {
+        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    }
 
     // =========================================================================
-    // REFS DOM — inicialitzades a init()
+    // ESTAT
+    // =========================================================================
+    let _figures      = [];
+    let _figActual    = null;
+    let _etTotal      = 0;
+    let _etOK         = 0;
+    let _writeIdx     = 0;
+    let _intents      = 0;
+    let _punts        = 0;
+    let _puntsTotal   = [];
+    let _historial    = [];
+    let _sessio       = 0;
+    let _op           = 0;
+    let _isPenalizing = false;
+    let _isTransiting = false;
+
+    // =========================================================================
+    // REFS DOM
     // =========================================================================
     let els = {};
 
@@ -81,13 +84,21 @@
             dragGhost:       document.getElementById('drag-ghost'),
         };
 
-        // Listener Enter per al mode B
+        // Atributs HTML de l'input per evitar correccions automàtiques
+        // que confonen l'alumne (autocomplete, autocorrect iOS, etc.)
+        if (els.writeInput) {
+            els.writeInput.setAttribute('autocomplete',   'off');
+            els.writeInput.setAttribute('autocorrect',    'off');
+            els.writeInput.setAttribute('autocapitalize', 'off');
+            els.writeInput.setAttribute('spellcheck',     'false');
+            els.writeInput.setAttribute('inputmode',      'text');
+        }
+
+        // Enter per al mode B (teclat físic)
         document.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && MODALITAT === 'B') {
-                if (!_isTransiting) {
-                    e.preventDefault();
-                    _checkWrite();
-                }
+            if (e.key === 'Enter' && MODALITAT === 'B' && !_isTransiting) {
+                e.preventDefault();
+                _checkWrite();
             }
         });
 
@@ -98,9 +109,9 @@
     // GAME LOOP
     // =========================================================================
     function _startGame() {
-        _sessio      = 0;
-        _puntsTotal  = [];
-        _historial   = [];
+        _sessio     = 0;
+        _puntsTotal = [];
+        _historial  = [];
         _startSession();
     }
 
@@ -108,7 +119,7 @@
         _op    = 0;
         _punts = 0;
 
-        // Genera l'ordre de figures: barrejat, repetint si cal
+        // Ordre aleatori de figures, repetint si cal fins a TOTAL_OPS
         const all = VocabFigures.all;
         let ordre = VocabEngine.shuffle(all);
         while (ordre.length < TOTAL_OPS) {
@@ -131,8 +142,8 @@
         _etTotal   = _figActual.etiquetes.length;
 
         // Fons rotatiu
-        const idx = (_sessio * TOTAL_OPS + _op) % BG_COLORS.length;
-        els.body.style.backgroundColor = BG_COLORS[idx];
+        els.body.style.backgroundColor =
+            BG_COLORS[(_sessio * TOTAL_OPS + _op) % BG_COLORS.length];
 
         els.typoWarning.classList.remove('visible');
         els.contextInstr.innerText = '';
@@ -153,7 +164,6 @@
         _punts += points;
         els.scoreDisplay.innerText = `Punts: ${_punts}`;
 
-        // Si s'han esgotat els intents, mostra totes les etiquetes
         if (exhausted) {
             _figActual.etiquetes.forEach(et => {
                 const dz = document.getElementById(`dz-${et.id}`);
@@ -178,12 +188,10 @@
 
     function _endSession() {
         _puntsTotal.push(_punts);
-
         if (_sessio + 1 >= TOTAL_SESS) {
             _renderSummary();
             _showScreen('summary-screen');
         } else {
-            // Sessió intermèdia: mostra breu missatge i continua
             _sessio++;
             _startSession();
         }
@@ -205,14 +213,12 @@
     // RENDER SVG + DROP-ZONES
     // =========================================================================
     function _renderFigura() {
-        const fig  = _figActual;
         const DZ_W = 100, DZ_H = 26;
-
         let dzHTML = '';
-        fig.etiquetes.forEach(et => {
-            const x  = et.lx - DZ_W / 2;
-            const y  = et.ly - DZ_H / 2;
 
+        _figActual.etiquetes.forEach(et => {
+            const x = et.lx - DZ_W / 2;
+            const y = et.ly - DZ_H / 2;
             dzHTML += `
             <line x1="${et.px}" y1="${et.py}" x2="${et.lx}" y2="${et.ly}"
                   stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"
@@ -224,7 +230,7 @@
             </g>`;
         });
 
-        els.figureSvg.innerHTML = fig.svg + dzHTML;
+        els.figureSvg.innerHTML = _figActual.svg + dzHTML;
 
         if (MODALITAT === 'A') {
             els.figureSvg.querySelectorAll('.drop-zone').forEach(dz => {
@@ -247,7 +253,6 @@
     function _penalize() {
         if (_isPenalizing || _isTransiting) return;
         _isPenalizing = true;
-
         els.attemptsDisplay.classList.add('danger');
         setTimeout(() => {
             _intents--;
@@ -268,8 +273,7 @@
         els.writePanel.style.display = 'none';
         els.wordPool.innerHTML       = '';
 
-        const paraules = VocabEngine.shuffle([..._figActual.etiquetes]);
-        paraules.forEach(et => {
+        VocabEngine.shuffle([..._figActual.etiquetes]).forEach(et => {
             const chip        = document.createElement('div');
             chip.className    = 'word-chip';
             chip.textContent  = et.text;
@@ -291,9 +295,7 @@
 
     function _handleDrop(dzEl, word) {
         if (_isTransiting || _isPenalizing) return;
-        const expected = dzEl.dataset.word;
-
-        if (word === expected) {
+        if (word === dzEl.dataset.word) {
             dzEl.querySelector('text.dz-label').textContent = word;
             dzEl.classList.add('dz-correct');
             dzEl.style.pointerEvents = 'none';
@@ -305,28 +307,25 @@
             _historial.push({ pregunta: `Vocabulari: ${word}`, resposta: word, ok: true });
             _etOK++;
             if (_etOK >= _etTotal) _finishLevel();
-
         } else {
             dzEl.classList.add('dz-wrong');
             setTimeout(() => dzEl.classList.remove('dz-wrong'), 600);
-            _historial.push({ pregunta: `Vocabulari (${dzEl.dataset.word})`, resposta: word, ok: false });
+            _historial.push({ pregunta: `(${dzEl.dataset.word})`, resposta: word, ok: false });
             _penalize();
         }
     }
 
-    // ---- Touch drag ----
+    // ---- Touch drag (mode A) ----
     let _touchChip = null;
 
     function _onTouchStart(e) {
         if (_isTransiting) return;
         e.preventDefault();
-        const touch   = e.touches[0];
-        _touchChip    = e.currentTarget;
-        const ghost   = els.dragGhost;
-        ghost.textContent = _touchChip.dataset.word;
-        ghost.style.display = 'block';
+        _touchChip = e.currentTarget;
+        const touch = e.touches[0];
+        els.dragGhost.textContent    = _touchChip.dataset.word;
+        els.dragGhost.style.display  = 'block';
         _moveGhost(touch.clientX, touch.clientY);
-
         document.addEventListener('touchmove',   _onTouchMove,   { passive: false });
         document.addEventListener('touchend',    _onTouchEnd,    { passive: false });
         document.addEventListener('touchcancel', _onTouchCancel, { passive: false });
@@ -338,17 +337,13 @@
     }
 
     function _moveGhost(cx, cy) {
-        const g = els.dragGhost;
-        g.style.left = (cx - g.offsetWidth / 2) + 'px';
-        g.style.top  = (cy - 20) + 'px';
+        els.dragGhost.style.left = (cx - els.dragGhost.offsetWidth / 2) + 'px';
+        els.dragGhost.style.top  = (cy - 20) + 'px';
     }
 
     function _onTouchEnd(e) {
         els.dragGhost.style.display = 'none';
-        document.removeEventListener('touchmove',   _onTouchMove);
-        document.removeEventListener('touchend',    _onTouchEnd);
-        document.removeEventListener('touchcancel', _onTouchCancel);
-
+        _removeTouchListeners();
         if (!_touchChip) return;
         const touch = e.changedTouches[0];
         const el    = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -360,6 +355,10 @@
     function _onTouchCancel() {
         els.dragGhost.style.display = 'none';
         _touchChip = null;
+        _removeTouchListeners();
+    }
+
+    function _removeTouchListeners() {
         document.removeEventListener('touchmove',   _onTouchMove);
         document.removeEventListener('touchend',    _onTouchEnd);
         document.removeEventListener('touchcancel', _onTouchCancel);
@@ -384,7 +383,27 @@
         els.writeInput.value = '';
         els.typoWarning.classList.remove('visible');
         _highlightWriteTarget();
-        els.writeInput.focus();
+        _focusWriteInput();
+    }
+
+    /**
+     * Focus intel·ligent de l'input:
+     * - En dispositius tàctils: scrollIntoView ABANS del focus, perquè
+     *   quan aparegui el teclat virtual el camp quedi visible a la meitat
+     *   superior de la pantalla i no quedi tapat.
+     * - En PC/Chromebook: focus directe sense scroll addicional.
+     */
+    function _focusWriteInput() {
+        if (_isTouchDevice()) {
+            // Petit delay per deixar que el layout s'estabilitzi
+            setTimeout(() => {
+                els.writeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Segon delay: el focus activa el teclat virtual DESPRÉS del scroll
+                setTimeout(() => els.writeInput.focus(), 120);
+            }, 50);
+        } else {
+            els.writeInput.focus();
+        }
     }
 
     function _highlightWriteTarget() {
@@ -411,26 +430,26 @@
 
         if (resultat === 'correct') {
             els.typoWarning.classList.remove('visible');
-            _historial.push({ pregunta: `Vocabulari: ${et.text}`, resposta: raw, ok: true });
+            _historial.push({ pregunta: et.text, resposta: raw, ok: true });
 
             const dz = document.getElementById(`dz-${et.id}`);
             if (dz) {
                 dz.querySelector('text.dz-label').textContent = et.text;
                 dz.classList.add('dz-correct');
             }
-
             _etOK++;
             _writeIdx++;
             setTimeout(() => _showWriteStep(), 400);
 
         } else if (resultat === 'typo') {
+            // Avisa però NO penalitza
             els.typoWarning.classList.add('visible');
             els.writeInput.value = '';
-            els.writeInput.focus();
+            _focusWriteInput();
 
         } else {
             els.typoWarning.classList.remove('visible');
-            _historial.push({ pregunta: `Vocabulari: ${et.text}`, resposta: raw, ok: false });
+            _historial.push({ pregunta: et.text, resposta: raw, ok: false });
 
             const dz = document.getElementById(`dz-${et.id}`);
             if (dz) {
@@ -442,32 +461,29 @@
 
             _penalize();
             els.writeInput.value = '';
-            els.writeInput.focus();
+            _focusWriteInput();
         }
     }
 
     // =========================================================================
-    // MINI OVERLAY (entre figures)
+    // MINI OVERLAY
     // =========================================================================
     function _showMiniOverlay(points) {
-        const overlay = els.miniOverlay;
-        if (!overlay) return points > 0 ? 1500 : 3000;
-
+        if (!els.miniOverlay) return points > 0 ? 1500 : 3000;
         if (points > 0) {
-            els.miniIcon.innerText   = '⭐';
-            els.miniText.innerText   = 'Molt bé!';
-            els.miniText.style.color = '#047857';
-            els.miniPoints.innerText = `+${points} punts`;
+            els.miniIcon.innerText     = '⭐';
+            els.miniText.innerText     = 'Molt bé!';
+            els.miniText.style.color   = '#047857';
+            els.miniPoints.innerText   = `+${points} punts`;
             els.miniPoints.style.color = '#059669';
         } else {
-            els.miniIcon.innerText   = '❌';
-            els.miniText.innerText   = 'Intents esgotats';
-            els.miniText.style.color = 'var(--danger)';
-            els.miniPoints.innerText = '0 punts';
+            els.miniIcon.innerText     = '❌';
+            els.miniText.innerText     = 'Intents esgotats';
+            els.miniText.style.color   = 'var(--danger)';
+            els.miniPoints.innerText   = '0 punts';
             els.miniPoints.style.color = 'var(--danger)';
         }
-
-        overlay.style.display = 'flex';
+        els.miniOverlay.style.display = 'flex';
         return points > 0 ? 1500 : 3000;
     }
 
@@ -479,18 +495,18 @@
     // RESUM FINAL
     // =========================================================================
     function _renderSummary() {
-        const totalPossible = TOTAL_OPS * TOTAL_SESS;
+        const totalPossible = TOTAL_OPS * TOTAL_SESS * 10;
         const totalPunts    = _puntsTotal.reduce((a, b) => a + b, 0);
-        const nota          = (totalPunts / totalPossible).toFixed(1).replace('.', ',');
+        const nota          = ((totalPunts / totalPossible) * 10)
+                                .toFixed(1).replace('.', ',');
 
-        const encerts = _historial.filter(h => h.ok);
-        const errades = _historial.filter(h => !h.ok);
+        const encerts = _historial.filter(h => h.ok).length;
+        const errades = _historial.filter(h => !h.ok).length;
 
         const sessionsHTML = _puntsTotal.map((p, i) => {
-            const n = (p / TOTAL_OPS).toFixed(1).replace('.', ',');
+            const n = (p / (TOTAL_OPS * 10) * 10).toFixed(1).replace('.', ',');
             return `<div class="session-line">
-                <span>Sessió ${i + 1}</span>
-                <span>${n}</span>
+                <span>Sessió ${i + 1}</span><span>${n}</span>
             </div>`;
         }).join('');
 
@@ -500,24 +516,22 @@
                 <div class="trophy-icon">🏆</div>
                 <div class="summary-data">
                     ${sessionsHTML}
-                    <div style="margin-top:16px; font-size:0.9em; color:var(--text-muted);">Nota final:</div>
-                    <div style="font-size:1.6em; font-weight:bold; color:var(--success); font-family:monospace;">
+                    <div style="margin-top:14px;font-size:0.9em;color:var(--text-muted);">Nota final:</div>
+                    <div style="font-size:1.6em;font-weight:bold;color:var(--success);font-family:monospace;">
                         ${nota} / 10
                     </div>
                 </div>
             </div>
-
-            <div style="margin:20px 0; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-                <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:8px;padding:12px 20px;text-align:center;">
-                    <div style="font-size:1.8em;font-weight:800;color:#059669;">${encerts.length}</div>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;">
+                <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
+                    <div style="font-size:1.8em;font-weight:800;color:#059669;">${encerts}</div>
                     <div style="font-size:0.8em;color:var(--text-muted);">encerts</div>
                 </div>
-                <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:8px;padding:12px 20px;text-align:center;">
-                    <div style="font-size:1.8em;font-weight:800;color:#dc2626;">${errades.length}</div>
+                <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
+                    <div style="font-size:1.8em;font-weight:800;color:#dc2626;">${errades}</div>
                     <div style="font-size:0.8em;color:var(--text-muted);">errades</div>
                 </div>
             </div>
-
             <button class="btn-restart" onclick="location.reload()">🔄 Tornar a jugar</button>
         `;
     }
@@ -539,7 +553,7 @@
     // =========================================================================
     document.addEventListener('DOMContentLoaded', init);
 
-    // Exposem _checkWrite perquè el botó OK de l'HTML pugui cridar-la
+    // Única global intencionada: connecta el botó OK de l'HTML amb el mòdul
     window._vocabCheckWrite = function () { _checkWrite(); };
 
 })();
