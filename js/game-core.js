@@ -494,9 +494,7 @@ async function copiarResultats() {
     const hora = String(ara.getHours()).padStart(2, '0');
     const minuts = String(ara.getMinutes()).padStart(2, '0');
     
-    // 🟢 CORRECCIÓ 7: Afegim els segons per evitar trampes dins el mateix minut
-    const segons = String(ara.getSeconds()).padStart(2, '0');
-    const timeStr = hora + minuts + segons;
+    const timeStr = hora + minuts;
 
     const notaSobre10 = calculaNotaSobre10();
     const notaFormatada = notaSobre10.toFixed(2).padStart(5, '0').replace('.', ',');
@@ -505,8 +503,7 @@ async function copiarResultats() {
     const primerCaracterRand = randomStr.charAt(0);
     const valorAscii = primerCaracterRand.charCodeAt(0);
 
-    // Sumem també els segons a la matemàtica modular
-    const sumaControl = notaSencera + parseInt(dia, 10) + parseInt(mes, 10) + parseInt(hora, 10) + parseInt(minuts, 10) + parseInt(segons, 10) + valorAscii;
+    const sumaControl = notaSencera + parseInt(dia, 10) + parseInt(mes, 10) + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
     
     const lletresControl = "TRWAGMYFPDXBNJZSQVHLCKE";
     const lletraAssignada = lletresControl.charAt(sumaControl % 23);
