@@ -118,7 +118,9 @@ h1 {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 910px;
-    overflow: hidden;
+    /* [ROUND 1 — imatge 3] overflow: visible permet que les drop-zones que
+     * surten del SVG viewport no quedin retallades pel panell */
+    overflow: visible;
     border: 1px solid var(--border-color);
     border-top: 6px solid var(--primary);
     transition: border-color 0.3s;
@@ -138,6 +140,10 @@ h1 {
     font-weight: bold;
     flex-wrap: wrap;
     gap: 8px;
+    /* [ROUND 1 — imatge 3] .panel ja no fa overflow:hidden, per tant
+     * el fons del header ha de tenir ell mateix les cantonades arrodonides
+     * per mantenir l'aspecte visual original */
+    border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
 }
 
 .header-left  { display: flex; flex-direction: column; gap: 2px; }
@@ -185,12 +191,22 @@ h1 {
     height: auto;
     display: block;
     shape-rendering: geometricPrecision;  /* millor render en Retina/HiDPI */
+    /* [ROUND 1 — imatge 3] les drop-zones amb ly prop de 0 surten fora del
+     * viewBox 500×340; overflow:visible les fa visibles */
+    overflow: visible;
 }
 
 /* ══════════════════════════════════════════════
    DROP ZONES
 ══════════════════════════════════════════════ */
 .drop-zone { cursor: pointer; transition: all 0.2s; }
+
+/* [ROUND 1 — imatge 1] connector (línia) dins del <g class="drop-zone">:
+ * el color canvia amb l'estat del pare. Sense cercle terminal. */
+.drop-zone .dz-connector              { stroke: var(--primary);       }
+.drop-zone.dz-over    .dz-connector  { stroke: var(--primary-hover);  }
+.drop-zone.dz-correct .dz-connector  { stroke: var(--success);        }
+.drop-zone.dz-wrong   .dz-connector  { stroke: var(--danger);         }
 
 .drop-zone rect.dz-bg {
     fill: white;
@@ -591,6 +607,28 @@ h1 {
     #figure-container, #word-pool, #write-panel { max-width: 620px; }
     #write-input { width: 280px; font-size: 1.35em; }
     .word-chip   { font-size: 1em; padding: 9px 22px; }
+}
+
+/* ══════════════════════════════════════════════
+   NO SCROLL VERTICAL A PC (≥820px)
+   [ROUND 1 — imatge 4]
+
+   El contenidor de la figura limita el seu ample de manera que l'alçada
+   resultant (ample × 340/500) mai superi (100dvh − 380px).
+
+   380px = estimació del "cromo fix" de la UI:
+     padding body (32) + títol+subtítol (110) + header-info (62) +
+     padding game-area (40) + pool/write (72) + instrucció+gaps (64).
+
+   1.47 = 500/340, el ratio invers del viewBox SVG:
+     converteix alçada-màxima-disponible → ample-màxim-del-contenidor.
+
+   Resultat: en cap PC/laptop la figura supera la viewport → no hi ha scroll.
+══════════════════════════════════════════════ */
+@media (min-width: 820px) {
+    #figure-container {
+        max-width: min(520px, calc((100dvh - 380px) * 1.47));
+    }
 }
 
 /* ══════════════════════════════════════════════
