@@ -253,51 +253,24 @@
         const DZ_H      = 34;
         // La caixa de la pista és més ampla per acollir "Com es diu la figura?"
         const DZ_W_HINT = 185; /* ~18 caràcters × ~9px/char en el viewBox 500×340 */
-
-        // ── CLAMPING de coordenades de les caselles ──────────────────────────
-        // Evita dos problemes visuals sense tocar les dades de les figures:
-        //
-        //  · HORITZONTAL (lx): caselles que surten per esquerra (fora del panell)
-        //    o per dreta (solapament amb el pool HTML de botons en layout-a).
-        //    → Clampem lx dins [w/2+5, 500-w/2-5].
-        //
-        //  · VERTICAL INFERIOR (ly): caselles que surten per baix del viewBox
-        //    forcen un scrollbar vertical al document.
-        //    → Clampem ly només pel límit inferior: ly ≤ 340-DZ_H/2-5.
-        //    NO clampem el límit superior: overflow cap a dalt és inofensiu
-        //    (creix cap a l'espai del padding del body, sense scrollbar).
-        //
-        //  En tots dos casos, el connector s'ajusta al punt clamped.
-        const SVG_W    = 500;
-        const SVG_H    = 340;
-        const H_MARGIN = 5;
-
-        function _clampLx(lx, w) {
-            return Math.min(Math.max(lx, w / 2 + H_MARGIN), SVG_W - w / 2 - H_MARGIN);
-        }
-        function _clampLy(ly) {
-            return Math.min(ly, SVG_H - DZ_H / 2 - H_MARGIN);
-        }
-        // ─────────────────────────────────────────────────────────────────────
-
         let dzHTML = '';
 
         _figActual.etiquetes.forEach(et => {
             const isHint     = (et.id === _figActual.id);
             const w          = isHint ? DZ_W_HINT : DZ_W;
-            const lx         = _clampLx(et.lx, w);
-            const ly         = _clampLy(et.ly);
-            const x          = lx - w / 2;
-            const y          = ly - DZ_H / 2;
+            const x          = et.lx - w / 2;
+            const y          = et.ly - DZ_H / 2;
             const labelInit  = isHint ? TEXTS.FIGURA_HINT  : TEXTS.DZ_PLACEHOLDER;
             // [ROUND 3 — font hint +30%] classe extra per a la caixa de la figura
             const labelClass = isHint ? 'dz-label dz-label-hint' : 'dz-label';
-            dzHTML += `
-            <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}" data-w="${w}">
+            const connectorHTML = isHint ? '' : `
                 <line class="dz-connector"
                       x1="${et.px}" y1="${et.py}" x2="${lx}" y2="${ly}"
-                      stroke-width="1.5"
-                      pointer-events="none"/>
+                      stroke-width="1.5" stroke-dasharray="4 3"
+                      pointer-events="none"/>`;
+            dzHTML += `
+            <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}" data-w="${w}">
+                ${connectorHTML}
                 <rect class="dz-bg" x="${x}" y="${y}" width="${w}" height="${DZ_H}" rx="5"/>
                 <text class="${labelClass}" x="${lx}" y="${ly}">${labelInit}</text>
             </g>`;
@@ -385,8 +358,9 @@
             if (_etOK >= _etTotal) _finishLevel();
         } else {
             dzEl.classList.add('dz-wrong');
-            setTimeout(() => dzEl.classList.remove('dz-wrong'), 600);
+            setTimeout(() => dzEl.classList.remove('dz-wrong'), 1200);
             _historial.push({ pregunta: `(${dzEl.dataset.word})`, resposta: word, ok: false });
+            _showIncorrecte();
             _penalize();
         }
     }
@@ -533,15 +507,34 @@
             const dz = document.getElementById(`dz-${et.id}`);
             if (dz) {
                 dz.classList.add('dz-wrong');
-                setTimeout(() => dz.classList.remove('dz-wrong'), 600);
+                setTimeout(() => dz.classList.remove('dz-wrong'), 1200);
             }
             els.btnSubmitWrite.classList.add('error-shake');
             setTimeout(() => els.btnSubmitWrite.classList.remove('error-shake'), 200);
 
+            _showIncorrecte();
             _penalize();
             els.writeInput.value = '';
             _focusWriteInput();
         }
+    }
+
+    // =========================================================================
+    // FEEDBACK "INCORRECTE" (1 segon, mateixa posició que el mini-overlay final)
+    // =========================================================================
+    function _showIncorrecte() {
+        if (!els.miniOverlay) return;
+        els.miniIcon.innerText     = '❌';
+        els.miniText.innerText     = 'Incorrecte';
+        els.miniText.style.color   = 'var(--danger)';
+        els.miniPoints.innerText   = '';
+        els.miniOverlay.style.display = 'flex';
+        setTimeout(() => {
+            // Amaguem només si no ha pres el control el mini-overlay de fi de nivell
+            if (els.miniText.innerText === 'Incorrecte') {
+                els.miniOverlay.style.display = 'none';
+            }
+        }, 1000);
     }
 
     // =========================================================================
