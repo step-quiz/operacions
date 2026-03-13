@@ -254,33 +254,39 @@
         // La caixa de la pista és més ampla per acollir "Com es diu la figura?"
         const DZ_W_HINT = 185; /* ~18 caràcters × ~9px/char en el viewBox 500×340 */
 
-        // [ROUND 4 — clamping horitzontal]
-        // El SVG té viewBox 500×340 i overflow:visible, cosa que permet que les
-        // caselles surtin del viewBox. Això causa dos problemes visibles:
-        //   · Esquerra: la casella sobresurt del panell principal.
-        //   · Dreta: la casella se superposa al pool HTML de botons (layout-a).
-        // Solució: clampem el centre horitzontal (lx) perquè el rectangle sencer
-        // (lx ± w/2) quedi sempre dins el viewBox amb un petit marge interior.
-        // El connector s'ajusta al punt clamped per mantenir coherència visual.
-        // La verticalitat (ly) NO es clampa: els overflows superiors/inferiors
-        // (p.ex. casella "cilindre" a ly:18) estan ben gestionats per overflow:visible.
+        // ── CLAMPING de coordenades de les caselles ──────────────────────────
+        // Evita dos problemes visuals sense tocar les dades de les figures:
+        //
+        //  · HORITZONTAL (lx): caselles que surten per esquerra (fora del panell)
+        //    o per dreta (solapament amb el pool HTML de botons en layout-a).
+        //    → Clampem lx dins [w/2+5, 500-w/2-5].
+        //
+        //  · VERTICAL INFERIOR (ly): caselles que surten per baix del viewBox
+        //    forcen un scrollbar vertical al document.
+        //    → Clampem ly només pel límit inferior: ly ≤ 340-DZ_H/2-5.
+        //    NO clampem el límit superior: overflow cap a dalt és inofensiu
+        //    (creix cap a l'espai del padding del body, sense scrollbar).
+        //
+        //  En tots dos casos, el connector s'ajusta al punt clamped.
         const SVG_W    = 500;
-        const H_MARGIN = 5; // px de marge respecte als límits esquerra/dreta del viewBox
+        const SVG_H    = 340;
+        const H_MARGIN = 5;
 
         function _clampLx(lx, w) {
-            const min = w / 2 + H_MARGIN;
-            const max = SVG_W - w / 2 - H_MARGIN;
-            return Math.min(Math.max(lx, min), max);
+            return Math.min(Math.max(lx, w / 2 + H_MARGIN), SVG_W - w / 2 - H_MARGIN);
         }
+        function _clampLy(ly) {
+            return Math.min(ly, SVG_H - DZ_H / 2 - H_MARGIN);
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         let dzHTML = '';
 
         _figActual.etiquetes.forEach(et => {
             const isHint     = (et.id === _figActual.id);
             const w          = isHint ? DZ_W_HINT : DZ_W;
-            // Aplica el clamping horitzontal; ly (vertical) es respecta sempre
             const lx         = _clampLx(et.lx, w);
-            const ly         = et.ly;
+            const ly         = _clampLy(et.ly);
             const x          = lx - w / 2;
             const y          = ly - DZ_H / 2;
             const labelInit  = isHint ? TEXTS.FIGURA_HINT  : TEXTS.DZ_PLACEHOLDER;
