@@ -524,3 +524,26 @@ body {
     .title-row h1 { font-size: 1em; letter-spacing: 0.5px; }
     .btn-tutorial { font-size: 0.75em; padding: 6px 10px; }
 }
+
+/* ---- INTEGRACIÓ game-core.js ---- */
+
+/* El mini overlay s'injecta dins #game-screen (flex-column).
+   El posicionem en absolut per cobrir tota l'àrea de joc sense
+   desplaçar el layout de dues columnes. */
+#game-screen { position: relative; }
+
+#mini-victory-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.96);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* session-end-screen i final-screen injectats per game-core:
+   assegura scroll intern si el contingut és llarg */
+#session-end-screen,
+#final-screen {
+    overflow-y: auto;
+}
