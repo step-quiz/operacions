@@ -254,34 +254,38 @@
         // La caixa de la pista és més ampla per acollir "Com es diu la figura?"
         const DZ_W_HINT = 185; /* ~18 caràcters × ~9px/char en el viewBox 500×340 */
 
-        // ── CLAMPING de coordenades de les caselles ──────────────────────────
-        // · HORITZONTAL: evita que les caselles surtin per esquerra/dreta del viewBox.
-        // · VERTICAL INFERIOR: evita que les caselles baixin prou per forçar scrollbar.
-        // · NO es clama el límit superior: overflow cap a dalt és inofensiu.
+        // ── CLAMPING de coordenades de les caselles ───────────────────────
         const SVG_W    = 500;
         const SVG_H    = 340;
         const H_MARGIN = 5;
-        function _clampLx(lx, w) {
-            return Math.min(Math.max(lx, w / 2 + H_MARGIN), SVG_W - w / 2 - H_MARGIN);
+        function _clampLx(rawLx, w) {
+            return Math.min(Math.max(rawLx, w / 2 + H_MARGIN), SVG_W - w / 2 - H_MARGIN);
         }
-        function _clampLy(ly) {
-            return Math.min(ly, SVG_H - DZ_H / 2 - H_MARGIN);
+        function _clampLy(rawLy) {
+            return Math.min(rawLy, SVG_H - DZ_H / 2 - H_MARGIN);
         }
-        // ─────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────
 
         let dzHTML = '';
 
         _figActual.etiquetes.forEach(et => {
             const isHint     = (et.id === _figActual.id);
             const w          = isHint ? DZ_W_HINT : DZ_W;
-            const lx         = _clampLx(et.lx, w);
-            const ly         = _clampLy(et.ly);
+
+            // [ROUND 4] La casella "Com es diu la figura?" sempre al top-left
+            // del SVG, ignorant les coordenades de les dades.
+            const lx = isHint
+                ? DZ_W_HINT / 2 + H_MARGIN          // 97.5 → centre de la caixa
+                : _clampLx(et.lx, w);
+            const ly = isHint
+                ? DZ_H / 2 + 8                       // 25 → just a dalt
+                : _clampLy(et.ly);
+
             const x          = lx - w / 2;
             const y          = ly - DZ_H / 2;
             const labelInit  = isHint ? TEXTS.FIGURA_HINT  : TEXTS.DZ_PLACEHOLDER;
-            // [ROUND 3 — font hint +30%] classe extra per a la caixa de la figura
             const labelClass = isHint ? 'dz-label dz-label-hint' : 'dz-label';
-            // [ROUND 4] la casella hint no té connector (no apunta a cap element concret)
+            // [ROUND 4] la casella hint no té connector (no apunta a cap element)
             const connectorHTML = isHint ? '' : `
                 <line class="dz-connector"
                       x1="${et.px}" y1="${et.py}" x2="${lx}" y2="${ly}"
