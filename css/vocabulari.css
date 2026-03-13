@@ -4,10 +4,21 @@ PROJECTE: Vocabulari Matemàtic
 FITXER: css/vocabulari.css
 ROL: Estils complets de l'activitat (standalone, sense shared.css).
 ESTÈTICA: Geomètrica / educativa — violetes, fons càlid, net.
+
+RESPONSIVE STRATEGY:
+  - Mobile-first base
+  - Breakpoints portrait: 480 / 600 / 820 / 900px
+  - Landscape mòbil (max-height:520px): layout 2 columnes figura|controls
+  - dvh per al body: el teclat virtual no desplaça el layout
+  - Touch targets mínims 44px (Apple HIG / WCAG 2.5.5)
+  - safe-area-inset per a mòbils amb notch/Dynamic Island
+  - shape-rendering: geometricPrecision per a SVG en pantalles d'alta densitat
 ============================================================================
 */
 
-/* ---- VARIABLES ---- */
+/* ══════════════════════════════════════════════
+   VARIABLES
+══════════════════════════════════════════════ */
 :root {
     --bg-color:      #fafaf7;
     --panel-bg:      #ffffff;
@@ -22,12 +33,19 @@ ESTÈTICA: Geomètrica / educativa — violetes, fons càlid, net.
     --success:       #10b981;
     --border-color:  #e2e8f0;
     --border-heavy:  #cbd5e1;
+    --radius:        8px;
 }
 
-/* ---- RESET BASE ---- */
+/* ══════════════════════════════════════════════
+   RESET BASE
+══════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ---- BODY ---- */
+/* ══════════════════════════════════════════════
+   BODY
+   dvh = dynamic viewport height: es redueix quan apareix
+   el teclat virtual, evitant que el contingut quedi tapat.
+══════════════════════════════════════════════ */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
@@ -36,42 +54,51 @@ body {
     flex-direction: column;
     align-items: center;
     margin: 0;
-    padding: 20px;
-    min-height: 100vh;
+    padding: 16px
+             max(16px, env(safe-area-inset-right))
+             max(16px, env(safe-area-inset-bottom))
+             max(16px, env(safe-area-inset-left));
+    min-height: 100dvh;
     transition: background-color 1s ease;
 }
 
-/* ---- TÍTOL I SUBTÍTOL ---- */
+/* ══════════════════════════════════════════════
+   TÍTOL I SUBTÍTOL
+══════════════════════════════════════════════ */
 h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
     color: #3b0764;
     font-size: 1.6em;
-    margin-bottom: 5px;
+    margin: 0 0 5px 0;
     text-align: center;
 }
 
 .subtitle {
     color: var(--text-muted);
     font-size: 1.1em;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     text-align: center;
 }
 
-/* ---- ICONA HOME ---- */
+/* ══════════════════════════════════════════════
+   ICONA HOME
+══════════════════════════════════════════════ */
 .title-row {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 14px;
     margin-bottom: 5px;
+    width: 100%;
+    max-width: 910px;
 }
 .title-row h1 { margin: 0; }
 
 .home-icon-link {
     display: block;
-    width: 78px;
-    height: 78px;
+    width: 64px;
+    height: 64px;
     flex-shrink: 0;
     opacity: 0.75;
     transition: opacity 0.2s ease;
@@ -82,10 +109,12 @@ h1 {
 }
 .home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
 
-/* ---- PANELL PRINCIPAL ---- */
+/* ══════════════════════════════════════════════
+   PANELL PRINCIPAL
+══════════════════════════════════════════════ */
 .panel {
     background-color: var(--panel-bg);
-    border-radius: 8px;
+    border-radius: var(--radius);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 910px;
@@ -96,29 +125,34 @@ h1 {
     position: relative;
 }
 
-/* ---- CAPÇALERA DEL JOC ---- */
+/* ══════════════════════════════════════════════
+   CAPÇALERA DEL JOC
+══════════════════════════════════════════════ */
 .header-info {
     background-color: #f5f3ff;
-    padding: 15px 20px;
+    padding: 12px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-weight: bold;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
 }
 
 .header-left  { display: flex; flex-direction: column; gap: 2px; }
-.session-text { font-size: 1em;   color: var(--text-muted); }
-.level-text   { font-size: 1.2em; color: #3b0764; }
-.score-text   { font-size: 1.2em; color: var(--primary); font-family: monospace; }
+.session-text { font-size: 0.95em; color: var(--text-muted); }
+.level-text   { font-size: 1.15em; color: #3b0764; }
+.score-text   { font-size: 1.15em; color: var(--primary); font-family: monospace; }
 
 .attempts-counter {
     font-family: monospace;
-    font-size: 1.2em;
+    font-size: 1.15em;
     color: var(--text-muted);
     padding: 5px 10px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
     background: white;
     border-radius: 4px;
     border: 1px solid var(--border-heavy);
@@ -126,7 +160,9 @@ h1 {
 }
 .attempts-counter.danger { color: var(--danger); border-color: var(--danger); }
 
-/* ---- ZONA PRINCIPAL DEL JOC ---- */
+/* ══════════════════════════════════════════════
+   ZONA PRINCIPAL DEL JOC
+══════════════════════════════════════════════ */
 #game-area {
     display: flex;
     flex-direction: column;
@@ -135,7 +171,9 @@ h1 {
     gap: 16px;
 }
 
-/* ---- SVG FIGURA ---- */
+/* ══════════════════════════════════════════════
+   SVG FIGURA
+══════════════════════════════════════════════ */
 #figure-container {
     width: 100%;
     max-width: 520px;
@@ -146,9 +184,12 @@ h1 {
     width: 100%;
     height: auto;
     display: block;
+    shape-rendering: geometricPrecision;  /* millor render en Retina/HiDPI */
 }
 
-/* ---- ZONES DE CAIGUDA (drop targets) al SVG ---- */
+/* ══════════════════════════════════════════════
+   DROP ZONES
+══════════════════════════════════════════════ */
 .drop-zone { cursor: pointer; transition: all 0.2s; }
 
 .drop-zone rect.dz-bg {
@@ -159,21 +200,10 @@ h1 {
     rx: 5;
     opacity: 0.85;
 }
-.drop-zone.dz-over rect.dz-bg {
-    fill: var(--primary-light);
-    stroke-width: 2.5;
-    stroke-dasharray: none;
-}
-.drop-zone.dz-correct rect.dz-bg {
-    fill: #d1fae5;
-    stroke: var(--success);
-    stroke-dasharray: none;
-}
-.drop-zone.dz-wrong rect.dz-bg {
-    fill: #fee2e2;
-    stroke: var(--danger);
-    stroke-dasharray: none;
-}
+.drop-zone.dz-over    rect.dz-bg { fill: var(--primary-light); stroke-width: 2.5; stroke-dasharray: none; }
+.drop-zone.dz-correct rect.dz-bg { fill: #d1fae5; stroke: var(--success); stroke-dasharray: none; }
+.drop-zone.dz-wrong   rect.dz-bg { fill: #fee2e2; stroke: var(--danger);  stroke-dasharray: none; }
+
 .drop-zone text.dz-label {
     font-family: 'Segoe UI', sans-serif;
     font-size: 13px;
@@ -186,13 +216,15 @@ h1 {
 .drop-zone.dz-correct text.dz-label { fill: #065f46; }
 .drop-zone.dz-wrong   text.dz-label { fill: #991b1b; }
 
-/* ---- POOL DE PARAULES (modalitat A) ---- */
+/* ══════════════════════════════════════════════
+   POOL DE PARAULES (modalitat A)
+══════════════════════════════════════════════ */
 #word-pool {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     justify-content: center;
-    min-height: 48px;
+    min-height: 52px;
     padding: 10px;
     border: 2px dashed var(--border-heavy);
     border-radius: 10px;
@@ -206,20 +238,20 @@ h1 {
     color: var(--primary-dark);
     border: 2px solid var(--primary);
     border-radius: 20px;
-    padding: 6px 16px;
+    padding: 8px 18px;
+    min-height: 44px;           /* target tàctil mínim */
+    display: flex;
+    align-items: center;
     font-size: 0.95em;
     font-weight: 700;
     cursor: grab;
     user-select: none;
-    touch-action: none;
+    touch-action: none;         /* imprescindible per al drag tàctil */
     transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
 }
-.word-chip:active { cursor: grabbing; }
+.word-chip:active   { cursor: grabbing; }
 .word-chip.dragging { opacity: 0.4; }
-.word-chip.used {
-    opacity: 0.25;
-    pointer-events: none;
-}
+.word-chip.used     { opacity: 0.25; pointer-events: none; }
 
 /* Chip fantasma que segueix el cursor/dit */
 #drag-ghost {
@@ -229,7 +261,7 @@ h1 {
     background: var(--primary);
     color: white;
     border-radius: 20px;
-    padding: 6px 16px;
+    padding: 8px 18px;
     font-size: 0.95em;
     font-weight: 700;
     font-family: 'Segoe UI', sans-serif;
@@ -238,7 +270,9 @@ h1 {
     white-space: nowrap;
 }
 
-/* ---- ZONA D'ESCRIPTURA (modalitat B) ---- */
+/* ══════════════════════════════════════════════
+   ZONA D'ESCRIPTURA (modalitat B)
+══════════════════════════════════════════════ */
 #write-panel {
     width: 100%;
     max-width: 520px;
@@ -249,10 +283,11 @@ h1 {
 }
 
 .write-prompt {
-    font-size: 1.1em;
+    font-size: 1.05em;
     font-weight: 700;
     color: #3b0764;
     text-align: center;
+    line-height: 1.4;
 }
 
 .write-progress {
@@ -267,6 +302,7 @@ h1 {
     gap: 10px;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;     /* en pantalles molt estretes el botó baixa */
 }
 
 #write-input {
@@ -274,16 +310,18 @@ h1 {
     font-size: 1.3em;
     font-weight: bold;
     padding: 10px 14px;
+    min-height: 48px;    /* target tàctil */
     border: 2px solid var(--border-heavy);
     border-radius: 6px;
     outline: none;
     width: 220px;
     text-align: center;
     transition: border-color 0.2s;
+    /* Evita correccions automàtiques en iOS/Android que confonen l'alumne */
+    -webkit-user-modify: read-write-plaintext-only;
 }
 #write-input:focus { border-color: var(--primary); }
 
-/* Feedback d'ortografia */
 .typo-warning {
     display: none;
     background: #fefce8;
@@ -296,10 +334,13 @@ h1 {
     text-align: center;
     animation: fadeIn 0.3s;
     max-width: 400px;
+    width: 100%;
 }
 .typo-warning.visible { display: block; }
 
-/* ---- INSTRUCCIÓ CONTEXTUAL ---- */
+/* ══════════════════════════════════════════════
+   INSTRUCCIÓ CONTEXTUAL
+══════════════════════════════════════════════ */
 #context-instruction {
     font-size: 0.95em;
     color: #475569;
@@ -309,12 +350,15 @@ h1 {
 }
 #context-instruction.error { color: var(--danger); }
 
-/* ---- BOTÓ SUBMIT ---- */
+/* ══════════════════════════════════════════════
+   BOTÓ SUBMIT
+══════════════════════════════════════════════ */
 .btn-submit {
     background-color: #475569;
     color: white;
     border: none;
-    padding: 15px 25px;
+    padding: 12px 24px;
+    min-height: 48px;
     font-size: 1em;
     font-weight: bold;
     border-radius: 6px;
@@ -327,13 +371,15 @@ h1 {
 @media (hover: hover) { .btn-submit:hover { background-color: #334155; } }
 .btn-submit.error-shake   { background-color: var(--danger); animation: shake 0.2s; }
 
-/* ---- MINI OVERLAY (victòria / fracàs entre figures) ---- */
+/* ══════════════════════════════════════════════
+   MINI OVERLAY (entre figures)
+══════════════════════════════════════════════ */
 #mini-overlay {
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 30px 20px;
+    padding: 28px 20px;
     background-color: var(--bg-color);
     border-top: 1px solid var(--border-color);
     animation: fadeIn 0.3s;
@@ -347,49 +393,31 @@ h1 {
     margin-bottom: 10px;
 }
 
-.mini-icon {
-    font-size: 3em;
-    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-shadow: 0px 4px 15px rgba(250, 204, 21, 0.6);
-}
-
-.mini-text {
-    color: #047857;
-    font-size: 2em;
-    font-weight: bold;
-    text-shadow: 0px 2px 5px white;
-}
-
+.mini-icon   { font-size: 3em; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 0px 4px 15px rgba(250, 204, 21, 0.6); }
+.mini-text   { color: #047857; font-size: 2em; font-weight: bold; text-shadow: 0px 2px 5px white; }
 .mini-points {
-    color: #059669;
-    font-size: 1.3em;
-    font-weight: bold;
-    font-family: monospace;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 5px 20px;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    color: #059669; font-size: 1.3em; font-weight: bold; font-family: monospace;
+    background: rgba(255,255,255,0.95); padding: 5px 20px;
+    border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-/* ---- PANTALLA FINAL ---- */
+/* ══════════════════════════════════════════════
+   PANTALLA FINAL
+══════════════════════════════════════════════ */
 #summary-screen {
     display: none;
-    padding: 40px 20px;
+    padding: 36px 20px 40px;
     text-align: center;
 }
 
-#summary-screen h2 {
-    color: var(--success);
-    font-size: 1.8em;
-    margin-bottom: 25px;
-}
+#summary-screen h2 { color: var(--success); font-size: 1.8em; margin-bottom: 20px; }
 
 .summary-layout {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 30px;
-    margin: 0 auto 25px auto;
+    margin: 0 auto 20px auto;
     max-width: 480px;
     flex-wrap: wrap-reverse;
 }
@@ -397,9 +425,9 @@ h1 {
 .summary-data {
     flex: 1;
     text-align: left;
-    font-size: 1.1em;
+    font-size: 1.05em;
     line-height: 1.8;
-    min-width: 220px;
+    min-width: 200px;
 }
 
 .summary-data .session-line {
@@ -408,7 +436,7 @@ h1 {
     padding: 4px 0;
     border-bottom: 1px solid var(--border-color);
     font-family: monospace;
-    font-size: 1.1em;
+    font-size: 1.05em;
 }
 
 .trophy-icon { font-size: 4.5em; animation: bounce 1.5s infinite; }
@@ -417,8 +445,9 @@ h1 {
     background-color: #059669;
     color: white;
     border: none;
-    padding: 15px 35px;
-    font-size: 1.1em;
+    padding: 14px 35px;
+    min-height: 48px;
+    font-size: 1.05em;
     font-weight: bold;
     border-radius: 6px;
     cursor: pointer;
@@ -430,35 +459,143 @@ h1 {
 .btn-restart:active        { transform: scale(0.95); }
 @media (hover: hover) { .btn-restart:hover { background-color: #047857; } }
 
-/* ---- RESPONSIU ---- */
-@media (max-width: 820px) {
-    .panel { width: 95%; }
-}
+/* ══════════════════════════════════════════════
+   RESPONSIVE — PORTRAIT PETIT (≤480px)
+   Mòbils en vertical: Gama A/B Android, iPhone SE…
+══════════════════════════════════════════════ */
+@media (max-width: 820px) { .panel { width: 98%; } }
 
 @media (max-width: 600px) {
-    .home-icon-link { width: 52px; height: 52px; }
+    .home-icon-link { width: 48px; height: 48px; }
     .title-row      { gap: 10px; }
+    h1              { font-size: 1.35em; }
 }
 
 @media (max-width: 480px) {
-    body           { padding: 10px; }
-    h1             { font-size: 1.3em; }
-    .subtitle      { font-size: 1em; margin-bottom: 15px; }
-    .header-info   { flex-direction: column; gap: 8px; padding: 12px; }
-    .header-left   { align-items: center; }
-    .level-text, .score-text, .attempts-counter { font-size: 1.1em; width: 100%; text-align: center; }
-    .session-text  { font-size: 0.95em; }
-    #game-area     { padding: 12px 10px; gap: 12px; }
-    .word-chip     { font-size: 0.85em; padding: 5px 12px; }
-    #write-input   { width: 170px; font-size: 1.1em; }
-    .write-prompt  { font-size: 1em; }
-    .mini-icon     { font-size: 2.5em; }
-    .mini-text     { font-size: 1.6em; }
-    .mini-points   { font-size: 1.1em; }
-    #summary-screen h2 { font-size: 1.5em; }
+    body {
+        padding: 8px
+                 max(8px, env(safe-area-inset-right))
+                 max(8px, env(safe-area-inset-bottom))
+                 max(8px, env(safe-area-inset-left));
+    }
+    h1              { font-size: 1.2em; }
+    .subtitle       { font-size: 0.9em; margin-bottom: 8px; }
+    .header-info    { flex-direction: column; gap: 6px; padding: 10px 12px; }
+    .header-left    { align-items: center; }
+    .level-text, .score-text { font-size: 1.05em; }
+    .attempts-counter        { font-size: 1.05em; width: 100%; justify-content: center; }
+    .session-text   { font-size: 0.9em; }
+    #game-area      { padding: 10px 8px; gap: 12px; }
+    .word-chip      { font-size: 0.85em; padding: 6px 12px; min-height: 44px; }
+    #write-input    { width: 155px; font-size: 1.05em; }
+    .write-prompt   { font-size: 0.9em; }
+    .mini-icon      { font-size: 2.5em; }
+    .mini-text      { font-size: 1.5em; }
+    .mini-points    { font-size: 1em; }
+    #summary-screen h2 { font-size: 1.4em; }
+    .trophy-icon       { font-size: 3.5em; }
 }
 
-/* ---- KEYFRAMES ---- */
+/* ══════════════════════════════════════════════
+   RESPONSIVE — LANDSCAPE MÒBIL
+   (max-height:520px + landscape: mòbils girats,
+    alguns Chromebook en mode tàctil plegat)
+
+   Layout 2 columnes:
+   ┌─────────────────────┬──────────────────────┐
+   │  SVG figura (left)  │  controls + pool/B   │
+   └─────────────────────┴──────────────────────┘
+   Garanteix que el teclat virtual no tapi ni la
+   figura ni el camp d'escriptura simultàniament.
+══════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 520px) {
+
+    body {
+        padding-top: 6px;
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
+    }
+
+    .title-row { margin-bottom: 3px; }
+    h1         { font-size: 1.05em; }
+    .subtitle  { display: none; }
+
+    .panel {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100dvh - 52px);
+    }
+
+    .header-info    { padding: 5px 14px; }
+    .session-text   { display: none; }
+    .level-text, .score-text, .attempts-counter { font-size: 0.9em; min-height: 32px; }
+
+    /* game-area en fila */
+    #game-area {
+        flex-direction: row;
+        align-items: flex-start;
+        padding: 8px 10px;
+        gap: 12px;
+        overflow-y: auto;
+        flex: 1 1 0;
+        min-height: 0;
+    }
+
+    /* Columna esquerra: figura (~55% de l'ample) */
+    #figure-container {
+        flex: 0 0 52%;
+        max-width: 52%;
+    }
+
+    /* Columna dreta: instrucció + pool/input (la resta) */
+    #context-instruction {
+        font-size: 0.85em;
+        min-height: auto;
+    }
+    #word-pool {
+        max-width: none;
+        min-height: 36px;
+        padding: 6px;
+        gap: 5px;
+    }
+    #write-panel { max-width: none; gap: 8px; }
+
+    .word-chip   { font-size: 0.78em; padding: 4px 10px; min-height: 36px; }
+    #write-input { width: 130px; font-size: 0.95em; min-height: 40px; }
+    .write-prompt { font-size: 0.85em; }
+    .write-progress { font-size: 0.8em; }
+    .typo-warning   { font-size: 0.8em; padding: 5px 10px; }
+    .btn-submit     { padding: 8px 16px; min-height: 40px; font-size: 0.9em; }
+
+    #mini-overlay { padding: 12px; }
+    .mini-icon    { font-size: 1.8em; }
+    .mini-text    { font-size: 1.3em; }
+    .mini-points  { font-size: 0.9em; padding: 4px 14px; }
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — TABLET PORTRAIT (≥600px)
+   iPad, Galaxy Tab, Lenovo Tab…
+══════════════════════════════════════════════ */
+@media (min-width: 600px) and (orientation: portrait) {
+    #figure-container, #word-pool, #write-panel { max-width: 580px; }
+    #write-input { width: 260px; }
+    .word-chip   { font-size: 1em; padding: 8px 20px; }
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — CHROMEBOOK / LAPTOP (≥900px)
+   Panell ample, figura gran, chips còmodes.
+══════════════════════════════════════════════ */
+@media (min-width: 900px) {
+    #figure-container, #word-pool, #write-panel { max-width: 620px; }
+    #write-input { width: 280px; font-size: 1.35em; }
+    .word-chip   { font-size: 1em; padding: 9px 22px; }
+}
+
+/* ══════════════════════════════════════════════
+   KEYFRAMES
+══════════════════════════════════════════════ */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25%       { transform: translateX(-5px); }
