@@ -245,7 +245,9 @@ h1 {
     border: 2px dashed var(--border-heavy);
     border-radius: 10px;
     width: 100%;
-    max-width: 520px;
+    /* [ROUND 2 — imatge 1] pool desacoblat de la figura: usa tot l'ample
+     * disponible del game-area (≤860px) per reduir el wrapping dels chips */
+    max-width: 860px;
     background: white;
 }
 
@@ -594,7 +596,8 @@ h1 {
    iPad, Galaxy Tab, Lenovo Tab…
 ══════════════════════════════════════════════ */
 @media (min-width: 600px) and (orientation: portrait) {
-    #figure-container, #word-pool, #write-panel { max-width: 580px; }
+    #figure-container, #write-panel { max-width: 580px; }
+    /* word-pool hereta el 860px base; no cal sobreescriure */
     #write-input { width: 260px; }
     .word-chip   { font-size: 1em; padding: 8px 20px; }
 }
@@ -604,7 +607,8 @@ h1 {
    Panell ample, figura gran, chips còmodes.
 ══════════════════════════════════════════════ */
 @media (min-width: 900px) {
-    #figure-container, #word-pool, #write-panel { max-width: 620px; }
+    #figure-container, #write-panel { max-width: 620px; }
+    /* word-pool hereta el 860px base; no cal sobreescriure */
     #write-input { width: 280px; font-size: 1.35em; }
     .word-chip   { font-size: 1em; padding: 9px 22px; }
 }
