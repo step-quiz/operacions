@@ -96,6 +96,7 @@
     // =========================================================================
     function init() {
         els = {
+            gameArea:        document.getElementById('game-area'),
             body:            document.body,
             gameScreen:      document.getElementById('game-screen'),
             summaryScreen:   document.getElementById('summary-screen'),
@@ -247,26 +248,29 @@
     // RENDER SVG + DROP-ZONES
     // =========================================================================
     function _renderFigura() {
-        const DZ_W = 100, DZ_H = 26;
+        // [ROUND 3 — caselles +30%] DZ_W: 100→130, DZ_H: 26→34
+        const DZ_W      = 130;
+        const DZ_H      = 34;
+        // La caixa de la pista és més ampla per acollir "Com es diu la figura?"
+        const DZ_W_HINT = 185; /* ~18 caràcters × ~9px/char en el viewBox 500×340 */
         let dzHTML = '';
 
         _figActual.etiquetes.forEach(et => {
-            const x = et.lx - DZ_W / 2;
-            const y = et.ly - DZ_H / 2;
-            // [ROUND 1 — imatge 2] auto-detecta etiqueta que nombra la figura
-            const labelInit = (et.id === _figActual.id)
-                ? TEXTS.FIGURA_HINT
-                : TEXTS.DZ_PLACEHOLDER;
-            // [ROUND 1 — imatge 1] línia dins del <g> → el CSS pot canviar-ne
-            //   el color per estat (dz-correct/dz-wrong). Sense cercle terminal.
+            const isHint     = (et.id === _figActual.id);
+            const w          = isHint ? DZ_W_HINT : DZ_W;
+            const x          = et.lx - w / 2;
+            const y          = et.ly - DZ_H / 2;
+            const labelInit  = isHint ? TEXTS.FIGURA_HINT  : TEXTS.DZ_PLACEHOLDER;
+            // [ROUND 3 — font hint +30%] classe extra per a la caixa de la figura
+            const labelClass = isHint ? 'dz-label dz-label-hint' : 'dz-label';
             dzHTML += `
-            <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}">
+            <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}" data-w="${w}">
                 <line class="dz-connector"
                       x1="${et.px}" y1="${et.py}" x2="${et.lx}" y2="${et.ly}"
                       stroke-width="1.5" stroke-dasharray="4 3"
                       pointer-events="none"/>
-                <rect class="dz-bg" x="${x}" y="${y}" width="${DZ_W}" height="${DZ_H}" rx="5"/>
-                <text class="dz-label" x="${et.lx}" y="${et.ly}">${labelInit}</text>
+                <rect class="dz-bg" x="${x}" y="${y}" width="${w}" height="${DZ_H}" rx="5"/>
+                <text class="${labelClass}" x="${et.lx}" y="${et.ly}">${labelInit}</text>
             </g>`;
         });
 
@@ -313,6 +317,11 @@
         els.writePanel.style.display = 'none';
         els.wordPool.innerHTML       = '';
 
+        // [ROUND 3 — supressió instrucció mode A] no cal text: l'acció és evident
+        els.contextInstr.style.display = 'none';
+        // [ROUND 3 — pool vertical esquerra] classe que activa el layout en 2 columnes
+        els.gameArea.classList.add('layout-a');
+
         VocabEngine.shuffle([..._figActual.etiquetes]).forEach(et => {
             const chip        = document.createElement('div');
             chip.className    = 'word-chip';
@@ -329,8 +338,6 @@
 
             els.wordPool.appendChild(chip);
         });
-
-        els.contextInstr.innerText = TEXTS.INSTR_MODE_A;
     }
 
     function _handleDrop(dzEl, word) {
@@ -412,6 +419,9 @@
         els.writePanel.style.display = 'flex';
         _writeIdx = 0;
         els.typoWarning.classList.remove('visible');
+        // [ROUND 3] restaura visibilitat del context-instruction (ocultat pel mode A)
+        els.contextInstr.style.display = '';
+        els.gameArea.classList.remove('layout-a');
         els.contextInstr.innerText = TEXTS.INSTR_MODE_B;
         _showWriteStep();
     }
