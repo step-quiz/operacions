@@ -146,8 +146,10 @@ h1 {
     border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
 }
 
-.header-left  { display: flex; flex-direction: column; gap: 2px; }
-.session-text { font-size: 0.95em; color: var(--text-muted); }
+/* [ROUND 1 — sessió i figura en una sola fila; guanya espai vertical] */
+.header-left  { display: flex; flex-direction: row; align-items: baseline; gap: 14px; }
+.session-text { font-size: 0.9em; color: var(--text-muted); }
+.session-text::after { content: '·'; margin-left: 14px; color: var(--border-heavy); }
 .level-text   { font-size: 1.15em; color: #3b0764; }
 .score-text   { font-size: 1.15em; color: var(--primary); font-family: monospace; }
 
@@ -175,6 +177,7 @@ h1 {
     align-items: center;
     padding: 20px;
     gap: 16px;
+    position: relative; /* [ROUND 1 — contenidor de posicionament per al mini-overlay] */
 }
 
 /* ══════════════════════════════════════════════
@@ -448,31 +451,58 @@ h1 {
 
 /* ══════════════════════════════════════════════
    MINI OVERLAY (entre figures)
+   [ROUND 1 — position:absolute → fora del flux (no causa scroll)
+              Mode A (layout-a): sobre el word-pool (dreta)
+              Mode B / default: targeta centrada a la part baixa]
 ══════════════════════════════════════════════ */
 #mini-overlay {
+    /* Tret del flux; posicionat dins #game-area (position:relative) */
+    position: absolute;
+    z-index: 10;
+    /* Mode B default: centrat horitzontalment, a la part baixa */
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 20px;
+    width: 270px;
+    /* Estil targeta flotant */
+    padding: 18px 16px;
+    background: white;
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.11);
+    /* Layout intern */
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 28px 20px;
-    background-color: var(--bg-color);
-    border-top: 1px solid var(--border-color);
     animation: fadeIn 0.3s;
+}
+
+/* Mode A: sobre el word-pool (columna dreta, 160px d'ample) */
+#game-area.layout-a #mini-overlay {
+    left: auto;
+    bottom: auto;
+    transform: none;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 165px;
 }
 
 .mini-overlay-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 10px;
+    gap: 10px;        /* [ROUND 1 — reduït de 15px] */
+    margin-bottom: 8px;
 }
 
-.mini-icon   { font-size: 3em; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 0px 4px 15px rgba(250, 204, 21, 0.6); }
-.mini-text   { color: #047857; font-size: 2em; font-weight: bold; text-shadow: 0px 2px 5px white; }
+/* [ROUND 1 — mides reduïdes per al format compacte] */
+.mini-icon   { font-size: 2em;   animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 0px 4px 15px rgba(250, 204, 21, 0.6); }
+.mini-text   { color: #047857;   font-size: 1.35em; font-weight: bold; text-shadow: 0px 2px 5px white; }
 .mini-points {
-    color: #059669; font-size: 1.3em; font-weight: bold; font-family: monospace;
-    background: rgba(255,255,255,0.95); padding: 5px 20px;
+    color: #059669; font-size: 1em; font-weight: bold; font-family: monospace;
+    background: rgba(255,255,255,0.95); padding: 4px 14px;
     border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
@@ -642,10 +672,11 @@ h1 {
     .typo-warning   { font-size: 0.8em; padding: 5px 10px; }
     .btn-submit     { padding: 8px 16px; min-height: 40px; font-size: 0.9em; }
 
-    #mini-overlay { padding: 12px; }
-    .mini-icon    { font-size: 1.8em; }
-    .mini-text    { font-size: 1.3em; }
-    .mini-points  { font-size: 0.9em; padding: 4px 14px; }
+    /* [ROUND 1 — mini-overlay en landscape: compacte, centrat a la part baixa] */
+    #mini-overlay { width: 220px; padding: 12px 10px; bottom: 8px; }
+    .mini-icon    { font-size: 1.6em; }
+    .mini-text    { font-size: 1.1em; }
+    .mini-points  { font-size: 0.85em; padding: 3px 10px; }
 }
 
 /* ══════════════════════════════════════════════
