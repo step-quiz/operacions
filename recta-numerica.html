@@ -8,25 +8,41 @@
 
     <!--
         PARÀMETRES URL:
-          ?nivell=1     Distractors simples (errors obvis)
-          ?nivell=2     Distractors mitjans (per defecte)
-          ?nivell=3     Distractors elaborats (errors subtils)
-          ?preguntes=N  Nombre de preguntes (per defecte: 6)
+          ?nivell=1              Distractors simples (errors obvis)
+          ?nivell=2              Distractors mitjans (per defecte)
+          ?nivell=3              Distractors elaborats (errors subtils)
+          ?totalsessions=N       Nombre de sessions (per defecte: 1)
+          ?totaloperations=N     Nombre de preguntes per sessió (per defecte: 6)
+          ?maxintents=N          Intents màxims per pregunta (per defecte: 2)
+          ?maxenllocmitjana=0|1  Nota: màxim sessió (1) o mitjana (0) (per defecte: 1)
 
         EXEMPLE:
-          recta-numerica.html?nivell=1&preguntes=4
+          recta-numerica.html?nivell=2&totalsessions=5&totaloperations=8&maxintents=3
     -->
+
+    <!-- Valors per defecte del joc (sobreescrits pels paràmetres URL via config.js) -->
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    6,
+            defaultIntents:       2,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
 
     <!-- Google Font: Barlow -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/recta-numerica.css?v=1">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/recta-numerica.css?v=2">
 </head>
 <body>
 
-<!-- Capçalera amb títol — [ROUND 5 — afegit botó Tutorial amb icona REC] -->
+<!-- Capçalera amb títol -->
 <div class="title-row">
     <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
         <img src="icon.png" alt="Inici" onerror="this.style.display='none'">
@@ -38,7 +54,7 @@
     </button>
 </div>
 
-<!-- Overlay de fade-out — [ROUND 5] -->
+<!-- Overlay de fade-out -->
 <div id="fade-overlay"></div>
 
 <!-- Panell principal -->
@@ -57,34 +73,36 @@
             <span id="attempts-display">Intents: 2</span>
         </div>
 
-        <!-- Cos principal: columna esquerra (B) + columna dreta (A) -->
+        <!-- Cos principal: columna esquerra + columna dreta -->
         <div class="game-body">
 
-            <!-- Columna esquerra 40%: pregunta + opcions + feedback -->
+            <!-- Columna esquerra 30%: pregunta + opcions + feedback -->
             <div class="game-left">
                 <div id="question-prompt"></div>
                 <div id="options-container" class="options-grid"></div>
                 <div id="feedback" class="feedback-area"></div>
             </div>
 
-            <!-- Columna dreta 60%: gràfic SVG -->
+            <!-- Columna dreta 70%: gràfic SVG -->
             <div class="game-right">
                 <div id="graph-container"></div>
             </div>
 
         </div>
 
+        <!-- #mini-victory-overlay injectat aquí per game-core.js via injectSharedHTML() -->
+
     </div>
 
-    <!-- Pantalla de resum final (omplerta per JS) -->
-    <div id="summary-screen"></div>
+    <!-- #session-end-screen i #final-screen injectats per game-core.js via injectSharedHTML() -->
 
 </div>
 
 <!--
     ORDRE DE CÀRREGA:
-    cloud-engine → strings → distractor-lib → question-bank → recta-numerica (defer)
+    utils → config → game-core → cloud-engine → strings → distractor-lib → question-bank → recta-numerica (defer)
 -->
+<script src="js/game-core.js"></script>
 <script src="js/recta-numerica/cloud-engine.js"></script>
 <script src="js/recta-numerica/strings.js"></script>
 <script src="js/recta-numerica/distractor-lib.js"></script>
