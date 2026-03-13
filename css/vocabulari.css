@@ -132,24 +132,33 @@ h1 {
 ══════════════════════════════════════════════ */
 .header-info {
     background-color: #f5f3ff;
-    padding: 12px 20px;
+    padding: 8px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-weight: bold;
     flex-wrap: wrap;
-    gap: 8px;
-    /* [ROUND 1 — imatge 3] .panel ja no fa overflow:hidden, per tant
-     * el fons del header ha de tenir ell mateix les cantonades arrodonides
-     * per mantenir l'aspecte visual original */
+    gap: 6px;
     border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
 }
 
-.header-left  { display: flex; flex-direction: column; gap: 2px; }
-.session-text { font-size: 0.95em; color: var(--text-muted); }
-.level-text   { font-size: 1.15em; color: #3b0764; }
-.score-text   { font-size: 1.15em; color: var(--primary); font-family: monospace; }
+/* Sessió · Figura en una sola fila */
+.header-left  {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0;
+}
+.session-text { font-size: 1em; color: var(--text-muted); }
+.session-text::after {
+    content: '·';
+    margin: 0 7px;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+.level-text   { font-size: 1em; color: #3b0764; }
+.score-text   { font-size: 1.1em; color: var(--primary); font-family: monospace; }
 
 .attempts-counter {
     font-family: monospace;
@@ -528,59 +537,6 @@ h1 {
 @media (hover: hover) { .btn-restart:hover { background-color: #047857; } }
 
 /* ══════════════════════════════════════════════
-   LAYOUT MODE A — PORTRAIT MÒBIL (≤600px)
-   En pantalles estretes en vertical, el layout-a
-   canvia de "pool esquerra | figura dreta" a
-   "pool dalt (wrap horitzontal) | figura baix".
-   Això aprofita tot l'ample per a la figura i
-   evita que els botons quedin massa petits.
-══════════════════════════════════════════════ */
-@media (max-width: 600px) and (orientation: portrait) {
-
-    /* Game-area torna a columna (per defecte era row en layout-a) */
-    #game-area.layout-a {
-        flex-direction: column;
-        align-items: center;
-        padding: 10px 8px;
-        gap: 10px;
-    }
-
-    /* Pool: de nou horitzontal amb wrap, ocupa tot l'ample */
-    #game-area.layout-a #word-pool {
-        flex-direction: row;
-        flex-wrap: wrap;
-        width: 100%;
-        min-width: unset;
-        max-width: none;
-        max-height: none;       /* elimina el scroll vertical del mode desktop */
-        overflow: visible;
-        align-items: center;
-        justify-content: center;
-        padding: 8px;
-        gap: 6px;
-        /* Ordena el pool PRIMER (dalt) i la figura DESPRÉS (baix) */
-        order: -1;
-    }
-
-    /* Chips: compactes però còmodes (44px touch target) */
-    #game-area.layout-a .word-chip {
-        width: auto;
-        border-radius: 20px;
-        padding: 7px 14px;
-        font-size: 0.85em;
-        min-height: 40px;
-    }
-
-    /* Figura: ocupa tot l'ample disponible */
-    #game-area.layout-a #figure-container {
-        flex: none;
-        width: 100%;
-        max-width: none;
-        min-width: unset;
-    }
-}
-
-/* ══════════════════════════════════════════════
    RESPONSIVE — PORTRAIT PETIT (≤480px)
    Mòbils en vertical: Gama A/B Android, iPhone SE…
 ══════════════════════════════════════════════ */
@@ -601,9 +557,9 @@ h1 {
     }
     h1              { font-size: 1.2em; }
     .subtitle       { font-size: 0.9em; margin-bottom: 8px; }
-    .header-info    { flex-direction: column; gap: 6px; padding: 10px 12px; }
-    .header-left    { align-items: center; }
-    .level-text, .score-text { font-size: 1.05em; }
+    .header-info    { flex-direction: column; gap: 4px; padding: 8px 12px; }
+    .header-left    { flex-direction: row; align-items: baseline; }
+    .level-text, .score-text { font-size: 0.95em; }
     .attempts-counter        { font-size: 1.05em; width: 100%; justify-content: center; }
     .session-text   { font-size: 0.9em; }
     #game-area      { padding: 10px 8px; gap: 12px; }
