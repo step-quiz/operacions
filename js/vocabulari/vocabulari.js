@@ -253,24 +253,47 @@
         const DZ_H      = 34;
         // La caixa de la pista és més ampla per acollir "Com es diu la figura?"
         const DZ_W_HINT = 185; /* ~18 caràcters × ~9px/char en el viewBox 500×340 */
+
+        // [ROUND 4 — clamping horitzontal]
+        // El SVG té viewBox 500×340 i overflow:visible, cosa que permet que les
+        // caselles surtin del viewBox. Això causa dos problemes visibles:
+        //   · Esquerra: la casella sobresurt del panell principal.
+        //   · Dreta: la casella se superposa al pool HTML de botons (layout-a).
+        // Solució: clampem el centre horitzontal (lx) perquè el rectangle sencer
+        // (lx ± w/2) quedi sempre dins el viewBox amb un petit marge interior.
+        // El connector s'ajusta al punt clamped per mantenir coherència visual.
+        // La verticalitat (ly) NO es clampa: els overflows superiors/inferiors
+        // (p.ex. casella "cilindre" a ly:18) estan ben gestionats per overflow:visible.
+        const SVG_W    = 500;
+        const H_MARGIN = 5; // px de marge respecte als límits esquerra/dreta del viewBox
+
+        function _clampLx(lx, w) {
+            const min = w / 2 + H_MARGIN;
+            const max = SVG_W - w / 2 - H_MARGIN;
+            return Math.min(Math.max(lx, min), max);
+        }
+
         let dzHTML = '';
 
         _figActual.etiquetes.forEach(et => {
             const isHint     = (et.id === _figActual.id);
             const w          = isHint ? DZ_W_HINT : DZ_W;
-            const x          = et.lx - w / 2;
-            const y          = et.ly - DZ_H / 2;
+            // Aplica el clamping horitzontal; ly (vertical) es respecta sempre
+            const lx         = _clampLx(et.lx, w);
+            const ly         = et.ly;
+            const x          = lx - w / 2;
+            const y          = ly - DZ_H / 2;
             const labelInit  = isHint ? TEXTS.FIGURA_HINT  : TEXTS.DZ_PLACEHOLDER;
             // [ROUND 3 — font hint +30%] classe extra per a la caixa de la figura
             const labelClass = isHint ? 'dz-label dz-label-hint' : 'dz-label';
             dzHTML += `
             <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}" data-w="${w}">
                 <line class="dz-connector"
-                      x1="${et.px}" y1="${et.py}" x2="${et.lx}" y2="${et.ly}"
-                      stroke-width="1.5" stroke-dasharray="4 3"
+                      x1="${et.px}" y1="${et.py}" x2="${lx}" y2="${ly}"
+                      stroke-width="1.5"
                       pointer-events="none"/>
                 <rect class="dz-bg" x="${x}" y="${y}" width="${w}" height="${DZ_H}" rx="5"/>
-                <text class="${labelClass}" x="${et.lx}" y="${et.ly}">${labelInit}</text>
+                <text class="${labelClass}" x="${lx}" y="${ly}">${labelInit}</text>
             </g>`;
         });
 
