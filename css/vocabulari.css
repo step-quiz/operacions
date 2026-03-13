@@ -528,6 +528,59 @@ h1 {
 @media (hover: hover) { .btn-restart:hover { background-color: #047857; } }
 
 /* ══════════════════════════════════════════════
+   LAYOUT MODE A — PORTRAIT MÒBIL (≤600px)
+   En pantalles estretes en vertical, el layout-a
+   canvia de "pool esquerra | figura dreta" a
+   "pool dalt (wrap horitzontal) | figura baix".
+   Això aprofita tot l'ample per a la figura i
+   evita que els botons quedin massa petits.
+══════════════════════════════════════════════ */
+@media (max-width: 600px) and (orientation: portrait) {
+
+    /* Game-area torna a columna (per defecte era row en layout-a) */
+    #game-area.layout-a {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 8px;
+        gap: 10px;
+    }
+
+    /* Pool: de nou horitzontal amb wrap, ocupa tot l'ample */
+    #game-area.layout-a #word-pool {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        min-width: unset;
+        max-width: none;
+        max-height: none;       /* elimina el scroll vertical del mode desktop */
+        overflow: visible;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        gap: 6px;
+        /* Ordena el pool PRIMER (dalt) i la figura DESPRÉS (baix) */
+        order: -1;
+    }
+
+    /* Chips: compactes però còmodes (44px touch target) */
+    #game-area.layout-a .word-chip {
+        width: auto;
+        border-radius: 20px;
+        padding: 7px 14px;
+        font-size: 0.85em;
+        min-height: 40px;
+    }
+
+    /* Figura: ocupa tot l'ample disponible */
+    #game-area.layout-a #figure-container {
+        flex: none;
+        width: 100%;
+        max-width: none;
+        min-width: unset;
+    }
+}
+
+/* ══════════════════════════════════════════════
    RESPONSIVE — PORTRAIT PETIT (≤480px)
    Mòbils en vertical: Gama A/B Android, iPhone SE…
 ══════════════════════════════════════════════ */
