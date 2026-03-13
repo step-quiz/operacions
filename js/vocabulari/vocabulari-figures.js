@@ -30,7 +30,7 @@ window.VocabFigures = (() => {
                 <circle cx="80"  cy="270" r="5"   fill="#0369a1"/>
             `,
             etiquetes: [
-                { id: 'rectangle', text: 'rectangle', px: 250, py: 180, lx: 250, ly: 20  },
+                { id: 'rectangle', text: 'rectangle', px: 160, py: 130, lx: 250, ly: 20  },
                 { id: 'vertex',    text: 'vèrtex',    px: 80,  py: 90,  lx: 45,  ly: 60  },
                 { id: 'costat',    text: 'costat',    px: 250, py: 90,  lx: 370, ly: 55  },
                 { id: 'diagonal',  text: 'diagonal',  px: 170, py: 135, lx: 80,  ly: 160 },
@@ -43,7 +43,7 @@ window.VocabFigures = (() => {
             id:  'circumferencia',
             nom: 'Circumferència',
             svg: `
-                <circle cx="250" cy="170" r="130" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
+                <circle cx="250" cy="170" r="130" fill="white" stroke="#059669" stroke-width="2.5"/>
                 <line x1="120" y1="170" x2="380" y2="170" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 3"/>
                 <line x1="250" y1="170" x2="250" y2="40"  stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 3"/>
                 <line x1="145" y1="105" x2="380" y2="200" stroke="#b45309" stroke-width="1.8" stroke-dasharray="5 3"/>
@@ -84,15 +84,23 @@ window.VocabFigures = (() => {
             id:  'cercle',
             nom: 'Cercle',
             svg: `
-                <circle cx="250" cy="170" r="130" fill="#fce7f3" stroke="#db2777" stroke-width="2.5"/>
+                <defs>
+                    <pattern id="cercle-dots" patternUnits="userSpaceOnUse" width="9" height="9">
+                        <circle cx="4.5" cy="4.5" r="1.4" fill="#db2777" opacity="0.35"/>
+                    </pattern>
+                    <clipPath id="cercle-clip">
+                        <circle cx="250" cy="170" r="128"/>
+                    </clipPath>
+                </defs>
+                <circle cx="250" cy="170" r="130" fill="url(#cercle-dots)" clip-path="url(#cercle-clip)" stroke="none"/>
+                <circle cx="250" cy="170" r="130" fill="none" stroke="#db2777" stroke-width="2.5"/>
                 <line x1="250" y1="170" x2="352" y2="78" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 3"/>
                 <circle cx="250" cy="170" r="4.5" fill="#334155"/>
             `,
             etiquetes: [
-                { id: 'cercle',         text: 'cercle',         px: 250, py: 170, lx: 110, ly: 30  },
-                { id: 'circumferencia', text: 'circumferència', px: 380, py: 170, lx: 430, ly: 210 },
-                { id: 'radi',           text: 'radi',           px: 300, py: 124, lx: 370, ly: 80  },
-                { id: 'centre',         text: 'centre',         px: 250, py: 170, lx: 310, ly: 190 },
+                { id: 'cercle',  text: 'cercle',  px: 175, py: 240, lx: 110, ly: 30  },
+                { id: 'radi',    text: 'radi',    px: 300, py: 124, lx: 370, ly: 80  },
+                { id: 'centre',  text: 'centre',  px: 250, py: 170, lx: 310, ly: 190 },
             ]
         },
 
@@ -174,10 +182,10 @@ window.VocabFigures = (() => {
                 <line x1="20"  y1="170" x2="480" y2="170" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 6"/>
             `,
             etiquetes: [
-                { id: 'segment',  text: 'segment',  px: 250, py: 170, lx: 250, ly: 70  },
+                { id: 'segment',  text: 'segment',  px: 160, py: 170, lx: 250, ly: 70  },
                 { id: 'extrem',   text: 'extrem',   px: 80,  py: 170, lx: 68,  ly: 115 },
                 { id: 'punt_mig', text: 'punt mig', px: 250, py: 170, lx: 350, ly: 220 },
-                { id: 'longitud', text: 'longitud', px: 250, py: 170, lx: 140, ly: 230 },
+                { id: 'longitud', text: 'longitud', px: 340, py: 170, lx: 140, ly: 230 },
                 { id: 'recta',    text: 'recta',    px: 440, py: 170, lx: 440, ly: 120 },
             ]
         },
@@ -221,7 +229,7 @@ window.VocabFigures = (() => {
                 <circle cx="136" cy="138" r="5"   fill="#ea580c"/>
             `,
             etiquetes: [
-                { id: 'pentagono', text: 'pentàgon', px: 250, py: 175, lx: 250, ly: 20  },
+                { id: 'pentagono', text: 'pentàgon', px: 300, py: 200, lx: 250, ly: 20  },
                 { id: 'vertex',    text: 'vèrtex',   px: 250, py: 55,  lx: 145, ly: 38  },
                 { id: 'costat',    text: 'costat',   px: 193, py: 205, lx: 68,  ly: 195 },
                 { id: 'centre',    text: 'centre',   px: 250, py: 175, lx: 360, ly: 192 },
@@ -247,12 +255,12 @@ window.VocabFigures = (() => {
                 <circle cx="146" cy="110" r="5" fill="#059669"/>
             `,
             etiquetes: [
-                { id: 'hexagono', text: 'hexàgon',  px: 250, py: 170, lx: 250, ly: 18  },
-                { id: 'vertex',   text: 'vèrtex',   px: 354, py: 110, lx: 432, ly: 80  },
-                { id: 'costat',   text: 'costat',   px: 354, py: 170, lx: 448, ly: 170 },
-                { id: 'centre',   text: 'centre',   px: 250, py: 170, lx: 138, ly: 152 },
-                { id: 'apotema',  text: 'apotema',  px: 302, py: 170, lx: 418, ly: 238 },
-                { id: 'diagonal', text: 'diagonal', px: 250, py: 170, lx: 118, ly: 255 },
+                { id: 'hexagono',  text: 'hexàgon',  px: 200, py: 130, lx: 250, ly: 18  },
+                { id: 'vertex',    text: 'vèrtex',   px: 354, py: 110, lx: 432, ly: 80  },
+                { id: 'costat',    text: 'costat',   px: 354, py: 170, lx: 448, ly: 170 },
+                { id: 'centre',    text: 'centre',   px: 250, py: 170, lx: 138, ly: 152 },
+                { id: 'apotema',   text: 'apotema',  px: 302, py: 170, lx: 418, ly: 238 },
+                { id: 'diagonal',  text: 'diagonal', px: 310, py: 215, lx: 118, ly: 255 },
             ]
         },
 
@@ -306,7 +314,7 @@ window.VocabFigures = (() => {
                 <line x1="360" y1="309" x2="360" y2="321" stroke="#d97706" stroke-width="1.5"/>
             `,
             etiquetes: [
-                { id: 'ortoedre', text: 'ortoedre', px: 210, py: 235, lx: 210, ly: 20  },
+                { id: 'ortoedre', text: 'ortoedre', px: 240, py: 148, lx: 210, ly: 20  },
                 { id: 'vertex',   text: 'vèrtex',   px: 360, py: 175, lx: 448, ly: 148 },
                 { id: 'aresta',   text: 'aresta',   px: 210, py: 175, lx: 178, ly: 105 },
                 { id: 'cara',     text: 'cara',     px: 210, py: 235, lx: 45,  ly: 235 },
@@ -358,7 +366,7 @@ window.VocabFigures = (() => {
                 <line x1="409" y1="270" x2="421" y2="270" stroke="#d97706" stroke-width="1.5"/>
             `,
             etiquetes: [
-                { id: 'cilindre',     text: 'cilindre',     px: 250, py: 180, lx: 250, ly: 18  },
+                { id: 'cilindre',     text: 'cilindre',     px: 170, py: 200, lx: 250, ly: 18  },
                 { id: 'base',         text: 'base',         px: 250, py: 270, lx: 105, ly: 315 },
                 { id: 'cara_lateral', text: 'cara lateral', px: 110, py: 180, lx: 42,  ly: 155 },
                 { id: 'alcada',       text: 'alçada',       px: 415, py: 180, lx: 460, ly: 168 },
@@ -382,7 +390,7 @@ window.VocabFigures = (() => {
                 <circle cx="250" cy="280" r="3.5" fill="#334155"/>
             `,
             etiquetes: [
-                { id: 'con',        text: 'con',        px: 250, py: 165, lx: 68,  ly: 130 },
+                { id: 'con',        text: 'con',        px: 185, py: 220, lx: 68,  ly: 130 },
                 { id: 'vertex',     text: 'vèrtex',     px: 250, py: 50,  lx: 148, ly: 28  },
                 { id: 'generatriu', text: 'generatriu', px: 330, py: 165, lx: 442, ly: 138 },
                 { id: 'base',       text: 'base',       px: 250, py: 280, lx: 100, ly: 318 },
