@@ -11,6 +11,40 @@
     'use strict';
 
     // =========================================================================
+    // TEXTS — tots els literals visibles per l'usuari (font de veritat única)
+    // [ROUND 1 — creació del bloc TEXTS; inclou FIGURA_HINT per a imatge 2]
+    // =========================================================================
+    const TEXTS = {
+        // Capçalera
+        SESSIO_X_DE_Y:   (s, t) => `Sessió ${s} de ${t}`,
+        FIGURA_X_DE_Y:   (f, t) => `Figura ${f} de ${t}`,
+        PUNTS_X:         (p)    => `Punts: ${p}`,
+        INTENTS_X:       (i)    => `Intents: ${i}`,
+        // Drop-zones
+        DZ_PLACEHOLDER:  '?',
+        FIGURA_HINT:     'Com es diu la figura?',  // pista per a l'etiqueta que nombra la figura
+        // Instruccions
+        INSTR_MODE_A:    'Arrossega cada paraula al lloc correcte de la figura',
+        INSTR_MODE_B:    'Escriu la paraula que descriu cada element assenyalat',
+        PARAULA_X_DE_Y:  (w, t) => `Paraula ${w} de ${t}`,
+        // Mini overlay
+        OVERLAY_OK_ICON: '⭐',
+        OVERLAY_OK_TEXT: 'Molt bé!',
+        OVERLAY_OK_PTS:  (p)    => `+${p} punts`,
+        OVERLAY_KO_ICON: '❌',
+        OVERLAY_KO_TEXT: 'Intents esgotats',
+        OVERLAY_KO_PTS:  '0 punts',
+        // Pantalla final
+        SUMMARY_TITOL:   '🎉 Activitat completada!',
+        SUMMARY_TROFEU:  '🏆',
+        SUMMARY_SESSIO:  (i)    => `Sessió ${i}`,
+        SUMMARY_NOTA:    'Nota final:',
+        SUMMARY_ENCERTS: 'encerts',
+        SUMMARY_ERRADES: 'errades',
+        BTN_RESTART:     '🔄 Tornar a jugar',
+    };
+
+    // =========================================================================
     // CONFIG — URL params amb fallbacks i límits defensius
     // =========================================================================
     const _p          = new URLSearchParams(window.location.search);
@@ -162,7 +196,7 @@
         const fails  = MAX_INTENTS - _intents;
         const points = exhausted ? 0 : Math.max(0, 10 - fails * 2);
         _punts += points;
-        els.scoreDisplay.innerText = `Punts: ${_punts}`;
+        els.scoreDisplay.innerText = TEXTS.PUNTS_X(_punts);
 
         if (exhausted) {
             _figActual.etiquetes.forEach(et => {
@@ -201,10 +235,10 @@
     // UI HEADER
     // =========================================================================
     function _updateHeader() {
-        els.sessionDisplay.innerText  = `Sessió ${_sessio + 1} de ${TOTAL_SESS}`;
-        els.lvlDisplay.innerText      = `Figura ${_op + 1} de ${TOTAL_OPS}`;
-        els.scoreDisplay.innerText    = `Punts: ${_punts}`;
-        els.attemptsDisplay.innerText = `Intents: ${_intents}`;
+        els.sessionDisplay.innerText  = TEXTS.SESSIO_X_DE_Y(_sessio + 1, TOTAL_SESS);
+        els.lvlDisplay.innerText      = TEXTS.FIGURA_X_DE_Y(_op + 1, TOTAL_OPS);
+        els.scoreDisplay.innerText    = TEXTS.PUNTS_X(_punts);
+        els.attemptsDisplay.innerText = TEXTS.INTENTS_X(_intents);
         els.attemptsDisplay.className = 'attempts-counter' +
             (_intents < 3 ? ' danger' : '');
     }
@@ -219,14 +253,20 @@
         _figActual.etiquetes.forEach(et => {
             const x = et.lx - DZ_W / 2;
             const y = et.ly - DZ_H / 2;
+            // [ROUND 1 — imatge 2] auto-detecta etiqueta que nombra la figura
+            const labelInit = (et.id === _figActual.id)
+                ? TEXTS.FIGURA_HINT
+                : TEXTS.DZ_PLACEHOLDER;
+            // [ROUND 1 — imatge 1] línia dins del <g> → el CSS pot canviar-ne
+            //   el color per estat (dz-correct/dz-wrong). Sense cercle terminal.
             dzHTML += `
-            <line x1="${et.px}" y1="${et.py}" x2="${et.lx}" y2="${et.ly}"
-                  stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"
-                  pointer-events="none"/>
-            <circle cx="${et.px}" cy="${et.py}" r="3.5" fill="#94a3b8" pointer-events="none"/>
             <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}">
+                <line class="dz-connector"
+                      x1="${et.px}" y1="${et.py}" x2="${et.lx}" y2="${et.ly}"
+                      stroke-width="1.5" stroke-dasharray="4 3"
+                      pointer-events="none"/>
                 <rect class="dz-bg" x="${x}" y="${y}" width="${DZ_W}" height="${DZ_H}" rx="5"/>
-                <text class="dz-label" x="${et.lx}" y="${et.ly}">?</text>
+                <text class="dz-label" x="${et.lx}" y="${et.ly}">${labelInit}</text>
             </g>`;
         });
 
@@ -290,7 +330,7 @@
             els.wordPool.appendChild(chip);
         });
 
-        els.contextInstr.innerText = 'Arrossega cada paraula al lloc correcte de la figura';
+        els.contextInstr.innerText = TEXTS.INSTR_MODE_A;
     }
 
     function _handleDrop(dzEl, word) {
@@ -372,14 +412,14 @@
         els.writePanel.style.display = 'flex';
         _writeIdx = 0;
         els.typoWarning.classList.remove('visible');
-        els.contextInstr.innerText = 'Escriu la paraula que descriu cada element assenyalat';
+        els.contextInstr.innerText = TEXTS.INSTR_MODE_B;
         _showWriteStep();
     }
 
     function _showWriteStep() {
         if (_writeIdx >= _etTotal) { _finishLevel(); return; }
 
-        els.writeProgress.innerText = `Paraula ${_writeIdx + 1} de ${_etTotal}`;
+        els.writeProgress.innerText = TEXTS.PARAULA_X_DE_Y(_writeIdx + 1, _etTotal);
         els.writeInput.value = '';
         els.typoWarning.classList.remove('visible');
         _highlightWriteTarget();
@@ -471,16 +511,16 @@
     function _showMiniOverlay(points) {
         if (!els.miniOverlay) return points > 0 ? 1500 : 3000;
         if (points > 0) {
-            els.miniIcon.innerText     = '⭐';
-            els.miniText.innerText     = 'Molt bé!';
+            els.miniIcon.innerText     = TEXTS.OVERLAY_OK_ICON;
+            els.miniText.innerText     = TEXTS.OVERLAY_OK_TEXT;
             els.miniText.style.color   = '#047857';
-            els.miniPoints.innerText   = `+${points} punts`;
+            els.miniPoints.innerText   = TEXTS.OVERLAY_OK_PTS(points);
             els.miniPoints.style.color = '#059669';
         } else {
-            els.miniIcon.innerText     = '❌';
-            els.miniText.innerText     = 'Intents esgotats';
+            els.miniIcon.innerText     = TEXTS.OVERLAY_KO_ICON;
+            els.miniText.innerText     = TEXTS.OVERLAY_KO_TEXT;
             els.miniText.style.color   = 'var(--danger)';
-            els.miniPoints.innerText   = '0 punts';
+            els.miniPoints.innerText   = TEXTS.OVERLAY_KO_PTS;
             els.miniPoints.style.color = 'var(--danger)';
         }
         els.miniOverlay.style.display = 'flex';
@@ -506,17 +546,17 @@
         const sessionsHTML = _puntsTotal.map((p, i) => {
             const n = (p / (TOTAL_OPS * 10) * 10).toFixed(1).replace('.', ',');
             return `<div class="session-line">
-                <span>Sessió ${i + 1}</span><span>${n}</span>
+                <span>${TEXTS.SUMMARY_SESSIO(i + 1)}</span><span>${n}</span>
             </div>`;
         }).join('');
 
         els.summaryScreen.innerHTML = `
-            <h2>🎉 Activitat completada!</h2>
+            <h2>${TEXTS.SUMMARY_TITOL}</h2>
             <div class="summary-layout">
-                <div class="trophy-icon">🏆</div>
+                <div class="trophy-icon">${TEXTS.SUMMARY_TROFEU}</div>
                 <div class="summary-data">
                     ${sessionsHTML}
-                    <div style="margin-top:14px;font-size:0.9em;color:var(--text-muted);">Nota final:</div>
+                    <div style="margin-top:14px;font-size:0.9em;color:var(--text-muted);">${TEXTS.SUMMARY_NOTA}</div>
                     <div style="font-size:1.6em;font-weight:bold;color:var(--success);font-family:monospace;">
                         ${nota} / 10
                     </div>
@@ -525,14 +565,14 @@
             <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;">
                 <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
                     <div style="font-size:1.8em;font-weight:800;color:#059669;">${encerts}</div>
-                    <div style="font-size:0.8em;color:var(--text-muted);">encerts</div>
+                    <div style="font-size:0.8em;color:var(--text-muted);">${TEXTS.SUMMARY_ENCERTS}</div>
                 </div>
                 <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
                     <div style="font-size:1.8em;font-weight:800;color:#dc2626;">${errades}</div>
-                    <div style="font-size:0.8em;color:var(--text-muted);">errades</div>
+                    <div style="font-size:0.8em;color:var(--text-muted);">${TEXTS.SUMMARY_ERRADES}</div>
                 </div>
             </div>
-            <button class="btn-restart" onclick="location.reload()">🔄 Tornar a jugar</button>
+            <button class="btn-restart" onclick="location.reload()">${TEXTS.BTN_RESTART}</button>
         `;
     }
 
