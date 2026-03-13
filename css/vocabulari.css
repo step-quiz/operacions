@@ -229,6 +229,10 @@ h1 {
     pointer-events: none;
     font-weight: 600;
 }
+/* [ROUND 3 — font hint +30%] etiqueta "Com es diu la figura?" */
+.drop-zone text.dz-label-hint {
+    font-size: 17px; /* 13px × 1.30 */
+}
 .drop-zone.dz-correct text.dz-label { fill: #065f46; }
 .drop-zone.dz-wrong   text.dz-label { fill: #991b1b; }
 
@@ -270,6 +274,52 @@ h1 {
 .word-chip:active   { cursor: grabbing; }
 .word-chip.dragging { opacity: 0.4; }
 .word-chip.used     { opacity: 0.25; pointer-events: none; }
+
+/* ══════════════════════════════════════════════
+   LAYOUT MODE A — pool vertical esquerra + figura dreta
+   [ROUND 3 — imatge: botons en columna a l'esquerra]
+══════════════════════════════════════════════ */
+#game-area.layout-a {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 16px;
+}
+
+/* Pool: columna fixa a l'esquerra amb scroll si hi ha molts ítems */
+#game-area.layout-a #word-pool {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    width: 160px;           /* amplada fixa; suficient per a la majoria de paraules */
+    min-width: 140px;
+    max-width: 180px;
+    flex-shrink: 0;
+    /* Scroll automàtic si hi ha més ítems dels que caben */
+    max-height: calc(100dvh - 220px); /* 220px ≈ capçalera + padding */
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: unset;
+    align-items: stretch;
+    border-radius: 10px;
+    padding: 8px;
+    gap: 6px;
+}
+
+/* Chips en mode vertical: plens d'ample, text centrat, sense border-radius rodona */
+#game-area.layout-a .word-chip {
+    width: 100%;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.9em;
+}
+
+/* Figura: ocupa la resta de l'ample */
+#game-area.layout-a #figure-container {
+    flex: 1 1 0;
+    min-width: 0;           /* evita overflow en flexbox */
+    max-width: none;
+}
 
 /* Chip fantasma que segueix el cursor/dit */
 #drag-ghost {
