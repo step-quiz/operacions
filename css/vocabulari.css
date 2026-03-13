@@ -132,7 +132,7 @@ h1 {
 ══════════════════════════════════════════════ */
 .header-info {
     background-color: #f5f3ff;
-    padding: 9px 20px;
+    padding: 12px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
@@ -146,10 +146,8 @@ h1 {
     border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
 }
 
-.header-left  { display: flex; flex-direction: row; align-items: baseline; gap: 10px; }
+.header-left  { display: flex; flex-direction: column; gap: 2px; }
 .session-text { font-size: 0.95em; color: var(--text-muted); }
-/* Separador visual entre "Sessió X de Y" i "Figura X de Y" */
-.session-text::after { content: '·'; margin-left: 10px; color: var(--border-heavy); }
 .level-text   { font-size: 1.15em; color: #3b0764; }
 .score-text   { font-size: 1.15em; color: var(--primary); font-family: monospace; }
 
@@ -205,16 +203,14 @@ h1 {
 
 /* [ROUND 1 — imatge 1] connector (línia) dins del <g class="drop-zone">:
  * el color canvia amb l'estat del pare. Sense cercle terminal. */
-/* [ROUND 4] connector continu (no discontinu) i negre per defecte */
-.drop-zone .dz-connector              { stroke: #1e293b;              }
+.drop-zone .dz-connector              { stroke: var(--primary);       }
 .drop-zone.dz-over    .dz-connector  { stroke: var(--primary-hover);  }
 .drop-zone.dz-correct .dz-connector  { stroke: var(--success);        }
 .drop-zone.dz-wrong   .dz-connector  { stroke: var(--danger);         }
 
 .drop-zone rect.dz-bg {
     fill: white;
-    /* [ROUND 4] caselles buides en negre */
-    stroke: #1e293b;
+    stroke: var(--primary);
     stroke-width: 1.5;
     stroke-dasharray: 5 3;
     rx: 5;
@@ -233,9 +229,9 @@ h1 {
     pointer-events: none;
     font-weight: 600;
 }
-/* [ROUND 4 — font hint −15%] etiqueta "Com es diu la figura?" */
+/* [ROUND 3 — font hint +30%] etiqueta "Com es diu la figura?" */
 .drop-zone text.dz-label-hint {
-    font-size: 14px; /* 17px × 0.85 */
+    font-size: 17px; /* 13px × 1.30 */
 }
 .drop-zone.dz-correct text.dz-label { fill: #065f46; }
 .drop-zone.dz-wrong   text.dz-label { fill: #991b1b; }
@@ -306,7 +302,7 @@ h1 {
     align-items: stretch;
     border-radius: 10px;
     padding: 8px;
-    gap: 12px;
+    gap: 6px;
 }
 
 /* Chips en mode vertical: plens d'ample, text centrat, sense border-radius rodona */
@@ -445,16 +441,33 @@ h1 {
 
 /* ══════════════════════════════════════════════
    MINI OVERLAY (entre figures)
+   [ROUND 4] position:fixed centrat a la part superior de la pantalla:
+   sempre visible independentment del scroll i del layout del panell.
 ══════════════════════════════════════════════ */
 #mini-overlay {
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 28px 20px;
-    background-color: var(--bg-color);
-    border-top: 1px solid var(--border-color);
-    animation: fadeIn 0.3s;
+    /* Fixed: flotant sobre tot el contingut */
+    position: fixed;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    /* Aparença de tarja flotant */
+    padding: 20px 36px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 2px solid var(--border-color);
+    min-width: 220px;
+    animation: overlayDrop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes overlayDrop {
+    from { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.9); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1);   }
 }
 
 .mini-overlay-row {
@@ -697,16 +710,6 @@ h1 {
     25%       { transform: translateX(-5px); }
     75%       { transform: translateX(5px); }
 }
-
-/* [ROUND 4] shake específic del chip quan l'usuari fa clic en lloc d'arrossegar */
-@keyframes chip-shake {
-    0%, 100% { transform: translateX(0); }
-    15%      { transform: translateX(-7px); }
-    35%      { transform: translateX(7px); }
-    55%      { transform: translateX(-5px); }
-    75%      { transform: translateX(4px); }
-}
-.word-chip.chip-shake { animation: chip-shake 0.5s ease; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
