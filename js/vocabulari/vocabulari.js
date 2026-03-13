@@ -253,43 +253,20 @@
         const DZ_H      = 34;
         // La caixa de la pista és més ampla per acollir "Com es diu la figura?"
         const DZ_W_HINT = 185; /* ~18 caràcters × ~9px/char en el viewBox 500×340 */
-
-        // ── CLAMPING de coordenades de les caselles ───────────────────────
-        const SVG_W    = 500;
-        const SVG_H    = 340;
-        const H_MARGIN = 5;
-        function _clampLx(rawLx, w) {
-            return Math.min(Math.max(rawLx, w / 2 + H_MARGIN), SVG_W - w / 2 - H_MARGIN);
-        }
-        function _clampLy(rawLy) {
-            return Math.min(rawLy, SVG_H - DZ_H / 2 - H_MARGIN);
-        }
-        // ─────────────────────────────────────────────────────────────────
-
         let dzHTML = '';
 
         _figActual.etiquetes.forEach(et => {
             const isHint     = (et.id === _figActual.id);
             const w          = isHint ? DZ_W_HINT : DZ_W;
-
-            // [ROUND 4] La casella "Com es diu la figura?" sempre al top-left
-            // del SVG, ignorant les coordenades de les dades.
-            const lx = isHint
-                ? DZ_W_HINT / 2 + H_MARGIN          // 97.5 → centre de la caixa
-                : _clampLx(et.lx, w);
-            const ly = isHint
-                ? DZ_H / 2 + 8                       // 25 → just a dalt
-                : _clampLy(et.ly);
-
-            const x          = lx - w / 2;
-            const y          = ly - DZ_H / 2;
+            const x          = et.lx - w / 2;
+            const y          = et.ly - DZ_H / 2;
             const labelInit  = isHint ? TEXTS.FIGURA_HINT  : TEXTS.DZ_PLACEHOLDER;
+            // [ROUND 3 — font hint +30%] classe extra per a la caixa de la figura
             const labelClass = isHint ? 'dz-label dz-label-hint' : 'dz-label';
-            // [ROUND 4] la casella hint no té connector (no apunta a cap element)
             const connectorHTML = isHint ? '' : `
                 <line class="dz-connector"
                       x1="${et.px}" y1="${et.py}" x2="${lx}" y2="${ly}"
-                      stroke-width="1.5" stroke-dasharray="4 3"
+                      stroke-width="1.5"
                       pointer-events="none"/>`;
             dzHTML += `
             <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}" data-w="${w}">
