@@ -1,0 +1,492 @@
+/*
+============================================================================
+PROJECTE: Vocabulari Matemàtic
+FITXER: css/vocabulari.css
+ROL: Estils complets de l'activitat (standalone, sense shared.css).
+ESTÈTICA: Geomètrica / educativa — violetes, fons càlid, net.
+============================================================================
+*/
+
+/* ---- VARIABLES ---- */
+:root {
+    --bg-color:      #fafaf7;
+    --panel-bg:      #ffffff;
+    --text-main:     #1e293b;
+    --text-muted:    #64748b;
+    --primary:       #7c3aed;
+    --primary-light: #ede9fe;
+    --primary-hover: #6d28d9;
+    --primary-dark:  #4c1d95;
+    --danger:        #ef4444;
+    --danger-light:  #fef2f2;
+    --success:       #10b981;
+    --border-color:  #e2e8f0;
+    --border-heavy:  #cbd5e1;
+}
+
+/* ---- RESET BASE ---- */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ---- BODY ---- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    transition: background-color 1s ease;
+}
+
+/* ---- TÍTOL I SUBTÍTOL ---- */
+h1 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #3b0764;
+    font-size: 1.6em;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* ---- ICONA HOME ---- */
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 5px;
+}
+.title-row h1 { margin: 0; }
+
+.home-icon-link {
+    display: block;
+    width: 78px;
+    height: 78px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    transition: opacity 0.2s ease;
+}
+.home-icon-link:hover {
+    opacity: 1;
+    animation: home-blink-shake 0.55s ease forwards;
+}
+.home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
+
+/* ---- PANELL PRINCIPAL ---- */
+.panel {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 910px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-top: 6px solid var(--primary);
+    transition: border-color 0.3s;
+    position: relative;
+}
+
+/* ---- CAPÇALERA DEL JOC ---- */
+.header-info {
+    background-color: #f5f3ff;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.header-left  { display: flex; flex-direction: column; gap: 2px; }
+.session-text { font-size: 1em;   color: var(--text-muted); }
+.level-text   { font-size: 1.2em; color: #3b0764; }
+.score-text   { font-size: 1.2em; color: var(--primary); font-family: monospace; }
+
+.attempts-counter {
+    font-family: monospace;
+    font-size: 1.2em;
+    color: var(--text-muted);
+    padding: 5px 10px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid var(--border-heavy);
+    transition: all 0.3s;
+}
+.attempts-counter.danger { color: var(--danger); border-color: var(--danger); }
+
+/* ---- ZONA PRINCIPAL DEL JOC ---- */
+#game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 16px;
+}
+
+/* ---- SVG FIGURA ---- */
+#figure-container {
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+}
+
+#figure-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ---- ZONES DE CAIGUDA (drop targets) al SVG ---- */
+.drop-zone { cursor: pointer; transition: all 0.2s; }
+
+.drop-zone rect.dz-bg {
+    fill: white;
+    stroke: var(--primary);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 3;
+    rx: 5;
+    opacity: 0.85;
+}
+.drop-zone.dz-over rect.dz-bg {
+    fill: var(--primary-light);
+    stroke-width: 2.5;
+    stroke-dasharray: none;
+}
+.drop-zone.dz-correct rect.dz-bg {
+    fill: #d1fae5;
+    stroke: var(--success);
+    stroke-dasharray: none;
+}
+.drop-zone.dz-wrong rect.dz-bg {
+    fill: #fee2e2;
+    stroke: var(--danger);
+    stroke-dasharray: none;
+}
+.drop-zone text.dz-label {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 13px;
+    fill: #334155;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+    font-weight: 600;
+}
+.drop-zone.dz-correct text.dz-label { fill: #065f46; }
+.drop-zone.dz-wrong   text.dz-label { fill: #991b1b; }
+
+/* ---- POOL DE PARAULES (modalitat A) ---- */
+#word-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    min-height: 48px;
+    padding: 10px;
+    border: 2px dashed var(--border-heavy);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 520px;
+    background: white;
+}
+
+.word-chip {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border: 2px solid var(--primary);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.95em;
+    font-weight: 700;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+}
+.word-chip:active { cursor: grabbing; }
+.word-chip.dragging { opacity: 0.4; }
+.word-chip.used {
+    opacity: 0.25;
+    pointer-events: none;
+}
+
+/* Chip fantasma que segueix el cursor/dit */
+#drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    background: var(--primary);
+    color: white;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.95em;
+    font-weight: 700;
+    font-family: 'Segoe UI', sans-serif;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    display: none;
+    white-space: nowrap;
+}
+
+/* ---- ZONA D'ESCRIPTURA (modalitat B) ---- */
+#write-panel {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.write-prompt {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #3b0764;
+    text-align: center;
+}
+
+.write-progress {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+}
+
+.write-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+#write-input {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.3em;
+    font-weight: bold;
+    padding: 10px 14px;
+    border: 2px solid var(--border-heavy);
+    border-radius: 6px;
+    outline: none;
+    width: 220px;
+    text-align: center;
+    transition: border-color 0.2s;
+}
+#write-input:focus { border-color: var(--primary); }
+
+/* Feedback d'ortografia */
+.typo-warning {
+    display: none;
+    background: #fefce8;
+    border: 1.5px solid #fbbf24;
+    color: #92400e;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: center;
+    animation: fadeIn 0.3s;
+    max-width: 400px;
+}
+.typo-warning.visible { display: block; }
+
+/* ---- INSTRUCCIÓ CONTEXTUAL ---- */
+#context-instruction {
+    font-size: 0.95em;
+    color: #475569;
+    text-align: center;
+    font-weight: 600;
+    min-height: 20px;
+}
+#context-instruction.error { color: var(--danger); }
+
+/* ---- BOTÓ SUBMIT ---- */
+.btn-submit {
+    background-color: #475569;
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    touch-action: manipulation;
+}
+.btn-submit:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-submit:active        { transform: scale(0.95); }
+@media (hover: hover) { .btn-submit:hover { background-color: #334155; } }
+.btn-submit.error-shake   { background-color: var(--danger); animation: shake 0.2s; }
+
+/* ---- MINI OVERLAY (victòria / fracàs entre figures) ---- */
+#mini-overlay {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 20px;
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    animation: fadeIn 0.3s;
+}
+
+.mini-overlay-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.mini-icon {
+    font-size: 3em;
+    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-shadow: 0px 4px 15px rgba(250, 204, 21, 0.6);
+}
+
+.mini-text {
+    color: #047857;
+    font-size: 2em;
+    font-weight: bold;
+    text-shadow: 0px 2px 5px white;
+}
+
+.mini-points {
+    color: #059669;
+    font-size: 1.3em;
+    font-weight: bold;
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 5px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- PANTALLA FINAL ---- */
+#summary-screen {
+    display: none;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+#summary-screen h2 {
+    color: var(--success);
+    font-size: 1.8em;
+    margin-bottom: 25px;
+}
+
+.summary-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin: 0 auto 25px auto;
+    max-width: 480px;
+    flex-wrap: wrap-reverse;
+}
+
+.summary-data {
+    flex: 1;
+    text-align: left;
+    font-size: 1.1em;
+    line-height: 1.8;
+    min-width: 220px;
+}
+
+.summary-data .session-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-family: monospace;
+    font-size: 1.1em;
+}
+
+.trophy-icon { font-size: 4.5em; animation: bounce 1.5s infinite; }
+
+.btn-restart {
+    background-color: #059669;
+    color: white;
+    border: none;
+    padding: 15px 35px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    touch-action: manipulation;
+    margin-top: 20px;
+}
+.btn-restart:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-restart:active        { transform: scale(0.95); }
+@media (hover: hover) { .btn-restart:hover { background-color: #047857; } }
+
+/* ---- RESPONSIU ---- */
+@media (max-width: 820px) {
+    .panel { width: 95%; }
+}
+
+@media (max-width: 600px) {
+    .home-icon-link { width: 52px; height: 52px; }
+    .title-row      { gap: 10px; }
+}
+
+@media (max-width: 480px) {
+    body           { padding: 10px; }
+    h1             { font-size: 1.3em; }
+    .subtitle      { font-size: 1em; margin-bottom: 15px; }
+    .header-info   { flex-direction: column; gap: 8px; padding: 12px; }
+    .header-left   { align-items: center; }
+    .level-text, .score-text, .attempts-counter { font-size: 1.1em; width: 100%; text-align: center; }
+    .session-text  { font-size: 0.95em; }
+    #game-area     { padding: 12px 10px; gap: 12px; }
+    .word-chip     { font-size: 0.85em; padding: 5px 12px; }
+    #write-input   { width: 170px; font-size: 1.1em; }
+    .write-prompt  { font-size: 1em; }
+    .mini-icon     { font-size: 2.5em; }
+    .mini-text     { font-size: 1.6em; }
+    .mini-points   { font-size: 1.1em; }
+    #summary-screen h2 { font-size: 1.5em; }
+}
+
+/* ---- KEYFRAMES ---- */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-5px); }
+    75%       { transform: translateX(5px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop {
+    0%   { transform: scale(0); }
+    80%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-15px); }
+}
+
+@keyframes home-blink-shake {
+    0%   { transform: scale(1)    rotate(0deg);  opacity: 1;   }
+    15%  { transform: scale(1.15) rotate(-8deg); opacity: 0.3; }
+    30%  { transform: scale(1.15) rotate( 8deg); opacity: 1;   }
+    45%  { transform: scale(1.1)  rotate(-5deg); opacity: 0.3; }
+    60%  { transform: scale(1.1)  rotate( 5deg); opacity: 1;   }
+    80%  { transform: scale(1.05) rotate(-2deg); opacity: 0.7; }
+    100% { transform: scale(1)    rotate(0deg);  opacity: 1;   }
+}
