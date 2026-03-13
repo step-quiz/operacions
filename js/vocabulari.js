@@ -267,7 +267,7 @@
             <g class="drop-zone" id="dz-${et.id}" data-word="${et.text}" data-w="${w}">
                 <line class="dz-connector"
                       x1="${et.px}" y1="${et.py}" x2="${et.lx}" y2="${et.ly}"
-                      stroke-width="1.5"
+                      stroke-width="1.5" stroke-dasharray="4 3"
                       pointer-events="none"/>
                 <rect class="dz-bg" x="${x}" y="${y}" width="${w}" height="${DZ_H}" rx="5"/>
                 <text class="${labelClass}" x="${et.lx}" y="${et.ly}">${labelInit}</text>
@@ -334,27 +334,30 @@
                 setTimeout(() => chip.classList.add('dragging'), 0);
             });
             chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+            chip.addEventListener('touchstart', _onTouchStart, { passive: false });
 
-            // [ROUND 4] Si l'usuari clica en lloc d'arrossegar, mostrar hint
+            // [ROUND 4] Si l'usuari clica en lloc d'arrossegar: shake + missatge
             chip.addEventListener('click', () => {
+                // Reinicia l'animació fins i tot si es clica repetidament
                 chip.classList.remove('chip-shake');
-                // Force reflow per reiniciar l'animació si es clica diverses vegades
-                void chip.offsetWidth;
+                void chip.offsetWidth; // force reflow
                 chip.classList.add('chip-shake');
-                setTimeout(() => chip.classList.remove('chip-shake'), 500);
+                chip.addEventListener('animationend', () => chip.classList.remove('chip-shake'), { once: true });
 
-                // Missatge breu a la instrucció contextual
-                els.contextInstr.style.display = '';
-                els.contextInstr.innerText = '☝️ Arrossega la paraula fins a la casella correcta';
-                els.contextInstr.style.color = 'var(--primary)';
+                // Missatge curt a la instrucció contextual
+                const instr = els.contextInstr;
+                instr.style.display = '';
+                instr.innerText     = '☝️ Arrossega la paraula fins a la casella correcta';
+                instr.style.color   = 'var(--primary)';
                 clearTimeout(chip._hintTimer);
                 chip._hintTimer = setTimeout(() => {
-                    els.contextInstr.style.display = 'none';
-                    els.contextInstr.innerText = '';
-                    els.contextInstr.style.color = '';
+                    if (instr.innerText.startsWith('☝️')) {
+                        instr.style.display = 'none';
+                        instr.innerText     = '';
+                        instr.style.color   = '';
+                    }
                 }, 2500);
             });
-            chip.addEventListener('touchstart', _onTouchStart, { passive: false });
 
             els.wordPool.appendChild(chip);
         });
