@@ -18,7 +18,7 @@ window.VocabFigures = (() => {
         // 1. RECTANGLE
         {
             id:  'rectangle',
-            nom: 'Rectangle', dim: 2,
+            nom: 'Rectangle',
             svg: `
                 <rect x="80" y="90" width="340" height="180" fill="#f0f9ff" stroke="#0369a1" stroke-width="2.5"/>
                 <line x1="80"  y1="90"  x2="420" y2="270" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -41,7 +41,7 @@ window.VocabFigures = (() => {
         // 2. CIRCUMFERÈNCIA
         {
             id:  'circumferencia',
-            nom: 'Circumferència', dim: 2,
+            nom: 'Circumferència',
             svg: `
                 <circle cx="250" cy="170" r="130" fill="white" stroke="#059669" stroke-width="2.5"/>
                 <line x1="120" y1="170" x2="380" y2="170" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 3"/>
@@ -61,7 +61,7 @@ window.VocabFigures = (() => {
         // 3. TRIANGLE
         {
             id:  'triangle',
-            nom: 'Triangle', dim: 2,
+            nom: 'Triangle',
             svg: `
                 <polygon points="250,50 60,290 440,290" fill="#fffbeb" stroke="#d97706" stroke-width="2.5"/>
                 <line x1="250" y1="50"  x2="250" y2="290" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -73,8 +73,8 @@ window.VocabFigures = (() => {
             etiquetes: [
                 { id: 'triangle'        , text: 'triangle'        , px: 250, py: 200, lx: 105, ly:  24  },
                 { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  50, lx: 403, ly:  81  },
-                { id: 'costat'          , text: 'costat'          , px: 195, py: 119, lx: 118, ly:  86  },
-                { id: 'base'            , text: 'base'            , px: 201, py: 289, lx:  68, ly: 156  },
+                { id: 'costat'          , text: 'costat'          , px: 195, py: 119, lx:  95, ly:  96  },
+                { id: 'base'            , text: 'base'            , px: 219, py: 288, lx:  69, ly: 179  },
                 { id: 'altura'          , text: 'altura'          , px: 249, py: 214, lx: 425, ly: 148  }
             ]
         },
@@ -82,7 +82,7 @@ window.VocabFigures = (() => {
         // 4. CERCLE
         {
             id:  'cercle',
-            nom: 'Cercle', dim: 2,
+            nom: 'Cercle',
             svg: `
                 <defs>
                     <pattern id="cercle-dots" patternUnits="userSpaceOnUse" width="9" height="9">
@@ -109,7 +109,7 @@ window.VocabFigures = (() => {
         // 5. PARAL·LELOGRAM
         {
             id:  'paralelogram',
-            nom: 'Paral·lelogram', dim: 2,
+            nom: 'Paral·lelogram',
             svg: `
                 <polygon points="130,270 200,70 370,70 300,270" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.5"/>
                 <line x1="130" y1="270" x2="370" y2="70"  stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -134,7 +134,7 @@ window.VocabFigures = (() => {
         // 6. TRAPEZI
         {
             id:  'trapezi',
-            nom: 'Trapezi', dim: 2,
+            nom: 'Trapezi',
             svg: `
                 <polygon points="140,270 100,90 330,90 400,270" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
                 <line x1="215" y1="90"  x2="215" y2="270" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -147,8 +147,8 @@ window.VocabFigures = (() => {
             etiquetes: [
                 { id: 'trapezi'         , text: 'trapezi'         , px: 250, py: 200, lx: 108, ly:  24  },
                 { id: 'base'            , text: 'base'            , px: 270, py: 270, lx: 338, ly: 309  },
-                { id: 'vertex'          , text: 'vèrtex'          , px: 330, py:  90, lx: 420, ly:  63  },
-                { id: 'altura'          , text: 'altura'          , px: 215, py: 180, lx: 428, ly: 119  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 330, py:  90, lx: 358, ly:  46  },
+                { id: 'altura'          , text: 'altura'          , px: 215, py: 180, lx: 425, ly: 125  },
                 { id: 'costat'          , text: 'costat'          , px: 120, py: 181, lx:  76, ly: 310  }
             ]
         },
@@ -156,7 +156,7 @@ window.VocabFigures = (() => {
         // 7. TRIANGLE RECTANGLE
         {
             id:  'triangle_rectangle',
-            nom: 'Triangle rectangle', dim: 2,
+            nom: 'Triangle rectangle',
             svg: `
                 <polygon points="100,280 100,60 420,280" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
                 <rect x="100" y="260" width="20" height="20" fill="none" stroke="#059669" stroke-width="2"/>
@@ -177,7 +177,7 @@ window.VocabFigures = (() => {
         // 8. PENTÀGON REGULAR
         {
             id:  'pentagono',
-            nom: 'Pentàgon regular', dim: 2,
+            nom: 'Pentàgon regular',
             svg: `
                 <polygon points="250,55 364,138 320,272 180,272 136,138" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
                 <line x1="250" y1="175" x2="250" y2="272" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -202,7 +202,7 @@ window.VocabFigures = (() => {
         // 9. HEXÀGON REGULAR
         {
             id:  'hexagono',
-            nom: 'Hexàgon regular', dim: 2,
+            nom: 'Hexàgon regular',
             svg: `
                 <polygon points="250,50 354,110 354,230 250,290 146,230 146,110" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
                 <line x1="250" y1="170" x2="354" y2="170" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -228,7 +228,7 @@ window.VocabFigures = (() => {
         // 10. CUB
         {
             id:  'cub',
-            nom: 'Cub', dim: 3,
+            nom: 'Cub',
             svg: `
                 <line x1="100" y1="300" x2="170" y2="240" stroke="#0369a1" stroke-width="1.2" stroke-dasharray="5 3"/>
                 <line x1="170" y1="240" x2="310" y2="240" stroke="#0369a1" stroke-width="1.2" stroke-dasharray="5 3"/>
@@ -255,7 +255,7 @@ window.VocabFigures = (() => {
         // 11. ORTOEDRE
         {
             id:  'ortoedre',
-            nom: 'Ortoedre', dim: 3,
+            nom: 'Ortoedre',
             svg: `
                 <line x1="60"  y1="295" x2="115" y2="240" stroke="#059669" stroke-width="1.2" stroke-dasharray="5 3"/>
                 <line x1="115" y1="240" x2="415" y2="240" stroke="#059669" stroke-width="1.2" stroke-dasharray="5 3"/>
@@ -279,19 +279,19 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'ortoedre'        , text: 'ortoedre'        , px: 240, py: 148, lx: 110, ly:  26  },
-                { id: 'vertex'          , text: 'vèrtex'          , px: 415, py: 119, lx: 400, ly:  34  },
-                { id: 'aresta'          , text: 'aresta'          , px: 311, py: 174, lx: 294, ly:  85  },
-                { id: 'cara'            , text: 'cara'            , px: 237, py: 148, lx:  77, ly:  83  },
-                { id: 'amplada'         , text: 'amplada'         , px: 210, py: 315, lx: 445, ly: 300  },
-                { id: 'altura'          , text: 'altura'          , px:  60, py: 235, lx: 206, ly: 261  },
-                { id: 'profunditat'     , text: 'profunditat'     , px: 398, py: 278, lx: 445, ly: 165  }
+                { id: 'vertex'          , text: 'vèrtex'          , px: 415, py: 119, lx: 433, ly:  29  },
+                { id: 'aresta'          , text: 'aresta'          , px: 311, py: 174, lx: 342, ly:  76  },
+                { id: 'cara'            , text: 'cara'            , px: 272, py: 144, lx: 177, ly:  76  },
+                { id: 'amplada'         , text: 'amplada'         , px: 210, py: 315, lx: 177, ly: 257  },
+                { id: 'altura'          , text: 'altura'          , px:  60, py: 235, lx: 144, ly: 202  },
+                { id: 'profunditat'     , text: 'profunditat'     , px: 398, py: 278, lx: 320, ly: 218  }
             ]
         },
 
         // 12. PIRÀMIDE
         {
             id:  'piramide',
-            nom: 'Piràmide', dim: 3,
+            nom: 'Piràmide',
             svg: `
                 <!-- 3 arestes ocultes (darrere, traç discontinu) -->
                 <line x1="138" y1="222" x2="250" y2="188" stroke="#d97706" stroke-width="1.3" stroke-dasharray="6 4"/>
@@ -329,14 +329,14 @@ window.VocabFigures = (() => {
                 { id: 'aresta_lateral'  , text: 'aresta lateral'  , px: 203, py: 180, lx:  72, ly: 103  },
                 { id: 'cara_lateral'    , text: 'cara lateral'    , px: 312, py: 166, lx: 403, ly:  95  },
                 { id: 'base'            , text: 'base'            , px: 230, py: 276, lx:  96, ly: 319  },
-                { id: 'altura'          , text: 'altura'          , px: 251, py: 222, lx: 431, ly: 262  }
+                { id: 'altura'          , text: 'altura'          , px: 250, py: 208, lx: 431, ly: 262  }
             ]
         },
 
         // 13. CILINDRE
         {
             id:  'cilindre',
-            nom: 'Cilindre', dim: 3,
+            nom: 'Cilindre',
             svg: `
                 <rect x="110" y="90" width="280" height="180" fill="#f0f9ff" stroke="none"/>
                 <line x1="110" y1="90"  x2="110" y2="270" stroke="#0369a1" stroke-width="2.5"/>
@@ -360,7 +360,7 @@ window.VocabFigures = (() => {
         // 14. CON
         {
             id:  'con',
-            nom: 'Con', dim: 3,
+            nom: 'Con',
             svg: `
                 <line x1="250" y1="50"  x2="90"  y2="280" stroke="#db2777" stroke-width="2.5"/>
                 <line x1="250" y1="50"  x2="410" y2="280" stroke="#d97706" stroke-width="2.5"/>
@@ -375,7 +375,7 @@ window.VocabFigures = (() => {
                 { id: 'con'             , text: 'con'             , px: 185, py: 220, lx:  98, ly:  31  },
                 { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  50, lx: 377, ly:  30  },
                 { id: 'generatriu'      , text: 'generatriu'      , px: 316, py: 144, lx: 410, ly: 117  },
-                { id: 'base'            , text: 'base'            , px: 203, py: 281, lx:  73, ly: 140  },
+                { id: 'base'            , text: 'base'            , px: 211, py: 291, lx:  73, ly: 140  },
                 { id: 'altura'          , text: 'altura'          , px: 252, py: 185, lx: 435, ly: 180  },
                 { id: 'radi'            , text: 'radi'            , px: 330, py: 280, lx: 438, ly: 322  }
             ]
@@ -384,7 +384,7 @@ window.VocabFigures = (() => {
         // 15. ESFERA
         {
             id:  'esfera',
-            nom: 'Esfera', dim: 3,
+            nom: 'Esfera',
             svg: `
                 <circle cx="250" cy="170" r="145" fill="#fef3c7" stroke="#d97706" stroke-width="2.5"/>
                 <ellipse cx="250" cy="170" rx="145" ry="40"  fill="none" stroke="#d97706" stroke-width="1.8" stroke-dasharray="6 3"/>
@@ -394,16 +394,16 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'esfera'          , text: 'esfera'          , px: 250, py:  25, lx: 101, ly:  24  },
-                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  65, ly: 275  },
-                { id: 'radi'            , text: 'radi'            , px: 301, py: 124, lx: 430, ly: 301  },
-                { id: 'cercle_maxim'    , text: 'cercle màxim'    , px: 358, py: 143, lx: 428, ly:  44  }
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  89, ly:  99  },
+                { id: 'radi'            , text: 'radi'            , px: 325, py: 101, lx: 431, ly:  58  },
+                { id: 'cercle_maxim'    , text: 'cercle màxim'    , px: 332, py: 202, lx: 431, ly: 286  }
             ]
         },
 
         // 16. QUADRAT
         {
             id:  'quadrat',
-            nom: 'Quadrat', dim: 2,
+            nom: 'Quadrat',
             svg: `
                 <rect x="150" y="70" width="200" height="200" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
                 <line x1="150" y1="70"  x2="350" y2="270" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -416,17 +416,17 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'quadrat'         , text: 'quadrat'         , px: 250, py: 170, lx: 110, ly:  26  },
-                { id: 'costat'          , text: 'costat'          , px: 350, py: 170, lx: 420, ly: 100  },
-                { id: 'vertex'          , text: 'vèrtex'          , px: 150, py: 270, lx:  75, ly: 314  },
-                { id: 'diagonal'        , text: 'diagonal'        , px: 200, py: 220, lx:  75, ly: 155  },
-                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 320, ly: 310  }
+                { id: 'costat'          , text: 'costat'          , px: 350, py: 170, lx: 431, ly: 226  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 350, py:  71, lx: 425, ly:  33  },
+                { id: 'diagonal'        , text: 'diagonal'        , px: 209, py: 208, lx:  92, ly: 142  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 249, ly: 312  }
             ]
         },
 
         // 17. ROMBE
         {
             id:  'rombe',
-            nom: 'Rombe', dim: 2,
+            nom: 'Rombe',
             svg: `
                 <polygon points="250,50 410,170 250,290 90,170" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.5"/>
                 <line x1="90"  y1="170" x2="410" y2="170" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -449,7 +449,7 @@ window.VocabFigures = (() => {
         // 18. TETRAEDRE
         {
             id:  'tetraedre',
-            nom: 'Tetraedre', dim: 3,
+            nom: 'Tetraedre',
             svg: `
                 <!-- Arestes ocultes (cap al vèrtex posterior de la base) -->
                 <line x1="115" y1="285" x2="285" y2="195" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="6 4"/>
@@ -487,18 +487,18 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'tetraedre'       , text: 'tetraedre'       , px: 220, py: 200, lx: 110, ly:  26  },
-                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  42, lx: 345, ly:  30  },
-                { id: 'aresta'          , text: 'aresta'          , px: 175, py: 170, lx:  70, ly: 105  },
-                { id: 'cara'            , text: 'cara'            , px: 325, py: 185, lx: 415, ly: 135  },
-                { id: 'base'            , text: 'base'            , px: 260, py: 265, lx: 100, ly: 319  },
-                { id: 'altura'          , text: 'altura'          , px: 258, py: 195, lx: 430, ly: 260  }
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  41, lx: 381, ly:  41  },
+                { id: 'aresta'          , text: 'aresta'          , px: 186, py: 157, lx:  70, ly: 105  },
+                { id: 'cara'            , text: 'cara'            , px: 304, py: 162, lx: 415, ly: 135  },
+                { id: 'base'            , text: 'base'            , px: 240, py: 252, lx: 100, ly: 319  },
+                { id: 'altura'          , text: 'altura'          , px: 263, py: 219, lx: 339, ly: 322  }
             ]
         },
 
         // 19. EL·LIPSE
         {
             id:  'ellipse',
-            nom: 'El·lipse', dim: 2,
+            nom: 'El·lipse',
             svg: `
                 <ellipse cx="250" cy="170" rx="190" ry="120" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
                 <!-- Eix major (horitzontal) -->
@@ -510,16 +510,16 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'ellipse'         , text: 'el·lipse'        , px: 350, py: 100, lx: 110, ly:  26  },
-                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 290, ly: 310  },
-                { id: 'eix_major'       , text: 'eix major'       , px: 145, py: 170, lx:  70, ly: 100  },
-                { id: 'eix_menor'       , text: 'eix menor'       , px: 250, py: 110, lx: 380, ly:  55  }
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 378, ly: 312  },
+                { id: 'eix_major'       , text: 'eix major'       , px: 331, py: 170, lx: 414, ly:  44  },
+                { id: 'eix_menor'       , text: 'eix menor'       , px: 250, py: 231, lx:  85, ly: 303  }
             ]
         },
 
         // 20. TORUS
         {
             id:  'torus',
-            nom: 'Torus', dim: 3,
+            nom: 'Torus',
             svg: `
 <path d="M280,297L287,272L222,253L213,278Z" fill="rgb(169,102,130)" stroke="rgb(169,102,130)" stroke-width=".3"/>
 <path d="M213,278L222,253L162,226L151,250Z" fill="rgb(180,108,138)" stroke="rgb(180,108,138)" stroke-width=".3"/>
@@ -909,7 +909,7 @@ window.VocabFigures = (() => {
             etiquetes: [
                 { id: 'torus'           , text: 'torus'           , px: 150, py: 110, lx: 110, ly:  26  },
                 { id: 'centre'          , text: 'centre'          , px: 250, py: 178, lx:  70, ly: 280  },
-                { id: 'radi_major'      , text: 'radi major'      , px: 312, py: 178, lx: 130, ly: 310  },
+                { id: 'radi_major'      , text: 'radi major'      , px: 312, py: 178, lx: 144, ly: 320  },
                 { id: 'radi_menor'      , text: 'radi menor'      , px: 375, py: 137, lx: 430, ly:  60  }
             ]
         },
@@ -917,7 +917,7 @@ window.VocabFigures = (() => {
         // 21. PRISMA TRIANGULAR
         {
             id:  'prisma_triangular',
-            nom: 'Prisma triangular', dim: 3,
+            nom: 'Prisma triangular',
             svg: `
                 <!-- Arestes ocultes -->
                 <line x1="135" y1="295" x2="310" y2="240" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="6 4"/>
@@ -955,18 +955,18 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'prisma_triangular', text: 'prisma triangular', px: 300, py: 200, lx: 110, ly:  26  },
-                { id: 'vertex'          , text: 'vèrtex'          , px: 310, py:  80, lx: 370, ly:  40  },
-                { id: 'aresta'          , text: 'aresta'          , px: 222, py: 108, lx:  68, ly:  68  },
-                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 300, py: 215, lx:  68, ly: 215  },
-                { id: 'base'            , text: 'base'            , px: 340, py: 118, lx: 420, ly: 310  },
-                { id: 'altura'          , text: 'altura'          , px: 450, py: 215, lx: 430, ly: 215  }
+                { id: 'vertex'          , text: 'vèrtex'          , px: 310, py:  80, lx: 329, ly:  39  },
+                { id: 'aresta'          , text: 'aresta'          , px: 287, py: 135, lx:  81, ly:  95  },
+                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 232, py: 175, lx: 106, ly: 227  },
+                { id: 'base'            , text: 'base'            , px: 297, py: 274, lx: 329, ly: 319  },
+                { id: 'altura'          , text: 'altura'          , px: 310, py: 180, lx: 430, ly:  80  }
             ]
         },
 
         // 22. PRISMA PENTAGONAL
         {
             id:  'prisma_pentagonal',
-            nom: 'Prisma pentagonal', dim: 3,
+            nom: 'Prisma pentagonal',
             svg: `
                 <!-- Bases pentagonals:
                      Top: t1(145,120) t2(355,120) t3(400,72) t4(250,38) t5(100,72)
@@ -1021,11 +1021,11 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'prisma_pentagonal', text: 'prisma pentagonal', px: 260, py: 200, lx: 110, ly:  26  },
-                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  38, lx: 304, ly:  16  },
-                { id: 'aresta'          , text: 'aresta'          , px: 100, py: 157, lx:  55, ly: 157  },
-                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 250, py: 210, lx: 430, ly: 290  },
-                { id: 'base'            , text: 'base'            , px: 280, py:  90, lx: 430, ly:  42  },
-                { id: 'altura'          , text: 'altura'          , px: 355, py: 205, lx: 435, ly: 185  }
+                { id: 'vertex'          , text: 'vèrtex'          , px:  99, py: 241, lx:  64, ly: 140  },
+                { id: 'aresta'          , text: 'aresta'          , px: 146, py: 214, lx:  70, ly: 316  },
+                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 380, py: 169, lx: 432, ly:  33  },
+                { id: 'base'            , text: 'base'            , px: 236, py: 249, lx: 297, ly: 321  },
+                { id: 'altura'          , text: 'altura'          , px: 250, py: 165, lx: 444, ly: 296  }
             ]
         }
 
