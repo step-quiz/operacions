@@ -58,7 +58,8 @@ body {
              max(16px, env(safe-area-inset-right))
              max(16px, env(safe-area-inset-bottom))
              max(16px, env(safe-area-inset-left));
-    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
     transition: background-color 1s ease;
 }
 
@@ -118,13 +119,16 @@ h1 {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 910px;
-    /* [ROUND 1 — imatge 3] overflow: visible permet que les drop-zones que
-     * surten del SVG viewport no quedin retallades pel panell */
     overflow: visible;
     border: 1px solid var(--border-color);
     border-top: 6px solid var(--primary);
     transition: border-color 0.3s;
     position: relative;
+    /* Flex column: distribueix espai vertical cap als fills */
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
 }
 
 /* ══════════════════════════════════════════════
@@ -171,13 +175,24 @@ h1 {
 /* ══════════════════════════════════════════════
    ZONA PRINCIPAL DEL JOC
 ══════════════════════════════════════════════ */
+
+/* game-screen: fill vertical d'espai dins .panel */
+#game-screen {
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
 #game-area {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
     gap: 16px;
-    position: relative; /* [ROUND 1 — contenidor de posicionament per al mini-overlay] */
+    position: relative;
+    /* Omple l'espai restant dins game-screen */
+    flex: 1 1 0;
+    min-height: 0;
 }
 
 /* ══════════════════════════════════════════════
@@ -312,7 +327,7 @@ h1 {
 ══════════════════════════════════════════════ */
 #game-area.layout-a {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;  /* fills ocupen tota l'alçada disponible */
     padding: 16px;
     gap: 16px;
 }
@@ -321,15 +336,13 @@ h1 {
 #game-area.layout-a #word-pool {
     flex-direction: column;
     flex-wrap: nowrap;
-    width: 160px;           /* amplada fixa; suficient per a la majoria de paraules */
+    width: 160px;
     min-width: 140px;
     max-width: 180px;
     flex-shrink: 0;
-    /* Scroll automàtic si hi ha més ítems dels que caben */
-    max-height: calc(100dvh - 220px); /* 220px ≈ capçalera + padding */
     overflow-y: auto;
     overflow-x: hidden;
-    min-height: unset;
+    min-height: 0;
     align-items: stretch;
     border-radius: 10px;
     padding: 8px;
@@ -348,8 +361,16 @@ h1 {
 /* Figura: ocupa la resta de l'ample */
 #game-area.layout-a #figure-container {
     flex: 1 1 0;
-    min-width: 0;           /* evita overflow en flexbox */
+    min-width: 0;
+    min-height: 0;
     max-width: none;
+}
+
+/* SVG en layout de fila: s'adapta a l'alçada disponible.
+   preserveAspectRatio (default: xMidYMid meet) manté la proporció. */
+#game-area.layout-a #figure-svg,
+#game-area.layout-b #figure-svg {
+    height: 100%;
 }
 
 /* ══════════════════════════════════════════════
@@ -359,7 +380,7 @@ h1 {
 ══════════════════════════════════════════════ */
 #game-area.layout-b {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;  /* fills ocupen tota l'alçada disponible */
     padding: 16px;
     gap: 16px;
 }
@@ -368,10 +389,11 @@ h1 {
 #game-area.layout-b #figure-container {
     flex: 1 1 0;
     min-width: 0;
+    min-height: 0;
     max-width: none;
 }
 
-/* Write-panel: columna fixa a la dreta */
+/* Write-panel: columna fixa a la dreta, scroll si cal */
 #game-area.layout-b #write-panel {
     width: 180px;
     min-width: 160px;
@@ -379,6 +401,8 @@ h1 {
     flex-shrink: 0;
     align-items: stretch;
     gap: 10px;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 #game-area.layout-b .write-prompt {
@@ -605,6 +629,10 @@ h1 {
     display: none;
     padding: 36px 20px 40px;
     text-align: center;
+    /* Flex fill + scroll si el resum és més alt que la viewport */
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 #summary-screen h2 { color: var(--success); font-size: 1.8em; margin-bottom: 20px; }
@@ -688,7 +716,8 @@ h1 {
     .write-prompt   { font-size: 0.9em; }
 
     /* Layout-b col·lapsa a columna en pantalles petites */
-    #game-area.layout-b { flex-direction: column; align-items: center; }
+    #game-area.layout-b { flex-direction: column; align-items: center; overflow-y: auto; }
+    #game-area.layout-b #figure-svg { height: auto; }
     #game-area.layout-b #write-panel {
         width: 100%; max-width: 400px; min-width: unset;
     }
@@ -799,28 +828,6 @@ h1 {
     /* word-pool hereta el 860px base; no cal sobreescriure */
     #write-input { width: 280px; font-size: 1.35em; }
     .word-chip   { font-size: 1em; padding: 9px 22px; }
-}
-
-/* ══════════════════════════════════════════════
-   NO SCROLL VERTICAL A PC (≥820px)
-   [ROUND 1 — imatge 4]
-
-   El contenidor de la figura limita el seu ample de manera que l'alçada
-   resultant (ample × 340/500) mai superi (100dvh − 380px).
-
-   380px = estimació del "cromo fix" de la UI:
-     padding body (32) + títol+subtítol (110) + header-info (62) +
-     padding game-area (40) + pool/write (72) + instrucció+gaps (64).
-
-   1.47 = 500/340, el ratio invers del viewBox SVG:
-     converteix alçada-màxima-disponible → ample-màxim-del-contenidor.
-
-   Resultat: en cap PC/laptop la figura supera la viewport → no hi ha scroll.
-══════════════════════════════════════════════ */
-@media (min-width: 820px) {
-    #figure-container {
-        max-width: min(520px, calc((100dvh - 380px) * 1.47));
-    }
 }
 
 /* ══════════════════════════════════════════════
