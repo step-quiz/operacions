@@ -95,12 +95,14 @@ window.VocabFigures = (() => {
                 <circle cx="250" cy="170" r="130" fill="url(#cercle-dots)" clip-path="url(#cercle-clip)" stroke="none"/>
                 <circle cx="250" cy="170" r="130" fill="none" stroke="#db2777" stroke-width="2.5"/>
                 <line x1="250" y1="170" x2="352" y2="78" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 3"/>
+                <line x1="120" y1="170" x2="380" y2="170" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 3"/>
                 <circle cx="250" cy="170" r="4.5" fill="#334155"/>
             `,
             etiquetes: [
                 { id: 'cercle'          , text: 'cercle'          , px: 175, py: 240, lx: 110, ly:  26  },
                 { id: 'radi'            , text: 'radi'            , px: 300, py: 124, lx: 416, ly: 289  },
-                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  73, ly: 270  }
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  73, ly: 270  },
+                { id: 'diametre'        , text: 'diàmetre'        , px: 185, py: 170, lx:  73, ly: 118  }
             ]
         },
 
@@ -163,8 +165,8 @@ window.VocabFigures = (() => {
             `,
             etiquetes: [
                 { id: 'trapezi'         , text: 'trapezi'         , px: 250, py: 200, lx: 108, ly:  24  },
-                { id: 'base_major'      , text: 'base major'      , px: 270, py: 270, lx: 338, ly: 309  },
-                { id: 'base_menor'      , text: 'base menor'      , px: 215, py:  90, lx: 420, ly:  63  },
+                { id: 'base'            , text: 'base'            , px: 270, py: 270, lx: 338, ly: 309  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 330, py:  90, lx: 420, ly:  63  },
                 { id: 'altura'          , text: 'altura'          , px: 215, py: 180, lx: 428, ly: 119  },
                 { id: 'costat'          , text: 'costat'          , px: 120, py: 181, lx:  76, ly: 310  }
             ]
@@ -185,7 +187,6 @@ window.VocabFigures = (() => {
                 { id: 'segment'         , text: 'segment'         , px: 160, py: 170, lx: 112, ly:  29  },
                 { id: 'extrem'          , text: 'extrem'          , px:  80, py: 170, lx:  68, ly: 115  },
                 { id: 'punt_mig'        , text: 'punt mig'        , px: 250, py: 170, lx: 309, ly:  46  },
-                { id: 'longitud'        , text: 'longitud'        , px: 267, py: 212, lx: 126, ly: 283  },
                 { id: 'recta'           , text: 'recta'           , px: 459, py: 164, lx: 400, ly: 103  }
             ]
         },
@@ -205,11 +206,11 @@ window.VocabFigures = (() => {
                 <text x="112" y="105" font-family="serif" font-style="italic" font-size="18" fill="#7c3aed">α</text>
             `,
             etiquetes: [
+                { id: 'triangle_rectangle', text: 'triangle rectangle', px: 200, py: 200, lx: 110, ly:  26  },
                 { id: 'angle_recte'     , text: 'angle recte'     , px: 110, py: 268, lx:  84, ly: 314  },
                 { id: 'hipotenusa'      , text: 'hipotenusa'      , px: 260, py: 170, lx: 330, ly: 130  },
-                { id: 'catet_contigu'   , text: 'catet contigu'   , px: 100, py: 187, lx: 236, ly: 315  },
-                { id: 'catet_oposat'    , text: 'catet oposat'    , px: 326, py: 279, lx: 398, ly: 192  },
-                { id: 'angle_agut'      , text: 'angle agut'      , px: 112, py:  84, lx: 220, ly:  55  }
+                { id: 'catet_contigu'   , text: 'catet'           , px: 100, py: 187, lx: 236, ly: 315  },
+                { id: 'catet_oposat'    , text: 'catet'           , px: 326, py: 279, lx: 398, ly: 192  }
             ]
         },
 
@@ -312,6 +313,9 @@ window.VocabFigures = (() => {
                 <line x1="60"  y1="315" x2="360" y2="315" stroke="#d97706" stroke-width="1.5"/>
                 <line x1="60"  y1="309" x2="60"  y2="321" stroke="#d97706" stroke-width="1.5"/>
                 <line x1="360" y1="309" x2="360" y2="321" stroke="#d97706" stroke-width="1.5"/>
+                <line x1="371" y1="306" x2="426" y2="251" stroke="#d97706" stroke-width="1.5"/>
+                <line x1="367" y1="302" x2="375" y2="310" stroke="#d97706" stroke-width="1.5"/>
+                <line x1="422" y1="247" x2="430" y2="255" stroke="#d97706" stroke-width="1.5"/>
             `,
             etiquetes: [
                 { id: 'ortoedre'        , text: 'ortoedre'        , px: 240, py: 148, lx: 110, ly:  26  },
@@ -319,7 +323,8 @@ window.VocabFigures = (() => {
                 { id: 'aresta'          , text: 'aresta'          , px: 311, py: 174, lx: 294, ly:  85  },
                 { id: 'cara'            , text: 'cara'            , px: 237, py: 148, lx:  77, ly:  83  },
                 { id: 'amplada'         , text: 'amplada'         , px: 210, py: 315, lx: 445, ly: 300  },
-                { id: 'alcada'          , text: 'alçada'          , px:  60, py: 235, lx: 206, ly: 261  }
+                { id: 'altura'          , text: 'altura'          , px:  60, py: 235, lx: 206, ly: 261  },
+                { id: 'profunditat'     , text: 'profunditat'     , px: 398, py: 278, lx: 445, ly: 165  }
             ]
         },
 
@@ -434,6 +439,153 @@ window.VocabFigures = (() => {
                 { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  65, ly: 275  },
                 { id: 'radi'            , text: 'radi'            , px: 301, py: 124, lx: 430, ly: 301  },
                 { id: 'cercle_maxim'    , text: 'cercle màxim'    , px: 358, py: 143, lx: 428, ly:  44  }
+            ]
+        },
+
+        // 18. QUADRAT
+        {
+            id:  'quadrat',
+            nom: 'Quadrat',
+            svg: `
+                <rect x="150" y="70" width="200" height="200" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+                <line x1="150" y1="70"  x2="350" y2="270" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
+                <line x1="350" y1="70"  x2="150" y2="270" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
+                <circle cx="250" cy="170" r="4"   fill="#334155"/>
+                <circle cx="150" cy="70"  r="5"   fill="#2563eb"/>
+                <circle cx="350" cy="70"  r="5"   fill="#2563eb"/>
+                <circle cx="350" cy="270" r="5"   fill="#2563eb"/>
+                <circle cx="150" cy="270" r="5"   fill="#2563eb"/>
+            `,
+            etiquetes: [
+                { id: 'quadrat'         , text: 'quadrat'         , px: 250, py: 170, lx: 110, ly:  26  },
+                { id: 'costat'          , text: 'costat'          , px: 350, py: 170, lx: 420, ly: 100  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 150, py: 270, lx:  75, ly: 314  },
+                { id: 'diagonal'        , text: 'diagonal'        , px: 200, py: 220, lx:  75, ly: 155  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 320, ly: 310  }
+            ]
+        },
+
+        // 19. ROMBE
+        {
+            id:  'rombe',
+            nom: 'Rombe',
+            svg: `
+                <polygon points="250,50 410,170 250,290 90,170" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.5"/>
+                <line x1="90"  y1="170" x2="410" y2="170" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
+                <line x1="250" y1="50"  x2="250" y2="290" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
+                <circle cx="250" cy="170" r="4"   fill="#334155"/>
+                <circle cx="250" cy="50"  r="5"   fill="#7c3aed"/>
+                <circle cx="410" cy="170" r="5"   fill="#7c3aed"/>
+                <circle cx="250" cy="290" r="5"   fill="#7c3aed"/>
+                <circle cx="90"  cy="170" r="5"   fill="#7c3aed"/>
+            `,
+            etiquetes: [
+                { id: 'rombe'           , text: 'rombe'           , px: 200, py: 130, lx: 110, ly:  26  },
+                { id: 'costat'          , text: 'costat'          , px: 330, py: 110, lx: 410, ly:  55  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py: 290, lx: 330, ly: 314  },
+                { id: 'diagonal'        , text: 'diagonal'        , px: 250, py: 110, lx:  70, ly: 100  },
+                { id: 'diagonal2'       , text: 'diagonal'        , px: 340, py: 170, lx:  70, ly: 270  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 420, ly: 250  }
+            ]
+        },
+
+        // 20. TETRAEDRE
+        {
+            id:  'tetraedre',
+            nom: 'Tetraedre',
+            svg: `
+                <!-- Aresta oculta (vèrtex superior a vèrtex posterior de la base) -->
+                <line x1="250" y1="48" x2="250" y2="200" stroke="#d97706" stroke-width="1.3" stroke-dasharray="6 4"/>
+
+                <!-- Base (triangle, translúcida) -->
+                <polygon points="110,290 390,290 250,200"
+                         fill="#fef3c7" fill-opacity="0.45" stroke="#d97706" stroke-width="1.8"/>
+
+                <!-- Cara frontal -->
+                <polygon points="250,48 110,290 390,290"
+                         fill="#fcd34d" fill-opacity="0.5" stroke="#d97706" stroke-width="2.5"/>
+
+                <!-- Cares laterals -->
+                <polygon points="250,48 390,290 250,200"
+                         fill="#fef9c3" fill-opacity="0.45" stroke="#d97706" stroke-width="2"/>
+                <polygon points="250,48 110,290 250,200"
+                         fill="#fde68a" fill-opacity="0.45" stroke="#d97706" stroke-width="2"/>
+
+                <!-- Altura (del vèrtex superior al baricentre de la base) -->
+                <line x1="250" y1="48" x2="250" y2="260" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <rect x="250" y="249" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+
+                <!-- Punts clau -->
+                <circle cx="250" cy="260" r="3.5" fill="#334155"/>
+                <circle cx="250" cy="48"  r="5.5" fill="#d97706"/>
+                <circle cx="110" cy="290" r="4"   fill="#d97706"/>
+                <circle cx="390" cy="290" r="4"   fill="#d97706"/>
+                <circle cx="250" cy="200" r="4"   fill="#d97706" opacity="0.5"/>
+            `,
+            etiquetes: [
+                { id: 'tetraedre'       , text: 'tetraedre'       , px: 220, py: 200, lx: 110, ly:  26  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  48, lx: 345, ly:  30  },
+                { id: 'aresta'          , text: 'aresta'          , px: 180, py: 169, lx:  70, ly: 105  },
+                { id: 'cara'            , text: 'cara'            , px: 310, py: 200, lx: 410, ly: 135  },
+                { id: 'base'            , text: 'base'            , px: 250, py: 270, lx: 100, ly: 319  },
+                { id: 'altura'          , text: 'altura'          , px: 251, py: 210, lx: 430, ly: 260  }
+            ]
+        },
+
+        // 21. EL·LIPSE
+        {
+            id:  'ellipse',
+            nom: 'El·lipse',
+            svg: `
+                <ellipse cx="250" cy="170" rx="190" ry="120" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
+                <!-- Eix major (horitzontal) -->
+                <line x1="60"  y1="170" x2="440" y2="170" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 3"/>
+                <!-- Eix menor (vertical) -->
+                <line x1="250" y1="50"  x2="250" y2="290" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 3"/>
+                <!-- Centre -->
+                <circle cx="250" cy="170" r="4.5" fill="#334155"/>
+                <!-- Focus (c ≈ 147 per a a=190, b=120) -->
+                <circle cx="103" cy="170" r="4.5" fill="#d97706"/>
+                <circle cx="397" cy="170" r="4.5" fill="#d97706"/>
+            `,
+            etiquetes: [
+                { id: 'ellipse'         , text: 'el·lipse'        , px: 350, py: 100, lx: 110, ly:  26  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 290, ly: 310  },
+                { id: 'eix_major'       , text: 'eix major'       , px: 145, py: 170, lx:  70, ly: 100  },
+                { id: 'eix_menor'       , text: 'eix menor'       , px: 250, py: 110, lx: 380, ly:  55  },
+                { id: 'focus'           , text: 'focus'           , px: 397, py: 170, lx: 420, ly: 260  }
+            ]
+        },
+
+        // 22. TORUS
+        {
+            id:  'torus',
+            nom: 'Torus',
+            svg: `
+                <!-- Cos del torus (el·lipse exterior) -->
+                <ellipse cx="250" cy="170" rx="185" ry="100" fill="#fce7f3" stroke="#db2777" stroke-width="2.5"/>
+                <!-- Forat interior (fons blanc per simular el buit) -->
+                <ellipse cx="250" cy="155" rx="70" ry="28" fill="white" stroke="none"/>
+                <!-- Vora frontal del forat -->
+                <path d="M 180,155 A 70,28 0 0,0 320,155" fill="none" stroke="#db2777" stroke-width="2.5"/>
+                <!-- Vora posterior del forat (oculta) -->
+                <path d="M 180,155 A 70,28 0 0,1 320,155" fill="none" stroke="#db2777" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <!-- Secció transversal (dreta, suggereix el tub) -->
+                <ellipse cx="378" cy="170" rx="6" ry="55" fill="#fbb6ce" fill-opacity="0.5"
+                         stroke="#db2777" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="378" cy="170" r="3" fill="#7c3aed"/>
+                <!-- Radi major R: centre del torus al centre del tub -->
+                <line x1="250" y1="170" x2="378" y2="170" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 3"/>
+                <!-- Radi menor r: centre del tub a la vora del tub -->
+                <line x1="378" y1="170" x2="378" y2="115" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 3"/>
+                <!-- Centre -->
+                <circle cx="250" cy="170" r="4.5" fill="#334155"/>
+            `,
+            etiquetes: [
+                { id: 'torus'           , text: 'torus'           , px: 150, py: 110, lx: 110, ly:  26  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  70, ly: 280  },
+                { id: 'radi_major'      , text: 'radi major'      , px: 314, py: 170, lx: 130, ly: 310  },
+                { id: 'radi_menor'      , text: 'radi menor'      , px: 378, py: 142, lx: 430, ly:  60  }
             ]
         }
 
