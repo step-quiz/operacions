@@ -520,14 +520,12 @@
 
             const dz = document.getElementById(`dz-${et.id}`);
             if (dz) {
-                dz.classList.remove('dz-active');
+                dz.classList.remove('dz-active', 'dz-active-still');
                 dz.classList.add('dz-wrong');
                 setTimeout(() => {
                     dz.classList.remove('dz-wrong');
-                    // Ressalt estàtic (sense animació) perquè l'alumne sàpiga
-                    // quina casella segueix activa
                     dz.classList.add('dz-active-still');
-                }, 1000);
+                }, 1200);
             }
             els.btnSubmitWrite.classList.add('error-shake');
             setTimeout(() => els.btnSubmitWrite.classList.remove('error-shake'), 200);
