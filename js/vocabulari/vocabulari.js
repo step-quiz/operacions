@@ -42,6 +42,8 @@
         SUMMARY_ENCERTS: 'encerts',
         SUMMARY_ERRADES: 'errades',
         BTN_RESTART:     '🔄 Tornar a jugar',
+        BTN_NEXT_FIGURE: 'Figura següent',
+        BTN_CYCLE:       'Canviar de casella',
     };
 
     // =========================================================================
@@ -118,6 +120,8 @@
             miniIcon:        document.getElementById('mini-icon'),
             miniText:        document.getElementById('mini-text'),
             miniPoints:      document.getElementById('mini-points'),
+            btnNextFigure:   document.getElementById('btn-next-figure'),
+            btnCycle:        document.getElementById('btn-cycle'),
             dragGhost:       document.getElementById('drag-ghost'),
         };
 
@@ -185,6 +189,7 @@
         els.typoWarning.classList.remove('visible');
         els.contextInstr.innerText = '';
         els.contextInstr.classList.remove('error');
+        if (els.btnNextFigure) els.btnNextFigure.style.display = 'none';
 
         _updateHeader();
         _renderFigura();
@@ -211,16 +216,27 @@
             });
         }
 
-        const wait = _showMiniOverlay(points);
-        setTimeout(() => {
-            _hideMiniOverlay();
-            if (_op + 1 >= TOTAL_OPS) {
-                _endSession();
-            } else {
-                _op++;
-                _buildLevel();
-            }
-        }, wait);
+        _showMiniOverlay(points);
+
+        if (exhausted) {
+            // L'alumne ha de prémer "Figura següent" per avançar
+            if (els.btnNextFigure) els.btnNextFigure.style.display = 'block';
+        } else {
+            // Avenç automàtic després d'uns segons
+            const wait = points > 0 ? 1500 : 3000;
+            setTimeout(() => _advanceToNext(), wait);
+        }
+    }
+
+    function _advanceToNext() {
+        _hideMiniOverlay();
+        if (els.btnNextFigure) els.btnNextFigure.style.display = 'none';
+        if (_op + 1 >= TOTAL_OPS) {
+            _endSession();
+        } else {
+            _op++;
+            _buildLevel();
+        }
     }
 
     function _endSession() {
@@ -447,11 +463,43 @@
     function _showWriteStep() {
         if (_writeIdx >= _etTotal) { _finishLevel(); return; }
 
-        els.writeProgress.innerText = TEXTS.PARAULA_X_DE_Y(_writeIdx + 1, _etTotal);
+        // Si la casella actual ja està resolta, avança a la següent lliure
+        const dzAll = els.figureSvg.querySelectorAll('.drop-zone');
+        if (dzAll[_writeIdx] && dzAll[_writeIdx].classList.contains('dz-correct')) {
+            _writeIdx = _findNextUnanswered(_writeIdx);
+            if (_writeIdx === -1) { _finishLevel(); return; }
+        }
+
+        els.writeProgress.innerText = TEXTS.PARAULA_X_DE_Y(_etOK + 1, _etTotal);
         els.writeInput.value = '';
         els.typoWarning.classList.remove('visible');
         _highlightWriteTarget();
         _focusWriteInput();
+    }
+
+    /**
+     * Cerca la següent casella no resolta a partir de `fromIdx` (excloent-lo),
+     * fent un cicle complet. Retorna -1 si totes estan resoltes.
+     */
+    function _findNextUnanswered(fromIdx) {
+        const dzAll = els.figureSvg.querySelectorAll('.drop-zone');
+        for (let i = 1; i <= _etTotal; i++) {
+            const idx = (fromIdx + i) % _etTotal;
+            if (!dzAll[idx].classList.contains('dz-correct')) return idx;
+        }
+        return -1;
+    }
+
+    /**
+     * Canvia a la següent casella no resolta (mode B).
+     * L'alumne pot prémer "Canviar de casella" per saltar-ne una.
+     */
+    function _cycleWriteTarget() {
+        if (_isTransiting || _isPenalizing) return;
+        const next = _findNextUnanswered(_writeIdx);
+        if (next === -1 || next === _writeIdx) return; // no hi ha res on saltar
+        _writeIdx = next;
+        _showWriteStep();
     }
 
     /**
@@ -505,8 +553,16 @@
                 dz.classList.add('dz-correct');
             }
             _etOK++;
-            _writeIdx++;
-            setTimeout(() => _showWriteStep(), 400);
+            // Cerca la següent casella no resolta (pot haver-ne per cicle)
+            setTimeout(() => {
+                const next = _findNextUnanswered(_writeIdx);
+                if (next === -1) {
+                    _finishLevel();
+                } else {
+                    _writeIdx = next;
+                    _showWriteStep();
+                }
+            }, 400);
 
         } else if (resultat === 'typo') {
             // Avisa però NO penalitza
@@ -742,7 +798,9 @@
     // =========================================================================
     document.addEventListener('DOMContentLoaded', init);
 
-    // Única global intencionada: connecta el botó OK de l'HTML amb el mòdul
+    // Globals intencionades: connecten els botons HTML amb el mòdul
     window._vocabCheckWrite = function () { _checkWrite(); };
+    window._vocabCycleWrite = function () { _cycleWriteTarget(); };
+    window._vocabNextFigure = function () { _advanceToNext(); };
 
 })();
