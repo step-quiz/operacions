@@ -595,70 +595,78 @@ function fmtIso(coef, varName) {
 function buildStepsRepte1(p) {
     const steps = [];
 
-    // Quina és l'equació on s'aïlla la variable amb coef ±1?
-    const eqIdx  = p.isoEq;       // 1 o 2
-    const varAil = p.isoVar;      // 'x' o 'y'
-    const varAltra = varAil === 'x' ? 'y' : 'x';
+    // ── Helpers: quines equacions/variables admet el sistema ─────
+    // Retorna el coeficient de la variable v a l'equació eqN
+    function coefOf(eqN, v) {
+        return v === 'x' ? (eqN === 1 ? p.a1 : p.a2)
+                         : (eqN === 1 ? p.b1 : p.b2);
+    }
+    // Una equació/variable és aïllable si té coeficient ±1
+    function canIso(eqN, v)  { return Math.abs(coefOf(eqN, v)) === 1; }
+    // Equacions que tenen almenys una variable aïllable
+    function validEqs()      { return [1, 2].filter(n => canIso(n, 'x') || canIso(n, 'y')); }
 
-    // Coeficient de la variable a aïllar i de l'altra variable en l'equació d'aïllament
-    const coefIso   = p.isoVar === 'x'
-        ? (p.isoEq === 1 ? p.a1 : p.a2)
-        : (p.isoEq === 1 ? p.b1 : p.b2);
-    const coefOther = p.isoVar === 'x'
-        ? (p.isoEq === 1 ? p.b1 : p.b2)
-        : (p.isoEq === 1 ? p.a1 : p.a2);
-    const cEq       = p.isoEq === 1 ? p.c1 : p.c2;
+    // ── Eleccions reals de l'alumne (s'omplen als onCorrect 1 i 2) ─
+    let chosenEq  = null;   // 1 o 2
+    let chosenVar = null;   // 'x' o 'y'
 
-    // Expressió aïllada: varAil = (cEq - coefOther*varAltra) / coefIso
-    // Com coefIso = ±1, simplifica a: varAil = ±cEq ∓ coefOther*varAltra
-    // Coeficients de l'expressió aïllada
-    const isoCoefVar = -coefOther / coefIso;   // coeficient de varAltra en l'expressió aïllada
-    const isoConst   = cEq / coefIso;          // terme independent
+    // ── Càlcul diferit: tots els valors derivats de l'elecció real ─
+    // Cridat DINS de buildSchema/validate (quan chosenEq i chosenVar ja estan fixats)
+    function isoData() {
+        const varAil    = chosenVar;
+        const varAltra  = varAil === 'x' ? 'y' : 'x';
+        const coefIso   = coefOf(chosenEq, varAil);
+        const coefOther = varAil === 'x'
+            ? (chosenEq === 1 ? p.b1 : p.b2)
+            : (chosenEq === 1 ? p.a1 : p.a2);
+        const cEq        = chosenEq === 1 ? p.c1 : p.c2;
 
-    // Equació on es substitueix (l'altra)
-    const subEq  = eqIdx === 1 ? 2 : 1;
-    const aS = subEq === 1 ? p.a1 : p.a2;
-    const bS = subEq === 1 ? p.b1 : p.b2;
-    const cS = subEq === 1 ? p.c1 : p.c2;
+        // varAil = isoCoefVar·varAltra + isoConst  (coefIso = ±1 garantit)
+        const isoCoefVar = -coefOther / coefIso;
+        const isoConst   = cEq / coefIso;
 
-    // Resultat de la substitució: equació en una incògnita
-    // Si varAil='y': substituïm y = isoCoefVar*x + isoConst a: aS*x + bS*y = cS
-    //   → aS*x + bS*(isoCoefVar*x + isoConst) = cS
-    //   → (aS + bS*isoCoefVar)*x = cS - bS*isoConst
-    let coefResultat, constResultat, varResultat;
-    if (varAil === 'y') {
-        coefResultat = aS + bS * isoCoefVar;
-        constResultat = cS - bS * isoConst;
-        varResultat = 'x';
-    } else {
-        coefResultat = bS + aS * isoCoefVar;
-        constResultat = cS - aS * isoConst;
-        varResultat = 'y';
+        // Substituïm a l'altra equació
+        const subEq = chosenEq === 1 ? 2 : 1;
+        const aS    = subEq === 1 ? p.a1 : p.a2;
+        const bS    = subEq === 1 ? p.b1 : p.b2;
+        const cS    = subEq === 1 ? p.c1 : p.c2;
+
+        let coefResultat, constResultat, varResultat;
+        if (varAil === 'y') {
+            coefResultat  = aS + bS * isoCoefVar;
+            constResultat = cS - bS * isoConst;
+            varResultat   = 'x';
+        } else {
+            coefResultat  = bS + aS * isoCoefVar;
+            constResultat = cS - aS * isoConst;
+            varResultat   = 'y';
+        }
+
+        return {
+            varAil, varAltra, isoCoefVar, isoConst,
+            coefResultat, constResultat, varResultat,
+            solResultat: constResultat / coefResultat,
+            solAilada:   varAil === 'x' ? p.x0 : p.y0,
+        };
     }
 
-    const solResultat = constResultat / coefResultat;  // ha de ser enter
-    const solAilada   = varAil === 'x' ? p.x0 : p.y0;
-
-    // Text de la expressió aïllada: varAil = isoCoefVar·varAltra + isoConst
-    function isoExprText() {
+    // Text de l'expressió aïllada: p.ex. "2x − 3" o "−y + 1"
+    function isoExprText(d) {
         let s = '';
-        if (isoCoefVar !== 0) {
-            const ac = Math.abs(isoCoefVar);
-            const sign = isoCoefVar < 0 ? '−' : '';
-            s += `${sign}${ac === 1 ? '' : ac}${varAltra}`;
+        if (d.isoCoefVar !== 0) {
+            const ac   = Math.abs(d.isoCoefVar);
+            const sign = d.isoCoefVar < 0 ? '−' : '';
+            s += `${sign}${ac === 1 ? '' : ac}${d.varAltra}`;
         }
-        if (isoConst !== 0) {
-            if (s === '') {
-                s += String(isoConst);
-            } else {
-                s += isoConst < 0 ? ` − ${Math.abs(isoConst)}` : ` + ${isoConst}`;
-            }
+        if (d.isoConst !== 0) {
+            s += s === '' ? String(d.isoConst)
+                          : (d.isoConst < 0 ? ` − ${Math.abs(d.isoConst)}` : ` + ${d.isoConst}`);
         }
-        if (s === '') s = '0';
-        return s;
+        return s || '0';
     }
 
     // PAS 1 — Triar equació (botó) — AUTO-SUBMIT
+    // Accepta qualsevol equació que tingui almenys una variable aïllable (coef ±1)
     steps.push({
         title: `De quina equació aïlles una variable?`,
         buildSchema: buildEmpty(),
@@ -667,10 +675,12 @@ function buildStepsRepte1(p) {
             { label: '1a equació', value: '1' },
             { label: '2a equació', value: '2' },
         ]),
-        validate: () => selectedOption === String(eqIdx),
+        validate:  () => validEqs().includes(Number(selectedOption)),
+        onCorrect: () => { chosenEq = Number(selectedOption); },
     });
 
     // PAS 2 — Triar variable (botó) — AUTO-SUBMIT
+    // Accepta qualsevol variable amb coef ±1 a l'equació triada
     steps.push({
         title: `Quina variable aïlles?`,
         buildSchema: buildEmpty(),
@@ -679,105 +689,120 @@ function buildStepsRepte1(p) {
             { label: 'x', value: 'x' },
             { label: 'y', value: 'y' },
         ]),
-        validate: () => selectedOption === varAil,
+        validate:  () => canIso(chosenEq, selectedOption),
+        onCorrect: () => { chosenVar = selectedOption; },
     });
 
-    // PAS 3 — Escriure l'expressió aïllada: varAil = [±][coef]·varAltra [±] [const]
+    // PAS 3 — Escriure l'expressió aïllada (valors calculats a partir de l'elecció real)
     steps.push({
-        title: `Aïlla ${varAil} a la ${eqIdx === 1 ? 'primera' : 'segona'} equació:`,
+        title: () => {
+            const d = isoData();
+            return `Aïlla ${d.varAil} a la ${chosenEq === 1 ? 'primera' : 'segona'} equació:`;
+        },
         buildSchema: (c) => {
             c.innerHTML = '';
+            const d   = isoData();
             const row = document.createElement('div');
             row.className = 'schema-row-input';
-
-            row.appendChild(mkSpan(`${varAil} =`));
-
-            const siC = mkSignedInput('iso-coef',  52, isoCoefVar);
+            row.appendChild(mkSpan(`${d.varAil} =`));
+            const siC = mkSignedInput('iso-coef',  52, d.isoCoefVar);
             row.appendChild(siC.btn);
             row.appendChild(siC.inp);
-            row.appendChild(mkSpan(varAltra));
-
-            const siK = mkSignedInput('iso-const', 52, isoConst);
+            row.appendChild(mkSpan(d.varAltra));
+            const siK = mkSignedInput('iso-const', 52, d.isoConst);
             row.appendChild(siK.btn);
             row.appendChild(siK.inp);
-
             c._getVC = siC.getSignedValue;
             c._getVK = siK.getSignedValue;
             c.appendChild(row);
         },
         validate: () => {
+            const d  = isoData();
             const vc = els.stepSchema._getVC?.();
             const vk = els.stepSchema._getVK?.();
             if (isNaN(vc) || isNaN(vk)) return false;
-            return vc === isoCoefVar && vk === isoConst;
+            return vc === d.isoCoefVar && vk === d.isoConst;
         },
         onCorrect: () => {
-            addExprRow(`${varAil} = ${isoExprText()}`, 'sys-isolated');
+            const d = isoData();
+            addExprRow(`${d.varAil} = ${isoExprText(d)}`, 'sys-isolated');
         },
     });
 
     // PAS 4 — Resoldre l'equació resultant: [±coef]·varResultat = [±const]
     steps.push({
-        title: `Substitueix a l'altra equació. Quina equació obtens en ${varResultat}?`,
+        title: () => {
+            const d = isoData();
+            return `Substitueix a l'altra equació. Quina equació obtens en ${d.varResultat}?`;
+        },
         buildSchema: (c) => {
             c.innerHTML = '';
+            const d   = isoData();
             const row = document.createElement('div');
             row.className = 'schema-row-input';
-            const siC = mkSignedInput('res-coef',  52, coefResultat);
-            const siK = mkSignedInput('res-const', 52, constResultat);
+            const siC = mkSignedInput('res-coef',  52, d.coefResultat);
+            const siK = mkSignedInput('res-const', 52, d.constResultat);
             row.appendChild(siC.btn); row.appendChild(siC.inp);
-            row.appendChild(mkSpan(`${varResultat} =`));
+            row.appendChild(mkSpan(`${d.varResultat} =`));
             row.appendChild(siK.btn); row.appendChild(siK.inp);
             c._getVC = siC.getSignedValue;
             c._getVK = siK.getSignedValue;
             c.appendChild(row);
         },
         validate: () => {
+            const d  = isoData();
             const vc = els.stepSchema._getVC?.();
             const vk = els.stepSchema._getVK?.();
             if (isNaN(vc) || isNaN(vk)) return false;
-            return vc === coefResultat && vk === constResultat;
+            return vc === d.coefResultat && vk === d.constResultat;
         },
     });
+
     // PAS 5 — Valor de varResultat
     steps.push({
-        title: `Quant val ${varResultat}?`,
-        buildSchema: buildSchemaRow([
-            `${varResultat} =`,
-            { id: 'sol-var1', width: 60 },
-        ]),
+        title: () => `Quant val ${isoData().varResultat}?`,
+        buildSchema: (c) => {
+            const d = isoData();
+            buildSchemaRow([`${d.varResultat} =`, { id: 'sol-var1', width: 60 }])(c);
+        },
         validate: () => {
+            const d = isoData();
             const v = parseNum(document.getElementById('sol-var1')?.value ?? '');
-            return !isNaN(v) && v === solResultat;
+            return !isNaN(v) && v === d.solResultat;
         },
         onCorrect: () => {
-            addExprRow(`${varResultat} = <span class="expr-result">${solResultat}</span>`);
+            const d = isoData();
+            addExprRow(`${d.varResultat} = <span class="expr-result">${d.solResultat}</span>`);
         },
     });
 
     // PAS 6 — Valor de varAil (substitució enrere)
     steps.push({
-        title: `Substitueix ${varResultat} = ${solResultat} a l'expressió aïllada. Quant val ${varAil}?`,
-        buildSchema: buildSchemaRow([
-            `${varAil} =`,
-            { id: 'sol-var2', width: 60 },
-        ]),
+        title: () => {
+            const d = isoData();
+            return `Substitueix ${d.varResultat} = ${d.solResultat} a l'expressió aïllada. Quant val ${d.varAil}?`;
+        },
+        buildSchema: (c) => {
+            const d = isoData();
+            buildSchemaRow([`${d.varAil} =`, { id: 'sol-var2', width: 60 }])(c);
+        },
         validate: () => {
+            const d = isoData();
             const v = parseNum(document.getElementById('sol-var2')?.value ?? '');
-            return !isNaN(v) && v === solAilada;
+            return !isNaN(v) && v === d.solAilada;
         },
         onCorrect: () => {
-            addExprRow(`${varAil} = <span class="expr-result">${solAilada}</span>`);
+            const d = isoData();
+            addExprRow(`${d.varAil} = <span class="expr-result">${d.solAilada}</span>`);
         },
     });
 
-    // PAS 7 — Verificació (opcional, no penalitza si es salta)
+    // PAS 7 — Verificació
     steps.push({
         title: `Verifica la solució a la 1a equació:`,
-        buildSchema: buildSchemaRow([
-            eqText(p.a1, p.b1, null) + ' =',
-            { id: 'verif-1', width: 60 },
-        ]),
+        buildSchema: (c) => {
+            buildSchemaRow([eqText(p.a1, p.b1, null) + ' =', { id: 'verif-1', width: 60 }])(c);
+        },
         validate: () => {
             const v = parseNum(document.getElementById('verif-1')?.value ?? '');
             return !isNaN(v) && v === p.c1;
@@ -911,7 +936,7 @@ function showCurrentStep() {
         els.stepFeedback.className = '';
     }
 
-    els.stepTitle.innerHTML = step.title;
+    els.stepTitle.innerHTML = typeof step.title === 'function' ? step.title() : step.title;
 
     // Schema normal (no hi ha appendToExpr en sistemes — tots els inputs van a la schema-row)
     els.stepSchema.style.display = '';
