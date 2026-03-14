@@ -794,19 +794,17 @@ h1 {
         max-width: none;
         min-height: 54px;
         flex-shrink: 0;
-        padding: 8px 16px;
+        /* padding-inline-end generós: garanteix que l'últim chip
+           mai queda amagat pel borde dret quan s'arriba al final del scroll */
+        padding: 8px 28px 8px 28px;
         gap: 10px;
-        /* Scrollbar prima i visible com a indicador de slide */
+        /* Scrollbar prima i visible com a indicador */
         scrollbar-width: thin;
         scrollbar-color: var(--primary) var(--primary-light);
         border-radius: 12px;
-        /* Petit degradat als extrems per indicar contingut fora de vista */
-        -webkit-mask-image: linear-gradient(to right,
-            transparent 0px, black 16px,
-            black calc(100% - 16px), transparent 100%);
-        mask-image: linear-gradient(to right,
-            transparent 0px, black 16px,
-            black calc(100% - 16px), transparent 100%);
+        /* NOTA: NO s'usa mask-image perquè clipeja el contingut
+           scrollable i amaga l'últim chip de forma permanent. */
+        position: relative;
     }
     /* Scrollbar visible a Chromium */
     #game-area.layout-a #word-pool::-webkit-scrollbar       { height: 4px; }
@@ -886,81 +884,44 @@ h1 {
 }
 
 /* ══════════════════════════════════════════════
-   RESPONSIVE — LANDSCAPE MÒBIL
-   (max-height:520px + landscape: mòbils girats,
-    alguns Chromebook en mode tàctil plegat)
-
-   Layout 2 columnes:
-   ┌─────────────────────┬──────────────────────┐
-   │  SVG figura (left)  │  controls + pool/B   │
-   └─────────────────────┴──────────────────────┘
-   Garanteix que el teclat virtual no tapi ni la
-   figura ni el camp d'escriptura simultàniament.
+   OVERLAY "COL·LOCA EL MÒBIL EN VERTICAL"
+   S'activa quan el dispositiu tàctil és en
+   landscape (mòbil girat). Tapa tota la pantalla
+   i bloqueja la interacció.
 ══════════════════════════════════════════════ */
-@media (orientation: landscape) and (max-height: 520px) {
+#rotate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: var(--panel-bg);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 32px;
+    text-align: center;
+}
+#rotate-overlay.visible { display: flex; }
 
-    body {
-        padding-top: 6px;
-        padding-bottom: max(6px, env(safe-area-inset-bottom));
-    }
+.rotate-icon {
+    font-size: 3.5em;
+    animation: rotate-hint 2.5s ease-in-out infinite;
+}
+@keyframes rotate-hint {
+    0%   { transform: rotate(0deg)   scale(1);    }
+    30%  { transform: rotate(-90deg) scale(1.1);  }
+    60%  { transform: rotate(-90deg) scale(1.1);  }
+    90%  { transform: rotate(0deg)   scale(1);    }
+    100% { transform: rotate(0deg)   scale(1);    }
+}
 
-    .title-row { margin-bottom: 3px; }
-    h1         { font-size: 1.05em; }
-    .subtitle  { display: none; }
-
-    .panel {
-        flex: 1 1 0;
-        display: flex;
-        flex-direction: column;
-        max-height: calc(100dvh - 52px);
-    }
-
-    .header-info    { padding: 5px 14px; }
-    .session-text   { display: none; }
-    .level-text, .score-text, .attempts-counter { font-size: 0.9em; min-height: 32px; }
-
-    /* game-area en fila */
-    #game-area {
-        flex-direction: row;
-        align-items: flex-start;
-        padding: 8px 10px;
-        gap: 12px;
-        overflow-y: auto;
-        flex: 1 1 0;
-        min-height: 0;
-    }
-
-    /* Columna esquerra: figura (~55% de l'ample) */
-    #figure-container {
-        flex: 0 0 52%;
-        max-width: 52%;
-    }
-
-    /* Columna dreta: instrucció + pool/input (la resta) */
-    #context-instruction {
-        font-size: 0.85em;
-        min-height: auto;
-    }
-    #word-pool {
-        max-width: none;
-        min-height: 36px;
-        padding: 6px;
-        gap: 5px;
-    }
-    #write-panel { max-width: none; gap: 8px; }
-
-    .word-chip   { font-size: 0.78em; padding: 4px 10px; min-height: 36px; }
-    #write-input { width: 130px; font-size: 0.95em; min-height: 40px; }
-    .write-prompt { font-size: 0.85em; }
-    .write-progress { font-size: 0.8em; }
-    .typo-warning   { font-size: 0.8em; padding: 5px 10px; }
-    .btn-submit     { padding: 8px 16px; min-height: 40px; font-size: 0.9em; }
-
-    /* [ROUND 1 — mini-overlay en landscape: compacte, centrat a la part baixa] */
-    #mini-overlay { width: 220px; padding: 12px 10px; bottom: 8px; }
-    .mini-icon    { font-size: 1.6em; }
-    .mini-text    { font-size: 1.1em; }
-    .mini-points  { font-size: 0.85em; padding: 3px 10px; }
+.rotate-msg {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--primary);
+    max-width: 280px;
+    line-height: 1.5;
 }
 
 /* ══════════════════════════════════════════════
