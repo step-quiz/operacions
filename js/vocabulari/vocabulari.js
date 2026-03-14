@@ -239,8 +239,13 @@
         _showMiniOverlay(points);
 
         if (exhausted) {
-            // L'alumne ha de prémer "Figura següent" per avançar
-            if (els.btnNextFigure) els.btnNextFigure.style.display = 'block';
+            if (_op + 1 >= TOTAL_OPS) {
+                // Última figura: avenç directe (sense botó) després d'un delay
+                setTimeout(() => _advanceToNext(), 3000);
+            } else {
+                // L'alumne ha de prémer "Figura següent" per avançar
+                if (els.btnNextFigure) els.btnNextFigure.style.display = 'block';
+            }
         } else {
             // Avenç automàtic després d'uns segons
             const wait = points > 0 ? 1500 : 3000;
@@ -727,7 +732,7 @@
                 <button class="btn-restart" onclick="location.reload()">${TEXTS.BTN_RESTART}</button>
                 <button class="btn-submit btn-action-informe" id="btn-informe"
                         onclick="_vocabShowInforme()">${TEXTS.BTN_INFORME}</button>
-                <button class="btn-submit btn-action-copiar" id="btn-copiar"
+                <button class="btn-submit btn-action-copiar btn-copiar-codi" id="btn-copiar"
                         onclick="_vocabCopiarCodi()">${TEXTS.BTN_COPIAR}</button>
             </div>
         `;
@@ -790,7 +795,7 @@
                 </ul>
 
                 <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:30px;">
-                    <button class="btn-submit" onclick="_vocabCopiarCodi()"
+                    <button class="btn-submit btn-copiar-codi" onclick="_vocabCopiarCodi()"
                             style="background-color:#334155;">${TEXTS.BTN_COPIAR}</button>
                     <button class="btn-submit" onclick="location.reload()"
                             style="background-color:var(--text-muted);">${TEXTS.BTN_RESTART}</button>
@@ -843,12 +848,11 @@
     }
 
     function _showCopiatFeedback() {
-        const btn = document.getElementById('btn-copiar');
-        if (btn) {
+        document.querySelectorAll('.btn-copiar-codi').forEach(btn => {
             btn.innerText = 'Copiat! ✅';
             btn.style.backgroundColor = 'var(--success)';
             setTimeout(() => { btn.style.display = 'none'; }, 3000);
-        }
+        });
     }
 
     function _showFallbackCode(code) {
