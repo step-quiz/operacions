@@ -689,7 +689,16 @@ function buildStepsRepte1(p) {
             { label: 'x', value: 'x' },
             { label: 'y', value: 'y' },
         ]),
-        validate:  () => canIso(chosenEq, selectedOption),
+        validate: () => {
+            if (canIso(chosenEq, selectedOption)) return true;
+            // La variable triada no és aïllable directament: escrivim el feedback
+            // i retornem false sense activar flashError (soft warning)
+            if (els.stepFeedback) {
+                els.stepFeedback.innerHTML = 'La variable que intentes aïllar no té coeficient 1 ni −1.<br>Escull l\'altra variable, que podràs aïllar sense fer ús de fraccions.';
+                els.stepFeedback.className = 'important';
+            }
+            return false;
+        },
         onCorrect: () => { chosenVar = selectedOption; },
     });
 
