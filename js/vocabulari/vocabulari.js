@@ -445,6 +445,26 @@
         // [CANVI 3] En mòbil portrait: tap-to-select en lloc de drag-and-drop
         const isMob = _isMobilePortrait();
 
+        // Mòbil portrait: embolcalla el pool en un #pool-rail-wrapper visual
+        // (border + border-radius) que NO fa overflow, evitant el clipping de
+        // WebKit que talla els chips quan overflow-x:auto té border-radius.
+        if (isMob) {
+            let wrapper = document.getElementById('pool-rail-wrapper');
+            if (!wrapper) {
+                wrapper = document.createElement('div');
+                wrapper.id = 'pool-rail-wrapper';
+                els.wordPool.parentNode.insertBefore(wrapper, els.wordPool);
+                wrapper.appendChild(els.wordPool);
+            }
+        } else {
+            // Desktop: desembolcalla si hi havia un wrapper d'una sessió anterior
+            const wrapper = document.getElementById('pool-rail-wrapper');
+            if (wrapper && wrapper.parentNode) {
+                wrapper.parentNode.insertBefore(els.wordPool, wrapper);
+                wrapper.parentNode.removeChild(wrapper);
+            }
+        }
+
         // Spacer inicial: workaround per al bug de padding-inline-start en
         // contenidors overflow:auto de Safari/Chrome mòbil, on el padding
         // CSS del costat inicial del scroll és ignorat. Un element real
