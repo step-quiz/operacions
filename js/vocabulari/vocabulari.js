@@ -25,7 +25,7 @@
         FIGURA_HINT:     'Com es diu la figura?',  // pista per a l'etiqueta que nombra la figura
         // Instruccions
         INSTR_MODE_A:    'Arrossega cada paraula al lloc correcte de la figura',
-        INSTR_MODE_B:    'Escriu la paraula que descriu cada element assenyalat',
+        INSTR_MODE_B:    'Escriu la paraula',
         PARAULA_X_DE_Y:  (w, t) => `Paraula ${w} de ${t}`,
         // Mini overlay
         OVERLAY_OK_ICON: '⭐',
@@ -436,10 +436,11 @@
         els.writePanel.style.display = 'flex';
         _writeIdx = 0;
         els.typoWarning.classList.remove('visible');
-        // [ROUND 3] restaura visibilitat del context-instruction (ocultat pel mode A)
-        els.contextInstr.style.display = '';
+        // Instrucció va dins el write-panel, no cal la banda superior
+        els.contextInstr.style.display = 'none';
+        // Layout 2 columnes: figura (esquerra) + write-panel (dreta)
         els.gameArea.classList.remove('layout-a');
-        els.contextInstr.innerText = TEXTS.INSTR_MODE_B;
+        els.gameArea.classList.add('layout-b');
         _showWriteStep();
     }
 
@@ -474,17 +475,15 @@
     }
 
     function _highlightWriteTarget() {
-        els.figureSvg.querySelectorAll('.drop-zone').forEach((dz, i) => {
-            if (i === _writeIdx && !dz.classList.contains('dz-correct')) {
-                const rect = dz.querySelector('rect.dz-bg');
-                if (rect) {
-                    rect.setAttribute('stroke', 'var(--primary)');
-                    rect.setAttribute('stroke-width', '2.5');
-                    rect.setAttribute('stroke-dasharray', 'none');
-                    rect.style.fill = 'var(--primary-light)';
-                }
-            }
-        });
+        // Treu l'estat actiu de totes les caselles
+        els.figureSvg.querySelectorAll('.drop-zone.dz-active, .drop-zone.dz-active-still')
+            .forEach(dz => dz.classList.remove('dz-active', 'dz-active-still'));
+
+        // Marca la casella actual
+        const dzAll = els.figureSvg.querySelectorAll('.drop-zone');
+        if (_writeIdx < dzAll.length && !dzAll[_writeIdx].classList.contains('dz-correct')) {
+            dzAll[_writeIdx].classList.add('dz-active');
+        }
     }
 
     function _checkWrite() {
@@ -501,6 +500,7 @@
 
             const dz = document.getElementById(`dz-${et.id}`);
             if (dz) {
+                dz.classList.remove('dz-active', 'dz-active-still');
                 dz.querySelector('text.dz-label').textContent = et.text;
                 dz.classList.add('dz-correct');
             }
@@ -520,8 +520,14 @@
 
             const dz = document.getElementById(`dz-${et.id}`);
             if (dz) {
+                dz.classList.remove('dz-active');
                 dz.classList.add('dz-wrong');
-                setTimeout(() => dz.classList.remove('dz-wrong'), 1200);
+                setTimeout(() => {
+                    dz.classList.remove('dz-wrong');
+                    // Ressalt estàtic (sense animació) perquè l'alumne sàpiga
+                    // quina casella segueix activa
+                    dz.classList.add('dz-active-still');
+                }, 1000);
             }
             els.btnSubmitWrite.classList.add('error-shake');
             setTimeout(() => els.btnSubmitWrite.classList.remove('error-shake'), 200);
