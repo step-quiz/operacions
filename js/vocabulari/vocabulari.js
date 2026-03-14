@@ -53,6 +53,8 @@
     const MAX_INTENTS = Math.min(10, Math.max(1, parseInt(_p.get('intents')  || '4', 10) || 4));
     const TOTAL_SESS  = Math.min(20, Math.max(1, parseInt(_p.get('sessions') || '1', 10) || 1));
 
+    const DEBUG     = _p.get('debug') === '1';
+
     const BG_COLORS = [
         '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
         '#f5f3ff', '#ecfeff', '#fdf4ff', '#fffbeb', '#faf5ff'
@@ -287,6 +289,8 @@
         });
 
         els.figureSvg.innerHTML = _figActual.svg + dzHTML;
+
+        if (DEBUG) _injectDebugGrid();
 
         if (MODALITAT === 'A') {
             els.figureSvg.querySelectorAll('.drop-zone').forEach(dz => {
@@ -628,6 +632,105 @@
         });
         const target = document.getElementById(id);
         if (target) target.style.display = 'block';
+    }
+
+    // =========================================================================
+    // DEBUG GRID (?debug=1)
+    // Dibuixa una quadrícula numerada sobre el SVG (viewBox 500×340)
+    // per facilitar l'ajust manual de coordenades a vocabulari-figures.js.
+    // També mostra les coordenades del cursor en temps real.
+    // =========================================================================
+    function _injectDebugGrid() {
+        const SVG_W = 500, SVG_H = 340;
+        const STEP_MAJOR = 50;   // línia + número cada 50px
+        const STEP_MINOR = 10;   // línia fina cada 10px
+
+        let gridSVG = '<g class="debug-grid" pointer-events="none">';
+
+        // Línies menors (cada 10px)
+        for (let x = 0; x <= SVG_W; x += STEP_MINOR) {
+            if (x % STEP_MAJOR === 0) continue; // les majors ja les dibuixarem
+            gridSVG += `<line x1="${x}" y1="0" x2="${x}" y2="${SVG_H}"
+                         stroke="#7c3aed" stroke-width="0.3" opacity="0.25"/>`;
+        }
+        for (let y = 0; y <= SVG_H; y += STEP_MINOR) {
+            if (y % STEP_MAJOR === 0) continue;
+            gridSVG += `<line x1="0" y1="${y}" x2="${SVG_W}" y2="${y}"
+                         stroke="#7c3aed" stroke-width="0.3" opacity="0.25"/>`;
+        }
+
+        // Línies majors (cada 50px)
+        for (let x = 0; x <= SVG_W; x += STEP_MAJOR) {
+            gridSVG += `<line x1="${x}" y1="0" x2="${x}" y2="${SVG_H}"
+                         stroke="#7c3aed" stroke-width="0.5" opacity="0.45"/>`;
+            gridSVG += `<text x="${x + 2}" y="10"
+                         font-size="8" fill="#7c3aed" opacity="0.8"
+                         font-family="monospace">${x}</text>`;
+        }
+        for (let y = 0; y <= SVG_H; y += STEP_MAJOR) {
+            gridSVG += `<line x1="0" y1="${y}" x2="${SVG_W}" y2="${y}"
+                         stroke="#7c3aed" stroke-width="0.5" opacity="0.45"/>`;
+            if (y > 0) { // no duplicar el 0 de la cantonada
+                gridSVG += `<text x="2" y="${y - 2}"
+                             font-size="8" fill="#7c3aed" opacity="0.8"
+                             font-family="monospace">${y}</text>`;
+            }
+        }
+
+        // Cursor: cercle + text que es mouen amb el ratolí
+        gridSVG += `<circle id="debug-cursor" cx="-100" cy="-100" r="4"
+                     fill="none" stroke="#ef4444" stroke-width="1.5"
+                     pointer-events="none"/>`;
+        gridSVG += `<text id="debug-coord" x="-100" y="-100"
+                     font-size="10" fill="#ef4444" font-weight="bold"
+                     font-family="monospace" pointer-events="none"></text>`;
+
+        // Marca cada punt d'ancoratge (px,py) amb el seu id
+        _figActual.etiquetes.forEach(et => {
+            const isHint = (et.id === _figActual.id);
+            if (isHint) return; // el hint no té punt d'ancoratge real
+            gridSVG += `<circle cx="${et.px}" cy="${et.py}" r="6"
+                         fill="#ef4444" opacity="0.5" pointer-events="none"/>`;
+            gridSVG += `<text x="${et.px + 8}" y="${et.py + 4}"
+                         font-size="9" fill="#ef4444" font-weight="bold"
+                         font-family="monospace" opacity="0.85"
+                         pointer-events="none">${et.id}</text>`;
+        });
+
+        gridSVG += '</g>';
+
+        els.figureSvg.insertAdjacentHTML('beforeend', gridSVG);
+
+        // Coordenades en temps real
+        els.figureSvg.style.pointerEvents = 'all';
+        els.figureSvg.addEventListener('pointermove', _onDebugMove);
+
+        // Mostra les coordenades de cada etiqueta a la consola
+        console.table(_figActual.etiquetes.map(et => ({
+            id: et.id, text: et.text,
+            'px (punt)': et.px, 'py (punt)': et.py,
+            'lx (caixa)': et.lx, 'ly (caixa)': et.ly
+        })));
+    }
+
+    function _onDebugMove(e) {
+        const svg = els.figureSvg;
+        const pt  = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+        const cx = Math.round(svgPt.x);
+        const cy = Math.round(svgPt.y);
+
+        const cursor = document.getElementById('debug-cursor');
+        const coord  = document.getElementById('debug-coord');
+        if (cursor) { cursor.setAttribute('cx', cx); cursor.setAttribute('cy', cy); }
+        if (coord)  {
+            coord.setAttribute('x', cx + 8);
+            coord.setAttribute('y', cy - 6);
+            coord.textContent = `${cx}, ${cy}`;
+        }
     }
 
     // =========================================================================
