@@ -677,6 +677,31 @@ h1 {
 
 #summary-screen h2 { color: var(--success); font-size: 1.8em; margin-bottom: 20px; }
 
+/* Botons d'acció del resum final */
+.final-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    margin-top: 12px;
+}
+.final-actions > button {
+    width: 100%;
+    max-width: 280px;
+    padding: 10px 14px;
+    font-size: 0.95em;
+}
+.btn-action-informe { background-color: var(--primary) !important; }
+.btn-action-copiar  { background-color: #a84359 !important; color: white; }
+
+/* Pantalla d'informe (historial encerts/errades) */
+#history-summary-screen {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+}
+
 .summary-layout {
     display: flex;
     align-items: center;
