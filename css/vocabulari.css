@@ -239,6 +239,27 @@ h1 {
 .drop-zone.dz-correct text.dz-label { fill: #065f46; }
 .drop-zone.dz-wrong   text.dz-label { fill: #991b1b; }
 
+/* ── Casella activa (mode B): taronja amb blink-and-shake ── */
+.drop-zone.dz-active rect.dz-bg {
+    fill: #fff7ed;
+    stroke: #ea580c;
+    stroke-width: 2.5;
+    stroke-dasharray: none;
+    animation: dz-blink-shake 0.8s ease;
+}
+.drop-zone.dz-active .dz-connector { stroke: #ea580c; }
+.drop-zone.dz-active text.dz-label { fill: #9a3412; }
+
+/* ── Casella activa estàtica (mode B, després d'un error): taronja sense animació ── */
+.drop-zone.dz-active-still rect.dz-bg {
+    fill: #fff7ed;
+    stroke: #ea580c;
+    stroke-width: 2;
+    stroke-dasharray: none;
+}
+.drop-zone.dz-active-still .dz-connector { stroke: #ea580c; }
+.drop-zone.dz-active-still text.dz-label { fill: #9a3412; }
+
 /* ══════════════════════════════════════════════
    POOL DE PARAULES (modalitat A)
 ══════════════════════════════════════════════ */
@@ -328,6 +349,61 @@ h1 {
 #game-area.layout-a #figure-container {
     flex: 1 1 0;
     min-width: 0;           /* evita overflow en flexbox */
+    max-width: none;
+}
+
+/* ══════════════════════════════════════════════
+   LAYOUT MODE B — figura esquerra + write-panel dreta
+   Simètric al layout-a: la figura ocupa la major part
+   de l'ample i el panell d'escriptura va a la dreta.
+══════════════════════════════════════════════ */
+#game-area.layout-b {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 16px;
+}
+
+/* Figura: ocupa la major part de l'ample */
+#game-area.layout-b #figure-container {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+}
+
+/* Write-panel: columna fixa a la dreta */
+#game-area.layout-b #write-panel {
+    width: 180px;
+    min-width: 160px;
+    max-width: 200px;
+    flex-shrink: 0;
+    align-items: stretch;
+    gap: 10px;
+}
+
+#game-area.layout-b .write-prompt {
+    font-size: 0.9em;
+    text-align: center;
+}
+
+#game-area.layout-b .write-progress {
+    font-size: 0.85em;
+    text-align: center;
+}
+
+#game-area.layout-b .write-input-row {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+}
+
+#game-area.layout-b #write-input {
+    width: 100%;
+    font-size: 1.1em;
+}
+
+#game-area.layout-b .typo-warning {
+    font-size: 0.8em;
     max-width: none;
 }
 
@@ -489,6 +565,17 @@ h1 {
     width: 165px;
 }
 
+/* Mode B: sobre el write-panel (columna dreta) */
+#game-area.layout-b #mini-overlay {
+    left: auto;
+    bottom: auto;
+    transform: none;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 185px;
+}
+
 .mini-overlay-row {
     display: flex;
     align-items: center;
@@ -594,6 +681,14 @@ h1 {
     .word-chip      { font-size: 0.85em; padding: 6px 12px; min-height: 44px; }
     #write-input    { width: 155px; font-size: 1.05em; }
     .write-prompt   { font-size: 0.9em; }
+
+    /* Layout-b col·lapsa a columna en pantalles petites */
+    #game-area.layout-b { flex-direction: column; align-items: center; }
+    #game-area.layout-b #write-panel {
+        width: 100%; max-width: 400px; min-width: unset;
+    }
+    #game-area.layout-b .write-input-row { flex-direction: row; }
+    #game-area.layout-b #write-input { width: 155px; }
     .mini-icon      { font-size: 2.5em; }
     .mini-text      { font-size: 1.5em; }
     .mini-points    { font-size: 1em; }
@@ -741,6 +836,17 @@ h1 {
     75%      { transform: translateX( 4px); }
 }
 .word-chip.chip-shake { animation: chip-shake 0.5s ease; }
+
+/* Blink-and-shake de la casella activa (mode B, 0.8s) */
+@keyframes dz-blink-shake {
+    0%       { transform: translateX(0);    opacity: 0.5; }
+    15%      { transform: translateX(-4px); opacity: 1;   }
+    30%      { transform: translateX( 4px); opacity: 0.6; }
+    50%      { transform: translateX(-3px); opacity: 1;   }
+    70%      { transform: translateX( 2px); opacity: 0.7; }
+    85%      { transform: translateX(-1px); opacity: 1;   }
+    100%     { transform: translateX(0);    opacity: 1;   }
+}
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
