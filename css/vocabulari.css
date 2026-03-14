@@ -782,44 +782,51 @@ h1 {
         max-width: none;
     }
 
-    /* Pool: franja horitzontal desplaçable (scroll natural, sense drag) */
+    /* Pool: franja horitzontal desplaçable.
+       ⚠️  SENSE border-radius ni border aquí:
+       overflow-x:auto + border-radius en WebKit/Chrome mòbil clipeja
+       el contingut als cantons arrodonits i talla el primer i últim chip.
+       L'estètica arrodonida la dona #pool-rail-wrapper (no fa overflow). */
     #game-area.layout-a #word-pool {
         flex-direction: row;
         flex-wrap: nowrap;
         overflow-x: auto;
-        overflow-y: hidden;
+        overflow-y: visible;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
         width: 100%;
         max-width: none;
         min-height: 54px;
         flex-shrink: 0;
-        /* Padding vertical únicament; l'horitzontal el gestionen
-           els .pool-spacer DOM per evitar el bug de padding-inline
-           en overflow:auto de Safari/Chrome mòbil. */
         padding: 8px 0;
         gap: 10px;
-        /* Scrollbar prima i visible com a indicador */
+        border: none;
+        border-radius: 0;
+        background: transparent;
         scrollbar-width: thin;
         scrollbar-color: var(--primary) var(--primary-light);
-        border-radius: 12px;
-        /* NOTA: NO s'usa mask-image perquè clipeja el contingut
-           scrollable i amaga l'últim chip de forma permanent. */
-        position: relative;
     }
-    /* Scrollbar visible a Chromium */
     #game-area.layout-a #word-pool::-webkit-scrollbar       { height: 4px; }
-    #game-area.layout-a #word-pool::-webkit-scrollbar-track  { background: var(--primary-light); border-radius: 2px; }
-    #game-area.layout-a #word-pool::-webkit-scrollbar-thumb  { background: var(--primary);       border-radius: 2px; }
+    #game-area.layout-a #word-pool::-webkit-scrollbar-track  { background: var(--primary-light); }
+    #game-area.layout-a #word-pool::-webkit-scrollbar-thumb  { background: var(--primary); border-radius: 2px; }
 
-    /* Spacer DOM (inici i final del pool): garanteix que el primer i l'últim
-       chip mai queden tallats. Workaround cross-browser per al bug de
-       padding-inline en contenidors overflow:auto. */
+    /* Wrapper visual: conté el border i el border-radius sense fer scroll,
+       de manera que mai clipeja el contingut del pool intern. */
+    #pool-rail-wrapper {
+        width: 100%;
+        flex-shrink: 0;
+        background: white;
+        border: 2px dashed var(--border-heavy);
+        border-radius: 12px;
+        overflow: visible;
+    }
+
+    /* Spacers DOM: marge real als extrems del scroll (cross-browser). */
     #game-area.layout-a #word-pool .pool-spacer {
         display: block;
         flex-shrink: 0;
-        width: 16px;
-        min-width: 16px;
+        width: 12px;
+        min-width: 12px;
         pointer-events: none;
     }
 
