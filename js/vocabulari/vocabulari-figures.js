@@ -370,7 +370,7 @@ window.VocabFigures = (() => {
                 { id: 'base',         text: 'base',         px: 250, py: 270, lx: 105, ly: 315 },
                 { id: 'cara_lateral', text: 'cara lateral', px: 110, py: 180, lx: 42,  ly: 155 },
                 { id: 'alcada',       text: 'alçada',       px: 415, py: 180, lx: 460, ly: 168 },
-                { id: 'radi',         text: 'radi',         px: 320, py: 90,  lx: 355, ly: 58  },
+                { id: 'radi',         text: 'radi',         px: 320, py: 90,  lx: 400, ly: 40  },
                 { id: 'eix',          text: 'eix',          px: 250, py: 180, lx: 162, ly: 175 },
             ]
         },
