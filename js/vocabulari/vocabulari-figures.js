@@ -337,22 +337,22 @@ window.VocabFigures = (() => {
             id:  'piramide',
             nom: 'Piràmide',
             svg: `
-                <!-- Arestes ocultes (darrere) -->
-                <line x1="250" y1="48"  x2="250" y2="188" stroke="#d97706" stroke-width="1.2" stroke-dasharray="5 3"/>
-                <line x1="250" y1="188" x2="362" y2="222" stroke="#d97706" stroke-width="1.2" stroke-dasharray="5 3"/>
-                <line x1="250" y1="188" x2="138" y2="222" stroke="#d97706" stroke-width="1.2" stroke-dasharray="5 3"/>
+                <!-- 3 arestes ocultes (darrere, traç discontinu) -->
+                <line x1="138" y1="222" x2="250" y2="188" stroke="#d97706" stroke-width="1.3" stroke-dasharray="6 4"/>
+                <line x1="250" y1="188" x2="362" y2="222" stroke="#d97706" stroke-width="1.3" stroke-dasharray="6 4"/>
+                <line x1="250" y1="48"  x2="250" y2="188" stroke="#d97706" stroke-width="1.3" stroke-dasharray="6 4"/>
 
-                <!-- Base (polígon amb farcit suau) -->
+                <!-- Base (translúcida) -->
                 <polygon points="250,188 362,222 338,298 162,298 138,222"
-                         fill="#fef3c7" stroke="#d97706" stroke-width="1.8"/>
+                         fill="#fef3c7" fill-opacity="0.45" stroke="#d97706" stroke-width="1.8"/>
 
-                <!-- Cares laterals visibles (3 cares frontals) -->
+                <!-- Cares laterals visibles (translúcides, 3 cares frontals) -->
                 <polygon points="250,48 162,298 338,298"
-                         fill="#fcd34d" stroke="#d97706" stroke-width="2.5"/>
+                         fill="#fcd34d" fill-opacity="0.5" stroke="#d97706" stroke-width="2.5"/>
                 <polygon points="250,48 338,298 362,222"
-                         fill="#fef9c3" stroke="#d97706" stroke-width="2"/>
+                         fill="#fef9c3" fill-opacity="0.45" stroke="#d97706" stroke-width="2"/>
                 <polygon points="250,48 162,298 138,222"
-                         fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+                         fill="#fde68a" fill-opacity="0.45" stroke="#d97706" stroke-width="2"/>
 
                 <!-- Altura (eix vertical, del vèrtex al centre de la base) -->
                 <line x1="250" y1="48"  x2="250" y2="246" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -361,6 +361,7 @@ window.VocabFigures = (() => {
                 <!-- Punts clau -->
                 <circle cx="250" cy="246" r="3.5" fill="#334155"/>
                 <circle cx="250" cy="48"  r="5.5" fill="#d97706"/>
+                <circle cx="250" cy="188" r="4"   fill="#d97706" opacity="0.5"/>
                 <circle cx="162" cy="298" r="4"   fill="#d97706"/>
                 <circle cx="338" cy="298" r="4"   fill="#d97706"/>
                 <circle cx="362" cy="222" r="4"   fill="#d97706"/>
