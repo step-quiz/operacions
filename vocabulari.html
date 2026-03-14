@@ -46,6 +46,8 @@
             <!-- Input d'escriptura (modalitat B) -->
             <div id="write-panel" style="display:none;">
                 <div class="write-prompt">Escriu la paraula</div>
+                <button class="btn-cycle" id="btn-cycle"
+                        onclick="_vocabCycleWrite()">Canviar de casella</button>
                 <div class="write-progress" id="write-progress"></div>
                 <div class="typo-warning"   id="typo-warning">
                     ⚠️ Crec que saps la paraula correcta, però no l'has escrita bé. Repassa-ho.
@@ -67,6 +69,8 @@
                     <span class="mini-text" id="mini-text">Molt bé!</span>
                 </div>
                 <div class="mini-points" id="mini-points">+10 punts</div>
+                <button class="btn-next-figure" id="btn-next-figure"
+                        onclick="_vocabNextFigure()" style="display:none;">Figura següent</button>
             </div>
 
         </div>
