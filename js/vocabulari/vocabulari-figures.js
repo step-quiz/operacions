@@ -323,29 +323,56 @@ window.VocabFigures = (() => {
             ]
         },
 
-        // 14. PIRÀMIDE
+        // 14. PIRÀMIDE (base pentagonal, perspectiva 3/4)
+        //
+        //     Apex = (250, 48)
+        //     Base pentagonal (vista des de dalt-davant):
+        //       P1=(250,188)  back-centre   (ocult)
+        //       P2=(362,222)  back-dreta
+        //       P3=(338,298)  front-dreta
+        //       P4=(162,298)  front-esquerra
+        //       P5=(138,222)  back-esquerra
+        //     Centre base ≈ (250, 246)
         {
             id:  'piramide',
             nom: 'Piràmide',
             svg: `
-                <polygon points="110,280 390,280 330,215 170,215" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
-                <line x1="250" y1="60" x2="170" y2="215" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5 3"/>
-                <line x1="250" y1="60" x2="330" y2="215" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4 3"/>
-                <polygon points="250,60 110,280 390,280"  fill="#fcd34d" stroke="#d97706" stroke-width="2.5"/>
-                <polygon points="250,60 110,280 170,215"  fill="#fde68a" stroke="#d97706" stroke-width="2"/>
-                <polygon points="250,60 390,280 330,215"  fill="#fef9c3" stroke="#d97706" stroke-width="2"/>
-                <line x1="250" y1="60"  x2="250" y2="248" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
-                <rect x="250" y="237" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
-                <circle cx="250" cy="248" r="3.5" fill="#334155"/>
-                <circle cx="250" cy="60"  r="5.5" fill="#d97706"/>
+                <!-- Arestes ocultes (darrere) -->
+                <line x1="250" y1="48"  x2="250" y2="188" stroke="#d97706" stroke-width="1.2" stroke-dasharray="5 3"/>
+                <line x1="250" y1="188" x2="362" y2="222" stroke="#d97706" stroke-width="1.2" stroke-dasharray="5 3"/>
+                <line x1="250" y1="188" x2="138" y2="222" stroke="#d97706" stroke-width="1.2" stroke-dasharray="5 3"/>
+
+                <!-- Base (polígon amb farcit suau) -->
+                <polygon points="250,188 362,222 338,298 162,298 138,222"
+                         fill="#fef3c7" stroke="#d97706" stroke-width="1.8"/>
+
+                <!-- Cares laterals visibles (3 cares frontals) -->
+                <polygon points="250,48 162,298 338,298"
+                         fill="#fcd34d" stroke="#d97706" stroke-width="2.5"/>
+                <polygon points="250,48 338,298 362,222"
+                         fill="#fef9c3" stroke="#d97706" stroke-width="2"/>
+                <polygon points="250,48 162,298 138,222"
+                         fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+
+                <!-- Altura (eix vertical, del vèrtex al centre de la base) -->
+                <line x1="250" y1="48"  x2="250" y2="246" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <rect x="250" y="235" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+
+                <!-- Punts clau -->
+                <circle cx="250" cy="246" r="3.5" fill="#334155"/>
+                <circle cx="250" cy="48"  r="5.5" fill="#d97706"/>
+                <circle cx="162" cy="298" r="4"   fill="#d97706"/>
+                <circle cx="338" cy="298" r="4"   fill="#d97706"/>
+                <circle cx="362" cy="222" r="4"   fill="#d97706"/>
+                <circle cx="138" cy="222" r="4"   fill="#d97706"/>
             `,
             etiquetes: [
-                { id: 'piramide',       text: 'piràmide',       px: 250, py: 175, lx: 250, ly: 20  },
-                { id: 'vertex',         text: 'vèrtex',         px: 250, py: 60,  lx: 148, ly: 42  },
-                { id: 'aresta_lateral', text: 'aresta lateral', px: 180, py: 168, lx: 65,  ly: 138 },
-                { id: 'cara_lateral',   text: 'cara lateral',   px: 290, py: 195, lx: 408, ly: 168 },
-                { id: 'base',           text: 'base',           px: 250, py: 248, lx: 408, ly: 252 },
-                { id: 'altura',         text: 'altura',         px: 250, py: 154, lx: 340, ly: 200 },
+                { id: 'piramide',       text: 'piràmide',       px: 220, py: 180, lx: 250, ly: 20  },
+                { id: 'vertex',         text: 'vèrtex',         px: 250, py: 48,  lx: 148, ly: 38  },
+                { id: 'aresta_lateral', text: 'aresta lateral', px: 196, py: 173, lx: 60,  ly: 138 },
+                { id: 'cara_lateral',   text: 'cara lateral',   px: 290, py: 210, lx: 418, ly: 175 },
+                { id: 'base',           text: 'base',           px: 250, py: 298, lx: 418, ly: 268 },
+                { id: 'altura',         text: 'altura',         px: 250, py: 150, lx: 340, ly: 200 },
             ]
         },
 
@@ -370,7 +397,7 @@ window.VocabFigures = (() => {
                 { id: 'base',         text: 'base',         px: 250, py: 270, lx: 105, ly: 315 },
                 { id: 'cara_lateral', text: 'cara lateral', px: 110, py: 180, lx: 42,  ly: 155 },
                 { id: 'alcada',       text: 'alçada',       px: 415, py: 180, lx: 460, ly: 168 },
-                { id: 'radi',         text: 'radi',         px: 320, py: 90,  lx: 400, ly: 40  },
+                { id: 'radi',         text: 'radi',         px: 320, py: 90,  lx: 355, ly: 58  },
                 { id: 'eix',          text: 'eix',          px: 250, py: 180, lx: 162, ly: 175 },
             ]
         },
