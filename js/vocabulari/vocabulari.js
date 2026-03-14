@@ -112,6 +112,10 @@
     let _op           = 0;
     let _isPenalizing = false;
     let _isTransiting = false;
+    // [CANVI 2] punts parcials de la figura en curs (+1 per etiqueta correcta)
+    let _puntsFiguraActual = 0;
+    // [CANVI 3] chip seleccionat en mode tap-to-select (mòbil portrait)
+    let _selectedChip      = null;
 
     // =========================================================================
     // REFS DOM
@@ -202,6 +206,8 @@
         _isPenalizing = false;
         _etOK         = 0;
         _writeIdx     = 0;
+        _puntsFiguraActual = 0;   // [CANVI 2]
+        _selectedChip      = null; // [CANVI 3]
 
         _figActual = _figures[_op % _figures.length];
         _etTotal   = _figActual.etiquetes.length;
@@ -225,9 +231,12 @@
     function _finishLevel(exhausted = false) {
         _isTransiting = true;
 
-        const fails  = MAX_INTENTS - _intents;
-        const points = exhausted ? 0 : Math.max(0, 10 - fails * 2);
+        // [CANVI 2] Puntuació nova:
+        //   - Figura completada → sempre +10 punts (bonus per completar)
+        //   - Intents esgotats  → els punts parcials guanyats etiqueta a etiqueta
+        const points = exhausted ? _puntsFiguraActual : 10;
         _punts += points;
+        _puntsFiguraActual = 0;
         els.scoreDisplay.innerText = TEXTS.PUNTS_X(_punts);
 
         if (exhausted) {
@@ -240,7 +249,7 @@
             });
         }
 
-        _showMiniOverlay(points);
+        _showMiniOverlay(points, exhausted);
 
         if (exhausted) {
             if (_op + 1 >= TOTAL_OPS) {
@@ -289,6 +298,15 @@
         els.attemptsDisplay.innerText = TEXTS.INTENTS_X(_intents);
         els.attemptsDisplay.className = 'attempts-counter' +
             (_intents < 3 ? ' danger' : '');
+    }
+
+    /**
+     * Actualitza el marcador en temps real durant la figura en curs,
+     * mostrant els punts acumulats + els punts parcials (+1 per etiqueta correcta).
+     * [CANVI 2]
+     */
+    function _updateLiveScore() {
+        els.scoreDisplay.innerText = TEXTS.PUNTS_X(_punts + _puntsFiguraActual);
     }
 
     // =========================================================================
@@ -383,22 +401,84 @@
         // [ROUND 3 — pool vertical esquerra] classe que activa el layout en 2 columnes
         els.gameArea.classList.add('layout-a');
 
+        // [CANVI 3] En mòbil portrait: tap-to-select en lloc de drag-and-drop
+        const isMob = _isMobilePortrait();
+
         VocabEngine.shuffle([..._figActual.etiquetes]).forEach(et => {
             const chip        = document.createElement('div');
             chip.className    = 'word-chip';
             chip.textContent  = et.text;
-            chip.draggable    = true;
             chip.dataset.word = et.text;
 
-            chip.addEventListener('dragstart', e => {
-                e.dataTransfer.setData('text/plain', et.text);
-                setTimeout(() => chip.classList.add('dragging'), 0);
-            });
-            chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
-            chip.addEventListener('touchstart', _onTouchStart, { passive: false });
+            if (isMob) {
+                // Mòbil portrait: tap per seleccionar; sense drag
+                chip.addEventListener('click', () => _selectChipMobile(chip));
+            } else {
+                // Desktop / landscape: drag and drop
+                chip.draggable = true;
+                chip.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', et.text);
+                    setTimeout(() => chip.classList.add('dragging'), 0);
+                });
+                chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+                chip.addEventListener('touchstart', _onTouchStart, { passive: false });
+            }
 
             els.wordPool.appendChild(chip);
         });
+
+        if (isMob) {
+            // Mòbil portrait: les drop-zones del SVG escolten un tap per col·locar el chip seleccionat
+            els.figureSvg.querySelectorAll('.drop-zone').forEach(dz => {
+                dz.addEventListener('pointerup', () => {
+                    if (dz.classList.contains('dz-correct')) return;
+                    if (!_selectedChip || _isTransiting || _isPenalizing) return;
+                    const word = _selectedChip.dataset.word;
+                    _selectedChip.classList.remove('chip-selected');
+                    _selectedChip = null;
+                    _handleDrop(dz, word);
+                });
+            });
+        }
+    }
+
+    // =========================================================================
+    // HELPERS MÒBIL PORTRAIT — tap-to-select (Canvi 3)
+    // =========================================================================
+
+    /**
+     * Retorna true si estem en un dispositiu tàctil en mode portrait estret.
+     * Condició: pantalla tàctil + ample ≤ 600px + orientació portrait.
+     */
+    function _isMobilePortrait() {
+        return _isTouchDevice()
+            && window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches;
+    }
+
+    /**
+     * Gestiona el tap sobre un chip en mode mòbil portrait:
+     * - Si el chip ja és el seleccionat → desselecciona (toggle)
+     * - Si hi havia un altre chip seleccionat → canvia la selecció
+     * - Si no hi havia cap → selecciona
+     */
+    function _selectChipMobile(chip) {
+        if (_isTransiting || _isPenalizing) return;
+        if (chip.classList.contains('used')) return;
+
+        if (_selectedChip === chip) {
+            // Toggle off
+            chip.classList.remove('chip-selected');
+            _selectedChip = null;
+            return;
+        }
+        // Treu la selecció anterior
+        if (_selectedChip) _selectedChip.classList.remove('chip-selected');
+
+        _selectedChip = chip;
+        chip.classList.add('chip-selected');
+
+        // Fa scroll al chip visible dins el pool horitzontal
+        chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
 
     function _handleDrop(dzEl, word) {
@@ -413,6 +493,8 @@
             if (chip) chip.classList.add('used');
 
             _historial.push({ pregunta: `Vocabulari: ${word}`, resposta: word, ok: true });
+            _puntsFiguraActual++;   // [CANVI 2] +1 per etiqueta correcta
+            _updateLiveScore();
             _etOK++;
             if (_etOK >= _etTotal) _finishLevel();
         } else {
@@ -463,7 +545,8 @@
 
     function _onTouchCancel() {
         els.dragGhost.style.display = 'none';
-        _touchChip = null;
+        _touchChip    = null;
+        _selectedChip = null;   // [CANVI 3]
         _removeTouchListeners();
     }
 
@@ -582,6 +665,8 @@
                 dz.classList.add('dz-correct');
             }
             _etOK++;
+            _puntsFiguraActual++;   // [CANVI 2] +1 per etiqueta correcta
+            _updateLiveScore();
             // Cerca la següent casella no resolta (pot haver-ne per cicle)
             setTimeout(() => {
                 const next = _findNextUnanswered(_writeIdx);
@@ -643,23 +728,24 @@
     // =========================================================================
     // MINI OVERLAY
     // =========================================================================
-    function _showMiniOverlay(points) {
-        if (!els.miniOverlay) return points > 0 ? 1500 : 3000;
-        if (points > 0) {
+    function _showMiniOverlay(points, exhausted = false) {
+        if (!els.miniOverlay) return;
+        if (!exhausted) {
+            // Figura completada: celebració amb els punts bonus (sempre 10)
             els.miniIcon.innerText     = TEXTS.OVERLAY_OK_ICON;
             els.miniText.innerText     = TEXTS.OVERLAY_OK_TEXT;
             els.miniText.style.color   = '#047857';
             els.miniPoints.innerText   = TEXTS.OVERLAY_OK_PTS(points);
             els.miniPoints.style.color = '#059669';
         } else {
+            // Intents esgotats: missatge KO + punts parcials (si n'hi ha)
             els.miniIcon.innerText     = TEXTS.OVERLAY_KO_ICON;
             els.miniText.innerText     = TEXTS.OVERLAY_KO_TEXT;
             els.miniText.style.color   = 'var(--danger)';
-            els.miniPoints.innerText   = TEXTS.OVERLAY_KO_PTS;
-            els.miniPoints.style.color = 'var(--danger)';
+            els.miniPoints.innerText   = points > 0 ? TEXTS.OVERLAY_OK_PTS(points) : TEXTS.OVERLAY_KO_PTS;
+            els.miniPoints.style.color = points > 0 ? '#059669' : 'var(--danger)';
         }
         els.miniOverlay.style.display = 'flex';
-        return points > 0 ? 1500 : 3000;
     }
 
     function _hideMiniOverlay() {
