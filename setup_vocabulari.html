@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Vocabulari — Editor de coordenades</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── TOP BAR ── */
+        .top-bar {
+            width: 100%;
+            background: #1e293b;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .top-bar h1 { font-size: 1.1em; letter-spacing: 1px; }
+        .top-bar .nav-group { display: flex; gap: 10px; align-items: center; }
+        .top-bar button {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .top-bar button:hover { background: #64748b; }
+        .top-bar button:disabled { opacity: 0.3; cursor: default; }
+        .top-bar .figure-name { font-size: 1em; font-weight: 600; min-width: 220px; text-align: center; }
+        .btn-export { background: #059669 !important; }
+        .btn-export:hover { background: #047857 !important; }
+
+        /* ── MAIN LAYOUT ── */
+        .main {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+        }
+
+        /* ── SVG PANEL (left) ── */
+        .svg-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            min-width: 0;
+            background: white;
+            border-right: 2px solid #e2e8f0;
+        }
+        #editor-svg {
+            width: 100%;
+            max-width: 750px;
+            height: auto;
+            display: block;
+            cursor: crosshair;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fafaf7;
+        }
+
+        /* ── SIDE PANEL (right) ── */
+        .side-panel {
+            width: 320px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .side-panel h2 { font-size: 1em; color: #7c3aed; margin-bottom: 4px; }
+
+        .et-card {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+            font-size: 0.85em;
+        }
+        .et-card.is-hint { border-color: #fbbf24; background: #fffbeb; }
+        .et-card-title {
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .et-card-title .tag {
+            font-size: 0.75em;
+            background: #ede9fe;
+            color: #7c3aed;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .et-card-title .tag-hint {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .coord-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .coord-row label {
+            font-weight: 600;
+            font-size: 0.8em;
+            width: 22px;
+            color: #64748b;
+        }
+        .coord-row input {
+            width: 56px;
+            font-family: monospace;
+            font-size: 0.9em;
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .coord-row input:focus { border-color: #7c3aed; outline: none; }
+        .coord-row .sep { color: #cbd5e1; }
+        .label-anchor { color: #ef4444; font-weight: 700; }
+        .label-box    { color: #7c3aed; font-weight: 700; }
+
+        /* ── STATUS BAR ── */
+        .status-bar {
+            width: 100%;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 6px 20px;
+            font-size: 0.8em;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        /* ── SVG ELEMENTS ── */
+        .anchor-handle { cursor: grab; }
+        .anchor-handle:active { cursor: grabbing; }
+        .box-handle { cursor: grab; }
+        .box-handle:active { cursor: grabbing; }
+
+        /* ── EXPORT MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .modal h2 { color: #059669; font-size: 1.2em; }
+        .modal textarea {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            flex: 1;
+            min-height: 300px;
+            resize: none;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .modal-actions .btn-copy { background: #059669; color: white; }
+        .modal-actions .btn-copy:hover { background: #047857; }
+        .modal-actions .btn-close { background: #e2e8f0; color: #334155; }
+        .modal-actions .btn-close:hover { background: #cbd5e1; }
+        .modal-actions .btn-download { background: #7c3aed; color: white; }
+        .modal-actions .btn-download:hover { background: #6d28d9; }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <h1>SETUP VOCABULARI</h1>
+    <div class="nav-group">
+        <button id="btn-prev" onclick="navigate(-1)">◀ Anterior</button>
+        <span class="figure-name" id="figure-name">—</span>
+        <button id="btn-next" onclick="navigate(1)">Següent ▶</button>
+    </div>
+    <div class="nav-group">
+        <button onclick="resetCurrentFigure()">↺ Reset figura</button>
+        <button class="btn-export" onclick="showExport()">💾 Exportar JS</button>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <div class="svg-panel">
+        <svg id="editor-svg" viewBox="0 0 500 340" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="side-panel" id="side-panel">
+        <h2>Etiquetes</h2>
+    </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+    <span id="status-coords">Mou el cursor sobre l'SVG</span>
+    <span id="status-hint">Arrossega els cercles vermells (punts) o violetes (caixes)</span>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+        <h2>vocabulari-figures.js generat</h2>
+        <textarea id="export-textarea" readonly></textarea>
+        <div class="modal-actions">
+            <button class="btn-download" onclick="downloadFile()">⬇ Descarregar .js</button>
+            <button class="btn-copy" onclick="copyExport()">📋 Copiar</button>
+            <button class="btn-close" onclick="closeExport()">Tancar</button>
+        </div>
+    </div>
+</div>
+
+<!-- LOAD FIGURES -->
+<script src="js/vocabulari/vocabulari-figures.js"></script>
+
+<script>
+(function () {
+    'use strict';
+
+    // =========================================================================
+    // STATE
+    // =========================================================================
+    const figures = VocabFigures.all;
+    let currentIdx = 0;
+
+    // Deep-clone original data for reset
+    const originalData = JSON.parse(JSON.stringify(
+        figures.map(f => f.etiquetes.map(e => ({ px: e.px, py: e.py, lx: e.lx, ly: e.ly })))
+    ));
+
+    // =========================================================================
+    // DOM REFS
+    // =========================================================================
+    const svg       = document.getElementById('editor-svg');
+    const sidePanel = document.getElementById('side-panel');
+    const figName   = document.getElementById('figure-name');
+    const btnPrev   = document.getElementById('btn-prev');
+    const btnNext   = document.getElementById('btn-next');
+    const statusCoords = document.getElementById('status-coords');
+
+    // =========================================================================
+    // CONSTANTS
+    // =========================================================================
+    const DZ_W      = 130;
+    const DZ_H      = 34;
+    const DZ_W_HINT = 185;
+    const SVG_W     = 500;
+    const SVG_H     = 340;
+
+    // =========================================================================
+    // RENDER
+    // =========================================================================
+    function render() {
+        const fig = figures[currentIdx];
+        figName.textContent = `${currentIdx + 1}/${figures.length} — ${fig.nom}`;
+        btnPrev.disabled = currentIdx === 0;
+        btnNext.disabled = currentIdx === figures.length - 1;
+
+        // ── Grid ──
+        let gridSVG = '<g class="grid" pointer-events="none">';
+        for (let x = 0; x <= SVG_W; x += 10) {
+            const major = x % 50 === 0;
+            gridSVG += `<line x1="${x}" y1="0" x2="${x}" y2="${SVG_H}"
+                         stroke="#7c3aed" stroke-width="${major ? 0.5 : 0.25}" opacity="${major ? 0.3 : 0.15}"/>`;
+            if (major) gridSVG += `<text x="${x + 2}" y="10" font-size="8" fill="#7c3aed" opacity="0.6" font-family="monospace">${x}</text>`;
+        }
+        for (let y = 0; y <= SVG_H; y += 10) {
+            const major = y % 50 === 0;
+            gridSVG += `<line x1="0" y1="${y}" x2="${SVG_W}" y2="${y}"
+                         stroke="#7c3aed" stroke-width="${major ? 0.5 : 0.25}" opacity="${major ? 0.3 : 0.15}"/>`;
+            if (major && y > 0) gridSVG += `<text x="2" y="${y - 2}" font-size="8" fill="#7c3aed" opacity="0.6" font-family="monospace">${y}</text>`;
+        }
+        gridSVG += '</g>';
+
+        // ── Figure SVG ──
+        let figureSVG = fig.svg;
+
+        // ── Etiquetes (connectors + boxes + anchors) ──
+        let etSVG = '';
+        fig.etiquetes.forEach((et, i) => {
+            const isHint = (et.id === fig.id);
+            const w = isHint ? DZ_W_HINT : DZ_W;
+
+            // Connector
+            if (!isHint) {
+                etSVG += `<line class="connector" id="conn-${i}"
+                           x1="${et.px}" y1="${et.py}" x2="${et.lx}" y2="${et.ly}"
+                           stroke="#7c3aed" stroke-width="1.2" opacity="0.6"
+                           pointer-events="none"/>`;
+            }
+
+            // Box (draggable)
+            const bx = et.lx - w / 2;
+            const by = et.ly - DZ_H / 2;
+            etSVG += `<g class="box-handle" id="box-${i}" data-idx="${i}">
+                <rect x="${bx}" y="${by}" width="${w}" height="${DZ_H}" rx="5"
+                      fill="white" fill-opacity="0.85" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <text x="${et.lx}" y="${et.ly}" font-size="12" fill="#334155"
+                      text-anchor="middle" dominant-baseline="middle" font-weight="600"
+                      pointer-events="none">${isHint ? '📌 ' + et.text : et.text}</text>
+            </g>`;
+
+            // Anchor point (draggable) — not for hint
+            if (!isHint) {
+                etSVG += `<circle class="anchor-handle" id="anchor-${i}" data-idx="${i}"
+                           cx="${et.px}" cy="${et.py}" r="7"
+                           fill="#ef4444" fill-opacity="0.7" stroke="#ef4444" stroke-width="2"/>`;
+            }
+        });
+
+        svg.innerHTML = gridSVG + figureSVG + etSVG;
+
+        // ── Side panel ──
+        renderSidePanel();
+
+        // ── Attach drag handlers ──
+        attachDragHandlers();
+    }
+
+    function renderSidePanel() {
+        const fig = figures[currentIdx];
+        let html = '<h2>Etiquetes</h2>';
+        fig.etiquetes.forEach((et, i) => {
+            const isHint = (et.id === fig.id);
+            html += `
+            <div class="et-card ${isHint ? 'is-hint' : ''}" id="card-${i}">
+                <div class="et-card-title">
+                    <span>${et.text}</span>
+                    <span class="tag ${isHint ? 'tag-hint' : ''}">${isHint ? 'HINT' : et.id}</span>
+                </div>
+                ${!isHint ? `
+                <div class="coord-row">
+                    <label class="label-anchor">px</label>
+                    <input type="number" id="input-px-${i}" value="${et.px}" onchange="onInputChange(${i})">
+                    <label class="label-anchor">py</label>
+                    <input type="number" id="input-py-${i}" value="${et.py}" onchange="onInputChange(${i})">
+                    <span style="font-size:0.7em;color:#ef4444;">● punt</span>
+                </div>` : ''}
+                <div class="coord-row">
+                    <label class="label-box">lx</label>
+                    <input type="number" id="input-lx-${i}" value="${et.lx}" onchange="onInputChange(${i})">
+                    <label class="label-box">ly</label>
+                    <input type="number" id="input-ly-${i}" value="${et.ly}" onchange="onInputChange(${i})">
+                    <span style="font-size:0.7em;color:#7c3aed;">■ caixa</span>
+                </div>
+            </div>`;
+        });
+        sidePanel.innerHTML = html;
+    }
+
+    // =========================================================================
+    // DRAG & DROP
+    // =========================================================================
+    let dragTarget = null;
+    let dragType   = null; // 'anchor' | 'box'
+    let dragIdx    = -1;
+
+    function attachDragHandlers() {
+        svg.querySelectorAll('.anchor-handle').forEach(el => {
+            el.addEventListener('pointerdown', onDragStart);
+        });
+        svg.querySelectorAll('.box-handle').forEach(el => {
+            el.addEventListener('pointerdown', onDragStart);
+        });
+        svg.addEventListener('pointermove', onDragMove);
+        svg.addEventListener('pointerup', onDragEnd);
+        svg.addEventListener('pointerleave', onDragEnd);
+
+        // Cursor tracking
+        svg.addEventListener('pointermove', onCursorMove);
+    }
+
+    function svgPoint(e) {
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        return pt.matrixTransform(svg.getScreenCTM().inverse());
+    }
+
+    function onDragStart(e) {
+        e.preventDefault();
+        const el = e.target.closest('.anchor-handle, .box-handle');
+        if (!el) return;
+        dragTarget = el;
+        dragIdx = parseInt(el.dataset.idx);
+        dragType = el.classList.contains('anchor-handle') ? 'anchor' : 'box';
+        svg.setPointerCapture(e.pointerId);
+    }
+
+    function onDragMove(e) {
+        if (!dragTarget) return;
+        const p = svgPoint(e);
+        const x = Math.round(p.x);
+        const y = Math.round(p.y);
+
+        const fig = figures[currentIdx];
+        const et  = fig.etiquetes[dragIdx];
+        const isHint = (et.id === fig.id);
+
+        if (dragType === 'anchor') {
+            et.px = x;
+            et.py = y;
+        } else {
+            et.lx = x;
+            et.ly = y;
+        }
+
+        updateVisuals(dragIdx);
+        updateInputs(dragIdx);
+    }
+
+    function onDragEnd(e) {
+        if (dragTarget) {
+            svg.releasePointerCapture(e.pointerId);
+            dragTarget = null;
+            dragType = null;
+            dragIdx = -1;
+        }
+    }
+
+    function onCursorMove(e) {
+        const p = svgPoint(e);
+        statusCoords.textContent = `Cursor: ${Math.round(p.x)}, ${Math.round(p.y)}`;
+    }
+
+    // =========================================================================
+    // VISUAL UPDATE (without full re-render)
+    // =========================================================================
+    function updateVisuals(idx) {
+        const fig = figures[currentIdx];
+        const et  = fig.etiquetes[idx];
+        const isHint = (et.id === fig.id);
+        const w   = isHint ? DZ_W_HINT : DZ_W;
+
+        // Anchor
+        const anchor = document.getElementById(`anchor-${idx}`);
+        if (anchor) {
+            anchor.setAttribute('cx', et.px);
+            anchor.setAttribute('cy', et.py);
+        }
+
+        // Box
+        const box = document.getElementById(`box-${idx}`);
+        if (box) {
+            const rect = box.querySelector('rect');
+            const text = box.querySelector('text');
+            if (rect) {
+                rect.setAttribute('x', et.lx - w / 2);
+                rect.setAttribute('y', et.ly - DZ_H / 2);
+            }
+            if (text) {
+                text.setAttribute('x', et.lx);
+                text.setAttribute('y', et.ly);
+            }
+        }
+
+        // Connector
+        const conn = document.getElementById(`conn-${idx}`);
+        if (conn) {
+            conn.setAttribute('x1', et.px);
+            conn.setAttribute('y1', et.py);
+            conn.setAttribute('x2', et.lx);
+            conn.setAttribute('y2', et.ly);
+        }
+    }
+
+    function updateInputs(idx) {
+        const et = figures[currentIdx].etiquetes[idx];
+        const setPx = document.getElementById(`input-px-${idx}`);
+        const setPy = document.getElementById(`input-py-${idx}`);
+        const setLx = document.getElementById(`input-lx-${idx}`);
+        const setLy = document.getElementById(`input-ly-${idx}`);
+        if (setPx) setPx.value = et.px;
+        if (setPy) setPy.value = et.py;
+        if (setLx) setLx.value = et.lx;
+        if (setLy) setLy.value = et.ly;
+    }
+
+    // =========================================================================
+    // INPUT CHANGE (manual edit)
+    // =========================================================================
+    window.onInputChange = function (idx) {
+        const et = figures[currentIdx].etiquetes[idx];
+        const getPx = document.getElementById(`input-px-${idx}`);
+        const getPy = document.getElementById(`input-py-${idx}`);
+        const getLx = document.getElementById(`input-lx-${idx}`);
+        const getLy = document.getElementById(`input-ly-${idx}`);
+        if (getPx) et.px = parseInt(getPx.value) || 0;
+        if (getPy) et.py = parseInt(getPy.value) || 0;
+        if (getLx) et.lx = parseInt(getLx.value) || 0;
+        if (getLy) et.ly = parseInt(getLy.value) || 0;
+        updateVisuals(idx);
+    };
+
+    // =========================================================================
+    // NAVIGATION
+    // =========================================================================
+    window.navigate = function (dir) {
+        const newIdx = currentIdx + dir;
+        if (newIdx < 0 || newIdx >= figures.length) return;
+        currentIdx = newIdx;
+        render();
+    };
+
+    window.resetCurrentFigure = function () {
+        const fig = figures[currentIdx];
+        const orig = originalData[currentIdx];
+        fig.etiquetes.forEach((et, i) => {
+            et.px = orig[i].px;
+            et.py = orig[i].py;
+            et.lx = orig[i].lx;
+            et.ly = orig[i].ly;
+        });
+        render();
+    };
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === 'ArrowLeft')  navigate(-1);
+        if (e.key === 'ArrowRight') navigate(1);
+    });
+
+    // =========================================================================
+    // EXPORT
+    // =========================================================================
+    window.showExport = function () {
+        const code = generateJS();
+        document.getElementById('export-textarea').value = code;
+        document.getElementById('modal-overlay').classList.add('visible');
+    };
+
+    window.closeExport = function () {
+        document.getElementById('modal-overlay').classList.remove('visible');
+    };
+
+    window.copyExport = function () {
+        const ta = document.getElementById('export-textarea');
+        ta.select();
+        navigator.clipboard.writeText(ta.value).then(() => {
+            const btn = document.querySelector('.btn-copy');
+            btn.textContent = '✅ Copiat!';
+            setTimeout(() => { btn.textContent = '📋 Copiar'; }, 2000);
+        });
+    };
+
+    window.downloadFile = function () {
+        const code = generateJS();
+        const blob = new Blob([code], { type: 'text/javascript' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'vocabulari-figures.js';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    };
+
+    function generateJS() {
+        let js = `/**
+ * ============================================================================
+ * PROJECTE: Vocabulari Matemàtic
+ * FITXER: js/vocabulari/vocabulari-figures.js
+ * ROL: Font de veritat única de totes les figures geomètriques.
+ * ARQUITECTURA:
+ * - Mòdul IIFE sense efectes secundaris ni dependències externes.
+ * - Cada figura té: id, nom, svg (markup SVG literal) i etiquetes[].
+ * - Cada etiqueta té: id, text, px/py (punt de la figura), lx/ly (caixa).
+ * - El viewBox SVG és sempre 500 × 340.
+ * DEPENDÈNCIES: cap
+ * ============================================================================
+ */
+window.VocabFigures = (() => {
+
+    const FIGURES = [\n`;
+
+        figures.forEach((fig, fi) => {
+            // Figure comment
+            js += `\n        // ${fi + 1}. ${fig.nom.toUpperCase()}\n`;
+            js += `        {\n`;
+            js += `            id:  '${fig.id}',\n`;
+            js += `            nom: '${fig.nom}',\n`;
+            js += `            svg: \`${fig.svg}\`,\n`;
+            js += `            etiquetes: [\n`;
+
+            fig.etiquetes.forEach((et, ei) => {
+                // Pad values for alignment
+                const idPad   = `'${et.id}'`.padEnd(18);
+                const textPad = `'${et.text}'`.padEnd(18);
+                js += `                { id: ${idPad} text: ${textPad} px: ${String(et.px).padStart(3)}, py: ${String(et.py).padStart(3)}, lx: ${String(et.lx).padStart(3)}, ly: ${String(et.ly).padStart(3)}  }`;
+                js += ei < fig.etiquetes.length - 1 ? ',\n' : '\n';
+            });
+
+            js += `            ]\n`;
+            js += `        }`;
+            js += fi < figures.length - 1 ? ',\n' : '\n';
+        });
+
+        js += `
+    ];
+
+    return { all: FIGURES };
+
+})();
+`;
+        return js;
+    }
+
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    render();
+
+})();
+</script>
+</body>
+</html>
