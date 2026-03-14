@@ -912,6 +912,121 @@ window.VocabFigures = (() => {
                 { id: 'radi_major'      , text: 'radi major'      , px: 312, py: 178, lx: 130, ly: 310  },
                 { id: 'radi_menor'      , text: 'radi menor'      , px: 375, py: 137, lx: 430, ly:  60  }
             ]
+        },
+
+        // 21. PRISMA TRIANGULAR
+        {
+            id:  'prisma_triangular',
+            nom: 'Prisma triangular', dim: 3,
+            svg: `
+                <!-- Arestes ocultes -->
+                <line x1="135" y1="295" x2="310" y2="240" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="310" y1="240" x2="310" y2="80"  stroke="#0e7490" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="310" y1="240" x2="450" y2="295" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+                <!-- Cara frontal (rectangle) -->
+                <polygon points="135,295 450,295 450,135 135,135"
+                         fill="#5eead4" fill-opacity="0.45" stroke="none"/>
+                <!-- Cara lateral esquerra (rectangle inclinat) -->
+                <polygon points="135,295 135,135 310,80 310,240"
+                         fill="#2dd4bf" fill-opacity="0.55" stroke="none"/>
+                <!-- Cara superior (rectangle inclinat) -->
+                <polygon points="135,135 450,135 310,80"
+                         fill="#a7f3d0" fill-opacity="0.55" stroke="none"/>
+                <!-- Cara lateral dreta -->
+                <polygon points="450,295 450,135 310,80 310,240"
+                         fill="#14b8a6" fill-opacity="0.5" stroke="none"/>
+
+                <!-- Arestes visibles (sòlides) -->
+                <line x1="135" y1="295" x2="450" y2="295" stroke="#0f766e" stroke-width="2.8"/>
+                <line x1="135" y1="295" x2="135" y2="135" stroke="#0f766e" stroke-width="2.8"/>
+                <line x1="135" y1="135" x2="450" y2="135" stroke="#0f766e" stroke-width="2.8"/>
+                <line x1="450" y1="295" x2="450" y2="135" stroke="#0f766e" stroke-width="2.8"/>
+                <line x1="135" y1="135" x2="310" y2="80"  stroke="#0f766e" stroke-width="2.8"/>
+                <line x1="450" y1="135" x2="310" y2="80"  stroke="#0f766e" stroke-width="2.8"/>
+
+                <!-- Vèrtexs -->
+                <circle cx="135" cy="295" r="4" fill="#0f766e"/>
+                <circle cx="450" cy="295" r="4" fill="#0f766e"/>
+                <circle cx="135" cy="135" r="4" fill="#0f766e"/>
+                <circle cx="450" cy="135" r="4" fill="#0f766e"/>
+                <circle cx="310" cy="80"  r="4" fill="#0f766e"/>
+                <circle cx="310" cy="240" r="4" fill="#0f766e" opacity="0.5"/>
+            `,
+            etiquetes: [
+                { id: 'prisma_triangular', text: 'prisma triangular', px: 300, py: 200, lx: 110, ly:  26  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 310, py:  80, lx: 370, ly:  40  },
+                { id: 'aresta'          , text: 'aresta'          , px: 222, py: 108, lx:  68, ly:  68  },
+                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 300, py: 215, lx:  68, ly: 215  },
+                { id: 'base'            , text: 'base'            , px: 340, py: 118, lx: 420, ly: 310  },
+                { id: 'altura'          , text: 'altura'          , px: 450, py: 215, lx: 430, ly: 215  }
+            ]
+        },
+
+        // 22. PRISMA PENTAGONAL
+        {
+            id:  'prisma_pentagonal',
+            nom: 'Prisma pentagonal', dim: 3,
+            svg: `
+                <!-- Bases pentagonals:
+                     Top: t1(145,120) t2(355,120) t3(400,72) t4(250,38) t5(100,72)
+                     Bot: b1(145,290) b2(355,290) b3(400,242) b4(250,208) b5(100,242) -->
+
+                <!-- Arestes ocultes (base posterior inferior + vertical posterior) -->
+                <line x1="400" y1="242" x2="250" y2="208" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="250" y1="208" x2="100" y2="242" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="250" y1="38"  x2="250" y2="208" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+                <!-- Cara lateral esquerra (t5-t1-b1-b5) -->
+                <polygon points="100,72 145,120 145,290 100,242"
+                         fill="#fbbf24" fill-opacity="0.55" stroke="none"/>
+                <!-- Cara frontal (t1-t2-b2-b1) -->
+                <polygon points="145,120 355,120 355,290 145,290"
+                         fill="#f59e0b" fill-opacity="0.6" stroke="none"/>
+                <!-- Cara lateral dreta (t2-t3-b3-b2) -->
+                <polygon points="355,120 400,72 400,242 355,290"
+                         fill="#d97706" fill-opacity="0.55" stroke="none"/>
+                <!-- Cara superior (pentàgon t1-t2-t3-t4-t5) -->
+                <polygon points="145,120 355,120 400,72 250,38 100,72"
+                         fill="#fcd34d" fill-opacity="0.6" stroke="none"/>
+
+                <!-- Arestes visibles — base inferior -->
+                <line x1="145" y1="290" x2="355" y2="290" stroke="#92400e" stroke-width="2.8"/>
+                <line x1="355" y1="290" x2="400" y2="242" stroke="#92400e" stroke-width="2.8"/>
+                <line x1="100" y1="242" x2="145" y2="290" stroke="#92400e" stroke-width="2.8"/>
+                <!-- Arestes visibles — verticals -->
+                <line x1="145" y1="290" x2="145" y2="120" stroke="#92400e" stroke-width="2.8"/>
+                <line x1="355" y1="290" x2="355" y2="120" stroke="#92400e" stroke-width="2.8"/>
+                <line x1="400" y1="242" x2="400" y2="72"  stroke="#92400e" stroke-width="2.8"/>
+                <line x1="100" y1="242" x2="100" y2="72"  stroke="#92400e" stroke-width="2.8"/>
+                <!-- Arestes visibles — pentàgon superior -->
+                <line x1="145" y1="120" x2="355" y2="120" stroke="#92400e" stroke-width="2.8"/>
+                <line x1="355" y1="120" x2="400" y2="72"  stroke="#92400e" stroke-width="2.8"/>
+                <line x1="400" y1="72"  x2="250" y2="38"  stroke="#92400e" stroke-width="2.8"/>
+                <line x1="250" y1="38"  x2="100" y2="72"  stroke="#92400e" stroke-width="2.8"/>
+                <line x1="100" y1="72"  x2="145" y2="120" stroke="#92400e" stroke-width="2.8"/>
+
+                <!-- Vèrtexs superiors -->
+                <circle cx="145" cy="120" r="4" fill="#92400e"/>
+                <circle cx="355" cy="120" r="4" fill="#92400e"/>
+                <circle cx="400" cy="72"  r="4" fill="#92400e"/>
+                <circle cx="250" cy="38"  r="4" fill="#92400e"/>
+                <circle cx="100" cy="72"  r="4" fill="#92400e"/>
+                <!-- Vèrtexs inferiors -->
+                <circle cx="145" cy="290" r="4" fill="#92400e"/>
+                <circle cx="355" cy="290" r="4" fill="#92400e"/>
+                <circle cx="400" cy="242" r="4" fill="#92400e"/>
+                <circle cx="250" cy="208" r="4" fill="#92400e" opacity="0.5"/>
+                <circle cx="100" cy="242" r="4" fill="#92400e"/>
+            `,
+            etiquetes: [
+                { id: 'prisma_pentagonal', text: 'prisma pentagonal', px: 260, py: 200, lx: 110, ly:  26  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  38, lx: 304, ly:  16  },
+                { id: 'aresta'          , text: 'aresta'          , px: 100, py: 157, lx:  55, ly: 157  },
+                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 250, py: 210, lx: 430, ly: 290  },
+                { id: 'base'            , text: 'base'            , px: 280, py:  90, lx: 430, ly:  42  },
+                { id: 'altura'          , text: 'altura'          , px: 355, py: 205, lx: 435, ly: 185  }
+            ]
         }
 
     ];
