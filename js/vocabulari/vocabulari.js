@@ -77,6 +77,9 @@
 
     const DEBUG = _p.get('debug') === '1';
 
+    // Filtre de dimensió: ?dim=2 (pla) | ?dim=3 (espai) | absent = tot
+    const DIM = _intParam('dim', 0, 2, 3);   // 0 = sense filtre
+
     const BG_COLORS = [
         '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
         '#f5f3ff', '#ecfeff', '#fdf4ff', '#fffbeb', '#faf5ff'
@@ -181,7 +184,8 @@
         _punts = 0;
 
         // Ordre aleatori de figures, repetint si cal fins a TOTAL_OPS
-        const all = VocabFigures.all;
+        const all = DIM ? VocabFigures.all.filter(f => f.dim === DIM)
+                        : VocabFigures.all;
         let ordre = VocabEngine.shuffle(all);
         while (ordre.length < TOTAL_OPS) {
             ordre = [...ordre, ...VocabEngine.shuffle(all)];
