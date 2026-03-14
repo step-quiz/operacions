@@ -635,7 +635,7 @@
             if (el) el.style.display = 'none';
         });
         const target = document.getElementById(id);
-        if (target) target.style.display = 'block';
+        if (target) target.style.display = id === 'game-screen' ? 'flex' : 'block';
     }
 
     // =========================================================================
