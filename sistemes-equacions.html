@@ -95,6 +95,25 @@
             margin-left: 6px; vertical-align: middle;
         }
 
+        /* ── FILA CONTENIDORA D'INPUTS (resolució) ──────────── */
+        .schema-row-input {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.15em;
+        }
+
+        /* Contenidor sistema (clau + equacions) */
+        .sys-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         /* ── INPUTS INLINE (schema-row) ─────────────────────── */
         /* Input estàndard a la schema-row */
         .schema-input-sm {
@@ -256,7 +275,7 @@
 <script>
 
 // ================================================================
-// DOM
+// PROJECTE: Motor Educatiu — Sistemes d'Equacions
 // ================================================================
 const els = {
     body:            document.body,
@@ -290,12 +309,6 @@ let selectedOption = null;
 // ================================================================
 // UTILITATS MATEMÀTIQUES
 // ================================================================
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function pick(arr)      { return arr[Math.floor(Math.random() * arr.length)]; }
-function randNonZero(min, max) {
-    let v; do { v = rand(min, max); } while (v === 0); return v;
-}
-
 // Parseja enters estrictes (inclou negatius, accepta coma)
 function parseNum(s) {
     const clean = String(s).trim().replace(',', '.');
@@ -315,15 +328,14 @@ function fmtTerm(coef, varName, isFirst) {
 
 // Retorna el text d'una equació ax + by = c
 function eqText(a, b, c) {
-    const t1 = fmtTerm(a, 'x', true);
-    const t2 = b === 0 ? '' : (b < 0 ? `${fmtTerm(b,'y',false)}` : `${b===1?'':b}y`);
-    // Reformatem
-    let s = '';
-    if (a !== 0) s += (Math.abs(a) === 1 ? (a < 0 ? '−x' : 'x') : `${a < 0 ? '−'+Math.abs(a) : a}x`);
+    let s = a !== 0 ? fmtTerm(a, 'x', true) : '';
     if (b !== 0) {
-        const sign = b < 0 ? ' − ' : (s === '' ? '' : ' + ');
-        const babs = Math.abs(b) === 1 ? '' : Math.abs(b);
-        s += `${sign}${babs}y`;
+        if (s === '') {
+            s = fmtTerm(b, 'y', true);
+        } else {
+            const raw = fmtTerm(b, 'y', false);
+            s += b < 0 ? ` − ${raw.slice(1)}` : ` + ${raw.slice(1)}`;
+        }
     }
     if (s === '') s = '0';
     return c !== null ? `${s} = ${c}` : s;
@@ -345,9 +357,7 @@ function clearExpr() { els.expressionBox.innerHTML = ''; }
 function renderSistema(p) {
     clearExpr();
     const wrap = document.createElement('div');
-    wrap.style.display = 'flex';
-    wrap.style.alignItems = 'center';
-    wrap.style.gap = '8px';
+    wrap.className = 'sys-wrap';
 
     const brace = mkSpan('{', 'sys-brace');
     const eqsDiv = document.createElement('div');
@@ -392,7 +402,6 @@ function buildEmpty() {
 // Botó de selecció amb auto-submit
 function buildBtnSelect(options) {
     return (_c) => {
-        els.stepBtns.innerHTML = '';
         selectedOption = null;
         const wrap = document.createElement('div'); wrap.className = 'schema-btns';
         options.forEach(opt => {
@@ -415,17 +424,8 @@ function buildBtnSelect(options) {
 function buildSchemaRow(parts) {
     return (c) => {
         c.innerHTML = '';
-        els.stepBtns.innerHTML = '';
         const row = document.createElement('div');
-        row.className = 'schema-row';
-        row.style.display = 'flex';
-        row.style.alignItems = 'center';
-        row.style.flexWrap = 'wrap';
-        row.style.gap = '6px';
-        row.style.justifyContent = 'center';
-        row.style.fontFamily = "'Courier New', monospace";
-        row.style.fontWeight = 'bold';
-        row.style.fontSize = '1.15em';
+        row.className = 'schema-row-input';
         parts.forEach(part => {
             if (typeof part === 'string') {
                 row.appendChild(mkSpan(part));
@@ -469,8 +469,8 @@ function mkSignedInput(id, width, correctVal) {
 // Genera un sistema on una variable té coeficient 1 o -1 (fàcil d'aïllar)
 // Solució (x0, y0) generada primer per garantir enters
 function genRepte1(opIdx) {
-    const x0 = randNonZero(-5, 5);
-    const y0 = randNonZero(-5, 5);
+    const x0 = randIntNonZero(-5, 5);
+    const y0 = randIntNonZero(-5, 5);
 
     // Decidim quina equació i quina variable tindran coef ±1
     const isoEq  = pick([1, 2]);        // equació on aïllem (1a o 2a)
@@ -479,29 +479,29 @@ function genRepte1(opIdx) {
     // Coeficients de l'equació on aïllem: la variable aïllada té coef 1 o -1
     const isoCoef = pick([1, -1]);
     // L'altra variable té coef aleatori ≠ 0
-    const otherCoef = randNonZero(-4, 4);
+    const otherCoef = randIntNonZero(-4, 4);
 
     // Construim les 4 coeficients segons quin és l'isoEq i isoVar
     let a1, b1, c1, a2, b2, c2;
     if (isoEq === 1 && isoVar === 'x') {
         a1 = isoCoef; b1 = otherCoef;
         c1 = a1 * x0 + b1 * y0;
-        a2 = randNonZero(-4, 4); b2 = randNonZero(-4, 4);
+        a2 = randIntNonZero(-4, 4); b2 = randIntNonZero(-4, 4);
         c2 = a2 * x0 + b2 * y0;
     } else if (isoEq === 1 && isoVar === 'y') {
         b1 = isoCoef; a1 = otherCoef;
         c1 = a1 * x0 + b1 * y0;
-        a2 = randNonZero(-4, 4); b2 = randNonZero(-4, 4);
+        a2 = randIntNonZero(-4, 4); b2 = randIntNonZero(-4, 4);
         c2 = a2 * x0 + b2 * y0;
     } else if (isoEq === 2 && isoVar === 'x') {
         a2 = isoCoef; b2 = otherCoef;
         c2 = a2 * x0 + b2 * y0;
-        a1 = randNonZero(-4, 4); b1 = randNonZero(-4, 4);
+        a1 = randIntNonZero(-4, 4); b1 = randIntNonZero(-4, 4);
         c1 = a1 * x0 + b1 * y0;
     } else {  // isoEq===2 && isoVar==='y'
         b2 = isoCoef; a2 = otherCoef;
         c2 = a2 * x0 + b2 * y0;
-        a1 = randNonZero(-4, 4); b1 = randNonZero(-4, 4);
+        a1 = randIntNonZero(-4, 4); b1 = randIntNonZero(-4, 4);
         c1 = a1 * x0 + b1 * y0;
     }
 
@@ -512,8 +512,8 @@ function genRepte1(opIdx) {
 // Genera un sistema on una variable té coeficients oposats (elimina directament)
 // o iguals (elimina restant). Opcionalment cal multiplicar per un factor petit.
 function genRepte2(opIdx) {
-    const x0 = randNonZero(-5, 5);
-    const y0 = randNonZero(-5, 5);
+    const x0 = randIntNonZero(-5, 5);
+    const y0 = randIntNonZero(-5, 5);
 
     // Variable a eliminar
     const elimVar = pick(['x', 'y']);
@@ -523,13 +523,13 @@ function genRepte2(opIdx) {
     let a1, b1, c1, a2, b2, c2, factor = 1, elimEq = null;
 
     if (tipus === 'direct') {
-        const coefElim = randNonZero(1, 4);
+        const coefElim = randIntNonZero(1, 4);
         if (elimVar === 'x') {
             a1 = coefElim; a2 = -coefElim;
-            b1 = randNonZero(-4, 4); b2 = randNonZero(-4, 4);
+            b1 = randIntNonZero(-4, 4); b2 = randIntNonZero(-4, 4);
         } else {
             b1 = coefElim; b2 = -coefElim;
-            a1 = randNonZero(-4, 4); a2 = randNonZero(-4, 4);
+            a1 = randIntNonZero(-4, 4); a2 = randIntNonZero(-4, 4);
         }
         c1 = a1 * x0 + b1 * y0;
         c2 = a2 * x0 + b2 * y0;
@@ -537,21 +537,21 @@ function genRepte2(opIdx) {
         // 'multiply': una equació es multiplica per un factor (2 o 3) per oposar coefs
         factor = pick([2, 3]);
         elimEq = pick([1, 2]);  // equació que cal multiplicar
-        const coefBase = randNonZero(1, 3);
+        const coefBase = randIntNonZero(1, 3);
         if (elimVar === 'x') {
             if (elimEq === 1) {
                 a2 = coefBase * factor; a1 = -coefBase;
             } else {
                 a1 = coefBase * factor; a2 = -coefBase;
             }
-            b1 = randNonZero(-3, 3); b2 = randNonZero(-3, 3);
+            b1 = randIntNonZero(-3, 3); b2 = randIntNonZero(-3, 3);
         } else {
             if (elimEq === 1) {
                 b2 = coefBase * factor; b1 = -coefBase;
             } else {
                 b1 = coefBase * factor; b2 = -coefBase;
             }
-            a1 = randNonZero(-3, 3); a2 = randNonZero(-3, 3);
+            a1 = randIntNonZero(-3, 3); a2 = randIntNonZero(-3, 3);
         }
         c1 = a1 * x0 + b1 * y0;
         c2 = a2 * x0 + b2 * y0;
@@ -621,7 +621,6 @@ function buildStepsRepte1(p) {
 
     const solResultat = constResultat / coefResultat;  // ha de ser enter
     const solAilada   = varAil === 'x' ? p.x0 : p.y0;
-    const solFinal    = varAil === 'x' ? p.y0 : p.x0;  // l'altra variable
 
     // Text de la expressió aïllada: varAil = isoCoefVar·varAltra + isoConst
     function isoExprText() {
@@ -671,9 +670,8 @@ function buildStepsRepte1(p) {
         title: `Aïlla ${varAil} a la ${eqIdx === 1 ? 'primera' : 'segona'} equació:`,
         buildSchema: (c) => {
             c.innerHTML = '';
-            els.stepBtns.innerHTML = '';
             const row = document.createElement('div');
-            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;font-family:"Courier New",monospace;font-weight:bold;font-size:1.15em;';
+            row.className = 'schema-row-input';
 
             row.appendChild(mkSpan(`${varAil} =`));
 
@@ -690,7 +688,6 @@ function buildStepsRepte1(p) {
             c._getVK = siK.getSignedValue;
             c.appendChild(row);
         },
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const vc = els.stepSchema._getVC?.();
             const vk = els.stepSchema._getVK?.();
@@ -707,9 +704,8 @@ function buildStepsRepte1(p) {
         title: `Substitueix a l'altra equació. Quina equació obtens en ${varResultat}?`,
         buildSchema: (c) => {
             c.innerHTML = '';
-            els.stepBtns.innerHTML = '';
             const row = document.createElement('div');
-            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;font-family:"Courier New",monospace;font-weight:bold;font-size:1.15em;';
+            row.className = 'schema-row-input';
             const siC = mkSignedInput('res-coef',  52, coefResultat);
             const siK = mkSignedInput('res-const', 52, constResultat);
             row.appendChild(siC.btn); row.appendChild(siC.inp);
@@ -719,7 +715,6 @@ function buildStepsRepte1(p) {
             c._getVK = siK.getSignedValue;
             c.appendChild(row);
         },
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const vc = els.stepSchema._getVC?.();
             const vk = els.stepSchema._getVK?.();
@@ -734,7 +729,6 @@ function buildStepsRepte1(p) {
             `${varResultat} =`,
             { id: 'sol-var1', width: 60 },
         ]),
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const v = parseNum(document.getElementById('sol-var1')?.value ?? '');
             return !isNaN(v) && v === solResultat;
@@ -751,7 +745,6 @@ function buildStepsRepte1(p) {
             `${varAil} =`,
             { id: 'sol-var2', width: 60 },
         ]),
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const v = parseNum(document.getElementById('sol-var2')?.value ?? '');
             return !isNaN(v) && v === solAilada;
@@ -762,16 +755,12 @@ function buildStepsRepte1(p) {
     });
 
     // PAS 7 — Verificació (opcional, no penalitza si es salta)
-    // Comprova la 1a equació
-    const verif1 = p.a1 * p.x0 + p.b1 * p.y0;  // = p.c1
-    const verif2 = p.a2 * p.x0 + p.b2 * p.y0;  // = p.c2
     steps.push({
         title: `Verifica la solució a la 1a equació:`,
         buildSchema: buildSchemaRow([
             eqText(p.a1, p.b1, null) + ' =',
             { id: 'verif-1', width: 60 },
         ]),
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const v = parseNum(document.getElementById('verif-1')?.value ?? '');
             return !isNaN(v) && v === p.c1;
@@ -801,7 +790,6 @@ function buildStepsRepte2(p) {
     // Resultat de la suma de les dues equacions (eliminant la variable)
     const coefAlt  = coefA1 + coefA2;  // coeficient de l'altra variable
     const cSum     = p.c1 + p.c2;      // terme independent de la suma
-    const solAlt   = cSum / coefAlt;   // solució de l'altra variable
 
     // Solució de la variable eliminada (per substitució enrere)
     const solElim  = elimVar === 'x' ? p.x0 : p.y0;
@@ -827,7 +815,6 @@ function buildStepsRepte2(p) {
                 `Equació ${p.elimEq}a ×`,
                 { id: 'mul-factor', width: 52 },
             ]),
-            buildBtns: () => { els.stepBtns.innerHTML = ''; },
             validate: () => {
                 const v = parseNum(document.getElementById('mul-factor')?.value ?? '');
                 return !isNaN(v) && v === p.factor;
@@ -840,9 +827,8 @@ function buildStepsRepte2(p) {
         title: `Suma les dues equacions. Quina equació obtens?`,
         buildSchema: (c) => {
             c.innerHTML = '';
-            els.stepBtns.innerHTML = '';
             const row = document.createElement('div');
-            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;font-family:"Courier New",monospace;font-weight:bold;font-size:1.15em;';
+            row.className = 'schema-row-input';
             const siC = mkSignedInput('sum-coef',  52, coefAlt);
             const siK = mkSignedInput('sum-const', 52, cSum);
             row.appendChild(siC.btn); row.appendChild(siC.inp);
@@ -852,7 +838,6 @@ function buildStepsRepte2(p) {
             c._getVK = siK.getSignedValue;
             c.appendChild(row);
         },
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const vc = els.stepSchema._getVC?.();
             const vk = els.stepSchema._getVK?.();
@@ -868,7 +853,6 @@ function buildStepsRepte2(p) {
             `${altaVar} =`,
             { id: 'sol-alt', width: 60 },
         ]),
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const v = parseNum(document.getElementById('sol-alt')?.value ?? '');
             return !isNaN(v) && v === solAltra;
@@ -885,7 +869,6 @@ function buildStepsRepte2(p) {
             `${elimVar} =`,
             { id: 'sol-elim', width: 60 },
         ]),
-        buildBtns: () => { els.stepBtns.innerHTML = ''; },
         validate: () => {
             const v = parseNum(document.getElementById('sol-elim')?.value ?? '');
             return !isNaN(v) && v === solElim;
@@ -915,6 +898,7 @@ function showCurrentStep() {
 
     // Schema normal (no hi ha appendToExpr en sistemes — tots els inputs van a la schema-row)
     els.stepSchema.style.display = '';
+    els.stepBtns.innerHTML = '';
     step.buildSchema(els.stepSchema);
 
     if (step.buildBtns) step.buildBtns(els.stepBtns);
