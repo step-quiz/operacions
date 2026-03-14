@@ -794,9 +794,10 @@ h1 {
         max-width: none;
         min-height: 54px;
         flex-shrink: 0;
-        /* padding-inline-end generós: garanteix que l'últim chip
-           mai queda amagat pel borde dret quan s'arriba al final del scroll */
-        padding: 8px 28px 8px 28px;
+        /* Padding vertical únicament; l'horitzontal el gestionen
+           els .pool-spacer DOM per evitar el bug de padding-inline
+           en overflow:auto de Safari/Chrome mòbil. */
+        padding: 8px 0;
         gap: 10px;
         /* Scrollbar prima i visible com a indicador */
         scrollbar-width: thin;
@@ -810,6 +811,17 @@ h1 {
     #game-area.layout-a #word-pool::-webkit-scrollbar       { height: 4px; }
     #game-area.layout-a #word-pool::-webkit-scrollbar-track  { background: var(--primary-light); border-radius: 2px; }
     #game-area.layout-a #word-pool::-webkit-scrollbar-thumb  { background: var(--primary);       border-radius: 2px; }
+
+    /* Spacer DOM (inici i final del pool): garanteix que el primer i l'últim
+       chip mai queden tallats. Workaround cross-browser per al bug de
+       padding-inline en contenidors overflow:auto. */
+    #game-area.layout-a #word-pool .pool-spacer {
+        display: block;
+        flex-shrink: 0;
+        width: 16px;
+        min-width: 16px;
+        pointer-events: none;
+    }
 
     /* Chips: mantenen el format pill, no creixen d'ample */
     #game-area.layout-a .word-chip {
