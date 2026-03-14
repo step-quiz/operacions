@@ -30,11 +30,11 @@ window.VocabFigures = (() => {
                 <circle cx="80"  cy="270" r="5"   fill="#0369a1"/>
             `,
             etiquetes: [
-                { id: 'rectangle', text: 'rectangle', px: 160, py: 130, lx: 244, ly:  24  },
-                { id: 'vertex', text: 'vèrtex', px:  80, py:  90, lx:  68, ly:  46  },
-                { id: 'costat', text: 'costat', px: 305, py:  90, lx: 419, ly:  50  },
-                { id: 'diagonal', text: 'diagonal', px: 181, py: 215, lx:  74, ly: 204  },
-                { id: 'centre', text: 'centre', px: 250, py: 180, lx: 314, ly: 305  }
+                { id: 'rectangle'       , text: 'rectangle'       , px: 160, py: 130, lx: 111, ly:  29  },
+                { id: 'vertex'          , text: 'vèrtex'          , px:  79, py: 270, lx: 107, ly: 314  },
+                { id: 'costat'          , text: 'costat'          , px: 305, py:  90, lx: 379, ly:  40  },
+                { id: 'diagonal'        , text: 'diagonal'        , px: 181, py: 215, lx:  93, ly: 154  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 180, lx: 288, ly: 301  }
             ]
         },
 
@@ -50,11 +50,11 @@ window.VocabFigures = (() => {
                 <circle cx="250" cy="170" r="4.5" fill="#334155"/>
             `,
             etiquetes: [
-                { id: 'circumferencia', text: 'circumferència', px: 380, py: 170, lx:  96, ly:  20  },
-                { id: 'radi', text: 'radi', px: 250, py: 107, lx:  80, ly:  61  },
-                { id: 'diametre', text: 'diàmetre', px: 191, py: 170, lx: 114, ly: 313  },
-                { id: 'corda', text: 'corda', px: 353, py: 188, lx: 400, ly:  34  },
-                { id: 'centre', text: 'centre', px: 250, py: 170, lx: 409, ly: 302  }
+                { id: 'circumferencia'  , text: 'circumferència'  , px: 380, py: 170, lx:  96, ly:  20  },
+                { id: 'radi'            , text: 'radi'            , px: 250, py: 107, lx:  82, ly:  67  },
+                { id: 'diametre'        , text: 'diàmetre'        , px: 191, py: 170, lx: 114, ly: 313  },
+                { id: 'corda'           , text: 'corda'           , px: 353, py: 188, lx: 410, ly:  76  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 409, ly: 302  }
             ]
         },
 
@@ -71,11 +71,11 @@ window.VocabFigures = (() => {
                 <circle cx="440" cy="290" r="5" fill="#d97706"/>
             `,
             etiquetes: [
-                { id: 'triangle', text: 'triangle', px: 250, py: 200, lx: 105, ly:  24  },
-                { id: 'vertex', text: 'vèrtex', px: 250, py:  50, lx: 403, ly:  81  },
-                { id: 'costat', text: 'costat', px: 195, py: 119, lx: 112, ly:  72  },
-                { id: 'base', text: 'base', px: 201, py: 289, lx:  68, ly: 156  },
-                { id: 'altura', text: 'altura', px: 249, py: 214, lx: 425, ly: 148  }
+                { id: 'triangle'        , text: 'triangle'        , px: 250, py: 200, lx: 105, ly:  24  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  50, lx: 403, ly:  81  },
+                { id: 'costat'          , text: 'costat'          , px: 195, py: 119, lx: 118, ly:  86  },
+                { id: 'base'            , text: 'base'            , px: 201, py: 289, lx:  68, ly: 156  },
+                { id: 'altura'          , text: 'altura'          , px: 249, py: 214, lx: 425, ly: 148  }
             ]
         },
 
@@ -98,9 +98,9 @@ window.VocabFigures = (() => {
                 <circle cx="250" cy="170" r="4.5" fill="#334155"/>
             `,
             etiquetes: [
-                { id: 'cercle', text: 'cercle', px: 175, py: 240, lx: 110, ly:  26  },
-                { id: 'radi', text: 'radi', px: 300, py: 124, lx: 416, ly: 289  },
-                { id: 'centre', text: 'centre', px: 250, py: 170, lx:  73, ly: 270  }
+                { id: 'cercle'          , text: 'cercle'          , px: 175, py: 240, lx: 110, ly:  26  },
+                { id: 'radi'            , text: 'radi'            , px: 300, py: 124, lx: 416, ly: 289  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  73, ly: 270  }
             ]
         },
 
@@ -116,10 +116,10 @@ window.VocabFigures = (() => {
                 <text x="242" y="260" font-family="serif" font-style="italic" font-size="18" fill="#7c3aed">α</text>
             `,
             etiquetes: [
-                { id: 'angle', text: 'angle', px: 242, py: 250, lx: 138, ly:  45  },
-                { id: 'vertex', text: 'vèrtex', px: 150, py: 280, lx:  90, ly: 235  },
-                { id: 'raig', text: 'raig', px: 285, py: 190, lx: 364, ly:  59  },
-                { id: 'arc', text: 'arc', px: 220, py: 263, lx: 130, ly: 185  }
+                { id: 'angle'           , text: 'angle'           , px: 242, py: 250, lx: 114, ly:  32  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 150, py: 280, lx:  90, ly: 235  },
+                { id: 'raig'            , text: 'raig'            , px: 285, py: 190, lx: 364, ly:  59  },
+                { id: 'arc'             , text: 'arc'             , px: 220, py: 263, lx: 178, ly: 131  }
             ]
         },
 
@@ -140,11 +140,11 @@ window.VocabFigures = (() => {
                 <circle cx="250" cy="170" r="4" fill="#334155"/>
             `,
             etiquetes: [
-                { id: 'paralelogram', text: 'paral·lelogram', px: 250, py: 170, lx:  99, ly:  25  },
-                { id: 'costat', text: 'costat', px: 338, py: 160, lx: 434, ly: 230  },
-                { id: 'diagonal', text: 'diagonal', px: 227, py: 125, lx:  96, ly: 105  },
-                { id: 'altura', text: 'altura', px: 265, py: 232, lx: 146, ly: 309  },
-                { id: 'vertex', text: 'vèrtex', px: 370, py:  71, lx: 434, ly:  29  }
+                { id: 'paralelogram'    , text: 'paral·lelogram'  , px: 250, py: 170, lx:  99, ly:  25  },
+                { id: 'costat'          , text: 'costat'          , px: 338, py: 160, lx: 434, ly: 230  },
+                { id: 'diagonal'        , text: 'diagonal'        , px: 227, py: 125, lx:  96, ly: 105  },
+                { id: 'altura'          , text: 'altura'          , px: 265, py: 232, lx: 146, ly: 309  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 370, py:  71, lx: 434, ly:  29  }
             ]
         },
 
@@ -162,11 +162,11 @@ window.VocabFigures = (() => {
                 <circle cx="400" cy="270" r="5" fill="#ea580c"/>
             `,
             etiquetes: [
-                { id: 'trapezi', text: 'trapezi', px: 250, py: 200, lx: 108, ly:  24  },
-                { id: 'base_major', text: 'base major', px: 270, py: 270, lx: 338, ly: 309  },
-                { id: 'base_menor', text: 'base menor', px: 215, py:  90, lx: 420, ly:  63  },
-                { id: 'altura', text: 'altura', px: 215, py: 180, lx: 435, ly: 128  },
-                { id: 'costat', text: 'costat', px: 120, py: 181, lx:  76, ly: 310  }
+                { id: 'trapezi'         , text: 'trapezi'         , px: 250, py: 200, lx: 108, ly:  24  },
+                { id: 'base_major'      , text: 'base major'      , px: 270, py: 270, lx: 338, ly: 309  },
+                { id: 'base_menor'      , text: 'base menor'      , px: 215, py:  90, lx: 420, ly:  63  },
+                { id: 'altura'          , text: 'altura'          , px: 215, py: 180, lx: 428, ly: 119  },
+                { id: 'costat'          , text: 'costat'          , px: 120, py: 181, lx:  76, ly: 310  }
             ]
         },
 
@@ -182,11 +182,11 @@ window.VocabFigures = (() => {
                 <line x1="20"  y1="170" x2="480" y2="170" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 6"/>
             `,
             etiquetes: [
-                { id: 'segment', text: 'segment', px: 160, py: 170, lx: 112, ly:  29  },
-                { id: 'extrem', text: 'extrem', px:  80, py: 170, lx:  68, ly: 115  },
-                { id: 'punt_mig', text: 'punt mig', px: 250, py: 170, lx: 309, ly:  46  },
-                { id: 'longitud', text: 'longitud', px: 267, py: 212, lx: 126, ly: 283  },
-                { id: 'recta', text: 'recta', px: 459, py: 164, lx: 400, ly: 103  }
+                { id: 'segment'         , text: 'segment'         , px: 160, py: 170, lx: 112, ly:  29  },
+                { id: 'extrem'          , text: 'extrem'          , px:  80, py: 170, lx:  68, ly: 115  },
+                { id: 'punt_mig'        , text: 'punt mig'        , px: 250, py: 170, lx: 309, ly:  46  },
+                { id: 'longitud'        , text: 'longitud'        , px: 267, py: 212, lx: 126, ly: 283  },
+                { id: 'recta'           , text: 'recta'           , px: 459, py: 164, lx: 400, ly: 103  }
             ]
         },
 
@@ -205,11 +205,11 @@ window.VocabFigures = (() => {
                 <text x="112" y="105" font-family="serif" font-style="italic" font-size="18" fill="#7c3aed">α</text>
             `,
             etiquetes: [
-                { id: 'angle_recte', text: 'angle recte', px: 110, py: 268, lx:  84, ly: 314  },
-                { id: 'hipotenusa', text: 'hipotenusa', px: 260, py: 170, lx: 330, ly: 130  },
-                { id: 'catet_contigu', text: 'catet contigu', px: 100, py: 187, lx:  65, ly:  22  },
-                { id: 'catet_oposat', text: 'catet oposat', px: 260, py: 280, lx: 398, ly: 192  },
-                { id: 'angle_agut', text: 'angle agut', px: 112, py:  84, lx: 220, ly:  55  }
+                { id: 'angle_recte'     , text: 'angle recte'     , px: 110, py: 268, lx:  84, ly: 314  },
+                { id: 'hipotenusa'      , text: 'hipotenusa'      , px: 260, py: 170, lx: 330, ly: 130  },
+                { id: 'catet_contigu'   , text: 'catet contigu'   , px: 100, py: 187, lx: 236, ly: 315  },
+                { id: 'catet_oposat'    , text: 'catet oposat'    , px: 326, py: 279, lx: 398, ly: 192  },
+                { id: 'angle_agut'      , text: 'angle agut'      , px: 112, py:  84, lx: 220, ly:  55  }
             ]
         },
 
@@ -229,12 +229,12 @@ window.VocabFigures = (() => {
                 <circle cx="136" cy="138" r="5"   fill="#ea580c"/>
             `,
             etiquetes: [
-                { id: 'pentagono', text: 'pentàgon', px: 300, py: 200, lx: 106, ly:  22  },
-                { id: 'vertex', text: 'vèrtex', px: 250, py:  55, lx: 114, ly:  77  },
-                { id: 'costat', text: 'costat', px: 349, py: 184, lx: 412, ly: 245  },
-                { id: 'centre', text: 'centre', px: 250, py: 175, lx:  82, ly: 219  },
-                { id: 'apotema', text: 'apotema', px: 250, py: 224, lx: 312, ly: 319  },
-                { id: 'diagonal', text: 'diagonal', px: 285, py: 164, lx: 411, ly:  58  }
+                { id: 'pentagono'       , text: 'pentàgon'        , px: 300, py: 200, lx: 106, ly:  22  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  55, lx: 114, ly:  77  },
+                { id: 'costat'          , text: 'costat'          , px: 349, py: 184, lx: 412, ly: 245  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 175, lx:  82, ly: 219  },
+                { id: 'apotema'         , text: 'apotema'         , px: 250, py: 224, lx: 312, ly: 319  },
+                { id: 'diagonal'        , text: 'diagonal'        , px: 285, py: 164, lx: 411, ly:  58  }
             ]
         },
 
@@ -255,12 +255,12 @@ window.VocabFigures = (() => {
                 <circle cx="146" cy="110" r="5" fill="#059669"/>
             `,
             etiquetes: [
-                { id: 'hexagono', text: 'hexàgon', px: 200, py: 130, lx: 106, ly:  28  },
-                { id: 'vertex', text: 'vèrtex', px: 354, py: 110, lx: 398, ly:  41  },
-                { id: 'costat', text: 'costat', px: 306, py: 257, lx: 413, ly: 315  },
-                { id: 'centre', text: 'centre', px: 250, py: 170, lx:  66, ly: 140  },
-                { id: 'apotema', text: 'apotema', px: 302, py: 170, lx: 432, ly: 213  },
-                { id: 'diagonal', text: 'diagonal', px: 294, py: 194, lx: 109, ly: 306  }
+                { id: 'hexagono'        , text: 'hexàgon'         , px: 200, py: 130, lx: 106, ly:  28  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 354, py: 110, lx: 398, ly:  41  },
+                { id: 'costat'          , text: 'costat'          , px: 306, py: 257, lx: 413, ly: 315  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  66, ly: 140  },
+                { id: 'apotema'         , text: 'apotema'         , px: 302, py: 170, lx: 432, ly: 213  },
+                { id: 'diagonal'        , text: 'diagonal'        , px: 294, py: 194, lx: 109, ly: 306  }
             ]
         },
 
@@ -284,10 +284,10 @@ window.VocabFigures = (() => {
                 <circle cx="310" cy="240" r="4.5" fill="#0369a1"/>
             `,
             etiquetes: [
-                { id: 'cub', text: 'cub', px: 190, py: 230, lx: 108, ly:  25  },
-                { id: 'vertex', text: 'vèrtex', px: 240, py: 160, lx: 431, ly: 116  },
-                { id: 'aresta', text: 'aresta', px: 162, py: 160, lx: 218, ly:  68  },
-                { id: 'cara', text: 'cara', px: 170, py: 230, lx: 395, ly: 291  }
+                { id: 'cub'             , text: 'cub'             , px: 190, py: 230, lx: 108, ly:  25  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 240, py: 160, lx: 431, ly: 116  },
+                { id: 'aresta'          , text: 'aresta'          , px: 162, py: 160, lx: 218, ly:  68  },
+                { id: 'cara'            , text: 'cara'            , px: 170, py: 230, lx: 395, ly: 291  }
             ]
         },
 
@@ -314,12 +314,12 @@ window.VocabFigures = (() => {
                 <line x1="360" y1="309" x2="360" y2="321" stroke="#d97706" stroke-width="1.5"/>
             `,
             etiquetes: [
-                { id: 'ortoedre', text: 'ortoedre', px: 240, py: 148, lx: 210, ly:  20  },
-                { id: 'vertex', text: 'vèrtex', px: 415, py: 119, lx: 428, ly:  44  },
-                { id: 'aresta', text: 'aresta', px: 311, py: 174, lx: 268, ly:  70  },
-                { id: 'cara', text: 'cara', px: 237, py: 148, lx: 124, ly:  68  },
-                { id: 'amplada', text: 'amplada', px: 210, py: 315, lx: 445, ly: 300  },
-                { id: 'alcada', text: 'alçada', px:  60, py: 235, lx: 206, ly: 261  }
+                { id: 'ortoedre'        , text: 'ortoedre'        , px: 240, py: 148, lx: 110, ly:  26  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 415, py: 119, lx: 400, ly:  34  },
+                { id: 'aresta'          , text: 'aresta'          , px: 311, py: 174, lx: 294, ly:  85  },
+                { id: 'cara'            , text: 'cara'            , px: 237, py: 148, lx:  77, ly:  83  },
+                { id: 'amplada'         , text: 'amplada'         , px: 210, py: 315, lx: 445, ly: 300  },
+                { id: 'alcada'          , text: 'alçada'          , px:  60, py: 235, lx: 206, ly: 261  }
             ]
         },
 
@@ -359,12 +359,12 @@ window.VocabFigures = (() => {
                 <circle cx="138" cy="222" r="4"   fill="#d97706"/>
             `,
             etiquetes: [
-                { id: 'piramide', text: 'piràmide', px: 220, py: 180, lx: 398, ly:  23  },
-                { id: 'vertex', text: 'vèrtex', px: 250, py:  48, lx: 140, ly:  34  },
-                { id: 'aresta_lateral', text: 'aresta lateral', px: 203, py: 180, lx:  72, ly: 103  },
-                { id: 'cara_lateral', text: 'cara lateral', px: 312, py: 166, lx: 433, ly:  81  },
-                { id: 'base', text: 'base', px: 230, py: 276, lx:  96, ly: 319  },
-                { id: 'altura', text: 'altura', px: 251, py: 222, lx: 431, ly: 262  }
+                { id: 'piramide'        , text: 'piràmide'        , px: 220, py: 180, lx: 110, ly:  26  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  48, lx: 336, ly:  30  },
+                { id: 'aresta_lateral'  , text: 'aresta lateral'  , px: 203, py: 180, lx:  72, ly: 103  },
+                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 312, py: 166, lx: 403, ly:  95  },
+                { id: 'base'            , text: 'base'            , px: 230, py: 276, lx:  96, ly: 319  },
+                { id: 'altura'          , text: 'altura'          , px: 251, py: 222, lx: 431, ly: 262  }
             ]
         },
 
@@ -385,12 +385,12 @@ window.VocabFigures = (() => {
                 <line x1="409" y1="270" x2="421" y2="270" stroke="#d97706" stroke-width="1.5"/>
             `,
             etiquetes: [
-                { id: 'cilindre', text: 'cilindre', px: 170, py: 200, lx: 101, ly:  28  },
-                { id: 'base', text: 'base', px: 224, py: 276, lx:  90, ly: 314  },
-                { id: 'cara_lateral', text: 'cara lateral', px: 179, py: 159, lx:  99, ly: 138  },
-                { id: 'alcada', text: 'alçada', px: 415, py: 182, lx: 379, ly: 321  },
-                { id: 'radi', text: 'radi', px: 320, py:  90, lx: 325, ly:  29  },
-                { id: 'eix', text: 'eix', px: 250, py: 150, lx: 179, ly: 209  }
+                { id: 'cilindre'        , text: 'cilindre'        , px: 170, py: 200, lx: 101, ly:  28  },
+                { id: 'base'            , text: 'base'            , px: 224, py: 276, lx:  90, ly: 314  },
+                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 179, py: 159, lx:  99, ly: 138  },
+                { id: 'alcada'          , text: 'alçada'          , px: 415, py: 182, lx: 379, ly: 321  },
+                { id: 'radi'            , text: 'radi'            , px: 320, py:  90, lx: 325, ly:  29  },
+                { id: 'eix'             , text: 'eix'             , px: 250, py: 150, lx: 179, ly: 209  }
             ]
         },
 
@@ -409,12 +409,12 @@ window.VocabFigures = (() => {
                 <circle cx="250" cy="280" r="3.5" fill="#334155"/>
             `,
             etiquetes: [
-                { id: 'con', text: 'con', px: 185, py: 220, lx:  98, ly:  31  },
-                { id: 'vertex', text: 'vèrtex', px: 250, py:  50, lx: 377, ly:  30  },
-                { id: 'generatriu', text: 'generatriu', px: 316, py: 144, lx: 410, ly: 117  },
-                { id: 'base', text: 'base', px: 203, py: 281, lx:  73, ly: 140  },
-                { id: 'altura', text: 'altura', px: 252, py: 185, lx: 435, ly: 180  },
-                { id: 'radi', text: 'radi', px: 330, py: 280, lx: 438, ly: 322  }
+                { id: 'con'             , text: 'con'             , px: 185, py: 220, lx:  98, ly:  31  },
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  50, lx: 377, ly:  30  },
+                { id: 'generatriu'      , text: 'generatriu'      , px: 316, py: 144, lx: 410, ly: 117  },
+                { id: 'base'            , text: 'base'            , px: 203, py: 281, lx:  73, ly: 140  },
+                { id: 'altura'          , text: 'altura'          , px: 252, py: 185, lx: 435, ly: 180  },
+                { id: 'radi'            , text: 'radi'            , px: 330, py: 280, lx: 438, ly: 322  }
             ]
         },
 
@@ -430,10 +430,10 @@ window.VocabFigures = (() => {
                 <circle cx="250" cy="170" r="4.5" fill="#334155"/>
             `,
             etiquetes: [
-                { id: 'esfera', text: 'esfera', px: 250, py:  25, lx:  99, ly:  22  },
-                { id: 'centre', text: 'centre', px: 250, py: 170, lx:  65, ly: 275  },
-                { id: 'radi', text: 'radi', px: 301, py: 124, lx: 430, ly: 301  },
-                { id: 'cercle_maxim', text: 'cercle màxim', px: 358, py: 143, lx: 428, ly:  44  }
+                { id: 'esfera'          , text: 'esfera'          , px: 250, py:  25, lx: 101, ly:  24  },
+                { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx:  65, ly: 275  },
+                { id: 'radi'            , text: 'radi'            , px: 301, py: 124, lx: 430, ly: 301  },
+                { id: 'cercle_maxim'    , text: 'cercle màxim'    , px: 358, py: 143, lx: 428, ly:  44  }
             ]
         }
 
