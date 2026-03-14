@@ -162,6 +162,10 @@
             els.writeInput.setAttribute('inputmode',      'text');
         }
 
+        // [CANVI] Overlay "Col·loca el mòbil en vertical"
+        // Creat dinàmicament per no modificar l'HTML base.
+        _initRotateOverlay();
+
         // Enter per al mode B (teclat físic)
         document.addEventListener('keydown', e => {
             if (e.key === 'Enter' && MODALITAT === 'B' && !_isTransiting) {
@@ -171,6 +175,43 @@
         });
 
         _startGame();
+    }
+
+    // =========================================================================
+    // OVERLAY ROTACIÓ — mòbil en landscape (Canvi)
+    // Detecta si és un dispositiu tàctil en landscape i mostra un missatge
+    // de bloqueig fins que l'usuari giri el mòbil en vertical.
+    // La condició: pointer:coarse (tàctil) + orientation:landscape.
+    // =========================================================================
+    function _initRotateOverlay() {
+        // Crea l'element si no existeix
+        let overlay = document.getElementById('rotate-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'rotate-overlay';
+            overlay.innerHTML = `
+                <div class="rotate-icon">📱</div>
+                <div class="rotate-msg">Col·loca el mòbil en vertical per poder continuar</div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        // Condició: tàctil + landscape
+        const mq = window.matchMedia('(pointer: coarse) and (orientation: landscape)');
+
+        function _applyRotateOverlay(matches) {
+            overlay.classList.toggle('visible', matches);
+        }
+
+        // Estat inicial
+        _applyRotateOverlay(mq.matches);
+
+        // Escolta canvis d'orientació (addEventListener modern; fallback addListener)
+        if (typeof mq.addEventListener === 'function') {
+            mq.addEventListener('change', e => _applyRotateOverlay(e.matches));
+        } else {
+            mq.addListener(e => _applyRotateOverlay(e.matches));
+        }
     }
 
     // =========================================================================
