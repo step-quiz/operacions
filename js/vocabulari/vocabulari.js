@@ -445,6 +445,17 @@
         // [CANVI 3] En mòbil portrait: tap-to-select en lloc de drag-and-drop
         const isMob = _isMobilePortrait();
 
+        // Spacer inicial: workaround per al bug de padding-inline-start en
+        // contenidors overflow:auto de Safari/Chrome mòbil, on el padding
+        // CSS del costat inicial del scroll és ignorat. Un element real
+        // garanteix l'espai en tots els browsers.
+        if (isMob) {
+            const spacerStart = document.createElement('span');
+            spacerStart.className    = 'pool-spacer';
+            spacerStart.setAttribute('aria-hidden', 'true');
+            els.wordPool.appendChild(spacerStart);
+        }
+
         VocabEngine.shuffle([..._figActual.etiquetes]).forEach(et => {
             const chip        = document.createElement('div');
             chip.className    = 'word-chip';
@@ -467,6 +478,14 @@
 
             els.wordPool.appendChild(chip);
         });
+
+        // Spacer final: mateix motiu que l'inicial (padding-inline-end ignorat).
+        if (isMob) {
+            const spacerEnd = document.createElement('span');
+            spacerEnd.className    = 'pool-spacer';
+            spacerEnd.setAttribute('aria-hidden', 'true');
+            els.wordPool.appendChild(spacerEnd);
+        }
 
         if (isMob) {
             // Mòbil portrait: les drop-zones del SVG escolten un tap per col·locar el chip seleccionat
