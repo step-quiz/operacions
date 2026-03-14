@@ -56,15 +56,26 @@
     };
 
     // =========================================================================
-    // CONFIG — URL params amb fallbacks i límits defensius
+    // CONFIG — URL params estàndard (coherent amb config.js)
+    // Paràmetres: totalsessions, totaloperations, maxintents, maxenllocmitjana, modalitat, debug
     // =========================================================================
-    const _p          = new URLSearchParams(window.location.search);
-    const MODALITAT   = (_p.get('modalitat') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
-    const TOTAL_OPS   = Math.min(30, Math.max(1, parseInt(_p.get('ops')      || '4', 10) || 4));
-    const MAX_INTENTS = Math.min(10, Math.max(1, parseInt(_p.get('intents')  || '4', 10) || 4));
-    const TOTAL_SESS  = Math.min(20, Math.max(1, parseInt(_p.get('sessions') || '1', 10) || 1));
+    const _p = new URLSearchParams(window.location.search);
 
-    const DEBUG     = _p.get('debug') === '1';
+    function _intParam(key, fallback, min, max) {
+        const raw = _p.get(key);
+        if (raw === null) return fallback;
+        const n = parseInt(raw, 10);
+        if (!Number.isInteger(n) || n < min || n > max) return fallback;
+        return n;
+    }
+
+    const MODALITAT        = (_p.get('modalitat') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
+    const TOTAL_SESS       = _intParam('totalsessions',    1, 1, 20);
+    const TOTAL_OPS        = _intParam('totaloperations',  4, 1, 30);
+    const MAX_INTENTS      = _intParam('maxintents',       4, 1, 10);
+    const MAX_ENLLOC_MITJ  = _intParam('maxenllocmitjana', 1, 0,  1);
+
+    const DEBUG = _p.get('debug') === '1';
 
     const BG_COLORS = [
         '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
@@ -662,15 +673,23 @@
 
     function _calculaNotaSobre10() {
         if (!_puntsTotal.length) return 0;
-        const total = _puntsTotal.reduce((a, b) => a + b, 0);
-        return Number((total / (TOTAL_SESS * TOTAL_OPS)).toFixed(1));
+        if (MAX_ENLLOC_MITJ === 1) {
+            // Només compta la millor sessió
+            const maxScore = Math.max(..._puntsTotal);
+            return Number((maxScore / TOTAL_OPS).toFixed(1));
+        } else {
+            // Mitjana de totes les sessions
+            const total = _puntsTotal.reduce((a, b) => a + b, 0);
+            return Number((total / (TOTAL_SESS * TOTAL_OPS)).toFixed(1));
+        }
     }
 
     function _renderSummary() {
-        const totalPossible = TOTAL_OPS * TOTAL_SESS * 10;
-        const totalPunts    = _puntsTotal.reduce((a, b) => a + b, 0);
-        const nota          = ((totalPunts / totalPossible) * 10)
-                                .toFixed(1).replace('.', ',');
+        const nota10  = _calculaNotaSobre10();
+        const nota    = nota10.toFixed(1).replace('.', ',');
+        const notaText = MAX_ENLLOC_MITJ === 1
+            ? 'Millor sessió:'
+            : TEXTS.SUMMARY_NOTA;
 
         const encerts = _historial.filter(h => h.ok).length;
         const errades = _historial.filter(h => !h.ok).length;
@@ -688,7 +707,7 @@
                 <div class="trophy-icon">${TEXTS.SUMMARY_TROFEU}</div>
                 <div class="summary-data">
                     ${sessionsHTML}
-                    <div style="margin-top:14px;font-size:0.9em;color:var(--text-muted);">${TEXTS.SUMMARY_NOTA}</div>
+                    <div style="margin-top:14px;font-size:0.9em;color:var(--text-muted);">${notaText}</div>
                     <div style="font-size:1.6em;font-weight:bold;color:var(--success);font-family:monospace;">
                         ${nota} / 10
                     </div>
