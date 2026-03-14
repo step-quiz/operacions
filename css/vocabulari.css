@@ -245,7 +245,7 @@ h1 {
     stroke: #ea580c;
     stroke-width: 2.5;
     stroke-dasharray: none;
-    animation: dz-blink-shake 0.8s ease;
+    animation: dz-blink-shake 1.2s ease;
 }
 .drop-zone.dz-active .dz-connector { stroke: #ea580c; }
 .drop-zone.dz-active text.dz-label { fill: #9a3412; }
@@ -382,8 +382,9 @@ h1 {
 }
 
 #game-area.layout-b .write-prompt {
-    font-size: 0.9em;
+    font-size: 1.08em;
     text-align: center;
+    color: #ea580c;
 }
 
 #game-area.layout-b .write-progress {
@@ -394,12 +395,16 @@ h1 {
 #game-area.layout-b .write-input-row {
     flex-direction: column;
     gap: 8px;
-    align-items: stretch;
+    align-items: center;
 }
 
 #game-area.layout-b #write-input {
-    width: 100%;
+    width: 90%;
     font-size: 1.1em;
+}
+
+#game-area.layout-b .btn-submit {
+    width: 90%;
 }
 
 #game-area.layout-b .typo-warning {
