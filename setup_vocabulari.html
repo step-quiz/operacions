@@ -628,7 +628,7 @@ window.VocabFigures = (() => {
                 // Pad values for alignment
                 const idPad   = `'${et.id}'`.padEnd(18);
                 const textPad = `'${et.text}'`.padEnd(18);
-                js += `                { id: ${idPad} text: ${textPad} px: ${String(et.px).padStart(3)}, py: ${String(et.py).padStart(3)}, lx: ${String(et.lx).padStart(3)}, ly: ${String(et.ly).padStart(3)}  }`;
+                js += `                { id: ${idPad}, text: ${textPad}, px: ${String(et.px).padStart(3)}, py: ${String(et.py).padStart(3)}, lx: ${String(et.lx).padStart(3)}, ly: ${String(et.ly).padStart(3)}  }`;
                 js += ei < fig.etiquetes.length - 1 ? ',\n' : '\n';
             });
 
