@@ -44,6 +44,15 @@
         BTN_RESTART:     '🔄 Tornar a jugar',
         BTN_NEXT_FIGURE: 'Figura següent',
         BTN_CYCLE:       'Canviar de casella',
+        BTN_INFORME:     '📋 Veure informe',
+        BTN_COPIAR:      '📝 Copiar codi',
+        INFORME_TITOL:   'Resum de les teves respostes',
+        INFORME_ENCERTS: (n) => `🟢 Encerts (${n})`,
+        INFORME_ERRADES: (n) => `🔴 Errades (${n})`,
+        INFORME_PREGUNTA:'Pregunta:',
+        INFORME_RESPOSTA:'La teva resposta:',
+        INFORME_CAP_OK:  'Cap encert en aquesta partida.',
+        INFORME_CAP_KO:  'Cap errada! Has fet una partida perfecta 🎉',
     };
 
     // =========================================================================
@@ -640,6 +649,23 @@
     // =========================================================================
     // RESUM FINAL
     // =========================================================================
+
+    function _escapeHtml(unsafe) {
+        if (unsafe == null) return '';
+        return String(unsafe)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function _calculaNotaSobre10() {
+        if (!_puntsTotal.length) return 0;
+        const total = _puntsTotal.reduce((a, b) => a + b, 0);
+        return Number((total / (TOTAL_SESS * TOTAL_OPS)).toFixed(1));
+    }
+
     function _renderSummary() {
         const totalPossible = TOTAL_OPS * TOTAL_SESS * 10;
         const totalPunts    = _puntsTotal.reduce((a, b) => a + b, 0);
@@ -678,15 +704,156 @@
                     <div style="font-size:0.8em;color:var(--text-muted);">${TEXTS.SUMMARY_ERRADES}</div>
                 </div>
             </div>
-            <button class="btn-restart" onclick="location.reload()">${TEXTS.BTN_RESTART}</button>
+            <div class="final-actions">
+                <button class="btn-restart" onclick="location.reload()">${TEXTS.BTN_RESTART}</button>
+                <button class="btn-submit btn-action-informe" id="btn-informe"
+                        onclick="_vocabShowInforme()">${TEXTS.BTN_INFORME}</button>
+                <button class="btn-submit btn-action-copiar" id="btn-copiar"
+                        onclick="_vocabCopiarCodi()">${TEXTS.BTN_COPIAR}</button>
+            </div>
         `;
+    }
+
+    // =========================================================================
+    // INFORME (historial d'encerts i errades)
+    // =========================================================================
+    function _showInforme() {
+        ['game-screen', 'summary-screen'].forEach(sid => {
+            const el = document.getElementById(sid);
+            if (el) el.style.display = 'none';
+        });
+
+        let screen = document.getElementById('history-summary-screen');
+        if (!screen) {
+            screen = document.createElement('div');
+            screen.id = 'history-summary-screen';
+            screen.className = 'panel-content';
+            document.querySelector('.panel').appendChild(screen);
+        }
+
+        const encerts = _historial.filter(h => h.ok);
+        const errades = _historial.filter(h => !h.ok);
+
+        screen.innerHTML = `
+            <div style="padding:20px;text-align:left;overflow-y:auto;max-height:100%;">
+                <h2 style="text-align:center;color:var(--primary);margin-bottom:25px;">
+                    ${TEXTS.INFORME_TITOL}
+                </h2>
+
+                <h3 style="color:var(--success);border-bottom:2px solid var(--success);padding-bottom:5px;">
+                    ${TEXTS.INFORME_ENCERTS(encerts.length)}
+                </h3>
+                <ul style="list-style:none;padding:0;margin-bottom:30px;">
+                    ${encerts.map(e => `
+                        <li style="margin-bottom:12px;background:#f0fdf4;padding:12px;border-radius:6px;border:1px solid #bbf7d0;">
+                            <div style="margin-bottom:5px;color:#334155;"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
+                                <span style="font-family:monospace;font-size:1.1em;">${_escapeHtml(e.pregunta)}</span></div>
+                            <div style="color:#059669;"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
+                                <span style="font-family:monospace;">${_escapeHtml(e.resposta)}</span></div>
+                        </li>
+                    `).join('')}
+                    ${encerts.length === 0 ? `<li style="color:var(--text-muted);font-style:italic;">${TEXTS.INFORME_CAP_OK}</li>` : ''}
+                </ul>
+
+                <h3 style="color:var(--danger);border-bottom:2px solid var(--danger);padding-bottom:5px;">
+                    ${TEXTS.INFORME_ERRADES(errades.length)}
+                </h3>
+                <ul style="list-style:none;padding:0;margin-bottom:20px;">
+                    ${errades.map(e => `
+                        <li style="margin-bottom:12px;background:#fef2f2;padding:12px;border-radius:6px;border:1px solid #fecaca;">
+                            <div style="margin-bottom:5px;color:#334155;"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
+                                <span style="font-family:monospace;font-size:1.1em;">${_escapeHtml(e.pregunta)}</span></div>
+                            <div style="color:#dc2626;"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
+                                <span style="font-family:monospace;">${_escapeHtml(e.resposta)}</span></div>
+                        </li>
+                    `).join('')}
+                    ${errades.length === 0 ? `<li style="color:var(--text-muted);font-style:italic;">${TEXTS.INFORME_CAP_KO}</li>` : ''}
+                </ul>
+
+                <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:30px;">
+                    <button class="btn-submit" onclick="_vocabCopiarCodi()"
+                            style="background-color:#334155;">${TEXTS.BTN_COPIAR}</button>
+                    <button class="btn-submit" onclick="location.reload()"
+                            style="background-color:var(--text-muted);">${TEXTS.BTN_RESTART}</button>
+                </div>
+            </div>
+        `;
+
+        screen.style.display = 'block';
+    }
+
+    // =========================================================================
+    // COPIAR CODI (antifrau per al professor)
+    // =========================================================================
+    async function _copiarCodi() {
+        let randomStr = '';
+        const caracters = 'abcdefghijklmnopqrstuvwxyz';
+        for (let i = 0; i < 3; i++) {
+            randomStr += caracters.charAt(Math.floor(Math.random() * caracters.length));
+        }
+
+        const ara    = new Date();
+        const dia    = String(ara.getDate()).padStart(2, '0');
+        const mes    = String(ara.getMonth() + 1).padStart(2, '0');
+        const hora   = String(ara.getHours()).padStart(2, '0');
+        const minuts = String(ara.getMinutes()).padStart(2, '0');
+
+        const dateStr = dia + mes;
+        const timeStr = hora + minuts;
+
+        const notaSobre10     = _calculaNotaSobre10();
+        const notaFormatada   = notaSobre10.toFixed(2).padStart(5, '0').replace('.', ',');
+        const notaSencera     = Math.round(notaSobre10 * 100);
+        const valorAscii      = randomStr.charCodeAt(0);
+        const sumaControl     = notaSencera + parseInt(dia, 10) + parseInt(mes, 10)
+                              + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
+        const lletresControl  = 'TRWAGMYFPDXBNJZSQVHLCKE';
+        const lletraAssignada = lletresControl.charAt(sumaControl % 23);
+        const nomFitxer       = window.location.pathname.split('/').pop().replace('.html', '');
+
+        const output = `${lletraAssignada}${randomStr}-${dateStr}-${timeStr}-${notaFormatada}-${nomFitxer}`;
+        console.log('Codi generat per al professor:', output);
+
+        // Intentar copiar al portapapers; fallback visual si falla
+        try {
+            await navigator.clipboard.writeText(output);
+            _showCopiatFeedback();
+        } catch {
+            _showFallbackCode(output);
+        }
+    }
+
+    function _showCopiatFeedback() {
+        const btn = document.getElementById('btn-copiar');
+        if (btn) {
+            btn.innerText = 'Copiat! ✅';
+            btn.style.backgroundColor = 'var(--success)';
+            setTimeout(() => { btn.style.display = 'none'; }, 3000);
+        }
+    }
+
+    function _showFallbackCode(code) {
+        let box = document.getElementById('fallback-code-box');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'fallback-code-box';
+            box.style.cssText = 'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:400px;';
+            box.innerHTML = `
+                <div style="font-size:0.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div>
+                <div id="fallback-code-text" style="font-family:monospace;font-size:1.1em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;"></div>
+            `;
+            document.querySelector('.panel').appendChild(box);
+        }
+        document.getElementById('fallback-code-text').textContent = code;
+        box.style.display = 'block';
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     // =========================================================================
     // GESTIÓ DE PANTALLES
     // =========================================================================
     function _showScreen(id) {
-        ['game-screen', 'summary-screen'].forEach(sid => {
+        ['game-screen', 'summary-screen', 'history-summary-screen'].forEach(sid => {
             const el = document.getElementById(sid);
             if (el) el.style.display = 'none';
         });
@@ -802,5 +969,7 @@
     window._vocabCheckWrite = function () { _checkWrite(); };
     window._vocabCycleWrite = function () { _cycleWriteTarget(); };
     window._vocabNextFigure = function () { _advanceToNext(); };
+    window._vocabShowInforme = function () { _showInforme(); };
+    window._vocabCopiarCodi  = function () { _copiarCodi(); };
 
 })();
