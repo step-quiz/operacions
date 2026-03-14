@@ -161,11 +161,9 @@ window.VocabFigures = (() => {
                 <polygon points="100,280 100,60 420,280" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
                 <rect x="100" y="260" width="20" height="20" fill="none" stroke="#059669" stroke-width="2"/>
                 <line x1="100" y1="60"  x2="420" y2="280" stroke="#059669" stroke-width="2.5"/>
-                <path d="M 100 90 A 30 30 0 0 1 128 76" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="4 3"/>
                 <circle cx="100" cy="280" r="5" fill="#059669"/>
-                <circle cx="100" cy="60"  r="5" fill="#7c3aed"/>
+                <circle cx="100" cy="60"  r="5" fill="#059669"/>
                 <circle cx="420" cy="280" r="5" fill="#059669"/>
-                <text x="112" y="105" font-family="serif" font-style="italic" font-size="18" fill="#7c3aed">α</text>
             `,
             etiquetes: [
                 { id: 'triangle_rectangle', text: 'triangle rectangle', px: 200, py: 200, lx: 110, ly:  26  },
@@ -345,7 +343,6 @@ window.VocabFigures = (() => {
                 <line x1="390" y1="90"  x2="390" y2="270" stroke="#0369a1" stroke-width="2.5"/>
                 <ellipse cx="250" cy="270" rx="140" ry="32" fill="#dbeafe" stroke="#0369a1" stroke-width="2.5"/>
                 <ellipse cx="250" cy="90"  rx="140" ry="32" fill="#dbeafe" stroke="#0369a1" stroke-width="2.5"/>
-                <line x1="250" y1="90"  x2="250" y2="270" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4"/>
                 <line x1="250" y1="90"  x2="390" y2="90"  stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 3"/>
                 <line x1="415" y1="90"  x2="415" y2="270" stroke="#d97706" stroke-width="1.5"/>
                 <line x1="409" y1="90"  x2="421" y2="90"  stroke="#d97706" stroke-width="1.5"/>
@@ -356,8 +353,7 @@ window.VocabFigures = (() => {
                 { id: 'base'            , text: 'base'            , px: 224, py: 276, lx:  90, ly: 314  },
                 { id: 'cara_lateral'    , text: 'cara lateral'    , px: 179, py: 159, lx:  99, ly: 138  },
                 { id: 'alcada'          , text: 'alçada'          , px: 415, py: 182, lx: 379, ly: 321  },
-                { id: 'radi'            , text: 'radi'            , px: 320, py:  90, lx: 325, ly:  29  },
-                { id: 'eix'             , text: 'eix'             , px: 250, py: 150, lx: 179, ly: 209  }
+                { id: 'radi'            , text: 'radi'            , px: 320, py:  90, lx: 325, ly:  29  }
             ]
         },
 
@@ -446,7 +442,6 @@ window.VocabFigures = (() => {
                 { id: 'costat'          , text: 'costat'          , px: 330, py: 110, lx: 410, ly:  55  },
                 { id: 'vertex'          , text: 'vèrtex'          , px: 250, py: 290, lx: 330, ly: 314  },
                 { id: 'diagonal'        , text: 'diagonal'        , px: 250, py: 110, lx:  70, ly: 100  },
-                { id: 'diagonal2'       , text: 'diagonal'        , px: 340, py: 170, lx:  70, ly: 270  },
                 { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 420, ly: 250  }
             ]
         },
@@ -456,41 +451,47 @@ window.VocabFigures = (() => {
             id:  'tetraedre',
             nom: 'Tetraedre', dim: 3,
             svg: `
-                <!-- Aresta oculta (vèrtex superior a vèrtex posterior de la base) -->
-                <line x1="250" y1="48" x2="250" y2="200" stroke="#d97706" stroke-width="1.3" stroke-dasharray="6 4"/>
+                <!-- Arestes ocultes (cap al vèrtex posterior de la base) -->
+                <line x1="115" y1="285" x2="285" y2="195" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="395" y1="275" x2="285" y2="195" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="250" y1="42"  x2="285" y2="195" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="6 4"/>
 
-                <!-- Base (triangle, translúcida) -->
-                <polygon points="110,290 390,290 250,200"
-                         fill="#fef3c7" fill-opacity="0.45" stroke="#d97706" stroke-width="1.8"/>
+                <!-- Cara esquerra (la més clara) -->
+                <polygon points="250,42 115,285 285,195"
+                         fill="#fed7aa" fill-opacity="0.7" stroke="none"/>
+                <!-- Cara dreta (la més fosca) -->
+                <polygon points="250,42 395,275 285,195"
+                         fill="#fb923c" fill-opacity="0.55" stroke="none"/>
+                <!-- Cara frontal (mitja) -->
+                <polygon points="250,42 115,285 395,275"
+                         fill="#fdba74" fill-opacity="0.7" stroke="none"/>
+                <!-- Base (translúcida, vista des de dalt) -->
+                <polygon points="115,285 395,275 285,195"
+                         fill="#fed7aa" fill-opacity="0.3" stroke="none"/>
 
-                <!-- Cara frontal -->
-                <polygon points="250,48 110,290 390,290"
-                         fill="#fcd34d" fill-opacity="0.5" stroke="#d97706" stroke-width="2.5"/>
+                <!-- Arestes visibles (sòlides) -->
+                <line x1="250" y1="42"  x2="115" y2="285" stroke="#c2410c" stroke-width="2.5"/>
+                <line x1="250" y1="42"  x2="395" y2="275" stroke="#c2410c" stroke-width="2.5"/>
+                <line x1="115" y1="285" x2="395" y2="275" stroke="#c2410c" stroke-width="2.5"/>
 
-                <!-- Cares laterals -->
-                <polygon points="250,48 390,290 250,200"
-                         fill="#fef9c3" fill-opacity="0.45" stroke="#d97706" stroke-width="2"/>
-                <polygon points="250,48 110,290 250,200"
-                         fill="#fde68a" fill-opacity="0.45" stroke="#d97706" stroke-width="2"/>
+                <!-- Altura (del vèrtex al baricentre de la base) -->
+                <line x1="250" y1="42" x2="265" y2="252" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <rect x="265" y="241" width="11" height="11" fill="none" stroke="#c2410c" stroke-width="1.3" transform="rotate(-3,270,246)"/>
 
-                <!-- Altura (del vèrtex superior al baricentre de la base) -->
-                <line x1="250" y1="48" x2="250" y2="260" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
-                <rect x="250" y="249" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
-
-                <!-- Punts clau -->
-                <circle cx="250" cy="260" r="3.5" fill="#334155"/>
-                <circle cx="250" cy="48"  r="5.5" fill="#d97706"/>
-                <circle cx="110" cy="290" r="4"   fill="#d97706"/>
-                <circle cx="390" cy="290" r="4"   fill="#d97706"/>
-                <circle cx="250" cy="200" r="4"   fill="#d97706" opacity="0.5"/>
+                <!-- Vèrtexs -->
+                <circle cx="250" cy="42"  r="5" fill="#c2410c"/>
+                <circle cx="115" cy="285" r="4" fill="#c2410c"/>
+                <circle cx="395" cy="275" r="4" fill="#c2410c"/>
+                <circle cx="285" cy="195" r="4" fill="#c2410c" opacity="0.5"/>
+                <circle cx="265" cy="252" r="3" fill="#334155"/>
             `,
             etiquetes: [
                 { id: 'tetraedre'       , text: 'tetraedre'       , px: 220, py: 200, lx: 110, ly:  26  },
-                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  48, lx: 345, ly:  30  },
-                { id: 'aresta'          , text: 'aresta'          , px: 180, py: 169, lx:  70, ly: 105  },
-                { id: 'cara'            , text: 'cara'            , px: 310, py: 200, lx: 410, ly: 135  },
-                { id: 'base'            , text: 'base'            , px: 250, py: 270, lx: 100, ly: 319  },
-                { id: 'altura'          , text: 'altura'          , px: 251, py: 210, lx: 430, ly: 260  }
+                { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  42, lx: 345, ly:  30  },
+                { id: 'aresta'          , text: 'aresta'          , px: 175, py: 170, lx:  70, ly: 105  },
+                { id: 'cara'            , text: 'cara'            , px: 325, py: 185, lx: 415, ly: 135  },
+                { id: 'base'            , text: 'base'            , px: 260, py: 265, lx: 100, ly: 319  },
+                { id: 'altura'          , text: 'altura'          , px: 258, py: 195, lx: 430, ly: 260  }
             ]
         },
 
@@ -506,16 +507,12 @@ window.VocabFigures = (() => {
                 <line x1="250" y1="50"  x2="250" y2="290" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 3"/>
                 <!-- Centre -->
                 <circle cx="250" cy="170" r="4.5" fill="#334155"/>
-                <!-- Focus (c ≈ 147 per a a=190, b=120) -->
-                <circle cx="103" cy="170" r="4.5" fill="#d97706"/>
-                <circle cx="397" cy="170" r="4.5" fill="#d97706"/>
             `,
             etiquetes: [
                 { id: 'ellipse'         , text: 'el·lipse'        , px: 350, py: 100, lx: 110, ly:  26  },
                 { id: 'centre'          , text: 'centre'          , px: 250, py: 170, lx: 290, ly: 310  },
                 { id: 'eix_major'       , text: 'eix major'       , px: 145, py: 170, lx:  70, ly: 100  },
-                { id: 'eix_menor'       , text: 'eix menor'       , px: 250, py: 110, lx: 380, ly:  55  },
-                { id: 'focus'           , text: 'focus'           , px: 397, py: 170, lx: 420, ly: 260  }
+                { id: 'eix_menor'       , text: 'eix menor'       , px: 250, py: 110, lx: 380, ly:  55  }
             ]
         },
 
