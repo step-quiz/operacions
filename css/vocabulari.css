@@ -428,7 +428,29 @@ h1 {
 }
 
 #game-area.layout-b .btn-submit {
-    width: 90%;
+    width: 45%;
+}
+
+/* Botó "Canviar de casella" */
+.btn-cycle {
+    background: none;
+    border: 1.5px solid var(--border-heavy);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.2s;
+}
+.btn-cycle:hover { border-color: var(--primary); color: var(--primary); }
+.btn-cycle:active { transform: scale(0.95); }
+
+/* Dins layout-b: ample limitat */
+#game-area.layout-b .btn-cycle {
+    align-self: center;
+    font-size: 0.75em;
 }
 
 #game-area.layout-b .typo-warning {
@@ -621,6 +643,24 @@ h1 {
     background: rgba(255,255,255,0.95); padding: 4px 14px;
     border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
+
+/* Botó "Figura següent" dins el mini-overlay */
+.btn-next-figure {
+    margin-top: 10px;
+    background-color: #475569;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    touch-action: manipulation;
+    animation: fadeIn 0.5s;
+}
+.btn-next-figure:active { transform: scale(0.95); }
+@media (hover: hover) { .btn-next-figure:hover { background-color: #334155; } }
 
 /* ══════════════════════════════════════════════
    PANTALLA FINAL
