@@ -240,7 +240,7 @@ h1 {
 
 .drop-zone text.dz-label {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 13px;
+    font-size: 14.3px;
     fill: #334155;
     text-anchor: middle;
     dominant-baseline: middle;
@@ -249,7 +249,7 @@ h1 {
 }
 /* [ROUND 3 — font hint +30%] etiqueta "Com es diu la figura?" */
 .drop-zone text.dz-label-hint {
-    font-size: 15px; /* 17px × 0.90 */
+    font-size: 16.5px; /* 15px × 1.10 */
 }
 .drop-zone.dz-correct text.dz-label { fill: #065f46; }
 .drop-zone.dz-wrong   text.dz-label { fill: #991b1b; }
@@ -313,6 +313,14 @@ h1 {
 .word-chip:active   { cursor: grabbing; }
 .word-chip.dragging { opacity: 0.4; }
 .word-chip.used     { opacity: 0.25; pointer-events: none; }
+/* Chip seleccionat en mode tap-to-select (mòbil portrait) */
+.word-chip.chip-selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary-dark);
+    transform: scale(1.06);
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+}
 @media (hover: hover) {
     .word-chip:not(.used):not(.dragging):hover {
         background: #e2e8f0;
@@ -748,6 +756,88 @@ h1 {
 .btn-restart:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 .btn-restart:active        { transform: scale(0.95); }
 @media (hover: hover) { .btn-restart:hover { background-color: #047857; } }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — PORTRAIT MÒBIL (≤600px)
+   Mode A: top (figura) / bottom (pool horitzontal desplaçable)
+   Interacció tap-to-select: toca un chip per seleccionar-lo,
+   toca la casella del SVG per col·locar-lo.
+   (El drag-and-drop queda per a desktop i landscape.)
+══════════════════════════════════════════════ */
+@media (max-width: 600px) and (orientation: portrait) {
+
+    /* Layout columna: figura a dalt, pool a baix */
+    #game-area.layout-a {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px 8px 6px;
+        gap: 8px;
+    }
+
+    /* Figura: omple l'espai disponible */
+    #game-area.layout-a #figure-container {
+        flex: 1 1 0;
+        min-height: 0;
+        width: 100%;
+        max-width: none;
+    }
+
+    /* Pool: franja horitzontal desplaçable (scroll natural, sense drag) */
+    #game-area.layout-a #word-pool {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        width: 100%;
+        max-width: none;
+        min-height: 54px;
+        flex-shrink: 0;
+        padding: 8px 16px;
+        gap: 10px;
+        /* Scrollbar prima i visible com a indicador de slide */
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary) var(--primary-light);
+        border-radius: 12px;
+        /* Petit degradat als extrems per indicar contingut fora de vista */
+        -webkit-mask-image: linear-gradient(to right,
+            transparent 0px, black 16px,
+            black calc(100% - 16px), transparent 100%);
+        mask-image: linear-gradient(to right,
+            transparent 0px, black 16px,
+            black calc(100% - 16px), transparent 100%);
+    }
+    /* Scrollbar visible a Chromium */
+    #game-area.layout-a #word-pool::-webkit-scrollbar       { height: 4px; }
+    #game-area.layout-a #word-pool::-webkit-scrollbar-track  { background: var(--primary-light); border-radius: 2px; }
+    #game-area.layout-a #word-pool::-webkit-scrollbar-thumb  { background: var(--primary);       border-radius: 2px; }
+
+    /* Chips: mantenen el format pill, no creixen d'ample */
+    #game-area.layout-a .word-chip {
+        flex-shrink: 0;
+        width: auto;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.9em;
+        touch-action: auto;   /* permet el scroll del pool quan es toca el chip */
+    }
+
+    /* Drop-zones: cursor pointer per indicar que es pot tocar */
+    #game-area.layout-a .drop-zone:not(.dz-correct) {
+        cursor: pointer;
+    }
+
+    /* Mini-overlay: centrat sobre la figura, per sobre del pool */
+    #game-area.layout-a #mini-overlay {
+        right: auto;
+        top: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 68px;   /* per sobre de la franja del pool */
+        width: 240px;
+    }
+}
 
 /* ══════════════════════════════════════════════
    RESPONSIVE — PORTRAIT PETIT (≤480px)
