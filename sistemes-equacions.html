@@ -217,6 +217,15 @@
             border-radius: 0 0 8px 8px; border-top: none;
         }
 
+        /* ── ZERO DESTACAT (reducció) ────────────────────────── */
+        .coef-zero {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px;
+            font-family: 'Courier New', Courier, monospace; font-size: 1em; font-weight: bold;
+            color: var(--success); border: 2.5px solid var(--success);
+            border-radius: 8px; background: #d1fae5;
+        }
+
         /* ── ALINEACIÓ SISTEMA (substitució, 3 files) ──────────── */
         .align-system {
             display: grid;
@@ -1032,105 +1041,205 @@ function buildStepsRepte1(p) {
 // ── Repte 2: Reducció ────────────────────────────────────────────
 function buildStepsRepte2(p) {
     const steps = [];
-    const elimVar = p.elimVar;
-    const altaVar = elimVar === 'x' ? 'y' : 'x';
 
-    // Coeficients de la variable a eliminar
-    const coefE1 = elimVar === 'x' ? p.a1 : p.b1;
-    const coefE2 = elimVar === 'x' ? p.a2 : p.b2;
+    let chosenF1 = null, chosenF2 = null, chosenElimVar = null;
+    let sumGetters = {};
 
-    // Coeficients de l'altra variable
-    const coefA1 = elimVar === 'x' ? p.b1 : p.a1;
-    const coefA2 = elimVar === 'x' ? p.b2 : p.a2;
-
-    // Resultat de la suma de les dues equacions (eliminant la variable)
-    const coefAlt  = coefA1 + coefA2;  // coeficient de l'altra variable
-    const cSum     = p.c1 + p.c2;      // terme independent de la suma
-
-    // Solució de la variable eliminada (per substitució enrere)
-    const solElim  = elimVar === 'x' ? p.x0 : p.y0;
-    const solAltra = elimVar === 'x' ? p.y0 : p.x0;
-
-    // PAS 1 — Quina variable s'elimina?
-    steps.push({
-        title: `Quina variable pots eliminar sumant les dues equacions?`,
-        buildSchema: buildEmpty(),
-        hideBtnOk: true,
-        buildBtns: buildBtnSelect([
-            { label: 'x', value: 'x' },
-            { label: 'y', value: 'y' },
-        ]),
-        validate: () => selectedOption === elimVar,
-    });
-
-    // PAS 2 — Si cal multiplicar, indica el factor i l'equació (cas 'multiply')
-    if (p.tipus === 'multiply') {
-        steps.push({
-            title: `Per quant multipliques la ${p.elimEq === 1 ? 'primera' : 'segona'} equació?`,
-            buildSchema: buildSchemaRow([
-                `Equació ${p.elimEq}a ×`,
-                { id: 'mul-factor', width: 52 },
-            ]),
-            validate: () => {
-                const v = parseNum(document.getElementById('mul-factor')?.value ?? '');
-                return !isNaN(v) && v === p.factor;
-            },
-        });
+    // Retorna 'x', 'y' o null: quina variable cancel·len els factors f1, f2
+    function getCancelledVar(f1, f2) {
+        const sumX = f1 * p.a1 + f2 * p.a2;
+        const sumY = f1 * p.b1 + f2 * p.b2;
+        const sumC = f1 * p.c1 + f2 * p.c2;
+        // Cancel·la x si sumX=0 i el sistema resultant no és trivial
+        if (sumX === 0 && (sumY !== 0 || sumC !== 0)) return 'x';
+        if (sumY === 0 && (sumX !== 0 || sumC !== 0)) return 'y';
+        return null;
     }
 
-    // PAS 3 — Resultat de la suma: [±coefAlt]·altaVar = [±cSum]
+    // PAS 1 — Triar factors per a cada equació
     steps.push({
-        title: `Suma les dues equacions. Quina equació obtens?`,
+        title: 'Per quant multipliques cada equació?',
         buildSchema: (c) => {
             c.innerHTML = '';
-            const row = document.createElement('div');
-            row.className = 'schema-row-input';
-            const siC = mkSignedInput('sum-coef',  52, coefAlt);
-            const siK = mkSignedInput('sum-const', 52, cSum);
-            row.appendChild(siC.btn); row.appendChild(siC.inp);
-            row.appendChild(mkSpan(`${altaVar} =`));
-            row.appendChild(siK.btn); row.appendChild(siK.inp);
-            c._getVC = siC.getSignedValue;
-            c._getVK = siK.getSignedValue;
-            c.appendChild(row);
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;font-family:"Courier New",monospace;font-weight:bold;font-size:1em;';
+
+            function mkFactorRow(eqStr, inpId) {
+                const row = document.createElement('div');
+                row.className = 'schema-row-input';
+                row.appendChild(mkSpan('(' + eqStr + ')  ×'));
+                const inp = document.createElement('input');
+                inp.type = 'text'; inp.className = 'schema-input-sm';
+                inp.id = inpId; inp.autocomplete = 'off'; inp.style.width = '52px';
+                inp._kbDirectTapBound = true;
+                inp.addEventListener('pointerdown', e => {
+                    if (!isTouchDevice()) return;
+                    e.preventDefault(); showCustomKeyboard(inp);
+                });
+                row.appendChild(inp);
+                return row;
+            }
+            wrap.appendChild(mkFactorRow(eqText(p.a1, p.b1, null), 'fac-1'));
+            wrap.appendChild(mkFactorRow(eqText(p.a2, p.b2, null), 'fac-2'));
+            c.appendChild(wrap);
         },
         validate: () => {
-            const vc = els.stepSchema._getVC?.();
-            const vk = els.stepSchema._getVK?.();
-            if (isNaN(vc) || isNaN(vk)) return false;
-            return vc === coefAlt && vk === cSum;
+            const f1 = parseNum(document.getElementById('fac-1')?.value ?? '');
+            const f2 = parseNum(document.getElementById('fac-2')?.value ?? '');
+            if (isNaN(f1) || isNaN(f2) || !Number.isInteger(f1) || !Number.isInteger(f2) || f1 === 0 || f2 === 0) return false;
+            const cancelled = getCancelledVar(f1, f2);
+            if (cancelled) {
+                chosenF1 = f1; chosenF2 = f2; chosenElimVar = cancelled;
+                return true;
+            }
+            if (els.stepFeedback) {
+                els.stepFeedback.innerHTML = "Amb aquests factors cap variable s'elimina quan sumes. Revisa'ls.";
+                els.stepFeedback.className = 'important';
+            }
+            return false;
         },
     });
 
-    // PAS 4 — Valor de l'altra variable
+    // PAS 2 — Alineació: equacions multiplicades (text fix) + suma (inputs) + solució
     steps.push({
-        title: `Quant val ${altaVar}?`,
-        buildSchema: buildSchemaRow([
-            `${altaVar} =`,
-            { id: 'sol-alt', width: 60 },
-        ]),
+        title: () => {
+            const f1 = chosenF1, f2 = chosenF2;
+            const s1 = f1 === 1 ? '' : `${f1}·`;
+            const s2 = f2 === 1 ? '' : `${f2}·`;
+            return `Suma <strong>${s1}(Eq1)</strong> + <strong>${s2}(Eq2)</strong>:`;
+        },
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            const f1 = chosenF1, f2 = chosenF2;
+            const elimV = chosenElimVar;
+            const altV  = elimV === 'x' ? 'y' : 'x';
+
+            const m1a = f1*p.a1, m1b = f1*p.b1, m1c = f1*p.c1;
+            const m2a = f2*p.a2, m2b = f2*p.b2, m2c = f2*p.c2;
+            const sumA = m1a + m2a, sumB = m1b + m2b, sumC = m1c + m2c;
+
+            // altCoef és el coef de la variable que QUEDA (no s'elimina)
+            const altCoef = elimV === 'x' ? sumB : sumA;
+            const solAlt  = elimV === 'x' ? p.y0 : p.x0;
+            const solElim = elimV === 'x' ? p.x0 : p.y0;
+
+            const grid = document.createElement('div');
+            grid.className = 'align-system';
+
+            // Fila 1: f1·(eq1)  text fix
+            const r1l = document.createElement('div'); r1l.className = 'align-left';
+            const pref1 = f1 === 1 ? '' : `${f1}·`;
+            r1l.appendChild(mkSpan(pref1 + '(' + eqText(p.a1, p.b1, null) + ')'));
+
+            // Fila 2: f2·(eq2)  text fix
+            const r2l = document.createElement('div'); r2l.className = 'align-left';
+            const pref2 = f2 === 1 ? '' : `${f2}·`;
+            r2l.appendChild(mkSpan(pref2 + '(' + eqText(p.a2, p.b2, null) + ')'));
+
+            // Fila 3 — suma: 0·elimV (destacat) + [inp]·altV = [inp]
+            const r3l = document.createElement('div'); r3l.className = 'align-left';
+            const zeroEl = document.createElement('span');
+            zeroEl.className = 'coef-zero'; zeroEl.textContent = '0';
+
+            const inpAlt = document.createElement('input');
+            inpAlt.type='text'; inpAlt.className='schema-input-sm';
+            inpAlt.id='sum-alt'; inpAlt.autocomplete='off'; inpAlt.style.width='52px';
+            inpAlt._kbDirectTapBound=true;
+            inpAlt.addEventListener('pointerdown', e => { if(!isTouchDevice())return; e.preventDefault(); showCustomKeyboard(inpAlt); });
+
+            if (elimV === 'x') {
+                r3l.appendChild(zeroEl); r3l.appendChild(mkSpan('x + '));
+                r3l.appendChild(inpAlt); r3l.appendChild(mkSpan('y'));
+            } else {
+                r3l.appendChild(inpAlt); r3l.appendChild(mkSpan('x + '));
+                r3l.appendChild(zeroEl); r3l.appendChild(mkSpan('y'));
+            }
+
+            const inpC = document.createElement('input');
+            inpC.type='text'; inpC.className='schema-input-sm';
+            inpC.id='sum-c'; inpC.autocomplete='off'; inpC.style.width='60px';
+            inpC._kbDirectTapBound=true;
+            inpC.addEventListener('pointerdown', e => { if(!isTouchDevice())return; e.preventDefault(); showCustomKeyboard(inpC); });
+            const r3r = document.createElement('div'); r3r.className='align-right';
+            r3r.appendChild(inpC);
+
+            // Fila 4 — solució de altV
+            const r4l = document.createElement('div'); r4l.className='align-left';
+            r4l.appendChild(mkSpan(altV));
+            const inpSol = document.createElement('input');
+            inpSol.type='text'; inpSol.className='schema-input-sm';
+            inpSol.id='sum-sol'; inpSol.autocomplete='off'; inpSol.style.width='60px';
+            inpSol._kbDirectTapBound=true;
+            inpSol.addEventListener('pointerdown', e => { if(!isTouchDevice())return; e.preventDefault(); showCustomKeyboard(inpSol); });
+            const r4r = document.createElement('div'); r4r.className='align-right';
+            r4r.appendChild(inpSol);
+
+            [
+                r1l, mkSpan('=','align-eq'), mkSpan(String(m1c),'align-right'),
+                r2l, mkSpan('=','align-eq'), mkSpan(String(m2c),'align-right'),
+                r3l, mkSpan('=','align-eq'), r3r,
+                r4l, mkSpan('=','align-eq'), r4r,
+            ].forEach(el => grid.appendChild(el));
+
+            c.appendChild(grid);
+            sumGetters = { altCoef, sumC, solAlt, solElim };
+        },
         validate: () => {
-            const v = parseNum(document.getElementById('sol-alt')?.value ?? '');
-            return !isNaN(v) && v === solAltra;
+            const { altCoef, sumC, solAlt } = sumGetters;
+            const checks = [
+                { id: 'sum-alt', expected: altCoef, getter: () => parseNum(document.getElementById('sum-alt')?.value ?? '') },
+                { id: 'sum-c',   expected: sumC,    getter: () => parseNum(document.getElementById('sum-c')?.value   ?? '') },
+                { id: 'sum-sol', expected: solAlt,  getter: () => parseNum(document.getElementById('sum-sol')?.value ?? '') },
+            ];
+            let allOk = true;
+            for (const ch of checks) {
+                const el = document.getElementById(ch.id);
+                if (!el || el.readOnly) continue;
+                const val = ch.getter();
+                if (!isNaN(val) && val === ch.expected) {
+                    el.classList.add('locked-green'); el.readOnly = true;
+                } else {
+                    allOk = false;
+                    el.classList.add('error-flash');
+                    setTimeout(() => { el.classList.remove('error-flash'); el.value=''; }, 350);
+                }
+            }
+            if (!allOk) {
+                if (els.stepFeedback) {
+                    els.stepFeedback.innerHTML = 'Algun valor és incorrecte. Revisa els camps en vermell.';
+                    els.stepFeedback.className = 'important';
+                }
+                setTimeout(() => {
+                    const first = els.stepSchema.querySelector('input:not([readonly])');
+                    if (first) { if(isTouchDevice()) showCustomKeyboard(first); else first.focus(); }
+                }, 400);
+                return false;
+            }
+            return true;
         },
         onCorrect: () => {
-            addExprRow(`${altaVar} = <span class="expr-result">${solAltra}</span>`);
+            const { solAlt } = sumGetters;
+            const altV = chosenElimVar === 'x' ? 'y' : 'x';
+            addExprRow(`${altV} = <span class="expr-result">${solAlt}</span>`);
         },
     });
 
-    // PAS 5 — Substitució per trobar la variable eliminada
+    // PAS 3 — Back-substitució: trobar la variable eliminada
     steps.push({
-        title: `Substitueix ${altaVar} = ${solAltra} a la 1a equació. Quant val ${elimVar}?`,
-        buildSchema: buildSchemaRow([
-            `${elimVar} =`,
-            { id: 'sol-elim', width: 60 },
-        ]),
+        title: () => {
+            const altV  = chosenElimVar === 'x' ? 'y' : 'x';
+            const { solAlt, solElim } = sumGetters;
+            return `Substitueix ${altV} = ${solAlt} a la 1a equació. Quant val ${chosenElimVar}?`;
+        },
+        buildSchema: (c) => {
+            buildSchemaRow([`${chosenElimVar} =`, { id: 'sol-elim', width: 60 }])(c);
+        },
         validate: () => {
             const v = parseNum(document.getElementById('sol-elim')?.value ?? '');
-            return !isNaN(v) && v === solElim;
+            return !isNaN(v) && v === sumGetters.solElim;
         },
         onCorrect: () => {
-            addExprRow(`${elimVar} = <span class="expr-result">${solElim}</span>`);
+            addExprRow(`${chosenElimVar} = <span class="expr-result">${sumGetters.solElim}</span>`);
             showResult(`Solució: x = ${p.x0}, y = ${p.y0} ✓`);
         },
     });
@@ -1537,11 +1646,10 @@ function updateUI() {
 
 function buildLevel() {
     let p, key;
-    // Si és el primer exercici de la primera sessió i hi ha un problema de preview,
-    // el reutilitzem perquè l'alumne vegi el sistema que ja coneixia.
-    if (currentOperation === 0 && currentSession === 0 && previewProblem) {
+    // El previewProblem (generat amb genRepte1) només és compatible amb substitució.
+    // Per a reducció o igualació, sempre generem un problema nou amb el generador adequat.
+    if (currentOperation === 0 && currentSession === 0 && previewProblem && selectedRepte === 1) {
         p = previewProblem;
-        previewProblem = null;   // consumit: els exercicis següents es generen normalment
     } else {
         let tries = 0;
         do {
@@ -1552,6 +1660,7 @@ function buildLevel() {
             tries++;
         } while (usedProblems.has(key) && tries < 30);
     }
+    previewProblem = null;  // consumit sempre
     key = JSON.stringify({ t: p.type, x: p.x0, y: p.y0, a1: p.a1, b1: p.b1 });
     usedProblems.add(key);
     currentProblem = p;
