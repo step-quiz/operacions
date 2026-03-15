@@ -256,6 +256,13 @@
                 </div>
             </button>
 
+            <button class="selection-card" onclick="selectRepte(3)">
+                <div class="selection-text">
+                    <h3>Mètode d'igualació</h3>
+                    <p>Aïlla la mateixa variable a les dues equacions i iguala-les</p>
+                </div>
+            </button>
+
         </div>
     </div>
 
@@ -575,6 +582,52 @@ function genRepte2(opIdx) {
     }
 
     return { type: 'reduc', a1, b1, c1, a2, b2, c2, x0, y0, elimVar, tipus, factor, elimEq };
+}
+
+// ── REPTE 3: Igualació ───────────────────────────────────────────
+// Genera un sistema on la mateixa variable té coeficient ±1 a les dues equacions,
+// cosa que permet aïllar-la sense fraccions i igualar les dues expressions.
+function genRepte3(opIdx) {
+    let a1, b1, c1, a2, b2, c2, isoVar, isoCoef1, isoCoef2, altCoef1, altCoef2;
+
+    // Regenerem fins que el sistema sigui no degenerat (coefResult ≠ 0)
+    let coefResult = 0;
+    let tries = 0;
+    do {
+        const x0_ = randIntNonZero(-5, 5);
+        const y0_ = randIntNonZero(-5, 5);
+
+        isoVar   = pick(['x', 'y']);
+        isoCoef1 = pick([1, -1]);
+        isoCoef2 = pick([1, -1]);
+        altCoef1 = randIntNonZero(-4, 4);
+        altCoef2 = randIntNonZero(-4, 4);
+
+        if (isoVar === 'x') {
+            a1 = isoCoef1; b1 = altCoef1;
+            a2 = isoCoef2; b2 = altCoef2;
+        } else {
+            a1 = altCoef1; b1 = isoCoef1;
+            a2 = altCoef2; b2 = isoCoef2;
+        }
+        c1 = a1 * x0_ + b1 * y0_;
+        c2 = a2 * x0_ + b2 * y0_;
+
+        // coefResult = iso1CoefAlt - iso2CoefAlt
+        //            = (-isoCoef1*altCoef1) - (-isoCoef2*altCoef2)
+        coefResult = (-isoCoef1 * altCoef1) - (-isoCoef2 * altCoef2);
+
+        // Aprofitem les coordenades generades si el sistema és vàlid
+        if (coefResult !== 0) {
+            return { type: 'igual', a1, b1, c1, a2, b2, c2,
+                     x0: x0_, y0: y0_,
+                     isoVar, isoCoef1, isoCoef2, altCoef1, altCoef2 };
+        }
+        tries++;
+    } while (tries < 50);
+
+    // Fallback segur (molt improbable arribar aquí)
+    return genRepte3(opIdx);
 }
 
 // ================================================================
@@ -933,9 +986,250 @@ function buildStepsRepte2(p) {
     return steps;
 }
 
-// ================================================================
-// SISTEMA GENÈRIC DE PASSOS
-// ================================================================
+// ── Repte 3: Igualació ────────────────────────────────────────────
+function buildStepsRepte3(p) {
+    const steps = [];
+
+    // ── Helpers ─────────────────────────────────────────────────
+    // Comprova si la variable v té coef ±1 a les dues equacions (aïllable sense fraccions)
+    function canIgual(v) {
+        const c1 = v === 'x' ? p.a1 : p.b1;
+        const c2 = v === 'x' ? p.a2 : p.b2;
+        return Math.abs(c1) === 1 && Math.abs(c2) === 1;
+    }
+
+    let chosenVar = null;   // definit a l'onCorrect del pas 1
+
+    // Tots els valors derivats calculats diferidament (quan chosenVar ja és conegut)
+    function igualData() {
+        const varIso = chosenVar;
+        const varAlt = varIso === 'x' ? 'y' : 'x';
+
+        const isoC1 = varIso === 'x' ? p.a1 : p.b1;   // coef de varIso a eq1
+        const altC1 = varIso === 'x' ? p.b1 : p.a1;   // coef de varAlt a eq1
+        const isoC2 = varIso === 'x' ? p.a2 : p.b2;
+        const altC2 = varIso === 'x' ? p.b2 : p.a2;
+
+        // Aïllament de varIso:
+        //   isoC1·varIso + altC1·varAlt = c1
+        //   varIso = (c1 − altC1·varAlt) / isoC1
+        //          = isoC1·c1 + (−isoC1·altC1)·varAlt   [ja que 1/isoC1 = isoC1 per a ±1]
+        const iso1CoefAlt = -isoC1 * altC1;
+        const iso1Const   =  isoC1 * p.c1;
+
+        const iso2CoefAlt = -isoC2 * altC2;
+        const iso2Const   =  isoC2 * p.c2;
+
+        // Igualació: iso1CoefAlt·varAlt + iso1Const = iso2CoefAlt·varAlt + iso2Const
+        //   → (iso1CoefAlt − iso2CoefAlt)·varAlt = iso2Const − iso1Const
+        const coefResult  = iso1CoefAlt - iso2CoefAlt;
+        const constResult = iso2Const   - iso1Const;
+
+        const solAlt = varIso === 'x' ? p.y0 : p.x0;
+        const solIso = varIso === 'x' ? p.x0 : p.y0;
+
+        return { varIso, varAlt, iso1CoefAlt, iso1Const, iso2CoefAlt, iso2Const,
+                 coefResult, constResult, solAlt, solIso };
+    }
+
+    // Formata l'expressió aïllada com a text: ex. "−2y + 8" o "3y − 7"
+    function exprText(coefAlt, varAlt, constVal) {
+        let s = '';
+        if (coefAlt !== 0) {
+            const ac   = Math.abs(coefAlt);
+            const sign = coefAlt < 0 ? '−' : '';
+            s += `${sign}${ac === 1 ? '' : ac}${varAlt}`;
+        }
+        if (constVal !== 0) {
+            s += s === '' ? String(constVal)
+                          : (constVal < 0 ? ` − ${Math.abs(constVal)}` : ` + ${constVal}`);
+        }
+        return s || '0';
+    }
+
+    // PAS 1 — Triar variable a aïllar (botó) — AUTO-SUBMIT
+    steps.push({
+        title: `Quina variable aïllaràs a les dues equacions?`,
+        buildSchema: buildEmpty(),
+        hideBtnOk: true,
+        buildBtns: buildBtnSelect([
+            { label: 'x', value: 'x' },
+            { label: 'y', value: 'y' },
+        ]),
+        validate: () => {
+            if (canIgual(selectedOption)) return true;
+            if (els.stepFeedback) {
+                els.stepFeedback.innerHTML =
+                    'Aquesta variable no té coeficient 1 ni −1 a les dues equacions.<br>' +
+                    'Tria l\'altra variable per poder aïllar-la sense fraccions.';
+                els.stepFeedback.className = 'important';
+            }
+            return false;
+        },
+        onCorrect: () => { chosenVar = selectedOption; },
+    });
+
+    // PAS 2 — Aïlla varIso de la 1a equació
+    steps.push({
+        title: () => {
+            const d = igualData();
+            return `Aïlla ${d.varIso} a la <strong>primera</strong> equació:`;
+        },
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            const d   = igualData();
+            const row = document.createElement('div');
+            row.className = 'schema-row-input';
+            row.appendChild(mkSpan(`${d.varIso} =`));
+            const siC = mkSignedInput('iso1-coef',  52, d.iso1CoefAlt);
+            row.appendChild(siC.btn); row.appendChild(siC.inp);
+            row.appendChild(mkSpan(d.varAlt));
+            const siK = mkSignedInput('iso1-const', 52, d.iso1Const);
+            row.appendChild(siK.btn); row.appendChild(siK.inp);
+            c._getVC = siC.getSignedValue;
+            c._getVK = siK.getSignedValue;
+            c.appendChild(row);
+        },
+        validate: () => {
+            const d  = igualData();
+            const vc = els.stepSchema._getVC?.();
+            const vk = els.stepSchema._getVK?.();
+            if (isNaN(vc) || isNaN(vk)) return false;
+            return vc === d.iso1CoefAlt && vk === d.iso1Const;
+        },
+        onCorrect: () => {
+            const d = igualData();
+            addExprRow(
+                `${d.varIso} = ${exprText(d.iso1CoefAlt, d.varAlt, d.iso1Const)}` +
+                `<span class="eq-label">(1a)</span>`,
+                'sys-isolated'
+            );
+        },
+    });
+
+    // PAS 3 — Aïlla varIso de la 2a equació
+    steps.push({
+        title: () => {
+            const d = igualData();
+            return `Aïlla ${d.varIso} a la <strong>segona</strong> equació:`;
+        },
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            const d   = igualData();
+            const row = document.createElement('div');
+            row.className = 'schema-row-input';
+            row.appendChild(mkSpan(`${d.varIso} =`));
+            const siC = mkSignedInput('iso2-coef',  52, d.iso2CoefAlt);
+            row.appendChild(siC.btn); row.appendChild(siC.inp);
+            row.appendChild(mkSpan(d.varAlt));
+            const siK = mkSignedInput('iso2-const', 52, d.iso2Const);
+            row.appendChild(siK.btn); row.appendChild(siK.inp);
+            c._getVC = siC.getSignedValue;
+            c._getVK = siK.getSignedValue;
+            c.appendChild(row);
+        },
+        validate: () => {
+            const d  = igualData();
+            const vc = els.stepSchema._getVC?.();
+            const vk = els.stepSchema._getVK?.();
+            if (isNaN(vc) || isNaN(vk)) return false;
+            return vc === d.iso2CoefAlt && vk === d.iso2Const;
+        },
+        onCorrect: () => {
+            const d = igualData();
+            addExprRow(
+                `${d.varIso} = ${exprText(d.iso2CoefAlt, d.varAlt, d.iso2Const)}` +
+                `<span class="eq-label">(2a)</span>`,
+                'sys-isolated'
+            );
+        },
+    });
+
+    // PAS 4 — Equació resultant d'igualar les dues expressions
+    steps.push({
+        title: () => {
+            const d = igualData();
+            return `Igualem les dues expressions de ${d.varIso}. Quina equació en ${d.varAlt} obtens?`;
+        },
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            const d   = igualData();
+            const row = document.createElement('div');
+            row.className = 'schema-row-input';
+            const siC = mkSignedInput('eq-coef',  52, d.coefResult);
+            const siK = mkSignedInput('eq-const', 52, d.constResult);
+            row.appendChild(siC.btn); row.appendChild(siC.inp);
+            row.appendChild(mkSpan(`${d.varAlt} =`));
+            row.appendChild(siK.btn); row.appendChild(siK.inp);
+            c._getVC = siC.getSignedValue;
+            c._getVK = siK.getSignedValue;
+            c.appendChild(row);
+        },
+        validate: () => {
+            const d  = igualData();
+            const vc = els.stepSchema._getVC?.();
+            const vk = els.stepSchema._getVK?.();
+            if (isNaN(vc) || isNaN(vk)) return false;
+            return vc === d.coefResult && vk === d.constResult;
+        },
+    });
+
+    // PAS 5 — Valor de varAlt
+    steps.push({
+        title: () => `Quant val ${igualData().varAlt}?`,
+        buildSchema: (c) => {
+            const d = igualData();
+            buildSchemaRow([`${d.varAlt} =`, { id: 'sol-alt', width: 60 }])(c);
+        },
+        validate: () => {
+            const d = igualData();
+            const v = parseNum(document.getElementById('sol-alt')?.value ?? '');
+            return !isNaN(v) && v === d.solAlt;
+        },
+        onCorrect: () => {
+            const d = igualData();
+            addExprRow(`${d.varAlt} = <span class="expr-result">${d.solAlt}</span>`);
+        },
+    });
+
+    // PAS 6 — Valor de varIso (substitució enrere a la 1a expressió aïllada)
+    steps.push({
+        title: () => {
+            const d = igualData();
+            return `Substitueix ${d.varAlt} = ${d.solAlt} a la primera expressió aïllada. Quant val ${d.varIso}?`;
+        },
+        buildSchema: (c) => {
+            const d = igualData();
+            buildSchemaRow([`${d.varIso} =`, { id: 'sol-iso', width: 60 }])(c);
+        },
+        validate: () => {
+            const d = igualData();
+            const v = parseNum(document.getElementById('sol-iso')?.value ?? '');
+            return !isNaN(v) && v === d.solIso;
+        },
+        onCorrect: () => {
+            const d = igualData();
+            addExprRow(`${d.varIso} = <span class="expr-result">${d.solIso}</span>`);
+        },
+    });
+
+    // PAS 7 — Verificació a la 1a equació
+    steps.push({
+        title: `Verifica la solució a la 1a equació:`,
+        buildSchema: (c) => {
+            buildSchemaRow([eqText(p.a1, p.b1, null) + ' =', { id: 'verif-1', width: 60 }])(c);
+        },
+        validate: () => {
+            const v = parseNum(document.getElementById('verif-1')?.value ?? '');
+            return !isNaN(v) && v === p.c1;
+        },
+        onCorrect: () => {
+            showResult(`Solució: x = ${p.x0}, y = ${p.y0} ✓`);
+        },
+    });
+
+    return steps;
+}
 
 function showCurrentStep() {
     const step = currentSteps[currentStepIdx];
@@ -1093,7 +1387,9 @@ function buildLevel() {
     let p, key;
     let tries = 0;
     do {
-        p = selectedRepte === 1 ? genRepte1(currentOperation) : genRepte2(currentOperation);
+        p = selectedRepte === 1 ? genRepte1(currentOperation)
+          : selectedRepte === 2 ? genRepte2(currentOperation)
+          :                       genRepte3(currentOperation);
         key = JSON.stringify({ t: p.type, x: p.x0, y: p.y0, a1: p.a1, b1: p.b1 });
         tries++;
     } while (usedProblems.has(key) && tries < 30);
@@ -1102,9 +1398,9 @@ function buildLevel() {
 
     renderSistema(p);
 
-    currentSteps = selectedRepte === 1
-        ? buildStepsRepte1(p)
-        : buildStepsRepte2(p);
+    currentSteps = selectedRepte === 1 ? buildStepsRepte1(p)
+                 : selectedRepte === 2 ? buildStepsRepte2(p)
+                 :                       buildStepsRepte3(p);
 
     currentStepIdx = 0;
     showCurrentStep();
@@ -1143,10 +1439,7 @@ if (mParam === 1) {
     selectRepte(2);   // Reducció
 
 } else if (mParam === 2) {
-    // Igualació: encara no implementada; cau a la pantalla de selecció
-    console.warn('Igualació (?m=2) no implementada encara.');
-    renderSistemaTo(genRepte1(0), document.getElementById('preview-expression-box'));
-    showScreen('selection-screen');
+    selectRepte(3);   // Igualació
 
 } else if (mParam === 3) {
     selectRepte(1);   // Substitució
