@@ -46,6 +46,11 @@
         BTN_CYCLE:       'Canviar de casella',
         BTN_INFORME:     '📋 Veure informe',
         BTN_COPIAR:      '📝 Copiar codi',
+        // Avisos d'error tipogràfic (mode B)
+        TYPO_ACCENT:      "Revisa l'accentuació",
+        TYPO_LLETRA:      'Revisa aquesta lletra',
+        TYPO_FALTA_L:     'Revisa, falta una lletra',
+        TYPO_FALTA_P:     'Falta una paraula',
         INFORME_TITOL:   'Resum de les teves respostes',
         INFORME_ENCERTS: (n) => `🟢 Encerts (${n})`,
         INFORME_ERRADES: (n) => `🔴 Errades (${n})`,
@@ -734,7 +739,7 @@
         const et      = _figActual.etiquetes[_writeIdx];
         const resultat = VocabEngine.avaluaResposta(raw, et.text);
 
-        if (resultat === 'correct') {
+        if (resultat.verdict === 'correct') {
             els.typoWarning.classList.remove('visible');
             _historial.push({ pregunta: et.text, resposta: raw, ok: true });
 
@@ -758,13 +763,20 @@
                 }
             }, 400);
 
-        } else if (resultat === 'typo') {
+        } else if (resultat.verdict === 'typo') {
             // Avisa però NO penalitza.
-            // Mostra la paraula de l'alumne amb el caràcter problemàtic marcat,
-            // sense revelar la solució ni explicar l'error.
-            const hl = VocabEngine.getTypoHighlight(raw, et.text);
+            // Missatge específic segons el tipus d'error; mostra la paraula
+            // escrita per l'alumne amb el caràcter problemàtic marcat si escau.
+            const TYPO_MSG = {
+                accent:      TEXTS.TYPO_ACCENT,
+                lletra:      TEXTS.TYPO_LLETRA,
+                faltaLletra: TEXTS.TYPO_FALTA_L,
+                faltaParaula:TEXTS.TYPO_FALTA_P,
+            };
+            const msg = TYPO_MSG[resultat.typoKind] || TEXTS.TYPO_LLETRA;
             els.typoWarning.innerHTML =
-                `\u26A0\uFE0F <span class="typo-written">${hl}</span>`;
+                `\u26A0\uFE0F <span class="typo-msg">${msg}</span>` +
+                `<span class="typo-written">${resultat.html}</span>`;
             els.typoWarning.classList.add('visible');
             els.writeInput.value = '';
             _focusWriteInput();

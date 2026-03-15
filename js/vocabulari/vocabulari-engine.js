@@ -73,24 +73,74 @@ window.VocabEngine = (() => {
     /**
      * Avalua la resposta de l'alumne contra la paraula correcta.
      *
-     * Lògica:
-     *  - Normalitza ambdues per eliminar diferències d'accents/espais.
-     *  - Si coincideixen exactament → 'correct'
-     *  - Si la distància Levenshtein és ≤ llindar → 'typo' (avisa sense penalitzar)
-     *    Llindar: 1 per a paraules curtes (≤5 caràcters normalitzats), 2 per a llargues.
-     *  - Altrament → 'wrong'
+     * Retorna un objecte { verdict, typoKind?, html? }:
+     *  - verdict:   'correct' | 'typo' | 'wrong'
+     *  - typoKind:  'accent' | 'lletra' | 'faltaLletra' | 'faltaParaula'  (només si typo)
+     *  - html:      la paraula de l'alumne amb el caràcter problemàtic marcat  (només si typo)
+     *
+     * Lògica per ordre de prioritat:
+     *  1. Coincidència exacta                        → correct
+     *  2. Normalitzada igual (difereix en accents)   → typo / accent
+     *  3. Target de ≥2 paraules i l'alumne n'ha escrit
+     *     menys, totes correctes (normalitzades)     → typo / faltaParaula
+     *  4. Distància Levenshtein ≤ llindar:
+     *       - Operació d'esborrat pur (falta lletra)  → typo / faltaLletra
+     *       - Substitució o lletra de més             → typo / lletra
+     *  5. Altrament                                  → wrong
+     *
+     * Llindar Levenshtein: 1 per a paraules curtes (≤5 caràcters normalitzats),
+     *                      2 per a paraules llargues.
      *
      * @param  {string} input   El que ha escrit l'alumne
      * @param  {string} target  La paraula correcta
-     * @returns {'correct'|'typo'|'wrong'}
+     * @returns {{ verdict: string, typoKind?: string, html?: string }}
      */
     function avaluaResposta(input, target) {
-        const ni = _normalitza(input);
-        const nt = _normalitza(target);
-        if (ni === nt) return 'correct';
+        const raw  = String(input).trim();
+        const rawT = String(target).trim();
+
+        // 1. Coincidència exacta
+        if (raw === rawT) return { verdict: 'correct' };
+
+        const ni = _normalitza(raw);
+        const nt = _normalitza(rawT);
+
+        // 2. Normalitzada igual → l'únic error és d'accentuació
+        if (ni === nt) {
+            return { verdict: 'typo', typoKind: 'accent', html: _escHtml(raw) };
+        }
+
+        // 3. Paraula incompleta: target de ≥2 mots i l'alumne n'ha escrit menys,
+        //    però tots els que ha escrit estan bé (comprovació normalitzada).
+        const tWords = rawT.split(/\s+/);
+        if (tWords.length > 1) {
+            const iWords = raw.split(/\s+/);
+            if (iWords.length < tWords.length) {
+                const totsCoincideixen = iWords.every(w =>
+                    tWords.some(tw => _normalitza(w) === _normalitza(tw))
+                );
+                if (totsCoincideixen) {
+                    return { verdict: 'typo', typoKind: 'faltaParaula', html: _escHtml(raw) };
+                }
+            }
+        }
+
+        // 4. Distància Levenshtein sobre cadenes normalitzades
         const dist      = _levenshtein(ni, nt);
         const threshold = nt.length <= 5 ? 1 : 2;
-        return dist <= threshold ? 'typo' : 'wrong';
+        if (dist > threshold) return { verdict: 'wrong' };
+
+        // Classifica el tipus d'error tipogràfic
+        const ops        = _levenshteinAlign(ni, nt);
+        const hasMissing = ops.some(o => o.type === 'missing');
+        const hasSub     = ops.some(o => o.type === 'sub');
+        const hasExtra   = ops.some(o => o.type === 'extra');
+
+        // Esborrat pur (lletra que falta) vs substitució/lletra de més
+        const typoKind = (hasMissing && !hasSub && !hasExtra) ? 'faltaLletra' : 'lletra';
+        const html     = getTypoHighlight(raw, rawT);
+
+        return { verdict: 'typo', typoKind, html };
     }
 
     // =========================================================================
