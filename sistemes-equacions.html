@@ -821,79 +821,78 @@ function buildStepsRepte1(p) {
         },
     });
 
-    // PAS 4a — Confirmar l'expressió substituïda (botó) — AUTO-SUBMIT
-    // L'alumne veu l'equació destí amb (□) on estava varAil, i tria l'expressió correcta
-    steps.push({
-        title: () => {
-            const d      = isoData();
-            const eqNum  = d.subEq === 1 ? 'primera' : 'segona';
-            const cIso   = d.coefSubstit;
-            const absI   = Math.abs(cIso);
-            const signI  = cIso < 0 ? '−' : '';
-            const prefix = `${signI}${absI === 1 ? '' : absI}`;
-            const cAlt   = d.varAil === 'x' ? d.bS : d.aS;
-            const absA   = Math.abs(cAlt);
-            const signA  = cAlt < 0 ? ' − ' : ' + ';
-            const altTerm = cAlt !== 0 ? `${signA}${absA === 1 ? '' : absA}${d.varAltra}` : '';
-            const eqDisp = `${prefix}(□)${altTerm} = ${d.cS}`;
-            return `A la <strong>${eqNum}</strong> equació tens: `
-                 + `<span style="font-family:'Courier New',monospace">${eqDisp}</span>`
-                 + `<br>Per quina expressió substitueixes <em>${d.varAil}</em>?`;
-        },
-        buildSchema: buildEmpty(),
-        hideBtnOk: true,
-        buildBtns: (_c) => {
-            selectedOption = null;
-            const d = isoData();
-            const correctExpr = isoExprText(d);
-            // Dos distractors: signe del coef negat, signe de la constant negada
-            const dist1 = isoExprText({ ...d, isoCoefVar: -d.isoCoefVar });
-            const dist2 = isoExprText({ ...d, isoConst:   -d.isoConst   });
-            let opts = [{ label: correctExpr, value: 'correct' }];
-            if (dist1 !== correctExpr) opts.push({ label: dist1, value: 'wrong' });
-            if (dist2 !== correctExpr && dist2 !== dist1) opts.push({ label: dist2, value: 'wrong' });
-            // Barreja Fisher-Yates
-            for (let i = opts.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [opts[i], opts[j]] = [opts[j], opts[i]];
-            }
-            const wrap = document.createElement('div'); wrap.className = 'schema-btns';
-            opts.forEach(opt => {
-                const btn = document.createElement('button'); btn.className = 'schema-btn';
-                btn.textContent = opt.label;
-                btn.onclick = () => {
-                    wrap.querySelectorAll('.schema-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    selectedOption = opt.value;
-                    if (!isTransitioning && !isPenalizing) checkStep();
-                };
-                wrap.appendChild(btn);
-            });
-            els.stepBtns.appendChild(wrap);
-        },
-        validate: () => selectedOption === 'correct',
-    });
-
-    // PAS 4b — Expandir el parèntesi: coefSubstit·(expr) → coef·varAltra + const
+    // PAS 4a — Substituir: omple l'expressió dins del parèntesi
+    // Visual: coefPrefix·([±inp]·varAltra [±inp]) restEq
     steps.push({
         title: () => {
             const d     = isoData();
-            const absI  = Math.abs(d.coefSubstit);
-            const signI = d.coefSubstit < 0 ? '−' : '';
-            const fac   = `${signI}${absI === 1 ? '' : absI}`;
-            return `Expandeix el parèntesi:`
-                 + ` <span style="font-family:'Courier New',monospace">${fac}·(${isoExprText(d)})</span>`;
+            const eqNum = d.subEq === 1 ? 'primera' : 'segona';
+            return `Substitueix <em>${d.varAil}</em> a la <strong>${eqNum}</strong> equació:`;
         },
+        buildSchema: (c) => {
+            c.innerHTML = '';
+            const d    = isoData();
+            const row  = document.createElement('div');
+            row.className = 'schema-row-input';
+
+            // prefix: el coeficient que multiplica el parèntesi  ex. "−2·"
+            const absP = Math.abs(d.coefSubstit);
+            const preS = d.coefSubstit < 0 ? '−' : '';
+            const pre  = `${preS}${absP === 1 ? '' : absP}`;
+            if (pre) row.appendChild(mkSpan(`${pre}·(`));
+            else     row.appendChild(mkSpan('('));
+
+            const siC = mkSignedInput('iso4a-coef',  52, d.isoCoefVar);
+            row.appendChild(siC.btn); row.appendChild(siC.inp);
+            row.appendChild(mkSpan(d.varAltra));
+            const siK = mkSignedInput('iso4a-const', 52, d.isoConst);
+            row.appendChild(siK.btn); row.appendChild(siK.inp);
+
+            // rest: els termes restants de l'equació   ex. " − y = 1"
+            const otherCoef = d.varAil === 'x' ? d.bS : d.aS;
+            const absO = Math.abs(otherCoef);
+            const signO = otherCoef < 0 ? ' − ' : ' + ';
+            const numO  = absO === 1 ? '' : String(absO);
+            const rest  = (otherCoef !== 0 ? `) ${signO}${numO}${d.varAltra}` : ')') + ` = ${d.cS}`;
+            row.appendChild(mkSpan(rest));
+
+            c._getVC = siC.getSignedValue;
+            c._getVK = siK.getSignedValue;
+            c.appendChild(row);
+        },
+        validate: () => {
+            const d  = isoData();
+            const vc = els.stepSchema._getVC?.();
+            const vk = els.stepSchema._getVK?.();
+            if (isNaN(vc) || isNaN(vk)) return false;
+            return vc === d.isoCoefVar && vk === d.isoConst;
+        },
+    });
+
+    // PAS 4b — Expandir: omple els termes del parèntesi ja obert
+    // Visual: ([±inp]·varAltra [±inp]) restEq
+    steps.push({
+        title: () => `Expandeix el parèntesi:`,
         buildSchema: (c) => {
             c.innerHTML = '';
             const d   = isoData();
             const row = document.createElement('div');
             row.className = 'schema-row-input';
-            const siC = mkSignedInput('exp-coef',  52, d.expandedCoef);
-            const siK = mkSignedInput('exp-const', 52, d.expandedConst);
+
+            row.appendChild(mkSpan('('));
+            const siC = mkSignedInput('exp4b-coef',  52, d.expandedCoef);
             row.appendChild(siC.btn); row.appendChild(siC.inp);
             row.appendChild(mkSpan(d.varAltra));
+            const siK = mkSignedInput('exp4b-const', 52, d.expandedConst);
             row.appendChild(siK.btn); row.appendChild(siK.inp);
+
+            const otherCoef = d.varAil === 'x' ? d.bS : d.aS;
+            const absO  = Math.abs(otherCoef);
+            const signO = otherCoef < 0 ? ' − ' : ' + ';
+            const numO  = absO === 1 ? '' : String(absO);
+            const rest  = (otherCoef !== 0 ? `) ${signO}${numO}${d.varAltra}` : ')') + ` = ${d.cS}`;
+            row.appendChild(mkSpan(rest));
+
             c._getVC = siC.getSignedValue;
             c._getVK = siK.getSignedValue;
             c.appendChild(row);
@@ -907,38 +906,13 @@ function buildStepsRepte1(p) {
         },
     });
 
-    // PAS 4c — Aplegar termes i obtenir l'equació simplificada en varResultat
+    // PAS 4c — Aplega termes i resol: quant val varResultat?
+    // Fusionat amb l'antic pas 5: l'alumne aplega mentalment i escriu la solució
     steps.push({
         title: () => {
             const d = isoData();
-            return `Aplega els termes en <em>${d.varResultat}</em>. Quina equació obtens?`;
+            return `Aplega els termes en <em>${d.varResultat}</em> i resol. Quant val ${d.varResultat}?`;
         },
-        buildSchema: (c) => {
-            c.innerHTML = '';
-            const d   = isoData();
-            const row = document.createElement('div');
-            row.className = 'schema-row-input';
-            const siC = mkSignedInput('res-coef',  52, d.coefResultat);
-            const siK = mkSignedInput('res-const', 52, d.constResultat);
-            row.appendChild(siC.btn); row.appendChild(siC.inp);
-            row.appendChild(mkSpan(`${d.varResultat} =`));
-            row.appendChild(siK.btn); row.appendChild(siK.inp);
-            c._getVC = siC.getSignedValue;
-            c._getVK = siK.getSignedValue;
-            c.appendChild(row);
-        },
-        validate: () => {
-            const d  = isoData();
-            const vc = els.stepSchema._getVC?.();
-            const vk = els.stepSchema._getVK?.();
-            if (isNaN(vc) || isNaN(vk)) return false;
-            return vc === d.coefResultat && vk === d.constResultat;
-        },
-    });
-
-    // PAS 5 — Valor de varResultat
-    steps.push({
-        title: () => `Quant val ${isoData().varResultat}?`,
         buildSchema: (c) => {
             const d = isoData();
             buildSchemaRow([`${d.varResultat} =`, { id: 'sol-var1', width: 60 }])(c);
@@ -954,7 +928,7 @@ function buildStepsRepte1(p) {
         },
     });
 
-    // PAS 6 — Valor de varAil (substitució enrere)
+        // PAS 6 — Valor de varAil (substitució enrere)
     steps.push({
         title: () => {
             const d = isoData();
