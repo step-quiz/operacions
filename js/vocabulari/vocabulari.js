@@ -759,7 +759,12 @@
             }, 400);
 
         } else if (resultat === 'typo') {
-            // Avisa però NO penalitza
+            // Avisa però NO penalitza.
+            // Mostra la paraula de l'alumne amb el caràcter problemàtic marcat,
+            // sense revelar la solució ni explicar l'error.
+            const hl = VocabEngine.getTypoHighlight(raw, et.text);
+            els.typoWarning.innerHTML =
+                `\u26A0\uFE0F <span class="typo-written">${hl}</span>`;
             els.typoWarning.classList.add('visible');
             els.writeInput.value = '';
             _focusWriteInput();
