@@ -339,6 +339,7 @@ const els = {
 let selectedRepte  = 0;
 let isPenalizing   = false;
 let usedProblems   = new Set();
+let previewProblem = null;   // problema generat a la pantalla de selecció
 let currentProblem = null;
 let currentSteps   = [];
 let currentStepIdx = 0;
@@ -484,48 +485,28 @@ function buildSchemaRow(parts) {
     };
 }
 
-// Helper: crea un parell [botó±] [input] dins un contenidor, retorna { btn, inp, getSignedValue }
-// correctVal: valor esperat (per inicialitzar el signe del botó al valor correcte)
-function mkSignedInput(id, width, correctVal) {
-    let sign = correctVal >= 0 ? 1 : -1;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'sign-toggle-btn' + (sign < 0 ? ' neg' : '');
-    btn.textContent = sign < 0 ? '−' : '+';
-
+// Helper: crea un input per a un coeficient signat.
+// L'alumne escriu directament el valor (positiu o negatiu) sense cap botó.
+// Retorna { inp, getSignedValue } — sense btn, per compatibilitat amb codi que
+// els afegeix al DOM, btn és un fragment buit inert.
+function mkSignedInput(id, width, _correctVal) {
     const inp = document.createElement('input');
     inp.type = 'text'; inp.className = 'schema-input-sm';
     inp.id = id; inp.autocomplete = 'off';
     if (width) inp.style.width = width + 'px';
 
-    // BUG FIX 1: Pre-registrem el listener de teclat custom directament aquí,
-    // sense esperar que showCustomKeyboard el registri via _kbDirectTapBound.
-    // showCurrentStep crida showCustomKeyboard() només per al PRIMER input del pas;
-    // el segon input no en tenia cap listener, de manera que en tocar-lo
-    // s'obria el teclat natiu i el custom deixava de respondre.
     inp._kbDirectTapBound = true;
     inp.addEventListener('pointerdown', e => {
         if (!isTouchDevice()) return;
-        e.preventDefault();       // impedeix el teclat natiu
-        showCustomKeyboard(inp);  // activa el custom per a aquest input
+        e.preventDefault();
+        showCustomKeyboard(inp);
     });
 
-    // BUG FIX 2: Evitem que el botó ± robi el focus (Android) o activi el
-    // teclat natiu. Cridem e.preventDefault() al pointerdown i reassignem
-    // el teclat custom a l'input adjacent des del click.
-    btn.addEventListener('pointerdown', e => {
-        e.preventDefault(); // no canviïs el focus; no mostris el teclat natiu
-    });
-    btn.onclick = () => {
-        sign *= -1;
-        btn.textContent = sign < 0 ? '−' : '+';
-        btn.classList.toggle('neg', sign < 0);
-        // Reactivem el teclat custom per a l'input adjacent,
-        // per si el focus havia canviat al botó en algun navegador.
-        if (isTouchDevice()) showCustomKeyboard(inp);
-    };
+    // btn és un fragment buit: el codi que fa row.appendChild(si.btn) no peta
+    // però no afegeix cap element visible al DOM.
+    const btn = document.createDocumentFragment();
 
-    return { btn, inp, getSignedValue: () => sign * Math.abs(parseNum(inp.value)) };
+    return { btn, inp, getSignedValue: () => parseNum(inp.value) };
 }
 
 
@@ -956,7 +937,7 @@ function buildStepsRepte1(p) {
                     // ── Correcte: bloquejar en verd ──
                     el.classList.add('locked-green');
                     el.readOnly = true;
-                    if (ch.btn) {
+                    if (ch.btn && ch.btn.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
                         ch.btn.disabled = true;
                         ch.btn.style.opacity = '0.45';
                         ch.btn.style.pointerEvents = 'none';
@@ -1541,14 +1522,22 @@ function updateUI() {
 
 function buildLevel() {
     let p, key;
-    let tries = 0;
-    do {
-        p = selectedRepte === 1 ? genRepte1(currentOperation)
-          : selectedRepte === 2 ? genRepte2(currentOperation)
-          :                       genRepte3(currentOperation);
-        key = JSON.stringify({ t: p.type, x: p.x0, y: p.y0, a1: p.a1, b1: p.b1 });
-        tries++;
-    } while (usedProblems.has(key) && tries < 30);
+    // Si és el primer exercici de la primera sessió i hi ha un problema de preview,
+    // el reutilitzem perquè l'alumne vegi el sistema que ja coneixia.
+    if (currentOperation === 0 && currentSession === 0 && previewProblem) {
+        p = previewProblem;
+        previewProblem = null;   // consumit: els exercicis següents es generen normalment
+    } else {
+        let tries = 0;
+        do {
+            p = selectedRepte === 1 ? genRepte1(currentOperation)
+              : selectedRepte === 2 ? genRepte2(currentOperation)
+              :                       genRepte3(currentOperation);
+            key = JSON.stringify({ t: p.type, x: p.x0, y: p.y0, a1: p.a1, b1: p.b1 });
+            tries++;
+        } while (usedProblems.has(key) && tries < 30);
+    }
+    key = JSON.stringify({ t: p.type, x: p.x0, y: p.y0, a1: p.a1, b1: p.b1 });
     usedProblems.add(key);
     currentProblem = p;
 
@@ -1603,7 +1592,9 @@ if (mParam === 1) {
 } else {
     // Cap paràmetre m: genera i mostra un sistema de context perquè
     // l'alumne pugui triar el mètode amb coneixement de causa.
-    renderSistemaTo(genRepte1(0), document.getElementById('preview-expression-box'));
+    // El guardem a previewProblem per reutilitzar-lo com a primer exercici.
+    previewProblem = genRepte1(0);
+    renderSistemaTo(previewProblem, document.getElementById('preview-expression-box'));
     showScreen('selection-screen');
 }
 
