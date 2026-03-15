@@ -549,7 +549,22 @@ h1 {
     max-width: 400px;
     width: 100%;
 }
-.typo-warning.visible { display: block; }
+.typo-warning.visible { display: flex; }
+
+/* ── Layout intern del typo-warning: missatge + paraula en columna ── */
+.typo-warning {
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ── Línia del missatge explicatiu ("Revisa l'accentuació", etc.) ── */
+.typo-msg {
+    display: block;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: #92400e;
+}
 
 /* ── Paraula escrita per l'alumne dins el typo-warning ──
    Monoespai + mida gran: cada caràcter és clarament llegible.
@@ -560,7 +575,6 @@ h1 {
     font-size: 1.35em;
     font-weight: 700;
     letter-spacing: 0.08em;
-    margin-top: 5px;
     color: #92400e;
 }
 
