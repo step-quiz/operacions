@@ -55,10 +55,11 @@ window.VocabEngine = (() => {
     }
 
     /**
-     * Normalitza un string per a comparació:
+     * Normalitza un string per a comparació SENSE accents:
      * - Minúscules
      * - Sense accents (NFD + strip combining marks)
      * - Sense punts volats (·), guions i espais
+     * Usat per a la distància Levenshtein i la detecció de typos.
      * @param  {string} s
      * @returns {string}
      */
@@ -71,6 +72,21 @@ window.VocabEngine = (() => {
     }
 
     /**
+     * Normalitza un string per a comparació AMB accents:
+     * - Minúscules
+     * - Sense punts volats (·), guions i espais
+     * - CONSERVA els diacrítics (accents, etc.)
+     * Usat per detectar si l'única diferència és d'accentuació.
+     * @param  {string} s
+     * @returns {string}
+     */
+    function _normalitzaAmbAccents(s) {
+        return String(s)
+            .toLowerCase()
+            .replace(/[·\-\s]+/g, '');
+    }
+
+    /**
      * Avalua la resposta de l'alumne contra la paraula correcta.
      *
      * Retorna un objecte { verdict, typoKind?, html? }:
@@ -79,14 +95,15 @@ window.VocabEngine = (() => {
      *  - html:      la paraula de l'alumne amb el caràcter problemàtic marcat  (només si typo)
      *
      * Lògica per ordre de prioritat:
-     *  1. Coincidència exacta                        → correct
-     *  2. Normalitzada igual (difereix en accents)   → typo / accent
-     *  3. Target de ≥2 paraules i l'alumne n'ha escrit
-     *     menys, totes correctes (normalitzades)     → typo / faltaParaula
-     *  4. Distància Levenshtein ≤ llindar:
-     *       - Operació d'esborrat pur (falta lletra)  → typo / faltaLletra
-     *       - Substitució o lletra de més             → typo / lletra
-     *  5. Altrament                                  → wrong
+     *  1. Coincidència exacta                                      → correct
+     *  2. Coincidència amb accents (difereix en ·, - o espais)    → correct
+     *  3. Coincidència sense accents (difereix NOMÉS en diacrítics)→ typo / accent
+     *  4. Target de ≥2 paraules i l'alumne n'ha escrit menys,
+     *     totes correctes (normalitzades)                          → typo / faltaParaula
+     *  5. Distància Levenshtein ≤ llindar:
+     *       - Operació d'esborrat pur (falta lletra)               → typo / faltaLletra
+     *       - Substitució o lletra de més                          → typo / lletra
+     *  6. Altrament                                                → wrong
      *
      * Llindar Levenshtein: 1 per a paraules curtes (≤5 caràcters normalitzats),
      *                      2 per a paraules llargues.
@@ -102,10 +119,18 @@ window.VocabEngine = (() => {
         // 1. Coincidència exacta
         if (raw === rawT) return { verdict: 'correct' };
 
+        // 2. Coincidència amb accents: la diferència és només ·, - o espais
+        //    (ex: l'alumne escriu "ellipse" en lloc d'"el·lipse",
+        //     o "eix major" amb un espai diferent del target)
+        if (_normalitzaAmbAccents(raw) === _normalitzaAmbAccents(rawT)) {
+            return { verdict: 'correct' };
+        }
+
         const ni = _normalitza(raw);
         const nt = _normalitza(rawT);
 
-        // 2. Normalitzada igual → l'únic error és d'accentuació
+        // 3. Coincidència sense accents: l'única diferència és de diacrítics
+        //    (ex: "diametre" vs "diàmetre", "area" vs "àrea")
         if (ni === nt) {
             return { verdict: 'typo', typoKind: 'accent', html: _escHtml(raw) };
         }
