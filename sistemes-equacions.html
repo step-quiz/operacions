@@ -823,127 +823,143 @@ function buildStepsRepte1(p) {
     // (Declarat aquí per estar disponible tant a buildSchema com a validate)
     let subGetters = {};
 
-    // PAS 4 — Substitució, expansió i resolució en una sola finestra alineada
-    //
-    // L'alumne veu les 3 files alhora:
-    //   coefSubstit·([±]isoCoefVar·varAltra [±]isoConst) otherTerm  =  cS
-    //   (            [±]expandedCoef·varAltra [±]expandedConst) otherTerm  =  cS
-    //   varResultat                                              =  [inp]
-    //
-    // OK marca en verd els correctes i en vermell els incorrectes.
-    // Només avança quan tots estan en verd.
+    // PAS 4 — 4 files alineades: equació original → substitució → expansió → resultat
     steps.push({
-        title: `Desenvolupa la substitució pas a pas:`,
+        title: () => {
+            const d    = isoData();
+            const nEq  = d.subEq === 1 ? '1a' : '2a';
+            return `Substitueix a la ${nEq} equació:`;
+        },
         buildSchema: (c) => {
             c.innerHTML = '';
             const d = isoData();
 
-            // ── helpers de format ────────────────────────────────────
-            const absP   = Math.abs(d.coefSubstit);
-            const preS   = d.coefSubstit < 0 ? '−' : '';
-            const preNum = absP === 1 ? '' : String(absP);
-            const prefix = `${preS}${preNum}·(`;
-
-            // terme "restant" de l'equació: otherCoef·varAltra  (ex. " − y")
+            // ── helpers ───────────────────────────────────────────
             const otherCoef = d.varAil === 'x' ? d.bS : d.aS;
-            function mkOtherSpan() {
-                if (otherCoef === 0) return null;
-                const abs  = Math.abs(otherCoef);
-                const sign = otherCoef < 0 ? ' − ' : ' + ';
-                const num  = abs === 1 ? '' : String(abs);
-                return mkSpan(`${sign}${num}${d.varAltra}`);
+            const absCS     = Math.abs(d.coefSubstit);
+            const dotPart   = absCS === 1 ? '' : `${absCS}·`;
+
+            // Prefix davant el parèntesi de substitució (fila 2)
+            // Exemples: '−x + 2·(' | '−x + (' | '−x − 2·(' | '2·(' | '('
+            function prefixRow2() {
+                if (otherCoef !== 0) {
+                    const absO = Math.abs(otherCoef);
+                    const sO   = otherCoef < 0 ? '−' : '';
+                    const nO   = absO === 1 ? '' : String(absO);
+                    const otherStr = `${sO}${nO}${d.varAltra}`;
+                    const join  = d.coefSubstit < 0 ? ' − ' : ' + ';
+                    return `${otherStr}${join}${dotPart}`;
+                } else {
+                    return (d.coefSubstit < 0 ? '−' : '') + dotPart;
+                }
             }
 
-            // ── Grid principal ───────────────────────────────────────
+            // Prefix davant el parèntesi d'expansió (fila 3): otherTerm + ' + ('
+            // (els valors expandits porten el signe incorporat als inputs)
+            function prefixRow3() {
+                if (otherCoef !== 0) {
+                    const absO = Math.abs(otherCoef);
+                    const sO   = otherCoef < 0 ? '−' : '';
+                    const nO   = absO === 1 ? '' : String(absO);
+                    return `${sO}${nO}${d.varAltra} + `;
+                }
+                return '';
+            }
+
+            // Sufix darrere el parèntesi (varAil='x': + otherTerm al final)
+            function suffixRows() {
+                if (d.varAil === 'x' && otherCoef !== 0) {
+                    const absO = Math.abs(otherCoef);
+                    const join = otherCoef < 0 ? ' − ' : ' + ';
+                    const nO   = absO === 1 ? '' : String(absO);
+                    return `${join}${nO}${d.varAltra}`;
+                }
+                return '';
+            }
+
+            // Construeix una cel·la esquerra amb inputs dins parèntesi
+            function mkRowLeft(prefix, inpA, inpB, suffix) {
+                const div = document.createElement('div');
+                div.className = 'align-left';
+                div.appendChild(mkSpan(prefix + '('));
+                div.appendChild(inpA);
+                div.appendChild(mkSpan(d.varAltra));
+                div.appendChild(inpB);
+                div.appendChild(mkSpan(')' + suffix));
+                return div;
+            }
+
             const grid = document.createElement('div');
             grid.className = 'align-system';
 
-            // ── Fila 1: coefSubstit·([±]isoCoefVar varAltra [±]isoConst) otherTerm ──
-            const l1 = document.createElement('div'); l1.className = 'align-left';
-            l1.appendChild(mkSpan(prefix));
+            // ── Fila 1: equació original (text fix) ──────────────
+            const r1l = document.createElement('div'); r1l.className = 'align-left';
+            r1l.appendChild(mkSpan(eqText(d.aS, d.bS, null)));
+
+            // ── Fila 2: substitució — [isoCoefVar] varAltra [isoConst] ──
             const s1C = mkSignedInput('sub-coef',  52, d.isoCoefVar);
-            l1.appendChild(s1C.btn); l1.appendChild(s1C.inp);
-            l1.appendChild(mkSpan(d.varAltra));
             const s1K = mkSignedInput('sub-const', 52, d.isoConst);
-            l1.appendChild(s1K.btn); l1.appendChild(s1K.inp);
-            l1.appendChild(mkSpan(')'));
-            const ot1 = mkOtherSpan(); if (ot1) l1.appendChild(ot1);
+            const r2l = mkRowLeft(prefixRow2(), s1C.inp, s1K.inp, suffixRows());
 
-            // ── Fila 2: ([±]expandedCoef varAltra [±]expandedConst) otherTerm ──
-            const l2 = document.createElement('div'); l2.className = 'align-left';
-            l2.appendChild(mkSpan('('));
+            // ── Fila 3: expansió — [expandedCoef] varAltra [expandedConst] ──
             const s2C = mkSignedInput('exp-coef',  52, d.expandedCoef);
-            l2.appendChild(s2C.btn); l2.appendChild(s2C.inp);
-            l2.appendChild(mkSpan(d.varAltra));
             const s2K = mkSignedInput('exp-const', 52, d.expandedConst);
-            l2.appendChild(s2K.btn); l2.appendChild(s2K.inp);
-            l2.appendChild(mkSpan(')'));
-            const ot2 = mkOtherSpan(); if (ot2) l2.appendChild(ot2);
+            const r3l = mkRowLeft(prefixRow3(), s2C.inp, s2K.inp, suffixRows());
 
-            // ── Fila 3: varResultat = [inp] ──────────────────────────
-            const l3 = document.createElement('div'); l3.className = 'align-left';
-            l3.appendChild(mkSpan(d.varResultat));
-
-            const inp3 = document.createElement('input');
-            inp3.type = 'text'; inp3.className = 'schema-input-sm';
-            inp3.id = 'sol-res'; inp3.autocomplete = 'off';
-            inp3.style.width = '60px';
-            inp3._kbDirectTapBound = true;
-            inp3.addEventListener('pointerdown', e => {
+            // ── Fila 4: varResultat = [inp] ──────────────────────
+            const r4l = document.createElement('div'); r4l.className = 'align-left';
+            r4l.appendChild(mkSpan(d.varResultat));
+            const inp4 = document.createElement('input');
+            inp4.type = 'text'; inp4.className = 'schema-input-sm';
+            inp4.id = 'sol-res'; inp4.autocomplete = 'off';
+            inp4.style.width = '60px';
+            inp4._kbDirectTapBound = true;
+            inp4.addEventListener('pointerdown', e => {
                 if (!isTouchDevice()) return;
                 e.preventDefault();
-                showCustomKeyboard(inp3);
+                showCustomKeyboard(inp4);
             });
-            const r3 = document.createElement('div'); r3.className = 'align-right';
-            r3.appendChild(inp3);
+            const r4r = document.createElement('div'); r4r.className = 'align-right';
+            r4r.appendChild(inp4);
 
-            // ── Assemblar cel·les al grid (3 cel·les per fila) ───────
+            // ── Assemblar al grid ─────────────────────────────────
             const cS_str = String(d.cS);
             [
-                l1, mkSpan('=', 'align-eq'), mkSpan(cS_str, 'align-right'),
-                l2, mkSpan('=', 'align-eq'), mkSpan(cS_str, 'align-right'),
-                l3, mkSpan('=', 'align-eq'), r3,
+                r1l, mkSpan('=', 'align-eq'), mkSpan(cS_str, 'align-right'),
+                r2l, mkSpan('=', 'align-eq'), mkSpan(cS_str, 'align-right'),
+                r3l, mkSpan('=', 'align-eq'), mkSpan(cS_str, 'align-right'),
+                r4l, mkSpan('=', 'align-eq'), r4r,
             ].forEach(el => grid.appendChild(el));
 
             c.appendChild(grid);
 
-            // Guardem refs per a validate()
             subGetters = {
-                subCoef:  s1C.getSignedValue, subCoefBtn:  s1C.btn,
-                subConst: s1K.getSignedValue, subConstBtn: s1K.btn,
-                expCoef:  s2C.getSignedValue, expCoefBtn:  s2C.btn,
-                expConst: s2K.getSignedValue, expConstBtn: s2K.btn,
+                subCoef:  s1C.getSignedValue,
+                subConst: s1K.getSignedValue,
+                expCoef:  s2C.getSignedValue,
+                expConst: s2K.getSignedValue,
             };
         },
 
         validate: () => {
             const d = isoData();
-
             const checks = [
-                { id: 'sub-coef',  expected: d.isoCoefVar,    getter: () => subGetters.subCoef?.(),  btn: subGetters.subCoefBtn  },
-                { id: 'sub-const', expected: d.isoConst,      getter: () => subGetters.subConst?.(), btn: subGetters.subConstBtn },
-                { id: 'exp-coef',  expected: d.expandedCoef,  getter: () => subGetters.expCoef?.(),  btn: subGetters.expCoefBtn  },
-                { id: 'exp-const', expected: d.expandedConst, getter: () => subGetters.expConst?.(), btn: subGetters.expConstBtn },
-                { id: 'sol-res',   expected: d.solResultat,   getter: () => parseNum(document.getElementById('sol-res')?.value ?? ''), btn: null },
+                { id: 'sub-coef',  expected: d.isoCoefVar,    getter: () => subGetters.subCoef?.()  },
+                { id: 'sub-const', expected: d.isoConst,      getter: () => subGetters.subConst?.() },
+                { id: 'exp-coef',  expected: d.expandedCoef,  getter: () => subGetters.expCoef?.()  },
+                { id: 'exp-const', expected: d.expandedConst, getter: () => subGetters.expConst?.() },
+                { id: 'sol-res',   expected: d.solResultat,   getter: () => parseNum(document.getElementById('sol-res')?.value ?? '') },
             ];
 
             let allOk = true;
-
             for (const ch of checks) {
                 const el = document.getElementById(ch.id);
-                if (!el || el.readOnly) continue;   // ja estava bloquejat correctament
+                if (!el || el.readOnly) continue;
                 const val = ch.getter();
                 if (!isNaN(val) && val === ch.expected) {
-                    // ── Correcte: bloquejar en verd ──
                     el.classList.add('locked-green');
                     el.readOnly = true;
-                    if (ch.btn && ch.btn.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
-                        ch.btn.disabled = true;
-                        ch.btn.style.opacity = '0.45';
-                        ch.btn.style.pointerEvents = 'none';
-                    }
                 } else {
-                    // ── Incorrecte: vermell i netejar ──
                     allOk = false;
                     el.classList.add('error-flash');
                     setTimeout(() => { el.classList.remove('error-flash'); el.value = ''; }, 350);
@@ -951,12 +967,10 @@ function buildStepsRepte1(p) {
             }
 
             if (!allOk) {
-                // Suprimim el flashError/clearAndFocus genèric de checkStep()
                 if (els.stepFeedback) {
                     els.stepFeedback.innerHTML = 'Algun valor és incorrecte. Revisa els camps en vermell.';
                     els.stepFeedback.className = 'important';
                 }
-                // Re-enfoquem el primer input no bloquejat
                 setTimeout(() => {
                     const first = els.stepSchema.querySelector('input:not([readonly])');
                     if (first) {
@@ -974,6 +988,7 @@ function buildStepsRepte1(p) {
             addExprRow(`${d.varResultat} = <span class="expr-result">${d.solResultat}</span>`);
         },
     });
+
 
             // PAS 6 — Valor de varAil (substitució enrere)
     steps.push({
