@@ -217,6 +217,23 @@
             border-radius: 0 0 8px 8px; border-top: none;
         }
 
+        /* ── ALINEACIÓ SISTEMA (substitució, 3 files) ──────────── */
+        .align-system {
+            display: grid;
+            grid-template-columns: 1fr 28px auto;
+            gap: 10px 4px;
+            align-items: center;
+            justify-items: start;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 1.05em;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+        .align-left  { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; justify-content: flex-end; width: 100%; }
+        .align-eq    { text-align: center; color: var(--text-muted); width: 28px; }
+        .align-right { display: flex; align-items: center; gap: 4px; }
+
         /* ── RESPONSIU ───────────────────────────────────────── */
         @media (max-width: 480px) {
             .expression-box { font-size: 1.3em; padding: 18px 10px; min-height: 90px; }
@@ -821,114 +838,163 @@ function buildStepsRepte1(p) {
         },
     });
 
-    // PAS 4a — Substituir: omple l'expressió dins del parèntesi
-    // Visual: coefPrefix·([±inp]·varAltra [±inp]) restEq
+    // ── Getters de tots els inputs signats del pas de substitució ──
+    // (Declarat aquí per estar disponible tant a buildSchema com a validate)
+    let subGetters = {};
+
+    // PAS 4 — Substitució, expansió i resolució en una sola finestra alineada
+    //
+    // L'alumne veu les 3 files alhora:
+    //   coefSubstit·([±]isoCoefVar·varAltra [±]isoConst) otherTerm  =  cS
+    //   (            [±]expandedCoef·varAltra [±]expandedConst) otherTerm  =  cS
+    //   varResultat                                              =  [inp]
+    //
+    // OK marca en verd els correctes i en vermell els incorrectes.
+    // Només avança quan tots estan en verd.
     steps.push({
-        title: () => {
-            const d     = isoData();
-            const eqNum = d.subEq === 1 ? 'primera' : 'segona';
-            return `Substitueix <em>${d.varAil}</em> a la <strong>${eqNum}</strong> equació:`;
-        },
+        title: `Desenvolupa la substitució pas a pas:`,
         buildSchema: (c) => {
             c.innerHTML = '';
-            const d    = isoData();
-            const row  = document.createElement('div');
-            row.className = 'schema-row-input';
+            const d = isoData();
 
-            // prefix: el coeficient que multiplica el parèntesi  ex. "−2·"
-            const absP = Math.abs(d.coefSubstit);
-            const preS = d.coefSubstit < 0 ? '−' : '';
-            const pre  = `${preS}${absP === 1 ? '' : absP}`;
-            if (pre) row.appendChild(mkSpan(`${pre}·(`));
-            else     row.appendChild(mkSpan('('));
+            // ── helpers de format ────────────────────────────────────
+            const absP   = Math.abs(d.coefSubstit);
+            const preS   = d.coefSubstit < 0 ? '−' : '';
+            const preNum = absP === 1 ? '' : String(absP);
+            const prefix = `${preS}${preNum}·(`;
 
-            const siC = mkSignedInput('iso4a-coef',  52, d.isoCoefVar);
-            row.appendChild(siC.btn); row.appendChild(siC.inp);
-            row.appendChild(mkSpan(d.varAltra));
-            const siK = mkSignedInput('iso4a-const', 52, d.isoConst);
-            row.appendChild(siK.btn); row.appendChild(siK.inp);
-
-            // rest: els termes restants de l'equació   ex. " − y = 1"
+            // terme "restant" de l'equació: otherCoef·varAltra  (ex. " − y")
             const otherCoef = d.varAil === 'x' ? d.bS : d.aS;
-            const absO = Math.abs(otherCoef);
-            const signO = otherCoef < 0 ? ' − ' : ' + ';
-            const numO  = absO === 1 ? '' : String(absO);
-            const rest  = (otherCoef !== 0 ? `) ${signO}${numO}${d.varAltra}` : ')') + ` = ${d.cS}`;
-            row.appendChild(mkSpan(rest));
+            function mkOtherSpan() {
+                if (otherCoef === 0) return null;
+                const abs  = Math.abs(otherCoef);
+                const sign = otherCoef < 0 ? ' − ' : ' + ';
+                const num  = abs === 1 ? '' : String(abs);
+                return mkSpan(`${sign}${num}${d.varAltra}`);
+            }
 
-            c._getVC = siC.getSignedValue;
-            c._getVK = siK.getSignedValue;
-            c.appendChild(row);
+            // ── Grid principal ───────────────────────────────────────
+            const grid = document.createElement('div');
+            grid.className = 'align-system';
+
+            // ── Fila 1: coefSubstit·([±]isoCoefVar varAltra [±]isoConst) otherTerm ──
+            const l1 = document.createElement('div'); l1.className = 'align-left';
+            l1.appendChild(mkSpan(prefix));
+            const s1C = mkSignedInput('sub-coef',  52, d.isoCoefVar);
+            l1.appendChild(s1C.btn); l1.appendChild(s1C.inp);
+            l1.appendChild(mkSpan(d.varAltra));
+            const s1K = mkSignedInput('sub-const', 52, d.isoConst);
+            l1.appendChild(s1K.btn); l1.appendChild(s1K.inp);
+            l1.appendChild(mkSpan(')'));
+            const ot1 = mkOtherSpan(); if (ot1) l1.appendChild(ot1);
+
+            // ── Fila 2: ([±]expandedCoef varAltra [±]expandedConst) otherTerm ──
+            const l2 = document.createElement('div'); l2.className = 'align-left';
+            l2.appendChild(mkSpan('('));
+            const s2C = mkSignedInput('exp-coef',  52, d.expandedCoef);
+            l2.appendChild(s2C.btn); l2.appendChild(s2C.inp);
+            l2.appendChild(mkSpan(d.varAltra));
+            const s2K = mkSignedInput('exp-const', 52, d.expandedConst);
+            l2.appendChild(s2K.btn); l2.appendChild(s2K.inp);
+            l2.appendChild(mkSpan(')'));
+            const ot2 = mkOtherSpan(); if (ot2) l2.appendChild(ot2);
+
+            // ── Fila 3: varResultat = [inp] ──────────────────────────
+            const l3 = document.createElement('div'); l3.className = 'align-left';
+            l3.appendChild(mkSpan(d.varResultat));
+
+            const inp3 = document.createElement('input');
+            inp3.type = 'text'; inp3.className = 'schema-input-sm';
+            inp3.id = 'sol-res'; inp3.autocomplete = 'off';
+            inp3.style.width = '60px';
+            inp3._kbDirectTapBound = true;
+            inp3.addEventListener('pointerdown', e => {
+                if (!isTouchDevice()) return;
+                e.preventDefault();
+                showCustomKeyboard(inp3);
+            });
+            const r3 = document.createElement('div'); r3.className = 'align-right';
+            r3.appendChild(inp3);
+
+            // ── Assemblar cel·les al grid (3 cel·les per fila) ───────
+            const cS_str = String(d.cS);
+            [
+                l1, mkSpan('=', 'align-eq'), mkSpan(cS_str, 'align-right'),
+                l2, mkSpan('=', 'align-eq'), mkSpan(cS_str, 'align-right'),
+                l3, mkSpan('=', 'align-eq'), r3,
+            ].forEach(el => grid.appendChild(el));
+
+            c.appendChild(grid);
+
+            // Guardem refs per a validate()
+            subGetters = {
+                subCoef:  s1C.getSignedValue, subCoefBtn:  s1C.btn,
+                subConst: s1K.getSignedValue, subConstBtn: s1K.btn,
+                expCoef:  s2C.getSignedValue, expCoefBtn:  s2C.btn,
+                expConst: s2K.getSignedValue, expConstBtn: s2K.btn,
+            };
         },
+
         validate: () => {
-            const d  = isoData();
-            const vc = els.stepSchema._getVC?.();
-            const vk = els.stepSchema._getVK?.();
-            if (isNaN(vc) || isNaN(vk)) return false;
-            return vc === d.isoCoefVar && vk === d.isoConst;
-        },
-    });
-
-    // PAS 4b — Expandir: omple els termes del parèntesi ja obert
-    // Visual: ([±inp]·varAltra [±inp]) restEq
-    steps.push({
-        title: () => `Expandeix el parèntesi:`,
-        buildSchema: (c) => {
-            c.innerHTML = '';
-            const d   = isoData();
-            const row = document.createElement('div');
-            row.className = 'schema-row-input';
-
-            row.appendChild(mkSpan('('));
-            const siC = mkSignedInput('exp4b-coef',  52, d.expandedCoef);
-            row.appendChild(siC.btn); row.appendChild(siC.inp);
-            row.appendChild(mkSpan(d.varAltra));
-            const siK = mkSignedInput('exp4b-const', 52, d.expandedConst);
-            row.appendChild(siK.btn); row.appendChild(siK.inp);
-
-            const otherCoef = d.varAil === 'x' ? d.bS : d.aS;
-            const absO  = Math.abs(otherCoef);
-            const signO = otherCoef < 0 ? ' − ' : ' + ';
-            const numO  = absO === 1 ? '' : String(absO);
-            const rest  = (otherCoef !== 0 ? `) ${signO}${numO}${d.varAltra}` : ')') + ` = ${d.cS}`;
-            row.appendChild(mkSpan(rest));
-
-            c._getVC = siC.getSignedValue;
-            c._getVK = siK.getSignedValue;
-            c.appendChild(row);
-        },
-        validate: () => {
-            const d  = isoData();
-            const vc = els.stepSchema._getVC?.();
-            const vk = els.stepSchema._getVK?.();
-            if (isNaN(vc) || isNaN(vk)) return false;
-            return vc === d.expandedCoef && vk === d.expandedConst;
-        },
-    });
-
-    // PAS 4c — Aplega termes i resol: quant val varResultat?
-    // Fusionat amb l'antic pas 5: l'alumne aplega mentalment i escriu la solució
-    steps.push({
-        title: () => {
             const d = isoData();
-            return `Aplega els termes en <em>${d.varResultat}</em> i resol. Quant val ${d.varResultat}?`;
+
+            const checks = [
+                { id: 'sub-coef',  expected: d.isoCoefVar,    getter: () => subGetters.subCoef?.(),  btn: subGetters.subCoefBtn  },
+                { id: 'sub-const', expected: d.isoConst,      getter: () => subGetters.subConst?.(), btn: subGetters.subConstBtn },
+                { id: 'exp-coef',  expected: d.expandedCoef,  getter: () => subGetters.expCoef?.(),  btn: subGetters.expCoefBtn  },
+                { id: 'exp-const', expected: d.expandedConst, getter: () => subGetters.expConst?.(), btn: subGetters.expConstBtn },
+                { id: 'sol-res',   expected: d.solResultat,   getter: () => parseNum(document.getElementById('sol-res')?.value ?? ''), btn: null },
+            ];
+
+            let allOk = true;
+
+            for (const ch of checks) {
+                const el = document.getElementById(ch.id);
+                if (!el || el.readOnly) continue;   // ja estava bloquejat correctament
+                const val = ch.getter();
+                if (!isNaN(val) && val === ch.expected) {
+                    // ── Correcte: bloquejar en verd ──
+                    el.classList.add('locked-green');
+                    el.readOnly = true;
+                    if (ch.btn) {
+                        ch.btn.disabled = true;
+                        ch.btn.style.opacity = '0.45';
+                        ch.btn.style.pointerEvents = 'none';
+                    }
+                } else {
+                    // ── Incorrecte: vermell i netejar ──
+                    allOk = false;
+                    el.classList.add('error-flash');
+                    setTimeout(() => { el.classList.remove('error-flash'); el.value = ''; }, 350);
+                }
+            }
+
+            if (!allOk) {
+                // Suprimim el flashError/clearAndFocus genèric de checkStep()
+                if (els.stepFeedback) {
+                    els.stepFeedback.innerHTML = 'Algun valor és incorrecte. Revisa els camps en vermell.';
+                    els.stepFeedback.className = 'important';
+                }
+                // Re-enfoquem el primer input no bloquejat
+                setTimeout(() => {
+                    const first = els.stepSchema.querySelector('input:not([readonly])');
+                    if (first) {
+                        if (isTouchDevice()) showCustomKeyboard(first);
+                        else first.focus();
+                    }
+                }, 400);
+                return false;
+            }
+            return true;
         },
-        buildSchema: (c) => {
-            const d = isoData();
-            buildSchemaRow([`${d.varResultat} =`, { id: 'sol-var1', width: 60 }])(c);
-        },
-        validate: () => {
-            const d = isoData();
-            const v = parseNum(document.getElementById('sol-var1')?.value ?? '');
-            return !isNaN(v) && v === d.solResultat;
-        },
+
         onCorrect: () => {
             const d = isoData();
             addExprRow(`${d.varResultat} = <span class="expr-result">${d.solResultat}</span>`);
         },
     });
 
-        // PAS 6 — Valor de varAil (substitució enrere)
+            // PAS 6 — Valor de varAil (substitució enrere)
     steps.push({
         title: () => {
             const d = isoData();
