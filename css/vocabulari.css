@@ -551,6 +551,39 @@ h1 {
 }
 .typo-warning.visible { display: block; }
 
+/* ── Paraula escrita per l'alumne dins el typo-warning ──
+   Monoespai + mida gran: cada caràcter és clarament llegible.
+   Sense color diferent: el context (⚠️ + posició) és el missatge. */
+.typo-written {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.35em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-top: 5px;
+    color: #92400e;
+}
+
+/* ── Caràcter problemàtic ──
+   Vermell + subratllat ondulat: indica "aquí hi ha quelcom a revisar"
+   sense especificar ni la causa ni la solució. */
+.typo-err {
+    color: #dc2626;
+    background: none;
+    text-decoration: underline wavy #dc2626;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+/* ── Indicador de lletra que falta al final ──
+   L'underscore cursiva indica "falta alguna cosa al final". */
+.typo-err--gap {
+    opacity: 0.6;
+    font-style: italic;
+}
+
 /* ══════════════════════════════════════════════
    INSTRUCCIÓ CONTEXTUAL
 ══════════════════════════════════════════════ */
