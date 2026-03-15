@@ -1448,8 +1448,8 @@ document.addEventListener('keydown', (e) => {
 // INICIALITZACIÓ I ROUTING PER PARÀMETRE ?m
 // ================================================================
 validateConfig();
-initCustomKeyboard({ allowNegative: true });
-injectSharedHTML();
+injectSharedHTML();                            // ha d'anar ABANS: crea el #customKeyboard al DOM
+initCustomKeyboard({ allowNegative: true });   // ara sí troba els .kb-btn i hi registra els listeners
 registerScreens(['selection-screen', 'game-screen', 'session-end-screen', 'final-screen']);
 
 // Mapeig del paràmetre públic ?m als reptes interns:
