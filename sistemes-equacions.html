@@ -612,6 +612,10 @@ function genRepte2(opIdx) {
         c2 = a2 * x0 + b2 * y0;
     }
 
+    // Garantim que el sistema és compatible determinat: det = a1·b2 − a2·b1 ≠ 0
+    const det = a1 * b2 - a2 * b1;
+    if (det === 0) return genRepte2(opIdx);   // reintent si és degenerat
+
     return { type: 'reduc', a1, b1, c1, a2, b2, c2, x0, y0, elimVar, tipus, factor, elimEq };
 }
 
@@ -1093,7 +1097,14 @@ function buildStepsRepte2(p) {
                 return true;
             }
             if (els.stepFeedback) {
-                els.stepFeedback.innerHTML = "Amb aquests factors cap variable s'elimina quan sumes. Revisa'ls.";
+                // Cas especial: les dues variables s'eliminen alhora (0x + 0y = 0)
+                const sumX = f1*p.a1 + f2*p.a2;
+                const sumY = f1*p.b1 + f2*p.b2;
+                if (sumX === 0 && sumY === 0) {
+                    els.stepFeedback.innerHTML = "S'eliminen les dues variables alhora. Necessitem que en quedi exactament una. Prova uns altres factors.";
+                } else {
+                    els.stepFeedback.innerHTML = "Amb aquests factors cap variable s'elimina quan sumes. Revisa'ls.";
+                }
                 els.stepFeedback.className = 'important';
             }
             return false;
