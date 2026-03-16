@@ -1681,7 +1681,18 @@ function buildStepsRepte3(p) {
         title: function() { var d = igualData(); return 'Igualem les expressions. Quina equació en ' + tex(d.varAlt) + ' obtens?'; },
         buildSchema: function(c) {
             c.innerHTML = '';
-            var d = igualData(), row = document.createElement('div');
+            var d = igualData();
+
+            // Mostrar l'equació igualada: expr1 = expr2
+            var eqDisplay = document.createElement('div');
+            eqDisplay.style.cssText = 'text-align:center;font-size:1.15em;margin-bottom:14px;opacity:0.55';
+            var expr1 = fmtExprTex(d.iso1CoefAlt, d.varAlt, d.iso1Const);
+            var expr2 = fmtExprTex(d.iso2CoefAlt, d.varAlt, d.iso2Const);
+            katex.render(expr1 + ' = ' + expr2, eqDisplay, { throwOnError: false, displayMode: true });
+            c.appendChild(eqDisplay);
+
+            // Inputs per a la forma simplificada: [?]varAlt = [?]
+            var row = document.createElement('div');
             row.className = 'input-row';
             var siC = mkSignedInput('eq-coef', 52, d.coefResult);
             var siK = mkSignedInput('eq-const', 52, d.constResult);
