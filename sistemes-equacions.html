@@ -703,7 +703,13 @@ function tex(s) {
 
 /** Parseja enters/decimals, accepta coma */
 function parseNum(s) {
-    const clean = String(s).trim().replace(',', '.');
+    var clean = String(s).trim();
+    // Normalitzar tots els tipus de guió/menys a hyphen estàndard
+    clean = clean.replace(/\u2212/g, '-').replace(/\u2013/g, '-').replace(/\u2014/g, '-');
+    clean = clean.replace(',', '.');
+    // Permetre "-" com a -1 i "+" com a 1 (coeficients ±1)
+    if (clean === '-') return -1;
+    if (clean === '+') return 1;
     if (!/^-?\d+(\.\d+)?$/.test(clean)) return NaN;
     return parseFloat(clean);
 }
