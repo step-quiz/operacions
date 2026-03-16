@@ -710,6 +710,8 @@ function parseNum(s) {
     // Permetre "-" com a -1 i "+" com a 1 (coeficients ±1)
     if (clean === '-') return -1;
     if (clean === '+') return 1;
+    // Casella buida = coeficient implícit 1
+    if (clean === '') return 1;
     if (!/^-?\d+(\.\d+)?$/.test(clean)) return NaN;
     return parseFloat(clean);
 }
