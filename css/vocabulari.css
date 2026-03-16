@@ -431,34 +431,40 @@ h1 {
 }
 
 #game-area.layout-b #write-input {
-    width: 90%;
+    width: calc(100% - 62px);   /* 52px botó + 10px gap */
     font-size: 1.1em;
 }
 
-#game-area.layout-b .btn-submit {
-    width: 45%;
+#game-area.layout-b .btn-submit#btn-submit-write {
+    /* quadrat: mides definides a #btn-submit-write */
+    flex-shrink: 0;
 }
 
-/* Botó "Canviar de casella" */
+/* Botó "Canviar de casella" — estètica paral·lela al btn-submit, taronja molt clar */
 .btn-cycle {
-    background: none;
-    border: 1.5px solid var(--border-heavy);
+    background-color: #fed7aa;
+    color: #1e293b;
+    border: none;
+    padding: 12px 20px;
+    min-height: 48px;
+    font-size: 1em;
+    font-weight: bold;
     border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 0.8em;
-    font-weight: 600;
-    color: var(--text-muted);
     cursor: pointer;
+    text-transform: uppercase;
     touch-action: manipulation;
-    transition: all 0.2s;
+    transition: background-color 0.2s;
 }
-.btn-cycle:hover { border-color: var(--primary); color: var(--primary); }
+.btn-cycle:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 .btn-cycle:active { transform: scale(0.95); }
+@media (hover: hover) { .btn-cycle:hover { background-color: #f97316; } }
 
-/* Dins layout-b: ample limitat */
+/* Dins layout-b: amplada moderada (no full-width), centrat */
 #game-area.layout-b .btn-cycle {
+    width: 90%;
     align-self: center;
-    font-size: 0.75em;
+    padding: 10px 12px;
+    font-size: 0.88em;
 }
 
 #game-area.layout-b .typo-warning {
@@ -527,7 +533,7 @@ h1 {
     border: 2px solid var(--border-heavy);
     border-radius: 6px;
     outline: none;
-    width: 220px;
+    width: 308px;
     text-align: center;
     transition: border-color 0.2s;
     /* Evita correccions automàtiques en iOS/Android que confonen l'alumne */
@@ -630,6 +636,18 @@ h1 {
 .btn-submit:active        { transform: scale(0.95); }
 @media (hover: hover) { .btn-submit:hover { background-color: #334155; } }
 .btn-submit.error-shake   { background-color: var(--danger); animation: shake 0.2s; }
+
+/* Botó OK (mode B) — gris clar, forma quadrada */
+#btn-submit-write {
+    background-color: #cbd5e1;
+    color: #1e293b;
+    width: 52px;
+    min-height: 52px;
+    padding: 0;
+    font-size: 1.05em;
+    align-self: center;
+}
+@media (hover: hover) { #btn-submit-write:hover { background-color: #0f172a; color: white; } }
 
 /* ══════════════════════════════════════════════
    MINI OVERLAY (entre figures)
@@ -1019,6 +1037,19 @@ h1 {
     0%, 100% { transform: translateX(0); }
     25%       { transform: translateX(-5px); }
     75%       { transform: translateX(5px); }
+}
+
+/* Thumb-up de confirmació (mode B) — element SVG sobre la casella encertada */
+.thumbs-up-anim text {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: thumbsUpPop 1.0s ease forwards;
+}
+@keyframes thumbsUpPop {
+    0%   { opacity: 0; transform: scale(0.4); }
+    35%  { opacity: 1; transform: scale(1.3); }
+    65%  { opacity: 1; transform: scale(1.0); }
+    100% { opacity: 0; transform: scale(0.85); }
 }
 
 /* [ROUND 4] Shake del chip quan l'usuari clica en lloc d'arrossegar */
