@@ -1714,7 +1714,21 @@ function buildStepsRepte3(p) {
     // PAS 5 — Valor de varAlt
     steps.push({
         title: function() { return 'Quant val ' + tex(igualData().varAlt) + '?'; },
-        buildSchema: function(c) { var d = igualData(); buildSchemaRow([d.varAlt + ' =', { id: 'sol-alt', width: 58 }])(c); },
+        buildSchema: function(c) {
+            c.innerHTML = '';
+            var d = igualData();
+            // Mostrar l'equació resultant: coefResult·varAlt = constResult
+            var eqDisp = document.createElement('div');
+            eqDisp.style.cssText = 'text-align:center;font-size:1.15em;margin-bottom:14px;opacity:0.55';
+            katex.render(d.coefResult + d.varAlt + ' = ' + d.constResult, eqDisp, { throwOnError: false, displayMode: true });
+            c.appendChild(eqDisp);
+            // Input: varAlt = ?
+            var row = document.createElement('div');
+            row.className = 'input-row';
+            row.appendChild(mkTexSpan(d.varAlt + ' ='));
+            row.appendChild(mkInput('sol-alt', 58));
+            c.appendChild(row);
+        },
         validate: function() {
             var d = igualData();
             var v = parseNum(document.getElementById('sol-alt') ? document.getElementById('sol-alt').value : '');
