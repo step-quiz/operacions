@@ -749,16 +749,26 @@ function tex(s) {
 }
 
 /** Parseja enters/decimals, accepta coma */
+/** Parseja un valor numèric. Estricte: buit = NaN */
 function parseNum(s) {
     var clean = String(s).trim();
-    // Normalitzar tots els tipus de guió/menys a hyphen estàndard
     clean = clean.replace(/\u2212/g, '-').replace(/\u2013/g, '-').replace(/\u2014/g, '-');
     clean = clean.replace(',', '.');
-    // Permetre "-" com a -1 i "+" com a 1 (coeficients ±1)
+    if (clean === '' || clean === '+' || clean === '-') return NaN;
+    if (!/^-?\d+(\.\d+)?$/.test(clean)) return NaN;
+    return parseFloat(clean);
+}
+
+/**
+ * Parseja un coeficient d'una variable (ex: el "3" de "3y" o el "-" de "-y").
+ * Accepta: "" o "+" → 1, "-" → -1, "3" → 3, "-2" → -2
+ */
+function parseCoef(s) {
+    var clean = String(s).trim();
+    clean = clean.replace(/\u2212/g, '-').replace(/\u2013/g, '-').replace(/\u2014/g, '-');
+    clean = clean.replace(',', '.');
+    if (clean === '' || clean === '+') return 1;
     if (clean === '-') return -1;
-    if (clean === '+') return 1;
-    // Casella buida = coeficient implícit 1
-    if (clean === '') return 1;
     if (!/^-?\d+(\.\d+)?$/.test(clean)) return NaN;
     return parseFloat(clean);
 }
@@ -923,7 +933,7 @@ function mkInput(id, width) {
 function mkSignedInput(id, width, _correctVal) {
     const inp = mkInput(id, width);
     const btn = document.createDocumentFragment();
-    return { btn: btn, inp: inp, getSignedValue: function() { return parseNum(inp.value); } };
+    return { btn: btn, inp: inp, getSignedValue: function() { return parseCoef(inp.value); } };
 }
 
 /**
@@ -1815,6 +1825,7 @@ function buildStepsRepte3(p) {
 // ══════════════════════════════════════════════════════════
 
 function showCurrentStep() {
+    isTransitioning = false;   // Reset: l'alumne pot interactuar amb el nou pas
     var step = currentSteps[currentStepIdx];
 
     // Feedback

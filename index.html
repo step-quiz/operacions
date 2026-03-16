@@ -209,6 +209,7 @@
       </div>
       <div class="row" id="row-diff-eso" style="display:none"><label for="d-eso">Dificultat</label><select id="d-eso"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
       <div class="row" id="row-dim-eso" style="display:none"><label for="dim-eso">Dimensió</label><select id="dim-eso"><option value="">Totes</option><option value="2">2: figures al pla</option><option value="3">3: cossos a l'espai</option></select></div>
+      <div class="row" id="row-nivell-eso" style="display:none"><label for="nivell-eso">Nivell</label><select id="nivell-eso"><option value="a">Fàcil (arrossegar)</option><option value="b">Difícil (escriure)</option></select></div>
       <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
       <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
       <div class="row"><label for="i-eso">Errors màx.</label><select id="i-eso"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
@@ -294,8 +295,10 @@
       const els = {
         d:      document.getElementById('d-' + suffix),
         rowD:   document.getElementById('row-diff-' + suffix),
-        dim:    document.getElementById('dim-' + suffix),
-        rowDim: document.getElementById('row-dim-' + suffix),
+        dim:      document.getElementById('dim-' + suffix),
+        rowDim:   document.getElementById('row-dim-' + suffix),
+        nivell:   document.getElementById('nivell-' + suffix),
+        rowNivell:document.getElementById('row-nivell-' + suffix),
         s:      document.getElementById('s-' + suffix),
         o:      document.getElementById('o-' + suffix),
         i:      document.getElementById('i-' + suffix),
@@ -320,6 +323,11 @@
         els.rowDim.style.display = (dropdown.getValue() === 'vocabulari.html') ? '' : 'none';
       }
 
+      function manageNivellRow() {
+        if (!els.rowNivell) return;
+        els.rowNivell.style.display = (dropdown.getValue() === 'vocabulari.html') ? '' : 'none';
+      }
+
       function build() {
         const file = dropdown.getValue();
         if (suffix === 'batx') {
@@ -337,6 +345,9 @@
           }
           if (file === 'vocabulari.html' && els.dim && els.dim.value) {
             qs.append('dim', els.dim.value);
+          }
+          if (file === 'vocabulari.html' && els.nivell) {
+            qs.append('modalitat', els.nivell.value);
           }
           els.link.textContent = `${BASE_URL}${file}?${qs.toString()}`;
         }
@@ -363,6 +374,7 @@
       const dropdown = makeCustomDropdown('cd-' + suffix, activities, defaultFile, () => {
         manageDifficultyRow();
         manageDimRow();
+        manageNivellRow();
         build();
         manageHelpButton(false);
       });
@@ -370,9 +382,10 @@
       build();
       manageDifficultyRow();
       manageDimRow();
+      manageNivellRow();
       manageHelpButton(true);
 
-      [els.d, els.s, els.o, els.i, els.m, els.dim].filter(Boolean).forEach(el => el.addEventListener('change', build));
+      [els.d, els.s, els.o, els.i, els.m, els.dim, els.nivell].filter(Boolean).forEach(el => el.addEventListener('change', build));
 
       els.copy.addEventListener('click', async () => {
         await navigator.clipboard.writeText(els.link.textContent);
