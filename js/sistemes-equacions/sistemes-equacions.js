@@ -1371,15 +1371,33 @@ function buildLevel() {
  * Hook cridat per game-core.js quan l'alumne prem la tecla "→" del teclat custom.
  * Si hi ha una casella activa i n'hi ha una altra de disponible a continuació,
  * hi passa el focus. Si ja és l'última casella, valida el pas (equivalent a OK).
+ *
+ * BUG FIX: showCustomKeyboard() posa `readonly` a l'input actiu per suprimir
+ * el teclat natiu del mòbil. Això feia que:
+ *   - La query :not([readonly]) exclogués l'input actiu → currIdx = -1 sempre
+ *   - Els validadors saltessin els inputs amb readOnly → allOk = true sempre
+ * Solució:
+ *   1. Fer la query sobre TOTS els inputs, excloent només .locked-green
+ *      (els que ja han estat validats correctament i no s'han de re-editar).
+ *   2. Treure `readonly` i `inputmode` de l'input actiu ABANS de moure el focus,
+ *      perquè el validador el pugui llegir correctament.
  */
 function checkCurrentCell() {
-    var inputs = [].slice.call(els.stepSchema.querySelectorAll('input:not([readonly])'));
+    var inputs = [].slice.call(
+        els.stepSchema.querySelectorAll('input:not(.locked-green)')
+    );
     if (!inputs.length) return;
 
     var active  = els.stepSchema.querySelector('.kb-active-input');
     var currIdx = active ? inputs.indexOf(active) : -1;
-    var nextIdx = currIdx + 1;
 
+    // Restaurar l'input actiu a no-readonly perquè el validador el pugui llegir
+    if (active) {
+        active.removeAttribute('readonly');
+        active.removeAttribute('inputmode');
+    }
+
+    var nextIdx = currIdx + 1;
     if (nextIdx < inputs.length) {
         showCustomKeyboard(inputs[nextIdx]);
     } else {
