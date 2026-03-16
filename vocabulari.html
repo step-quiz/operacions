@@ -45,10 +45,8 @@
 
             <!-- Input d'escriptura (modalitat B) -->
             <div id="write-panel" style="display:none;">
-                <div class="write-prompt">Escriu la paraula</div>
-                <button class="btn-cycle" id="btn-cycle"
-                        onclick="_vocabCycleWrite()">Canviar de casella</button>
                 <div class="write-progress" id="write-progress"></div>
+                <div class="write-prompt">Escriu la paraula</div>
                 <div class="typo-warning"   id="typo-warning">
                     ⚠️ Crec que saps la paraula correcta, però no l'has escrita bé. Repassa-ho.
                 </div>
@@ -59,6 +57,8 @@
                     <button class="btn-submit" id="btn-submit-write"
                             onclick="_vocabCheckWrite()">OK</button>
                 </div>
+                <button class="btn-cycle" id="btn-cycle"
+                        onclick="_vocabCycleWrite()">Canviar de casella</button>
             </div>
 
             <!-- [ROUND 1 — mini-overlay mogut dins #game-area per posicionament

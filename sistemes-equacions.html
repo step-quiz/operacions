@@ -541,6 +541,46 @@
         .method-card { padding: 12px 14px; }
     }
 
+    /* ── Bloqueig mòbil vertical ──────────────────────── */
+    #portrait-block {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: var(--bg-color);
+        z-index: 9999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 30px;
+        text-align: center;
+    }
+    #portrait-block .rotate-icon {
+        font-size: 3.5em;
+        animation: rotateHint 2s ease-in-out infinite;
+    }
+    #portrait-block p {
+        font-size: 1.15em;
+        color: var(--text-main);
+        font-weight: bold;
+        max-width: 280px;
+        line-height: 1.5;
+    }
+    #portrait-block .sub-text {
+        font-size: .9em;
+        color: var(--text-muted);
+        font-weight: normal;
+    }
+    @keyframes rotateHint {
+        0%, 100% { transform: rotate(0deg); }
+        50%      { transform: rotate(90deg); }
+    }
+    /* Mostrar només en mòbils en vertical (pantalla estreta + portrait) */
+    @media (max-width: 600px) and (orientation: portrait) {
+        #portrait-block { display: flex; }
+        .panel, .title-row { display: none !important; }
+    }
+
     /* ── Animacions ─────────────────────────────────────── */
     @keyframes fadeUp {
         from { opacity: 0; transform: translateY(10px); }
@@ -573,6 +613,13 @@
     </style>
 </head>
 <body>
+
+<!-- Bloqueig mòbil vertical -->
+<div id="portrait-block">
+    <div class="rotate-icon">📱</div>
+    <p>Si us plau, gira el teu mòbil</p>
+    <p class="sub-text">Les equacions es veuen millor en horitzontal</p>
+</div>
 
 <div class="title-row">
     <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
@@ -1917,7 +1964,9 @@ function updateUI() {
 
 function buildLevel() {
     var p, key;
-    if (currentOperation === 0 && currentSession === 0 && previewProblem && selectedRepte === 1) {
+    // Primer exercici de la primera sessió: reutilitzar el problema del preview
+    // (el sistema que l'alumne ha vist a la pantalla de selecció)
+    if (currentOperation === 0 && currentSession === 0 && previewProblem) {
         p = previewProblem;
     } else {
         var tries = 0;

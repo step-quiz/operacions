@@ -22,6 +22,7 @@
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ' },
       { file: 'fraccions.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI', difficulty: true },
       { file: 'equacions.html', label: 'Equacions de 1r grau', yt: 'https://youtu.be/Ad9BBLqYgyc' },
+      { file: 'sistemes-equacions.html', label: "Sistemes d'equacions", yt: '' },
       { file: 'radicals.html', label: 'Simplificació de radicals', yt: '' },
       { file: 'pla-cartesia.html', label: 'Pla cartesià', yt: '', difficulty: true }
     ];
@@ -207,6 +208,7 @@
         </div>
       </div>
       <div class="row" id="row-diff-eso" style="display:none"><label for="d-eso">Dificultat</label><select id="d-eso"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
+      <div class="row" id="row-dim-eso" style="display:none"><label for="dim-eso">Dimensió</label><select id="dim-eso"><option value="">Totes</option><option value="2">2: figures al pla</option><option value="3">3: cossos a l'espai</option></select></div>
       <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
       <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
       <div class="row"><label for="i-eso">Errors màx.</label><select id="i-eso"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
@@ -292,6 +294,8 @@
       const els = {
         d:      document.getElementById('d-' + suffix),
         rowD:   document.getElementById('row-diff-' + suffix),
+        dim:    document.getElementById('dim-' + suffix),
+        rowDim: document.getElementById('row-dim-' + suffix),
         s:      document.getElementById('s-' + suffix),
         o:      document.getElementById('o-' + suffix),
         i:      document.getElementById('i-' + suffix),
@@ -311,6 +315,11 @@
         els.rowD.style.display = (selected && selected.difficulty) ? '' : 'none';
       }
 
+      function manageDimRow() {
+        if (!els.rowDim) return;
+        els.rowDim.style.display = (dropdown.getValue() === 'vocabulari.html') ? '' : 'none';
+      }
+
       function build() {
         const file = dropdown.getValue();
         if (suffix === 'batx') {
@@ -325,6 +334,9 @@
           });
           if (selected && selected.difficulty && els.d) {
             qs.append('nivell', els.d.value);
+          }
+          if (file === 'vocabulari.html' && els.dim && els.dim.value) {
+            qs.append('dim', els.dim.value);
           }
           els.link.textContent = `${BASE_URL}${file}?${qs.toString()}`;
         }
@@ -350,15 +362,17 @@
 
       const dropdown = makeCustomDropdown('cd-' + suffix, activities, defaultFile, () => {
         manageDifficultyRow();
+        manageDimRow();
         build();
         manageHelpButton(false);
       });
 
       build();
       manageDifficultyRow();
+      manageDimRow();
       manageHelpButton(true);
 
-      [els.d, els.s, els.o, els.i, els.m].filter(Boolean).forEach(el => el.addEventListener('change', build));
+      [els.d, els.s, els.o, els.i, els.m, els.dim].filter(Boolean).forEach(el => el.addEventListener('change', build));
 
       els.copy.addEventListener('click', async () => {
         await navigator.clipboard.writeText(els.link.textContent);
