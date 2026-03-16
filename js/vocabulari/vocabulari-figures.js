@@ -5,7 +5,7 @@
  * ROL: Font de veritat única de totes les figures geomètriques.
  * ARQUITECTURA:
  * - Mòdul IIFE sense efectes secundaris ni dependències externes.
- * - Cada figura té: id, nom, svg (markup SVG literal) i etiquetes[].
+ * - Cada figura té: id, nom, dim (2=pla | 3=espai), svg (markup SVG literal) i etiquetes[].
  * - Cada etiqueta té: id, text, px/py (punt de la figura), lx/ly (caixa).
  * - El viewBox SVG és sempre 500 × 340.
  * DEPENDÈNCIES: cap
@@ -19,6 +19,7 @@ window.VocabFigures = (() => {
         {
             id:  'rectangle',
             nom: 'Rectangle',
+            dim: 2,
             svg: `
                 <rect x="80" y="90" width="340" height="180" fill="#f0f9ff" stroke="#0369a1" stroke-width="2.5"/>
                 <line x1="80"  y1="90"  x2="420" y2="270" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -42,6 +43,7 @@ window.VocabFigures = (() => {
         {
             id:  'circumferencia',
             nom: 'Circumferència',
+            dim: 2,
             svg: `
                 <circle cx="250" cy="170" r="130" fill="white" stroke="#059669" stroke-width="2.5"/>
                 <line x1="120" y1="170" x2="380" y2="170" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 3"/>
@@ -62,6 +64,7 @@ window.VocabFigures = (() => {
         {
             id:  'triangle',
             nom: 'Triangle',
+            dim: 2,
             svg: `
                 <polygon points="250,50 60,290 440,290" fill="#fffbeb" stroke="#d97706" stroke-width="2.5"/>
                 <line x1="250" y1="50"  x2="250" y2="290" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -83,6 +86,7 @@ window.VocabFigures = (() => {
         {
             id:  'cercle',
             nom: 'Cercle',
+            dim: 2,
             svg: `
                 <defs>
                     <pattern id="cercle-dots" patternUnits="userSpaceOnUse" width="9" height="9">
@@ -110,6 +114,7 @@ window.VocabFigures = (() => {
         {
             id:  'paralelogram',
             nom: 'Paral·lelogram',
+            dim: 2,
             svg: `
                 <polygon points="130,270 200,70 370,70 300,270" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.5"/>
                 <line x1="130" y1="270" x2="370" y2="70"  stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -135,6 +140,7 @@ window.VocabFigures = (() => {
         {
             id:  'trapezi',
             nom: 'Trapezi',
+            dim: 2,
             svg: `
                 <polygon points="140,270 100,90 330,90 400,270" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
                 <line x1="215" y1="90"  x2="215" y2="270" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -157,6 +163,7 @@ window.VocabFigures = (() => {
         {
             id:  'triangle_rectangle',
             nom: 'Triangle rectangle',
+            dim: 2,
             svg: `
                 <polygon points="100,280 100,60 420,280" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
                 <rect x="100" y="260" width="20" height="20" fill="none" stroke="#059669" stroke-width="2"/>
@@ -178,6 +185,7 @@ window.VocabFigures = (() => {
         {
             id:  'pentagono',
             nom: 'Pentàgon regular',
+            dim: 2,
             svg: `
                 <polygon points="250,55 364,138 320,272 180,272 136,138" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
                 <line x1="250" y1="175" x2="250" y2="272" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -203,6 +211,7 @@ window.VocabFigures = (() => {
         {
             id:  'hexagono',
             nom: 'Hexàgon regular',
+            dim: 2,
             svg: `
                 <polygon points="250,50 354,110 354,230 250,290 146,230 146,110" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
                 <line x1="250" y1="170" x2="354" y2="170" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
@@ -229,6 +238,7 @@ window.VocabFigures = (() => {
         {
             id:  'cub',
             nom: 'Cub',
+            dim: 3,
             svg: `
                 <line x1="100" y1="300" x2="170" y2="240" stroke="#0369a1" stroke-width="1.2" stroke-dasharray="5 3"/>
                 <line x1="170" y1="240" x2="310" y2="240" stroke="#0369a1" stroke-width="1.2" stroke-dasharray="5 3"/>
@@ -256,6 +266,7 @@ window.VocabFigures = (() => {
         {
             id:  'ortoedre',
             nom: 'Ortoedre',
+            dim: 3,
             svg: `
                 <line x1="60"  y1="295" x2="115" y2="240" stroke="#059669" stroke-width="1.2" stroke-dasharray="5 3"/>
                 <line x1="115" y1="240" x2="415" y2="240" stroke="#059669" stroke-width="1.2" stroke-dasharray="5 3"/>
@@ -292,6 +303,7 @@ window.VocabFigures = (() => {
         {
             id:  'piramide',
             nom: 'Piràmide',
+            dim: 3,
             svg: `
                 <!-- 3 arestes ocultes (darrere, traç discontinu) -->
                 <line x1="138" y1="222" x2="250" y2="188" stroke="#d97706" stroke-width="1.3" stroke-dasharray="6 4"/>
@@ -337,6 +349,7 @@ window.VocabFigures = (() => {
         {
             id:  'cilindre',
             nom: 'Cilindre',
+            dim: 3,
             svg: `
                 <rect x="110" y="90" width="280" height="180" fill="#f0f9ff" stroke="none"/>
                 <line x1="110" y1="90"  x2="110" y2="270" stroke="#0369a1" stroke-width="2.5"/>
@@ -361,6 +374,7 @@ window.VocabFigures = (() => {
         {
             id:  'con',
             nom: 'Con',
+            dim: 3,
             svg: `
                 <line x1="250" y1="50"  x2="90"  y2="280" stroke="#db2777" stroke-width="2.5"/>
                 <line x1="250" y1="50"  x2="410" y2="280" stroke="#d97706" stroke-width="2.5"/>
@@ -385,6 +399,7 @@ window.VocabFigures = (() => {
         {
             id:  'esfera',
             nom: 'Esfera',
+            dim: 3,
             svg: `
                 <circle cx="250" cy="170" r="145" fill="#fef3c7" stroke="#d97706" stroke-width="2.5"/>
                 <ellipse cx="250" cy="170" rx="145" ry="40"  fill="none" stroke="#d97706" stroke-width="1.8" stroke-dasharray="6 3"/>
@@ -404,6 +419,7 @@ window.VocabFigures = (() => {
         {
             id:  'quadrat',
             nom: 'Quadrat',
+            dim: 2,
             svg: `
                 <rect x="150" y="70" width="200" height="200" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
                 <line x1="150" y1="70"  x2="350" y2="270" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -427,6 +443,7 @@ window.VocabFigures = (() => {
         {
             id:  'rombe',
             nom: 'Rombe',
+            dim: 2,
             svg: `
                 <polygon points="250,50 410,170 250,290 90,170" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.5"/>
                 <line x1="90"  y1="170" x2="410" y2="170" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
@@ -450,6 +467,7 @@ window.VocabFigures = (() => {
         {
             id:  'tetraedre',
             nom: 'Tetraedre',
+            dim: 3,
             svg: `
                 <!-- Arestes ocultes (cap al vèrtex posterior de la base) -->
                 <line x1="115" y1="285" x2="285" y2="195" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="6 4"/>
@@ -499,6 +517,7 @@ window.VocabFigures = (() => {
         {
             id:  'ellipse',
             nom: 'El·lipse',
+            dim: 2,
             svg: `
                 <ellipse cx="250" cy="170" rx="190" ry="120" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
                 <!-- Eix major (horitzontal) -->
@@ -520,6 +539,7 @@ window.VocabFigures = (() => {
         {
             id:  'torus',
             nom: 'Torus',
+            dim: 3,
             svg: `
 <path d="M280,297L287,272L222,253L213,278Z" fill="rgb(169,102,130)" stroke="rgb(169,102,130)" stroke-width=".3"/>
 <path d="M213,278L222,253L162,226L151,250Z" fill="rgb(180,108,138)" stroke="rgb(180,108,138)" stroke-width=".3"/>
@@ -918,6 +938,7 @@ window.VocabFigures = (() => {
         {
             id:  'prisma_triangular',
             nom: 'Prisma triangular',
+            dim: 3,
             svg: `
                 <!-- Arestes ocultes -->
                 <line x1="135" y1="295" x2="310" y2="240" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="6 4"/>
@@ -967,6 +988,7 @@ window.VocabFigures = (() => {
         {
             id:  'prisma_pentagonal',
             nom: 'Prisma pentagonal',
+            dim: 3,
             svg: `
                 <!-- Bases pentagonals:
                      Top: t1(145,120) t2(355,120) t3(400,72) t4(250,38) t5(100,72)

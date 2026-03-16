@@ -26,6 +26,7 @@
         // Instruccions
         INSTR_MODE_A:    'Arrossega cada paraula al lloc correcte de la figura',
         INSTR_MODE_B:    'Escriu la paraula',
+        INSTR_HINT:      'Escriu el nom de la figura',
         PARAULA_X_DE_Y:  (w, t) => `Paraula ${w} de ${t}`,
         // Mini overlay
         OVERLAY_OK_ICON: '⭐',
@@ -154,6 +155,7 @@
             miniPoints:      document.getElementById('mini-points'),
             btnNextFigure:   document.getElementById('btn-next-figure'),
             btnCycle:        document.getElementById('btn-cycle'),
+            writePrompt:     document.querySelector('#write-panel .write-prompt'),
             dragGhost:       document.getElementById('drag-ghost'),
         };
 
@@ -234,8 +236,11 @@
         _punts = 0;
 
         // Ordre aleatori de figures, repetint si cal fins a TOTAL_OPS
-        const all = DIM ? VocabFigures.all.filter(f => f.dim === DIM)
-                        : VocabFigures.all;
+        const filtered = DIM ? VocabFigures.all.filter(f => f.dim === DIM)
+                             : VocabFigures.all;
+        // Fallback: si el filtre no retorna cap figura (dim no existeix al dataset),
+        // usem totes les figures per evitar el bucle infinit que penja la pàgina.
+        const all = filtered.length ? filtered : VocabFigures.all;
         let ordre = VocabEngine.shuffle(all);
         while (ordre.length < TOTAL_OPS) {
             ordre = [...ordre, ...VocabEngine.shuffle(all)];
@@ -668,6 +673,14 @@
         }
 
         els.writeProgress.innerText = TEXTS.PARAULA_X_DE_Y(_etOK + 1, _etTotal);
+
+        // Prompt dinàmic: "Escriu el nom de la figura" si és la casella hint
+        const et = _figActual.etiquetes[_writeIdx];
+        const isHintLabel = (et && et.id === _figActual.id);
+        if (els.writePrompt) {
+            els.writePrompt.innerText = isHintLabel ? TEXTS.INSTR_HINT : TEXTS.INSTR_MODE_B;
+        }
+
         els.writeInput.value = '';
         els.typoWarning.classList.remove('visible');
         _highlightWriteTarget();
@@ -752,6 +765,8 @@
             _etOK++;
             _puntsFiguraActual++;   // [CANVI 2] +1 per etiqueta correcta
             _updateLiveScore();
+            // Thumb-up breu sobre la casella encertada
+            _showThumbsUp(et);
             // Cerca la següent casella no resolta (pot haver-ne per cicle)
             setTimeout(() => {
                 const next = _findNextUnanswered(_writeIdx);
@@ -802,6 +817,35 @@
             els.writeInput.value = '';
             _focusWriteInput();
         }
+    }
+
+    // =========================================================================
+    // THUMB-UP DE CONFIRMACIÓ (mode B)
+    // Apareix sobre la casella encertada com a element SVG temporal (0.6s).
+    // Usa lx/ly de l'etiqueta per posicionar-se just a sobre del requadre.
+    // =========================================================================
+    function _showThumbsUp(et) {
+        const DZ_H = 34;
+        // Coordenada y: just per sobre del requadre (mig box + marge de 10px)
+        const thumbY = (et.ly - DZ_H / 2 - 10);
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('pointer-events', 'none');
+        g.classList.add('thumbs-up-anim');
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', String(et.lx));
+        text.setAttribute('y', String(thumbY));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'auto');
+        text.setAttribute('font-size', '28');
+        text.textContent = '👍';
+
+        g.appendChild(text);
+        els.figureSvg.appendChild(g);
+
+        // Eliminem l'element just quan acaba l'animació
+        setTimeout(() => { if (g.parentNode) g.parentNode.removeChild(g); }, 1050);
     }
 
     // =========================================================================
