@@ -28,9 +28,10 @@
         }
         * { box-sizing: border-box; }
         
-        /* Evitem l'scroll a nivell general de pàgina */
+        /* Solució per a mòbils: 100dvh evita que la barra del navegador amagui el fons */
         html, body {
-            height: 100vh;
+            height: 100%;
+            height: 100dvh; 
             overflow: hidden;
             margin: 0; padding: 0;
         }
@@ -89,37 +90,37 @@
         .level-text  { font-size: 1.05em; color: #334155; }
         .score-text  { font-size: 1.15em; color: var(--primary); font-family: monospace; }
 
-        /* Contenidor de les dues meitats */
         .content-row { 
             display: flex; 
-            flex-direction: column; /* Apilat per defecte (mòbil vertical) */
+            flex-direction: column; 
             flex: 1; 
             min-height: 0; 
             width: 100%; 
         }
         
-        /* FINESTRA ESQUERRA (preguntes) */
+        /* FINESTRA ESQUERRA */
         .interaction-panel {
-            padding: 15px 25px; 
+            /* Hem afegit 40px de marge a sota perquè l'última opció es vegi bé al fer scroll */
+            padding: 15px 25px 40px 25px; 
             display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
-            overflow-y: auto; /* SCROLL VERTICAL independent */
+            overflow-y: auto; 
             flex: 1; min-height: 0;
         }
 
-        /* FINESTRA DRETA (gràfica) */
+        /* FINESTRA DRETA */
         .canvas-container {
             display: flex; justify-content: center; align-items: center;
             padding: 10px; background-color: #f8fafc;
             border-top: 1px solid var(--border-color);
             flex: 1; min-height: 0; 
-            overflow-y: auto; /* SCROLL VERTICAL independent */
+            overflow-y: auto; 
             overflow-x: auto;
         }
         
         #graph-canvas {
             border: 2px solid var(--border-heavy); border-radius: 8px;
             background-color: white; 
-            min-height: 250px; /* Garanteix que no es faci massa petit en mòbil */
+            min-height: 250px; 
             max-width: 100%; max-height: 100%; 
             aspect-ratio: 1 / 1; object-fit: contain;
         }
@@ -190,7 +191,6 @@
         }
         .btn-restart:hover { background-color: var(--primary-hover); }
 
-        /* Mòbil horitzontal i pantalles d'ordinador (posa costat a costat) */
         @media (min-width: 850px), (orientation: landscape) and (max-height: 600px) {
             .content-row { flex-direction: row; align-items: stretch; }
             .canvas-container {
@@ -224,7 +224,6 @@
             </div>
             
             <div class="content-row">
-                
                 <div class="interaction-panel">
                     <div class="step-container active" id="step-1">
                         <div class="step-badge">Pas 1 · Tipus de funció</div>
@@ -242,7 +241,6 @@
                 <div class="canvas-container">
                     <canvas id="graph-canvas" width="600" height="600"></canvas>
                 </div>
-                
             </div>
         </div>
 
@@ -255,9 +253,6 @@
     </div>
 
     <script>
-        // ============================================================
-        // ESTAT GLOBAL
-        // ============================================================
         let currentOperation = 0;
         let score            = 0;
         let isTransitioning  = false;
@@ -268,9 +263,6 @@
 
         const ctx = document.getElementById('graph-canvas').getContext('2d');
 
-        // ============================================================
-        // TIPUS DE FUNCIONS
-        // ============================================================
         const TYPE_INFO = {
             directa:    { label: 'Funció de proporció directa',    levels: [1,2,3], confusedWith: ['afi', 'quadratica', 'inversa'] },
             afi:        { label: 'Funció afí',            levels: [1,2,3], confusedWith: ['directa', 'quadratica', 'cubica'] },
@@ -281,11 +273,7 @@
             cubica:     { label: 'Funció polinòmica de grau ≥ 3', levels: [3], confusedWith: ['quadratica', 'afi', 'exp'] },
         };
 
-        // ============================================================
-        // CATÀLEG DE FUNCIONS
-        // ============================================================
         const SEED_FUNCTIONS = [
-            // ─── PROPORCIÓ DIRECTA ─────────────────────────────────
             { type:'directa', f: x => 2*x,   str:'y = 2x',
               dist:[{str:'y = -2x', f:x=>-2*x}, {str:'y = \\frac{1}{2}x', f:x=>0.5*x}, {str:'y = 3x', f:x=>3*x}] },
             { type:'directa', f: x => -x,    str:'y = -x',
@@ -297,7 +285,6 @@
             { type:'directa', f: x => 3*x,   str:'y = 3x',
               dist:[{str:'y = -3x', f:x=>-3*x}, {str:'y = 2x', f:x=>2*x}, {str:'y = x', f:x=>x}] },
 
-            // ─── FUNCIÓ AFÍ ────────────────────────────────────────
             { type:'afi', f: x => 2*x+1,    str:'y = 2x + 1',
               dist:[{str:'y = 2x - 1', f:x=>2*x-1}, {str:'y = -2x + 1', f:x=>-2*x+1}, {str:'y = x + 1', f:x=>x+1}] },
             { type:'afi', f: x => -x+3,     str:'y = -x + 3',
@@ -311,7 +298,6 @@
             { type:'afi', f: x => -x-2,     str:'y = -x - 2',
               dist:[{str:'y = x - 2', f:x=>x-2}, {str:'y = -x + 2', f:x=>-x+2}, {str:'y = -2x - 2', f:x=>-2*x-2}] },
 
-            // ─── FUNCIÓ QUADRÀTICA ─────────────────────────────────
             { type:'quadratica', f: x => x*x-4,      str:'y = x^2 - 4',
               dist:[{str:'y = x^2 + 4', f:x=>x*x+4}, {str:'y = -x^2 - 4', f:x=>-x*x-4}, {str:'y = x^2 - 2', f:x=>x*x-2}] },
             { type:'quadratica', f: x => -x*x+2,     str:'y = -x^2 + 2',
@@ -327,7 +313,6 @@
             { type:'quadratica', f: x => x*x-2*x-1,  str:'y = x^2 - 2x - 1',
               dist:[{str:'y = x^2 + 2x - 1', f:x=>x*x+2*x-1}, {str:'y = x^2 - 2x + 1', f:x=>x*x-2*x+1}, {str:'y = -x^2 - 2x - 1', f:x=>-x*x-2*x-1}] },
 
-            // ─── PROPORCIÓ INVERSA ─────────────────────────────────
             { type:'inversa', f: x => 2/x,  str:'y = \\frac{2}{x}',
               dist:[{str:'y = -\\frac{2}{x}', f:x=>-2/x}, {str:'y = \\frac{4}{x}', f:x=>4/x}, {str:'y = \\frac{1}{x}', f:x=>1/x}] },
             { type:'inversa', f: x => -2/x, str:'y = -\\frac{2}{x}',
@@ -339,7 +324,6 @@
             { type:'inversa', f: x => 1/x,  str:'y = \\frac{1}{x}',
               dist:[{str:'y = -\\frac{1}{x}', f:x=>-1/x}, {str:'y = \\frac{2}{x}', f:x=>2/x}, {str:'y = \\frac{4}{x}', f:x=>4/x}] },
 
-            // ─── FUNCIÓ EXPONENCIAL ────────────────────────────────
             { type:'exp', f: x => Math.pow(2,x),        str:'y = 2^x',
               dist:[{str:'y = 3^x', f:x=>Math.pow(3,x)}, {str:'y = \\left(\\frac{1}{2}\\right)^x', f:x=>Math.pow(0.5,x)}, {str:'y = 2 \\cdot 2^x', f:x=>2*Math.pow(2,x)}] },
             { type:'exp', f: x => Math.pow(0.5,x),      str:'y = \\left(\\frac{1}{2}\\right)^x',
@@ -351,7 +335,6 @@
             { type:'exp', f: x => 2*Math.pow(2,x),      str:'y = 2 \\cdot 2^x',
               dist:[{str:'y = 2^x', f:x=>Math.pow(2,x)}, {str:'y = 3 \\cdot 2^x', f:x=>3*Math.pow(2,x)}, {str:'y = 2 \\cdot 3^x', f:x=>2*Math.pow(3,x)}] },
 
-            // ─── FUNCIÓ LOGARÍTMICA ────────────────────────────────
             { type:'log', f: x => x>0 ? Math.log2(x) : NaN,              str:'y = \\log_2(x)',
               dist:[
                 {str:'y = -\\log_2(x)',    f:x=>x>0?-Math.log2(x):NaN},
@@ -377,7 +360,6 @@
                 {str:'y = -2\\log_3(x)',     f:x=>x>0?-2*Math.log(x)/Math.log(3):NaN}
               ]},
 
-            // ─── POLINOMI DE GRAU ≥ 3 ─────────────────────────────
             { type:'cubica', f: x => x*x*x,            str:'y = x^3',
               dist:[{str:'y = -x^3', f:x=>-x*x*x}, {str:'y = x^3 + 2', f:x=>x*x*x+2}, {str:'y = x^3 - 2x', f:x=>x*x*x-2*x}] },
             { type:'cubica', f: x => -x*x*x,           str:'y = -x^3',
@@ -394,9 +376,6 @@
               ]},
         ];
 
-        // ============================================================
-        // UTILITATS
-        // ============================================================
         function shuffleArray(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -409,9 +388,6 @@
             return Object.keys(TYPE_INFO).filter(id => TYPE_INFO[id].levels.includes(difficultyLevel));
         }
 
-        // ============================================================
-        // CANVI DE DIFICULTAT
-        // ============================================================
         function setDifficulty(lvl, btn) {
             if (isTransitioning) return;
             difficultyLevel = lvl;
@@ -427,9 +403,6 @@
             buildLevel();
         }
 
-        // ============================================================
-        // CANVAS: reixeta i funció
-        // ============================================================
         function drawGrid() {
             ctx.clearRect(0, 0, 600, 600);
             ctx.fillStyle = '#f8fafc';
@@ -480,9 +453,6 @@
             ctx.stroke();
         }
 
-        // ============================================================
-        // CONSTRUCCIÓ DEL NIVELL
-        // ============================================================
         function buildLevel() {
             isTransitioning = false;
             showFuncLabel   = false;
@@ -501,7 +471,7 @@
             lastSeedStr  = seed.str;
             currentSeed  = seed;
 
-            funcColor = Math.random() > 0.5 ? '#3b82f6' : '#ef4444';
+            funcColor = '#3b82f6';
 
             drawGrid();
             drawFunction(currentSeed.f, funcColor);
