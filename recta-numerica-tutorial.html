@@ -237,6 +237,29 @@
     .game-left.dim { opacity: 0.15; }
     #tut-graph.dim { opacity: 0.15; }
 
+    /* ---- INTRO LINES (panell esquerre passos introductoris) ---- */
+    .intro-lines {
+      display: flex; flex-direction: column; gap: 20px;
+      padding: 6px 0;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .intro-line {
+      font-size: 1.08em; font-weight: 500;
+      color: var(--text); line-height: 1.6;
+      opacity: 0;
+      padding-left: 10px;
+      border-left: 3px solid var(--primary-light);
+    }
+    .intro-line.visible {
+      animation: fadeSlideIn 0.5s ease forwards;
+    }
+    .intro-line b { color: var(--primary-dark); }
+    .intro-line .pos { color: #1d4ed8; font-weight: 700; }
+    .intro-line .neg { color: #c2410c; font-weight: 700; }
+
     /* ---- RESPONSIVE ---- */
     @media (max-width: 780px) {
       body { overflow: auto; height: auto; }
@@ -303,9 +326,63 @@
 'use strict';
 
 /* ================================================================
-   DADES DEL TUTORIAL  —  2 exemples, 8 passos totals
+   DADES DEL TUTORIAL  —  3 exemples, 10 passos totals
    ================================================================ */
 const TUTORIAL = [
+
+  // ----------------------------------------------------------------
+  // INTRODUCCIÓ — Els eixos de coordenades (mode intro: sequencer)
+  // ----------------------------------------------------------------
+  {
+    chip:     'Introducci\u00f3 \u00b7 Els eixos',
+    question: '',
+    cloud:    [],
+    yRange:   { min:-6, max:6, majorStep:1 },
+    options:  [],
+    steps: [
+
+      // PAS 1 — Eix horitzontal (x) — sense eix Y
+      {
+        mode:         'intro',
+        axisMode:     'x-only',
+        icon:         '📏',
+        stepDuration: 19200,
+        leftLines: [
+          'L\'eix <b>horitzontal</b> representa el <b>temps</b>.',
+          'Un nombre <span class="pos">positiu</span> vol dir el <span class="pos">futur</span>.<br><b>\u00abx\u00a0=\u00a03\u00bb</b> vol dir \u00abD\'aqu\u00ed 3 dies\u00bb.',
+          'Un nombre <span class="neg">negatiu</span> vol dir el <span class="neg">passat</span>.<br><b>\u00abx\u00a0=\u00a0\u22122\u00bb</b> vol dir \u00abFa 2 dies\u00bb.',
+          '<b>\u00abx\u00a0=\u00a00\u00bb</b> vol dir <b>avui</b>, el present.',
+        ],
+        sequence: [
+          { atMs:  600, lineIdx: 0, highlight: null },
+          { atMs: 3600, lineIdx: 1, highlight: { type:'column', x:3,  label:'d\'aqu\u00ed 3 dies \u2192 x\u00a0=\u00a03'   } },
+          { atMs: 7200, lineIdx: 2, highlight: { type:'column', x:-2, label:'fa 2 dies \u2192 x\u00a0=\u00a0\u22122'      } },
+          { atMs:10800, lineIdx: 3, highlight: { type:'column', x:0,  label:'avui \u2192 x\u00a0=\u00a00'                } },
+        ],
+        highlight: null, btnStates: [], focus: null,
+      },
+
+      // PAS 2 — Eix vertical (y) — es manté l'eix X
+      {
+        mode:         'intro',
+        axisMode:     'both',
+        icon:         '🌡️',
+        stepDuration: 16000,
+        leftLines: [
+          'L\'eix <b>vertical</b> representa la <b>temperatura</b> d\'aquell dia.',
+          'Un nombre <span class="pos">positiu</span> vol dir graus <span class="pos">sobre zero</span>.<br><b>\u00aby\u00a0=\u00a04\u00bb</b> vol dir \u00ab4 graus sobre zero\u00bb.',
+          'Un nombre <span class="neg">negatiu</span> vol dir graus <span class="neg">sota zero</span>.<br><b>\u00aby\u00a0=\u00a0\u22123\u00bb</b> vol dir \u00ab3 graus sota zero\u00bb.',
+        ],
+        sequence: [
+          { atMs:  600, lineIdx: 0, highlight: null },
+          { atMs: 3600, lineIdx: 1, highlight: { type:'yband', y:4,  label:'4\u00a0\u00baC \u2192 sobre zero'   } },
+          { atMs: 8400, lineIdx: 2, highlight: { type:'yband', y:-3, label:'\u22123\u00a0\u00baC \u2192 sota zero' } },
+        ],
+        highlight: null, btnStates: [], focus: null,
+      },
+
+    ],
+  },
 
   // ----------------------------------------------------------------
   // EXEMPLE 1 — Q2: Quina temperatura feia fa 3 dies?  (x = −3)
@@ -416,13 +493,24 @@ let stepIdx = 0;
 /* ================================================================
    TIMER  —  10 s per pas, amb pausa
    ================================================================ */
-const STEP_MS    = 10000;
+const STEP_MS       = 10000;
+const INTRO_STEP_MS = 30000;
+let currentStepMs = STEP_MS;
 let timerElapsed = 0;
 let timerLastMs  = null;
 let timerIntv    = null;
 let isPaused     = false;
 
+// Sequenciador per als passos intro
+let seqSchedule = [];
+let seqElapsed  = 0;
+let seqLastMs   = null;
+let seqIntv     = null;
+
 function startTimer() {
+    const step = TUTORIAL[exIdx].steps[stepIdx];
+    currentStepMs = step.stepDuration
+                  ?? ((step.mode === 'intro') ? INTRO_STEP_MS : STEP_MS);
     clearInterval(timerIntv);
     timerElapsed = 0;
     timerLastMs  = Date.now();
@@ -437,8 +525,8 @@ function _tick() {
     const now = Date.now();
     timerElapsed += now - timerLastMs;
     timerLastMs   = now;
-    _setFill(Math.min(100, timerElapsed / STEP_MS * 100));
-    if (timerElapsed >= STEP_MS) { clearInterval(timerIntv); _advance(); }
+    _setFill(Math.min(100, timerElapsed / currentStepMs * 100));
+    if (timerElapsed >= currentStepMs) { clearInterval(timerIntv); _advance(); }
 }
 
 function _setFill(pct) {
@@ -446,8 +534,13 @@ function _setFill(pct) {
 }
 
 function togglePause() {
-    if (isPaused) { isPaused = false; timerLastMs = Date.now(); }
-    else          { isPaused = true; }
+    if (isPaused) {
+        isPaused    = false;
+        timerLastMs = Date.now();
+        seqLastMs   = Date.now();   // reprèn el sequenciador sense saltar temps
+    } else {
+        isPaused = true;
+    }
     _setPauseIcon();
 }
 
@@ -466,6 +559,7 @@ function _globalStep() {
 
 function _advance() {
     clearInterval(timerIntv);
+    clearInterval(seqIntv);
     const ex         = TUTORIAL[exIdx];
     const isLastStep = stepIdx === ex.steps.length - 1;
     const isLastEx   = exIdx   === TUTORIAL.length  - 1;
@@ -493,6 +587,7 @@ function _transition() {
         setTimeout(() => {
             _showNarration();
             startTimer();
+            startSequencer();
         }, 800);
     }, 220);
 }
@@ -547,40 +642,62 @@ function applyFocus(focus) {
 function render() {
     const ex   = TUTORIAL[exIdx];
     const step = ex.steps[stepIdx];
+    const isIntro = step.mode === 'intro';
 
     const gs   = _globalStep();
-    const pct  = [0, 15, 30, 45, 60, 75, 90, 100][gs] ?? 100;
+    const pct  = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100][gs] ?? 100;
     document.getElementById('step-counter').textContent = `Completat: ${pct}%`;
     document.getElementById('example-chip').textContent = ex.chip;
-    document.getElementById('tut-question').textContent = ex.question;
-    document.getElementById('tut-hint').textContent     = '';
 
-    // Opcions
-    const optEl = document.getElementById('tut-options');
-    optEl.innerHTML = '';
-    ex.options.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn-option';
-        const st = step.btnStates[i];
-        if (st === 'wrong')   btn.classList.add('wrong');
-        if (st === 'correct') btn.classList.add('correct');
-        btn.style.animationDelay = `${i * 50}ms`;
-        btn.textContent = opt.text;
-        optEl.appendChild(btn);
-    });
-
-    // Gràfic
-    document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, step.highlight);
-
-    // Narrador — sempre invisible en renderitzar; _showNarration() el fa apareixer
+    // Narrador — sempre invisible en renderitzar
     const narrationBox = document.querySelector('.narration-box');
     narrationBox.style.transition = 'none';
     narrationBox.style.opacity    = '0';
-    document.getElementById('narration-icon').textContent = step.icon;
-    document.getElementById('narration-text').innerHTML   = step.narration;
 
-    // Focus
-    applyFocus(step.focus);
+    if (isIntro) {
+        // ── Panell esquerre: totes les línies invisibles — el sequenciador les revelarà ──
+        document.getElementById('tut-question').textContent = '';
+        document.getElementById('tut-hint').textContent     = '';
+        const optEl = document.getElementById('tut-options');
+        optEl.innerHTML = '';
+        const container = document.createElement('div');
+        container.className = 'intro-lines';
+        step.leftLines.forEach(html => {
+            const div = document.createElement('div');
+            div.className = 'intro-line';   // sense .visible: invisible fins que el seq. ho dispari
+            div.innerHTML = html;
+            container.appendChild(div);
+        });
+        optEl.appendChild(container);
+
+        // ── Gràfic inicial sense highlight ──
+        document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, null, step.axisMode);
+
+        applyFocus(null);
+
+    } else {
+        // ── Pas normal ──
+        document.getElementById('tut-question').textContent = ex.question;
+        document.getElementById('tut-hint').textContent     = '';
+
+        const optEl = document.getElementById('tut-options');
+        optEl.innerHTML = '';
+        ex.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            const st = step.btnStates[i];
+            if (st === 'wrong')   btn.classList.add('wrong');
+            if (st === 'correct') btn.classList.add('correct');
+            btn.style.animationDelay = `${i * 50}ms`;
+            btn.textContent = opt.text;
+            optEl.appendChild(btn);
+        });
+
+        document.getElementById('tut-graph').innerHTML = buildSVG(ex.cloud, ex.yRange, step.highlight, null);
+        document.getElementById('narration-icon').textContent = step.icon;
+        document.getElementById('narration-text').innerHTML   = step.narration;
+        applyFocus(step.focus);
+    }
 
     // Botó Següent
     const isLastStep = stepIdx === ex.steps.length - 1;
@@ -589,19 +706,69 @@ function render() {
     if      (isLastStep && isLastEx) { btn.textContent = '🎮 Ves a jugar!';              btn.className = 'btn-next btn-finish';  }
     else if (isLastStep)             { btn.textContent = 'Exemple seg\u00fcent \u2192';  btn.className = 'btn-next btn-next-ex'; }
     else                             { btn.textContent = 'Seg\u00fcent \u2192';          btn.className = 'btn-next';             }
-    btn.blur();   // evita que la barra espaiadora el dispari involuntàriament
+    btn.blur();
 }
 
 function _showNarration() {
+    const step = TUTORIAL[exIdx].steps[stepIdx];
+    if (step.mode === 'intro') return;   // intro no usa la caixa de narrador
     const box = document.querySelector('.narration-box');
     box.style.transition = 'opacity 0.4s ease';
     box.style.opacity    = '1';
 }
 
 /* ================================================================
+   SEQUENCIADOR — controla l'aparició de línies i highlights intro
+   Respecta isPaused: si pausat, el tick no avança el temps
+   ================================================================ */
+function startSequencer() {
+    clearInterval(seqIntv);
+    const step = TUTORIAL[exIdx].steps[stepIdx];
+    if (step.mode !== 'intro' || !step.sequence) return;
+    const ex = TUTORIAL[exIdx];
+
+    seqSchedule = step.sequence.slice();   // còpia mutable
+    seqElapsed  = 0;
+    seqLastMs   = Date.now();
+    let hlList  = [];   // highlights acumulats del pas actual
+
+    seqIntv = setInterval(() => {
+        if (isPaused) return;
+        const now = Date.now();
+        seqElapsed += now - seqLastMs;
+        seqLastMs   = now;
+
+        // Dispara tots els beats que ja han d'haver passat
+        while (seqSchedule.length && seqSchedule[0].atMs <= seqElapsed) {
+            const beat = seqSchedule.shift();
+
+            // Mostra la línia corresponent
+            if (beat.lineIdx !== undefined) {
+                const lines = document.querySelectorAll('.intro-line');
+                if (lines[beat.lineIdx]) lines[beat.lineIdx].classList.add('visible');
+            }
+
+            // Acumula el highlight (null = primer beat, no afegim res)
+            if ('highlight' in beat && beat.highlight !== null) {
+                hlList.push(beat.highlight);
+            }
+            // Actualitza el gràfic amb TOTS els highlights acumulats fins ara
+            if ('highlight' in beat) {
+                document.getElementById('tut-graph').innerHTML =
+                    buildSVG(ex.cloud, ex.yRange, hlList, step.axisMode);
+            }
+        }
+        if (!seqSchedule.length) clearInterval(seqIntv);
+    }, 30);
+}
+
+/* ================================================================
    GENERACIÓ SVG
    ================================================================ */
-function buildSVG(cloudPts, yr, hl) {
+function buildSVG(cloudPts, yr, hl, axisMode) {
+    const showY = (axisMode !== 'x-only');
+    // hl pot ser null, un objecte únic, o un array acumulat
+    const hlList = Array.isArray(hl) ? hl : (hl ? [hl] : []);
     const W=560, H=420, ml=20, mr=20, mt=20, mb=20;
     const pw=W-ml-mr, ph=H-mt-mb;
     const xMin=-5, xMax=5;
@@ -615,12 +782,28 @@ function buildSVG(cloudPts, yr, hl) {
     s.push(`<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#800020"/></marker></defs>`);
     s.push(`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="#fff"/>`);
 
-    // Columna destacada
-    if (hl && hl.type==='column') {
-        const cw = pw/(xMax-xMin);
-        s.push(`<rect x="${f(tx(hl.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="#6b7c2e" opacity="0.09" rx="3"/>`);
-        s.push(`<text x="${f(tx(hl.x))}" y="${mt+14}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="11" font-weight="700" fill="#6b7c2e">${hl.label||`x=${hl.x}`}</text>`);
-    }
+    // Columnes destacades (acumulades)
+    hlList.filter(h => h.type==='column').forEach(h => {
+        const cw   = pw/(xMax-xMin);
+        const col  = h.x > 0 ? '#1d4ed8' : h.x < 0 ? '#c2410c' : '#4b5563';
+        const fill = h.x > 0 ? 'rgba(29,78,216,0.10)' : h.x < 0 ? 'rgba(194,65,12,0.10)' : 'rgba(75,85,99,0.09)';
+        s.push(`<rect x="${f(tx(h.x)-cw/2)}" y="${mt}" width="${f(cw)}" height="${ph}" fill="${fill}" rx="3"/>`);
+        s.push(`<text x="${f(tx(h.x))}" y="${mt+14}" text-anchor="middle" font-family="'Barlow',sans-serif" font-size="11" font-weight="700" fill="${col}">${h.label||`x=${h.x}`}</text>`);
+    });
+
+    // Franges horitzontals destacades (acumulades)
+    hlList.filter(h => h.type==='yband').forEach(h => {
+        const rowH = ph / (yr.max - yr.min);
+        const bandY = ty(h.y) - rowH / 2;
+        const col  = h.y > 0 ? '#1d4ed8' : h.y < 0 ? '#c2410c' : '#4b5563';
+        const fill = h.y > 0 ? 'rgba(29,78,216,0.10)' : h.y < 0 ? 'rgba(194,65,12,0.10)' : 'rgba(75,85,99,0.09)';
+        s.push(`<rect x="${ml}" y="${f(bandY)}" width="${pw}" height="${f(rowH)}" fill="${fill}" rx="3"/>`);
+        s.push(`<line x1="${ml}" y1="${f(ty(h.y))}" x2="${ml+pw}" y2="${f(ty(h.y))}" stroke="${col}" stroke-width="1.8" stroke-dasharray="6,3" opacity="0.7"/>`);
+        s.push(`<text x="${f(px0+8)}" y="${f(ty(h.y)-5)}" text-anchor="start" font-family="'Barlow',sans-serif" font-size="11" font-weight="700" fill="${col}">${h.label||`y=${h.y}`}</text>`);
+    });
+
+    // Per a highlights de punt (únic, no acumulat) agafem l'últim de hlList si n'hi ha
+    const hlSingle = hlList.length ? hlList[hlList.length - 1] : null;
 
     // Grid
     for (let x=xMin; x<=xMax; x++)
@@ -630,14 +813,16 @@ function buildSVG(cloudPts, yr, hl) {
 
     // Eixos
     s.push(`<line x1="${ml}" y1="${f(py0)}" x2="${ml+pw}" y2="${f(py0)}" stroke="#000" stroke-width="2"/>`);
-    s.push(`<line x1="${f(px0)}" y1="${mt}" x2="${f(px0)}" y2="${mt+ph}" stroke="#000" stroke-width="2"/>`);
+    if (showY) s.push(`<line x1="${f(px0)}" y1="${mt}" x2="${f(px0)}" y2="${mt+ph}" stroke="#000" stroke-width="2"/>`);
 
     // Etiquetes Y
+    if (showY) {
     for (let y=yr.min; y<=yr.max; y+=yr.majorStep) {
         if (y===0) continue;
         const py=ty(y);
         s.push(`<line x1="${f(px0-4)}" y1="${f(py)}" x2="${f(px0+4)}" y2="${f(py)}" stroke="#000" stroke-width="1.5"/>`);
         s.push(`<text x="${f(px0-8)}" y="${f(py+5)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">${y}</text>`);
+    }
     }
     // Etiquetes X
     for (let x=xMin; x<=xMax; x++) {
@@ -649,7 +834,7 @@ function buildSVG(cloudPts, yr, hl) {
     s.push(`<text x="${f(px0-8)}" y="${f(py0+20)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="14" font-weight="500" fill="#000">0</text>`);
 
     // Títols eixos
-    s.push(`<text x="${f(px0+6)}" y="15" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">y: temperatura (ºC)</text>`);
+    if (showY) s.push(`<text x="${f(px0+6)}" y="15" text-anchor="start" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">y: temperatura (ºC)</text>`);
     s.push(`<text x="${f(ml+pw)}" y="${f(py0-7)}" text-anchor="end" font-family="'Barlow',sans-serif" font-size="13" font-style="italic" font-weight="700" fill="#000">x: temps (dies)</text>`);
 
     // Punts del núvol
@@ -659,23 +844,23 @@ function buildSVG(cloudPts, yr, hl) {
 
     // Línies de projecció
     const PROJ = ['point','point-correct','point-wrong'];
-    if (hl && PROJ.includes(hl.type)) {
-        const hx=tx(hl.x), hy=ty(hl.y);
-        const c = { point:'#6b7c2e', 'point-correct':'#059669', 'point-wrong':'#dc2626' }[hl.type];
+    if (hlSingle && PROJ.includes(hlSingle.type)) {
+        const hx=tx(hlSingle.x), hy=ty(hlSingle.y);
+        const c = { point:'#6b7c2e', 'point-correct':'#059669', 'point-wrong':'#dc2626' }[hlSingle.type];
         s.push(`<line x1="${ml}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.55"/>`);
         s.push(`<line x1="${f(hx)}" y1="${f(hy)}" x2="${f(hx)}" y2="${f(py0)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.55"/>`);
     }
 
     // Punt pulsant
-    if (hl && hl.type==='point') {
-        const hx=tx(hl.x), hy=ty(hl.y);
+    if (hlSingle && hlSingle.type==='point') {
+        const hx=tx(hlSingle.x), hy=ty(hlSingle.y);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="10" fill="none" stroke="#8fa840" stroke-width="2.5"><animate attributeName="r" from="9" to="23" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.75" to="0" dur="1.2s" repeatCount="indefinite"/></circle>`);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="#8fa840" stroke="white" stroke-width="2.5"/>`);
     }
 
     // Punt incorrecte
-    if (hl && hl.type==='point-wrong') {
-        const hx=tx(hl.x), hy=ty(hl.y), d=4.5;
+    if (hlSingle && hlSingle.type==='point-wrong') {
+        const hx=tx(hlSingle.x), hy=ty(hlSingle.y), d=4.5;
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>`);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#dc2626" stroke="white"  stroke-width="2.5"/>`);
         s.push(`<line x1="${f(hx-d)}" y1="${f(hy-d)}" x2="${f(hx+d)}" y2="${f(hy+d)}" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`);
@@ -683,8 +868,8 @@ function buildSVG(cloudPts, yr, hl) {
     }
 
     // Punt correcte
-    if (hl && hl.type==='point-correct') {
-        const hx=tx(hl.x), hy=ty(hl.y);
+    if (hlSingle && hlSingle.type==='point-correct') {
+        const hx=tx(hlSingle.x), hy=ty(hlSingle.y);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="15" fill="#d1fae5" stroke="#059669" stroke-width="2"/>`);
         s.push(`<circle cx="${f(hx)}" cy="${f(hy)}" r="8"  fill="#059669" stroke="white"  stroke-width="2.5"/>`);
         s.push(`<polyline points="${f(hx-5)},${f(hy+1)} ${f(hx-1)},${f(hy+4.5)} ${f(hx+5)},${f(hy-4)}" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
@@ -716,6 +901,7 @@ render();
 setTimeout(() => {
     _showNarration();
     startTimer();
+    startSequencer();
 }, 800);
 </script>
 
