@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Gràfica i funció">
+    <link rel="icon" href="icon.png">
+    <title>Gràfica i funció</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <script>
+        // ============================================================
+        // CONFIGURACIÓ
+        // ============================================================
+        const TOTAL_OPERATIONS = 5;
+        let difficultyLevel    = 1; // 1, 2 o 3
+    </script>
+    <style>
+        :root {
+            --bg-color: #f8fafc; --panel-bg: #ffffff;
+            --text-main: #1e293b; --text-muted: #64748b;
+            --primary: #0f766e; --primary-light: #ccfbf1;
+            --primary-hover: #0d9488; --primary-dark: #115e59;
+            --danger: #ef4444; --danger-light: #fef2f2;
+            --success: #10b981; --border-color: #e2e8f0; --border-heavy: #cbd5e1;
+        }
+        * { box-sizing: border-box; }
+        
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            margin: 0; padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 8px; 
+        }
+        
+        h1 {
+            text-transform: uppercase; letter-spacing: 1px; color: #334155;
+            font-size: 1.3em; margin-bottom: 8px; text-align: center; margin-top: 0;
+        }
+        .title-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 5px; }
+        .home-icon-link { display: block; width: 45px; height: 45px; flex-shrink: 0; opacity: .75; transition: opacity .2s ease; }
+        .home-icon-link:hover { opacity: 1; }
+        .home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* SELECTOR DE NIVELL (Ara integrat a la barra superior) */
+        .difficulty-selector {
+            display: flex; gap: 5px; 
+            background: #e2e8f0; padding: 4px; border-radius: 10px;
+        }
+        .lvl-btn {
+            border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer;
+            font-weight: bold; color: var(--text-muted); transition: 0.3s; background: transparent;
+        }
+        .lvl-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        @keyframes blink-attention { 0%, 100% { background: transparent; } 50% { background: #fef08a; } }
+        .attention-blink { animation: blink-attention 0.4s ease-in-out 5; }
+        @keyframes shake-attention { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-2px)} 75%{transform:translateX(2px)} }
+        .attention-shake { animation: shake-attention 0.2s ease-in-out 5; }
+
+        .panel {
+            background-color: var(--panel-bg); border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 1250px;
+            margin: 0 auto; overflow: hidden;
+            border: 1px solid var(--border-color); border-top: 6px solid var(--primary);
+            flex: 1; display: flex; flex-direction: column; min-height: 0;
+        }
+        
+        #game-screen {
+            display: flex; flex-direction: column; flex: 1; min-height: 0;
+        }
+
+        .header-info {
+            background-color: #f1f5f9; padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; flex-wrap: wrap; gap: 8px;
+        }
+        .header-left { display: flex; flex-direction: row; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .level-text  { font-size: 1.05em; color: #334155; }
+        .score-text  { font-size: 1.15em; color: var(--primary); font-family: monospace; }
+
+        .content-row { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; }
+        
+        .canvas-container {
+            display: flex; justify-content: center; align-items: center;
+            padding: 10px; background-color: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            flex: 1; min-height: 0; 
+        }
+        #graph-canvas {
+            border: 2px solid var(--border-heavy); border-radius: 8px;
+            background-color: white; 
+            max-width: 100%; max-height: 100%; 
+            aspect-ratio: 1 / 1; object-fit: contain;
+        }
+        .interaction-panel {
+            padding: 15px 25px; 
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+            overflow-y: auto; 
+        }
+        .step-container {
+            display: none; flex-direction: column; align-items: flex-start;
+            width: 100%; animation: fadeIn 0.4s;
+        }
+        .step-container.active { display: flex; }
+
+        .step-badge {
+            font-size: 0.78em; font-weight: 700; letter-spacing: 0.6px;
+            text-transform: uppercase; color: var(--primary);
+            background: var(--primary-light); padding: 4px 12px;
+            border-radius: 20px; margin-bottom: 10px;
+        }
+        .question-text {
+            font-size: 1.15em; color: #334155; margin-bottom: 12px;
+            font-weight: normal; line-height: 1.35; width: 100%;
+        }
+        .options-row { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+        .btn-option {
+            padding: 10px 16px; font-size: 1.05em; font-weight: 400;
+            border-radius: 8px; border: 2px solid var(--border-heavy);
+            background-color: white; color: #334155; cursor: pointer;
+            transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: left; line-height: 1.5;
+        }
+        .btn-option:hover { 
+            background-color: #64748b; /* Gris fosc */
+            border-color: #475569; 
+            color: white; 
+        }
+
+        .btn-formula {
+            font-size: 1.25em; text-align: center; padding: 10px 18px;
+            min-height: 54px; display: flex; align-items: center; justify-content: center;
+        }
+
+        .correct-flash { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        
+        .wrong-choice {
+            background-color: transparent !important; 
+            color: var(--danger) !important; 
+            border-color: var(--danger) !important;
+            pointer-events: none;
+        }
+        
+        .error-shake { animation: shake 0.6s; }
+
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-8px)} 30%{transform:translateX(8px)} 45%{transform:translateX(-8px)} 60%{transform:translateX(8px)} 75%{transform:translateX(-8px)} 90%{transform:translateX(8px)} }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+        .hidden { display: none !important; }
+        #end-screen {
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; padding: 50px 30px; text-align: center; flex: 1;
+        }
+        #end-screen.active { display: flex; }
+        .end-emoji  { font-size: 3.2em; margin-bottom: 10px; }
+        .end-title  { font-size: 1.8em; font-weight: bold; color: var(--primary); margin-bottom: 8px; }
+        .end-score  { font-size: 1.3em; color: #334155; margin-bottom: 28px; line-height: 1.5; }
+        .btn-restart {
+            padding: 12px 32px; font-size: 1.1em; font-weight: bold;
+            background-color: var(--primary); color: white;
+            border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s;
+        }
+        .btn-restart:hover { background-color: var(--primary-hover); }
+
+        @media (min-width: 850px) {
+            .content-row { flex-direction: row; align-items: stretch; }
+            .canvas-container {
+                flex: 0 0 50%; border-bottom: none;
+                border-left: 1px solid var(--border-color); 
+            }
+            .interaction-panel { flex: 1; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="title-row">
+        <a href="https://step-quiz.net" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+            <img src="icon.png" alt="Inici">
+        </a>
+        <h1>Gràfica i funció</h1>
+    </div>
+
+    <div class="panel" id="main-panel">
+        <div id="game-screen">
+            <div class="header-info">
+                <div class="header-left">
+                    <span class="level-text" id="lvl-display">Gràfica 1 de 5</span>
+                    <div class="difficulty-selector">
+                        <button class="lvl-btn active" onclick="setDifficulty(1,this)">Nivell 1</button>
+                        <button class="lvl-btn"        onclick="setDifficulty(2,this)">Nivell 2</button>
+                        <button class="lvl-btn"        onclick="setDifficulty(3,this)">Nivell 3</button>
+                    </div>
+                </div>
+                <div class="score-text" id="score-display">Punts: 0</div>
+            </div>
+            <div class="content-row">
+                <div class="interaction-panel">
+
+                    <div class="step-container active" id="step-1">
+                        <div class="step-badge">Pas 1 · Tipus de funció</div>
+                        <div class="question-text">Quin tipus de funció representa la gràfica?</div>
+                        <div class="options-row" id="type-options"></div>
+                    </div>
+
+                    <div class="step-container" id="step-2">
+                        <div class="step-badge">Pas 2 · Expressió algebraica</div>
+                        <div class="question-text" id="step2-question">Quina és la seva expressió algebraica?</div>
+                        <div class="options-row" id="formula-options"></div>
+                    </div>
+
+                </div>
+                <div class="canvas-container">
+                    <canvas id="graph-canvas" width="600" height="600"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="end-screen">
+            <div class="end-emoji" id="end-emoji">🎉</div>
+            <div class="end-title">Sessió completada!</div>
+            <div class="end-score" id="end-score-text"></div>
+            <button class="btn-restart" onclick="restartGame()">Torna a jugar</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // ESTAT GLOBAL
+        // ============================================================
+        let currentOperation = 0;
+        let score            = 0;
+        let isTransitioning  = false;
+        let currentSeed      = null;
+        let funcColor        = '#3b82f6';
+        let showFuncLabel    = false;
+        let lastSeedStr      = '';
+
+        const ctx = document.getElementById('graph-canvas').getContext('2d');
+
+        // ============================================================
+        // TIPUS DE FUNCIONS
+        // ============================================================
+        const TYPE_INFO = {
+            directa:    { label: 'Funció de proporció directa',    levels: [1,2,3], confusedWith: ['afi', 'quadratica', 'inversa'] },
+            afi:        { label: 'Funció afí',            levels: [1,2,3], confusedWith: ['directa', 'quadratica', 'cubica'] },
+            quadratica: { label: 'Funció quadràtica',     levels: [1,2,3], confusedWith: ['cubica', 'afi', 'directa'] },
+            inversa:    { label: 'Funció de proporció inversa',     levels: [1,2,3], confusedWith: ['exp', 'log', 'quadratica'] },
+            exp:        { label: 'Funció exponencial',    levels: [2,3],   confusedWith: ['log', 'inversa', 'quadratica'] },
+            log:        { label: 'Funció logarítmica',    levels: [2,3],   confusedWith: ['exp', 'inversa', 'afi'] },
+            cubica:     { label: 'Funció polinòmica de grau ≥ 3', levels: [3], confusedWith: ['quadratica', 'afi', 'exp'] },
+        };
+
+        // ============================================================
+        // CATÀLEG DE FUNCIONS
+        // ============================================================
+        const SEED_FUNCTIONS = [
+            // ─── PROPORCIÓ DIRECTA ─────────────────────────────────
+            { type:'directa', f: x => 2*x,   str:'y = 2x',
+              dist:[{str:'y = -2x', f:x=>-2*x}, {str:'y = \\frac{1}{2}x', f:x=>0.5*x}, {str:'y = 3x', f:x=>3*x}] },
+            { type:'directa', f: x => -x,    str:'y = -x',
+              dist:[{str:'y = x',  f:x=>x}, {str:'y = -2x', f:x=>-2*x}, {str:'y = -\\frac{1}{2}x', f:x=>-0.5*x}] },
+            { type:'directa', f: x => 0.5*x, str:'y = \\frac{1}{2}x',
+              dist:[{str:'y = x',  f:x=>x}, {str:'y = 2x', f:x=>2*x}, {str:'y = -\\frac{1}{2}x', f:x=>-0.5*x}] },
+            { type:'directa', f: x => -3*x,  str:'y = -3x',
+              dist:[{str:'y = 3x', f:x=>3*x}, {str:'y = -x', f:x=>-x}, {str:'y = -2x', f:x=>-2*x}] },
+            { type:'directa', f: x => 3*x,   str:'y = 3x',
+              dist:[{str:'y = -3x', f:x=>-3*x}, {str:'y = 2x', f:x=>2*x}, {str:'y = x', f:x=>x}] },
+
+            // ─── FUNCIÓ AFÍ ────────────────────────────────────────
+            { type:'afi', f: x => 2*x+1,    str:'y = 2x + 1',
+              dist:[{str:'y = 2x - 1', f:x=>2*x-1}, {str:'y = -2x + 1', f:x=>-2*x+1}, {str:'y = x + 1', f:x=>x+1}] },
+            { type:'afi', f: x => -x+3,     str:'y = -x + 3',
+              dist:[{str:'y = x + 3', f:x=>x+3}, {str:'y = -x - 3', f:x=>-x-3}, {str:'y = -2x + 3', f:x=>-2*x+3}] },
+            { type:'afi', f: x => x-2,      str:'y = x - 2',
+              dist:[{str:'y = x + 2', f:x=>x+2}, {str:'y = -x - 2', f:x=>-x-2}, {str:'y = 2x - 2', f:x=>2*x-2}] },
+            { type:'afi', f: x => -2*x-1,   str:'y = -2x - 1',
+              dist:[{str:'y = 2x - 1', f:x=>2*x-1}, {str:'y = -2x + 1', f:x=>-2*x+1}, {str:'y = -x - 1', f:x=>-x-1}] },
+            { type:'afi', f: x => 0.5*x+2,  str:'y = \\frac{1}{2}x + 2',
+              dist:[{str:'y = \\frac{1}{2}x - 2', f:x=>0.5*x-2}, {str:'y = 2x + 2', f:x=>2*x+2}, {str:'y = -\\frac{1}{2}x + 2', f:x=>-0.5*x+2}] },
+            { type:'afi', f: x => -x-2,     str:'y = -x - 2',
+              dist:[{str:'y = x - 2', f:x=>x-2}, {str:'y = -x + 2', f:x=>-x+2}, {str:'y = -2x - 2', f:x=>-2*x-2}] },
+
+            // ─── FUNCIÓ QUADRÀTICA ─────────────────────────────────
+            { type:'quadratica', f: x => x*x-4,      str:'y = x^2 - 4',
+              dist:[{str:'y = x^2 + 4', f:x=>x*x+4}, {str:'y = -x^2 - 4', f:x=>-x*x-4}, {str:'y = x^2 - 2', f:x=>x*x-2}] },
+            { type:'quadratica', f: x => -x*x+2,     str:'y = -x^2 + 2',
+              dist:[{str:'y = x^2 + 2', f:x=>x*x+2}, {str:'y = -x^2 - 2', f:x=>-x*x-2}, {str:'y = -x^2 + 4', f:x=>-x*x+4}] },
+            { type:'quadratica', f: x => x*x+2*x,    str:'y = x^2 + 2x',
+              dist:[{str:'y = x^2 - 2x', f:x=>x*x-2*x}, {str:'y = -x^2 + 2x', f:x=>-x*x+2*x}, {str:'y = x^2 + 2x + 2', f:x=>x*x+2*x+2}] },
+            { type:'quadratica', f: x => -x*x-2*x,   str:'y = -x^2 - 2x',
+              dist:[{str:'y = x^2 - 2x', f:x=>x*x-2*x}, {str:'y = -x^2 + 2x', f:x=>-x*x+2*x}, {str:'y = -x^2 - 2x + 2', f:x=>-x*x-2*x+2}] },
+            { type:'quadratica', f: x => 2*x*x-3,    str:'y = 2x^2 - 3',
+              dist:[{str:'y = 2x^2 + 3', f:x=>2*x*x+3}, {str:'y = -2x^2 - 3', f:x=>-2*x*x-3}, {str:'y = x^2 - 3', f:x=>x*x-3}] },
+            { type:'quadratica', f: x => -0.5*x*x+1, str:'y = -\\frac{1}{2}x^2 + 1',
+              dist:[{str:'y = \\frac{1}{2}x^2 + 1', f:x=>0.5*x*x+1}, {str:'y = -x^2 + 1', f:x=>-x*x+1}, {str:'y = -\\frac{1}{2}x^2 - 1', f:x=>-0.5*x*x-1}] },
+            { type:'quadratica', f: x => x*x-2*x-1,  str:'y = x^2 - 2x - 1',
+              dist:[{str:'y = x^2 + 2x - 1', f:x=>x*x+2*x-1}, {str:'y = x^2 - 2x + 1', f:x=>x*x-2*x+1}, {str:'y = -x^2 - 2x - 1', f:x=>-x*x-2*x-1}] },
+
+            // ─── PROPORCIÓ INVERSA ─────────────────────────────────
+            { type:'inversa', f: x => 2/x,  str:'y = \\frac{2}{x}',
+              dist:[{str:'y = -\\frac{2}{x}', f:x=>-2/x}, {str:'y = \\frac{4}{x}', f:x=>4/x}, {str:'y = \\frac{1}{x}', f:x=>1/x}] },
+            { type:'inversa', f: x => -2/x, str:'y = -\\frac{2}{x}',
+              dist:[{str:'y = \\frac{2}{x}',  f:x=>2/x}, {str:'y = -\\frac{4}{x}', f:x=>-4/x}, {str:'y = -\\frac{1}{x}', f:x=>-1/x}] },
+            { type:'inversa', f: x => 4/x,  str:'y = \\frac{4}{x}',
+              dist:[{str:'y = -\\frac{4}{x}', f:x=>-4/x}, {str:'y = \\frac{2}{x}', f:x=>2/x}, {str:'y = \\frac{1}{x}', f:x=>1/x}] },
+            { type:'inversa', f: x => -4/x, str:'y = -\\frac{4}{x}',
+              dist:[{str:'y = \\frac{4}{x}',  f:x=>4/x}, {str:'y = -\\frac{2}{x}', f:x=>-2/x}, {str:'y = -\\frac{1}{x}', f:x=>-1/x}] },
+            { type:'inversa', f: x => 1/x,  str:'y = \\frac{1}{x}',
+              dist:[{str:'y = -\\frac{1}{x}', f:x=>-1/x}, {str:'y = \\frac{2}{x}', f:x=>2/x}, {str:'y = \\frac{4}{x}', f:x=>4/x}] },
+
+            // ─── FUNCIÓ EXPONENCIAL ────────────────────────────────
+            { type:'exp', f: x => Math.pow(2,x),        str:'y = 2^x',
+              dist:[{str:'y = 3^x', f:x=>Math.pow(3,x)}, {str:'y = \\left(\\frac{1}{2}\\right)^x', f:x=>Math.pow(0.5,x)}, {str:'y = 2 \\cdot 2^x', f:x=>2*Math.pow(2,x)}] },
+            { type:'exp', f: x => Math.pow(0.5,x),      str:'y = \\left(\\frac{1}{2}\\right)^x',
+              dist:[{str:'y = 2^x', f:x=>Math.pow(2,x)}, {str:'y = \\left(\\frac{1}{3}\\right)^x', f:x=>Math.pow(1/3,x)}, {str:'y = 2 \\cdot \\left(\\frac{1}{2}\\right)^x', f:x=>2*Math.pow(0.5,x)}] },
+            { type:'exp', f: x => Math.pow(3,x),        str:'y = 3^x',
+              dist:[{str:'y = 2^x', f:x=>Math.pow(2,x)}, {str:'y = \\left(\\frac{1}{3}\\right)^x', f:x=>Math.pow(1/3,x)}, {str:'y = 3 \\cdot 2^x', f:x=>3*Math.pow(2,x)}] },
+            { type:'exp', f: x => Math.pow(1/3,x),      str:'y = \\left(\\frac{1}{3}\\right)^x',
+              dist:[{str:'y = \\left(\\frac{1}{2}\\right)^x', f:x=>Math.pow(0.5,x)}, {str:'y = 3^x', f:x=>Math.pow(3,x)}, {str:'y = 2 \\cdot \\left(\\frac{1}{3}\\right)^x', f:x=>2*Math.pow(1/3,x)}] },
+            { type:'exp', f: x => 2*Math.pow(2,x),      str:'y = 2 \\cdot 2^x',
+              dist:[{str:'y = 2^x', f:x=>Math.pow(2,x)}, {str:'y = 3 \\cdot 2^x', f:x=>3*Math.pow(2,x)}, {str:'y = 2 \\cdot 3^x', f:x=>2*Math.pow(3,x)}] },
+
+            // ─── FUNCIÓ LOGARÍTMICA ────────────────────────────────
+            { type:'log', f: x => x>0 ? Math.log2(x) : NaN,              str:'y = \\log_2(x)',
+              dist:[
+                {str:'y = -\\log_2(x)',    f:x=>x>0?-Math.log2(x):NaN},
+                {str:'y = \\log_3(x)',      f:x=>x>0?Math.log(x)/Math.log(3):NaN},
+                {str:'y = 2\\log_2(x)',    f:x=>x>0?2*Math.log2(x):NaN}
+              ]},
+            { type:'log', f: x => x>0 ? -Math.log2(x) : NaN,             str:'y = -\\log_2(x)',
+              dist:[
+                {str:'y = \\log_2(x)',       f:x=>x>0?Math.log2(x):NaN},
+                {str:'y = -\\log_3(x)',      f:x=>x>0?-Math.log(x)/Math.log(3):NaN},
+                {str:'y = -2\\log_2(x)',    f:x=>x>0?-2*Math.log2(x):NaN}
+              ]},
+            { type:'log', f: x => x>0 ? Math.log(x)/Math.log(3) : NaN,   str:'y = \\log_3(x)',
+              dist:[
+                {str:'y = \\log_2(x)',       f:x=>x>0?Math.log2(x):NaN},
+                {str:'y = -\\log_3(x)',      f:x=>x>0?-Math.log(x)/Math.log(3):NaN},
+                {str:'y = \\log_3(x) + 1',   f:x=>x>0?Math.log(x)/Math.log(3)+1:NaN}
+              ]},
+            { type:'log', f: x => x>0 ? -Math.log(x)/Math.log(3) : NaN,  str:'y = -\\log_3(x)',
+              dist:[
+                {str:'y = \\log_3(x)',        f:x=>x>0?Math.log(x)/Math.log(3):NaN},
+                {str:'y = -\\log_2(x)',       f:x=>x>0?-Math.log2(x):NaN},
+                {str:'y = -2\\log_3(x)',     f:x=>x>0?-2*Math.log(x)/Math.log(3):NaN}
+              ]},
+
+            // ─── POLINOMI DE GRAU ≥ 3 ─────────────────────────────
+            { type:'cubica', f: x => x*x*x,            str:'y = x^3',
+              dist:[{str:'y = -x^3', f:x=>-x*x*x}, {str:'y = x^3 + 2', f:x=>x*x*x+2}, {str:'y = x^3 - 2x', f:x=>x*x*x-2*x}] },
+            { type:'cubica', f: x => -x*x*x,           str:'y = -x^3',
+              dist:[{str:'y = x^3', f:x=>x*x*x}, {str:'y = -x^3 + 2', f:x=>-x*x*x+2}, {str:'y = -x^3 - x', f:x=>-x*x*x-x}] },
+            { type:'cubica', f: x => x*x*x-3*x,        str:'y = x^3 - 3x',
+              dist:[{str:'y = x^3 + 3x', f:x=>x*x*x+3*x}, {str:'y = -x^3 - 3x', f:x=>-x*x*x-3*x}, {str:'y = x^3 - x', f:x=>x*x*x-x}] },
+            { type:'cubica', f: x => -x*x*x+3*x,       str:'y = -x^3 + 3x',
+              dist:[{str:'y = x^3 + 3x', f:x=>x*x*x+3*x}, {str:'y = -x^3 - 3x', f:x=>-x*x*x-3*x}, {str:'y = -x^3 + x', f:x=>-x*x*x+x}] },
+            { type:'cubica', f: x => x*x*x+x*x-2*x,    str:'y = x^3 + x^2 - 2x',
+              dist:[
+                {str:'y = x^3 - x^2 + 2x',  f:x=>x*x*x-x*x+2*x},
+                {str:'y = x^3 + x^2 + 2x',  f:x=>x*x*x+x*x+2*x},
+                {str:'y = -x^3 + x^2 - 2x', f:x=>-x*x*x+x*x-2*x}
+              ]},
+        ];
+
+        // ============================================================
+        // UTILITATS
+        // ============================================================
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function getAvailableTypes() {
+            return Object.keys(TYPE_INFO).filter(id => TYPE_INFO[id].levels.includes(difficultyLevel));
+        }
+
+        // ============================================================
+        // CANVI DE DIFICULTAT
+        // ============================================================
+        function setDifficulty(lvl, btn) {
+            if (isTransitioning) return;
+            difficultyLevel = lvl;
+            document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (currentOperation >= TOTAL_OPERATIONS) {
+                currentOperation = 0; score = 0;
+                document.getElementById('score-display').innerText = 'Punts: 0';
+                document.getElementById('game-screen').classList.remove('hidden');
+                document.getElementById('end-screen').classList.remove('active');
+            }
+            lastSeedStr = '';
+            buildLevel();
+        }
+
+        // ============================================================
+        // CANVAS: reixeta i funció
+        // ============================================================
+        function drawGrid() {
+            ctx.clearRect(0, 0, 600, 600);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, 600, 600);
+
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+            for (let i = -5; i <= 5; i++) {
+                const p = (i + 5) * 60;
+                ctx.beginPath(); ctx.moveTo(p,0);   ctx.lineTo(p,600); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0,p);   ctx.lineTo(600,p); ctx.stroke();
+            }
+
+            ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(300,0);   ctx.lineTo(300,600); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0,300);   ctx.lineTo(600,300); ctx.stroke();
+
+            ctx.font = '17px Segoe UI'; ctx.fillStyle = '#1e293b'; ctx.textAlign = 'center';
+            for (let i = -5; i <= 5; i++) {
+                if (i !== 0) {
+                    ctx.fillText(i, (i+5)*60, 320);
+                    ctx.fillText(i, 285, 600-(i+5)*60+5);
+                }
+            }
+
+            if (showFuncLabel) {
+                ctx.font = 'bold 20px Segoe UI';
+                ctx.fillStyle = funcColor;
+                ctx.textAlign = 'right';
+                ctx.fillText('f(x)', 582, 32);
+            }
+        }
+
+        function drawFunction(fn, color) {
+            ctx.beginPath();
+            ctx.strokeStyle = color; ctx.lineWidth = 2.8;
+            let first = true;
+            for (let px = 0; px <= 600; px++) {
+                const x = -5 + (px / 60);
+                const y = fn(x);
+                if (isFinite(y) && !isNaN(y) && Math.abs(y) < 12) {
+                    const py = 300 - y * 60;
+                    if (first) { ctx.moveTo(px, py); first = false; }
+                    else       { ctx.lineTo(px, py); }
+                } else {
+                    first = true;
+                }
+            }
+            ctx.stroke();
+        }
+
+        // ============================================================
+        // CONSTRUCCIÓ DEL NIVELL
+        // ============================================================
+        function buildLevel() {
+            isTransitioning = false;
+            showFuncLabel   = false;
+
+            document.getElementById('lvl-display').innerText =
+                `Gràfica ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+
+            const available = SEED_FUNCTIONS.filter(s =>
+                TYPE_INFO[s.type] && TYPE_INFO[s.type].levels.includes(difficultyLevel)
+            );
+            let seed, attempts = 0;
+            do {
+                seed = available[Math.floor(Math.random() * available.length)];
+                attempts++;
+            } while (seed.str === lastSeedStr && available.length > 1 && attempts < 15);
+            lastSeedStr  = seed.str;
+            currentSeed  = seed;
+
+            funcColor = Math.random() > 0.5 ? '#3b82f6' : '#ef4444';
+
+            drawGrid();
+            drawFunction(currentSeed.f, funcColor);
+
+            document.getElementById('step-1').classList.add('active');
+            document.getElementById('step-2').classList.remove('active');
+
+            document.querySelectorAll('#step-1 .btn-option').forEach(b => {
+                b.classList.remove('correct-flash', 'error-shake', 'wrong-choice');
+            });
+
+            buildTypeOptions();
+        }
+
+        function buildTypeOptions() {
+            const correct       = currentSeed.type;
+            const availableTypes = getAvailableTypes();
+
+            const preferred = (TYPE_INFO[correct].confusedWith || [])
+                .filter(t => availableTypes.includes(t));
+            const others    = availableTypes.filter(t => t !== correct && !preferred.includes(t));
+            shuffleArray(preferred);
+            shuffleArray(others);
+            const distractorTypes = [...preferred, ...others].slice(0, 3);
+
+            let options = [
+                { label: TYPE_INFO[correct].label, correct: true },
+                ...distractorTypes.map(t => ({ label: TYPE_INFO[t].label, correct: false }))
+            ];
+            shuffleArray(options);
+
+            const container = document.getElementById('type-options');
+            container.innerHTML = '';
+            options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'btn-option';
+                b.textContent = opt.label;
+                b.onclick = () => checkStep1(opt.correct, b);
+                container.appendChild(b);
+            });
+        }
+
+        function checkStep1(isCorrect, btn) {
+            if (isTransitioning) return;
+            if (isCorrect) {
+                isTransitioning = true;
+                btn.classList.add('correct-flash');
+                showFuncLabel = true;
+
+                // Apliquem .toLowerCase() perquè s'adapti correctament a la frase:
+                document.getElementById('step2-question').innerHTML =
+                    `La gràfica representa una <strong>${TYPE_INFO[currentSeed.type].label.toLowerCase()}</strong>.<br>Quina és la seva expressió algebraica?`;
+
+                setTimeout(() => {
+                    document.getElementById('step-1').classList.remove('active');
+                    document.getElementById('step-2').classList.add('active');
+                    drawGrid();
+                    drawFunction(currentSeed.f, funcColor);
+                    buildFormulaOptions();
+                    isTransitioning = false;
+                }, 700);
+            } else {
+                btn.classList.add('error-shake', 'wrong-choice');
+            }
+        }
+
+        function buildFormulaOptions() {
+            let options = [
+                { str: currentSeed.str, correct: true },
+                ...currentSeed.dist.map(d => ({ str: d.str, correct: false }))
+            ];
+            shuffleArray(options);
+
+            const container = document.getElementById('formula-options');
+            container.innerHTML = '';
+            options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'btn-option btn-formula';
+                
+                katex.render(opt.str, b, { throwOnError: false, displayMode: false });
+                
+                b.onclick = () => checkStep2(opt.correct, b);
+                container.appendChild(b);
+            });
+        }
+
+        function checkStep2(isCorrect, btn) {
+            if (isTransitioning) return;
+            if (isCorrect) {
+                isTransitioning = true;
+                score++;
+                document.getElementById('score-display').innerText = `Punts: ${score}`;
+                btn.classList.add('correct-flash');
+                setTimeout(() => {
+                    currentOperation++;
+                    if (currentOperation >= TOTAL_OPERATIONS) {
+                        showEndScreen();
+                    } else {
+                        buildLevel();
+                    }
+                }, 1000);
+            } else {
+                btn.classList.add('error-shake', 'wrong-choice');
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('active');
+
+            const pct = score / TOTAL_OPERATIONS;
+            const emoji = pct === 1 ? '🏆' : pct >= 0.6 ? '🎉' : '💪';
+            document.getElementById('end-emoji').textContent = emoji;
+            document.getElementById('end-score-text').innerHTML =
+                `Has encertat <strong>${score} de ${TOTAL_OPERATIONS}</strong> expressions algebraiques!`;
+        }
+
+        function restartGame() {
+            currentOperation = 0; score = 0; lastSeedStr = '';
+            document.getElementById('score-display').innerText = 'Punts: 0';
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('end-screen').classList.remove('active');
+            buildLevel();
+        }
+
+        buildLevel();
+
+        window.addEventListener('load', () => {
+            const btns = document.querySelectorAll('.lvl-btn');
+            if (btns.length >= 3) {
+                btns[0].classList.add('attention-shake');
+                btns[1].classList.add('attention-blink');
+                btns[2].classList.add('attention-blink');
+            }
+        });
+    </script>
+</body>
+</html>
