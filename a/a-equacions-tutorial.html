@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tutorial — Equacions</title>
   <style>
-    /* ── VARIABLES ─────────────────────────────────────────────── */
     :root {
       --primary:       #0d9488;
       --primary-light: #ccfbf1;
@@ -31,36 +30,36 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 12px 16px 8px;
+      padding: 10px 14px 6px;
     }
 
-    /* ── CAPÇALERA PÀGINA ─────────────────────────────────────── */
+    /* ── CAPÇALERA PÀGINA ─── */
     .title-row {
       display: flex; align-items: center; gap: 12px;
-      margin-bottom: 8px;
-      width: 100%; max-width: 900px;
+      margin-bottom: 7px;
+      width: 100%; max-width: 920px;
       justify-content: center;
     }
     .title-row h1 {
-      font-size: 1.4em; font-weight: 700;
+      font-size: 1.25em; font-weight: 700;
       text-transform: uppercase; letter-spacing: 1px;
       color: var(--primary-dark);
     }
     .home-icon-link {
-      width: 38px; height: 38px; opacity: 0.7;
+      width: 36px; height: 36px; opacity: 0.7;
       transition: opacity 0.2s; display: block; flex-shrink: 0;
     }
     .home-icon-link:hover { opacity: 1; }
     .home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
 
-    /* ── PANELL ───────────────────────────────────────────────── */
+    /* ── PANELL ─── */
     .panel {
       background: var(--panel);
       border-radius: var(--radius);
       box-shadow: 0 4px 20px rgba(0,0,0,0.07);
       border: 1px solid var(--border);
       border-top: 5px solid var(--primary);
-      width: 100%; max-width: 900px;
+      width: 100%; max-width: 920px;
       overflow: hidden;
       flex: 1 1 0;
       display: flex;
@@ -68,56 +67,52 @@
       min-height: 0;
     }
 
-    /* ── CAPÇALERA TUTORIAL ───────────────────────────────────── */
+    /* ── CAPÇALERA TUTORIAL ─── */
     .tut-header {
       background: var(--primary-dark);
       color: white;
-      padding: 7px 14px;
-      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px;
+      display: flex; align-items: center; gap: 12px;
       flex-shrink: 0;
     }
-    .step-counter {
-      font-size: 0.85em; font-weight: 700;
-      background: rgba(255,255,255,0.15);
-      padding: 3px 10px; border-radius: 20px;
-      white-space: nowrap; flex-shrink: 0;
+
+    /* Punts de progrés visuals (substitueixen el % de text) */
+    .step-dots {
+      display: flex; gap: 6px; align-items: center;
+      flex: 1;
     }
-    .header-spacer { flex: 1 1 0; }
-    .example-chip {
-      font-size: 0.82em; font-weight: 700;
-      background: rgba(255,255,255,0.12);
-      padding: 3px 10px; border-radius: 20px;
-      color: #99f6e4; white-space: nowrap;
+    .step-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+      transition: background 0.4s ease, transform 0.4s ease;
+      flex-shrink: 0;
     }
+    .step-dot.done    { background: #5eead4; }
+    .step-dot.current { background: white; transform: scale(1.55); }
+
+    /* exemple-chip eliminat (punt 1) */
+
+    /*
+     * TODO-2: El botó de pausa hauria de ser molt més gran (mínim 48×48 px),
+     * amb icona clara i potser una etiqueta visible "PAUSA",
+     * de manera que alumnes amb TDAH o TEA el trobin immediatament
+     * sense haver de buscar-lo ni llegir res.
+     */
     .btn-pause {
       background: white; border: 2px solid #ea580c;
-      color: #ea580c; font-size: 1em; font-weight: 800;
-      width: 32px; height: 32px; border-radius: 50%;
+      color: #ea580c; font-size: 1.1em; font-weight: 800;
+      width: 34px; height: 34px; border-radius: 50%;
       cursor: pointer; display: flex; align-items: center;
       justify-content: center; transition: background 0.15s; flex-shrink: 0;
       box-shadow: 0 0 0 3px rgba(234,88,12,0.2);
     }
     .btn-pause:hover { background: #fff7ed; }
-    .btn-next {
-      padding: 5px 16px;
-      background: white; color: var(--primary-dark);
-      font-family: inherit; font-size: 1em; font-weight: 700;
-      border: none; border-radius: 7px; cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      white-space: nowrap; flex-shrink: 0;
-    }
-    .btn-next:hover  { background: #e2e8f0; }
-    .btn-next:active { transform: scale(0.97); }
-    .btn-next.btn-finish       { background: #d1fae5; color: #065f46; }
-    .btn-next.btn-finish:hover { background: #a7f3d0; }
-    .btn-next.btn-ex           { background: #ede9fe; color: #4c1d95; }
-    .btn-next.btn-ex:hover     { background: #ddd6fe; }
 
-    /* ── BARRA TIMER ──────────────────────────────────────────── */
+    /* ── BARRA TIMER ─── */
     .timer-track { height: 5px; background: rgba(0,0,0,0.08); flex-shrink: 0; }
     .timer-fill  { height: 100%; background: linear-gradient(90deg,#f97316,#ea580c); width:0%; }
 
-    /* ── COS PRINCIPAL ────────────────────────────────────────── */
+    /* ── COS PRINCIPAL ─── */
     .game-body {
       display: flex; flex-direction: row;
       flex: 1 1 0; min-height: 0;
@@ -125,67 +120,129 @@
     }
     .game-body.fading { opacity: 0; pointer-events: none; }
 
-    /* ── PANELL ESQUERRE: mock del joc ────────────────────────── */
+    /* ── PANELL ESQUERRE — narració (top) + equació algebraica ─── */
     .game-left {
-      width: 45%; flex-shrink: 0;
+      width: 42%; flex-shrink: 0;
+      transition: width 0.3s ease;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 20px 16px;
+      align-items: center; justify-content: flex-start;
+      padding: 14px 14px 10px;
       border-right: 1px solid var(--border);
       overflow-y: auto; min-height: 0;
-      gap: 16px;
-      transition: opacity 0.3s ease;
+      gap: 14px;
+      /*
+       * TODO-3: Connectar visualment els dos panells.
+       * Propostes: (a) línia puntejada animada que vagi de l'equació
+       * al visual SVG del panell dret, (b) pols de color sincronitzat
+       * als dos panells quan canvia el pas, (c) fletxa subtil a la vora
+       * dreta de game-left que apunti sempre cap al visual.
+       */
+    }
+    /* Wrapper per centrar verticalment l'equació en l'espai restant */
+    .game-left-eq-wrap {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px; width: 100%;
     }
 
-    /* ── EQUACIÓ MOCK ─────────────────────────────────────────── */
+    /* ── STORY STRIP — ara al panell DRET, sobre el visual ─── */
+    /*
+     * Mostra l'operació del pas en curs com a seqüència d'emojis
+     * i símbols matemàtics. Pertany al panell gràfic (dret).
+     */
+    .story-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      row-gap: 6px;
+      column-gap: 8px;
+      padding: 10px 14px;
+      background: var(--primary-light);
+      border: 2px solid var(--var-border);
+      border-radius: 14px;
+      font-size: 1.65em;
+      width: 100%;
+      min-height: 62px;
+      animation: stripIn 0.35s ease;
+    }
+    @keyframes stripIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .s-op {
+      font-size: 0.58em; font-weight: 900;
+      color: var(--primary-dark);
+      background: white;
+      border: 1.5px solid var(--var-border);
+      border-radius: 8px;
+      padding: 4px 9px; line-height: 1;
+    }
+    .s-op.red  { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+    .s-op.blue { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+    .s-res {
+      font-size: 0.68em; font-weight: 900;
+      background: white;
+      border: 2.5px solid var(--primary);
+      border-radius: 10px;
+      padding: 5px 11px;
+      color: var(--primary-dark);
+      font-family: 'Courier New', monospace;
+      line-height: 1.2;
+    }
+    .s-x {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--var-bg);
+      border: 2px solid var(--var-border);
+      border-radius: 9px;
+      width: 46px; height: 42px;
+      font-size: 0.72em; font-weight: 900; font-style: italic;
+      color: var(--var-color);
+      font-family: 'Courier New', monospace;
+    }
+    .s-candy { font-size: 0.8em; line-height: 1.1; word-break: break-all; }
+    .s-eq { font-size: 0.65em; font-weight: 900; color: var(--primary); padding: 0 2px; }
+
+    /* ── EQUACIÓ MOCK ─── */
     .mock-eq {
       display: flex; align-items: center;
       justify-content: center;
-      gap: 10px;
-      font-size: 2.2em;
+      gap: 8px;
+      font-size: 2.1em;
       font-family: 'Courier New', Courier, monospace;
       font-weight: bold;
       flex-wrap: wrap;
     }
     .t-var {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 14px;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 12px;
       background: var(--var-bg);
       border: 2px solid var(--var-border);
       border-radius: 10px;
-      color: var(--var-color);
-      line-height: 1;
+      color: var(--var-color); line-height: 1;
     }
     .t-var .t-coeff { color: var(--var-color); }
     .t-var .t-dot   { color: #475569; font-size: 0.85em; }
     .t-var .t-x     { font-style: italic; }
     .t-num {
-      padding: 8px 14px;
+      padding: 7px 12px;
       background: #f8fafc;
       border: 2px solid #e2e8f0;
       border-radius: 10px;
-      color: #334155;
-      line-height: 1;
+      color: #334155; line-height: 1;
     }
     .t-op {
-      background: #f1f5f9;
-      border: 2px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 8px 16px;
-      color: #64748b;
-      font-weight: bold;
+      background: #f1f5f9; border: 2px solid #cbd5e1;
+      border-radius: 10px; padding: 7px 14px;
+      color: #64748b; font-weight: bold;
     }
     .t-eq { color: var(--primary); font-weight: bold; padding: 0 4px; }
 
-    /* Pregunta i fila resposta */
-    .mock-question {
-      font-size: 1em; font-weight: 700;
-      color: #475569; text-align: center;
-    }
     .mock-answer-row {
       display: flex; align-items: center;
       justify-content: center; gap: 10px;
-      font-size: 1.8em;
+      font-size: 1.65em;
       font-family: 'Courier New', Courier, monospace;
       font-weight: bold;
     }
@@ -194,114 +251,154 @@
       background: var(--var-bg);
       border: 2px solid var(--var-border);
       border-radius: 10px;
-      padding: 7px 14px;
-      color: var(--var-color);
-      line-height: 1;
+      padding: 6px 12px;
+      color: var(--var-color); line-height: 1;
     }
     .mock-eq-sign { color: var(--primary); padding: 0 4px; }
     .mock-input {
-      width: 90px;
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 8px;
-      text-align: center;
+      width: 85px; background: white;
+      border: 2px solid #e2e8f0; border-radius: 8px;
+      padding: 7px; text-align: center;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.85em;
-      font-weight: bold;
-      color: #1e293b;
-      line-height: 1;
+      font-size: 0.85em; font-weight: bold; color: #1e293b; line-height: 1;
     }
-    .mock-input.correct {
-      background: #f0fdf4;
-      border-color: #22c55e;
-      color: #475569;
-    }
-
-    /* Botons mock */
-    .mock-btns {
-      display: flex; gap: 10px; align-items: center;
-    }
+    .mock-input.correct { background: #f0fdf4; border-color: #22c55e; color: #475569; }
+    .mock-btns { display: flex; gap: 10px; align-items: center; }
     .mock-ok {
-      width: 2.2rem; height: 2.2rem;
-      background: #cbd5e1;
-      border: none; border-radius: 6px;
+      width: 2rem; height: 2rem;
+      background: #cbd5e1; border: none; border-radius: 6px;
       font-weight: 700; font-size: 0.8rem; color: #334155;
       cursor: default;
       display: flex; align-items: center; justify-content: center;
     }
-    .mock-ajuda {
-      background: #fffbeb;
-      border: 2px solid #fbbf24;
-      border-radius: 8px;
-      padding: 5px 12px;
-      font-size: 0.68rem; font-weight: 700; color: #92400e;
-      cursor: default; white-space: nowrap;
-    }
 
-    /* Caixa ajuda mock */
-    .mock-help {
-      display: none;
-      background: #fffbeb;
-      border: 2px solid #fde68a;
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-size: 0.85em; color: #78350f; font-weight: 600;
-      text-align: center;
-      width: 100%; max-width: 340px;
-      line-height: 1.5;
-      animation: fadeIn 0.3s ease;
-    }
-    .mock-help.visible { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity:0; transform:translateY(-5px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-
-    /* ── PANELL DRET: narrador + visual ───────────────────────── */
+    /* ── PANELL DRET: story strip (top) + visual SVG gran (resta) ─── */
     .game-right {
-      width: 55%; flex-shrink: 0;
+      flex: 1; min-width: 0;
       display: flex; flex-direction: column;
-      align-items: center;
-      padding: 14px 18px 12px;
+      align-items: center; justify-content: flex-start;
+      padding: 10px 16px 8px;
       overflow-y: auto; min-height: 0;
-      gap: 14px;
+      gap: 8px;
+      background: linear-gradient(160deg, #fafffe 0%, #f0fdfa 100%);
     }
-
-    .narration-box {
+    /* El visual ocupa tot l'espai restant */
+    #tut-visual {
       width: 100%;
-      background: white;
-      border: 2px solid var(--primary);
-      border-left: 5px solid var(--primary);
+      display: flex; justify-content: center; align-items: center;
+      flex: 1; min-height: 0; flex-shrink: 0;
+    }
+    #tut-visual svg  { display: block; max-width: 100%; height: auto; }
+    #tut-visual > div { max-width: 100%; }
+
+    /* El story strip va a dalt del visual */
+    .game-right .story-strip { flex-shrink: 0; }
+
+    /* La narració és al fons del panell ESQUERRE — visible des del principi */
+    .narration-box {
+      width: 100%; background: white;
+      border: 1.5px solid var(--border);
+      border-left: 4px solid var(--primary);
       border-radius: var(--radius);
       padding: 10px 14px;
       display: flex; align-items: flex-start; gap: 10px;
-      box-shadow: 0 2px 10px rgba(13,148,136,0.1);
       flex-shrink: 0;
-      opacity: 0;
+      /* opacity controlada per JS en _revealSequence */
     }
-    .narration-icon { font-size: 1.4em; flex-shrink: 0; margin-top: 1px; line-height: 1; }
-    .narration-text { font-size: 1.05em; line-height: 1.55; color: var(--text); }
-    .narration-text b { color: var(--primary-dark); }
+    .narration-icon { font-size: 1.3em; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+    .narration-text { font-size: 0.97em; line-height: 1.55; color: var(--text); }
+    .narration-text b   { color: var(--primary-dark); }
     .narration-text .vx { color: var(--var-color); font-weight: 700; font-style: italic; }
 
-    #tut-visual { width: 100%; display: flex; justify-content: center; flex-shrink: 0; }
-    #tut-visual svg { display: block; max-width: 100%; height: auto; }
+    /* ── MEGA BOTÓ SEGÜENT — sempre visible, gran, animat ─── */
+    .next-zone {
+      padding: 9px 20px 11px;
+      display: flex; justify-content: center; align-items: center;
+      flex-shrink: 0;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+    }
+    .btn-mega-next {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 44px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white; border: none; border-radius: 50px;
+      font-family: inherit; font-size: 1.3em; font-weight: 900;
+      letter-spacing: 0.5px; cursor: pointer;
+      box-shadow: 0 4px 24px rgba(13,148,136,0.38);
+      animation: megaPulse 2.6s ease-in-out infinite;
+      transition: transform 0.1s;
+    }
+    .btn-mega-next:active { transform: scale(0.95) !important; }
+    .btn-mega-next:hover  { animation-play-state: paused; }
+    .btn-mega-next.btn-finish {
+      background: linear-gradient(135deg, #16a34a 0%, #14532d 100%);
+      box-shadow: 0 4px 24px rgba(22,163,74,0.4);
+    }
+    .btn-mega-next.btn-ex {
+      background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+      box-shadow: 0 4px 24px rgba(124,58,237,0.38);
+    }
+    /* Les dobles fletxes animen endavant */
+    .mega-arrows {
+      display: inline-flex;
+      animation: arrowBounce 1.3s ease-in-out infinite;
+      font-size: 1.1em;
+    }
+    @keyframes arrowBounce {
+      0%, 100% { transform: translateX(0); }
+      50%       { transform: translateX(5px); }
+    }
+    @keyframes megaPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 24px rgba(13,148,136,0.38);
+      }
+      50% {
+        transform: scale(1.04);
+        box-shadow: 0 6px 36px rgba(13,148,136,0.58),
+                    0 0 0 8px rgba(13,148,136,0.10);
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-    /* ── RESPONSIVE ───────────────────────────────────────────── */
+    /* ── SPOTLIGHT (focus seqüencial esquerra→dreta) ─── */
+    .game-left, .game-right {
+      transition: opacity 0.5s ease, box-shadow 0.5s ease;
+    }
+    .game-left.spotlight  { box-shadow: inset 0 0 0 3px var(--primary); background: #f8fffe; }
+    .game-right.spotlight { box-shadow: inset 0 0 0 3px var(--primary); }
+    .game-left.dimmed  { opacity: 0.28; }
+    .game-right.dimmed { opacity: 0.28; }
+
+    /* ── VISUAL ESQUERRE (per als passos 'resol' amb formula a l'esquerra) ─── */
+    #tut-visual-left {
+      width: 100%; display: none;
+      justify-content: center; align-items: center;
+      transition: opacity 0.55s ease;
+    }
+    #tut-visual-left > div { max-width: 100%; }
+
+    /* ── RESPONSIVE ─── */
     @media (max-width: 680px) {
-      body { overflow: auto; height: auto; padding: 8px; }
-      .panel { flex: none; min-height: 500px; }
+      body { overflow: auto; height: auto; padding: 6px; }
+      .panel { flex: none; min-height: 560px; }
       .game-body { flex-direction: column; }
       .game-left, .game-right { width: 100%; border-right: none; }
-      .game-left  { border-bottom: 1px solid var(--border); padding: 14px; justify-content: flex-start; }
-      .game-right { padding: 12px; }
-      .mock-eq    { font-size: 1.7em; }
+      .game-left  { border-bottom: 1px solid var(--border); padding: 12px; justify-content: flex-start; }
+      .game-right { padding: 10px; min-height: 220px; }
+      .mock-eq    { font-size: 1.65em; }
+      .story-strip { font-size: 1.35em; }
+      .btn-mega-next { font-size: 1.15em; padding: 12px 32px; }
     }
     @media (max-width: 440px) {
-      .title-row h1 { font-size: 1.05em; }
-      .mock-eq      { font-size: 1.4em; }
+      .title-row h1  { font-size: 0.95em; }
+      .mock-eq       { font-size: 1.35em; }
+      .story-strip   { font-size: 1.1em; }
+      .btn-mega-next { font-size: 1em; padding: 11px 24px; }
     }
   </style>
 </head>
@@ -317,9 +414,8 @@
 <div class="panel">
 
   <div class="tut-header">
-    <span class="step-counter" id="step-counter">Completat: 0%</span>
+    <div class="step-dots" id="step-dots"></div>
     <button class="btn-pause" id="btn-pause" aria-label="Pausa/Repren">⏸</button>
-    <button class="btn-next"  id="btn-next">Següent →</button>
   </div>
 
   <div class="timer-track">
@@ -328,30 +424,38 @@
 
   <div class="game-body" id="game-body">
 
-    <!-- Esquerra: mock del joc -->
+    <!-- Esquerra: equació (centre) + narració (baix) -->
     <div class="game-left" id="game-left">
-      <div class="mock-eq"          id="tut-eq"></div>
-      <div class="mock-question"    id="tut-question"></div>
-      <div class="mock-answer-row"  id="tut-answer" style="display:none;">
-        <span class="mock-x-label">x</span>
-        <span class="mock-eq-sign">=</span>
-        <div  class="mock-input"   id="tut-input"></div>
+      <div class="game-left-eq-wrap">
+        <div class="mock-eq"         id="tut-eq"></div>
+        <div class="mock-answer-row" id="tut-answer" style="display:none;">
+          <span class="mock-x-label">x</span>
+          <span class="mock-eq-sign">=</span>
+          <div  class="mock-input"   id="tut-input"></div>
+        </div>
+        <div class="mock-btns" id="tut-btns" style="display:none;"></div>
+        <div id="tut-visual-left"></div>
       </div>
-      <div class="mock-btns"        id="tut-btns"   style="display:none;">
-        <div class="mock-ok">OK</div>
-      </div>
-      <div class="mock-help"        id="tut-help"></div>
-    </div>
-
-    <!-- Dreta: narrador + visual -->
-    <div class="game-right">
-      <div class="narration-box">
+      <div class="narration-box" id="narration-box">
         <span class="narration-icon" id="narration-icon">👀</span>
         <div  class="narration-text" id="narration-text"></div>
       </div>
+    </div>
+
+    <!-- Dreta: story strip (emojis, top) + visual SVG gran -->
+    <div class="game-right" id="game-right">
+      <div class="story-strip" id="tut-story"></div>
       <div id="tut-visual"></div>
     </div>
 
+  </div>
+
+  <!-- MEGA BOTÓ SEGÜENT — sempre visible, gran i animat -->
+  <div class="next-zone">
+    <button class="btn-mega-next" id="btn-mega-next">
+      <span id="btn-mega-label">Següent</span>
+      <span class="mega-arrows">»</span>
+    </button>
   </div>
 
 </div>
@@ -367,232 +471,126 @@
    VISUALS SVG
    ================================================================ */
 
-/** Caixes per a a·x = b. Mostra 'a' caixes amb 'x' dins. */
-function svgBoxes(a, total) {
-  const BW = 48, BH = 44, GAP = 10, PAD = 12;
-  const W  = a * (BW + GAP) - GAP + PAD * 2;
-  const H  = BH + 34;
-  const s  = [];
-  s.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
-           style="max-width:${Math.min(W,340)}px;width:100%;height:auto;display:block;">`);
-  for (let i = 0; i < a; i++) {
-    const x = PAD + i * (BW + GAP), y = 4;
-    s.push(`<rect x="${x}" y="${y}" width="${BW}" height="${BH}"
-             fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
-    s.push(`<text x="${x+BW/2}" y="${y+BH/2+7}" text-anchor="middle"
-             font-family="'Courier New',monospace" font-size="20"
-             font-weight="800" fill="#115e59" font-style="italic">x</text>`);
-  }
-  // Clau
-  const ly = 4 + BH + 7;
-  s.push(`<line x1="${PAD}" y1="${ly}" x2="${W-PAD}" y2="${ly}" stroke="#94a3b8" stroke-width="1.5"/>`);
-  s.push(`<line x1="${PAD}" y1="${ly}" x2="${PAD}" y2="${ly-5}" stroke="#94a3b8" stroke-width="1.5"/>`);
-  s.push(`<line x1="${W-PAD}" y1="${ly}" x2="${W-PAD}" y2="${ly-5}" stroke="#94a3b8" stroke-width="1.5"/>`);
-  s.push(`<text x="${W/2}" y="${ly+17}" text-anchor="middle"
-           font-family="'Segoe UI',sans-serif" font-size="12"
-           font-weight="700" fill="#475569">Total: ${total} caramels</text>`);
-  s.push(`</svg>`);
-  return s.join('');
+/*
+ * FIX TODO-6: el pas d'introducció ara té un visual SVG animat.
+ * Una caixa gran amb un "?" parpellejant comunica intuïtivament
+ * "hi ha un valor desconegut" sense necessitat de llegir res.
+ */
+function svgIntro() {
+  return `<svg viewBox="0 0 210 175" xmlns="http://www.w3.org/2000/svg"
+          style="max-width:210px;width:100%;height:auto;display:block;margin:0 auto;">
+    <defs>
+      <filter id="glow-i">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <!-- Ombra -->
+    <rect x="52" y="28" width="114" height="104" rx="16"
+          fill="rgba(13,148,136,0.10)" transform="translate(4,4)"/>
+    <!-- Cos de la caixa -->
+    <rect x="52" y="24" width="114" height="104" rx="16"
+          fill="#ccfbf1" stroke="#0d9488" stroke-width="3"/>
+    <!-- Obertura de la tapa -->
+    <path d="M52,52 Q109,34 166,52" stroke="#0d9488" stroke-width="2.5"
+          fill="none" stroke-linecap="round"/>
+    <!-- ? parpellejant -->
+    <text x="109" y="102" text-anchor="middle"
+          font-family="'Courier New',monospace" font-size="60"
+          font-weight="900" fill="#115e59" font-style="italic"
+          filter="url(#glow-i)">
+      <animate attributeName="opacity"
+               values="1;0.18;1;0.18;1" dur="2.5s" repeatCount="indefinite"/>
+      ?
+    </text>
+    <!-- Tres puntets animats -->
+    <circle cx="97"  cy="118" r="4" fill="#5eead4">
+      <animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0s"    repeatCount="indefinite"/>
+    </circle>
+    <circle cx="109" cy="118" r="4" fill="#5eead4">
+      <animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.28s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="121" cy="118" r="4" fill="#5eead4">
+      <animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.56s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Etiqueta -->
+    <text x="109" y="158" text-anchor="middle"
+          font-family="'Segoe UI',sans-serif" font-size="13.5"
+          font-weight="700" fill="#475569">x  =  ???</text>
+  </svg>`;
 }
 
-/** Caixes animades: les x fan flip cap al valor de la solució i tornen */
+/** Caixes animades: la x fa flip i apareix la solució (3·x = 12 → x=4) */
 function svgBoxesAnim(a, sol) {
-  const BW = 48, BH = 44, GAP = 10, PAD = 12;
+  const BW = 54, BH = 50, GAP = 12, PAD = 14;
   const W  = a * (BW + GAP) - GAP + PAD * 2;
   let boxes = '';
   for (let i = 0; i < a; i++) {
-    const delay = (i * 300) + 'ms';
+    const delay = (i * 340) + 'ms';
     boxes += `<div class="abx-box" style="animation-delay:${delay};">
       <span class="abx-x">x</span>
       <span class="abx-sol">${sol}</span>
     </div>`;
   }
   return `<style>
-  .abx-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:280px;margin:0 auto;}
+  .abx-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:${W+20}px;margin:0 auto;}
   .abx-row{display:flex;gap:${GAP}px;}
-  .abx-box{position:relative;width:${BW}px;height:${BH}px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:9px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .abx-x,.abx-sol{position:absolute;font-family:'Courier New',monospace;font-weight:800;font-size:1.2em;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+  .abx-box{position:relative;width:${BW}px;height:${BH}px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:11px;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 2px 8px rgba(13,148,136,0.18);}
+  .abx-x,.abx-sol{position:absolute;font-family:'Courier New',monospace;font-weight:800;font-size:1.4em;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
   .abx-x  {color:#115e59;font-style:italic;}
   .abx-sol{color:#0d9488;}
-  @keyframes abxFlip  {0%,35%{transform:translateY(0);opacity:1}45%,88%{transform:translateY(-110%);opacity:0}95%,100%{transform:translateY(0);opacity:1}}
-  @keyframes abxReveal{0%,40%{transform:translateY(110%);opacity:0}50%,83%{transform:translateY(0);opacity:1}93%,100%{transform:translateY(110%);opacity:0}}
-  .abx-box .abx-x  {animation:abxFlip   4s ease-in-out infinite;}
-  .abx-box .abx-sol{animation:abxReveal 4s ease-in-out infinite;}
-  .abx-clau{display:flex;align-items:center;width:${W - PAD*2}px;}
-  .abx-bar{flex:1;height:2px;background:#94a3b8;}
-  .abx-tick{width:2px;height:7px;background:#94a3b8;}
-  .abx-total{font-size:.75em;font-weight:700;color:#475569;margin-top:2px;}
+  @keyframes abxFlip  {0%,32%{transform:translateY(0);opacity:1}44%,84%{transform:translateY(-115%);opacity:0}94%,100%{transform:translateY(0);opacity:1}}
+  @keyframes abxReveal{0%,38%{transform:translateY(115%);opacity:0}50%,79%{transform:translateY(0);opacity:1}91%,100%{transform:translateY(115%);opacity:0}}
+  .abx-box .abx-x  {animation:abxFlip   4.8s ease-in-out infinite;}
+  .abx-box .abx-sol{animation:abxReveal 4.8s ease-in-out infinite;}
+  .abx-total{font-size:.82em;font-weight:700;color:#475569;font-family:'Segoe UI',sans-serif;background:#f0fdfa;border:1.5px solid #99f6e4;border-radius:8px;padding:5px 14px;}
   </style>
   <div class="abx-wrap">
     <div class="abx-row">${boxes}</div>
-    <div class="abx-clau"><div class="abx-tick"></div><div class="abx-bar"></div><div class="abx-tick"></div></div>
-    <div class="abx-total">Total: ${a * sol} caramels</div>
+    <div class="abx-total">🍬 Total: ${a * sol} caramels</div>
   </div>`;
 }
 
-/**
- * Visual per a x + b = c  o  b + x = c
- * Mostra: [caixa x] + [quadrat b] = [rodona c]
- */
-function svgAdd(b, c, bFirst = false) {
-  const BW = 52, BH = 46, PAD = 10, GAP = 18;
-  const W  = PAD*2 + BW*2 + BW + GAP*4 + 4;  // caixa + bloc + = + resultat
-  const H  = BH + 24;
+/** Visual estàtic per a x + b = c */
+function svgAdd(b, c) {
+  const BW = 58, BH = 52, PAD = 10, GAP = 16;
+  const W  = PAD*2 + BW*3 + GAP*4 + 10;
+  const H  = BH + 32;
   const CY = 4 + BH / 2;
   const s  = [];
   s.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
-           style="max-width:${W}px;width:100%;height:auto;display:block;">`);
-
-  // Posicions
-  const x1 = PAD;
-  const opX = PAD + BW + GAP * 0.8;
-  const x2 = opX + 24;
-  const eqX = x2 + BW + GAP * 0.8;
-  const x3 = eqX + 22;
-
-  const [leftLabel, rightLabel] = bFirst ? [String(b), 'x'] : ['x', String(b)];
-  const leftIsX = !bFirst;
-  const rightIsX = bFirst;
-
-  // Primer element
-  if (leftIsX) {
-    s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}"
-             fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
-    s.push(`<text x="${x1+BW/2}" y="${CY+7}" text-anchor="middle"
-             font-family="'Courier New',monospace" font-size="20"
-             font-weight="800" fill="#115e59" font-style="italic">x</text>`);
-  } else {
-    s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}"
-             fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="8"/>`);
-    s.push(`<text x="${x1+BW/2}" y="${CY+7}" text-anchor="middle"
-             font-family="'Courier New',monospace" font-size="20"
-             font-weight="700" fill="#334155">${b}</text>`);
-  }
-
-  // Operador +
-  s.push(`<text x="${opX+8}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="22"
-           font-weight="700" fill="#64748b">+</text>`);
-
-  // Segon element
-  if (rightIsX) {
-    s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}"
-             fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
-    s.push(`<text x="${x2+BW/2}" y="${CY+7}" text-anchor="middle"
-             font-family="'Courier New',monospace" font-size="20"
-             font-weight="800" fill="#115e59" font-style="italic">x</text>`);
-  } else {
-    s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}"
-             fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="8"/>`);
-    s.push(`<text x="${x2+BW/2}" y="${CY+7}" text-anchor="middle"
-             font-family="'Courier New',monospace" font-size="20"
-             font-weight="700" fill="#334155">${b}</text>`);
-  }
-
-  // Signe =
-  s.push(`<text x="${eqX+7}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="22"
-           font-weight="700" fill="#0d9488">=</text>`);
-
-  // Resultat c (cercle)
-  s.push(`<circle cx="${x3+BW/2}" cy="${CY}" r="${BH/2+2}"
-           fill="#f0fdfa" stroke="#0d9488" stroke-width="2.2"/>`);
-  s.push(`<text x="${x3+BW/2}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="20"
-           font-weight="700" fill="#0d9488">${c}</text>`);
-
+           style="max-width:${Math.min(W,360)}px;width:100%;height:auto;display:block;margin:0 auto;">`);
+  const x1 = PAD, opX = x1+BW+GAP*0.7, x2 = opX+26, eqX = x2+BW+GAP*0.7, x3 = eqX+26;
+  s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}" fill="#ccfbf1" stroke="#0d9488" stroke-width="2.5" rx="11"/>`);
+  s.push(`<text x="${x1+BW/2}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="24" font-weight="900" fill="#115e59" font-style="italic">x</text>`);
+  s.push(`<text x="${opX+10}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="26" font-weight="700" fill="#1d4ed8">+</text>`);
+  s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2.2" rx="11"/>`);
+  s.push(`<text x="${x2+BW/2}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="24" font-weight="700" fill="#1d4ed8">${b}</text>`);
+  s.push(`<text x="${eqX+10}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="26" font-weight="700" fill="#0d9488">=</text>`);
+  s.push(`<circle cx="${x3+BW/2}" cy="${CY}" r="${BH/2+2}" fill="#f0fdfa" stroke="#0d9488" stroke-width="2.5"/>`);
+  s.push(`<text x="${x3+BW/2}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="24" font-weight="700" fill="#0d9488">${c}</text>`);
+  s.push(`<text x="${W/2}" y="${H-3}" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="12" font-weight="600" fill="#94a3b8">📦 + 🍬×${b} = 🍬×${c}</text>`);
   s.push(`</svg>`);
   return s.join('');
 }
 
-/**
- * Visual per a x − b = c
- * Mostra: [caixa x] − [quadrat b] = [rodona c]
- * Amb una fletxa indicant "es treuen b"
- */
-function svgSub(b, c) {
-  const BW = 52, BH = 46, PAD = 10, GAP = 18;
-  const W  = PAD*2 + BW*2 + BW + GAP*4 + 4;
-  const H  = BH + 24;
-  const CY = 4 + BH / 2;
-  const s  = [];
-  s.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
-           style="max-width:${W}px;width:100%;height:auto;display:block;">`);
-
-  const x1 = PAD;
-  const opX = PAD + BW + GAP * 0.8;
-  const x2  = opX + 24;
-  const eqX = x2 + BW + GAP * 0.8;
-  const x3  = eqX + 22;
-
-  // Caixa x
-  s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}"
-           fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
-  s.push(`<text x="${x1+BW/2}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="20"
-           font-weight="800" fill="#115e59" font-style="italic">x</text>`);
-
-  // Operador −  (vermell per indicar "es treuen")
-  s.push(`<text x="${opX+8}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="22"
-           font-weight="700" fill="#dc2626">−</text>`);
-
-  // Bloc b (vermell, "els que es treuen")
-  s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}"
-           fill="#fef2f2" stroke="#fca5a5" stroke-width="2" rx="8"/>`);
-  s.push(`<text x="${x2+BW/2}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="20"
-           font-weight="700" fill="#dc2626">${b}</text>`);
-
-  // Signe =
-  s.push(`<text x="${eqX+7}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="22"
-           font-weight="700" fill="#0d9488">=</text>`);
-
-  // Resultat c (cercle verd)
-  s.push(`<circle cx="${x3+BW/2}" cy="${CY}" r="${BH/2+2}"
-           fill="#f0fdfa" stroke="#0d9488" stroke-width="2.2"/>`);
-  s.push(`<text x="${x3+BW/2}" y="${CY+7}" text-anchor="middle"
-           font-family="'Courier New',monospace" font-size="20"
-           font-weight="700" fill="#0d9488">${c}</text>`);
-
-  s.push(`</svg>`);
-  return s.join('');
-}
-
-/* ================================================================
-   HELPERS MOCK EQUACIÓ
-   ================================================================ */
-function xToken(coeff = 1) {
-  if (coeff === 1)
-    return `<span class="t-var"><span class="t-x">x</span></span>`;
-  return `<span class="t-var">
-    <span class="t-coeff">${coeff}</span>
-    <span class="t-dot">·</span>
-    <span class="t-x">x</span>
-  </span>`;
-}
-function numToken(n)  { return `<span class="t-num">${n}</span>`; }
-function opToken(op)  { return `<span class="t-op">${op}</span>`; }
-const EQ_SIGN = `<span class="t-eq">=</span>`;
-
-
-/** Animació inline: el token "x" de l'equació x+b=c fa flip cap a la solució */
+/** Animació x+b=c amb flip + fórmula inversa c−b=sol */
 function svgAddAnim(b, c, sol) {
   return `<style>
-  .aa-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px;margin:0 auto;}
-  .aa-eq{display:flex;align-items:center;gap:9px;font-size:1.7em;font-family:'Courier New',monospace;font-weight:bold;}
-  .aa-xbox{position:relative;width:58px;height:48px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .aa-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:340px;margin:0 auto;}
+  .aa-eq{display:flex;align-items:center;gap:10px;font-size:1.85em;font-family:'Courier New',monospace;font-weight:bold;flex-wrap:wrap;justify-content:center;}
+  .aa-xbox{position:relative;width:64px;height:56px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(13,148,136,0.2);}
   .aa-x,.aa-s{position:absolute;font-family:'Courier New',monospace;font-weight:800;font-size:1.15em;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
   .aa-x{color:#115e59;font-style:italic;}
   .aa-s{color:#0d9488;}
-  @keyframes aaFlip  {0%,38%{transform:translateY(0);opacity:1}47%,88%{transform:translateY(-115%);opacity:0}96%,100%{transform:translateY(0);opacity:1}}
-  @keyframes aaReveal{0%,43%{transform:translateY(115%);opacity:0}52%,83%{transform:translateY(0);opacity:1}93%,100%{transform:translateY(115%);opacity:0}}
-  .aa-x{animation:aaFlip   4s ease-in-out infinite;}
-  .aa-s{animation:aaReveal 4s ease-in-out infinite;}
-  .aa-num{padding:8px 14px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;color:#334155;font-size:1em;}
-  .aa-op{background:#f1f5f9;border:2px solid #cbd5e1;border-radius:10px;padding:8px 14px;color:#64748b;}
-  .aa-eq-sign{color:#0d9488;font-weight:bold;padding:0 4px;}
+  @keyframes aaFlip  {0%,35%{transform:translateY(0);opacity:1}47%,84%{transform:translateY(-115%);opacity:0}94%,100%{transform:translateY(0);opacity:1}}
+  @keyframes aaReveal{0%,40%{transform:translateY(115%);opacity:0}52%,79%{transform:translateY(0);opacity:1}92%,100%{transform:translateY(115%);opacity:0}}
+  .aa-x{animation:aaFlip   4.8s ease-in-out infinite;}
+  .aa-s{animation:aaReveal 4.8s ease-in-out infinite;}
+  .aa-num{padding:9px 15px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:11px;color:#334155;}
+  .aa-op{background:#eff6ff;border:2px solid #bfdbfe;border-radius:11px;padding:9px 15px;color:#1d4ed8;}
+  .aa-eq-sign{color:#0d9488;font-weight:bold;padding:0 3px;}
+  .aa-formula{display:flex;align-items:center;gap:8px;font-size:1.1em;font-family:'Courier New',monospace;font-weight:700;background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:8px 16px;color:#166534;}
   </style>
   <div class="aa-wrap">
     <div class="aa-eq">
@@ -602,143 +600,195 @@ function svgAddAnim(b, c, sol) {
       <span class="aa-eq-sign">=</span>
       <div class="aa-num">${c}</div>
     </div>
+    <div class="aa-formula">🍬 ${c} − ${b} = <strong>${sol}</strong> ✅</div>
   </div>`;
 }
 
-/** Animació inline: el token "x" de l'equació x−b=c fa flip cap a la solució */
+/** Visual estàtic per a x − b = c */
+function svgSub(b, c) {
+  const BW = 58, BH = 52, PAD = 10, GAP = 16;
+  const W  = PAD*2 + BW*3 + GAP*4 + 10;
+  const H  = BH + 32;
+  const CY = 4 + BH / 2;
+  const s  = [];
+  s.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+           style="max-width:${Math.min(W,360)}px;width:100%;height:auto;display:block;margin:0 auto;">`);
+  const x1 = PAD, opX = x1+BW+GAP*0.7, x2 = opX+26, eqX = x2+BW+GAP*0.7, x3 = eqX+26;
+  s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}" fill="#ccfbf1" stroke="#0d9488" stroke-width="2.5" rx="11"/>`);
+  s.push(`<text x="${x1+BW/2}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="24" font-weight="900" fill="#115e59" font-style="italic">x</text>`);
+  s.push(`<text x="${opX+10}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="26" font-weight="700" fill="#dc2626">−</text>`);
+  s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}" fill="#fef2f2" stroke="#fca5a5" stroke-width="2.2" rx="11"/>`);
+  s.push(`<text x="${x2+BW/2}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="24" font-weight="700" fill="#dc2626">${b}</text>`);
+  s.push(`<text x="${eqX+10}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="26" font-weight="700" fill="#0d9488">=</text>`);
+  s.push(`<circle cx="${x3+BW/2}" cy="${CY}" r="${BH/2+2}" fill="#f0fdfa" stroke="#0d9488" stroke-width="2.5"/>`);
+  s.push(`<text x="${x3+BW/2}" y="${CY+8}" text-anchor="middle" font-family="'Courier New',monospace" font-size="24" font-weight="700" fill="#0d9488">${c}</text>`);
+  s.push(`<text x="${W/2}" y="${H-3}" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="12" font-weight="600" fill="#94a3b8">📦 − 🍬×${b} = 🍬×${c}</text>`);
+  s.push(`</svg>`);
+  return s.join('');
+}
+
+/** Animació x−b=c amb flip + fórmula inversa c+b=sol */
 function svgSubAnim(b, c, sol) {
   return `<style>
-  .as-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px;margin:0 auto;}
-  .as-eq{display:flex;align-items:center;gap:9px;font-size:1.7em;font-family:'Courier New',monospace;font-weight:bold;}
-  .as-xbox{position:relative;width:58px;height:48px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .as-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:340px;margin:0 auto;}
+  .as-eq{display:flex;align-items:center;gap:10px;font-size:1.85em;font-family:'Courier New',monospace;font-weight:bold;flex-wrap:wrap;justify-content:center;}
+  .as-xbox{position:relative;width:64px;height:56px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(13,148,136,0.2);}
   .as-x,.as-s{position:absolute;font-family:'Courier New',monospace;font-weight:800;font-size:1.15em;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
   .as-x{color:#115e59;font-style:italic;}
   .as-s{color:#0d9488;}
-  @keyframes asFlip  {0%,38%{transform:translateY(0);opacity:1}47%,88%{transform:translateY(-115%);opacity:0}96%,100%{transform:translateY(0);opacity:1}}
-  @keyframes asReveal{0%,43%{transform:translateY(115%);opacity:0}52%,83%{transform:translateY(0);opacity:1}93%,100%{transform:translateY(115%);opacity:0}}
-  .as-x{animation:asFlip   4s ease-in-out infinite;}
-  .as-s{animation:asReveal 4s ease-in-out infinite;}
-  .as-num{padding:8px 14px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;color:#334155;font-size:1em;}
-  .as-num-red{padding:8px 14px;background:#fef2f2;border:2px solid #fca5a5;border-radius:10px;color:#dc2626;font-size:1em;}
-  .as-op-red{background:#fef2f2;border:2px solid #fca5a5;border-radius:10px;padding:8px 14px;color:#dc2626;}
-  .as-eq-sign{color:#0d9488;font-weight:bold;padding:0 4px;}
+  @keyframes asFlip  {0%,35%{transform:translateY(0);opacity:1}47%,84%{transform:translateY(-115%);opacity:0}94%,100%{transform:translateY(0);opacity:1}}
+  @keyframes asReveal{0%,40%{transform:translateY(115%);opacity:0}52%,79%{transform:translateY(0);opacity:1}92%,100%{transform:translateY(115%);opacity:0}}
+  .as-x{animation:asFlip   4.8s ease-in-out infinite;}
+  .as-s{animation:asReveal 4.8s ease-in-out infinite;}
+  .as-num{padding:9px 15px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:11px;color:#334155;}
+  .as-num-r{padding:9px 15px;background:#fef2f2;border:2px solid #fca5a5;border-radius:11px;color:#dc2626;}
+  .as-op-r{background:#fef2f2;border:2px solid #fca5a5;border-radius:11px;padding:9px 15px;color:#dc2626;}
+  .as-eq-sign{color:#0d9488;font-weight:bold;padding:0 3px;}
+  .as-formula{display:flex;align-items:center;gap:8px;font-size:1.1em;font-family:'Courier New',monospace;font-weight:700;background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:8px 16px;color:#166534;}
   </style>
   <div class="as-wrap">
     <div class="as-eq">
       <div class="as-xbox"><span class="as-x">x</span><span class="as-s">${sol}</span></div>
-      <div class="as-op-red">−</div>
-      <div class="as-num-red">${b}</div>
+      <div class="as-op-r">−</div>
+      <div class="as-num-r">${b}</div>
       <span class="as-eq-sign">=</span>
       <div class="as-num">${c}</div>
     </div>
+    <div class="as-formula">🍬 ${c} + ${b} = <strong>${sol}</strong> ✅</div>
   </div>`;
 }
 
 /* ================================================================
-   DADES DEL TUTORIAL  —  4 exemples, 10 passos
+   HELPERS MOCK EQUACIÓ
+   ================================================================ */
+function xToken(coeff = 1) {
+  if (coeff === 1)
+    return `<span class="t-var"><span class="t-x">x</span></span>`;
+  return `<span class="t-var"><span class="t-coeff">${coeff}</span><span class="t-dot">·</span><span class="t-x">x</span></span>`;
+}
+function numToken(n)  { return `<span class="t-num">${n}</span>`; }
+function opToken(op)  { return `<span class="t-op">${op}</span>`; }
+const EQ_SIGN = `<span class="t-eq">=</span>`;
+
+/* ================================================================
+   HELPERS DEL STORY STRIP
+   Generen HTML visual (emojis + símbols) sense necessitat de text.
+   ================================================================ */
+function sX()             { return `<span class="s-x">x</span>`; }
+function sOp(sym, v = '') { return `<span class="s-op ${v}">${sym}</span>`; }
+function sEq()            { return `<span class="s-eq">=</span>`; }
+function sRes(html)       { return `<span class="s-res">${html}</span>`; }
+function sCandies(n) {
+  if (n <= 7) return `<span class="s-candy">${'🍬'.repeat(n)}</span>`;
+  return `<span class="s-res">🍬×${n}</span>`;
+}
+function sBoxes(n) {
+  if (n <= 4) return '<span>📦</span>'.repeat(n);
+  return `<span class="s-res">📦×${n}</span>`;
+}
+/* ================================================================
+   DADES DEL TUTORIAL
+   story: string amb emojis (strip dret) | null (amaga el strip)
+   narration: text al fons del panell esquerre
    ================================================================ */
 const TUTORIAL = [
 
-  // gStep 0 → 10%: Intro — la x és un nombre desconegut
+  /* PAS 1a+1b — 3·x = 12  (esq 36%) */
   {
-    chip: 'Introducció · Què és la x?',
+    chip: 'Ex.1',
     steps: [
+      /* 1a — planteja */
       {
-        icon:      '🔍',
-        narration:  'La <b class="vx">x</b> és un nombre que <b>no coneixem</b>.<br>La nostra missió és descobrir quin nombre és.',
-        narration2: 'Sovint hem de fer una operació matemàtica<br>per poder descobrir aquest nombre secret.',
-        eq:        () => xToken() + EQ_SIGN + `<span class="t-num" style="background:#f8fafc;border-color:#e2e8f0;color:#94a3b8;">?</span>`,
-        question:  '',
-        answer:    null,
-        showBtns:  false,
-        help:      null,
-        visual:    null,
+        leftPct:     36,
+        rightCenter: true,
+        icon:        '📦',
+        narration:   null,
+        story:       `📦📦📦 <span style="font-size:.55em;padding:2px 9px;background:white;border:1.5px solid #5eead4;border-radius:7px;font-weight:900;color:#115e59">=</span> <span style="display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.1"><span>🍬🍬🍬🍬🍬🍬</span><span>🍬🍬🍬🍬🍬🍬</span></span>`,
+        eq:          () => xToken(3) + EQ_SIGN + numToken(12),
+        answer:      null,
+        showBtns:    true,
+        visual:      null,
       },
-    ],
-  },
-
-  // gStep 2 → 30%: 3·x = 12, caixes animades
-  {
-    chip: 'Exemple 1 · 3·x = 12',
-    steps: [
+      /* 1b — resol */
       {
-        icon:      '📦',
-        narration: 'Imagina 3 caixes amb caramels.<br>Cada caixa té el mateix nombre de caramels.<br>En total, hi ha 12 caramels. Quants caramels hi ha a cada caixa?<br>Si fem 12:3=4, trobem la resposta.',
+        leftPct:   36,
+        icon:      '✅',
+        narration: null,
+        story:     null,
         eq:        () => xToken(3) + EQ_SIGN + numToken(12),
-        question:  'Troba quant val la x',
         answer:    '4',
-        showBtns:  true,
-        help:      null,
+        showBtns:  false,
         visual:    () => svgBoxesAnim(3, 4),
       },
     ],
   },
 
-  // gStep 3 → 40%: x + 2 = 7, animació x→5
-  // gStep 4 → 50%: resposta
+  /* PAS 2a+2b — x + 2 = 7  (esq 41%) */
   {
-    chip: 'Exemple 2 · x + 2 = 7',
+    chip: 'Ex.2',
     steps: [
+      /* 2a — planteja */
       {
-        icon:      '📦',
-        narration: `En una caixa hi ha uns quants caramels.<br>N'afegeixo 2 i ara en tinc 7.<br>Quants n'hi havia a l'inici?`,
-        eq:        () => xToken() + opToken('+') + numToken(2) + EQ_SIGN + numToken(7),
-        question:  'Troba quant val la x',
-        answer:    null,
-        showBtns:  true,
-        help:      null,
-        visual:    () => svgAdd(2, 7),
+        leftPct:     41,
+        rightCenter: true,
+        icon:        '📦',
+        narration:   null,
+        story:       '📦  +  🍬🍬  =  🍬🍬🍬🍬🍬🍬🍬',
+        eq:          () => xToken() + opToken('+') + numToken(2) + EQ_SIGN + numToken(7),
+        answer:      null,
+        showBtns:    true,
+        visual:      null,
       },
+      /* 2b — resol (formula a l'esquerra) */
       {
-        icon:      '✅',
-        narration: 'La resposta és <b>7 − 2 = 5</b>.<br>La <b class="vx">x</b> = <b>5</b>.',
-        eq:        () => xToken() + opToken('+') + numToken(2) + EQ_SIGN + numToken(7),
-        question:  'Troba quant val la x',
-        answer:    '5',
-        showBtns:  true,
-        help:      null,
-        visual:    () => svgAddAnim(2, 7, 5),
+        leftPct:    41,
+        visualLeft: true,
+        icon:       '✅',
+        narration:  null,
+        story:      null,
+        eq:         () => xToken() + opToken('+') + numToken(2) + EQ_SIGN + numToken(7),
+        answer:     '5',
+        showBtns:   false,
+        visual:     () => svgAddAnim(2, 7, 5),
       },
     ],
   },
 
-  // gStep 5 → 60%: x − 2 = 5, explicació
-  // gStep 6 → 100% (last): resposta + animació x→7
+  /* PAS 3a+3b — x − 3 = 10  (esq 35%) */
   {
-    chip: 'Exemple 3 · x − 3 = 17',
+    chip: 'Ex.3',
     steps: [
+      /* 3a — planteja */
       {
-        icon:      '📦',
-        narration: `D'una caixa en traiem 3 caramels i en queden 17.<br>Quants n'hi havia al principi?`,
-        eq:        () => xToken() + opToken('−') + numToken(3) + EQ_SIGN + numToken(17),
-        question:  'Troba quant val la x',
-        answer:    null,
-        showBtns:  true,
-        help:      null,
-        visual:    () => svgSub(3, 17),
+        leftPct:     35,
+        rightCenter: true,
+        icon:        '📦',
+        narration:   null,
+        story:       `📦 <span style="font-size:.55em;padding:2px 9px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:7px;font-weight:900;color:#dc2626">−</span> 🍬🍬🍬 <span style="font-size:.55em;padding:2px 9px;background:white;border:1.5px solid #5eead4;border-radius:7px;font-weight:900;color:#115e59">=</span> <span style="display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.1"><span>🍬🍬🍬🍬🍬</span><span>🍬🍬🍬🍬🍬</span></span>`,
+        eq:          () => xToken() + opToken('−') + numToken(3) + EQ_SIGN + numToken(10),
+        answer:      null,
+        showBtns:    true,
+        visual:      null,
       },
+      /* 3b — resol (formula a l'esquerra) */
       {
-        icon:      '✅',
-        narration: `Per saber quantes n'hi havia, fem 17+3.<br>La <b class="vx">x</b> = <b>20</b>.`,
-        eq:        () => xToken() + opToken('−') + numToken(3) + EQ_SIGN + numToken(17),
-        question:  'Troba quant val la x',
-        answer:    '20',
-        showBtns:  true,
-        help:      null,
-        visual:    () => svgSubAnim(3, 17, 20),
+        leftPct:    35,
+        visualLeft: true,
+        icon:       '✅',
+        narration:  null,
+        story:      null,
+        eq:         () => xToken() + opToken('−') + numToken(3) + EQ_SIGN + numToken(10),
+        answer:     '13',
+        showBtns:   false,
+        visual:     () => svgSubAnim(3, 10, 13),
       },
     ],
   },
 
 ];
 
-const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
 
-function stepPct(gStep) {
-  if (gStep >= TOTAL_STEPS - 1) return 100;
-  if (gStep === TOTAL_STEPS - 2) return 90;
-  return (gStep + 1) * 20;
-}
+const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
 
 /* ================================================================
    ESTAT
@@ -747,7 +797,7 @@ let exIdx   = 0;
 let stepIdx = 0;
 
 /* ================================================================
-   TIMER
+   TIMER (10 s per pas)
    ================================================================ */
 const STEP_MS = 10000;
 let timerElapsed = 0;
@@ -757,14 +807,10 @@ let isPaused     = false;
 
 function startTimer() {
   clearInterval(timerIntv);
-  timerElapsed = 0;
-  timerLastMs  = Date.now();
-  isPaused     = false;
-  _setPauseIcon();
-  _setFill(0);
+  timerElapsed = 0; timerLastMs = Date.now();
+  isPaused = false; _setPauseIcon(); _setFill(0);
   timerIntv = setInterval(_tick, 60);
 }
-
 function _tick() {
   if (isPaused) return;
   const now = Date.now();
@@ -773,17 +819,14 @@ function _tick() {
   _setFill(Math.min(100, timerElapsed / STEP_MS * 100));
   if (timerElapsed >= STEP_MS) { clearInterval(timerIntv); _advance(); }
 }
-
 function _setFill(pct) {
   document.getElementById('timer-fill').style.width = pct + '%';
 }
-
 function togglePause() {
   if (isPaused) { isPaused = false; timerLastMs = Date.now(); }
   else          { isPaused = true; }
   _setPauseIcon();
 }
-
 function _setPauseIcon() {
   document.getElementById('btn-pause').textContent = isPaused ? '▶' : '⏸';
 }
@@ -810,7 +853,6 @@ function _advance() {
     setTimeout(() => { window.location.href = 'a-equacions.html'; }, 1200);
     return;
   }
-
   if (isLastStep) { exIdx++; stepIdx = 0; }
   else            { stepIdx++; }
   _transition();
@@ -834,22 +876,53 @@ function render() {
   const step = ex.steps[stepIdx];
   const gs   = _globalStep();
 
-  document.getElementById('step-counter').textContent = `Completat: ${stepPct(gs)}%`;
+  // Amplada panell esquerre dinàmica per pas
+  document.getElementById('game-left').style.width = (step.leftPct ?? 42) + '%';
 
-  // Narrador invisible
-  const narBox = document.querySelector('.narration-box');
-  narBox.style.transition = 'none';
-  narBox.style.opacity    = '0';
-  document.getElementById('narration-icon').textContent = step.icon;
-  document.getElementById('narration-text').innerHTML   = step.narration;
+  // Centrat vertical panell dret (per passos sense visual)
+  document.getElementById('game-right').style.justifyContent = step.rightCenter ? 'center' : 'flex-start';
+
+  // Punts de progrés
+  const dotsEl = document.getElementById('step-dots');
+  let dotsHtml = '', gIdx = 0;
+  TUTORIAL.forEach(e => {
+    e.steps.forEach(() => {
+      const cls = gIdx < gs ? 'done' : gIdx === gs ? 'current' : '';
+      dotsHtml += `<div class="step-dot ${cls}" title="Pas ${gIdx+1} de ${TOTAL_STEPS}"></div>`;
+      gIdx++;
+    });
+  });
+  dotsEl.innerHTML = dotsHtml;
+
+  // Chip eliminat (punt 1)
+  // document.getElementById('example-chip').textContent = ex.chip;
+
+  // Story strip — innerHTML per suportar 2 files de caramels
+  const storyEl = document.getElementById('tut-story');
+  if (step.story) {
+    storyEl.innerHTML     = step.story;
+    storyEl.style.display = 'flex';
+  } else {
+    storyEl.style.display = 'none';
+    storyEl.innerHTML     = '';
+  }
+
+  // Narrador — visible o ocult segons el pas
+  const narBox = document.getElementById('narration-box');
+  if (step.narration) {
+    narBox.style.transition = 'none';
+    narBox.style.opacity    = '1';
+    narBox.style.display    = '';
+    document.getElementById('narration-icon').textContent = step.icon;
+    document.getElementById('narration-text').innerHTML   = step.narration;
+  } else {
+    narBox.style.display = 'none';
+  }
 
   // Equació mock
   document.getElementById('tut-eq').innerHTML = step.eq ? step.eq() : '';
 
-  // Pregunta
-  document.getElementById('tut-question').textContent = step.question || '';
-
-  // Fila resposta
+  // Resposta
   const answerRow = document.getElementById('tut-answer');
   const inputEl   = document.getElementById('tut-input');
   if (step.answer !== null) {
@@ -861,84 +934,100 @@ function render() {
     inputEl.className   = 'mock-input';
     answerRow.style.display = step.showBtns ? 'flex' : 'none';
   }
-
-  // Botons
   document.getElementById('tut-btns').style.display = step.showBtns ? 'flex' : 'none';
 
-  // Ajuda
-  const helpEl = document.getElementById('tut-help');
-  if (step.help) {
-    helpEl.innerHTML = step.help.replace(/\n/g, '<br>');
-    helpEl.classList.add('visible');
+  // Visual SVG: panell dret (per defecte) o panell esquerre (visualLeft)
+  const visRight = document.getElementById('tut-visual');
+  const visLeft  = document.getElementById('tut-visual-left');
+  visRight.style.transition = 'none'; visRight.style.opacity = '0';
+  visLeft.style.transition  = 'none'; visLeft.style.opacity  = '0';
+  if (step.visualLeft) {
+    visLeft.innerHTML        = step.visual ? step.visual() : '';
+    visLeft.style.display    = step.visual ? 'flex' : 'none';
+    visRight.innerHTML       = '';
   } else {
-    helpEl.classList.remove('visible');
-    helpEl.textContent = '';
+    visRight.innerHTML       = step.visual ? step.visual() : '';
+    visLeft.innerHTML        = '';
+    visLeft.style.display    = 'none';
   }
 
-  // Visual SVG — hidden initially, revealed by _revealSequence
-  const visEl = document.getElementById('tut-visual');
-  visEl.style.transition = 'none';
-  visEl.style.opacity    = '0';
-  visEl.innerHTML = step.visual ? step.visual() : '';
-
-  // Botó Següent
+  // Mega botó
   const isLastStep = stepIdx === ex.steps.length - 1;
   const isLastEx   = exIdx   === TUTORIAL.length  - 1;
-  const btn = document.getElementById('btn-next');
+  const btn = document.getElementById('btn-mega-next');
+  const lbl = document.getElementById('btn-mega-label');
   if (isLastStep && isLastEx) {
-    btn.textContent = '🎮 Ves a jugar!';
-    btn.className   = 'btn-next btn-finish';
+    lbl.textContent = '🎮 Juga!';
+    btn.className   = 'btn-mega-next btn-finish';
   } else if (isLastStep) {
-    btn.textContent = 'Seg\u00fcent \u2192';
-    btn.className   = 'btn-next btn-ex';
+    lbl.textContent = 'Exemple';
+    btn.className   = 'btn-mega-next btn-ex';
   } else {
-    btn.textContent = 'Seg\u00fcent \u2192';
-    btn.className   = 'btn-next';
+    lbl.textContent = 'Següent';
+    btn.className   = 'btn-mega-next';
   }
   btn.blur();
 }
 
-function _showNarration() {
-  const box = document.querySelector('.narration-box');
-  box.style.transition = 'opacity 0.45s ease';
-  box.style.opacity    = '1';
-}
-
 function _showVisual() {
-  const vis = document.getElementById('tut-visual');
-  vis.style.transition = 'opacity 0.45s ease';
-  vis.style.opacity    = '1';
+  const step = TUTORIAL[exIdx].steps[stepIdx];
+  const el = document.getElementById(step.visualLeft ? 'tut-visual-left' : 'tut-visual');
+  el.style.transition = 'opacity 0.55s ease';
+  el.style.opacity    = '1';
 }
 
+/*
+ * Seqüència de revelació:
+ *  - t=0s:   spotlight ESQUERRE (2s)
+ *  - t=0.5s: apareix el visual
+ *  - t=2s:   spotlight DRET (2s)
+ *  - t=4s:   il·luminació completa + arrenca el timer
+ */
 function _revealSequence() {
   const step = TUTORIAL[exIdx].steps[stepIdx];
-  // t=1s: narració (dreta top)
+  const gl = document.getElementById('game-left');
+  const gr = document.getElementById('game-right');
+
+  // Neteja
+  gl.classList.remove('spotlight', 'dimmed');
+  gr.classList.remove('spotlight', 'dimmed');
+
+  // Fase 1 — focus esquerre
+  gl.classList.add('spotlight');
+  gr.classList.add('dimmed');
+
+  // Visual apareix a t=0.5s
+  setTimeout(() => { _showVisual(); }, 500);
+
+  // Fase 2 — focus dret
   setTimeout(() => {
-    _showNarration();
+    gl.classList.remove('spotlight', 'dimmed');
+    gr.classList.remove('spotlight', 'dimmed');
+    gl.classList.add('dimmed');
+    gr.classList.add('spotlight');
+  }, 2000);
+
+  // Fase 3 — tot il·luminat + timer
+  setTimeout(() => {
+    gl.classList.remove('spotlight', 'dimmed');
+    gr.classList.remove('spotlight', 'dimmed');
     if (step.narration2) {
-      // t=3.5s: canvia a narration2
+      const box = document.getElementById('narration-box');
+      box.style.transition = 'opacity 0.3s ease';
+      box.style.opacity = '0';
       setTimeout(() => {
-        const box = document.querySelector('.narration-box');
-        box.style.transition = 'opacity 0.3s ease';
-        box.style.opacity = '0';
-        setTimeout(() => {
-          document.getElementById('narration-text').innerHTML = step.narration2;
-          box.style.opacity = '1';
-          // t=6s: visual + timer
-          setTimeout(() => { _showVisual(); startTimer(); }, 2500);
-        }, 300);
-      }, 2500);
-    } else {
-      // t=3.5s: visual + timer
-      setTimeout(() => { _showVisual(); startTimer(); }, 2500);
+        document.getElementById('narration-text').innerHTML = step.narration2;
+        box.style.opacity = '1';
+      }, 300);
     }
-  }, 1000);
+    startTimer();
+  }, 4000);
 }
 
 /* ================================================================
    EVENTS
    ================================================================ */
-document.getElementById('btn-next').addEventListener('click', () => {
+document.getElementById('btn-mega-next').addEventListener('click', () => {
   clearInterval(timerIntv);
   _advance();
 });
