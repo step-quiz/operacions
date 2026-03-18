@@ -429,23 +429,27 @@
                 <option value="manual">Matriu manual</option>
             </select>
         </label>
+        <label style="max-width:260px; line-height:1.4; cursor:pointer; display:flex; align-items:flex-start; gap:7px;">
+            <input type="checkbox" id="methodToggle" onchange="onMethodChange()" style="margin-top:3px; accent-color:var(--primary); width:14px; height:14px; flex-shrink:0; cursor:pointer;">
+            <span>Vull començar calculant la matriu transposada, en lloc dels cofactors</span>
+        </label>
     </div>
 
     <!-- STEPPER -->
     <div class="stepper">
         <div class="step-item active" id="stepItem0">
             <div class="step-circle active" id="stepCircle0">1</div>
-            <div class="step-label">det(A)</div>
+            <div class="step-label" id="stepLabel0">det(A)</div>
         </div>
         <div class="step-connector" id="stepConn0"></div>
         <div class="step-item" id="stepItem1">
             <div class="step-circle" id="stepCircle1">2</div>
-            <div class="step-label">Cofactors</div>
+            <div class="step-label" id="stepLabel1">Cofactors</div>
         </div>
         <div class="step-connector" id="stepConn1"></div>
         <div class="step-item" id="stepItem2">
             <div class="step-circle" id="stepCircle2">3</div>
-            <div class="step-label">adj(A)</div>
+            <div class="step-label" id="stepLabel2">adj(A)</div>
         </div>
         <div class="step-connector" id="stepConn2"></div>
         <div class="step-item" id="stepItem3">
@@ -464,12 +468,14 @@
     // ── ESTAT ──
     let matrix       = [];
     let computedDet  = 0;
-    let cofMatrix    = [];   // matriu de cofactors Cij
+    let cofMatrix    = [];   // matriu de cofactors Cij (de A, mètode A)
     let adjMatrix    = [];   // adjunta = Cᵀ
-    let currentStep  = 0;   // 0=det, 1=cofactors, 2=adjunta, 3=inversa
+    let transMatrix  = [];   // transposada Aᵀ (mètode B)
+    let currentStep  = 0;   // 0=det, 1=pas2, 2=pas3, 3=inversa
     let exerciseFinished = false;
     let manualInputActive = false;
     let failCounts   = [0, 0, 0, 0];  // intents fallits per cada etapa
+    let methodB      = false;          // false=mètode A, true=mètode B (Aᵀ primer)
 
     // ── MATEMÀTIQUES ──
     const det2 = (a, b, c, d) => a * d - b * c;
@@ -510,6 +516,8 @@
         computedDet = det3(matrix);
         cofMatrix   = allCofactors(matrix);
         adjMatrix   = adjugate(cofMatrix);
+        transMatrix = Array.from({ length: 3 }, (_, i) =>
+            Array.from({ length: 3 }, (_, j) => matrix[j][i]));
         renderDebug();
     }
 
@@ -566,6 +574,8 @@
         currentStep      = 0;
         exerciseFinished = false;
         failCounts       = [0, 0, 0, 0];
+        methodB = document.getElementById('methodToggle').checked;
+        updateStepperLabels();
         document.getElementById('feedback').innerText = '';
         const isManual = document.getElementById('originSelect').value === 'manual';
         if (isManual) {
@@ -677,6 +687,33 @@
         }
         for (let i = 0; i < 3; i++)
             document.getElementById(`stepConn${i}`).classList.toggle('done', i < currentStep);
+
+        // Bloqueja el toggle a partir del pas 1
+        const toggle = document.getElementById('methodToggle');
+        if (toggle) {
+            toggle.disabled = (currentStep >= 1);
+            toggle.parentElement.style.opacity = (currentStep >= 1) ? '0.4' : '1';
+            toggle.parentElement.style.pointerEvents = (currentStep >= 1) ? 'none' : '';
+        }
+    }
+
+    function onMethodChange() {
+        methodB = document.getElementById('methodToggle').checked;
+        updateStepperLabels();
+        // Només regenera matriu si estem al pas 0; si no, simplement actualitza labels
+        if (currentStep === 0 && !exerciseFinished) {
+            initApp();
+        }
+    }
+
+    function updateStepperLabels() {
+        const labels = methodB
+            ? ['det(A)', 'Aᵀ', 'Cofactors', 'A⁻¹']
+            : ['det(A)', 'Cofactors', 'adj(A)', 'A⁻¹'];
+        labels.forEach((l, i) => {
+            const el = document.getElementById(`stepLabel${i}`);
+            if (el) el.textContent = l;
+        });
     }
 
     function resetStepper() {
@@ -705,10 +742,10 @@
         c.innerHTML = '';
         document.getElementById('feedback').innerText = '';
         switch (currentStep) {
-            case 0: renderDet(c);       break;
-            case 1: renderCofactors(c); break;
-            case 2: renderAdjugate(c);  break;
-            case 3: renderInverse(c);   break;
+            case 0: renderDet(c); break;
+            case 1: methodB ? renderTranspose(c) : renderCofactors(c); break;
+            case 2: methodB ? renderCofactorsB(c) : renderAdjugate(c); break;
+            case 3: renderInverse(c); break;
         }
     }
 
@@ -718,7 +755,6 @@
 
         const center = el('div', 'center-panel');
         formula(center, 'det(A) = ?');
-        helpRow(center);
         c.appendChild(center);
 
         const right = el('div', 'panel-block');
@@ -787,7 +823,146 @@
         c.appendChild(actionBtn());
     }
 
-    // PAS 2: Adjunta
+    // PAS 1 (Mètode B): Transposada Aᵀ
+    function renderTranspose(c) {
+        c.appendChild(matrixPanel('Matriu A', staticMatrix(matrix)));
+
+        const center = el('div', 'center-panel');
+        formula(center, '(Aᵀ)<sub>ij</sub> = a<sub>ji</sub>');
+        helpRow(center);
+        scaffold(center, 'Transposada',
+            `Per obtenir Aᵀ, intercanvia files i columnes:<br><br>
+             La fila <em>i</em> de A passa a ser la columna <em>i</em> de Aᵀ.`
+        );
+        c.appendChild(center);
+
+        const right = el('div', 'panel-block');
+        right.appendChild(titleEl('Aᵀ'));
+        const gridT = el('div', 'matrix');
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+            cell.innerHTML = `<input type="number" id="tr${i}${j}" placeholder="?" onfocus="this.select()">`;
+            gridT.appendChild(cell);
+        }
+        right.appendChild(gridT);
+        c.appendChild(right);
+        c.appendChild(actionBtn());
+        setTimeout(() => { const f = document.getElementById('tr00'); if (f) f.focus(); }, 50);
+    }
+
+    function checkTranspose() {
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            if (document.getElementById(`tr${i}${j}`).value.trim() === '') {
+                showFb('⚠️ Omple tots els elements de la transposada.', 'warning'); return;
+            }
+        }
+        let allOk = true;
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            if (parseInt(document.getElementById(`tr${i}${j}`).value) !== transMatrix[i][j]) {
+                allOk = false; break;
+            }
+        }
+        if (!allOk) { showFb('❌ Algun element és incorrecte. Recorda: (Aᵀ)ᵢⱼ = aⱼᵢ.', 'danger'); failStep(1); return; }
+        triggerSuccess('✅ Transposada correcta!');
+        setTimeout(() => { currentStep = 2; renderCurrentStep(); updateStepper(); }, 1000);
+    }
+
+    // PAS 2 (Mètode B): Cofactors de Aᵀ (= adj(A))
+    function renderCofactorsB(c) {
+        // Esquerra: Aᵀ interactiva per ressaltar submatrius
+        const left = el('div', 'panel-block');
+        left.appendChild(titleEl('Aᵀ'));
+        const gridT = el('div', 'matrix');
+        gridT.id = 'matrixAGrid';  // reutilitzem id per hlCofactor
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.id = `aCell${i}${j}`;
+            cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+            cell.innerText = transMatrix[i][j];
+            gridT.appendChild(cell);
+        }
+        left.appendChild(gridT);
+        c.appendChild(left);
+
+        // Centre: scaffold
+        const center = el('div', 'center-panel');
+        formula(center, 'C<sub>ij</sub>(Aᵀ) = (−1)<sup>i+j</sup>·det(M<sub>ij</sub>)');
+        helpRow(center);
+
+        const s = el('div', 'scaffold-panel');
+        s.id = 'scaffoldDet';
+        s.style.display = 'none';
+        s.innerHTML = `
+            <div class="scaffold-title">Signe dels cofactors</div>
+            <div class="sign-grid">
+                ${['+','−','+','−','+','−','+','−','+'].map(sg =>
+                    `<div class="sign-cell ${sg === '+' ? 'plus' : 'minus'}">${sg}</div>`
+                ).join('')}
+            </div>
+            <div style="margin-top:8px; font-size:0.78rem; line-height:1.55;">
+                En fer clic en un camp, Aᵀ ressalta la submatriu 2×2 corresponent.<br><br>
+                Els cofactors de Aᵀ coincideixen directament amb adj(A).
+            </div>`;
+        center.appendChild(s);
+        c.appendChild(center);
+
+        // Dreta: inputs cofactors de Aᵀ
+        const right = el('div', 'panel-block');
+        right.appendChild(titleEl('Cofactors de Aᵀ'));
+        const gridC = el('div', 'matrix');
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+            // id="cof…" per reutilitzar checkCofactors i showAnswer
+            cell.innerHTML = `<input type="number" id="cof${i}${j}" placeholder="?"
+                onfocus="hlCofactor(${i},${j}); this.select()" onblur="clrHl()">`;
+            gridC.appendChild(cell);
+        }
+        right.appendChild(gridC);
+        c.appendChild(right);
+        c.appendChild(actionBtn());
+    }
+
+    function checkCofactorsB() {
+        // Mateixa lògica que checkCofactors però valida contra adjMatrix (= cofactors de Aᵀ)
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            if (document.getElementById(`cof${i}${j}`).value.trim() === '') {
+                showFb('⚠️ Omple tots els cofactors de Aᵀ abans de comprovar.', 'warning');
+                return;
+            }
+        }
+        let nOk = 0, nErr = 0;
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const inp = document.getElementById(`cof${i}${j}`);
+            if (inp.classList.contains('cell-correct')) { nOk++; continue; }
+            if (parseInt(inp.value) === adjMatrix[i][j]) {
+                inp.classList.add('cell-correct');
+                inp.setAttribute('readonly', true);
+                inp.onblur = null; inp.onfocus = null;
+                nOk++;
+            } else {
+                nErr++;
+                inp.style.borderColor = 'var(--danger)';
+                inp.style.color = 'var(--danger)';
+                inp.oninput = function() {
+                    this.style.borderColor = ''; this.style.color = '';
+                    this.oninput = null;
+                };
+            }
+        }
+        if (nErr === 0) {
+            triggerSuccess('✅ Cofactors de Aᵀ correctes!');
+            setTimeout(() => { currentStep = 3; renderCurrentStep(); updateStepper(); }, 1000);
+        } else {
+            const sErr = nErr === 1 ? '1 cofactor incorrecte' : `${nErr} cofactors incorrectes`;
+            const sOk  = nOk  === 1 ? '1 correcte'           : `${nOk} correctes`;
+            showFb(`❌ ${sErr} (${sOk} de 9). Revisa els signes i els menors 2×2.`, 'danger');
+            failStep(2);
+        }
+    }
+
+    // PAS 2 (Mètode A): Adjunta
     function renderAdjugate(c) {
         c.appendChild(matrixPanel('Matriu de cofactors C', staticMatrix(cofMatrix)));
 
@@ -902,10 +1077,10 @@
     // ── COMPROVACIÓ ──
     function checkCurrentStep() {
         switch (currentStep) {
-            case 0: checkDet();       break;
-            case 1: checkCofactors(); break;
-            case 2: checkAdjugate();  break;
-            case 3: checkInverse();   break;
+            case 0: checkDet();                                      break;
+            case 1: methodB ? checkTranspose() : checkCofactors();  break;
+            case 2: methodB ? checkCofactorsB() : checkAdjugate();  break;
+            case 3: checkInverse();                                  break;
         }
     }
 
@@ -1090,28 +1265,58 @@
             showFb(`ℹ️ Resposta: det(A) = ${computedDet}`, 'warning');
         }
         else if (step === 1) {
-            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
-                const inp = document.getElementById(`cof${i}${j}`);
-                if (!inp || inp.classList.contains('cell-correct')) continue;
-                inp.value = cofMatrix[i][j];
-                inp.classList.add('cell-correct');
-                inp.style.background = 'rgba(217,119,6,0.10)';
-                inp.style.borderColor = 'var(--warning)';
-                inp.style.color = 'var(--warning)';
-                inp.setAttribute('readonly', true);
-                inp.onblur = null; inp.onfocus = null;
+            if (methodB) {
+                // Mètode B: revela la transposada
+                for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                    const inp = document.getElementById(`tr${i}${j}`);
+                    if (!inp) continue;
+                    inp.value = transMatrix[i][j];
+                    inp.disabled = true;
+                    inp.style.color = 'var(--warning)'; inp.style.borderColor = 'var(--warning)';
+                }
+                showFb('ℹ️ Resposta mostrada. Recorda: (Aᵀ)ᵢⱼ = aⱼᵢ.', 'warning');
+            } else {
+                // Mètode A: revela cofactors de A
+                for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                    const inp = document.getElementById(`cof${i}${j}`);
+                    if (!inp || inp.classList.contains('cell-correct')) continue;
+                    inp.value = cofMatrix[i][j];
+                    inp.classList.add('cell-correct');
+                    inp.style.background = 'rgba(217,119,6,0.10)';
+                    inp.style.borderColor = 'var(--warning)';
+                    inp.style.color = 'var(--warning)';
+                    inp.setAttribute('readonly', true);
+                    inp.onblur = null; inp.onfocus = null;
+                }
+                showFb('ℹ️ Resposta mostrada. Fixa\'t en els signes i els menors 2×2.', 'warning');
             }
-            showFb('ℹ️ Resposta mostrada. Fixa\'t en els signes i els menors 2×2.', 'warning');
         }
         else if (step === 2) {
-            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
-                const inp = document.getElementById(`adj${i}${j}`);
-                if (!inp) continue;
-                inp.value = adjMatrix[i][j];
-                inp.disabled = true;
-                inp.style.color = 'var(--warning)'; inp.style.borderColor = 'var(--warning)';
+            if (methodB) {
+                // Mètode B pas 2: cofactors de Aᵀ = adjMatrix
+                for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                    const inp = document.getElementById(`cof${i}${j}`);
+                    if (!inp || inp.classList.contains('cell-correct')) continue;
+                    inp.value = adjMatrix[i][j];
+                    inp.classList.add('cell-correct');
+                    inp.style.background = 'rgba(217,119,6,0.10)';
+                    inp.style.borderColor = 'var(--warning)';
+                    inp.style.color = 'var(--warning)';
+                    inp.setAttribute('readonly', true);
+                    inp.onblur = null; inp.onfocus = null;
+                }
+                showFb('ℹ️ Resposta mostrada. Recorda: cofactors(Aᵀ) = adj(A).', 'warning');
+            } else {
+                // Mètode A pas 2: adjunta
+                for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                    const inp = document.getElementById(`adj${i}${j}`);
+                    if (!inp) continue;
+                    inp.value = adjMatrix[i][j];
+                    inp.disabled = true;
+                    inp.style.color = 'var(--warning)'; inp.style.borderColor = 'var(--warning)';
+                }
+                showFb('ℹ️ Resposta mostrada. Recorda: adj(A)ᵢⱼ = Cⱼᵢ (transposada).', 'warning');
             }
-            showFb('ℹ️ Resposta mostrada. Recorda: adj(A)ᵢⱼ = Cⱼᵢ (transposada).', 'warning');
         }
         else if (step === 3) {
             const detUnit = (Math.abs(computedDet) === 1);
