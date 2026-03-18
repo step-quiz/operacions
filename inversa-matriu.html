@@ -342,37 +342,36 @@
         }
 
         /* ── ESCALAR FRACCIÓ (pas inversa, det≠±1) ── */
-        .scalar-widget {
+        .inv-formula-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; flex-wrap: nowrap;
+        }
+        .inv-lhs {
+            font-size: 1.1rem; font-weight: 700; color: var(--gris-text);
+            font-family: 'DM Mono', monospace; flex-shrink: 0;
+        }
+        .inline-frac {
             display: flex; flex-direction: column; align-items: center;
-            gap: 4px; padding: 14px 18px;
-            background: rgba(37,99,235,0.05); border: 1.5px solid rgba(37,99,235,0.18);
-            border-radius: 14px; margin: 8px 0;
+            gap: 3px; flex-shrink: 0;
         }
-        .scalar-widget .sw-label {
-            font-size: 0.72rem; font-weight: 700; color: var(--primary);
-            text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px;
-        }
-        .scalar-num, .scalar-den {
-            width: 64px; height: 32px; text-align: center;
-            border: 1.5px solid #cbd5e1; border-radius: 8px;
-            font-size: 1.15rem; font-weight: 700;
+        .inline-frac .frac-num-inp, .inline-frac .frac-den-inp {
+            width: 54px; height: 30px; text-align: center;
+            border: 1.5px solid #cbd5e1; border-radius: 7px;
+            font-size: 1.0rem; font-weight: 700;
             font-family: 'DM Mono', monospace; color: var(--primary);
-            background: white;
+            background: #f8faff;
             transition: border-color .15s, box-shadow .15s;
         }
-        .scalar-num:focus, .scalar-den:focus {
+        .inline-frac .frac-num-inp:focus, .inline-frac .frac-den-inp:focus {
             outline: none; border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+            background: white; box-shadow: 0 0 0 2px rgba(59,130,246,0.18);
         }
-        .scalar-bar { width: 70px; height: 2px; background: #334155; border-radius: 2px; }
-
-        .inv-row {
-            display: flex; align-items: center; justify-content: center;
-            gap: 14px; flex-wrap: wrap;
+        .inline-frac .frac-hbar {
+            width: 54px; height: 2px; background: #334155; border-radius: 2px;
         }
-        .inv-times {
-            font-size: 1.8rem; font-weight: 300; color: #64748b;
-            margin-bottom: 4px; flex-shrink: 0;
+        .inv-cdot {
+            font-size: 1.6rem; font-weight: 400; color: #64748b;
+            flex-shrink: 0; line-height: 1; margin-bottom: 2px;
         }
 
         .btn-reveal {
@@ -1020,9 +1019,9 @@
             c.appendChild(right);
 
         } else {
-            // ── CASE det≠±1: escalar p/q × matriu adj(A) ──
+            // ── CASE det≠±1: A⁻¹ = (p/q) · [matriu] layout horitzontal ──
 
-            // Esquerra: adj(A) de referència
+            // Esquerra: adj(A) de referència + det badge
             const left = el('div', 'panel-block');
             left.appendChild(titleEl('adj(A)'));
             left.appendChild(staticMatrix(adjMatrix));
@@ -1032,28 +1031,31 @@
             left.appendChild(detBadge);
             c.appendChild(left);
 
-            // Centre: widget escalar
-            const center = el('div', 'center-panel');
-            center.style.justifyContent = 'center';
-
-            const sw = el('div', 'scalar-widget');
-            sw.innerHTML = `
-                <div class="sw-label">Escalar</div>
-                <input type="number" id="scalarNum" class="scalar-num" placeholder="p" onfocus="this.select()">
-                <div class="scalar-bar"></div>
-                <input type="number" id="scalarDen" class="scalar-den" placeholder="q" onfocus="this.select()">`;
-            center.appendChild(sw);
-
-            const times = el('div', 'inv-times');
-            times.innerHTML = '&times;';
-            center.appendChild(times);
-            c.appendChild(center);
-
-            // Dreta: matriu enters (còpia adj)
+            // Dreta: A⁻¹ = [p/q] · [matriu] tot en línia
             const right = el('div', 'panel-block');
-            const titleInv = el('div', 'matrix-title');
-            titleInv.innerHTML = 'A<sup>−1</sup> =';
-            right.appendChild(titleInv);
+            right.style.alignItems = 'center';
+
+            const row = el('div', 'inv-formula-row');
+
+            // "A⁻¹ ="
+            const lhs = el('div', 'inv-lhs');
+            lhs.innerHTML = 'A<sup>−1</sup> =';
+            row.appendChild(lhs);
+
+            // fracció p/q inline
+            const frac = el('div', 'inline-frac');
+            frac.innerHTML = `
+                <input type="number" id="scalarNum" class="frac-num-inp" placeholder="p" onfocus="this.select()">
+                <div class="frac-hbar"></div>
+                <input type="number" id="scalarDen" class="frac-den-inp" placeholder="q" onfocus="this.select()">`;
+            row.appendChild(frac);
+
+            // punt de multiplicació ·
+            const cdot = el('div', 'inv-cdot');
+            cdot.textContent = '·';
+            row.appendChild(cdot);
+
+            // matriu d'inputs
             const gridInv = el('div', 'matrix');
             for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
                 const cell = el('div', 'cell');
@@ -1061,7 +1063,9 @@
                 cell.innerHTML = `<input type="number" id="inv${i}${j}" placeholder="?" onfocus="this.select()">`;
                 gridInv.appendChild(cell);
             }
-            right.appendChild(gridInv);
+            row.appendChild(gridInv);
+
+            right.appendChild(row);
             c.appendChild(right);
         }
 
@@ -1335,7 +1339,6 @@
             }
             showFb('ℹ️ Resposta mostrada.', 'warning');
         }
-        // Elimina el botó un cop revelada
         const area = document.getElementById('revealArea');
         if (area) area.innerHTML = '';
     }
