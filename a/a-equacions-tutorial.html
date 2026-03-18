@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial — Equacions</title>
+  <style>
+    /* ── VARIABLES ─────────────────────────────────────────────── */
+    :root {
+      --primary:       #0d9488;
+      --primary-light: #ccfbf1;
+      --primary-dark:  #115e59;
+      --var-color:     #134e4a;
+      --var-bg:        #ccfbf1;
+      --var-border:    #5eead4;
+      --bg:            #f0fdfa;
+      --panel:         #ffffff;
+      --text:          #0f172a;
+      --muted:         #64748b;
+      --border:        #e2e8f0;
+      --radius:        10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 16px 8px;
+    }
+
+    /* ── CAPÇALERA PÀGINA ─────────────────────────────────────── */
+    .title-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 8px;
+      width: 100%; max-width: 900px;
+      justify-content: center;
+    }
+    .title-row h1 {
+      font-size: 1.4em; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--primary-dark);
+    }
+    .home-icon-link {
+      width: 38px; height: 38px; opacity: 0.7;
+      transition: opacity 0.2s; display: block; flex-shrink: 0;
+    }
+    .home-icon-link:hover { opacity: 1; }
+    .home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ── PANELL ───────────────────────────────────────────────── */
+    .panel {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      border: 1px solid var(--border);
+      border-top: 5px solid var(--primary);
+      width: 100%; max-width: 900px;
+      overflow: hidden;
+      flex: 1 1 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ── CAPÇALERA TUTORIAL ───────────────────────────────────── */
+    .tut-header {
+      background: var(--primary-dark);
+      color: white;
+      padding: 7px 14px;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .step-counter {
+      font-size: 0.85em; font-weight: 700;
+      background: rgba(255,255,255,0.15);
+      padding: 3px 10px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .header-spacer { flex: 1 1 0; }
+    .example-chip {
+      font-size: 0.82em; font-weight: 700;
+      background: rgba(255,255,255,0.12);
+      padding: 3px 10px; border-radius: 20px;
+      color: #99f6e4; white-space: nowrap;
+    }
+    .btn-pause {
+      background: white; border: 2px solid #ea580c;
+      color: #ea580c; font-size: 1em; font-weight: 800;
+      width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: background 0.15s; flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(234,88,12,0.2);
+    }
+    .btn-pause:hover { background: #fff7ed; }
+    .btn-next {
+      padding: 5px 16px;
+      background: white; color: var(--primary-dark);
+      font-family: inherit; font-size: 1em; font-weight: 700;
+      border: none; border-radius: 7px; cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-next:hover  { background: #e2e8f0; }
+    .btn-next:active { transform: scale(0.97); }
+    .btn-next.btn-finish       { background: #d1fae5; color: #065f46; }
+    .btn-next.btn-finish:hover { background: #a7f3d0; }
+    .btn-next.btn-ex           { background: #ede9fe; color: #4c1d95; }
+    .btn-next.btn-ex:hover     { background: #ddd6fe; }
+
+    /* ── BARRA TIMER ──────────────────────────────────────────── */
+    .timer-track { height: 5px; background: rgba(0,0,0,0.08); flex-shrink: 0; }
+    .timer-fill  { height: 100%; background: linear-gradient(90deg,#f97316,#ea580c); width:0%; }
+
+    /* ── COS PRINCIPAL ────────────────────────────────────────── */
+    .game-body {
+      display: flex; flex-direction: row;
+      flex: 1 1 0; min-height: 0;
+      transition: opacity 0.22s ease;
+    }
+    .game-body.fading { opacity: 0; pointer-events: none; }
+
+    /* ── PANELL ESQUERRE: mock del joc ────────────────────────── */
+    .game-left {
+      width: 45%; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 20px 16px;
+      border-right: 1px solid var(--border);
+      overflow-y: auto; min-height: 0;
+      gap: 16px;
+      transition: opacity 0.3s ease;
+    }
+
+    /* ── EQUACIÓ MOCK ─────────────────────────────────────────── */
+    .mock-eq {
+      display: flex; align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 2.2em;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+      flex-wrap: wrap;
+    }
+    .t-var {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      background: var(--var-bg);
+      border: 2px solid var(--var-border);
+      border-radius: 10px;
+      color: var(--var-color);
+      line-height: 1;
+    }
+    .t-var .t-coeff { color: var(--var-color); }
+    .t-var .t-dot   { color: #475569; font-size: 0.85em; }
+    .t-var .t-x     { font-style: italic; }
+    .t-num {
+      padding: 8px 14px;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      color: #334155;
+      line-height: 1;
+    }
+    .t-op {
+      background: #f1f5f9;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 8px 16px;
+      color: #64748b;
+      font-weight: bold;
+    }
+    .t-eq { color: var(--primary); font-weight: bold; padding: 0 4px; }
+
+    /* Pregunta i fila resposta */
+    .mock-question {
+      font-size: 1em; font-weight: 700;
+      color: #475569; text-align: center;
+    }
+    .mock-answer-row {
+      display: flex; align-items: center;
+      justify-content: center; gap: 10px;
+      font-size: 1.8em;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+    }
+    .mock-x-label {
+      font-style: italic;
+      background: var(--var-bg);
+      border: 2px solid var(--var-border);
+      border-radius: 10px;
+      padding: 7px 14px;
+      color: var(--var-color);
+      line-height: 1;
+    }
+    .mock-eq-sign { color: var(--primary); padding: 0 4px; }
+    .mock-input {
+      width: 90px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85em;
+      font-weight: bold;
+      color: #1e293b;
+      line-height: 1;
+    }
+    .mock-input.correct {
+      background: #f0fdf4;
+      border-color: #22c55e;
+      color: #475569;
+    }
+
+    /* Botons mock */
+    .mock-btns {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .mock-ok {
+      width: 2.2rem; height: 2.2rem;
+      background: #cbd5e1;
+      border: none; border-radius: 6px;
+      font-weight: 700; font-size: 0.8rem; color: #334155;
+      cursor: default;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mock-ajuda {
+      background: #fffbeb;
+      border: 2px solid #fbbf24;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.68rem; font-weight: 700; color: #92400e;
+      cursor: default; white-space: nowrap;
+    }
+
+    /* Caixa ajuda mock */
+    .mock-help {
+      display: none;
+      background: #fffbeb;
+      border: 2px solid #fde68a;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.85em; color: #78350f; font-weight: 600;
+      text-align: center;
+      width: 100%; max-width: 340px;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+    }
+    .mock-help.visible { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(-5px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── PANELL DRET: narrador + visual ───────────────────────── */
+    .game-right {
+      width: 55%; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center;
+      padding: 14px 18px 12px;
+      overflow-y: auto; min-height: 0;
+      gap: 14px;
+    }
+
+    .narration-box {
+      width: 100%;
+      background: white;
+      border: 2px solid var(--primary);
+      border-left: 5px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+      box-shadow: 0 2px 10px rgba(13,148,136,0.1);
+      flex-shrink: 0;
+      opacity: 0;
+    }
+    .narration-icon { font-size: 1.4em; flex-shrink: 0; margin-top: 1px; line-height: 1; }
+    .narration-text { font-size: 1.05em; line-height: 1.55; color: var(--text); }
+    .narration-text b { color: var(--primary-dark); }
+    .narration-text .vx { color: var(--var-color); font-weight: 700; font-style: italic; }
+
+    #tut-visual { width: 100%; display: flex; justify-content: center; flex-shrink: 0; }
+    #tut-visual svg { display: block; max-width: 100%; height: auto; }
+
+    /* ── RESPONSIVE ───────────────────────────────────────────── */
+    @media (max-width: 680px) {
+      body { overflow: auto; height: auto; padding: 8px; }
+      .panel { flex: none; min-height: 500px; }
+      .game-body { flex-direction: column; }
+      .game-left, .game-right { width: 100%; border-right: none; }
+      .game-left  { border-bottom: 1px solid var(--border); padding: 14px; justify-content: flex-start; }
+      .game-right { padding: 12px; }
+      .mock-eq    { font-size: 1.7em; }
+    }
+    @media (max-width: 440px) {
+      .title-row h1 { font-size: 1.05em; }
+      .mock-eq      { font-size: 1.4em; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="title-row">
+  <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+    <img src="icon.png" alt="Inici" onerror="this.style.display='none'">
+  </a>
+  <h1>Tutorial — Equacions</h1>
+</div>
+
+<div class="panel">
+
+  <div class="tut-header">
+    <span class="step-counter" id="step-counter">Completat: 0%</span>
+    <button class="btn-pause" id="btn-pause" aria-label="Pausa/Repren">⏸</button>
+    <button class="btn-next"  id="btn-next">Següent →</button>
+  </div>
+
+  <div class="timer-track">
+    <div class="timer-fill" id="timer-fill"></div>
+  </div>
+
+  <div class="game-body" id="game-body">
+
+    <!-- Esquerra: mock del joc -->
+    <div class="game-left" id="game-left">
+      <div class="mock-eq"          id="tut-eq"></div>
+      <div class="mock-question"    id="tut-question"></div>
+      <div class="mock-answer-row"  id="tut-answer" style="display:none;">
+        <span class="mock-x-label">x</span>
+        <span class="mock-eq-sign">=</span>
+        <div  class="mock-input"   id="tut-input"></div>
+      </div>
+      <div class="mock-btns"        id="tut-btns"   style="display:none;">
+        <div class="mock-ok">OK</div>
+      </div>
+      <div class="mock-help"        id="tut-help"></div>
+    </div>
+
+    <!-- Dreta: narrador + visual -->
+    <div class="game-right">
+      <div class="narration-box">
+        <span class="narration-icon" id="narration-icon">👀</span>
+        <div  class="narration-text" id="narration-text"></div>
+      </div>
+      <div id="tut-visual"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="fade-overlay"
+     style="position:fixed;inset:0;background:#000;opacity:0;
+            pointer-events:none;z-index:9999;transition:opacity 1.2s ease;"></div>
+
+<script>
+'use strict';
+
+/* ================================================================
+   VISUALS SVG
+   ================================================================ */
+
+/** Caixes per a a·x = b. Mostra 'a' caixes amb 'x' dins. */
+function svgBoxes(a, total) {
+  const BW = 48, BH = 44, GAP = 10, PAD = 12;
+  const W  = a * (BW + GAP) - GAP + PAD * 2;
+  const H  = BH + 34;
+  const s  = [];
+  s.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+           style="max-width:${Math.min(W,340)}px;width:100%;height:auto;display:block;">`);
+  for (let i = 0; i < a; i++) {
+    const x = PAD + i * (BW + GAP), y = 4;
+    s.push(`<rect x="${x}" y="${y}" width="${BW}" height="${BH}"
+             fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
+    s.push(`<text x="${x+BW/2}" y="${y+BH/2+7}" text-anchor="middle"
+             font-family="'Courier New',monospace" font-size="20"
+             font-weight="800" fill="#115e59" font-style="italic">x</text>`);
+  }
+  // Clau
+  const ly = 4 + BH + 7;
+  s.push(`<line x1="${PAD}" y1="${ly}" x2="${W-PAD}" y2="${ly}" stroke="#94a3b8" stroke-width="1.5"/>`);
+  s.push(`<line x1="${PAD}" y1="${ly}" x2="${PAD}" y2="${ly-5}" stroke="#94a3b8" stroke-width="1.5"/>`);
+  s.push(`<line x1="${W-PAD}" y1="${ly}" x2="${W-PAD}" y2="${ly-5}" stroke="#94a3b8" stroke-width="1.5"/>`);
+  s.push(`<text x="${W/2}" y="${ly+17}" text-anchor="middle"
+           font-family="'Segoe UI',sans-serif" font-size="12"
+           font-weight="700" fill="#475569">Total: ${total} caramels</text>`);
+  s.push(`</svg>`);
+  return s.join('');
+}
+
+/** Caixes animades: les x fan flip cap al valor de la solució i tornen */
+function svgBoxesAnim(a, sol) {
+  const BW = 48, BH = 44, GAP = 10, PAD = 12;
+  const W  = a * (BW + GAP) - GAP + PAD * 2;
+  let boxes = '';
+  for (let i = 0; i < a; i++) {
+    const delay = (i * 300) + 'ms';
+    boxes += `<div class="abx-box" style="animation-delay:${delay};">
+      <span class="abx-x">x</span>
+      <span class="abx-sol">${sol}</span>
+    </div>`;
+  }
+  return `<style>
+  .abx-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:280px;margin:0 auto;}
+  .abx-row{display:flex;gap:${GAP}px;}
+  .abx-box{position:relative;width:${BW}px;height:${BH}px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:9px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .abx-x,.abx-sol{position:absolute;font-family:'Courier New',monospace;font-weight:800;font-size:1.2em;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+  .abx-x  {color:#115e59;font-style:italic;}
+  .abx-sol{color:#0d9488;}
+  @keyframes abxFlip  {0%,35%{transform:translateY(0);opacity:1}45%,88%{transform:translateY(-110%);opacity:0}95%,100%{transform:translateY(0);opacity:1}}
+  @keyframes abxReveal{0%,40%{transform:translateY(110%);opacity:0}50%,83%{transform:translateY(0);opacity:1}93%,100%{transform:translateY(110%);opacity:0}}
+  .abx-box .abx-x  {animation:abxFlip   4s ease-in-out infinite;}
+  .abx-box .abx-sol{animation:abxReveal 4s ease-in-out infinite;}
+  .abx-clau{display:flex;align-items:center;width:${W - PAD*2}px;}
+  .abx-bar{flex:1;height:2px;background:#94a3b8;}
+  .abx-tick{width:2px;height:7px;background:#94a3b8;}
+  .abx-total{font-size:.75em;font-weight:700;color:#475569;margin-top:2px;}
+  </style>
+  <div class="abx-wrap">
+    <div class="abx-row">${boxes}</div>
+    <div class="abx-clau"><div class="abx-tick"></div><div class="abx-bar"></div><div class="abx-tick"></div></div>
+    <div class="abx-total">Total: ${a * sol} caramels</div>
+  </div>`;
+}
+
+/**
+ * Visual per a x + b = c  o  b + x = c
+ * Mostra: [caixa x] + [quadrat b] = [rodona c]
+ */
+function svgAdd(b, c, bFirst = false) {
+  const BW = 52, BH = 46, PAD = 10, GAP = 18;
+  const W  = PAD*2 + BW*2 + BW + GAP*4 + 4;  // caixa + bloc + = + resultat
+  const H  = BH + 24;
+  const CY = 4 + BH / 2;
+  const s  = [];
+  s.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+           style="max-width:${W}px;width:100%;height:auto;display:block;">`);
+
+  // Posicions
+  const x1 = PAD;
+  const opX = PAD + BW + GAP * 0.8;
+  const x2 = opX + 24;
+  const eqX = x2 + BW + GAP * 0.8;
+  const x3 = eqX + 22;
+
+  const [leftLabel, rightLabel] = bFirst ? [String(b), 'x'] : ['x', String(b)];
+  const leftIsX = !bFirst;
+  const rightIsX = bFirst;
+
+  // Primer element
+  if (leftIsX) {
+    s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}"
+             fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
+    s.push(`<text x="${x1+BW/2}" y="${CY+7}" text-anchor="middle"
+             font-family="'Courier New',monospace" font-size="20"
+             font-weight="800" fill="#115e59" font-style="italic">x</text>`);
+  } else {
+    s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}"
+             fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="8"/>`);
+    s.push(`<text x="${x1+BW/2}" y="${CY+7}" text-anchor="middle"
+             font-family="'Courier New',monospace" font-size="20"
+             font-weight="700" fill="#334155">${b}</text>`);
+  }
+
+  // Operador +
+  s.push(`<text x="${opX+8}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="22"
+           font-weight="700" fill="#64748b">+</text>`);
+
+  // Segon element
+  if (rightIsX) {
+    s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}"
+             fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
+    s.push(`<text x="${x2+BW/2}" y="${CY+7}" text-anchor="middle"
+             font-family="'Courier New',monospace" font-size="20"
+             font-weight="800" fill="#115e59" font-style="italic">x</text>`);
+  } else {
+    s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}"
+             fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="8"/>`);
+    s.push(`<text x="${x2+BW/2}" y="${CY+7}" text-anchor="middle"
+             font-family="'Courier New',monospace" font-size="20"
+             font-weight="700" fill="#334155">${b}</text>`);
+  }
+
+  // Signe =
+  s.push(`<text x="${eqX+7}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="22"
+           font-weight="700" fill="#0d9488">=</text>`);
+
+  // Resultat c (cercle)
+  s.push(`<circle cx="${x3+BW/2}" cy="${CY}" r="${BH/2+2}"
+           fill="#f0fdfa" stroke="#0d9488" stroke-width="2.2"/>`);
+  s.push(`<text x="${x3+BW/2}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="20"
+           font-weight="700" fill="#0d9488">${c}</text>`);
+
+  s.push(`</svg>`);
+  return s.join('');
+}
+
+/**
+ * Visual per a x − b = c
+ * Mostra: [caixa x] − [quadrat b] = [rodona c]
+ * Amb una fletxa indicant "es treuen b"
+ */
+function svgSub(b, c) {
+  const BW = 52, BH = 46, PAD = 10, GAP = 18;
+  const W  = PAD*2 + BW*2 + BW + GAP*4 + 4;
+  const H  = BH + 24;
+  const CY = 4 + BH / 2;
+  const s  = [];
+  s.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+           style="max-width:${W}px;width:100%;height:auto;display:block;">`);
+
+  const x1 = PAD;
+  const opX = PAD + BW + GAP * 0.8;
+  const x2  = opX + 24;
+  const eqX = x2 + BW + GAP * 0.8;
+  const x3  = eqX + 22;
+
+  // Caixa x
+  s.push(`<rect x="${x1}" y="4" width="${BW}" height="${BH}"
+           fill="#ccfbf1" stroke="#0d9488" stroke-width="2.2" rx="8"/>`);
+  s.push(`<text x="${x1+BW/2}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="20"
+           font-weight="800" fill="#115e59" font-style="italic">x</text>`);
+
+  // Operador −  (vermell per indicar "es treuen")
+  s.push(`<text x="${opX+8}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="22"
+           font-weight="700" fill="#dc2626">−</text>`);
+
+  // Bloc b (vermell, "els que es treuen")
+  s.push(`<rect x="${x2}" y="4" width="${BW}" height="${BH}"
+           fill="#fef2f2" stroke="#fca5a5" stroke-width="2" rx="8"/>`);
+  s.push(`<text x="${x2+BW/2}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="20"
+           font-weight="700" fill="#dc2626">${b}</text>`);
+
+  // Signe =
+  s.push(`<text x="${eqX+7}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="22"
+           font-weight="700" fill="#0d9488">=</text>`);
+
+  // Resultat c (cercle verd)
+  s.push(`<circle cx="${x3+BW/2}" cy="${CY}" r="${BH/2+2}"
+           fill="#f0fdfa" stroke="#0d9488" stroke-width="2.2"/>`);
+  s.push(`<text x="${x3+BW/2}" y="${CY+7}" text-anchor="middle"
+           font-family="'Courier New',monospace" font-size="20"
+           font-weight="700" fill="#0d9488">${c}</text>`);
+
+  s.push(`</svg>`);
+  return s.join('');
+}
+
+/* ================================================================
+   HELPERS MOCK EQUACIÓ
+   ================================================================ */
+function xToken(coeff = 1) {
+  if (coeff === 1)
+    return `<span class="t-var"><span class="t-x">x</span></span>`;
+  return `<span class="t-var">
+    <span class="t-coeff">${coeff}</span>
+    <span class="t-dot">·</span>
+    <span class="t-x">x</span>
+  </span>`;
+}
+function numToken(n)  { return `<span class="t-num">${n}</span>`; }
+function opToken(op)  { return `<span class="t-op">${op}</span>`; }
+const EQ_SIGN = `<span class="t-eq">=</span>`;
+
+
+/** Animació inline: el token "x" de l'equació x+b=c fa flip cap a la solució */
+function svgAddAnim(b, c, sol) {
+  return `<style>
+  .aa-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px;margin:0 auto;}
+  .aa-eq{display:flex;align-items:center;gap:9px;font-size:1.7em;font-family:'Courier New',monospace;font-weight:bold;}
+  .aa-xbox{position:relative;width:58px;height:48px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .aa-x,.aa-s{position:absolute;font-family:'Courier New',monospace;font-weight:800;font-size:1.15em;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+  .aa-x{color:#115e59;font-style:italic;}
+  .aa-s{color:#0d9488;}
+  @keyframes aaFlip  {0%,38%{transform:translateY(0);opacity:1}47%,88%{transform:translateY(-115%);opacity:0}96%,100%{transform:translateY(0);opacity:1}}
+  @keyframes aaReveal{0%,43%{transform:translateY(115%);opacity:0}52%,83%{transform:translateY(0);opacity:1}93%,100%{transform:translateY(115%);opacity:0}}
+  .aa-x{animation:aaFlip   4s ease-in-out infinite;}
+  .aa-s{animation:aaReveal 4s ease-in-out infinite;}
+  .aa-num{padding:8px 14px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;color:#334155;font-size:1em;}
+  .aa-op{background:#f1f5f9;border:2px solid #cbd5e1;border-radius:10px;padding:8px 14px;color:#64748b;}
+  .aa-eq-sign{color:#0d9488;font-weight:bold;padding:0 4px;}
+  </style>
+  <div class="aa-wrap">
+    <div class="aa-eq">
+      <div class="aa-xbox"><span class="aa-x">x</span><span class="aa-s">${sol}</span></div>
+      <div class="aa-op">+</div>
+      <div class="aa-num">${b}</div>
+      <span class="aa-eq-sign">=</span>
+      <div class="aa-num">${c}</div>
+    </div>
+  </div>`;
+}
+
+/** Animació inline: el token "x" de l'equació x−b=c fa flip cap a la solució */
+function svgSubAnim(b, c, sol) {
+  return `<style>
+  .as-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px;margin:0 auto;}
+  .as-eq{display:flex;align-items:center;gap:9px;font-size:1.7em;font-family:'Courier New',monospace;font-weight:bold;}
+  .as-xbox{position:relative;width:58px;height:48px;background:#ccfbf1;border:2.5px solid #0d9488;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .as-x,.as-s{position:absolute;font-family:'Courier New',monospace;font-weight:800;font-size:1.15em;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+  .as-x{color:#115e59;font-style:italic;}
+  .as-s{color:#0d9488;}
+  @keyframes asFlip  {0%,38%{transform:translateY(0);opacity:1}47%,88%{transform:translateY(-115%);opacity:0}96%,100%{transform:translateY(0);opacity:1}}
+  @keyframes asReveal{0%,43%{transform:translateY(115%);opacity:0}52%,83%{transform:translateY(0);opacity:1}93%,100%{transform:translateY(115%);opacity:0}}
+  .as-x{animation:asFlip   4s ease-in-out infinite;}
+  .as-s{animation:asReveal 4s ease-in-out infinite;}
+  .as-num{padding:8px 14px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;color:#334155;font-size:1em;}
+  .as-num-red{padding:8px 14px;background:#fef2f2;border:2px solid #fca5a5;border-radius:10px;color:#dc2626;font-size:1em;}
+  .as-op-red{background:#fef2f2;border:2px solid #fca5a5;border-radius:10px;padding:8px 14px;color:#dc2626;}
+  .as-eq-sign{color:#0d9488;font-weight:bold;padding:0 4px;}
+  </style>
+  <div class="as-wrap">
+    <div class="as-eq">
+      <div class="as-xbox"><span class="as-x">x</span><span class="as-s">${sol}</span></div>
+      <div class="as-op-red">−</div>
+      <div class="as-num-red">${b}</div>
+      <span class="as-eq-sign">=</span>
+      <div class="as-num">${c}</div>
+    </div>
+  </div>`;
+}
+
+/* ================================================================
+   DADES DEL TUTORIAL  —  4 exemples, 10 passos
+   ================================================================ */
+const TUTORIAL = [
+
+  // gStep 0 → 10%: Intro — la x és un nombre desconegut
+  {
+    chip: 'Introducció · Què és la x?',
+    steps: [
+      {
+        icon:      '🔍',
+        narration:  'La <b class="vx">x</b> és un nombre que <b>no coneixem</b>.<br>La nostra missió és descobrir quin nombre és.',
+        narration2: 'Sovint hem de fer una operació matemàtica<br>per poder descobrir aquest nombre secret.',
+        eq:        () => xToken() + EQ_SIGN + `<span class="t-num" style="background:#f8fafc;border-color:#e2e8f0;color:#94a3b8;">?</span>`,
+        question:  '',
+        answer:    null,
+        showBtns:  false,
+        help:      null,
+        visual:    null,
+      },
+    ],
+  },
+
+  // gStep 2 → 30%: 3·x = 12, caixes animades
+  {
+    chip: 'Exemple 1 · 3·x = 12',
+    steps: [
+      {
+        icon:      '📦',
+        narration: 'Imagina 3 caixes amb caramels.<br>Cada caixa té el mateix nombre de caramels.<br>En total, hi ha 12 caramels. Quants caramels hi ha a cada caixa?<br>Si fem 12:3=4, trobem la resposta.',
+        eq:        () => xToken(3) + EQ_SIGN + numToken(12),
+        question:  'Troba quant val la x',
+        answer:    '4',
+        showBtns:  true,
+        help:      null,
+        visual:    () => svgBoxesAnim(3, 4),
+      },
+    ],
+  },
+
+  // gStep 3 → 40%: x + 2 = 7, animació x→5
+  // gStep 4 → 50%: resposta
+  {
+    chip: 'Exemple 2 · x + 2 = 7',
+    steps: [
+      {
+        icon:      '📦',
+        narration: `En una caixa hi ha uns quants caramels.<br>N'afegeixo 2 i ara en tinc 7.<br>Quants n'hi havia a l'inici?`,
+        eq:        () => xToken() + opToken('+') + numToken(2) + EQ_SIGN + numToken(7),
+        question:  'Troba quant val la x',
+        answer:    null,
+        showBtns:  true,
+        help:      null,
+        visual:    () => svgAdd(2, 7),
+      },
+      {
+        icon:      '✅',
+        narration: 'La resposta és <b>7 − 2 = 5</b>.<br>La <b class="vx">x</b> = <b>5</b>.',
+        eq:        () => xToken() + opToken('+') + numToken(2) + EQ_SIGN + numToken(7),
+        question:  'Troba quant val la x',
+        answer:    '5',
+        showBtns:  true,
+        help:      null,
+        visual:    () => svgAddAnim(2, 7, 5),
+      },
+    ],
+  },
+
+  // gStep 5 → 60%: x − 2 = 5, explicació
+  // gStep 6 → 100% (last): resposta + animació x→7
+  {
+    chip: 'Exemple 3 · x − 3 = 17',
+    steps: [
+      {
+        icon:      '📦',
+        narration: `D'una caixa en traiem 3 caramels i en queden 17.<br>Quants n'hi havia al principi?`,
+        eq:        () => xToken() + opToken('−') + numToken(3) + EQ_SIGN + numToken(17),
+        question:  'Troba quant val la x',
+        answer:    null,
+        showBtns:  true,
+        help:      null,
+        visual:    () => svgSub(3, 17),
+      },
+      {
+        icon:      '✅',
+        narration: `Per saber quantes n'hi havia, fem 17+3.<br>La <b class="vx">x</b> = <b>20</b>.`,
+        eq:        () => xToken() + opToken('−') + numToken(3) + EQ_SIGN + numToken(17),
+        question:  'Troba quant val la x',
+        answer:    '20',
+        showBtns:  true,
+        help:      null,
+        visual:    () => svgSubAnim(3, 17, 20),
+      },
+    ],
+  },
+
+];
+
+const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
+
+function stepPct(gStep) {
+  if (gStep >= TOTAL_STEPS - 1) return 100;
+  if (gStep === TOTAL_STEPS - 2) return 90;
+  return (gStep + 1) * 20;
+}
+
+/* ================================================================
+   ESTAT
+   ================================================================ */
+let exIdx   = 0;
+let stepIdx = 0;
+
+/* ================================================================
+   TIMER
+   ================================================================ */
+const STEP_MS = 10000;
+let timerElapsed = 0;
+let timerLastMs  = null;
+let timerIntv    = null;
+let isPaused     = false;
+
+function startTimer() {
+  clearInterval(timerIntv);
+  timerElapsed = 0;
+  timerLastMs  = Date.now();
+  isPaused     = false;
+  _setPauseIcon();
+  _setFill(0);
+  timerIntv = setInterval(_tick, 60);
+}
+
+function _tick() {
+  if (isPaused) return;
+  const now = Date.now();
+  timerElapsed += now - timerLastMs;
+  timerLastMs   = now;
+  _setFill(Math.min(100, timerElapsed / STEP_MS * 100));
+  if (timerElapsed >= STEP_MS) { clearInterval(timerIntv); _advance(); }
+}
+
+function _setFill(pct) {
+  document.getElementById('timer-fill').style.width = pct + '%';
+}
+
+function togglePause() {
+  if (isPaused) { isPaused = false; timerLastMs = Date.now(); }
+  else          { isPaused = true; }
+  _setPauseIcon();
+}
+
+function _setPauseIcon() {
+  document.getElementById('btn-pause').textContent = isPaused ? '▶' : '⏸';
+}
+
+/* ================================================================
+   NAVEGACIÓ
+   ================================================================ */
+function _globalStep() {
+  let n = 0;
+  for (let i = 0; i < exIdx; i++) n += TUTORIAL[i].steps.length;
+  return n + stepIdx;
+}
+
+function _advance() {
+  clearInterval(timerIntv);
+  const ex         = TUTORIAL[exIdx];
+  const isLastStep = stepIdx === ex.steps.length - 1;
+  const isLastEx   = exIdx   === TUTORIAL.length  - 1;
+
+  if (isLastStep && isLastEx) {
+    const overlay = document.getElementById('fade-overlay');
+    overlay.style.pointerEvents = 'all';
+    overlay.style.opacity       = '1';
+    setTimeout(() => { window.location.href = 'a-equacions.html'; }, 1200);
+    return;
+  }
+
+  if (isLastStep) { exIdx++; stepIdx = 0; }
+  else            { stepIdx++; }
+  _transition();
+}
+
+function _transition() {
+  const body = document.getElementById('game-body');
+  body.classList.add('fading');
+  setTimeout(() => {
+    render();
+    body.classList.remove('fading');
+    setTimeout(() => { _revealSequence(); }, 600);
+  }, 220);
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  const ex   = TUTORIAL[exIdx];
+  const step = ex.steps[stepIdx];
+  const gs   = _globalStep();
+
+  document.getElementById('step-counter').textContent = `Completat: ${stepPct(gs)}%`;
+
+  // Narrador invisible
+  const narBox = document.querySelector('.narration-box');
+  narBox.style.transition = 'none';
+  narBox.style.opacity    = '0';
+  document.getElementById('narration-icon').textContent = step.icon;
+  document.getElementById('narration-text').innerHTML   = step.narration;
+
+  // Equació mock
+  document.getElementById('tut-eq').innerHTML = step.eq ? step.eq() : '';
+
+  // Pregunta
+  document.getElementById('tut-question').textContent = step.question || '';
+
+  // Fila resposta
+  const answerRow = document.getElementById('tut-answer');
+  const inputEl   = document.getElementById('tut-input');
+  if (step.answer !== null) {
+    inputEl.textContent = step.answer;
+    inputEl.className   = 'mock-input correct';
+    answerRow.style.display = 'flex';
+  } else {
+    inputEl.textContent = '';
+    inputEl.className   = 'mock-input';
+    answerRow.style.display = step.showBtns ? 'flex' : 'none';
+  }
+
+  // Botons
+  document.getElementById('tut-btns').style.display = step.showBtns ? 'flex' : 'none';
+
+  // Ajuda
+  const helpEl = document.getElementById('tut-help');
+  if (step.help) {
+    helpEl.innerHTML = step.help.replace(/\n/g, '<br>');
+    helpEl.classList.add('visible');
+  } else {
+    helpEl.classList.remove('visible');
+    helpEl.textContent = '';
+  }
+
+  // Visual SVG — hidden initially, revealed by _revealSequence
+  const visEl = document.getElementById('tut-visual');
+  visEl.style.transition = 'none';
+  visEl.style.opacity    = '0';
+  visEl.innerHTML = step.visual ? step.visual() : '';
+
+  // Botó Següent
+  const isLastStep = stepIdx === ex.steps.length - 1;
+  const isLastEx   = exIdx   === TUTORIAL.length  - 1;
+  const btn = document.getElementById('btn-next');
+  if (isLastStep && isLastEx) {
+    btn.textContent = '🎮 Ves a jugar!';
+    btn.className   = 'btn-next btn-finish';
+  } else if (isLastStep) {
+    btn.textContent = 'Seg\u00fcent \u2192';
+    btn.className   = 'btn-next btn-ex';
+  } else {
+    btn.textContent = 'Seg\u00fcent \u2192';
+    btn.className   = 'btn-next';
+  }
+  btn.blur();
+}
+
+function _showNarration() {
+  const box = document.querySelector('.narration-box');
+  box.style.transition = 'opacity 0.45s ease';
+  box.style.opacity    = '1';
+}
+
+function _showVisual() {
+  const vis = document.getElementById('tut-visual');
+  vis.style.transition = 'opacity 0.45s ease';
+  vis.style.opacity    = '1';
+}
+
+function _revealSequence() {
+  const step = TUTORIAL[exIdx].steps[stepIdx];
+  // t=1s: narració (dreta top)
+  setTimeout(() => {
+    _showNarration();
+    if (step.narration2) {
+      // t=3.5s: canvia a narration2
+      setTimeout(() => {
+        const box = document.querySelector('.narration-box');
+        box.style.transition = 'opacity 0.3s ease';
+        box.style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('narration-text').innerHTML = step.narration2;
+          box.style.opacity = '1';
+          // t=6s: visual + timer
+          setTimeout(() => { _showVisual(); startTimer(); }, 2500);
+        }, 300);
+      }, 2500);
+    } else {
+      // t=3.5s: visual + timer
+      setTimeout(() => { _showVisual(); startTimer(); }, 2500);
+    }
+  }, 1000);
+}
+
+/* ================================================================
+   EVENTS
+   ================================================================ */
+document.getElementById('btn-next').addEventListener('click', () => {
+  clearInterval(timerIntv);
+  _advance();
+});
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && e.target.tagName !== 'BUTTON') {
+    e.preventDefault();
+    togglePause();
+  }
+});
+
+/* ================================================================
+   ARRENCADA
+   ================================================================ */
+render();
+setTimeout(() => { _revealSequence(); }, 600);
+</script>
+
+</body>
+</html>
