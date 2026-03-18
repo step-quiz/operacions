@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Inversa d'una matriu 3×3">
+    <link rel="icon" href="icon.png">
+    <title>Inversa d'una matriu 3×3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --gris-fosc: #64748b;
+            --gris-text: #334155;
+            --bg: #f0f4ff;
+            --cell-size: 55px;
+            --card-bg: rgba(255,255,255,0.85);
+            --border: #e2e8f0;
+        }
+
+        .home-icon-link { display:block; width:80px; height:80px; flex-shrink:0; opacity:.7; transition:opacity .2s ease; }
+        .home-icon-link:hover { opacity:1; }
+        .home-icon-link img { width:100%; height:100%; object-fit:contain; }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(99,102,241,0.10) 0%, transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(37,99,235,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 55% 5%, rgba(139,92,246,0.07) 0%, transparent 45%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px 10px 50px;
+            overflow-x: hidden;
+        }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        .app-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 28px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow:
+                0 4px 6px rgba(37,99,235,0.04),
+                0 20px 60px rgba(37,99,235,0.10),
+                0 1px 0 rgba(255,255,255,0.8) inset;
+            width: 100%;
+            max-width: 1150px;
+        }
+
+        /* ── TOOLBAR ── */
+        .toolbar {
+            display: flex;
+            gap: 2.5rem;
+            margin-bottom: 20px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--gris-fosc);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .toolbar label { display: flex; align-items: center; gap: 7px; }
+        .toolbar select {
+            appearance: none; -webkit-appearance: none;
+            padding: 5px 30px 5px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E") no-repeat right 9px center;
+            cursor: pointer;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 0.82rem; font-weight: 500; color: var(--gris-text);
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .toolbar select:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+        .toolbar select:hover { border-color: #94a3b8; }
+
+        /* ── STEPPER ── */
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+        .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .step-circle {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #e2e8f0; color: #94a3b8;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.9rem;
+            transition: background .3s, color .3s, box-shadow .3s;
+            flex-shrink: 0;
+        }
+        .step-circle.active { background: var(--primary); color: white; box-shadow: 0 0 0 4px rgba(37,99,235,0.18); }
+        .step-circle.done   { background: var(--success); color: white; }
+        .step-label { font-size: 0.72rem; font-weight: 600; color: #94a3b8; white-space: nowrap; transition: color .3s; }
+        .step-item.active .step-label { color: var(--primary); }
+        .step-item.done   .step-label { color: var(--success); }
+        .step-connector { width: 60px; height: 2px; background: #e2e8f0; margin-bottom: 22px; transition: background .3s; }
+        .step-connector.done { background: var(--success); }
+
+        /* ── LAYOUT ── */
+        .main-container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .panel-block { display: flex; flex-direction: column; align-items: center; }
+
+        .matrix-title {
+            color: var(--gris-text); font-weight: 700; font-size: 1.0rem;
+            letter-spacing: 0.03em; margin-bottom: 10px; min-height: 1.8rem; text-align: center;
+        }
+
+        /* ── MATRIU ── */
+        .matrix {
+            display: grid;
+            grid-template-columns: repeat(3, var(--cell-size));
+            gap: 7px; padding: 16px;
+            border-left: 3px solid #1e293b;
+            border-right: 3px solid #1e293b;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.7);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* ── MATRIU FRACCIONS ── */
+        .matrix-frac {
+            display: grid;
+            grid-template-columns: repeat(3, 72px);
+            gap: 7px; padding: 16px;
+            border-left: 3px solid #1e293b;
+            border-right: 3px solid #1e293b;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.7);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* ── CEL·LA ── */
+        .cell {
+            width: var(--cell-size); height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-family: 'DM Sans', system-ui, sans-serif;
+            font-weight: 500; color: var(--gris-text);
+            border-radius: 6px;
+            transition: background .18s, color .18s, opacity .18s;
+            animation: cellIn .25s ease-out both;
+        }
+        @keyframes cellIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .cell.cell-dimmed      { opacity: 0.18; }
+        .cell.cell-highlighted { background: rgba(37,99,235,0.12); color: var(--primary); font-weight: 700; }
+
+        .cell input {
+            width: 85%; height: 85%; text-align: center;
+            border: 1.5px solid #cbd5e1; border-radius: 10px;
+            font-size: 1.1rem; font-weight: 600;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #f8faff; color: var(--primary);
+            transition: border-color .15s, box-shadow .15s, background .15s;
+        }
+        .cell input:focus {
+            outline: none; border-color: var(--primary-light);
+            background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+        }
+
+        /* ── CEL·LA FRACCIÓ ── */
+        .matrix-frac .cell {
+            width: 72px; height: 88px;
+            flex-direction: column;
+        }
+        .frac-input { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
+        .frac-num, .frac-den {
+            width: 82%; height: 27px; text-align: center;
+            border: 1.5px solid #cbd5e1; border-radius: 7px;
+            font-size: 0.88rem; font-weight: 600;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #f8faff; color: var(--primary);
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .frac-num:focus, .frac-den:focus {
+            outline: none; border-color: var(--primary-light);
+            background: white; box-shadow: 0 0 0 2px rgba(59,130,246,0.18);
+        }
+        .frac-bar { width: 72%; height: 1.5px; background: #334155; margin: 2px 0; border-radius: 2px; }
+
+        /* ── INPUT DET ── */
+        .det-area { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 10px; }
+        .det-label { font-size: 1.05rem; font-weight: 600; color: var(--gris-text); font-family: 'DM Mono', monospace; }
+        .det-input {
+            width: 80px; height: 60px; text-align: center;
+            border: 1.5px solid var(--primary-light); border-radius: 12px;
+            font-size: 1.8rem; font-weight: 700; font-family: 'DM Mono', monospace;
+            color: var(--primary); background: rgba(37,99,235,0.05);
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .det-input:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.18); background: white;
+        }
+
+        /* ── PANELL CENTRAL ── */
+        .center-panel {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 12px; min-width: 230px; max-width: 275px; padding-top: 30px;
+        }
+        .step-formula {
+            font-size: 0.95rem; font-weight: 600; color: var(--primary);
+            text-align: center; font-family: 'DM Mono', monospace;
+            padding: 8px 14px; background: rgba(37,99,235,0.06);
+            border-radius: 8px; border: 1px solid rgba(37,99,235,0.12);
+        }
+        .help-row {
+            display: flex; justify-content: flex-end; width: 100%;
+            font-size: 0.78rem; color: var(--gris-fosc); font-weight: 500;
+        }
+        .help-row label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        #helpToggle { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
+
+        /* ── SCAFFOLD ── */
+        .scaffold-panel {
+            width: 100%; padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-left: 3px solid var(--primary-light);
+            border-radius: 10px;
+            background: rgba(248,250,255,0.9);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+            font-family: 'DM Mono', 'Courier New', monospace;
+            font-size: 0.82rem; color: var(--gris-fosc);
+            transition: opacity .2s; box-sizing: border-box;
+        }
+        .scaffold-title {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-weight: 700; font-size: 0.74rem; color: var(--primary);
+            text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px;
+        }
+        .sign-grid { display: grid; grid-template-columns: repeat(3, 28px); gap: 4px; margin: 6px auto; width: fit-content; }
+        .sign-cell {
+            width: 28px; height: 26px; display: flex; align-items: center; justify-content: center;
+            border-radius: 5px; font-weight: 700; font-size: 1rem;
+        }
+        .sign-cell.plus  { background: rgba(22,163,74,0.12);  color: var(--success); }
+        .sign-cell.minus { background: rgba(220,38,38,0.10); color: var(--danger); }
+
+        /* ── BADGE DET ── */
+        .det-badge {
+            display: inline-flex; align-items: center;
+            padding: 5px 14px;
+            background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.2);
+            border-radius: 8px; font-family: 'DM Mono', monospace;
+            font-size: 0.9rem; font-weight: 600; color: var(--primary);
+        }
+
+        /* ── SIDE ACTION ── */
+        .side-action { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 44px; }
+
+        /* ── BOTONS ── */
+        .btn-check {
+            padding: 14px 26px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white; border: none; border-radius: 12px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 1.05rem; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.35), 0 1px 0 rgba(255,255,255,0.25) inset;
+            transition: transform .12s, box-shadow .12s; white-space: nowrap; letter-spacing: 0.01em;
+        }
+        .btn-check:hover { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 6px 20px rgba(37,99,235,0.40); transform: translateY(-1px); }
+        .btn-check:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+
+        .btn-mini {
+            padding: 9px 16px; background: var(--gris-text); color: white;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 0.88rem; font-weight: 600; margin-top: 8px;
+            transition: background .15s, transform .1s;
+        }
+        .btn-mini:hover { background: #1e293b; transform: translateY(-1px); }
+
+        /* ── FEEDBACK ── */
+        .feedback {
+            margin-top: 20px; font-weight: 700; font-size: 1.1rem;
+            text-align: center; min-height: 2.5rem; letter-spacing: 0.01em;
+            transition: transform .2s ease-out;
+        }
+        .success-pols { animation: pols-verd 0.7s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes pols-verd {
+            0%   { transform: scale(0.95); opacity: 0.5; }
+            50%  { transform: scale(1.07); opacity: 1; }
+            100% { transform: scale(1);    opacity: 1; }
+        }
+
+        /* ── DEBUG PANEL ── */
+        #debugPanel {
+            position: fixed; top: 12px; right: 12px; z-index: 9999;
+            width: 310px; max-height: 88vh; overflow-y: auto;
+            background: rgba(15,23,42,0.93); backdrop-filter: blur(10px);
+            border: 1px solid rgba(99,102,241,0.35); border-radius: 14px;
+            padding: 14px 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+            font-family: 'DM Mono', monospace; font-size: 0.76rem; color: #94a3b8;
+            line-height: 1.65;
+        }
+        #debugPanel h3 {
+            margin: 0 0 10px; font-size: 0.8rem; font-weight: 700;
+            color: #818cf8; text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        #debugPanel .dbk { color: #e2e8f0; font-weight: 600; }
+        #debugPanel .dbv { color: #34d399; }
+        #debugPanel .dbsec {
+            margin-top: 10px; padding-top: 8px;
+            border-top: 1px solid rgba(99,102,241,0.2);
+            color: #a5b4fc; font-weight: 700; font-size: 0.72rem;
+            text-transform: uppercase; letter-spacing: 0.07em;
+        }
+        #debugPanel table { border-collapse: collapse; margin: 4px 0; }
+        #debugPanel td { padding: 1px 7px 1px 0; color: #34d399; }
+        #debugPanel td:first-child { color: #94a3b8; }
+
+        .cell input.cell-correct {
+            background: rgba(22,163,74,0.10); border-color: var(--success);
+            color: var(--success); font-weight: 700;
+            pointer-events: none;
+        }
+
+        /* ── ESCALAR FRACCIÓ (pas inversa, det≠±1) ── */
+        .scalar-widget {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; padding: 14px 18px;
+            background: rgba(37,99,235,0.05); border: 1.5px solid rgba(37,99,235,0.18);
+            border-radius: 14px; margin: 8px 0;
+        }
+        .scalar-widget .sw-label {
+            font-size: 0.72rem; font-weight: 700; color: var(--primary);
+            text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px;
+        }
+        .scalar-num, .scalar-den {
+            width: 64px; height: 32px; text-align: center;
+            border: 1.5px solid #cbd5e1; border-radius: 8px;
+            font-size: 1.15rem; font-weight: 700;
+            font-family: 'DM Mono', monospace; color: var(--primary);
+            background: white;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .scalar-num:focus, .scalar-den:focus {
+            outline: none; border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+        }
+        .scalar-bar { width: 70px; height: 2px; background: #334155; border-radius: 2px; }
+
+        .inv-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 14px; flex-wrap: wrap;
+        }
+        .inv-times {
+            font-size: 1.8rem; font-weight: 300; color: #64748b;
+            margin-bottom: 4px; flex-shrink: 0;
+        }
+
+        .btn-reveal {
+            padding: 9px 16px;
+            background: white; color: var(--warning);
+            border: 1.5px solid var(--warning); border-radius: 8px; cursor: pointer;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 0.85rem; font-weight: 600; margin-top: 6px;
+            transition: background .15s, color .15s, transform .1s;
+            white-space: nowrap;
+        }
+        .btn-reveal:hover { background: #fef3c7; transform: translateY(-1px); }
+
+        .btn-nou-exemple {
+            padding: 14px 22px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white; border: none; border-radius: 12px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 1.0rem; font-weight: 700; cursor: pointer; margin-top: 6px;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.30);
+            transition: background .18s, box-shadow .15s, transform .1s;
+            white-space: nowrap;
+        }
+        .btn-nou-exemple:hover {
+            background: var(--gris-text);
+            box-shadow: 0 4px 14px rgba(51,65,85,0.25);
+            transform: translateY(-1px);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 960px) {
+            .main-container { flex-direction: column; align-items: center; gap: 14px; }
+            .center-panel { padding-top: 0; min-width: unset; width: 90%; max-width: 320px; }
+            .side-action { padding-top: 10px; }
+        }
+        @media (max-width: 500px) {
+            .app-card { padding: 15px 14px; }
+            .step-connector { width: 30px; }
+            .toolbar { gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-card">
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <a href="https://step-quiz.net" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+            <img src="icon.png" alt="Inici">
+        </a>
+        <label>Origen:
+            <select id="originSelect" onchange="initApp()">
+                <option value="random" selected>Matriu aleatòria</option>
+                <option value="manual">Matriu manual</option>
+            </select>
+        </label>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper">
+        <div class="step-item active" id="stepItem0">
+            <div class="step-circle active" id="stepCircle0">1</div>
+            <div class="step-label">det(A)</div>
+        </div>
+        <div class="step-connector" id="stepConn0"></div>
+        <div class="step-item" id="stepItem1">
+            <div class="step-circle" id="stepCircle1">2</div>
+            <div class="step-label">Cofactors</div>
+        </div>
+        <div class="step-connector" id="stepConn1"></div>
+        <div class="step-item" id="stepItem2">
+            <div class="step-circle" id="stepCircle2">3</div>
+            <div class="step-label">adj(A)</div>
+        </div>
+        <div class="step-connector" id="stepConn2"></div>
+        <div class="step-item" id="stepItem3">
+            <div class="step-circle" id="stepCircle3">4</div>
+            <div class="step-label">A⁻¹</div>
+        </div>
+    </div>
+
+    <!-- CONTINGUT PRINCIPAL -->
+    <div class="main-container" id="mainContainer"></div>
+    <div id="feedback" class="feedback"></div>
+
+</div>
+
+<script>
+    // ── ESTAT ──
+    let matrix       = [];
+    let computedDet  = 0;
+    let cofMatrix    = [];   // matriu de cofactors Cij
+    let adjMatrix    = [];   // adjunta = Cᵀ
+    let currentStep  = 0;   // 0=det, 1=cofactors, 2=adjunta, 3=inversa
+    let exerciseFinished = false;
+    let manualInputActive = false;
+    let failCounts   = [0, 0, 0, 0];  // intents fallits per cada etapa
+
+    // ── MATEMÀTIQUES ──
+    const det2 = (a, b, c, d) => a * d - b * c;
+
+    function getMinor(m, row, col) {
+        const sub = [];
+        for (let i = 0; i < 3; i++) {
+            if (i === row) continue;
+            const r = [];
+            for (let j = 0; j < 3; j++) { if (j !== col) r.push(m[i][j]); }
+            sub.push(r);
+        }
+        return sub;
+    }
+
+    function det3(m) {
+        return m[0][0] * det2(m[1][1], m[1][2], m[2][1], m[2][2])
+             - m[0][1] * det2(m[1][0], m[1][2], m[2][0], m[2][2])
+             + m[0][2] * det2(m[1][0], m[1][1], m[2][0], m[2][1]);
+    }
+
+    function cofactor(m, i, j) {
+        const s = getMinor(m, i, j);
+        return Math.pow(-1, i + j) * det2(s[0][0], s[0][1], s[1][0], s[1][1]);
+    }
+
+    function allCofactors(m) {
+        return Array.from({ length: 3 }, (_, i) =>
+            Array.from({ length: 3 }, (_, j) => cofactor(m, i, j)));
+    }
+
+    function adjugate(C) {
+        return Array.from({ length: 3 }, (_, i) =>
+            Array.from({ length: 3 }, (_, j) => C[j][i]));
+    }
+
+    function precompute() {
+        computedDet = det3(matrix);
+        cofMatrix   = allCofactors(matrix);
+        adjMatrix   = adjugate(cofMatrix);
+        renderDebug();
+    }
+
+    // ── DEBUG PANEL ──
+    const DEBUG = new URLSearchParams(window.location.search).get('debug') === '1';
+
+    function renderDebug() {
+        if (!DEBUG) return;
+        let p = document.getElementById('debugPanel');
+        if (!p) { p = document.createElement('div'); p.id = 'debugPanel'; document.body.appendChild(p); }
+
+        const fmtRow = (r) => r.map(v => String(v).padStart(4)).join('  ');
+        const matTable = (m) => m.map((r, i) =>
+            `<tr>${r.map((v,j) => `<td>[${i}${j}]</td><td>${v}</td>`).join('')}</tr>`
+        ).join('');
+
+        // Fraccions inversa: adj[i][j] / det
+        const fracRows = adjMatrix.map((r, i) =>
+            r.map((v, j) => {
+                const g = gcd(Math.abs(v), Math.abs(computedDet));
+                const ns = (v / g) * (computedDet < 0 ? -1 : 1);
+                const ds = Math.abs(computedDet / g);
+                return `<td>[${i}${j}]</td><td>${ns}/${ds}</td>`;
+            }).join('')
+        ).map(r => `<tr>${r}</tr>`).join('');
+
+        p.innerHTML = `
+            <h3>🐛 Debug</h3>
+            <div class="dbsec">Matriu A</div>
+            <pre style="margin:4px 0; color:#e2e8f0">${matrix.map(fmtRow).join('\n')}</pre>
+            <div class="dbsec">Determinant</div>
+            <span class="dbk">det(A) = </span><span class="dbv">${computedDet}</span>
+            <div class="dbsec">Cofactors C<sub>ij</sub></div>
+            <table>${matTable(cofMatrix)}</table>
+            <div class="dbsec">Adjunta adj(A)</div>
+            <table>${matTable(adjMatrix)}</table>
+            <div class="dbsec">Inversa A<sup>−1</sup> (fraccions simplificades)</div>
+            <table>${fracRows}</table>`;
+    }
+
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+
+    // ── INIT ──
+    window.onload = initApp;
+
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' || exerciseFinished) return;
+        if (manualInputActive) submitManualMatrix();
+        else checkCurrentStep();
+    });
+
+    function initApp() {
+        currentStep      = 0;
+        exerciseFinished = false;
+        failCounts       = [0, 0, 0, 0];
+        document.getElementById('feedback').innerText = '';
+        const isManual = document.getElementById('originSelect').value === 'manual';
+        if (isManual) {
+            manualInputActive = true;
+            renderManualInput();
+            resetStepper();
+        } else {
+            manualInputActive = false;
+            generateMatrix();
+            precompute();
+            renderCurrentStep();
+        }
+        updateStepper();
+    }
+
+    function generateMatrix() {
+        // Distribució ponderada del determinant:
+        // det= 1 → p=1/4 | det=-1 → p=1/4 | det= 2 → p=1/8 | det=-2 → p=1/8 | altres → p=1/4
+        const r = Math.random();
+        let targetDet;
+        if      (r < 0.25)  targetDet =  1;
+        else if (r < 0.50)  targetDet = -1;
+        else if (r < 0.625) targetDet =  2;
+        else if (r < 0.75)  targetDet = -2;
+        else                targetDet = null; // "altres": qualsevol enter ≠ 0, |d| ≤ 50
+
+        const ri = () => {
+            if (Math.random() < 0.12) return 0;
+            let v = 0;
+            while (v === 0) v = Math.floor(Math.random() * 11) - 5;
+            return v;
+        };
+        let m, d, att = 0;
+        do {
+            m = Array.from({ length: 3 }, () => [ri(), ri(), ri()]);
+            d = det3(m);
+            att++;
+            if (targetDet !== null) {
+                if (d === targetDet) break;
+            } else {
+                // "altres": evita ±1 i ±2, accepta qualsevol enter ≠ 0 amb |d| ≤ 50
+                if (d !== 0 && Math.abs(d) <= 50 && Math.abs(d) !== 1 && Math.abs(d) !== 2) break;
+            }
+        } while (att < 600);
+        matrix = m;
+    }
+
+    // ── ENTRADA MANUAL ──
+    function renderManualInput() {
+        const c = document.getElementById('mainContainer');
+        c.innerHTML = '';
+
+        const block = el('div', 'panel-block');
+        block.appendChild(titleEl('Defineix la matriu A'));
+        const grid = el('div', 'matrix');
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.innerHTML = `<input type="number" id="m${i}${j}" placeholder="?" onfocus="this.select()">`;
+            grid.appendChild(cell);
+        }
+        block.appendChild(grid);
+        c.appendChild(block);
+
+        const action = el('div', 'side-action');
+        action.innerHTML = `<button class="btn-check" onclick="submitManualMatrix()">Establir matriu</button>`;
+        c.appendChild(action);
+
+        setTimeout(() => { const f = document.querySelector('#mainContainer input'); if (f) f.focus(); }, 50);
+    }
+
+    function submitManualMatrix() {
+        let m = [], allFilled = true;
+        for (let i = 0; i < 3; i++) {
+            let row = [];
+            for (let j = 0; j < 3; j++) {
+                const v = document.getElementById(`m${i}${j}`).value.trim();
+                if (v === '') { allFilled = false; }
+                row.push(parseInt(v));
+            }
+            m.push(row);
+        }
+        if (!allFilled) { showFb('⚠️ Cal omplir tots els elements.', 'warning'); return; }
+        const d = det3(m);
+        if (d === 0) { showFb('⚠️ Aquesta matriu no és invertible (det = 0). Torna-ho a provar.', 'danger'); return; }
+        matrix = m;
+        document.getElementById('feedback').innerText = '';
+        manualInputActive = false;
+        precompute();
+        currentStep = 0;
+        exerciseFinished = false;
+        renderCurrentStep();
+        updateStepper();
+    }
+
+    // ── STEPPER ──
+    function updateStepper() {
+        for (let i = 0; i < 4; i++) {
+            const item   = document.getElementById(`stepItem${i}`);
+            const circle = document.getElementById(`stepCircle${i}`);
+            item.classList.remove('active', 'done');
+            circle.classList.remove('active', 'done');
+            if (i < currentStep) {
+                item.classList.add('done'); circle.classList.add('done'); circle.innerHTML = '✓';
+            } else if (i === currentStep && !exerciseFinished) {
+                item.classList.add('active'); circle.classList.add('active'); circle.innerHTML = i + 1;
+            } else {
+                circle.innerHTML = i + 1;
+            }
+        }
+        for (let i = 0; i < 3; i++)
+            document.getElementById(`stepConn${i}`).classList.toggle('done', i < currentStep);
+    }
+
+    function resetStepper() {
+        for (let i = 0; i < 4; i++) {
+            document.getElementById(`stepItem${i}`).classList.remove('active', 'done');
+            const c = document.getElementById(`stepCircle${i}`);
+            c.classList.remove('active', 'done'); c.innerHTML = i + 1;
+        }
+        for (let i = 0; i < 3; i++) document.getElementById(`stepConn${i}`).classList.remove('done');
+    }
+
+    function markAllDone() {
+        for (let i = 0; i < 4; i++) {
+            const item = document.getElementById(`stepItem${i}`);
+            const circle = document.getElementById(`stepCircle${i}`);
+            item.classList.remove('active'); item.classList.add('done');
+            circle.classList.remove('active'); circle.classList.add('done');
+            circle.innerHTML = '✓';
+        }
+        for (let i = 0; i < 3; i++) document.getElementById(`stepConn${i}`).classList.add('done');
+    }
+
+    // ── RENDER ──
+    function renderCurrentStep() {
+        const c = document.getElementById('mainContainer');
+        c.innerHTML = '';
+        document.getElementById('feedback').innerText = '';
+        switch (currentStep) {
+            case 0: renderDet(c);       break;
+            case 1: renderCofactors(c); break;
+            case 2: renderAdjugate(c);  break;
+            case 3: renderInverse(c);   break;
+        }
+    }
+
+    // PAS 0: Determinant
+    function renderDet(c) {
+        c.appendChild(matrixPanel('Matriu A', staticMatrix(matrix)));
+
+        const center = el('div', 'center-panel');
+        formula(center, 'det(A) = ?');
+        helpRow(center);
+        c.appendChild(center);
+
+        const right = el('div', 'panel-block');
+        right.appendChild(titleEl('Determinant'));
+        const area = el('div', 'det-area');
+        area.innerHTML = `
+            <div class="det-label">det(A) =</div>
+            <input type="number" id="detInput" class="det-input" placeholder="?" onfocus="this.select()">`;
+        right.appendChild(area);
+        c.appendChild(right);
+        c.appendChild(actionBtn());
+        setTimeout(() => { const f = document.getElementById('detInput'); if (f) f.focus(); }, 50);
+    }
+
+    // PAS 1: Cofactors
+    function renderCofactors(c) {
+        // Esquerra: matriu A interactiva
+        const left = el('div', 'panel-block');
+        left.appendChild(titleEl('Matriu A'));
+        const gridA = el('div', 'matrix');
+        gridA.id = 'matrixAGrid';
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.id = `aCell${i}${j}`;
+            cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+            cell.innerText = matrix[i][j];
+            gridA.appendChild(cell);
+        }
+        left.appendChild(gridA);
+        c.appendChild(left);
+
+        // Centre: scaffold
+        const center = el('div', 'center-panel');
+        formula(center, 'C<sub>ij</sub> = (−1)<sup>i+j</sup>·det(M<sub>ij</sub>)');
+        helpRow(center);
+
+        const s = el('div', 'scaffold-panel');
+        s.id = 'scaffoldDet';
+        s.style.display = 'none';
+        s.innerHTML = `
+            <div class="scaffold-title">Signe dels cofactors</div>
+            <div class="sign-grid">
+                ${['+','−','+','−','+','−','+','−','+'].map(sg =>
+                    `<div class="sign-cell ${sg === '+' ? 'plus' : 'minus'}">${sg}</div>`
+                ).join('')}
+            </div>
+            <div style="margin-top:8px; font-size:0.78rem; line-height:1.55;">
+                En fer clic en un camp, la matriu A ressalta la submatriu 2×2 corresponent.
+            </div>`;
+        center.appendChild(s);
+        c.appendChild(center);
+
+        // Dreta: inputs cofactors
+        const right = el('div', 'panel-block');
+        right.appendChild(titleEl('Cofactors C'));
+        const gridC = el('div', 'matrix');
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+            cell.innerHTML = `<input type="number" id="cof${i}${j}" placeholder="?"
+                onfocus="hlCofactor(${i},${j}); this.select()" onblur="clrHl()">`;
+            gridC.appendChild(cell);
+        }
+        right.appendChild(gridC);
+        c.appendChild(right);
+        c.appendChild(actionBtn());
+    }
+
+    // PAS 2: Adjunta
+    function renderAdjugate(c) {
+        c.appendChild(matrixPanel('Matriu de cofactors C', staticMatrix(cofMatrix)));
+
+        const center = el('div', 'center-panel');
+        formula(center, 'adj(A)<sub>ij</sub> = C<sub>ji</sub>');
+        helpRow(center);
+        scaffold(center, 'Transposada dels cofactors',
+            `L'adjunta és la <strong>transposada</strong> de la matriu de cofactors.<br><br>
+             Cada element (i,j) de adj(A) és el cofactor C<sub>ji</sub><br>
+             (índexs invertits, files ↔ columnes).`
+        );
+        c.appendChild(center);
+
+        const right = el('div', 'panel-block');
+        right.appendChild(titleEl('adj(A)'));
+        const gridAdj = el('div', 'matrix');
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+            cell.innerHTML = `<input type="number" id="adj${i}${j}" placeholder="?" onfocus="this.select()">`;
+            gridAdj.appendChild(cell);
+        }
+        right.appendChild(gridAdj);
+        c.appendChild(right);
+        c.appendChild(actionBtn());
+    }
+
+    // PAS 3: Inversa
+    function renderInverse(c) {
+        const detUnit = (Math.abs(computedDet) === 1);
+
+        if (detUnit) {
+            // ── CASE det=±1: l'usuari omple la matriu inversa directament (enters) ──
+            c.appendChild(matrixPanel('adj(A)', staticMatrix(adjMatrix)));
+
+            const center = el('div', 'center-panel');
+            const badge = el('div', '');
+            badge.style.cssText = 'text-align:center;';
+            badge.innerHTML = `<span class="det-badge">det(A) = ${computedDet}</span>`;
+            center.appendChild(badge);
+            c.appendChild(center);
+
+            const right = el('div', 'panel-block');
+            const titleInv = el('div', 'matrix-title');
+            titleInv.innerHTML = 'A<sup>−1</sup>';
+            right.appendChild(titleInv);
+            const gridInv = el('div', 'matrix');
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                const cell = el('div', 'cell');
+                cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+                cell.innerHTML = `<input type="number" id="inv${i}${j}" placeholder="?" onfocus="this.select()">`;
+                gridInv.appendChild(cell);
+            }
+            right.appendChild(gridInv);
+            c.appendChild(right);
+
+        } else {
+            // ── CASE det≠±1: escalar p/q × matriu adj(A) ──
+
+            // Esquerra: adj(A) de referència
+            const left = el('div', 'panel-block');
+            left.appendChild(titleEl('adj(A)'));
+            left.appendChild(staticMatrix(adjMatrix));
+            const detBadge = el('div', '');
+            detBadge.style.cssText = 'margin-top:12px; text-align:center;';
+            detBadge.innerHTML = `<span class="det-badge">det(A) = ${computedDet}</span>`;
+            left.appendChild(detBadge);
+            c.appendChild(left);
+
+            // Centre: widget escalar
+            const center = el('div', 'center-panel');
+            center.style.justifyContent = 'center';
+
+            const sw = el('div', 'scalar-widget');
+            sw.innerHTML = `
+                <div class="sw-label">Escalar</div>
+                <input type="number" id="scalarNum" class="scalar-num" placeholder="p" onfocus="this.select()">
+                <div class="scalar-bar"></div>
+                <input type="number" id="scalarDen" class="scalar-den" placeholder="q" onfocus="this.select()">`;
+            center.appendChild(sw);
+
+            const times = el('div', 'inv-times');
+            times.innerHTML = '&times;';
+            center.appendChild(times);
+            c.appendChild(center);
+
+            // Dreta: matriu enters (còpia adj)
+            const right = el('div', 'panel-block');
+            const titleInv = el('div', 'matrix-title');
+            titleInv.innerHTML = 'A<sup>−1</sup> =';
+            right.appendChild(titleInv);
+            const gridInv = el('div', 'matrix');
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                const cell = el('div', 'cell');
+                cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+                cell.innerHTML = `<input type="number" id="inv${i}${j}" placeholder="?" onfocus="this.select()">`;
+                gridInv.appendChild(cell);
+            }
+            right.appendChild(gridInv);
+            c.appendChild(right);
+        }
+
+        c.appendChild(actionBtn());
+        setTimeout(() => {
+            const f = detUnit
+                ? document.getElementById('inv00')
+                : document.getElementById('scalarNum');
+            if (f) f.focus();
+        }, 50);
+    }
+
+    // ── COMPROVACIÓ ──
+    function checkCurrentStep() {
+        switch (currentStep) {
+            case 0: checkDet();       break;
+            case 1: checkCofactors(); break;
+            case 2: checkAdjugate();  break;
+            case 3: checkInverse();   break;
+        }
+    }
+
+    function checkDet() {
+        const val = parseInt(document.getElementById('detInput').value);
+        if (isNaN(val)) { showFb('⚠️ Introdueix el valor del determinant.', 'warning'); return; }
+        if (val === computedDet) {
+            triggerSuccess('✅ Determinant correcte!');
+            setTimeout(() => { currentStep = 1; renderCurrentStep(); updateStepper(); }, 1000);
+        } else {
+            showFb('❌ Determinant incorrecte. Revisa el càlcul.', 'danger');
+            failStep(0);
+        }
+    }
+
+    function checkCofactors() {
+        // Primer: comprova que tots estiguin omplerts
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            if (document.getElementById(`cof${i}${j}`).value.trim() === '') {
+                showFb('⚠️ Omple tots els cofactors abans de comprovar.', 'warning');
+                return;
+            }
+        }
+        // Compta encerts i errors, i marca en verd els correctes
+        let nOk = 0, nErr = 0;
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const inp = document.getElementById(`cof${i}${j}`);
+            if (inp.classList.contains('cell-correct')) { nOk++; continue; } // ja estava verd
+            if (parseInt(inp.value) === cofMatrix[i][j]) {
+                inp.classList.add('cell-correct');
+                inp.setAttribute('readonly', true);
+                inp.removeAttribute('onfocus');
+                inp.removeAttribute('onblur');
+                inp.onblur = null; inp.onfocus = null;
+                nOk++;
+            } else {
+                nErr++;
+                inp.style.borderColor = 'var(--danger)';
+                inp.style.color = 'var(--danger)';
+                // Restore color on next edit
+                inp.oninput = function() {
+                    this.style.borderColor = ''; this.style.color = '';
+                    this.oninput = null;
+                };
+            }
+        }
+        if (nErr === 0) {
+            triggerSuccess('✅ Matriu de cofactors correcta!');
+            setTimeout(() => { currentStep = 2; renderCurrentStep(); updateStepper(); }, 1000);
+        } else {
+            const sErr = nErr === 1 ? '1 cofactor incorrecte' : `${nErr} cofactors incorrectes`;
+            const sOk  = nOk  === 1 ? '1 correcte'           : `${nOk} correctes`;
+            showFb(`❌ ${sErr} (${sOk} de 9). Revisa els signes i els menors 2×2.`, 'danger');
+            failStep(1);
+        }
+    }
+
+    function checkAdjugate() {
+        let allFilled = true, allOk = true;
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const v = document.getElementById(`adj${i}${j}`).value.trim();
+            if (v === '') { allFilled = false; }
+            else if (parseInt(v) !== adjMatrix[i][j]) { allOk = false; }
+        }
+        if (!allFilled) { showFb("⚠️ Omple tots els elements de l'adjunta.", 'warning'); return; }
+        if (!allOk) { showFb('❌ Algun element és incorrecte. Recorda: adj(A)ᵢⱼ = Cⱼᵢ (transposada).', 'danger'); failStep(2); return; }
+        triggerSuccess('✅ Adjunta correcta!');
+        setTimeout(() => { currentStep = 3; renderCurrentStep(); updateStepper(); }, 1000);
+    }
+
+    function checkInverse() {
+        const detUnit = (Math.abs(computedDet) === 1);
+
+        if (detUnit) {
+            // Validació enters: inv[i][j] = adjMatrix[i][j] / computedDet (= ±adjMatrix[i][j])
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                if (document.getElementById(`inv${i}${j}`).value.trim() === '') {
+                    showFb("⚠️ Omple tots els elements de la matriu inversa.", 'warning'); return;
+                }
+            }
+            let allOk = true;
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                const v = parseInt(document.getElementById(`inv${i}${j}`).value);
+                const expected = adjMatrix[i][j] / computedDet;
+                if (v !== expected) { allOk = false; break; }
+            }
+            if (!allOk) { showFb('❌ Algun element és incorrecte.', 'danger'); failStep(3); return; }
+
+        } else {
+            // Validació escalar: p/q = 1/det  →  p·det = q·1  →  p·det = q
+            const p = parseInt(document.getElementById('scalarNum').value);
+            const q = parseInt(document.getElementById('scalarDen').value);
+            if (isNaN(p) || isNaN(q)) { showFb('⚠️ Omple el numerador i el denominador de l\'escalar.', 'warning'); return; }
+            if (q === 0) { showFb('⚠️ El denominador no pot ser zero.', 'warning'); return; }
+            if (p * computedDet !== q) {
+                showFb(`❌ L'escalar p/q no és igual a 1/${computedDet}. Comprova els valors.`, 'danger'); failStep(3); return;
+            }
+
+            // Validació matriu: ha de ser adj(A)
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                if (document.getElementById(`inv${i}${j}`).value.trim() === '') {
+                    showFb('⚠️ Omple tots els elements de la matriu.', 'warning'); return;
+                }
+            }
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                const v = parseInt(document.getElementById(`inv${i}${j}`).value);
+                if (v !== adjMatrix[i][j]) {
+                    showFb('❌ Algun element de la matriu és incorrecte. Ha de ser la còpia de adj(A).', 'danger'); failStep(3); return;
+                }
+            }
+        }
+
+        triggerSuccess('✅ Inversa correcta! Exercici completat.');
+        exerciseFinished = true;
+        markAllDone();
+        const sa = document.getElementById('sideAction');
+        if (sa) sa.innerHTML = `
+            <div style="color:var(--success); font-weight:700; font-size:1.05rem; letter-spacing:0.01em; margin-bottom:4px;">
+                Matriu invertida ✓
+            </div>
+            <button class="btn-nou-exemple" onclick="initApp()">Fer un altre exemple</button>`;
+    }
+
+    // ── RESSALTAT COFACTORS ──
+    function hlCofactor(row, col) {
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = document.getElementById(`aCell${i}${j}`);
+            if (!cell) return;
+            cell.classList.remove('cell-dimmed', 'cell-highlighted');
+            (i === row || j === col)
+                ? cell.classList.add('cell-dimmed')
+                : cell.classList.add('cell-highlighted');
+        }
+    }
+    function clrHl() {
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = document.getElementById(`aCell${i}${j}`);
+            if (cell) cell.classList.remove('cell-dimmed', 'cell-highlighted');
+        }
+    }
+
+    // ── FEEDBACK ──
+    function triggerSuccess(msg) {
+        const fb = document.getElementById('feedback');
+        fb.innerText = msg; fb.style.color = 'var(--success)';
+        fb.classList.remove('success-pols');
+        void fb.offsetWidth;
+        fb.classList.add('success-pols');
+        fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function showFb(msg, type) {
+        const fb = document.getElementById('feedback');
+        fb.innerText = msg;
+        fb.style.color = type === 'warning' ? 'var(--warning)' : 'var(--danger)';
+        fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function toggleHelp() {
+        const s = document.getElementById('scaffoldDet');
+        if (s) s.style.display = document.getElementById('helpToggle').checked ? 'block' : 'none';
+    }
+
+    // ── INTENTS FALLITS I REVELAR RESPOSTA ──
+    function failStep(step) {
+        failCounts[step]++;
+        if (failCounts[step] >= 3) maybeShowReveal(step);
+    }
+
+    function maybeShowReveal(step) {
+        const area = document.getElementById('revealArea');
+        if (!area || area.querySelector('.btn-reveal')) return; // ja hi és
+        const btn = document.createElement('button');
+        btn.className = 'btn-reveal';
+        btn.textContent = 'Veure la resposta';
+        btn.onclick = () => showAnswer(step);
+        area.appendChild(btn);
+    }
+
+    function showAnswer(step) {
+        if (step === 0) {
+            const inp = document.getElementById('detInput');
+            if (inp) { inp.value = computedDet; inp.disabled = true; inp.style.color = 'var(--warning)'; inp.style.borderColor = 'var(--warning)'; }
+            showFb(`ℹ️ Resposta: det(A) = ${computedDet}`, 'warning');
+        }
+        else if (step === 1) {
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                const inp = document.getElementById(`cof${i}${j}`);
+                if (!inp || inp.classList.contains('cell-correct')) continue;
+                inp.value = cofMatrix[i][j];
+                inp.classList.add('cell-correct');
+                inp.style.background = 'rgba(217,119,6,0.10)';
+                inp.style.borderColor = 'var(--warning)';
+                inp.style.color = 'var(--warning)';
+                inp.setAttribute('readonly', true);
+                inp.onblur = null; inp.onfocus = null;
+            }
+            showFb('ℹ️ Resposta mostrada. Fixa\'t en els signes i els menors 2×2.', 'warning');
+        }
+        else if (step === 2) {
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                const inp = document.getElementById(`adj${i}${j}`);
+                if (!inp) continue;
+                inp.value = adjMatrix[i][j];
+                inp.disabled = true;
+                inp.style.color = 'var(--warning)'; inp.style.borderColor = 'var(--warning)';
+            }
+            showFb('ℹ️ Resposta mostrada. Recorda: adj(A)ᵢⱼ = Cⱼᵢ (transposada).', 'warning');
+        }
+        else if (step === 3) {
+            const detUnit = (Math.abs(computedDet) === 1);
+            if (!detUnit) {
+                const sn = document.getElementById('scalarNum');
+                const sd = document.getElementById('scalarDen');
+                if (sn) { sn.value = 1; sn.disabled = true; sn.style.color = 'var(--warning)'; sn.style.borderColor = 'var(--warning)'; }
+                if (sd) { sd.value = computedDet; sd.disabled = true; sd.style.color = 'var(--warning)'; sd.style.borderColor = 'var(--warning)'; }
+            }
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                const inp = document.getElementById(`inv${i}${j}`);
+                if (!inp) continue;
+                inp.value = detUnit ? adjMatrix[i][j] / computedDet : adjMatrix[i][j];
+                inp.disabled = true;
+                inp.style.color = 'var(--warning)'; inp.style.borderColor = 'var(--warning)';
+            }
+            showFb('ℹ️ Resposta mostrada.', 'warning');
+        }
+        // Elimina el botó un cop revelada
+        const area = document.getElementById('revealArea');
+        if (area) area.innerHTML = '';
+    }
+
+    // ── DOM HELPERS ──
+    function el(tag, cls) {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        return e;
+    }
+    function titleEl(text) {
+        const e = el('div', 'matrix-title'); e.innerText = text; return e;
+    }
+    function staticMatrix(m) {
+        const grid = el('div', 'matrix');
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+            const cell = el('div', 'cell');
+            cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
+            cell.innerText = m[i][j];
+            grid.appendChild(cell);
+        }
+        return grid;
+    }
+    function matrixPanel(title, gridEl) {
+        const block = el('div', 'panel-block');
+        block.appendChild(titleEl(title));
+        block.appendChild(gridEl);
+        return block;
+    }
+    function formula(parent, html) {
+        const e = el('div', 'step-formula'); e.innerHTML = html; parent.appendChild(e);
+    }
+    function helpRow(parent) {
+        const r = el('div', 'help-row');
+        r.innerHTML = `<label>Mostrar ajuda <input type="checkbox" id="helpToggle" onchange="toggleHelp()"></label>`;
+        parent.appendChild(r);
+    }
+    function scaffold(parent, title, bodyHTML) {
+        const s = el('div', 'scaffold-panel');
+        s.id = 'scaffoldDet';
+        s.style.display = 'none';
+        s.innerHTML = `<div class="scaffold-title">${title}</div>
+            <div style="line-height:1.7; font-size:0.82rem;">${bodyHTML}</div>`;
+        parent.appendChild(s);
+    }
+    function actionBtn() {
+        const a = el('div', 'side-action');
+        a.id = 'sideAction';
+        a.innerHTML = `<button class="btn-check" onclick="checkCurrentStep()">Comprovar</button>
+                       <div id="revealArea"></div>`;
+        return a;
+    }
+</script>
+</body>
+</html>
