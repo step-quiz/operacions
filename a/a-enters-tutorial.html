@@ -18,9 +18,9 @@
       --neg-color:     #dc2626;
       --neg-bg:        #fef2f2;
       --neg-border:    #fca5a5;
-      --pos-color:     #1d4ed8;
-      --pos-bg:        #eff6ff;
-      --pos-border:    #bfdbfe;
+      --pos-color:     #5a6a1e;
+      --pos-bg:        #eceee0;
+      --pos-border:    #b8be8a;
       --zero-color:    #475569;
       --zero-bg:       #f8fafc;
       --zero-border:   #e2e8f0;
@@ -91,12 +91,6 @@
       white-space: nowrap; flex-shrink: 0;
     }
     .header-spacer { flex: 1 1 0; }
-    .example-chip {
-      font-size: 0.82em; font-weight: 700;
-      background: rgba(255,255,255,0.12);
-      padding: 3px 10px; border-radius: 20px;
-      color: #bae6fd; white-space: nowrap;
-    }
     .btn-pause {
       background: white;
       border: 2px solid #ea580c;
@@ -120,8 +114,6 @@
     .btn-next:active { transform: scale(0.97); }
     .btn-next.btn-finish       { background: #d1fae5; color: #065f46; }
     .btn-next.btn-finish:hover { background: #a7f3d0; }
-    .btn-next.btn-ex           { background: #ede9fe; color: #4c1d95; }
-    .btn-next.btn-ex:hover     { background: #ddd6fe; }
 
     /* ── BARRA TIMER ──────────────────────────────────────────── */
     .timer-track { height: 5px; background: rgba(0,0,0,0.08); flex-shrink: 0; }
@@ -213,28 +205,6 @@
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0; }
-    }
-
-    /* Fila de botons mock */
-    .mock-btns {
-      display: flex; gap: 10px; align-items: center;
-    }
-    .mock-ok {
-      width: 2.2rem; height: 2.2rem;
-      background: #cbd5e1;
-      border: none; border-radius: 6px;
-      font-weight: 700; font-size: 0.8rem; color: #334155;
-      cursor: default;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .mock-ajuda {
-      background: #fffbeb;
-      border: 2px solid #fbbf24;
-      border-radius: 8px;
-      padding: 5px 12px;
-      font-size: 0.68rem; font-weight: 700; color: #92400e;
-      cursor: default;
-      white-space: nowrap;
     }
 
     /* Caixa d'ajuda mock */
@@ -336,7 +306,6 @@
     <button class="btn-pause" id="btn-pause" aria-label="Pausa/Repren">⏸</button>
     <button class="btn-next"  id="btn-next">Següent →</button>
     <div class="header-spacer"></div>
-    <span class="example-chip" id="example-chip"></span>
   </div>
 
   <div class="timer-track">
@@ -348,10 +317,6 @@
     <!-- Esquerra: mock del joc -->
     <div class="game-left" id="game-left">
       <div class="expr-row"  id="tut-expr"></div>
-      <div class="mock-btns" id="tut-btns" style="display:none;">
-        <div class="mock-ok">OK</div>
-        <div class="mock-ajuda">💡 Ajuda</div>
-      </div>
       <div class="mock-help" id="tut-help"></div>
       <div class="mock-sign" id="tut-sign"></div>
     </div>
@@ -406,7 +371,7 @@ function buildBuilding(highlighted = [], arrow = null) {
     const y   = MT + (MAX_F - f) * FH;
     const hl  = highlighted.find(h => h.floor === f);
     const bg  = hl
-      ? (f > 0 ? 'rgba(29,78,216,0.18)' : f < 0 ? 'rgba(220,38,38,0.18)' : 'rgba(5,150,105,0.15)')
+      ? (f > 0 ? 'rgba(90,106,30,0.18)' : f < 0 ? 'rgba(220,38,38,0.18)' : 'rgba(5,150,105,0.15)')
       : (f === 0 ? '#f1f5f9' : '#f8fafc');
     const stroke = f === 0 ? '#94a3b8' : '#e2e8f0';
     s.push(`<rect x="${LW}" y="${y}" width="${FW}" height="${FH}"
@@ -420,7 +385,7 @@ function buildBuilding(highlighted = [], arrow = null) {
     let label, color, fw;
     let fsize;
     if (f === 0)      { label = 'Planta baixa'; color = '#059669'; fw = '700'; fsize = 9; }
-    else if (f > 0)   { label = `pis ${f}`;     color = hl ? '#1d4ed8' : '#64748b'; fw = hl ? '700' : '500'; fsize = 10.5; }
+    else if (f > 0)   { label = `pis ${f}`;     color = hl ? '#5a6a1e' : '#64748b'; fw = hl ? '700' : '500'; fsize = 10.5; }
     else              { label = `s. ${Math.abs(f)}`; color = hl ? '#dc2626' : '#64748b'; fw = hl ? '700' : '500'; fsize = 10.5; }
 
     s.push(`<text x="${LW - 5}" y="${cy + 4.5}" text-anchor="end"
@@ -432,7 +397,7 @@ function buildBuilding(highlighted = [], arrow = null) {
   highlighted.forEach(h => {
     const cx = LW + FW / 2;
     const cy = yf(h.floor);
-    const c  = h.floor > 0 ? '#1d4ed8' : h.floor < 0 ? '#dc2626' : '#059669';
+    const c  = h.floor > 0 ? '#5a6a1e' : h.floor < 0 ? '#dc2626' : '#059669';
     // Pulsació per al destacat principal
     if (h.pulse) {
       s.push(`<circle cx="${cx}" cy="${cy}" r="10" fill="none" stroke="${c}" stroke-width="2.2">
@@ -449,7 +414,7 @@ function buildBuilding(highlighted = [], arrow = null) {
     const y1    = yf(arrow.from);
     const y2    = yf(arrow.to);
     const up    = arrow.to > arrow.from;
-    const color = up ? '#1d4ed8' : '#dc2626';
+    const color = up ? '#5a6a1e' : '#dc2626';
     const ay2   = up ? y2 + 6 : y2 - 6;
     s.push(`<line x1="${cx}" y1="${y1}" x2="${cx}" y2="${ay2}"
              stroke="${color}" stroke-width="2.5" stroke-linecap="round"
@@ -506,7 +471,7 @@ const TUTORIAL = [
     steps: [
       {
         icon:      '🔵',
-        narration: 'Els nombres en <b class="pos">blau</b> (positius) representen <b>pisos per sobre</b> de la planta baixa.<br>Per exemple, <b class="pos">+4</b> és el <b>pis 4</b>.',
+        narration: 'Els nombres en <b class="pos">verd</b> (positius) representen <b>pisos per sobre</b> de la planta baixa.<br>Per exemple, <b class="pos">+4</b> és el <b>pis 4</b>.',
         expr:      () => numSpan(4, true),
         showBtns:  false,
         help:      null,
@@ -727,8 +692,6 @@ function render() {
 
   // Capçalera
   document.getElementById('step-counter').textContent = `Completat: ${stepPct(gs)}%`;
-  document.getElementById('example-chip').textContent = ex.chip;
-
   // Narrador invisible
   const narBox = document.querySelector('.narration-box');
   narBox.style.transition = 'none';
@@ -739,10 +702,6 @@ function render() {
   // Expressió mock
   const exprEl = document.getElementById('tut-expr');
   exprEl.innerHTML = step.expr ? step.expr() : '';
-
-  // Botons mock
-  const btnsEl = document.getElementById('tut-btns');
-  btnsEl.style.display = step.showBtns ? 'flex' : 'none';
 
   // Ajuda mock
   const helpEl = document.getElementById('tut-help');
@@ -776,8 +735,8 @@ function render() {
     btn.textContent = '🎮 Ves a jugar!';
     btn.className   = 'btn-next btn-finish';
   } else if (isLastStep) {
-    btn.textContent = 'Exemple següent →';
-    btn.className   = 'btn-next btn-ex';
+    btn.textContent = 'Següent →';
+    btn.className   = 'btn-next';
   } else {
     btn.textContent = 'Següent →';
     btn.className   = 'btn-next';
