@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial — Àrea i Perímetre</title>
+  <style>
+    /* ── VARIABLES ─────────────────────────────────────────────── */
+    :root {
+      --primary:       #0f766e;
+      --primary-light: #ccfbf1;
+      --primary-dark:  #134e4a;
+      --p2-bg:         #fffbeb;
+      --p2-header:     #78350f;
+      --p2-accent:     #b45309;
+      --bg:            #f0fdfa;
+      --panel:         #ffffff;
+      --text:          #0f172a;
+      --muted:         #64748b;
+      --border:        #e2e8f0;
+      --radius:        10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 16px 8px;
+    }
+
+    /* ── CAPÇALERA PÀGINA ─────────────────────────────────────── */
+    .title-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 8px;
+      width: 100%; max-width: 900px;
+      justify-content: center;
+    }
+    .title-row h1 {
+      font-size: 1.35em; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--primary-dark);
+    }
+    .home-icon-link {
+      width: 38px; height: 38px; opacity: 0.7;
+      transition: opacity 0.2s; display: block; flex-shrink: 0;
+    }
+    .home-icon-link:hover { opacity: 1; }
+    .home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ── PANELL ───────────────────────────────────────────────── */
+    .panel {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      border: 1px solid var(--border);
+      border-top: 5px solid var(--primary);
+      width: 100%; max-width: 900px;
+      overflow: hidden;
+      flex: 1 1 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ── CAPÇALERA TUTORIAL ───────────────────────────────────── */
+    .tut-header {
+      background: var(--primary-dark);
+      color: white;
+      padding: 7px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      transition: background 0.6s ease;
+    }
+    .tut-header.part2 { background: var(--p2-header); }
+
+    .step-counter {
+      font-size: 0.85em; font-weight: 700;
+      background: rgba(255,255,255,0.15);
+      padding: 3px 10px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .header-spacer { flex: 1 1 0; }
+
+    .btn-pause {
+      background: white;
+      border: 2px solid #ea580c;
+      color: #ea580c; font-size: 1em; font-weight: 800;
+      width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s; flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(234,88,12,0.2);
+    }
+    .btn-pause:hover { background: #fff7ed; }
+
+    .btn-next {
+      padding: 5px 16px;
+      background: white; color: var(--primary-dark);
+      font-family: inherit; font-size: 1em; font-weight: 700;
+      border: none; border-radius: 7px; cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-next:hover  { background: #e2e8f0; }
+    .btn-next:active { transform: scale(0.97); }
+    .btn-next.btn-finish       { background: #d1fae5; color: #065f46; }
+    .btn-next.btn-finish:hover { background: #a7f3d0; }
+
+    /* ── BARRA TIMER ──────────────────────────────────────────── */
+    .timer-track { height: 5px; background: rgba(0,0,0,0.08); flex-shrink: 0; }
+    .timer-fill  { height: 100%; background: linear-gradient(90deg,#f97316,#ea580c); width: 0%; }
+
+    /* ── COS PRINCIPAL ────────────────────────────────────────── */
+    .game-body {
+      display: flex; flex-direction: row;
+      flex: 1 1 0; min-height: 0;
+      transition: opacity 0.22s ease;
+    }
+    .game-body.fading { opacity: 0; pointer-events: none; }
+
+    /* ── PANELL ESQUERRE: figura ──────────────────────────────── */
+    .game-left {
+      width: 55%; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 16px 14px;
+      border-right: 1px solid var(--border);
+      overflow-y: auto; min-height: 0;
+      gap: 10px;
+      background: var(--bg);
+      font-size: 1.2em;
+      transition: background 0.5s ease;
+    }
+    .game-left.part2 { background: #fffbeb; }
+
+    /* ── PANELL DRET: narrador ────────────────────────────────── */
+    .game-right {
+      width: 45%; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center;
+      padding: 14px 16px 12px;
+      overflow-y: auto; min-height: 0;
+      gap: 12px;
+    }
+
+    /* Narrador */
+    .narration-box {
+      width: 100%;
+      background: white;
+      border: 2px solid var(--primary);
+      border-left: 5px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+      box-shadow: 0 2px 10px rgba(15,118,110,0.1);
+      flex-shrink: 0;
+      opacity: 0;
+    }
+    .narration-icon { font-size: 1.4em; flex-shrink: 0; margin-top: 1px; }
+    .narration-text { font-size: 1.05em; line-height: 2; color: var(--text); }
+    .narration-text b  { color: var(--primary-dark); }
+    .narration-text em { color: var(--muted); font-style: normal; }
+
+    /* Caixa de resultat */
+    .result-box {
+      display: none;
+      width: 100%;
+      background: #f0fdfa;
+      border: 2px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 1.05em; font-weight: 700;
+      color: var(--primary-dark);
+      text-align: center;
+      line-height: 1.8;
+      animation: fadeUp 0.3s ease;
+    }
+    .result-box.visible { display: block; }
+    .result-box.part2 {
+      background: #fffbeb;
+      border-color: #f59e0b;
+      color: var(--p2-header);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(-5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Counter animat (sota la figura) */
+    .tut-counter {
+      font-family: 'Courier New', monospace;
+      font-size: 1.25em; font-weight: 700;
+      color: var(--primary-dark);
+      text-align: center;
+      min-height: 1.7em;
+      transition: color 0.3s;
+    }
+    .tut-counter.perim { color: #b91c1c; }
+    .tut-counter.final { color: var(--primary); font-size: 1.4em; }
+
+    /* ── RESPONSIVE ───────────────────────────────────────────── */
+    @media (max-width: 660px) {
+      body { overflow: auto; height: auto; padding: 8px; }
+      .panel { flex: none; min-height: 540px; }
+      .game-body { flex-direction: column; }
+      .game-left, .game-right { width: 100%; border-right: none; }
+      .game-left  { border-bottom: 1px solid var(--border); justify-content: flex-start; }
+      .game-right { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="title-row">
+  <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+    <img src="icon.png" alt="Inici" onerror="this.style.display='none'">
+  </a>
+  <h1>Tutorial — Àrea i Perímetre</h1>
+</div>
+
+<div class="panel">
+
+  <div class="tut-header" id="tut-header">
+    <span class="step-counter" id="step-counter">Completat: 0%</span>
+    <button class="btn-pause" id="btn-pause" aria-label="Pausa/Repren">⏸</button>
+    <button class="btn-next"  id="btn-next">Següent →</button>
+    <div class="header-spacer"></div>
+  </div>
+
+  <div class="timer-track">
+    <div class="timer-fill" id="timer-fill"></div>
+  </div>
+
+  <div class="game-body" id="game-body">
+
+    <!-- Esquerra: figura SVG -->
+    <div class="game-left" id="game-left">
+      <div id="tut-visual" style="width:100%;display:flex;flex-direction:column;align-items:center;"></div>
+      <div class="tut-counter" id="tut-counter"></div>
+    </div>
+
+    <!-- Dreta: narrador + resultat -->
+    <div class="game-right">
+      <div class="narration-box">
+        <span class="narration-icon" id="narration-icon">📐</span>
+        <div  class="narration-text" id="narration-text"></div>
+      </div>
+      <div class="result-box" id="result-box"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="fade-overlay"
+     style="position:fixed;inset:0;background:#000;opacity:0;
+            pointer-events:none;z-index:9999;transition:opacity 1.2s ease;"></div>
+
+<script>
+'use strict';
+
+/* ================================================================
+   CONSTANTS DE DIBUIX
+   ================================================================ */
+const C1   = 44,  PAD1  = 40;   // Part 1, figura sola
+const C3   = 130, PAD3  = 52;   // Part 2, figura gran (≈3×C1)
+const CC   = 28,  PADC  = 30;   // Comparació Part 1 (costat a costat)
+const CS   = 22,  PADS  = 30;   // Comparació d'escala: figura petita
+const CL   = 66,  PADL  = 36;   // Comparació d'escala: figura gran
+
+/* ================================================================
+   FIGURES
+   ================================================================ */
+const TETRA_I = [[0,0],[0,1],[0,2],[0,3]];
+const TETRA_O = [[0,0],[0,1],[1,0],[1,1]];
+const PENTO_I = [[0,0],[0,1],[0,2],[0,3],[0,4]];
+const PENTO_P = [[0,0],[0,1],[1,0],[1,1],[2,0]];
+
+function computePerimeter(cells) {
+  const s = new Set(cells.map(([r,c]) => `${r},${c}`));
+  let p = 0;
+  for (const [r,c] of cells)
+    for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]])
+      if (!s.has(`${r+dr},${c+dc}`)) p++;
+  return p;
+}
+
+/** Retorna el nombre de segments del perímetre (l'ordre coincideix amb buildFigureSVG). */
+function countPerimSegs(cells) {
+  const s = new Set(cells.map(([r,c]) => `${r},${c}`));
+  let n = 0;
+  for (const [r,c] of cells)
+    for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]])
+      if (!s.has(`${r+dr},${c+dc}`)) n++;
+  return n;
+}
+
+/* ================================================================
+   SVG — ETIQUETA DIMENSIONAL
+   ================================================================ */
+function buildDimLabel(cells, CELL, PAD, text, fontMult = 1) {
+  const set = new Set(cells.map(([r,c]) => `${r},${c}`));
+  const exp = (r, c, d) => {
+    const nb = {T:[r-1,c],B:[r+1,c],L:[r,c-1],R:[r,c+1]}[d];
+    return !set.has(`${nb[0]},${nb[1]}`);
+  };
+  let found = null;
+  outer:
+  for (const [d1,d2] of [['T','L'],['T','R'],['B','L'],['B','R']])
+    for (const [r,c] of cells)
+      if (exp(r,c,d1) && exp(r,c,d2)) { found = {r,c,sides:[d1,d2]}; break outer; }
+  if (!found) return '';
+
+  const {r, c, sides} = found;
+  const x0 = PAD + c*CELL, y0 = PAD + r*CELL;
+  const OFF = Math.max(11, CELL * 0.22);
+  const EXT = Math.max(15, CELL * 0.28);
+  const FS  = Math.round(Math.max(11, Math.min(16, CELL * 0.24)) * fontMult);
+  const GAP = 5;
+  const LC  = '#64748b', TC = '#1e293b';
+  const TA  = `font-family="'Segoe UI',sans-serif" font-size="${FS}" font-weight="700" fill="${TC}"`;
+  let s = '';
+
+  for (const side of sides) {
+    if (side === 'T') {
+      const ly = y0 - OFF;
+      s += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0-EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${x0+CELL}" y1="${y0}" x2="${x0+CELL}" y2="${y0-EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${x0}" y1="${ly}" x2="${x0+CELL}" y2="${ly}" stroke="${LC}" stroke-width="1.5"/>
+            <text x="${x0+CELL/2}" y="${ly-GAP}" ${TA} text-anchor="middle">${text}</text>`;
+    } else if (side === 'L') {
+      const lx = x0 - OFF, cy = y0 + CELL/2;
+      s += `<line x1="${x0}" y1="${y0}" x2="${x0-EXT}" y2="${y0}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${x0}" y1="${y0+CELL}" x2="${x0-EXT}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${lx}" y1="${y0}" x2="${lx}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5"/>
+            <text x="${lx-GAP}" y="${cy}" ${TA} text-anchor="middle" dominant-baseline="middle" transform="rotate(-90,${lx-GAP},${cy})">${text}</text>`;
+    } else if (side === 'R') {
+      const lx = x0 + CELL + OFF, cy = y0 + CELL/2;
+      s += `<line x1="${x0+CELL}" y1="${y0}" x2="${x0+CELL+EXT}" y2="${y0}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${x0+CELL}" y1="${y0+CELL}" x2="${x0+CELL+EXT}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${lx}" y1="${y0}" x2="${lx}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5"/>
+            <text x="${lx+GAP}" y="${cy}" ${TA} text-anchor="middle" dominant-baseline="middle" transform="rotate(90,${lx+GAP},${cy})">${text}</text>`;
+    } else if (side === 'B') {
+      const ly = y0 + CELL + OFF;
+      s += `<line x1="${x0}" y1="${y0+CELL}" x2="${x0}" y2="${y0+CELL+EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${x0+CELL}" y1="${y0+CELL}" x2="${x0+CELL}" y2="${y0+CELL+EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="${x0}" y1="${ly}" x2="${x0+CELL}" y2="${ly}" stroke="${LC}" stroke-width="1.5"/>
+            <text x="${x0+CELL/2}" y="${ly+GAP+FS}" ${TA} text-anchor="middle">${text}</text>`;
+    }
+  }
+  return s;
+}
+
+/* ================================================================
+   SVG — FIGURA PRINCIPAL
+   opts:
+     cellSize         — px en coordenades SVG
+     pad              — marges
+     animate          — 'area' | 'perim' | 'both' | null
+     areaLabel        — si true, mostra "9 cm²" dins cada cel·la (escala 3)
+     dimLabel         — '1 cm' | '3 cm' | null
+     dimLabelFontMult — multiplicador mida text cota (default 1)
+     offsetX / offsetY / totalW / totalH — per shared viewBox
+   ================================================================ */
+function buildFigureSVG(cells, opts = {}) {
+  const {
+    cellSize         = C1,
+    pad              = PAD1,
+    animate          = null,
+    areaLabel        = false,
+    dimLabel         = null,
+    dimLabelFontMult = 1,
+    offsetX          = 0,
+    offsetY          = 0,
+    totalW           = null,
+    totalH           = null,
+  } = opts;
+
+  const rows    = Math.max(...cells.map(([r]) => r)) + 1;
+  const cols    = Math.max(...cells.map(([,c]) => c)) + 1;
+  const natW    = cols * cellSize + 2 * pad;
+  const natH    = rows * cellSize + 2 * pad;
+  const W       = totalW ?? natW;
+  const H       = totalH ?? natH;
+  const cellSet = new Set(cells.map(([r,c]) => `${r},${c}`));
+  const DIRS    = [[-1,0,'T'],[1,0,'B'],[0,-1,'L'],[0,1,'R']];
+  const sw      = Math.max(3, Math.round(cellSize / 14));
+
+  const animBoth  = animate === 'both';
+  const animArea  = animate === 'area'  || animBoth;
+  const animPerim = animate === 'perim' || animBoth;
+
+  let p = [];
+  p.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;">`);
+
+  // Cel·les
+  cells.forEach(([r,c], i) => {
+    const x    = offsetX + pad + c * cellSize, y = offsetY + pad + r * cellSize;
+    const fill = animArea ? '#e2e8f0' : '#0d9488';
+    const strk = animArea ? '#cbd5e1' : '#0f766e';
+    const id   = animArea ? ` id="anim-cell-${i}"` : '';
+    p.push(`<rect${id} x="${x+1}" y="${y+1}" width="${cellSize-2}" height="${cellSize-2}" rx="3" fill="${fill}" stroke="${strk}" stroke-width="2"/>`);
+  });
+
+  // Etiquetes "9 cm²" dins cada cel·la (inicialment invisibles)
+  if (areaLabel) {
+    const fs = Math.round(cellSize * 0.22);
+    cells.forEach(([r,c], i) => {
+      const cx = offsetX + pad + c * cellSize + cellSize / 2;
+      const cy = offsetY + pad + r * cellSize + cellSize / 2;
+      p.push(`<text id="anim-area-lbl-${i}" x="${cx}" y="${cy}" opacity="0" text-anchor="middle" dominant-baseline="middle" font-family="'Segoe UI',sans-serif" font-size="${fs}" font-weight="800" fill="white">9 cm²</text>`);
+    });
+  }
+
+  // Segments de perímetre
+  let segIdx = 0;
+  for (const [r,c] of cells) {
+    const x = offsetX + pad + c * cellSize, y = offsetY + pad + r * cellSize;
+    for (const [dr,dc,side] of DIRS) {
+      if (!cellSet.has(`${r+dr},${c+dc}`)) {
+        let x1,y1,x2,y2;
+        if      (side==='T') { x1=x;        y1=y;        x2=x+cellSize; y2=y;        }
+        else if (side==='B') { x1=x;        y1=y+cellSize; x2=x+cellSize; y2=y+cellSize; }
+        else if (side==='L') { x1=x;        y1=y;        x2=x;          y2=y+cellSize; }
+        else                 { x1=x+cellSize; y1=y;      x2=x+cellSize; y2=y+cellSize; }
+        const sc = animPerim ? 'transparent' : '#134e4a';
+        const id = animPerim ? ` id="anim-seg-${segIdx}"` : '';
+        p.push(`<line${id} x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${sc}" stroke-width="${sw}" stroke-linecap="square"/>`);
+        segIdx++;
+      }
+    }
+  }
+
+  if (dimLabel) p.push(buildDimLabel(cells, cellSize, pad + offsetX, dimLabel, dimLabelFontMult));
+  p.push('</svg>');
+  return p.join('\n');
+}
+
+/* ================================================================
+   VISUALS DE COMPARACIÓ
+   ================================================================ */
+
+/** Dues figures costat a costat amb quadrats de la mateixa mida visual. */
+function buildComparison(fig1, fig2, lab1, lab2) {
+  // Dimensions naturals de cada figura
+  const rows1 = Math.max(...fig1.cells.map(([r]) => r)) + 1;
+  const cols1 = Math.max(...fig1.cells.map(([,c]) => c)) + 1;
+  const rows2 = Math.max(...fig2.cells.map(([r]) => r)) + 1;
+  const cols2 = Math.max(...fig2.cells.map(([,c]) => c)) + 1;
+  const natW1 = cols1 * CC + 2 * PADC;
+  const natH1 = rows1 * CC + 2 * PADC;
+  const natW2 = cols2 * CC + 2 * PADC;
+  const natH2 = rows2 * CC + 2 * PADC;
+  // Viewbox compartit: ambdues figures a la mateixa escala → quadrats idèntics
+  const sharedW = Math.max(natW1, natW2);
+  const sharedH = Math.max(natH1, natH2);
+  const ox1 = Math.round((sharedW - natW1) / 2);
+  const oy1 = Math.round((sharedH - natH1) / 2);
+  const ox2 = Math.round((sharedW - natW2) / 2);
+  const oy2 = Math.round((sharedH - natH2) / 2);
+
+  const s1 = buildFigureSVG(fig1.cells, { cellSize:CC, pad:PADC, totalW:sharedW, totalH:sharedH, offsetX:ox1, offsetY:oy1 });
+  const s2 = buildFigureSVG(fig2.cells, { cellSize:CC, pad:PADC, totalW:sharedW, totalH:sharedH, offsetX:ox2, offsetY:oy2 });
+
+  const diff = fig1.perim !== fig2.perim;
+  const pColor = diff ? '#b45309' : '#134e4a';
+  const labelHtml1 = lab1 ? `<div style="font-size:0.8em;font-weight:700;color:#64748b;">${lab1}</div>` : '';
+  const labelHtml2 = lab2 ? `<div style="font-size:0.8em;font-weight:700;color:#64748b;">${lab2}</div>` : '';
+
+  return `
+    <div style="display:flex;gap:16px;align-items:flex-end;justify-content:center;width:100%;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;">
+        ${labelHtml1}
+        ${s1}
+        <div style="text-align:center;font-size:0.88em;font-weight:700;line-height:1.7;">
+          <div style="color:#134e4a;">Àrea = ${fig1.area} cm²</div>
+          <div style="color:${pColor};font-size:${diff?'1.05em':'1em'};">Perímetre = ${fig1.perim} cm</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;">
+        ${labelHtml2}
+        ${s2}
+        <div style="text-align:center;font-size:0.88em;font-weight:700;line-height:1.7;">
+          <div style="color:#134e4a;">Àrea = ${fig2.area} cm²</div>
+          <div style="color:${pColor};font-size:${diff?'1.05em':'1em'};">Perímetre = ${fig2.perim} cm</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/** Mateixa figura a escala 1 cm (esquerra) i 3 cm (dreta) en un únic SVG → ràtio 3:1 exacte. */
+function buildScaleComparison(cells, area1, perim1, cellS = CS) {
+  const area3  = area1  * 9;
+  const perim3 = perim1 * 3;
+
+  const CELL_S = cellS;
+  const CELL_L = cellS * 3;
+  const PAD    = Math.max(14, Math.round(cellS * 1.4));
+
+  const rows = Math.max(...cells.map(([r]) => r)) + 1;
+  const cols = Math.max(...cells.map(([,c]) => c)) + 1;
+
+  const natWS = cols * CELL_S + 2 * PAD;
+  const natHS = rows * CELL_S + 2 * PAD;
+  const natWL = cols * CELL_L + 2 * PAD;
+  const natHL = rows * CELL_L + 2 * PAD;
+
+  const FS      = 15;           // font-size etiquetes (150% de l'original)
+  const LABEL_H = FS * 2 + 8;  // 2 línies de text sota cada figura
+  const GAP_H   = 20;           // espai horitzontal entre les dues figures
+  const MARGIN_L = 10;          // marge esquerre per que "Perímetre" no quedi tallat
+  const MARGIN_T = 22;          // marge superior per que "3 cm" no quedi tallat
+
+  const figH   = Math.max(natHS, natHL);
+  const totalW = MARGIN_L + natWS + GAP_H + natWL;
+  const totalH = MARGIN_T + figH + LABEL_H;
+
+  // Centrem verticalment cada figura (desplaçades cap avall per MARGIN_T)
+  const oyS = MARGIN_T + Math.round((figH - natHS) / 2);
+  const oxL = MARGIN_L + natWS + GAP_H;
+  const oyL = MARGIN_T + Math.round((figH - natHL) / 2);
+
+  const cellSet = new Set(cells.map(([r,c]) => `${r},${c}`));
+  const DIRS    = [[-1,0,'T'],[1,0,'B'],[0,-1,'L'],[0,1,'R']];
+
+  function figCells(ox, oy, cell, sw) {
+    let s = '';
+    for (const [r,c] of cells) {
+      const x = ox + PAD + c * cell, y = oy + PAD + r * cell;
+      s += `<rect x="${x+1}" y="${y+1}" width="${cell-2}" height="${cell-2}" rx="3" fill="#0d9488" stroke="#0f766e" stroke-width="2"/>`;
+    }
+    for (const [r,c] of cells) {
+      const x = ox + PAD + c * cell, y = oy + PAD + r * cell;
+      for (const [dr,dc,side] of DIRS) {
+        if (!cellSet.has(`${r+dr},${c+dc}`)) {
+          let x1,y1,x2,y2;
+          if      (side==='T') { x1=x;      y1=y;      x2=x+cell; y2=y;      }
+          else if (side==='B') { x1=x;      y1=y+cell; x2=x+cell; y2=y+cell; }
+          else if (side==='L') { x1=x;      y1=y;      x2=x;      y2=y+cell; }
+          else                 { x1=x+cell; y1=y;      x2=x+cell; y2=y+cell; }
+          s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#134e4a" stroke-width="${sw}" stroke-linecap="square"/>`;
+        }
+      }
+    }
+    return s;
+  }
+
+  const swS = Math.max(2, Math.round(CELL_S / 14));
+  const swL = Math.max(3, Math.round(CELL_L / 14));
+
+  const TA = `font-family="'Segoe UI',sans-serif" font-weight="600" fill="#1e293b" text-anchor="middle" font-size="${FS}"`;
+
+  const cxS = MARGIN_L + natWS / 2;
+  const cxL = oxL + natWL / 2;
+  const lab1y = MARGIN_T + figH + FS + 2;
+  const lab2y = MARGIN_T + figH + FS * 2 + 6;
+
+  return `<svg viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;display:block;">
+    <g transform="translate(${MARGIN_L},${oyS})">
+      ${figCells(0, 0, CELL_S, swS)}
+      ${buildDimLabel(cells, CELL_S, PAD, '1 cm')}
+    </g>
+    <text x="${cxS}" y="${lab1y}" ${TA}>Àrea = ${area1} cm²</text>
+    <text x="${cxS}" y="${lab2y}" ${TA}>Perímetre = ${perim1} cm</text>
+    <g transform="translate(${oxL},${oyL})">
+      ${figCells(0, 0, CELL_L, swL)}
+      ${buildDimLabel(cells, CELL_L, PAD, '3 cm', 1.4)}
+    </g>
+    <text x="${cxL}" y="${lab1y}" ${TA}>Àrea = ${area3} cm²</text>
+    <text x="${cxL}" y="${lab2y}" ${TA}>Perímetre = ${perim3} cm</text>
+  </svg>`;
+}
+
+/** Taula-resum de les quatre figures i les dues escales. */
+function buildSummaryTable() {
+  const rows = [
+    { name:'Figura 1 petita', costat:1, area:4,  perim:FIG.tetraI.perim },
+    { name:'Figura 1 gran',   costat:3, area:36, perim:FIG.tetraI.perim*3 },
+    { name:'Figura 2 petita', costat:1, area:4,  perim:FIG.tetraO.perim },
+    { name:'Figura 2 gran',   costat:3, area:36, perim:FIG.tetraO.perim*3 },
+  ];
+  const th = (t) => `<th style="padding:7px 10px;background:#f1f5f9;border:1px solid #e2e8f0;font-weight:700;color:#134e4a;text-align:${t==='Figura'?'left':'center'};">${t}</th>`;
+  const td = (v, amber, bold) =>
+    `<td style="padding:7px 10px;border:1px solid #e2e8f0;text-align:${v.toString().includes('cm')?'center':'left'};${amber?'background:#fffbeb;':''}${bold?'font-weight:800;color:#b45309;':''}">${v}</td>`;
+
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:0.88em;">
+    <thead><tr>${['Figura','Costat','Àrea','Perímetre'].map(th).join('')}</tr></thead>
+    <tbody>`;
+  rows.forEach(r => {
+    const a = r.costat === 3;
+    const mark = a ? ' <span style="color:#b45309;font-size:0.85em;font-weight:800;">(×9)</span>' : '';
+    const markP = a ? ' <span style="color:#0f766e;font-size:0.85em;font-weight:800;">(×3)</span>' : '';
+    html += `<tr>
+      ${td(r.name, a, false)}
+      ${td(`${r.costat} cm`, a, a)}
+      ${td(`${r.area} cm²${mark}`, a, false)}
+      ${td(`${r.perim} cm${markP}`, a, false)}
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+/** Visual final amb les dues fórmules clau. */
+function buildFinalVisual() {
+  return `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;padding:4px 0;">
+      <div style="font-size:1em;font-weight:700;color:#134e4a;text-align:center;">
+        Raó de semblança
+        <span style="font-size:1.5em;color:#b45309;display:inline-block;margin-left:6px;">k = 3</span>
+      </div>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+        <div style="background:#f0fdfa;border:2px solid #0f766e;border-radius:12px;padding:14px 20px;text-align:center;min-width:116px;">
+          <div style="font-size:0.8em;font-weight:700;color:#64748b;letter-spacing:0.4px;margin-bottom:4px;">PERÍMETRE</div>
+          <div style="font-size:2.4em;font-weight:900;color:#0f766e;line-height:1;">× 3</div>
+          <div style="font-size:0.8em;color:#64748b;margin-top:4px;">= k</div>
+        </div>
+        <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:14px 20px;text-align:center;min-width:116px;">
+          <div style="font-size:0.8em;font-weight:700;color:#64748b;letter-spacing:0.4px;margin-bottom:4px;">ÀREA</div>
+          <div style="font-size:2.4em;font-weight:900;color:#b45309;line-height:1;">× 9</div>
+          <div style="font-size:0.8em;color:#64748b;margin-top:4px;">= k²</div>
+        </div>
+      </div>
+      <div style="font-size:0.85em;color:#64748b;text-align:center;max-width:280px;line-height:1.5;">
+        Vàlid per <b style="color:#134e4a;">qualsevol forma</b><br>i qualsevol raó k.
+      </div>
+    </div>`;
+}
+
+/* ================================================================
+   ANIMACIÓ
+   ================================================================ */
+let _animQ = [];
+
+function clearAnims() {
+  _animQ.forEach(t => clearTimeout(t));
+  _animQ = [];
+}
+
+function schedAnim(fn, ms) {
+  _animQ.push(setTimeout(fn, ms));
+}
+
+/** Anima les cel·les encenent-se una a una. Crida onDone quan acaba. */
+function animateArea(cells, onDone) {
+  let t = 700;
+  cells.forEach((_, i) => {
+    schedAnim(() => {
+      const el = document.getElementById(`anim-cell-${i}`);
+      if (el) { el.setAttribute('fill','#0d9488'); el.setAttribute('stroke','#0f766e'); }
+      const ctr = document.getElementById('tut-counter');
+      if (ctr) ctr.textContent = `Àrea = ${i + 1} cm²`;
+    }, t);
+    t += 640;
+  });
+  schedAnim(() => {
+    const ctr = document.getElementById('tut-counter');
+    if (ctr) ctr.className = 'tut-counter final';
+    if (onDone) onDone();
+  }, t + 250);
+}
+
+/** Anima les cel·les a escala 3 mostrant "9 cm²" dins de cada una. */
+function animateAreaLabeled(cells, onDone) {
+  let t = 700;
+  cells.forEach((_, i) => {
+    schedAnim(() => {
+      const el = document.getElementById(`anim-cell-${i}`);
+      if (el) { el.setAttribute('fill','#0d9488'); el.setAttribute('stroke','#0f766e'); }
+      const lbl = document.getElementById(`anim-area-lbl-${i}`);
+      if (lbl) lbl.setAttribute('opacity','1');
+      const ctr = document.getElementById('tut-counter');
+      if (ctr) ctr.textContent = `Àrea = ${(i + 1) * 9} cm²`;
+    }, t);
+    t += 640;
+  });
+  schedAnim(() => {
+    const ctr = document.getElementById('tut-counter');
+    if (ctr) ctr.className = 'tut-counter final';
+    if (onDone) onDone();
+  }, t + 250);
+}
+
+/** Anima els segments del perímetre apareixent un a un.
+ *  segLen: longitud de cada segment en cm (default 1). */
+function animatePerim(cells, onDone, segLen = 1) {
+  const total = countPerimSegs(cells);
+  let t = 700;
+  for (let i = 0; i < total; i++) {
+    const idx = i;
+    schedAnim(() => {
+      const el = document.getElementById(`anim-seg-${idx}`);
+      if (el) el.setAttribute('stroke', '#dc2626');
+      const ctr = document.getElementById('tut-counter');
+      if (ctr) { ctr.textContent = `Perímetre = ${(idx + 1) * segLen} cm`; ctr.className = 'tut-counter perim'; }
+    }, t);
+    t += 460;
+  }
+  schedAnim(() => {
+    const ctr = document.getElementById('tut-counter');
+    if (ctr) ctr.className = 'tut-counter final';
+    if (onDone) onDone();
+  }, t + 250);
+}
+
+function showResultBox(html, isPart2 = false) {
+  const el = document.getElementById('result-box');
+  if (!el) return;
+  el.innerHTML = html;
+  el.className = 'result-box visible' + (isPart2 ? ' part2' : '');
+}
+
+function hideResultBox() {
+  const el = document.getElementById('result-box');
+  if (el) { el.className = 'result-box'; el.innerHTML = ''; }
+}
+
+/* ================================================================
+   DADES DE LES FIGURES
+   ================================================================ */
+const FIG = {
+  tetraI: { cells: TETRA_I, area: 4, perim: computePerimeter(TETRA_I) },
+  tetraO: { cells: TETRA_O, area: 4, perim: computePerimeter(TETRA_O) },
+  pentoI: { cells: PENTO_I, area: 5, perim: computePerimeter(PENTO_I) },
+  pentoP: { cells: PENTO_P, area: 5, perim: computePerimeter(PENTO_P) },
+};
+
+/* ================================================================
+   CONSTANTS DE TEMPS
+   ================================================================ */
+const STEP_MS      = 13000;  // durada per defecte de cada pas
+const LINE_PAUSE_MS = 2250;  // pausa entre línies (<br>)
+
+/* ================================================================
+   DADES DEL TUTORIAL — 4 blocs × 3 passos = 12 passos
+   ================================================================ */
+const TUTORIAL = [
+
+  // ──────────────────────────────────────────────────────────────
+  // BLOC 0 — Tetraminos · Escala 1 cm
+  // ──────────────────────────────────────────────────────────────
+  { part: 1, steps: [
+    {
+      icon:      '🔵',
+      narration: `Aquesta figura està formada per <b>4 quadrats</b>.<br>
+                  Cada quadrat té una àrea d'<b>1 cm²</b>.<br>
+                  Per tant, ja podem saber l'<b>àrea</b> de la figura.`,
+      visual:    () => buildFigureSVG(TETRA_I, { animate:'area', dimLabel:'1 cm' }),
+      animFn:    () => animateArea(TETRA_I, () => showResultBox('Àrea = 4 cm²')),
+    },
+    {
+      icon:      '🔵',
+      narration: `Per trobar el perímetre de la figura, recorrem el seu <b>contorn</b>.<br>
+                  Cada segment mesura <b>1 cm</b>, i en total hi ha <b>10 segments</b>.`,
+      visual:    () => buildFigureSVG(TETRA_I, { animate:'perim', dimLabel:'1 cm' }),
+      animFn:    () => animatePerim(TETRA_I, () =>
+                   showResultBox(`Àrea = 4 cm²<br>Perímetre = ${FIG.tetraI.perim} cm`)),
+    },
+    {
+      icon:      '💡',
+      narration: `Poden haver-hi dues figures que tenen:<br>
+                  la <b>mateixa àrea</b>, però<br>
+                  <b>diferent perímetre</b>.`,
+      visual:    () => buildComparison(FIG.tetraI, FIG.tetraO, '', ''),
+      animFn:    null,
+    },
+  ]},
+
+  // ──────────────────────────────────────────────────────────────
+  // BLOC 1 — Pentominós · Escala 1 cm
+  // ──────────────────────────────────────────────────────────────
+  { part: 1, steps: [
+    {
+      icon:      '🔵',
+      narration: `Anem a veure un altre exemple.<br>
+                  Veiem que són <b>5 quadrats</b>.<br>
+                  Comptem el nombre de segments que envolten la figura.`,
+      visual:    () => buildFigureSVG(PENTO_I, { animate:'perim', dimLabel:'1 cm' }),
+      animFn:    () => animatePerim(PENTO_I, () =>
+                   showResultBox(`Àrea = 5 cm²<br>Perímetre = ${FIG.pentoI.perim} cm`)),
+    },
+    {
+      icon:      '💡',
+      narration: `Figures amb la <b>mateixa àrea</b> poden tenir <b>perímetres molt diferents</b>.<br>
+                  Com més <b>compacta</b> és la figura, <b>menor</b> és el perímetre.`,
+      visual:    () => buildComparison(FIG.pentoI, FIG.pentoP, '', ''),
+      animFn:    null,
+    },
+  ]},
+
+  // ──────────────────────────────────────────────────────────────
+  // BLOC 2 — Tetraminos · Escala 3 cm
+  // ──────────────────────────────────────────────────────────────
+  { part: 2, steps: [
+    {
+      icon:      '🔍',
+      narration: `Fixa't, perquè hi ha un canvi.<br>Cada quadrat mesura <b>3 cm</b> de costat.<br>L'àrea total serà <b>4·9 = 36 cm²</b>.<br>Per saber el perímetre, comptem quants segments hi ha.<br>Perímetre = <b>3·10 = 30 cm</b>.`,
+      visual:    () => buildFigureSVG(TETRA_I, { cellSize:C3, pad:PAD3, dimLabel:'3 cm', dimLabelFontMult:1.4, animate:'both', areaLabel:true }),
+      stepMs:    Math.round(STEP_MS * 1.6),
+      animSeq:   [
+        [2, () => animateAreaLabeled(TETRA_I, () => {
+        schedAnim(() => animatePerim(TETRA_I, () =>
+            showResultBox(`Àrea = 36 cm²<br>Perímetre = 30 cm`, true), 3), 1500);
+        })],
+      ],
+      animFn:    null,
+    },
+    {
+      icon:      '💡',
+      narration: `Tenim dues figures semblants.<br>El perímetre s'ha multiplicat per <b>3</b>.<br>L'àrea s'ha multiplicat per <b>9</b>.<br>És curiós, perquè l'àrea creix molt ràpidament.`,
+      visual:    () => buildScaleComparison(TETRA_I, 4, FIG.tetraI.perim),
+      animFn:    null,
+    },
+  ]},
+
+  // ──────────────────────────────────────────────────────────────
+  // BLOC 3 — Gran conclusió
+  // ──────────────────────────────────────────────────────────────
+  { part: 2, steps: [
+    {
+      icon:      '💡',
+      narration: `Un altre exemple amb figures semblants.<br>La raó de semblança també és 3.<br>Passa una cosa semblant, fixa't:<br>El perímetre es multiplica per 3.<br>L'àrea es multiplica per 9.`,
+      visual:    () => buildScaleComparison(TETRA_O, 4, FIG.tetraO.perim),
+      animFn:    null,
+    },
+    {
+      icon:      '📊',
+      narration: `Resum de figures semblants.<br>Si una figura és el "triple" de gran...<br>El perímetre es multiplica per <b>3</b>,<br>però l'àrea es multiplica per <b>9</b>.`,
+      visual:    buildSummaryTable,
+      animFn:    null,
+    },
+    {
+      icon:      '🏆',
+      narration: `Quan un costat es multiplica <b>k</b> vegades:<br>→ Perímetre × <b>k</b>  (mesura lineal)<br>→ Àrea × <b>k²</b>    (mesura quadràtica)<br>Amb k=3: perímetre ×3, àrea ×9.`,
+      visual:    buildFinalVisual,
+      animFn:    null,
+    },
+  ]},
+
+];
+
+const TOTAL_STEPS = TUTORIAL.reduce((n, ex) => n + ex.steps.length, 0);
+
+/* ================================================================
+   PERCENTATGE PER PAS
+   ================================================================ */
+function stepPct(gs) {
+  if (gs >= TOTAL_STEPS - 1) return 100;
+  return Math.round((gs + 1) / TOTAL_STEPS * 100);
+}
+
+/* ================================================================
+   ESTAT
+   ================================================================ */
+let exIdx   = 0;
+let stepIdx = 0;
+
+/* ================================================================
+   TIMER
+   ================================================================ */
+let timerElapsed = 0;
+let timerLastMs  = null;
+let timerIntv    = null;
+let isPaused     = false;
+
+let _currentStepMs = STEP_MS;
+
+function startTimer(stepDuration) {
+  _currentStepMs = stepDuration ?? STEP_MS;
+  clearInterval(timerIntv);
+  timerElapsed = 0;
+  timerLastMs  = Date.now();
+  isPaused     = false;
+  _setPauseIcon();
+  _setFill(0);
+  timerIntv = setInterval(_tick, 60);
+}
+
+function _tick() {
+  if (isPaused) return;
+  const now = Date.now();
+  timerElapsed += now - timerLastMs;
+  timerLastMs   = now;
+  _setFill(Math.min(100, timerElapsed / _currentStepMs * 100));
+  if (timerElapsed >= _currentStepMs) { clearInterval(timerIntv); _advance(); }
+}
+
+function _setFill(pct) {
+  document.getElementById('timer-fill').style.width = pct + '%';
+}
+
+function togglePause() {
+  if (isPaused) { isPaused = false; timerLastMs = Date.now(); }
+  else          { isPaused = true; }
+  _setPauseIcon();
+}
+
+function _getStepMs() {
+  return TUTORIAL[exIdx].steps[stepIdx].stepMs ?? STEP_MS;
+}
+
+function _setPauseIcon() {
+  document.getElementById('btn-pause').textContent = isPaused ? '▶' : '⏸';
+}
+
+/* ================================================================
+   NAVEGACIÓ
+   ================================================================ */
+function _globalStep() {
+  let n = 0;
+  for (let i = 0; i < exIdx; i++) n += TUTORIAL[i].steps.length;
+  return n + stepIdx;
+}
+
+function _advance() {
+  clearInterval(timerIntv);
+  clearAnims();
+  const ex         = TUTORIAL[exIdx];
+  const isLastStep = stepIdx === ex.steps.length - 1;
+  const isLastEx   = exIdx   === TUTORIAL.length  - 1;
+
+  if (isLastStep && isLastEx) {
+    const overlay = document.getElementById('fade-overlay');
+    overlay.style.pointerEvents = 'all';
+    overlay.style.opacity       = '1';
+    setTimeout(() => { window.location.href = 'pentomino-area-perimetre.html'; }, 1200);
+    return;
+  }
+
+  if (isLastStep) { exIdx++; stepIdx = 0; }
+  else            { stepIdx++; }
+
+  // Transició especial entre Part 1 i Part 2
+  const wasLastOfPart1 = isLastStep && TUTORIAL[exIdx].part === 2 && TUTORIAL[exIdx - 1].part === 1;
+  if (wasLastOfPart1) _transitionPart2();
+  else                _transition();
+}
+
+/** Fade 90% fosc (2 s) → canvi → fade-in (1.5 s) entre Part 1 i Part 2. */
+function _transitionPart2() {
+  const overlay = document.getElementById('fade-overlay');
+  // Fade OUT fins a 0.90 d'opacitat en 2 s
+  overlay.style.transition    = 'opacity 1.25s ease';
+  overlay.style.opacity       = '0.90';
+  overlay.style.pointerEvents = 'all';
+
+  setTimeout(() => {
+    render();
+    // Fade IN en 1.5 s
+    overlay.style.transition = 'opacity 1.5s ease';
+    overlay.style.opacity    = '0';
+    setTimeout(() => {
+      overlay.style.pointerEvents = 'none';
+      _showNarration();
+      startTimer(_getStepMs());
+    }, 1500);
+  }, 2000);
+}
+
+function _transition() {
+  const body = document.getElementById('game-body');
+  body.classList.add('fading');
+  setTimeout(() => {
+    render();
+    body.classList.remove('fading');
+    setTimeout(() => {
+      _showNarration();
+      startTimer(_getStepMs());
+    }, 600);
+  }, 220);
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  clearAnims();
+  const ex   = TUTORIAL[exIdx];
+  const step = ex.steps[stepIdx];
+  const gs   = _globalStep();
+
+  // Capçalera
+  const partLabel = ex.part === 2 ? 'Part 2 · ' : '';
+  document.getElementById('step-counter').textContent = `${partLabel}Completat: ${stepPct(gs)}%`;
+
+  // Color Part 2
+  const header   = document.getElementById('tut-header');
+  const gameLeft = document.getElementById('game-left');
+  if (ex.part === 2) {
+    header.classList.add('part2');
+    gameLeft.classList.add('part2');
+  } else {
+    header.classList.remove('part2');
+    gameLeft.classList.remove('part2');
+  }
+
+  // Narrador invisible fins a _showNarration
+  const narBox = document.querySelector('.narration-box');
+  narBox.style.transition = 'none';
+  narBox.style.opacity    = '0';
+  document.getElementById('narration-icon').textContent = step.icon;
+  document.getElementById('narration-text').innerHTML   = '';   // es revelarà línia a línia
+
+  // Visual
+  const vis = document.getElementById('tut-visual');
+  vis.innerHTML = step.visual ? step.visual() : '';
+
+  // Counter
+  const ctr = document.getElementById('tut-counter');
+  ctr.textContent = '';
+  ctr.className   = 'tut-counter';
+
+  // Result box (amagada fins que l'animació acabi)
+  hideResultBox();
+
+  // Botó Següent
+  const isLastStep = stepIdx === ex.steps.length - 1;
+  const isLastEx   = exIdx   === TUTORIAL.length  - 1;
+  const btn        = document.getElementById('btn-next');
+  if (isLastStep && isLastEx) {
+    btn.textContent = '🎮 Ves a jugar!';
+    btn.className   = 'btn-next btn-finish';
+  } else {
+    btn.textContent = 'Següent →';
+    btn.className   = 'btn-next';
+  }
+  btn.blur();
+}
+
+function _showNarration() {
+  const box  = document.querySelector('.narration-box');
+  box.style.transition = 'opacity 0.45s ease';
+  box.style.opacity    = '1';
+
+  const step    = TUTORIAL[exIdx].steps[stepIdx];
+  const narEl   = document.getElementById('narration-text');
+  const lines   = step.narration.split(/<br\s*\/?>/i).map(l => l.trim()).filter(l => l.length);
+
+  // Primera línia immediata, la resta amb retard acumulat
+  const revealed = [lines[0] ?? ''];
+  narEl.innerHTML = revealed[0];
+  let delay = 0;
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    delay += LINE_PAUSE_MS;
+    schedAnim(() => {
+      revealed.push(line);
+      narEl.innerHTML = revealed.join('<br>');
+    }, delay);
+  }
+
+  // Animació SVG:
+  // - animSeq: [[lineIdx, fn], ...] → cada fn s'executa quan apareix la línia indicada
+  // - animFn: s'executa després de totes les línies (comportament anterior)
+  if (step.animSeq) {
+    step.animSeq.forEach(([lineIdx, fn]) => {
+      const triggerDelay = lineIdx === 0 ? 0 : lineIdx * LINE_PAUSE_MS;
+      schedAnim(fn, triggerDelay);
+    });
+  } else if (step.animFn) {
+    schedAnim(() => step.animFn(), delay + 700);
+  }
+}
+
+/* ================================================================
+   EVENTS
+   ================================================================ */
+document.getElementById('btn-next').addEventListener('click', () => {
+  clearInterval(timerIntv);
+  _advance();
+});
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && e.target.tagName !== 'BUTTON') {
+    e.preventDefault();
+    togglePause();
+  }
+});
+
+/* ================================================================
+   ARRENCADA
+   ================================================================ */
+render();
+setTimeout(() => {
+  _showNarration();
+  startTimer(_getStepMs());
+}, 600);
+</script>
+
+</body>
+</html>
