@@ -1,6 +1,6 @@
 # Step Quiz: Matemàtiques Interactives
 
-Aquest repositori conté un conjunt de jocs i activitats interactives en format web (HTML/JS/CSS) dissenyades per ajudar els estudiants a practicar mecànicament diferents operacions matemàtiques de nivell d'ESO.
+Aquest repositori conté un conjunt d'activitats interactives en format web (HTML/JS/CSS) dissenyades per ajudar els estudiants a practicar mecànicament diferents operacions matemàtiques de nivell d'ESO i de Batxillerat. Conté nombroses indicacions per acompanyar els estudiants en el seu aprenentatge.
 
 ## ⚙️ Com funciona?
 No requereix instal·lació ni servidor (Backend). Són arxius totalment estàtics. 
