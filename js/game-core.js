@@ -277,7 +277,10 @@ function injectSharedHTML() {
 // ============================================================
 
 function isTouchDevice() {
-    return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    // Chromebook 300e: té touchpad (pointer:fine) + pantalla tàctil (any-pointer:coarse).
+    // Amb l'antic check (hover:none AND pointer:coarse) retornava false perquè el
+    // punter primari és el touchpad. Ara detectem si QUALSEVOL punter és tàctil.
+    return window.matchMedia('(any-pointer: coarse)').matches;
 }
 
 let _kbActiveInput  = null;

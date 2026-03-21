@@ -203,8 +203,9 @@
             document.body.appendChild(overlay);
         }
 
-        // Condició: tàctil + landscape
-        const mq = window.matchMedia('(pointer: coarse) and (orientation: landscape)');
+        // Condició: tàctil + landscape + pantalla petita (mòbil, no Chromebook).
+        // El Lenovo 300e té 1366x768 en landscape → mai ha de mostrar l'overlay.
+        const mq = window.matchMedia('(pointer: coarse) and (orientation: landscape) and (max-width: 900px)');
 
         function _applyRotateOverlay(matches) {
             overlay.classList.toggle('visible', matches);
