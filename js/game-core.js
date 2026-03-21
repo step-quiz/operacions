@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+ * PROJECTE: Motor pel Projecte Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/game-core.js
  * ROL: Motor d'estat global, injecció de DOM i seguretat.
  * ARQUITECTURA:
