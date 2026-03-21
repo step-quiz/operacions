@@ -224,7 +224,7 @@ CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
 /* ================================================================
    3. LANDSCAPE CHROMEBOOK — teclat sempre a sota, mai al costat
    ================================================================ */
-@media (min-width: 1024px) and (max-width: 1400px) {
+@media (min-width: 1024px) and (max-width: 1400px) and (any-pointer: coarse) {
     .panel {
         display: block !important;
         flex-direction: column !important;
@@ -242,7 +242,7 @@ CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
 /* ================================================================
    4. CANVAS — limitar alçada al 300e
    ================================================================ */
-@media (min-width: 1024px) and (max-width: 1400px) {
+@media (min-width: 1024px) and (max-width: 1400px) and (any-pointer: coarse) {
     .canvas-container {
         max-height: 55vh;
     }
@@ -253,24 +253,26 @@ CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
 
 
 /* ================================================================
-   5. UX TÀCTIL GLOBAL
+   5. UX TÀCTIL — només en dispositius amb pantalla tàctil
    ================================================================ */
-html {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-}
+@media (any-pointer: coarse) {
+    html {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
 
-button, a, .token-op, .kb-btn, .btn-sign, .btn-option,
-.cd-option, .cd-trigger, input, select,
-.ops-tab, .diff-btn, .lvl-btn, .nav-btn, .q-btn,
-.section-btn, .tb-btn, .choice-btn, .voc-option-btn,
-.form-btn, .btn-check, .btn-next, .btn-ok,
-.nl-point-btn, .nl-btn {
-    -webkit-tap-highlight-color: transparent;
-}
+    button, a, .token-op, .kb-btn, .btn-sign, .btn-option,
+    .cd-option, .cd-trigger, input, select,
+    .ops-tab, .diff-btn, .lvl-btn, .nav-btn, .q-btn,
+    .section-btn, .tb-btn, .choice-btn, .voc-option-btn,
+    .form-btn, .btn-check, .btn-next, .btn-ok,
+    .nl-point-btn, .nl-btn {
+        -webkit-tap-highlight-color: transparent;
+    }
 
-button, .token-op, .btn-sign, .btn-option, .ops-tab,
-.kb-btn, .q-btn, .choice-btn, .voc-option-btn {
-    touch-action: manipulation;
+    button, .token-op, .btn-sign, .btn-option, .ops-tab,
+    .kb-btn, .q-btn, .choice-btn, .voc-option-btn {
+        touch-action: manipulation;
+    }
 }
