@@ -15,16 +15,14 @@
          (mai regla de tres).
 
     NIVELLS:
-      Nivell 1: Preu d'1 unitat donat → trobar el de N.
-                Multiplicació pura. Tot enters.
-                Ex: 1 poma → 2 €. 3 pomes → ? €
-      Nivell 2: Preu de N unitats donat → trobar el d'1.
-                Divisió exacta. Tot enters.
-                Ex: 4 croissants → 8 €. 1 croissant → ? €
-      Nivell 3: Proporció completa. Dos passos:
-                Pas 1: trobar preu unitari (divisió exacta).
-                Pas 2: aplicar-lo a una quantitat nova (multiplicació).
-                Ex: 2 xocolates → 6 €. 5 xocolates → ? €
+      Nivell 1: La quantitat preguntada és múltiple de la donada
+                (o a l'inrevés). Un sol pas (× o ÷ directe).
+                4 casos: 1→N, N→1, N→kN, kN→N. Tot enters petits.
+      Nivell 2: Relació qualsevol. Dos passos (reducció a la unitat):
+                Pas 1: trobar preu unitari (÷). Pas 2: multiplicar (×).
+                Nombres petits (preu unitari 1–4, quantitats 2–5).
+      Nivell 3: Igual que nivell 2, amb nombres més grans
+                (preu unitari 2–6, quantitats 2–8).
 
     FILOSOFIA PEDAGÒGICA:
       - Sempre per reducció a la unitat. Mai regla de tres.
@@ -466,9 +464,9 @@
 const _aParams = new URLSearchParams(window.location.search);
 
 /**
- * ?nivell=1  Preu d'1 donat → trobar el de N  (multiplicació)
- * ?nivell=2  Preu de N donat → trobar el d'1  (divisió exacta)
- * ?nivell=3  Proporció completa: dos passos (÷ → ×)
+ * ?nivell=1  Múltiple directe: 1→N, N→1, N→kN, kN→N (1 pas)
+ * ?nivell=2  Qualsevol relació, reducció a la unitat (2 passos, petit)
+ * ?nivell=3  Qualsevol relació, reducció a la unitat (2 passos, gran)
  */
 const NIVELL = getIntParam(_aParams, 'nivell', 1, 1, 3);
 
@@ -544,51 +542,77 @@ function generateProblem() {
     const prod = pickProduct();
 
     if (NIVELL === 1) {
-        // Preu d'1 donat → trobar el de N (multiplicació)
-        // unitPrice ∈ [1..4], askQty ∈ [2..5]
+        // Un sol pas: la quantitat preguntada és múltiple de la donada (o invers).
+        // 4 casos equiprobables: 1→N, N→1, N→kN, kN→N.
+        const cas = pick(['1toN', 'Nto1', 'NtokN', 'kNtoN']);
         const unitPrice = randInt(1, 4);
-        const askQty    = randInt(2, 5);
+
+        if (cas === '1toN') {
+            // 1 poma → 2 €. 3 pomes → ?
+            const askQty = randInt(2, 5);
+            return {
+                prod, cas, unitPrice,
+                givenQty: 1, givenPrice: unitPrice,
+                askQty,   answer: unitPrice * askQty,
+                twoStep: false,
+            };
+        }
+        if (cas === 'Nto1') {
+            // 3 pomes → 6 €. 1 poma → ?
+            const givenQty = randInt(2, 5);
+            return {
+                prod, cas, unitPrice,
+                givenQty, givenPrice: unitPrice * givenQty,
+                askQty: 1, answer: unitPrice,
+                twoStep: false,
+            };
+        }
+        if (cas === 'NtokN') {
+            // 2 pomes → 4 €. 6 pomes → ?  (×3)
+            const givenQty  = randInt(2, 3);
+            const multiplier = randInt(2, 3);
+            const askQty    = givenQty * multiplier;
+            return {
+                prod, cas, unitPrice, multiplier,
+                givenQty, givenPrice: unitPrice * givenQty,
+                askQty,   answer: unitPrice * askQty,
+                twoStep: false,
+            };
+        }
+        // kNtoN: 6 pomes → 12 €. 2 pomes → ?  (÷3)
+        const askQty    = randInt(2, 3);
+        const multiplier = randInt(2, 3);
+        const givenQty  = askQty * multiplier;
         return {
-            prod,
-            givenQty:   1,
-            givenPrice: unitPrice,
-            askQty,
-            unitPrice,
-            answer:     unitPrice * askQty,
+            prod, cas, unitPrice, multiplier,
+            givenQty, givenPrice: unitPrice * givenQty,
+            askQty,   answer: unitPrice * askQty,
+            twoStep: false,
         };
     }
 
-    if (NIVELL === 2) {
-        // Preu de N donat → trobar el d'1 (divisió exacta)
-        // unitPrice ∈ [1..4], givenQty ∈ [2..5]
-        const unitPrice = randInt(1, 4);
-        const givenQty  = randInt(2, 5);
-        return {
-            prod,
-            givenQty,
-            givenPrice: unitPrice * givenQty,
-            askQty:     1,
-            unitPrice,
-            answer:     unitPrice,
-        };
-    }
+    // Nivells 2 i 3: reducció a la unitat obligada (dos passos)
+    // askQty no és múltiple de givenQty ni a l'inrevés.
+    const small = (NIVELL === 2);
+    const unitPrice = small ? randInt(1, 4) : randInt(2, 6);
+    const givenQty  = small ? randInt(2, 5) : randInt(2, 8);
 
-    // Nivell 3: proporció completa, dos passos
-    // unitPrice ∈ [2..4], givenQty ∈ [2..4], askQty ∈ [3..6] (diferent de givenQty)
-    const unitPrice = randInt(2, 4);
-    const givenQty  = randInt(2, 4);
-    let askQty      = randInt(3, 6);
-    while (askQty === givenQty) askQty = randInt(3, 6);
+    let askQty;
+    do {
+        askQty = small ? randInt(2, 5) : randInt(2, 8);
+    } while (
+        askQty === givenQty ||
+        askQty % givenQty === 0 ||
+        givenQty % askQty === 0
+    );
 
     return {
-        prod,
-        givenQty,
-        givenPrice: unitPrice * givenQty,
+        prod, unitPrice,
+        givenQty, givenPrice: unitPrice * givenQty,
         askQty,
-        unitPrice,
-        step1Answer: unitPrice,             // pas 1: trobar preu unitari
-        step2Answer: unitPrice * askQty,    // pas 2: multiplicar
-        answer:      unitPrice,             // expectedAnswer inicial = pas 1
+        step1Answer: unitPrice,
+        step2Answer: unitPrice * askQty,
+        twoStep: true,
     };
 }
 
@@ -730,21 +754,28 @@ function buildItemsSVG_N2(emoji, qty, totalPrice) {
 // ============================================================
 
 function getHelpText() {
-    const p = currentProblem;
+    const p    = currentProblem;
     const nom1 = p.prod.nom;
     const nomN = p.prod.noms;
 
+    // ── Nivell 1: un sol pas, 4 casos ──
     if (NIVELL === 1) {
-        return `🪙 1 ${nom1} costa ${p.unitPrice} €. Tens ${p.askQty} ${nomN}.`;
+        if (p.cas === '1toN') {
+            return `🪙 1 ${nom1} costa ${p.unitPrice} €. Tens ${p.askQty} ${nomN}.`;
+        }
+        if (p.cas === 'Nto1') {
+            return `🪙 Reparteix ${p.givenPrice} € entre ${p.givenQty} ${nomN}.`;
+        }
+        if (p.cas === 'NtokN') {
+            return `🪙 De ${p.givenQty} a ${p.askQty} ${nomN} → ×${p.multiplier}. El preu també ×${p.multiplier}.`;
+        }
+        // kNtoN
+        return `🪙 De ${p.givenQty} a ${p.askQty} ${nomN} → ÷${p.multiplier}. El preu també ÷${p.multiplier}.`;
     }
 
-    if (NIVELL === 2) {
-        return `🪙 Reparteix ${p.givenPrice} € entre ${p.givenQty} ${nomN}.`;
-    }
-
-    // Nivell 3
+    // ── Nivells 2–3: dos passos ──
     if (currentStep === 1) {
-        return `🪙 Si ${p.givenQty} ${nomN} costen ${p.givenPrice} €, quant costa 1?`;
+        return `🪙 Reparteix ${p.givenPrice} € entre ${p.givenQty} ${nomN}.`;
     }
     return `🪙 1 ${nom1} costa ${p.unitPrice} €. Tens ${p.askQty}.`;
 }
@@ -755,13 +786,16 @@ function toggleHelp() {
         els.helpText.textContent = getHelpText();
         els.helpText.classList.add('visible');
 
-        // SVG: ~50% de les vegades, nivells 1 i 2
+        // SVG: ~50% de les vegades, només casos simples
         if (Math.random() < 0.5) {
             const p = currentProblem;
-            if (NIVELL === 1) {
+            if (NIVELL === 1 && p.cas === '1toN') {
                 els.itemsHintSvg.innerHTML = buildItemsSVG_N1(p.prod.emoji, p.askQty, p.unitPrice);
                 els.itemsHint.classList.add('visible');
-            } else if (NIVELL === 2) {
+            } else if (NIVELL === 1 && p.cas === 'Nto1') {
+                els.itemsHintSvg.innerHTML = buildItemsSVG_N2(p.prod.emoji, p.givenQty, p.givenPrice);
+                els.itemsHint.classList.add('visible');
+            } else if (p.twoStep && currentStep === 1) {
                 els.itemsHintSvg.innerHTML = buildItemsSVG_N2(p.prod.emoji, p.givenQty, p.givenPrice);
                 els.itemsHint.classList.add('visible');
             }
@@ -805,8 +839,8 @@ function buildLevel() {
 
     currentProblem = generateProblem();
 
-    // expectedAnswer segons nivell i pas
-    if (NIVELL === 3) {
+    // expectedAnswer segons nivell
+    if (currentProblem.twoStep) {
         expectedAnswer = currentProblem.step1Answer;
     } else {
         expectedAnswer = currentProblem.answer;
@@ -826,15 +860,19 @@ function buildLevel() {
     // Renderitzar el problema
     els.problemDisplay.innerHTML = renderProblem(currentProblem);
 
-    // Prompt segons nivell
+    // Prompt segons nivell i cas
     const p = currentProblem;
-    const askName = productName(p.prod, p.askQty);
-    if (NIVELL === 1) {
-        els.stepPrompt.textContent = `Quant costen ${p.askQty} ${askName}?`;
-    } else if (NIVELL === 2) {
+    if (p.twoStep) {
+        // Nivells 2–3: primer pas sempre "Quant costa 1?"
         els.stepPrompt.textContent = `Quant costa 1 ${p.prod.nom}?`;
     } else {
-        els.stepPrompt.textContent = `Quant costa 1 ${p.prod.nom}?`;
+        // Nivell 1: depèn del cas
+        const askName = productName(p.prod, p.askQty);
+        if (p.askQty === 1) {
+            els.stepPrompt.textContent = `Quant costa 1 ${p.prod.nom}?`;
+        } else {
+            els.stepPrompt.textContent = `Quant costen ${p.askQty} ${askName}?`;
+        }
     }
 
     // Obrir panell
@@ -844,7 +882,7 @@ function buildLevel() {
     else                 els.valueInput.focus();
 }
 
-/** Transició de pas 1 → pas 2 (nivell 3). */
+/** Transició de pas 1 → pas 2 (nivells 2 i 3). */
 function advanceToStep2() {
     currentStep    = 2;
     expectedAnswer = currentProblem.step2Answer;
@@ -891,8 +929,8 @@ function checkValue() {
     // Correcte!
     recordAnswerToHistory(question, raw, true);
 
-    // Nivell 3, pas 1 → avançar al pas 2
-    if (NIVELL === 3 && currentStep === 1) {
+    // Dos passos, pas 1 → avançar al pas 2
+    if (currentProblem.twoStep && currentStep === 1) {
         advanceToStep2();
         return;
     }
@@ -902,20 +940,19 @@ function checkValue() {
 }
 
 function buildQuestionText() {
-    const p   = currentProblem;
-    const nom = productName(p.prod, p.askQty);
+    const p       = currentProblem;
+    const askName = productName(p.prod, p.askQty);
+    const givName = productName(p.prod, p.givenQty);
 
-    if (NIVELL === 1) {
-        return `${p.prod.emoji} 1→${p.unitPrice} €, ${p.askQty} ${nom}→?`;
+    if (!p.twoStep) {
+        // Nivell 1: un sol pas
+        return `${p.prod.emoji} ${p.givenQty} ${givName}→${p.givenPrice} €, ${p.askQty} ${askName}→?`;
     }
-    if (NIVELL === 2) {
-        return `${p.prod.emoji} ${p.givenQty}→${p.givenPrice} €, 1→?`;
-    }
-    // Nivell 3
+    // Nivells 2–3: dos passos
     if (currentStep === 1) {
-        return `${p.prod.emoji} ${p.givenQty}→${p.givenPrice} €, 1→?`;
+        return `${p.prod.emoji} ${p.givenQty} ${givName}→${p.givenPrice} €, 1→?`;
     }
-    return `${p.prod.emoji} 1→${p.unitPrice} €, ${p.askQty} ${nom}→?`;
+    return `${p.prod.emoji} 1→${p.unitPrice} €, ${p.askQty} ${askName}→?`;
 }
 
 function shakeInput() {
