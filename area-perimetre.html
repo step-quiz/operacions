@@ -494,7 +494,6 @@
         .kb-btn:active   { transform: translateY(2px); box-shadow: none; }
         .kb-btn.kb-enter { background:var(--primary); border-color:var(--primary-dark); color:white; box-shadow:0 2px 0 var(--primary-dark); font-size:1.5rem; }
         .kb-btn.kb-del   { background:#fff1f2; border-color:#fca5a5; color:#b91c1c; font-size:1.1rem; }
-        .kb-btn.kb-tab   { background:#f0fdf4; border-color:#86efac; color:#166534; font-size:0.8rem; font-weight:700; }
 
         /* ── RESPONSIU ──────────────────────────────────────────── */
         @media (max-width:820px) { .panel { width: 95%; } }
@@ -749,10 +748,10 @@ function injectSharedHTML() {
     </div><div class="mini-vic-points" id="mini-vic-points">+10 punts</div>`;
     gs.appendChild(ov);
 
-    // Teclat custom (TAB per canviar camp)
+    // Teclat custom (layout estàndard, sense TAB)
     const kb=document.createElement('div');
     kb.id='customKeyboard';
-    kb.innerHTML=`<div class="kb-grid">
+    kb.innerHTML=`<div class="kb-grid kb-no-minus">
         <button class="kb-btn" data-key="7">7</button>
         <button class="kb-btn" data-key="8">8</button>
         <button class="kb-btn" data-key="9">9</button>
@@ -760,7 +759,7 @@ function injectSharedHTML() {
         <button class="kb-btn" data-key="4">4</button>
         <button class="kb-btn" data-key="5">5</button>
         <button class="kb-btn" data-key="6">6</button>
-        <button class="kb-btn kb-tab"   data-key="tab">TAB ⇥</button>
+        <button class="kb-btn kb-minus" data-key="-">−</button>
         <button class="kb-btn" data-key="1">1</button>
         <button class="kb-btn" data-key="2">2</button>
         <button class="kb-btn" data-key="3">3</button>
@@ -813,12 +812,17 @@ function initCustomKeyboard() {
                 if (_kbClearOnNext) { _kbActiveInput.value=''; _kbClearOnNext=false; _kbActiveInput.classList.remove('kb-selected'); }
                 else _kbActiveInput.value=_kbActiveInput.value.slice(0,-1);
             } else if (key==='enter') {
-                checkAnswers();
-            } else if (key==='tab') {
+                // Salt intel·ligent: si l'altre input està buit, hi salta; si tots plens, valida.
                 const ai=document.getElementById('area-input');
                 const pi=document.getElementById('perim-input');
-                const next=(_kbActiveInput===ai)?pi:ai;
-                if(next && next.dataset.locked!=='true') showCustomKeyboard(next);
+                const inputs=[ai,pi].filter(i=>i && i.dataset.locked!=='true');
+                const cur=_kbActiveInput;
+                const empty=inputs.find(i=>i!==cur && i.value.trim()==='');
+                if(cur && cur.value.trim()!=='' && empty){
+                    showCustomKeyboard(empty);
+                } else {
+                    checkAnswers();
+                }
             } else {
                 if (_kbClearOnNext) { _kbActiveInput.value=''; _kbClearOnNext=false; _kbActiveInput.classList.remove('kb-selected'); }
                 if (_kbActiveInput.value.length<2) _kbActiveInput.value+=key;
