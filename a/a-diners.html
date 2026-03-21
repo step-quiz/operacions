@@ -22,13 +22,13 @@
       · Paleta verda (coherent amb a-enters i a-equacions).
       · Botó Tutorial.
 
-    NIVELLS:
-      Nivell 1: 1 producte, preu rodó (1–4 €), bitllet de 5 €.
-                Resposta: enter.
-      Nivell 2: 1 producte, preu amb cèntims (X,50 €), bitllet de 5 €.
-                Resposta: decimal (ex: 2,50). Teclat custom amb coma.
-      Nivell 3: 2 productes, preus rodons, bitllet de 10 €.
-                Dos passos: total → canvi. Respostes: enters.
+    NIVELLS (tots treballen amb decimals):
+      Nivell 1: 1 producte, preu = enter + UNA sola moneda (0,10 / 0,20 / 0,50).
+                Ex: 2,50 €, 3,10 €, 1,20 €. Bitllet de 5 €.
+      Nivell 2: 1 producte, cèntims variats (múltiples de 0,10).
+                Ex: 1,30 €, 2,70 €, 4,40 €. Bitllet de 5 € o 10 €.
+      Nivell 3: 2 productes, cèntims variats, bitllet de 10 €.
+                Dos passos: suma decimals → canvi decimals.
 
     PARÀMETRES URL ESPECÍFICS:
       ?nivell=1|2|3       (default 1)
@@ -476,9 +476,9 @@
 const _aParams = new URLSearchParams(window.location.search);
 
 /**
- * ?nivell=1  1 producte, preu rodó, bitllet 5 €
- * ?nivell=2  1 producte, preu X,50, bitllet 5 €   (default)
- * ?nivell=3  2 productes, preus rodons, bitllet 10 €, dos passos
+ * ?nivell=1  1 producte, preu = enter + 1 moneda (0,10/0,20/0,50), bitllet 5 €
+ * ?nivell=2  1 producte, cèntims variats (×0,10), bitllet 5 € o 10 €  (default)
+ * ?nivell=3  2 productes, cèntims variats, bitllet 10 €, dos passos
  */
 const NIVELL = getIntParam(_aParams, 'nivell', 1, 1, 3);
 
@@ -556,29 +556,37 @@ function pickTwoDifferent() {
 
 function generateProblem() {
     if (NIVELL === 1) {
-        // 1 producte, preu rodó 1–4 €, bitllet 5 €
+        // 1 producte, preu = enter [1..4] + UNA sola moneda (0,10 / 0,20 / 0,50)
+        // Ex: 1,50 €, 2,10 €, 3,20 €.  Bitllet 5 €.
         const prod  = pickProduct();
-        prod.price  = randInt(1, 4);
-        const bill  = 5;
-        return { products: [prod], bill, total: prod.price, change: bill - prod.price };
-    }
-
-    if (NIVELL === 2) {
-        // 1 producte, preu en passos de 0,50 € (0,50–4,50), bitllet 5 €
-        const prod  = pickProduct();
-        prod.price  = randInt(1, 9) * 0.5;   // 0.50, 1.00, ..., 4.50
-        const bill  = 5;
+        const euros = randInt(1, 4);
+        const cents = pick([0.10, 0.20, 0.50]);
+        prod.price  = Math.round((euros + cents) * 100) / 100;
+        const bill   = 5;
         const change = Math.round((bill - prod.price) * 100) / 100;
         return { products: [prod], bill, total: prod.price, change };
     }
 
-    // Nivell 3: 2 productes, preus rodons 1–4 €, bitllet 10 €
+    if (NIVELL === 2) {
+        // 1 producte, cèntims variats (múltiples de 0,10): 1,10 – 4,90 €
+        // Bitllet 5 € o 10 € (10 € si el preu > 4,50)
+        const prod  = pickProduct();
+        const total10 = randInt(11, 49);               // 11..49 dècimes → 1,10..4,90
+        prod.price  = Math.round(total10 * 10) / 100;  // ex: 23 → 2,30
+        const bill   = prod.price > 4.50 ? 10 : 5;
+        const change = Math.round((bill - prod.price) * 100) / 100;
+        return { products: [prod], bill, total: prod.price, change };
+    }
+
+    // Nivell 3: 2 productes, cèntims variats (×0,10), bitllet 10 €
+    // Total sempre < 10 € perquè el canvi sigui positiu
     const [p1, p2] = pickTwoDifferent();
-    p1.price = randInt(1, 4);
-    p2.price = randInt(1, 4);
-    const total  = p1.price + p2.price;
+    p1.price = Math.round(randInt(11, 40) * 10) / 100;  // 1,10..4,00
+    p2.price = Math.round(randInt(11, 40) * 10) / 100;  // 1,10..4,00
+    const total  = Math.round((p1.price + p2.price) * 100) / 100;
     const bill   = 10;
-    return { products: [p1, p2], bill, total, change: bill - total };
+    const change = Math.round((bill - total) * 100) / 100;
+    return { products: [p1, p2], bill, total, change };
 }
 
 // ============================================================
@@ -586,19 +594,18 @@ function generateProblem() {
 // ============================================================
 
 /**
- * Formata un import.
- *   fmtMoney(3)      → "3 €"
- *   fmtMoney(2.5)    → "2,50 €"
- *   fmtMoney(3, true)→ "3,00 €"  (forçar decimals per al nivell 2)
+ * Formata un import amb cèntims.
+ *   fmtMoney(3)    → "3,00 €"
+ *   fmtMoney(2.5)  → "2,50 €"
+ *   fmtMoney(1.1)  → "1,10 €"
  */
-function fmtMoney(n, forceDecimals) {
-    if (!forceDecimals && n === Math.floor(n)) return n + ' €';
+function fmtMoney(n) {
     return n.toFixed(2).replace('.', ',') + ' €';
 }
 
 /** Formata per mostrar dins la targeta de producte. */
 function fmtPrice(n) {
-    return fmtMoney(n, NIVELL === 2);
+    return fmtMoney(n);
 }
 
 /**
@@ -697,13 +704,13 @@ function buildCoinSVG(bill, spent) {
     return s.join('');
 }
 
-/** Retorna true si el SVG de monedes té sentit per a l'estat actual. */
+/**
+ * Nota: l'SVG de monedes enteres s'ha desactivat perquè tots els nivells
+ * treballen amb decimals. Es manté buildCoinSVG() per si es vol reactivar
+ * en una futura ampliació amb monedes fraccionàries.
+ */
 function canShowCoinSVG() {
-    // Només per a imports enters (nivells 1 i 3)
-    if (NIVELL === 2) return false;
-    // Pas 1 del nivell 3 (suma) → no aplica el SVG de monedes
-    if (NIVELL === 3 && currentStep === 1) return false;
-    return true;
+    return false;
 }
 
 // ============================================================
@@ -715,14 +722,13 @@ function getHelpText() {
 
     // Nivell 3, pas 1: suma de preus
     if (NIVELL === 3 && currentStep === 1) {
-        return `🪙 ${p.products[0].nom}: ${p.products[0].price} €. `
-             + `${p.products[1].nom}: ${p.products[1].price} €. `
+        return `🪙 ${p.products[0].nom}: ${fmtMoney(p.products[0].price)}. `
+             + `${p.products[1].nom}: ${fmtMoney(p.products[1].price)}. `
              + `Quant és tot junt?`;
     }
 
-    // Canvi (nivells 1, 2 i pas 2 del 3)
-    const spent = (NIVELL === 2) ? fmtMoney(p.total, true) : p.total + ' €';
-    return `🪙 Tens ${p.bill} €. Gastes ${spent}. Quant et queda?`;
+    // Canvi (tots els nivells, i pas 2 del nivell 3)
+    return `🪙 Tens ${fmtMoney(p.bill)}. Gastes ${fmtMoney(p.total)}. Quant et queda?`;
 }
 
 function toggleHelp() {
@@ -813,7 +819,7 @@ function advanceToStep2() {
     expectedAnswer = currentProblem.change;
 
     // Indicador del pas 1 completat
-    els.stepDone.textContent    = `✅ Total: ${currentProblem.total} €`;
+    els.stepDone.textContent    = `✅ Total: ${fmtMoney(currentProblem.total)}`;
     els.stepDone.style.display  = 'block';
 
     // Nova pregunta
@@ -893,7 +899,7 @@ function penalize() {
         if (attemptsLeft <= 0) {
             isTransitioning = true;
             hideCustomKeyboard();
-            const fmtAns = (NIVELL === 2) ? fmtMoney(expectedAnswer, true) : fmtMoney(expectedAnswer);
+            const fmtAns = fmtMoney(expectedAnswer);
             els.answerCorrectVal.textContent = fmtAns;
             els.answerReveal.classList.add('visible');
             setTimeout(() => finishOperation(false), 2400);
@@ -951,19 +957,15 @@ document.getElementById('btn-tutorial').addEventListener('click', () => {
 injectSharedHTML();
 validateConfig();
 
-// Nivell 2: el teclat custom necessita una tecla de coma.
-// Aprofitem l'espai del botó '−' (que no cal per a diners)
-// transformant-lo en una tecla ','.
-if (NIVELL === 2) {
-    initCustomKeyboard({ allowNegative: true });  // mantenim el botó visible
-    const minusBtn = document.querySelector('.kb-btn.kb-minus');
-    if (minusBtn) {
-        minusBtn.dataset.key = ',';
-        minusBtn.textContent = ',';
-        minusBtn.classList.remove('kb-minus');
-    }
-} else {
-    initCustomKeyboard({ allowNegative: false });
+// Tots els nivells treballen amb decimals → el teclat custom
+// necessita una tecla de coma. Aprofitem l'espai del botó '−'
+// (que no cal per a diners) transformant-lo en una tecla ','.
+initCustomKeyboard({ allowNegative: true });   // mantenim el botó visible
+const minusBtn = document.querySelector('.kb-btn.kb-minus');
+if (minusBtn) {
+    minusBtn.dataset.key = ',';
+    minusBtn.textContent = ',';
+    minusBtn.classList.remove('kb-minus');
 }
 
 startGame();
