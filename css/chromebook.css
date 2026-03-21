@@ -1,15 +1,15 @@
 /*
 ============================================================================
 FITXER: css/chromebook.css
-ROL: Adaptacions per a Chromebook Lenovo 300e (11,6", 1366×768, tàctil, 4 GB).
+ROL: Adaptacions per a Chromebooks i dispositius tàctils amb pantalla ≥ 1024px.
 CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
 ============================================================================
 */
 
 /* ================================================================
-   1. AJUSTOS GLOBALS — Chromebook 11,6" (1024–1400px, tàctil)
+   1. AJUSTOS GLOBALS — Chromebooks i dispositius tàctils ≥ 1024px
    ================================================================ */
-@media (min-width: 1024px) and (max-width: 1400px) and (any-pointer: coarse) {
+@media (min-width: 1024px) and (any-pointer: coarse) {
 
     body {
         padding: 12px 16px;
@@ -207,7 +207,7 @@ CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
 /* ================================================================
    2. INDEX — touch targets dels dropdowns i botons
    ================================================================ */
-@media (min-width: 1024px) and (max-width: 1400px) and (any-pointer: coarse) {
+@media (min-width: 1024px) and (any-pointer: coarse) {
     .cd-trigger {
         min-height: 40px;
     }
@@ -224,7 +224,7 @@ CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
 /* ================================================================
    3. LANDSCAPE CHROMEBOOK — teclat sempre a sota, mai al costat
    ================================================================ */
-@media (min-width: 1024px) and (max-width: 1400px) and (any-pointer: coarse) {
+@media (min-width: 1024px) and (any-pointer: coarse) {
     .panel {
         display: block !important;
         flex-direction: column !important;
