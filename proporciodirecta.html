@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>Proporcionalitat directa</title>
+
+    <!--
+    ============================================================
+    FITXER: proporciodirecta.html
+    ROL: Activitat de proporcionalitat directa per reducció a la
+         unitat. Versió estàndard (sense adaptació NEE).
+
+    FILOSOFIA PEDAGÒGICA:
+      - Sempre per reducció a la unitat. Mai regla de tres.
+      - Tots els nombres enters (preu unitari, totals, respostes).
+      - La divisió sempre és exacta.
+
+    NIVELLS (via ?nivell=):
+      Nivell 1: Múltiple directe (1 pas): casos 1→N, N→1, N→kN, kN→N.
+                Nombres petits (preu unitari 1–6, quantitats 2–8).
+      Nivell 2: Reducció a la unitat (2 passos).
+                Nombres petits (preu unitari 1–6, quantitats 2–8).
+      Nivell 3: Reducció a la unitat (2 passos).
+                Nombres més grans (preu unitari 2–12, quantitats 2–12).
+
+    PARÀMETRES URL COMPARTITS (via config.js):
+      ?totalsessions=N    (default 1)
+      ?totaloperations=N  (default 6)
+      ?maxintents=N       (default 3)
+      ?maxenllocmitjana=  (default 1)
+
+    DEPENDÈNCIES: utils.js → config.js → game-core.js
+    ============================================================
+    -->
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    6,
+            defaultIntents:       3,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        :root {
+            --bg-color:      #f8fafc;
+            --primary:       #0369a1;
+            --primary-light: #e0f2fe;
+            --primary-hover: #2563eb;
+        }
+
+        /* ── ZONA DEL PROBLEMA ───────────────────────────────── */
+        .problem-display {
+            padding: 24px 20px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .problem-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.6em;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            flex-wrap: wrap;
+        }
+
+        .row-label {
+            font-size: 0.55em;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .problem-emoji { font-size: 1.1em; line-height: 1; }
+
+        .problem-qty {
+            padding: 6px 14px;
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            color: #334155;
+        }
+
+        .problem-arrow { color: #94a3b8; font-size: 0.85em; }
+
+        .problem-price {
+            padding: 6px 14px;
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 10px;
+            color: #166534;
+        }
+
+        .problem-unknown {
+            padding: 6px 14px;
+            background: var(--primary-light);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            color: #0c4a6e;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Fila intermèdia (preu unitari resolt al pas 2) */
+        .problem-unit-row {
+            color: #059669;
+            font-size: 1em;
+        }
+        .problem-unit-qty {
+            padding: 5px 12px;
+            background: #dcfce7;
+            border: 2px solid #bbf7d0;
+            border-radius: 9px;
+        }
+
+        /* ── PANELL DE RESOLUCIÓ ─────────────────────────────── */
+        .resolution-panel {
+            background: var(--bg-color);
+            border-top: 1px solid var(--border-color);
+            padding: 24px 20px 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .step-done {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.05em;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step-prompt {
+            font-size: 1.15em;
+            font-weight: 700;
+            color: #334155;
+            text-align: center;
+        }
+
+        /* ── INPUT + OK + FEEDBACK (una sola fila) ───────────── */
+        .answer-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.8em;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+
+        input[type="text"]#value-input {
+            width: 120px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85em;
+            font-weight: bold;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid var(--border-heavy);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        input[type="text"]#value-input:focus {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        input[type="text"]#value-input.error-val {
+            border-color: var(--danger) !important;
+            background: #fef2f2 !important;
+            color: var(--danger);
+        }
+
+        .answer-unit {
+            color: var(--text-muted);
+            font-size: 0.7em;
+        }
+
+        /* Feedback inline ⭐/❌ */
+        #inline-feedback {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.55em;
+            font-weight: 700;
+            white-space: nowrap;
+            animation: fadeIn 0.2s ease;
+        }
+        #inline-feedback.visible { display: flex; }
+        #inline-feedback.success { color: var(--success); }
+        #inline-feedback.failure { color: var(--danger); }
+
+        /* Missatge pedagògic */
+        #step-hint {
+            min-height: 1.4em;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #92400e;
+            background: #fffbeb;
+            border: 1.5px solid #fde68a;
+            border-radius: 8px;
+            padding: 6px 14px;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        #step-hint.visible { display: block; }
+
+        /* ── BOTÓ "PASSAR AL NIVELL X" ───────────────────────── */
+        #btn-next-level {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            font-size: 0.85em;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-light);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s, transform 0.1s;
+            touch-action: manipulation;
+        }
+        #btn-next-level.visible { display: inline-flex; }
+        @media (hover: hover) {
+            #btn-next-level:hover { background: #bae6fd; }
+        }
+        #btn-next-level:active { transform: scale(0.96); }
+
+        /* ── RESPONSIU ────────────────────────────────────────── */
+        @media (max-width: 480px) {
+            .problem-display  { padding: 16px 12px 12px; gap: 10px; }
+            .problem-row      { font-size: 1.3em; gap: 8px; }
+            .problem-qty,
+            .problem-price,
+            .problem-unknown  { padding: 5px 10px; }
+            .answer-row       { font-size: 1.5em; }
+            input[type="text"]#value-input { width: 100px; padding: 8px; }
+            .resolution-panel { padding: 16px 14px 18px; gap: 12px; }
+            .step-prompt      { font-size: 1.05em; }
+            #btn-next-level   { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 350px) {
+            .problem-row { font-size: 1.1em; }
+        }
+    </style>
+    <link rel="stylesheet" href="css/chromebook.css">
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Proporcionalitat directa</h1>
+</div>
+
+<div class="panel" id="main-panel">
+    <div id="game-screen" style="display:none;">
+
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Problema 1 de 6</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <!-- Botó per pujar de nivell (mai baixar) -->
+            <button id="btn-next-level" aria-label="Passar al nivell següent"></button>
+            <div id="attempts-display" class="attempts-counter">Intents: 3</div>
+        </div>
+
+        <!-- Zona del problema -->
+        <div class="problem-display" id="problem-display"></div>
+
+        <!-- Panell de resolució -->
+        <div class="resolution-panel" id="resolution-panel">
+
+            <div id="steps-done"></div>
+
+            <div class="step-prompt" id="step-prompt"></div>
+
+            <!-- Input + € + OK + feedback en una sola fila -->
+            <div class="answer-row" id="answer-row">
+                <input type="text" id="value-input" autocomplete="off"
+                       aria-label="Escriu la resposta">
+                <span class="answer-unit">€</span>
+                <button class="btn-submit" id="btn-submit-val" onclick="checkValue()">OK</button>
+                <div id="inline-feedback" aria-live="assertive"></div>
+            </div>
+
+            <!-- Missatge pedagògic d'error -->
+            <div id="step-hint" aria-live="polite"></div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="js/game-core.js"></script>
+
+<script>
+'use strict';
+
+// ============================================================
+// PARÀMETRES URL
+// ============================================================
+
+const _urlParams = new URLSearchParams(window.location.search);
+
+/**
+ * Nivell 1: múltiple directe, 1 pas (default)
+ * Nivell 2: reducció a la unitat, 2 passos, nombres petits
+ * Nivell 3: reducció a la unitat, 2 passos, nombres grans
+ */
+const NIVELL = getIntParam(_urlParams, 'nivell', 1, 1, 3);
+
+// ============================================================
+// ELEMENTS DOM
+// ============================================================
+
+const els = {
+    body:            document.body,
+    gameScreen:      document.getElementById('game-screen'),
+    sessionDisplay:  document.getElementById('session-display'),
+    lvlDisplay:      document.getElementById('lvl-display'),
+    scoreDisplay:    document.getElementById('score-display'),
+    attemptsDisplay: document.getElementById('attempts-display'),
+    problemDisplay:  document.getElementById('problem-display'),
+    resolutionPanel: document.getElementById('resolution-panel'),
+    stepsDone:       document.getElementById('steps-done'),
+    stepPrompt:      document.getElementById('step-prompt'),
+    answerRow:       document.getElementById('answer-row'),
+    valueInput:      document.getElementById('value-input'),
+    btnSubmitVal:    document.getElementById('btn-submit-val'),
+    inlineFeedback:  document.getElementById('inline-feedback'),
+    btnNextLevel:    document.getElementById('btn-next-level'),
+    stepHint:        document.getElementById('step-hint'),
+};
+
+// ============================================================
+// ESTAT LOCAL
+// ============================================================
+
+let isPenalizing   = false;
+let currentProblem = null;
+let expectedAnswer = 0;
+let currentStep    = 1;    // 1 o 2
+let stepsDoneList  = [];
+
+// ============================================================
+// PRODUCTES
+// ============================================================
+
+const PRODUCTS = [
+    { emoji: '🍞', nom: 'pa',        noms: 'pans' },
+    { emoji: '🥛', nom: 'llet',      noms: 'llets' },
+    { emoji: '🍎', nom: 'poma',      noms: 'pomes' },
+    { emoji: '✏️', nom: 'llapis',    noms: 'llapis' },
+    { emoji: '📓', nom: 'llibreta',  noms: 'llibretes' },
+    { emoji: '🍫', nom: 'xocolata',  noms: 'xocolates' },
+    { emoji: '💧', nom: 'ampolla',   noms: 'ampolles' },
+    { emoji: '🧃', nom: 'suc',       noms: 'sucs' },
+    { emoji: '🥐', nom: 'croissant', noms: 'croissants' },
+    { emoji: '🍌', nom: 'plàtan',    noms: 'plàtans' },
+    { emoji: '🍪', nom: 'galeta',    noms: 'galetes' },
+    { emoji: '🥪', nom: 'entrepà',   noms: 'entrepans' },
+    { emoji: '🍕', nom: 'pizza',     noms: 'pizzes' },
+    { emoji: '🥤', nom: 'refresc',   noms: 'refrescs' },
+    { emoji: '🖊️', nom: 'boli',     noms: 'bolis' },
+    { emoji: '🧁', nom: 'magdalena', noms: 'magdalenes' },
+    { emoji: '🍇', nom: 'raïm',      noms: 'raïms' },
+    { emoji: '🥜', nom: 'cacauet',   noms: 'cacauets' },
+];
+
+function pickProduct() { return { ...pick(PRODUCTS) }; }
+
+function productName(prod, qty) {
+    return qty === 1 ? prod.nom : prod.noms;
+}
+
+// ============================================================
+// GENERACIÓ DE PROBLEMES
+// ============================================================
+
+function generateProblem() {
+    const prod = pickProduct();
+
+    if (NIVELL === 1) {
+        // 1 pas: múltiple directe. 4 casos equiprobables.
+        const cas       = pick(['1toN', 'Nto1', 'NtokN', 'kNtoN']);
+        const unitPrice = randInt(1, 6);
+
+        if (cas === '1toN') {
+            const askQty = randInt(2, 8);
+            return {
+                prod, cas, unitPrice, twoStep: false,
+                givenQty: 1, givenPrice: unitPrice,
+                askQty,     answer: unitPrice * askQty,
+            };
+        }
+        if (cas === 'Nto1') {
+            const givenQty = randInt(2, 8);
+            return {
+                prod, cas, unitPrice, twoStep: false,
+                givenQty, givenPrice: unitPrice * givenQty,
+                askQty: 1, answer: unitPrice,
+            };
+        }
+        if (cas === 'NtokN') {
+            const givenQty   = randInt(2, 4);
+            const multiplier = randInt(2, 4);
+            const askQty     = givenQty * multiplier;
+            return {
+                prod, cas, unitPrice, multiplier, twoStep: false,
+                givenQty, givenPrice: unitPrice * givenQty,
+                askQty,   answer: unitPrice * askQty,
+            };
+        }
+        // kNtoN
+        const askQty     = randInt(2, 4);
+        const multiplier = randInt(2, 4);
+        const givenQty   = askQty * multiplier;
+        return {
+            prod, cas, unitPrice, multiplier, twoStep: false,
+            givenQty, givenPrice: unitPrice * givenQty,
+            askQty,   answer: unitPrice * askQty,
+        };
+    }
+
+    // Nivells 2 i 3: reducció a la unitat obligatòria (2 passos).
+    // askQty no és múltiple de givenQty ni a l'inrevés.
+    const big       = (NIVELL === 3);
+    const unitPrice = big ? randInt(2, 12) : randInt(1, 6);
+    const givenQty  = big ? randInt(2, 12) : randInt(2, 8);
+
+    let askQty;
+    do {
+        askQty = big ? randInt(2, 12) : randInt(2, 8);
+    } while (
+        askQty === givenQty ||
+        askQty % givenQty === 0 ||
+        givenQty % askQty === 0
+    );
+
+    return {
+        prod, unitPrice, twoStep: true,
+        givenQty,  givenPrice: unitPrice * givenQty,
+        askQty,    step1Answer: unitPrice,
+                   step2Answer: unitPrice * askQty,
+    };
+}
+
+// ============================================================
+// RENDERITZACIÓ DEL PROBLEMA
+// ============================================================
+
+function renderProblem(p, showUnitRow = false) {
+    const e         = p.prod.emoji;
+    const givenName = productName(p.prod, p.givenQty);
+    const askName   = productName(p.prod, p.askQty);
+
+    let html = `<div class="problem-row">
+        <span class="row-label">Dada:</span>
+        <span class="problem-emoji">${e}</span>
+        <span class="problem-qty">${p.givenQty} ${givenName}</span>
+        <span class="problem-arrow">→</span>
+        <span class="problem-price">${p.givenPrice} €</span>
+    </div>`;
+
+    if (showUnitRow) {
+        html += `<div class="problem-row problem-unit-row">
+            <span class="problem-emoji">${e}</span>
+            <span class="problem-unit-qty">1 ${p.prod.nom}</span>
+            <span class="problem-arrow">→</span>
+            <span class="problem-price">${p.unitPrice} €</span>
+        </div>`;
+    }
+
+    html += `<div class="problem-row">
+        <span class="row-label">Busca:</span>
+        <span class="problem-emoji">${e}</span>
+        <span class="problem-qty">${p.askQty} ${askName}</span>
+        <span class="problem-arrow">→</span>
+        <span class="problem-unknown">? €</span>
+    </div>`;
+
+    return html;
+}
+
+// ============================================================
+// GESTIÓ DE PASSOS
+// ============================================================
+
+function getStepPrompt() {
+    const p       = currentProblem;
+    const askName = productName(p.prod, p.askQty);
+
+    if (!p.twoStep) {
+        if (p.askQty === 1) return `Quant costa 1 ${p.prod.nom}?`;
+        return `Quant costen ${p.askQty} ${askName}?`;
+    }
+    if (currentStep === 1) return `Quant costa 1 ${p.prod.nom}?`;
+    return `Quant costen ${p.askQty} ${askName}?`;
+}
+
+function buildQuestionText() {
+    const p       = currentProblem;
+    const givName = productName(p.prod, p.givenQty);
+    const askName = productName(p.prod, p.askQty);
+    if (!p.twoStep) {
+        return `${p.prod.emoji} ${p.givenQty} ${givName}→${p.givenPrice} €, ${p.askQty} ${askName}→?`;
+    }
+    if (currentStep === 1) {
+        return `${p.prod.emoji} ${p.givenQty} ${givName}→${p.givenPrice} €, 1→?`;
+    }
+    return `${p.prod.emoji} 1→${p.unitPrice} €, ${p.askQty} ${askName}→?`;
+}
+
+// ============================================================
+// COMPROVACIÓ DE RESPOSTES
+// ============================================================
+
+function checkValue() {
+    if (isTransitioning || isPenalizing) return;
+    const raw = els.valueInput.value.trim();
+    if (raw === '') return;
+
+    // Detectem punt decimal (no pertinent aquí, però consistent amb diners.html)
+    if (raw.includes('.')) {
+        showErrorInInput("Escriu un nombre enter, sense decimals.");
+        shakeBtn(els.btnSubmitVal);
+        return;
+    }
+
+    if (!/^\d+$/.test(raw)) { shakeBtn(els.btnSubmitVal); penalize(); return; }
+
+    const userAnswer = parseInt(raw, 10);
+    const question   = buildQuestionText();
+
+    if (userAnswer !== expectedAnswer) {
+        shakeBtn(els.btnSubmitVal);
+        recordAnswerToHistory(question, raw, false);
+        penalize();
+        if (isTouchDevice()) kbMarkForOverwrite(els.valueInput);
+        else { els.valueInput.value = ''; els.valueInput.focus(); }
+        return;
+    }
+
+    // Correcte
+    recordAnswerToHistory(question, raw, true);
+
+    if (currentProblem.twoStep && currentStep === 1) {
+        advanceStep(`✅ 1 ${currentProblem.prod.nom} → ${currentProblem.unitPrice} €`);
+        return;
+    }
+
+    hideCustomKeyboard();
+    finishOperation(true);
+}
+
+function advanceStep(doneText) {
+    stepsDoneList.push(doneText);
+    els.stepHint.textContent = '';
+    els.stepHint.classList.remove('visible');
+    els.valueInput.classList.remove('error-val');
+
+    currentStep    = 2;
+    expectedAnswer = currentProblem.step2Answer;
+
+    // Re-renderitza el problema amb la fila del preu unitari visible
+    els.problemDisplay.innerHTML = renderProblem(currentProblem, true);
+
+    // Mostra passos completats
+    els.stepsDone.innerHTML = stepsDoneList
+        .map(t => `<div class="step-done">${t}</div>`).join('');
+
+    els.stepPrompt.textContent = getStepPrompt();
+    els.valueInput.value = '';
+
+    if (isTouchDevice()) showCustomKeyboard(els.valueInput);
+    else                 els.valueInput.focus();
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+
+function shakeBtn(btn) {
+    btn.classList.add('error-shake');
+    setTimeout(() => btn.classList.remove('error-shake'), 200);
+}
+
+function showErrorInInput(msg) {
+    els.stepHint.textContent = msg;
+    els.stepHint.classList.add('visible');
+    els.valueInput.classList.add('error-val');
+    els.valueInput.select();
+    if (!isTouchDevice()) els.valueInput.focus();
+}
+
+els.valueInput.addEventListener('input', () => {
+    if (els.valueInput.classList.contains('error-val')) {
+        els.valueInput.classList.remove('error-val');
+    }
+});
+
+function updateHeader() {
+    els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText      = `Problema ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.attemptsDisplay.className = 'attempts-counter' +
+        (attemptsLeft <= 1 ? ' danger' : '');
+}
+
+// ============================================================
+// LÒGICA PRINCIPAL
+// ============================================================
+
+function buildLevel() {
+    attemptsLeft    = MAX_INTENTS;
+    isPenalizing    = false;
+    isTransitioning = false;
+    currentStep     = 1;
+    stepsDoneList   = [];
+
+    hideInlineFeedback();
+    els.stepHint.textContent = '';
+    els.stepHint.classList.remove('visible');
+    els.valueInput.classList.remove('error-val');
+
+    currentProblem = generateProblem();
+    expectedAnswer = currentProblem.twoStep
+        ? currentProblem.step1Answer
+        : currentProblem.answer;
+
+    els.body.style.backgroundColor =
+        bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+
+    els.stepsDone.innerHTML           = '';
+    els.resolutionPanel.style.display = 'none';
+
+    updateHeader();
+
+    els.problemDisplay.innerHTML = renderProblem(currentProblem, false);
+    els.stepPrompt.textContent   = getStepPrompt();
+    els.valueInput.value         = '';
+
+    els.resolutionPanel.style.display = 'flex';
+
+    if (isTouchDevice()) showCustomKeyboard(els.valueInput);
+    else                 els.valueInput.focus();
+}
+
+function penalize() {
+    if (isPenalizing || isTransitioning) return;
+    isPenalizing = true;
+
+    setTimeout(() => {
+        attemptsLeft--;
+        updateHeader();
+
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;
+            hideCustomKeyboard();
+
+            // Mostra la resposta correcta dins la box en verd
+            els.valueInput.value                 = String(expectedAnswer);
+            els.valueInput.style.borderColor     = 'var(--success)';
+            els.valueInput.style.background      = '#dcfce7';
+            els.valueInput.style.color           = '#166534';
+
+            finishOperation(false);
+        }
+
+        isPenalizing = false;
+    }, 400);
+}
+
+function showInlineFeedback(levelPoints) {
+    isTransitioning = true;
+    els.btnSubmitVal.disabled = true;
+    if (els.valueInput) els.valueInput.disabled = true;
+
+    const fb = els.inlineFeedback;
+    fb.classList.remove('success', 'failure', 'visible');
+
+    if (levelPoints > 0) {
+        fb.innerHTML = `⭐ Molt bé! <span style="opacity:0.75;font-size:0.9em">+${levelPoints}</span>`;
+        fb.classList.add('success', 'visible');
+    } else {
+        fb.innerHTML = '❌ Intents esgotats';
+        fb.classList.add('failure', 'visible');
+    }
+}
+
+function hideInlineFeedback() {
+    const fb = els.inlineFeedback;
+    fb.classList.remove('visible', 'success', 'failure');
+    fb.innerHTML = '';
+    els.btnSubmitVal.disabled = false;
+    if (els.valueInput) {
+        els.valueInput.disabled      = false;
+        els.valueInput.style.borderColor = '';
+        els.valueInput.style.background  = '';
+        els.valueInput.style.color       = '';
+    }
+}
+
+function finishOperation(success) {
+    const fails       = MAX_INTENTS - attemptsLeft;
+    const levelPoints = success ? Math.max(0, 10 - fails * 2) : 0;
+    sessionScore += levelPoints;
+
+    const waitTime = success ? 1200 : 2800;
+    showInlineFeedback(levelPoints);
+
+    setTimeout(() => {
+        hideInlineFeedback();
+        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+            endSession();
+        } else {
+            currentOperation++;
+            buildLevel();
+        }
+    }, waitTime);
+}
+
+// ── Teclat físic ────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (els.gameScreen.style.display      === 'none') return;
+    if (els.resolutionPanel.style.display === 'none') return;
+    e.preventDefault();
+    if (!isTransitioning) checkValue();
+});
+
+function checkCurrentCell() { checkValue(); }
+
+// ============================================================
+// INICI
+// ============================================================
+
+injectSharedHTML();
+validateConfig();
+initCustomKeyboard({ allowNegative: false });
+
+// Botó "Passar al nivell X" (fins a N2; N3 és el màxim)
+(function initNextLevelBtn() {
+    const btn = els.btnNextLevel;
+    if (!btn || NIVELL >= 3) return;
+
+    btn.textContent = `Passar al nivell ${NIVELL + 1} ›`;
+    btn.classList.add('visible');
+
+    btn.addEventListener('click', () => {
+        const params = new URLSearchParams(window.location.search);
+        params.set('nivell', NIVELL + 1);
+        window.location.search = params.toString();
+    });
+})();
+
+startGame();
+</script>
+</body>
+</html>
