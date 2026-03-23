@@ -35,13 +35,17 @@
 
     * { box-sizing: border-box; }
 
+    html { overflow: hidden; }
+    @media (max-height: 600px) { html { overflow: auto; } }
     body {
       margin: 0;
       background: var(--bg-body);
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       color: var(--text-main);
       padding: 10px;
+      padding-bottom: 75px;
       min-height: 100vh;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -315,10 +319,36 @@
     </span>
   </footer>
 
-  <div style="height: 70px;"></div>
+  <a href="../index.html" title="Step Quiz" aria-label="Step Quiz" class="bottom-icon"
+     style="position: fixed; bottom: 65px; left: 14px; z-index: 10000;
+            width: 48px; height: 48px; border-radius: 50%;
+            background: #eceee0; border: 2px solid #b8be8a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.75; transition: opacity 0.2s, transform 0.2s;"
+     onmouseover="this.style.opacity='1'; this.style.transform='scale(1.1)'"
+     onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
+    <img src="icon-green.png" alt="Step Quiz"
+         style="width: 32px; height: 32px; object-fit: contain;"
+         onerror="this.style.display='none'">
+  </a>
 
-  <a href="../analitzador-stepquiz.html" title="Analitzador de resultats" aria-label="Analitzador de resultats"
-     style="position: fixed; bottom: 14px; right: 14px; z-index: 10000;
+  <a href="https://cb.step-quiz.net/" title="CB Step Quiz" aria-label="CB Step Quiz" class="bottom-icon"
+     style="position: fixed; bottom: 65px; left: 72px; z-index: 10000;
+            width: 48px; height: 48px; border-radius: 50%;
+            background: #e2e8f0; border: 2px solid #b8be8a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.75; transition: opacity 0.2s, transform 0.2s;
+            font-size: 14px; font-weight: 800; color: #000000;
+            text-decoration: none; letter-spacing: 0.5px;"
+     onmouseover="this.style.opacity='1'; this.style.transform='scale(1.1)'"
+     onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
+    CB
+  </a>
+
+  <a href="../analitzador-stepquiz.html" title="Analitzador de resultats" aria-label="Analitzador de resultats" class="bottom-icon"
+     style="position: fixed; bottom: 65px; left: 130px; z-index: 10000;
             width: 48px; height: 48px; border-radius: 50%;
             background: #eceee0; border: 2px solid #b8be8a;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
