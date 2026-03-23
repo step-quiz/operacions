@@ -306,7 +306,11 @@ function parseCode(raw){
     const ltr=p[0][0],salt=p[0].slice(1),dd=+p[1].slice(0,2),mm=+p[1].slice(2,4),hh=+p[2].slice(0,2),mn=+p[2].slice(2,4);
     const nota=parseFloat(p[3].replace(',','.')),ni=Math.round(nota*100),ok=chk(ltr,salt,dd,mm,hh,mn,ni);
     const res=p[p.length-2];
+    // Decodifica salt: pos0='s'->2n ESO,'q'->4t ESO; pos1-2=any
+    const cbNivell = salt[0]==='q'?'4t ESO':salt[0]==='s'?'2n ESO':null;
+    const cbAny    = (salt[1]&&salt[2]&&/^\d{2}$/.test(salt[1]+salt[2])) ? '20'+salt[1]+salt[2] : null;
     return{format:'v1-cb',valid:ok,checksumOk:ok,exercise:'cb',exerciseCode:'CB',
+      cbNivell,cbAny,
       note:nota,difficulty:0,sessions:null,questions:null,day:dd,month:mm,hour:hh,minute:mn,
       results:res,resultsArray:res.split('').map(Number),error:ok?null:'Checksum invàlid'};}
   if(p.length>=5&&/^[A-Z][a-z]{3}$/.test(p[0])&&/^\d{4}$/.test(p[1])&&/^\d{4}$/.test(p[2])){
@@ -373,6 +377,8 @@ function renderDet(row){
     {k:'Validació',v:p.checksumOk?'✅ OK':'❌ KO'},
     {k:'Nota',v:p.note!==null?p.note.toFixed(2).replace('.',','):'—'}];
   items.push({k:'Activitat',v:p.exercise||p.exerciseCode||'—'});
+  if(p.cbNivell) items.push({k:'Nivell',v:p.cbNivell});
+  if(p.cbAny)    items.push({k:'Any prova',v:p.cbAny});
   if(p.format==='v2'){
     items.push({k:'Dificultat',v:p.difficulty===0?'—':`Nivell ${p.difficulty}`});
     items.push({k:'Sessions',v:String(p.sessions)});
@@ -566,7 +572,7 @@ function openCB() {
     <div class="cb-li"><div class="cb-ld" style="background:var(--r3)"></div>3r+ intents</div>
     <div class="cb-li"><div class="cb-ld" style="background:var(--r4)"></div>Fallit</div>
   </div>
-  <p class="cb-section-title">Resum per pregunta — ${cbRows.length} alumnes · ${dateLabel}</p>
+  <p class="cb-section-title">Resum per pregunta — ${cbRows.length} alumnes · ${dateLabel}${cbNivellLabel}${cbAnyLabel}</p>
   <div class="cb-summary-grid">`;
 
   const BAR_H = 60; // total bar height px
@@ -612,7 +618,10 @@ function openCB() {
 
   summaryHtml += `</tbody></table></div>`;
 
-  document.getElementById('cb-modal-title').textContent = `Resum CB — ${dateLabel}`;
+  const firstRow = cbRows[0];
+  const cbNivellLabel = firstRow && firstRow.parsed.cbNivell ? ` · ${firstRow.parsed.cbNivell}` : '';
+  const cbAnyLabel    = firstRow && firstRow.parsed.cbAny    ? ` · ${firstRow.parsed.cbAny}`    : '';
+  document.getElementById('cb-modal-title').textContent = `Resum CB — ${dateLabel}${cbNivellLabel}${cbAnyLabel}`;
   document.getElementById('cb-modal-body').innerHTML = summaryHtml;
   document.getElementById('cb-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
