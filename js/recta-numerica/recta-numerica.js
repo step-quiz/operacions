@@ -272,6 +272,21 @@ function _showFeedback(text, type) {
 }
 
 // ============================================================================
+// FIX LOCAL: scroll de l'informe final
+// Sobrescriu showHistorySummary() de game-core.js per forçar scroll al .panel
+// d'aquest joc. game-core.js no es modifica per no afectar els altres jocs.
+// ============================================================================
+const _origShowHistory = showHistorySummary;
+window.showHistorySummary = function () {
+    _origShowHistory();
+    const panel = document.querySelector('.panel');
+    if (panel) {
+        panel.style.overflowY = 'auto';
+        panel.style.maxHeight = '100vh';
+    }
+};
+
+// ============================================================================
 // INICIALITZACIÓ
 // ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
