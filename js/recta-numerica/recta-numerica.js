@@ -209,6 +209,7 @@ function checkAnswer(opt, btn) {
         els.scoreDisplay.textContent = `Punts: ${sessionScore}`;
 
         recordAnswerToHistory(challengeData.prompt, opt.text, true);
+        recordResult(attemptsLeft === MAX_INTENTS ? 1 : 2);
         _finishQuestion(pts);
 
     } else {
@@ -220,6 +221,7 @@ function checkAnswer(opt, btn) {
             isAnswered = true;
             recordAnswerToHistory(challengeData.prompt, '—', false);
 
+            recordResult(4);
             _disableAllButtons();
 
             // Revela la resposta correcta

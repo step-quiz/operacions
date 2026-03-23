@@ -396,6 +396,7 @@
     }
 
     function _finishOp(levelPoints) {
+        recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
         if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
         const waitTime = showMiniOverlay(levelPoints);
         setTimeout(() => {

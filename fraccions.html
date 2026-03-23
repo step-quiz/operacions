@@ -869,6 +869,7 @@ function finishSuccess() {
     }
 
     function triggerMiniVictory(isSuccess, points) {
+        recordResult(isSuccess ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
         isTransitioning = true;
         hideCustomKeyboard();
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));

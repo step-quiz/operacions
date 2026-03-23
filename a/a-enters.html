@@ -739,6 +739,7 @@ function penalize() {
 }
 
 function finishOperation(success) {
+    recordResult(success ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
     const fails       = MAX_INTENTS - attemptsLeft;
     const levelPoints = success ? Math.max(0, 10 - fails * 2) : 0;
     sessionScore += levelPoints;

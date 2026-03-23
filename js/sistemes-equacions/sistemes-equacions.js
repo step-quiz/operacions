@@ -1277,6 +1277,7 @@ function penalize() { /* Desactivat en aquesta activitat */ }
 
 function finalizeProblem(forcedPoints) {
     if (forcedPoints === undefined) forcedPoints = null;
+    recordResult(forcedPoints === 0 ? 4 : Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
     isTransitioning = true;
     hideCustomKeyboard();
     els.currentStep.classList.remove('active');

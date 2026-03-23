@@ -349,6 +349,7 @@
     }
 
     function finishExercise(levelPoints) {
+        recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
         isTransitioning = true;
         hideCustomKeyboard(); // [CANVI 5] Tanca el teclat custom en finalitzar
         els.resolutionPanel.style.display = 'none';

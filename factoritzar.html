@@ -574,6 +574,7 @@ function showFactorInput() {
 
 // ---- FINALITZAR EXERCICI ----
     function finishExercise(levelPoints) {
+        recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
         isTransitioning = true;
         if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
         els.resolutionPanel.style.display = 'none';
