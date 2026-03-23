@@ -58,7 +58,7 @@ const EXERCISE_CODES = {
     'area-perimetre':     'AP',
     'pla-cartesia':       'PC',
     'proporciodirecta':   'PR',
-    'diners':             'DI',
+    'decimals':             'DI',
     'vocabulari':         'VO',
     // Batxillerat
     'complexos':                 'CX',
