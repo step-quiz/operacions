@@ -104,14 +104,18 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 
 /* DETAIL */
 .det-row td { padding:0; white-space:normal; overflow:visible; }
-.det-panel { padding:13px 16px; background:#f8faff; border-top:1px solid #dbeafe; }
+.det-panel { padding:13px 16px 13px 52px; background:#f8faff; border-top:1px solid #dbeafe; position:relative; }
+.collapse-btn { position:absolute; left:12px; top:13px; width:28px; height:28px; border-radius:5px; background:#1e293b; color:#fff; border:none; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; opacity:.85; transition:opacity .15s; flex-shrink:0; }
+.collapse-btn:hover { opacity:1; }
 .det-grid { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:11px; }
-.det-item { background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:8px 11px; min-width:110px; }
+.det-item { background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:8px 11px; display:inline-flex; flex-direction:column; white-space:nowrap; }
 .det-item .dk { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:3px; }
 .det-item .dv { font-size:13px; font-weight:700; font-family:monospace; }
 .det-code { font-family:monospace; font-size:11px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; padding:7px 10px; word-break:break-all; color:#475569; letter-spacing:.3px; margin-bottom:9px; }
 .det-sess { display:flex; align-items:center; gap:5px; margin-bottom:4px; }
 .det-sess-lbl { font-size:11px; color:var(--muted); width:50px; flex-shrink:0; }
+.det-qnums { display:flex; align-items:center; gap:5px; margin-bottom:2px; }
+.det-qnum { width:19px; font-size:9px; font-weight:600; color:var(--muted); text-align:center; flex-shrink:0; }
 .rdlg { width:19px; height:19px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:rgba(255,255,255,.95); flex-shrink:0; }
 .legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:7px; }
 .li { display:flex; align-items:center; gap:3px; font-size:10.5px; color:var(--muted); }
@@ -281,7 +285,7 @@ function dots(arr,sm=true){
 
 function rnote(n){if(n===null||isNaN(n))return'<span class="mu">—</span>';return`<span class="tm" style="font-weight:700;color:var(--text);">${n.toFixed(1).replace('.',',')}</span>`;}
 function rstatus(s,e){if(s==='ok')return`<span title="Checksum correcte">✅</span>`;if(s==='warn')return`<span title="Gap > ${GAP} min" style="cursor:help">⚠️</span>`;return`<span title="${e||''}" style="cursor:help">❌</span>`;}
-function rgap(g){if(g===null)return'<span class="mu">—</span>';if(g<=0)return'<span class="mu">0m</span>';if(g<=GAP)return`<span class="mu">${g}m</span>`;return`<span style="color:var(--warn)">${g}m</span>`;}
+function rgap(g){if(g===null)return'<span class="mu">—</span>';if(g<=6)return`<span class="mu">${g<0?g+'m':''+g+'m'}</span>`;if(g<=15)return`<span style="color:var(--warn)">${g}m</span>`;return`<span style="color:var(--danger);font-weight:600">${g}m</span>`;}
 
 function renderRow(row){
   const p=row.parsed,open=expIdx===row.idx;
@@ -313,8 +317,8 @@ function renderDet(row){
     {k:'Hora enviament',v:row.sendTime||'—'},
     {k:'Validació',v:p.checksumOk?'✅ OK':'❌ KO'},
     {k:'Nota',v:p.note!==null?p.note.toFixed(2).replace('.',','):'—'}];
+  items.push({k:'Activitat',v:p.exercise||p.exerciseCode||'—'});
   if(p.format==='v2'){
-    items.push({k:'Codi activitat',v:p.exerciseCode});
     items.push({k:'Dificultat',v:p.difficulty===0?'—':`Nivell ${p.difficulty}`});
     items.push({k:'Sessions',v:String(p.sessions)});
     items.push({k:'Preguntes',v:String(p.questions)});
@@ -322,16 +326,26 @@ function renderDet(row){
   const ss=p.sessions||1,qq=p.questions||30;
   let dhtml='';
   if(hd){
+    // Capçalera de numeració de preguntes
+    const numCols = Math.max(...Array.from({length:ss},(_,s)=>{
+      const sl=p.resultsArray.slice(s*qq,(s+1)*qq);
+      return sl.filter(v=>v!==0).length;
+    }));
+    const numHeader = Array.from({length:numCols},(_,i)=>
+      `<div class="det-qnum">${i+1}</div>`).join('');
+    dhtml+=`<div class="det-qnums"><span class="det-sess-lbl" style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;">Pregunta</span><div style="display:flex;gap:3px">${numHeader}</div></div>`;
     for(let s=0;s<ss;s++){
       const sl=p.resultsArray.slice(s*qq,(s+1)*qq);
       if(sl.every(v=>v===0))continue;
+      const activeSl=sl.filter(v=>v!==0);
       dhtml+=`<div class="det-sess">
         <span class="det-sess-lbl">Sessió ${s+1}</span>
-        <div style="display:flex;gap:3px">${sl.map(v=>`<div class="rdlg" style="background:var(--r${v})">${['','1','2','3','✗'][v]||''}</div>`).join('')}</div>
+        <div style="display:flex;gap:3px">${activeSl.map(v=>`<div class="rdlg" style="background:var(--r${v})">${['','1','2','3','✗'][v]||''}</div>`).join('')}</div>
       </div>`;
     }
   }
   return`<tr class="det-row" id="detail-${row.idx}"><td colspan="12"><div class="det-panel">
+    <button class="collapse-btn" onclick="toggleDet(${row.idx})" title="Col·lapsar">▲</button>
     <div class="det-code">${row.raw.rawCode}</div>
     <div class="det-grid">${items.map(i=>`<div class="det-item"><div class="dk">${i.k}</div><div class="dv">${i.v}</div></div>`).join('')}</div>
     ${hd
