@@ -1,72 +1,138 @@
 /**
  * ============================================================================
- * PROJECTE: Motor pel Projecte Educatiu Step Quiz (Vanilla JS)
+ * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/game-core.js
- * ROL: Motor d'estat global, injecció de DOM i seguretat.
- * ARQUITECTURA:
- * - State Management: Controla la puntuació, les sessions i l'historial.
- * - DOM Injection: Injecta dinàmicament interfícies compartides (teclat, 
- * overlay de victòria, pantalla final) per no embrutar l'HTML específic.
- * - Seguretat: Genera el codi de validació antifrau per al professorat i 
- * saniteja les dades de l'historial (escapeHtml) per prevenir atacs XSS.
- * DEPENDÈNCIES: Requereix utils.js i config.js.
+ *
+ * ── FORMAT DE CODI v2 ───────────────────────────────────────────────────────
+ *
+ *   Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR  (59 chars)
+ *
+ *   L     1   Lletra de control antifrau
+ *   sss   3   Salt aleatori (3 lletres minúscules)
+ *   DDMM  4   Data
+ *   HHMM  4   Hora i minuts
+ *   EE    2   Codi d'exercici (taula EXERCISE_CODES)
+ *   D     1   Dificultat: 0=sense nivells, 1-3=nivell triat
+ *   S     1   Sessions completades (1-5)
+ *   QQ    2   Preguntes per sessió (01-10)
+ *   NNN   3   Nota x10 arrodonida (000-100). Ex: 7,5 -> 075
+ *   RRR  30   Resultats per pregunta:
+ *               1=encertada al 1r intent
+ *               2=encertada al 2n intent
+ *               3=encertada al 3r intent o posterior
+ *               4=fallada (intents esgotats)
+ *               0=posicio buida
+ *
+ * ── CHECKSUM ────────────────────────────────────────────────────────────────
+ *   suma = NNN_int + DD + MM + HH + mm + ASCII(salt[0])
+ *   lletra = "TRWAGMYFPDXBNJZSQVHLCKE"[ suma % 23 ]
+ *
+ * ── COM REGISTRAR RESULTATS PER PREGUNTA ────────────────────────────────────
+ *   Cridar recordResult(codi) en finalitzar cada pregunta:
+ *
+ *   // Resposta CORRECTA (attemptsLeft sense decrementar per aquest intent):
+ *   recordResult(Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
+ *
+ *   // Fallo definitiu:
+ *   recordResult(4);
+ *
+ * ── DIFICULTAT ──────────────────────────────────────────────────────────────
+ *   Es llegeix automaticament del parametre URL ?nivell=N.
+ *   Jocs sense nivells no han de fer res (D=0 per defecte).
  * ============================================================================
  */
 
-// ---- PALETA DE FONS (compartida) ---
+// ── TAULA DE CODIS D'EXERCICI ────────────────────────────────────────────────
+const EXERCISE_CODES = {
+    // ESO
+    'enters':             'EN',
+    'enters-ordenar':     'EO',
+    'fraccions':          'FR',
+    'equacions':          'EQ',
+    'sistemes-equacions': 'SE',
+    'mcd-mcm':            'MC',
+    'potencies':          'PT',
+    'factoritzar':        'FA',
+    'radicals':           'RA',
+    'recta-numerica':     'RN',
+    'area-perimetre':     'AP',
+    'pla-cartesia':       'PC',
+    'proporciodirecta':   'PR',
+    'diners':             'DI',
+    'vocabulari':         'VO',
+    // Batxillerat
+    'complexos':                 'CX',
+    'derivades':                 'DV',
+    'integrals':                 'IT',
+    'asimptotes':                'AS',
+    'ruffini':                   'RU',
+    'grafica-i-funcio':          'GF',
+    'grafica-funcio-i-derivada': 'GD',
+    'rectes-plans':              'RP',
+    'esglaonar-matriu':          'EM',
+    'inversa-matriu':            'IM',
+    // Adaptades (a/)
+    'a-enters':           'AE',
+    'a-decimals':         'AD',
+    'a-diners':           'AN',
+    'a-equacions':        'AQ',
+    'a-proporciodirecta': 'AO',
+};
+
+// Lookup invers: codi 2 lletres -> nom exercici
+const EXERCISE_NAMES = Object.fromEntries(
+    Object.entries(EXERCISE_CODES).map(([nom, codi]) => [codi, nom])
+);
+
+// ── DIFICULTAT (llegida automaticament de l'URL) ─────────────────────────────
+const _urlNivell = new URLSearchParams(window.location.search).get('nivell');
+let currentDifficulty = _urlNivell ? Math.min(Math.max(parseInt(_urlNivell) || 0, 0), 3) : 0;
+
+// ── PALETA DE FONS ───────────────────────────────────────────────────────────
 const bgColors = [
-    '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
-    '#f5f3ff', '#ecfeff', '#fdf4ff', '#fffbeb', '#faf5ff'
+    '#f8fafc','#eff6ff','#f0fdf4','#fefce8','#fff1f2',
+    '#f5f3ff','#ecfeff','#fdf4ff','#fffbeb','#faf5ff'
 ];
 
-// ---- ESTAT COMPARTIT DEL JOC ----
-let sessionHistory   = []; 
+// ── ESTAT COMPARTIT DEL JOC ──────────────────────────────────────────────────
+let sessionHistory   = [];
+let sessionResults   = [];   // codis per pregunta [1,2,3,4,…] (max 30)
 let currentSession   = 0;
 let currentOperation = 0;
 let sessionScore     = 0;
 let sessionScores    = [];
-let attemptsLeft     = 0;   
+let attemptsLeft     = 0;
 let isTransitioning  = false;
 
-// ---- VALIDACIÓ DE CONFIGURACIÓ ----
+// ── VALIDACIO DE CONFIGURACIO ────────────────────────────────────────────────
 function validateConfig() {
     const errors = [];
-    const isPosInt = (n) => Number.isInteger(n) && n > 0;
-
-    if (!isPosInt(TOTAL_SESSIONS))        errors.push('TOTAL_SESSIONS ha de ser un enter positiu (> 0).');
-    if (!isPosInt(TOTAL_OPERATIONS))      errors.push('TOTAL_OPERATIONS ha de ser un enter positiu (> 0).');
-    if (!isPosInt(MAX_INTENTS))           errors.push('MAX_INTENTS ha de ser un enter positiu (> 0).');
-    if (![0, 1].includes(MAX_ENLLOC_MITJANA)) errors.push('MAX_ENLLOC_MITJANA ha de ser 0 o 1.');
-
+    const isPosInt = n => Number.isInteger(n) && n > 0;
+    if (!isPosInt(TOTAL_SESSIONS))            errors.push('TOTAL_SESSIONS ha de ser un enter positiu.');
+    if (!isPosInt(TOTAL_OPERATIONS))          errors.push('TOTAL_OPERATIONS ha de ser un enter positiu.');
+    if (!isPosInt(MAX_INTENTS))               errors.push('MAX_INTENTS ha de ser un enter positiu.');
+    if (![0,1].includes(MAX_ENLLOC_MITJANA))  errors.push('MAX_ENLLOC_MITJANA ha de ser 0 o 1.');
     if (errors.length) {
-        const msg = 'Configuració invàlida:\n- ' + errors.join('\n- ');
-        console.error(msg);
-        alert(msg);
-        throw new Error(msg);
+        const msg = 'Configuracio invalida:\n- ' + errors.join('\n- ');
+        console.error(msg); alert(msg); throw new Error(msg);
     }
 }
 
-// ---- GESTIÓ DE PANTALLES ----
-let _allScreenIds = ['game-screen', 'session-end-screen', 'final-screen'];
-
-function registerScreens(ids) {
-    _allScreenIds = ids;
-}
-
+// ── GESTIO DE PANTALLES ──────────────────────────────────────────────────────
+let _allScreenIds = ['game-screen','session-end-screen','final-screen'];
+function registerScreens(ids) { _allScreenIds = ids; }
 function showScreen(id) {
-    _allScreenIds.forEach(s => {
-        const el = document.getElementById(s);
-        if (el) el.style.display = 'none';
-    });
+    _allScreenIds.forEach(s => { const el = document.getElementById(s); if (el) el.style.display = 'none'; });
     const target = document.getElementById(id);
     if (target) target.style.display = 'block';
 }
 
-// ---- INICI I FI DEL JOC ----
+// ── INICI I FI DEL JOC ──────────────────────────────────────────────────────
 function startGame() {
     currentSession = 0;
     sessionScores  = [];
-    sessionHistory = []; 
+    sessionHistory = [];
+    sessionResults = [];
     showScreen('game-screen');
     startSession();
 }
@@ -78,25 +144,18 @@ function startSession() {
 }
 
 function endSession() {
-    // 🟢 CORRECCIÓ 1: Aquest és l'ÚNIC lloc on es fa push de la nota.
     sessionScores.push(sessionScore);
-
     if (currentSession + 1 >= TOTAL_SESSIONS) {
         renderFinalSummary();
         showScreen('final-screen');
     } else {
         showScreen('session-end-screen');
-
         const titleEl = document.getElementById('session-end-title');
-        if (titleEl) titleEl.innerText = `Sessió ${currentSession + 1} completada`;
-
+        if (titleEl) titleEl.innerText = `Sessio ${currentSession + 1} completada`;
         const btnEl = document.getElementById('btn-next-session');
         if (btnEl) {
             btnEl.style.display = 'none';
-            setTimeout(() => {
-                btnEl.style.display = 'inline-block';
-                isTransitioning = false;
-            }, 1000);
+            setTimeout(() => { btnEl.style.display = 'inline-block'; isTransitioning = false; }, 1000);
         }
     }
 }
@@ -107,62 +166,41 @@ function startNextSession() {
     startSession();
 }
 
-// ---- CÀLCUL I RENDER DE LA NOTA FINAL ----
+// ── NOTA FINAL ───────────────────────────────────────────────────────────────
 function calculaNotaSobre10() {
     if (!sessionScores.length) return 0;
-
     if (MAX_ENLLOC_MITJANA === 1) {
-        const maxScore = Math.max(...sessionScores);
-        return Number((maxScore / TOTAL_OPERATIONS).toFixed(1));
+        return Number((Math.max(...sessionScores) / TOTAL_OPERATIONS).toFixed(1));
     } else {
-        const total = sessionScores.reduce((acc, s) => acc + s, 0);
-        return Number((total / (TOTAL_SESSIONS * TOTAL_OPERATIONS)).toFixed(1));
+        return Number((sessionScores.reduce((a,s) => a+s, 0) / (TOTAL_SESSIONS * TOTAL_OPERATIONS)).toFixed(1));
     }
 }
 
 function renderFinalSummary() {
     let html = '';
-
     for (let i = 0; i < sessionScores.length; i++) {
-        const notaSessio = (sessionScores[i] / TOTAL_OPERATIONS).toFixed(1).replace('.', ',');
-        html += `<div class="session-line">
-            <span>Sessió ${i + 1}</span>
-            <span>${notaSessio}</span>
-        </div>`;
+        html += `<div class="session-line"><span>Sessio ${i+1}</span><span>${(sessionScores[i]/TOTAL_OPERATIONS).toFixed(1).replace('.',',')}</span></div>`;
     }
-
-    const nota10    = calculaNotaSobre10().toFixed(1).replace('.', ',');
-    const textFinal = MAX_ENLLOC_MITJANA === 1
-        ? 'La sessió amb nota més alta obté:'
-        : 'La nota mitjana és:';
-
-    html += `<div style="margin-top:20px; text-align:left;">
-        <div style="font-size:0.95em; color:var(--text-muted); margin-bottom:5px;">${textFinal}</div>
-        <div style="font-size:1.5em; font-weight:bold; color:var(--success); font-family:monospace;">${nota10} / 10</div>
-    </div>`;
-
+    const nota10 = calculaNotaSobre10().toFixed(1).replace('.',',');
+    const textFinal = MAX_ENLLOC_MITJANA === 1 ? 'La sessio amb nota mes alta obte:' : 'La nota mitjana es:';
+    html += `<div style="margin-top:20px;text-align:left;"><div style="font-size:0.95em;color:var(--text-muted);margin-bottom:5px;">${textFinal}</div><div style="font-size:1.5em;font-weight:bold;color:var(--success);font-family:monospace;">${nota10} / 10</div></div>`;
     const summaryEl = document.getElementById('final-summary');
     if (summaryEl) summaryEl.innerHTML = html;
 }
 
-function finalitzar() {
-    window.location.reload();
-}
+function finalitzar() { window.location.reload(); }
 
-// ---- MINI OVERLAY (victòria / fracàs) ----
+// ── MINI OVERLAY ─────────────────────────────────────────────────────────────
 function showMiniOverlay(levelPoints, options = {}) {
     const successColor = options.successColor || '#047857';
     const pointsColor  = options.pointsColor  || '#059669';
-
     const vicText   = document.getElementById('mini-vic-text');
     const vicIcon   = document.getElementById('mini-vic-icon');
     const vicPoints = document.getElementById('mini-vic-points');
     const overlay   = document.getElementById('mini-victory-overlay');
-
     let waitTime;
-
     if (levelPoints > 0) {
-        if (vicText)   { vicText.innerText   = 'Molt bé!';             vicText.style.color   = successColor; }
+        if (vicText)   { vicText.innerText   = 'Molt be!';             vicText.style.color   = successColor; }
         if (vicIcon)   { vicIcon.innerText   = '⭐'; }
         if (vicPoints) { vicPoints.innerText = `+${levelPoints} punts`; vicPoints.style.color = pointsColor; }
         waitTime = 1500;
@@ -172,179 +210,85 @@ function showMiniOverlay(levelPoints, options = {}) {
         if (vicPoints) { vicPoints.innerText = '0 punts';           vicPoints.style.color = 'var(--danger)'; }
         waitTime = 3000;
     }
-
-    if (overlay) {
-        overlay.style.display = 'flex';
-        overlay.setAttribute('aria-hidden', 'false');
-    }
-
+    if (overlay) { overlay.style.display = 'flex'; overlay.setAttribute('aria-hidden','false'); }
     return waitTime;
 }
 
 function hideMiniOverlay() {
     const overlay = document.getElementById('mini-victory-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden', 'true');
-    }
+    if (overlay) { overlay.style.display = 'none'; overlay.setAttribute('aria-hidden','true'); }
 }
 
-// ============================================================
-// INJECCIÓ HTML COMPARTIT (evita duplicar blocs a cada joc)
-// ============================================================
-
+// ── INJECCIO HTML COMPARTIT ──────────────────────────────────────────────────
 function injectSharedHTML() {
     const gameScreen = document.getElementById('game-screen');
     const panel = document.querySelector('.panel');
     if (!gameScreen || !panel) return;
 
-    // 1. Mini overlay de victòria/fracàs (dins de game-screen)
+    // 1. Mini overlay
     const overlay = document.createElement('div');
     overlay.id = 'mini-victory-overlay';
-    overlay.setAttribute('aria-hidden', 'true');
-    overlay.innerHTML = `
-        <div class="vic-message-row">
-            <div class="mini-vic-text" id="mini-vic-text">Molt bé!</div>
-            <div class="star-icon" id="mini-vic-icon">⭐</div>
-        </div>
-        <div class="mini-vic-points" id="mini-vic-points">+10 punts</div>
-    `;
+    overlay.setAttribute('aria-hidden','true');
+    overlay.innerHTML = `<div class="vic-message-row"><div class="mini-vic-text" id="mini-vic-text">Molt be!</div><div class="star-icon" id="mini-vic-icon">⭐</div></div><div class="mini-vic-points" id="mini-vic-points">+10 punts</div>`;
     gameScreen.appendChild(overlay);
 
-    // 2. Teclat numèric custom
+    // 2. Teclat numeric
     const kb = document.createElement('div');
     kb.id = 'customKeyboard';
-    kb.innerHTML = `
-        <div class="kb-grid">
-            <button class="kb-btn" data-key="7">7</button>
-            <button class="kb-btn" data-key="8">8</button>
-            <button class="kb-btn" data-key="9">9</button>
-            <button class="kb-btn kb-del" data-key="del">⌫</button>
-            <button class="kb-btn" data-key="4">4</button>
-            <button class="kb-btn" data-key="5">5</button>
-            <button class="kb-btn" data-key="6">6</button>
-            <button class="kb-btn kb-minus" data-key="-">−</button>
-            <button class="kb-btn" data-key="1">1</button>
-            <button class="kb-btn" data-key="2">2</button>
-            <button class="kb-btn" data-key="3">3</button>
-            <button class="kb-btn kb-enter" data-key="enter">→</button>
-            <button class="kb-btn kb-zero" data-key="0">0</button>
-        </div>
-    `;
+    kb.innerHTML = `<div class="kb-grid"><button class="kb-btn" data-key="7">7</button><button class="kb-btn" data-key="8">8</button><button class="kb-btn" data-key="9">9</button><button class="kb-btn kb-del" data-key="del">⌫</button><button class="kb-btn" data-key="4">4</button><button class="kb-btn" data-key="5">5</button><button class="kb-btn" data-key="6">6</button><button class="kb-btn kb-minus" data-key="-">−</button><button class="kb-btn" data-key="1">1</button><button class="kb-btn" data-key="2">2</button><button class="kb-btn" data-key="3">3</button><button class="kb-btn kb-enter" data-key="enter">→</button><button class="kb-btn kb-zero" data-key="0">0</button></div>`;
     panel.appendChild(kb);
 
-    // 3. Pantalla fi de sessió
+    // 3. Fi de sessio
     const sessionEnd = document.createElement('div');
     sessionEnd.id = 'session-end-screen';
-    sessionEnd.innerHTML = `
-        <div class="trophy-icon">👍</div>
-        <h2 id="session-end-title">Sessió completada</h2>
-        <button class="btn-green" id="btn-next-session" onclick="startNextSession()">
-            Començar sessió següent
-        </button>
-    `;
+    sessionEnd.innerHTML = `<div class="trophy-icon">👍</div><h2 id="session-end-title">Sessio completada</h2><button class="btn-green" id="btn-next-session" onclick="startNextSession()">Comencar sessio seguent</button>`;
     panel.appendChild(sessionEnd);
 
-    // 4. Pantalla final amb resum i botons
+    // 4. Pantalla final
     const finalScreen = document.createElement('div');
     finalScreen.id = 'final-screen';
     finalScreen.style.display = 'none';
-    finalScreen.innerHTML = `
-        <div id="final-results">
-            <h2>Resum</h2>
-            <div class="final-layout">
-                <div id="final-summary" class="final-summary"></div>
-                <div class="trophy-icon">🏆</div>
-            </div>
-            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 25px;">
-                <button class="btn-submit" onclick="if(typeof showHistorySummary === 'function') showHistorySummary();" style="background-color: var(--primary);">
-                    📋 Informe
-                </button>
-                <button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats === 'function') copiarResultats();" style="background-color: #334155;">
-                    📝 Copiar codi
-                </button>
-                <button class="btn-submit" onclick="finalitzar()" style="background-color: var(--text-muted);">
-                    🔄 Tornar a jugar
-                </button>
-            </div>
-        </div>
-    `;
+    finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     panel.appendChild(finalScreen);
 }
 
-// ============================================================
-// TECLAT NUMÈRIC CUSTOM (mòbil / tàctil)
-// ============================================================
-
-function isTouchDevice() {
-    // Chromebook 300e: té touchpad (pointer:fine) + pantalla tàctil (any-pointer:coarse).
-    // Amb l'antic check (hover:none AND pointer:coarse) retornava false perquè el
-    // punter primari és el touchpad. Ara detectem si QUALSEVOL punter és tàctil.
-    return window.matchMedia('(any-pointer: coarse)').matches;
-}
-
-let _kbActiveInput  = null;
-let _kbClearOnNext  = false;
+// ── TECLAT NUMERIC CUSTOM ────────────────────────────────────────────────────
+function isTouchDevice() { return window.matchMedia('(any-pointer: coarse)').matches; }
+let _kbActiveInput = null;
+let _kbClearOnNext = false;
 
 function initCustomKeyboard(options = {}) {
     const allowNeg  = options.allowNegative ?? false;
     const allowZero = options.allowZero     ?? true;
     const grid      = document.querySelector('#customKeyboard .kb-grid');
-
     if (grid) {
-        if (!allowNeg)  grid.classList.add('kb-no-minus');
-        else            grid.classList.remove('kb-no-minus');
-        if (!allowZero) grid.classList.add('kb-no-zero');
-        else            grid.classList.remove('kb-no-zero');
+        if (!allowNeg)  grid.classList.add('kb-no-minus');    else grid.classList.remove('kb-no-minus');
+        if (!allowZero) grid.classList.add('kb-no-zero');     else grid.classList.remove('kb-no-zero');
     }
-
     document.querySelectorAll('#customKeyboard .kb-btn').forEach(btn => {
         btn.addEventListener('pointerdown', e => {
             e.preventDefault();
             if (!_kbActiveInput) return;
             const key = btn.dataset.key;
-
             if (key === 'del') {
-                if (_kbClearOnNext) {
-                    _kbActiveInput.value = '';
-                    _kbClearOnNext = false;
-                    _kbActiveInput.classList.remove('kb-selected');
-                } else {
-                    _kbActiveInput.value = _kbActiveInput.value.slice(0, -1);
-                }
+                if (_kbClearOnNext) { _kbActiveInput.value = ''; _kbClearOnNext = false; _kbActiveInput.classList.remove('kb-selected'); }
+                else _kbActiveInput.value = _kbActiveInput.value.slice(0,-1);
             } else if (key === 'enter') {
                 if (typeof checkCurrentCell === 'function') checkCurrentCell();
             } else if (key === '-') {
-                if (_kbClearOnNext) {
-                    _kbActiveInput.value = '-';
-                    _kbClearOnNext = false;
-                    _kbActiveInput.classList.remove('kb-selected');
-                } else {
-                    const v = _kbActiveInput.value;
-                    if (v === '')       _kbActiveInput.value = '-';
-                    else if (v === '-') _kbActiveInput.value = '';
-                }
+                if (_kbClearOnNext) { _kbActiveInput.value = '-'; _kbClearOnNext = false; _kbActiveInput.classList.remove('kb-selected'); }
+                else { const v = _kbActiveInput.value; if (v==='') _kbActiveInput.value='-'; else if (v==='-') _kbActiveInput.value=''; }
             } else {
-                if (_kbClearOnNext) {
-                    _kbActiveInput.value = '';
-                    _kbClearOnNext = false;
-                    _kbActiveInput.classList.remove('kb-selected');
-                }
+                if (_kbClearOnNext) { _kbActiveInput.value = ''; _kbClearOnNext = false; _kbActiveInput.classList.remove('kb-selected'); }
                 if (_kbActiveInput.value === '-0') _kbActiveInput.value = '-';
                 _kbActiveInput.value += key;
             }
         });
     });
-
-    // Millora 2: re-scroll del teclat quan el dispositiu canvia d'orientació.
-    // El delay de 300ms espera que el navegador acabi el reflow de la rotació
-    // abans de calcular les coordenades del scrollIntoView.
-    // Registrat aquí (i no a showCustomKeyboard) perquè cal fer-ho una sola
-    // vegada per a tota la vida de la pàgina, independentment del joc.
     window.addEventListener('orientationchange', () => {
         const kb = document.getElementById('customKeyboard');
         if (!_kbActiveInput || !kb || !kb.classList.contains('kb-visible')) return;
-        setTimeout(() => kb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+        setTimeout(() => kb.scrollIntoView({ behavior:'smooth', block:'nearest' }), 300);
     });
 }
 
@@ -352,201 +296,130 @@ function showCustomKeyboard(inp) {
     if (_kbActiveInput) _kbActiveInput.classList.remove('kb-active-input');
     _kbActiveInput = inp;
     _kbClearOnNext = false;
-    inp.setAttribute('inputmode', 'none');
-    inp.setAttribute('readonly', 'readonly');
+    inp.setAttribute('inputmode','none');
+    inp.setAttribute('readonly','readonly');
     inp.classList.add('kb-active-input');
-
-    // Millora 1: si l'usuari toca directament l'input (en lloc de fer-ho via
-    // la lògica del joc), re-activa el teclat custom i suprimeix el natiu.
-    // El flag _kbDirectTapBound evita registrar el listener més d'una vegada
-    // per al mateix element (robust per a tots els jocs, siguin quins siguin els inputs).
     if (!inp._kbDirectTapBound) {
         inp._kbDirectTapBound = true;
-        inp.addEventListener('pointerdown', e => {
-            if (!isTouchDevice()) return;
-            e.preventDefault();   // impedeix el teclat natiu
-            showCustomKeyboard(inp);
-        });
+        inp.addEventListener('pointerdown', e => { if (!isTouchDevice()) return; e.preventDefault(); showCustomKeyboard(inp); });
     }
-
     const kb = document.getElementById('customKeyboard');
-    if (kb) {
-        kb.classList.add('kb-visible');
-        setTimeout(() => kb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-    }
+    if (kb) { kb.classList.add('kb-visible'); setTimeout(() => kb.scrollIntoView({ behavior:'smooth', block:'nearest' }), 50); }
     inp.focus();
 }
 
 function hideCustomKeyboard() {
     const kb = document.getElementById('customKeyboard');
     if (kb) kb.classList.remove('kb-visible');
-    if (_kbActiveInput) {
-        _kbActiveInput.classList.remove('kb-active-input');
-        // Restaurem els atributs que showCustomKeyboard havia injectat,
-        // necessari quan l'input és dinàmic (es recrea via innerHTML cada pas).
-        _kbActiveInput.removeAttribute('readonly');
-        _kbActiveInput.removeAttribute('inputmode');
-    }
+    if (_kbActiveInput) { _kbActiveInput.classList.remove('kb-active-input'); _kbActiveInput.removeAttribute('readonly'); _kbActiveInput.removeAttribute('inputmode'); }
     _kbActiveInput = null;
     _kbClearOnNext = false;
 }
 
-function kbMarkForOverwrite(inp) {
-    _kbClearOnNext = true;
-    inp.classList.add('kb-selected');
-}
+function kbMarkForOverwrite(inp) { _kbClearOnNext = true; inp.classList.add('kb-selected'); }
 
-// ============================================================
-// SISTEMA D'HISTORIAL I PROTECCIÓ XSS
-// ============================================================
-
-// 🟢 CORRECCIÓ 4: Escapar HTML per evitar injeccions de codi
+// ── HISTORIAL (resum textual pantalla final) ─────────────────────────────────
 function escapeHtml(unsafe) {
     if (unsafe == null) return '';
-    return String(unsafe)
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+    return String(unsafe).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
 function recordAnswerToHistory(question, answer, isCorrect) {
     sessionHistory.push({ question, answer, isCorrect });
 }
 
-function showHistorySummary() {
-    _allScreenIds.forEach(s => {
-        const el = document.getElementById(s);
-        if (el) el.style.display = 'none';
-    });
-
-    let summaryScreen = document.getElementById('history-summary-screen');
-    if (!summaryScreen) {
-        summaryScreen = document.createElement('div');
-        summaryScreen.id = 'history-summary-screen';
-        summaryScreen.className = 'panel-content'; 
-        
-        const mainPanel = document.querySelector('.panel') || document.body;
-        mainPanel.appendChild(summaryScreen);
-    }
-
-    const encerts = sessionHistory.filter(item => item.isCorrect);
-    const errades = sessionHistory.filter(item => !item.isCorrect);
-
-    // 🟢 CORRECCIÓ 4: S'utilitza escapeHtml() en les dades d'entrada
-    summaryScreen.innerHTML = `
-        <div style="padding: 20px; text-align: left;">
-            <h2 style="text-align:center; color: var(--primary); margin-bottom: 25px;">Resum de les teves respostes</h2>
-            
-            <h3 style="color: var(--success); border-bottom: 2px solid var(--success); padding-bottom: 5px;">
-                🟢 Encerts (${encerts.length})
-            </h3>
-            <ul style="list-style: none; padding: 0; margin-bottom: 30px;">
-                ${encerts.map(e => `
-                    <li style="margin-bottom: 15px; background: #f0fdf4; padding: 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
-                        <div style="margin-bottom: 5px; color: #334155;"><strong>Pregunta:</strong> <span style="font-family: monospace; font-size: 1.1em;">${escapeHtml(e.question)}</span></div>
-                        <div style="color: #059669;"><strong>La teva resposta:</strong> <span style="font-family: monospace;">${escapeHtml(e.answer)}</span></div>
-                    </li>
-                `).join('')}
-                ${encerts.length === 0 ? '<li style=\"color: var(--text-muted); font-style: italic;\">Cap encert en aquesta partida.</li>' : ''}
-            </ul>
-
-            <h3 style="color: var(--danger); border-bottom: 2px solid var(--danger); padding-bottom: 5px;">
-                🔴 Errades (${errades.length})
-            </h3>
-            <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
-                ${errades.map(e => `
-                    <li style="margin-bottom: 15px; background: #fef2f2; padding: 12px; border-radius: 6px; border: 1px solid #fecaca;">
-                        <div style="margin-bottom: 5px; color: #334155;"><strong>Pregunta:</strong> <span style="font-family: monospace; font-size: 1.1em;">${escapeHtml(e.question)}</span></div>
-                        <div style="color: #dc2626;"><strong>La teva resposta:</strong> <span style="font-family: monospace;">${escapeHtml(e.answer)}</span></div>
-                    </li>
-                `).join('')}
-                ${errades.length === 0 ? '<li style=\"color: var(--text-muted); font-style: italic;\">Cap errada! Has fet una partida perfecta 🎉</li>' : ''}
-            </ul>
-
-            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
-                <button id="btn-copiar-informe" class="btn-submit" onclick="copiarResultats(); this.innerText='Copiat! ✅'; this.style.backgroundColor='var(--success)'; this.style.borderColor='var(--success)'; setTimeout(() => { this.style.display='none'; }, 3000);" style="background-color: #334155;">
-                    📝 Copiar codi
-                </button>
-                <button class="btn-submit" onclick="finalitzar()" style="background-color: var(--text-muted);">
-                    🔄 Tornar a jugar
-                </button>
-            </div>
-        </div>
-    `;
-
-    summaryScreen.style.display = 'block';
+// ── REGISTRE DE RESULTATS PER PREGUNTA (format v2) ───────────────────────────
+/**
+ * Registra el resultat d'una pregunta al vector sessionResults.
+ * @param {number} attemptCode  1=1r intent ok  2=2n  3=3r o mes  4=fallit
+ *
+ * Us recomanat:
+ *   // Correcta (attemptsLeft sense decrementar per aquest intent):
+ *   recordResult(Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
+ *   // Fallada definitiva:
+ *   recordResult(4);
+ */
+function recordResult(attemptCode) {
+    if (sessionResults.length < 30) sessionResults.push(attemptCode);
 }
-// ============================================================
-// GENERADOR DE CODI DE SESSIÓ (per al professor)
-// ============================================================
 
-async function copiarResultats() {
-    let randomStr = "";
-    const caracters = "abcdefghijklmnopqrstuvwxyz"; 
-    for (let i = 0; i < 3; i++) {
-        randomStr += caracters.charAt(Math.floor(Math.random() * caracters.length));
+function showHistorySummary() {
+    _allScreenIds.forEach(s => { const el = document.getElementById(s); if (el) el.style.display = 'none'; });
+    let sc = document.getElementById('history-summary-screen');
+    if (!sc) {
+        sc = document.createElement('div');
+        sc.id = 'history-summary-screen';
+        sc.className = 'panel-content';
+        (document.querySelector('.panel') || document.body).appendChild(sc);
     }
+    const encerts = sessionHistory.filter(i =>  i.isCorrect);
+    const errades = sessionHistory.filter(i => !i.isCorrect);
+    const liOk  = encerts.length ? encerts.map(e => `<li style="margin-bottom:12px;background:#f0fdf4;padding:12px;border-radius:6px;border:1px solid #bbf7d0;"><div style="margin-bottom:4px;"><strong>P:</strong> <span style="font-family:monospace;">${escapeHtml(e.question)}</span></div><div style="color:#059669;"><strong>R:</strong> <span style="font-family:monospace;">${escapeHtml(e.answer)}</span></div></li>`).join('') : '<li style="color:var(--text-muted);font-style:italic;">Cap encert en aquesta partida.</li>';
+    const liBad = errades.length ? errades.map(e => `<li style="margin-bottom:12px;background:#fef2f2;padding:12px;border-radius:6px;border:1px solid #fecaca;"><div style="margin-bottom:4px;"><strong>P:</strong> <span style="font-family:monospace;">${escapeHtml(e.question)}</span></div><div style="color:#dc2626;"><strong>R:</strong> <span style="font-family:monospace;">${escapeHtml(e.answer)}</span></div></li>`).join('') : '<li style="color:var(--text-muted);font-style:italic;">Cap errada! Partida perfecta 🎉</li>';
+    sc.innerHTML = `<div style="padding:20px;text-align:left;"><h2 style="text-align:center;color:var(--primary);margin-bottom:25px;">Resum de les teves respostes</h2><h3 style="color:var(--success);border-bottom:2px solid var(--success);padding-bottom:5px;">🟢 Encerts (${encerts.length})</h3><ul style="list-style:none;padding:0;margin-bottom:24px;">${liOk}</ul><h3 style="color:var(--danger);border-bottom:2px solid var(--danger);padding-bottom:5px;">🔴 Errades (${errades.length})</h3><ul style="list-style:none;padding:0;margin-bottom:20px;">${liBad}</ul><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:24px;"><button class="btn-submit" onclick="copiarResultats();this.innerText='Copiat! ✅';this.style.backgroundColor='var(--success)';setTimeout(()=>{this.style.display='none'},3000);" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
+    sc.style.display = 'block';
+}
 
-    const ara = new Date();
-    const dia = String(ara.getDate()).padStart(2, '0');
-    const mes = String(ara.getMonth() + 1).padStart(2, '0');
-    const dateStr = dia + mes;
+// ── GENERADOR DE CODI v2 ─────────────────────────────────────────────────────
+async function copiarResultats() {
+    // Salt
+    let salt = '';
+    const ch = 'abcdefghijklmnopqrstuvwxyz';
+    for (let i = 0; i < 3; i++) salt += ch.charAt(Math.floor(Math.random() * ch.length));
 
-    const hora = String(ara.getHours()).padStart(2, '0');
-    const minuts = String(ara.getMinutes()).padStart(2, '0');
-    
-    const timeStr = hora + minuts;
+    // Data i hora
+    const ara    = new Date();
+    const dia    = String(ara.getDate()).padStart(2,'0');
+    const mes    = String(ara.getMonth()+1).padStart(2,'0');
+    const hora   = String(ara.getHours()).padStart(2,'0');
+    const minuts = String(ara.getMinutes()).padStart(2,'0');
 
+    // Exercici
+    const nomFitxer = window.location.pathname.split('/').pop().replace('.html','');
+    const exCode    = EXERCISE_CODES[nomFitxer] ?? 'XX';
+
+    // Dificultat, sessions, preguntes
+    const dif       = String(Math.min(Math.max(currentDifficulty || 0, 0), 3));
+    const sessions  = String(Math.min(TOTAL_SESSIONS, 5));
+    const questions = String(Math.min(TOTAL_OPERATIONS, 10)).padStart(2,'0');
+
+    // Nota (NNN = nota x 10, 000-100)
     const notaSobre10 = calculaNotaSobre10();
-    const notaFormatada = notaSobre10.toFixed(2).padStart(5, '0').replace('.', ',');
+    const notaInt     = Math.round(notaSobre10 * 10);
+    const notaStr     = String(notaInt).padStart(3,'0');
 
-    const notaSencera = Math.round(notaSobre10 * 100);
-    const primerCaracterRand = randomStr.charAt(0);
-    const valorAscii = primerCaracterRand.charCodeAt(0);
+    // Resultats per pregunta (30 chars)
+    const resultsStr = sessionResults.slice(0,30).map(String).join('').padEnd(30,'0');
 
-    const sumaControl = notaSencera + parseInt(dia, 10) + parseInt(mes, 10) + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
-    
-    const lletresControl = "TRWAGMYFPDXBNJZSQVHLCKE";
-    const lletraAssignada = lletresControl.charAt(sumaControl % 23);
+    // Checksum
+    const valorAscii  = salt.charCodeAt(0);
+    const sumaControl = notaInt + parseInt(dia,10) + parseInt(mes,10) + parseInt(hora,10) + parseInt(minuts,10) + valorAscii;
+    const lletresCtrl = 'TRWAGMYFPDXBNJZSQVHLCKE';
+    const lletra      = lletresCtrl.charAt(sumaControl % 23);
 
-    const nomFitxer = window.location.pathname.split('/').pop().replace('.html', '');
-
-    const output = `${lletraAssignada}${randomStr}-${dateStr}-${timeStr}-${notaFormatada}-${nomFitxer}`;
-    console.log("Codi generat per al professor:", output);
+    // Codi final: Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+    const output = `${lletra}${salt}-${dia}${mes}-${hora}${minuts}-${exCode}-${dif}-${sessions}-${questions}-${notaStr}-${resultsStr}`;
+    console.log('Codi v2:', output, '(', output.length, 'chars)');
 
     function mostrarExit() {
-        const btnCopiar = document.getElementById('btn-copiar');
-        if (btnCopiar) {
-            btnCopiar.innerText = "Copiat! ✅";
-            btnCopiar.style.backgroundColor = "var(--success)";
-            btnCopiar.style.borderColor = "var(--success)";
-            setTimeout(() => { btnCopiar.style.display = "none"; }, 3000);
-        }
+        const btn = document.getElementById('btn-copiar');
+        if (btn) { btn.innerText = 'Copiat! ✅'; btn.style.backgroundColor = 'var(--success)'; setTimeout(() => { btn.style.display = 'none'; }, 3000); }
     }
 
-    // Fallback segur: mostrar el codi en un element visible dins la pàgina
-    // (Evita prompt() que Google Safe Browsing pot detectar com a enginyeria social)
     try {
         await navigator.clipboard.writeText(output);
         mostrarExit();
     } catch (err) {
-        // Fallback: mostrar el codi en un element seleccionable dins la pàgina
-        let fallbackBox = document.getElementById('fallback-code-box');
-        if (!fallbackBox) {
-            fallbackBox = document.createElement('div');
-            fallbackBox.id = 'fallback-code-box';
-            fallbackBox.style.cssText = 'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:400px;';
-            fallbackBox.innerHTML = `
-                <div style="font-size:0.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div>
-                <div id="fallback-code-text" style="font-family:monospace;font-size:1.1em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;"></div>
-            `;
-            const panel = document.querySelector('.panel') || document.body;
-            panel.appendChild(fallbackBox);
+        let fb = document.getElementById('fallback-code-box');
+        if (!fb) {
+            fb = document.createElement('div');
+            fb.id = 'fallback-code-box';
+            fb.style.cssText = 'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:520px;';
+            fb.innerHTML = `<div style="font-size:0.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div><div id="fallback-code-text" style="font-family:monospace;font-size:0.9em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;letter-spacing:0.5px;"></div>`;
+            (document.querySelector('.panel') || document.body).appendChild(fb);
         }
         document.getElementById('fallback-code-text').textContent = output;
-        fallbackBox.style.display = 'block';
-        fallbackBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        fb.style.display = 'block';
+        fb.scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
 }
