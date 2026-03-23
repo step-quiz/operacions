@@ -125,8 +125,62 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 .exp-btn:hover { opacity:.75; }
 .exp-btn.open { color:var(--danger); }
 
+.btn-cb-base { background:#e2e8f0; color:var(--text); border:1px solid var(--border-h); border-radius:5px; padding:5px 12px; font-size:12.5px; font-weight:600; cursor:pointer; transition:background .15s; }
+.btn-cb-base:hover { background:#64748b; color:#fff; }
+.btn-cb-shake { animation: cb-shake-blink 2s ease-in-out; }
+@keyframes cb-shake-blink {
+  0%,100% { transform:translateX(0); background:#e2e8f0; }
+  10%,30%,50%,70%,90% { transform:translateX(-4px); background:#fef08a; }
+  20%,40%,60%,80% { transform:translateX(4px); background:#fde68a; }
+}
+.f-date-alert { border-color:#dc2626 !important; box-shadow:0 0 0 2px rgba(220,38,38,.25) !important; }
 .empty-state { text-align:center; padding:50px 20px; color:var(--muted); font-size:13px; }
 
+
+/* CB RESUM MODAL */
+.cb-modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:500; overflow-y:auto; padding:24px 16px; }
+.cb-modal-overlay.open { display:block; }
+.cb-modal { background:var(--surface); border-radius:10px; max-width:980px; margin:0 auto; box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:visible; }
+.cb-modal-header { background:#1e293b; color:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; }
+.cb-modal-header h2 { font-size:15px; font-weight:700; }
+.cb-close { background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer; padding:0 4px; line-height:1; }
+.cb-close:hover { color:#fff; }
+.cb-body { padding:20px; }
+.cb-section-title { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:0 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+
+/* Summary grid */
+.cb-summary-grid { display:flex; gap:3px; margin-bottom:20px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; }
+.cb-q-col { display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
+.cb-q-num { font-size:9px; color:var(--muted); font-weight:600; width:22px; text-align:center; }
+.cb-q-bar { width:22px; border-radius:3px; display:flex; flex-direction:column; overflow:hidden; min-height:40px; }
+.cb-q-seg { width:100%; transition:height .3s; }
+.cb-q-median { width:22px; height:22px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff; margin-top:2px; }
+.cb-q-pct { font-size:8px; color:var(--muted); margin-top:1px; }
+.cb-q-num.hard { color:#dc2626; font-weight:800; }
+.cb-q-median.hard { outline:2px solid #dc2626; outline-offset:1px; }
+
+/* Matrix table */
+.cb-matrix-wrap { overflow-x:auto; max-width:100%; }
+.cb-matrix { border-collapse:collapse; font-size:11px; }
+.cb-matrix th { background:#f1f5f9; color:var(--muted); font-size:9px; font-weight:600; padding:4px 2px; text-align:center; border:1px solid var(--border); min-width:22px; white-space:nowrap; position:sticky; top:0; }
+.cb-matrix th.cb-stu-h { width:46px; min-width:46px; text-align:left; padding-left:6px; }
+.cb-matrix th.cb-nota-h { min-width:40px; }
+.cb-matrix td { padding:2px; border:1px solid var(--border); text-align:center; }
+.cb-matrix td.cb-stu-cell { text-align:left; padding:3px 6px; font-size:11px; font-weight:600; white-space:nowrap; background:var(--surface); position:sticky; left:0; border-right:2px solid var(--border-h); width:46px; min-width:46px; max-width:46px; overflow:hidden; text-overflow:ellipsis; }
+.cb-matrix td.cb-nota-cell { font-family:monospace; font-size:11px; font-weight:700; background:var(--surface); }
+.cb-cell { width:20px; height:20px; border-radius:2px; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; }
+.cb-cell-0 { background:var(--r0); }
+.cb-cell-1 { background:var(--r1); }
+.cb-cell-2 { background:var(--r2); }
+.cb-cell-3 { background:var(--r3); }
+.cb-cell-4 { background:var(--r4); }
+.cb-legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.cb-li { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); }
+.cb-ld { width:12px; height:12px; border-radius:2px; }
+
+.cb-tooltip { position:fixed; background:#1e293b; color:#fff; font-size:11px; font-weight:600;
+  padding:4px 8px; border-radius:4px; pointer-events:none; z-index:9999;
+  white-space:nowrap; display:none; box-shadow:0 2px 8px rgba(0,0,0,.25); }
 ::-webkit-scrollbar { width:4px; height:4px; }
 ::-webkit-scrollbar-thumb { background:var(--border-h); border-radius:2px; }
 </style>
@@ -137,6 +191,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
   <h1>Step<span>Quiz</span> — Analitzador</h1>
   <div class="header-right" id="hdr-right" style="display:none">
     <button class="btn btn-ghost" onclick="resetView()">← Nou</button>
+    <button class="btn btn-cb-base" id="btn-cb" onclick="openCB()">📊 Veure resum CB</button>
     <button class="btn btn-ghost" onclick="exportSummary()">⬇ Exportar</button>
   </div>
 </div>
@@ -398,7 +453,7 @@ function applyFilters(){
     if(sta&&r.status!==sta)return false;
     if(dt&&r.dateStr!==dt)return false;
     return true;});
-  renderTable(filtRows);renderStats(filtRows);}
+  renderTable(filtRows);renderStats(filtRows);checkCBButton();}
 
 function clearFilters(){
   ['f-stu','f-ex','f-sta'].forEach(id=>document.getElementById(id).value='');
@@ -415,7 +470,8 @@ function loadData(txt){
   document.getElementById('upload-zone').style.display='none';
   document.getElementById('main-view').classList.add('visible');
   document.getElementById('hdr-right').style.display='flex';
-  populateEx(allRows);populateStu(allRows);renderStats(allRows);renderTable(allRows);}
+  populateEx(allRows);populateStu(allRows);renderStats(allRows);renderTable(allRows);
+  const btnCb=document.getElementById('btn-cb');if(btnCb)btnCb._wasReady=false;}
 
 function resetView(){
   document.getElementById('upload-zone').style.display='flex';
@@ -441,6 +497,216 @@ document.addEventListener('paste',e=>{
   if(document.getElementById('upload-zone').style.display==='none')return;
   const t=(e.clipboardData||window.clipboardData).getData('text');
   if(t&&t.includes('\n'))document.getElementById('paste-area').value=t;});
+
+// ─── CB RESUM ───────────────────────────────────────────────────────────────
+
+function checkCBButton() {
+  const dt = document.getElementById('f-date').value;
+  const cbRows = filtRows.filter(r => r.parsed.format === 'v1-cb' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
+  const ready = dt !== '' && cbRows.length >= 2;
+  const btn = document.getElementById('btn-cb');
+  if (!btn) return;
+  // Shake-blink when conditions just became ready
+  if (ready && !btn._wasReady) {
+    btn.classList.remove('btn-cb-shake');
+    void btn.offsetWidth; // reflow to restart animation
+    btn.classList.add('btn-cb-shake');
+    setTimeout(() => btn.classList.remove('btn-cb-shake'), 2100);
+  }
+  btn._wasReady = ready;
+}
+
+function openCB() {
+  const dt = document.getElementById('f-date').value;
+  const cbRows = filtRows.filter(r => r.parsed.format === 'v1-cb' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
+
+  // Auto-correct filters if not ready
+  const exSel = document.getElementById('f-ex');
+  const dateFi = document.getElementById('f-date');
+  if (!cbRows.length || dt === '') {
+    // Auto-set exercise to cb if not set
+    if (exSel && exSel.value !== 'cb') {
+      exSel.value = 'cb';
+      applyFilters();
+    }
+    // Highlight date field
+    dateFi.classList.add('f-date-alert');
+    dateFi.focus();
+    setTimeout(() => dateFi.classList.remove('f-date-alert'), 3000);
+    return;
+  }
+  if (!cbRows.length) return;
+
+  const N = 30;
+  const labels = ['','1','2','3','✗'];
+  const colors = ['var(--r0)','var(--r1)','var(--r2)','var(--r3)','var(--r4)'];
+
+  // Per-question stats (only active questions = non-zero across any student)
+  const qStats = Array.from({length:N}, (_,q) => {
+    const vals = cbRows.map(r => r.parsed.resultsArray[q] || 0).filter(v => v > 0);
+    if (!vals.length) return null;
+    const counts = [0,0,0,0,0]; // index 1-4
+    vals.forEach(v => counts[v]++);
+    const sorted = [...vals].sort((a,b)=>a-b);
+    const med = sorted[Math.floor(sorted.length/2)];
+    const pcts = [1,2,3,4].map(v => Math.round(counts[v]/vals.length*100));
+    return { med, counts, pcts, total: vals.length };
+  });
+
+  const activeQs = qStats.map((s,i) => s ? i : -1).filter(i => i >= 0);
+
+  // Format date display
+  const [y,m,d] = dt.split('-');
+  const dateLabel = `${d}/${m}/${y}`;
+
+  // ── SUMMARY ──
+  let summaryHtml = `<div class="cb-legend">
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r1)"></div>1r intent</div>
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r2)"></div>2n intent</div>
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r3)"></div>3r+ intents</div>
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r4)"></div>Fallit</div>
+  </div>
+  <p class="cb-section-title">Resum per pregunta — ${cbRows.length} alumnes · ${dateLabel}</p>
+  <div class="cb-summary-grid">`;
+
+  const BAR_H = 60; // total bar height px
+  activeQs.forEach(q => {
+    const s = qStats[q];
+    const segs = [1,2,3,4].map(v => {
+      const h = Math.round(s.pcts[v-1] * BAR_H / 100);
+      return h > 0 ? `<div class="cb-q-seg" style="height:${h}px;background:${colors[v]};" title="${s.pcts[v-1]}%"></div>` : '';
+    }).join('');
+    const medColor = colors[s.med] || 'var(--muted)';
+    const medLabel = labels[s.med] || '?';
+    // Difícil: mediana > 1 O percentatge de fallits >= 20%
+    const isHard = s.med > 1 || s.pcts[3] >= 20;
+    summaryHtml += `<div class="cb-q-col">
+      <div class="cb-q-num${isHard?' hard':''}">${q+1}</div>
+      <div class="cb-q-bar" style="height:${BAR_H}px;">${segs}</div>
+      <div class="cb-q-median${isHard?' hard':''}" style="background:${medColor};">${medLabel}</div>
+    </div>`;
+  });
+  summaryHtml += `</div>`;
+
+  // ── MATRIX ──
+  summaryHtml += `<p class="cb-section-title" style="margin-top:8px;">Matriu alumnes × preguntes</p>
+  <div class="cb-matrix-wrap"><table class="cb-matrix"><thead><tr>
+    <th class="cb-stu-h">Alumne</th>
+    <th class="cb-nota-h">Nota</th>
+    ${activeQs.map(q=>{const s=qStats[q];const isHard=s&&(s.med>1||s.pcts[3]>=20);return`<th style="${isHard?'color:#dc2626;font-weight:800;background:#fff5f5;':''}">${q+1}</th>`;}).join('')}
+  </tr></thead><tbody>`;
+
+  cbRows.sort((a,b) => (b.parsed.note||0) - (a.parsed.note||0));
+  cbRows.forEach(row => {
+    const arr = row.parsed.resultsArray;
+    const nota = row.parsed.note !== null ? row.parsed.note.toFixed(2).replace('.',',') : '—';
+    summaryHtml += `<tr>
+      <td class="cb-stu-cell" data-tip="${row.student}" onmouseenter="showTip(event,this)" onmouseleave="hideTip()">${row.student.slice(0,4)}</td>
+      <td class="cb-nota-cell">${nota}</td>
+      ${activeQs.map(q => {
+        const v = arr[q] || 0;
+        return `<td><div class="cb-cell cb-cell-${v}">${v > 0 ? labels[v] : ''}</div></td>`;
+      }).join('')}
+    </tr>`;
+  });
+
+  summaryHtml += `</tbody></table></div>`;
+
+  document.getElementById('cb-modal-title').textContent = `Resum CB — ${dateLabel}`;
+  document.getElementById('cb-modal-body').innerHTML = summaryHtml;
+  document.getElementById('cb-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+
+function exportCBtxt() {
+  const dt = document.getElementById('f-date').value;
+  const cbRows = filtRows.filter(r => r.parsed.format === 'v1-cb' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
+  if (!cbRows.length || !dt) return;
+
+  const N = 30;
+  const [y,m,d] = dt.split('-');
+  const dateLabel = `${d}/${m}/${y}`;
+
+  const qStats = Array.from({length:N}, (_,q) => {
+    const vals = cbRows.map(r => r.parsed.resultsArray[q] || 0).filter(v => v > 0);
+    if (!vals.length) return null;
+    const n = vals.length;
+    const counts = [0,0,0,0,0];
+    vals.forEach(v => counts[v]++);
+    const sorted = [...vals].sort((a,b)=>a-b);
+    const med = sorted[Math.floor(sorted.length/2)];
+    const pcts = [1,2,3,4].map(v => Math.round(counts[v]/n*100));
+    const isHard = med > 1 || pcts[3] >= 20;
+    return { q:q+1, med, pcts, isHard, n };
+  }).filter(Boolean);
+
+  const hard = qStats.filter(s => s.isHard).sort((a,b)=>a.q-b.q);
+  const easy = qStats.filter(s => !s.isHard).sort((a,b)=>a.q-b.q);
+
+  const fmtQ = s =>
+    `P${String(s.q).padStart(2,' ')}:  1r=${String(s.pcts[0]).padStart(3)}%  2n=${String(s.pcts[1]).padStart(3)}%  3r=${String(s.pcts[2]).padStart(3)}%  4t=${String(s.pcts[3]).padStart(3)}%`;
+
+  const lines = [
+    `Resum CB — ${dateLabel} — ${cbRows.length} alumnes`,
+    '='.repeat(56),
+    '',
+    `PREGUNTES A MILLORAR (${hard.length})`,
+    '-'.repeat(56),
+    ...hard.map(fmtQ),
+    '',
+    `PREGUNTES QUE HAN ANAT BÉ (${easy.length})`,
+    '-'.repeat(56),
+    ...easy.map(fmtQ),
+    '',
+
+  ];
+
+  const blob = new Blob([lines.join('\n')], {type:'text/plain;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `resum-cb-${dt}.txt`;
+  a.click();
+}
+
+
+function showTip(e, el) {
+  const tip = document.getElementById('cb-tooltip');
+  tip.textContent = el.dataset.tip;
+  tip.style.display = 'block';
+  const rect = el.getBoundingClientRect();
+  // Position above the cell, centered horizontally on it
+  tip.style.left = (rect.left + rect.width/2) + 'px';
+  tip.style.top  = (rect.top - 28) + 'px';
+  tip.style.transform = 'translateX(-50%)';
+}
+function hideTip() {
+  document.getElementById('cb-tooltip').style.display = 'none';
+}
+
+
+function closeCB() {
+  document.getElementById('cb-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCB(); });
+
 </script>
+
+<!-- CB MODAL -->
+<div class="cb-modal-overlay" id="cb-overlay" onclick="if(event.target===this)closeCB()">
+  <div class="cb-modal">
+    <div class="cb-modal-header">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button onclick="exportCBtxt()" style="background:#fff;color:#2563eb;border:2px solid #2563eb;border-radius:6px;padding:8px 18px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;">⬇ Exportar .txt</button>
+        <h2 id="cb-modal-title">Resum CB</h2>
+      </div>
+      <button class="cb-close" onclick="closeCB()">✕</button>
+    </div>
+    <div class="cb-body" id="cb-modal-body"></div>
+  </div>
+</div>
+<div class="cb-tooltip" id="cb-tooltip"></div>
 </body>
 </html>
