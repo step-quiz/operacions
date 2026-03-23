@@ -60,13 +60,14 @@
 
     * { box-sizing: border-box; }
 
+    html { overflow: hidden; }
     body {
       margin: 0;
       background: var(--bg-body);
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       color: var(--text-main);
       padding: 10px;
-      padding-bottom: 80px;
+      padding-bottom: 60px;
       min-height: 100vh;
       overflow-x: hidden;
       display: flex;
@@ -167,6 +168,7 @@
     .mobile-nav input:checked + label { background: #ffffff; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
     @media (max-width: 1050px) {
+      html { overflow: auto; }
       body { justify-content: flex-start; padding-top: 30px; }
       .main-wrapper { flex-direction: column; align-items: center; }
       .mobile-nav { display: flex; }
