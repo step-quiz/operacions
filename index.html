@@ -172,7 +172,7 @@
 
     @media (max-width: 1050px) {
       html { overflow: auto; }
-      body { justify-content: flex-start; padding-top: 30px; }
+      body { justify-content: flex-start; padding-top: 15px; }
       .main-wrapper { flex-direction: column; align-items: center; }
       .mobile-nav { display: flex; }
       .quiz-panel { display: none; }
@@ -180,9 +180,13 @@
     }
 
     @media (max-width: 480px) {
-      body { padding-bottom: 100px; }
+      body { padding-bottom: 100px; padding-top: 10px !important; }
       .bottom-icon { bottom: 88px !important; }
       .copy-btn, .open-btn, .help-btn { font-size: 12px; }
+      .title-container { margin-bottom: 10px; }
+      .inline-icon { height: 60px; }
+      .title-row-1 { font-size: 28px; }
+      .title-row-2 { font-size: 18px; margin-top: -10px; }
     }
 
     .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
