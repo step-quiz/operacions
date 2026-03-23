@@ -195,7 +195,7 @@ window.DistractorLib = (() => {
             const p1 = sorted[i], p2 = sorted[i + 1];
             const delta = p2.y - p1.y;
             if (delta === 0) continue;   // igual → no hi ha comparació significativa
-            const cmp  = delta > 0 ? 'més alta' : 'més baixa';
+            const cmp  = delta > 0 ? 'més baixa' : 'més alta';
             const verb = p1.x < 0 ? 'era' : p1.x === 0 ? 'és' : 'serà';
             const text = `${S.capitalize(S.dayLabel(p1.x))}, la temperatura ${verb} ${cmp} que ${S.dayLabel(p2.x)}`;
             trueTexts.add(text);
@@ -259,7 +259,7 @@ window.DistractorLib = (() => {
             const p1    = sorted[i], p2 = sorted[i + 1];
             const delta = p2.y - p1.y;
             if (delta === 0) continue;
-            const wrongCmp   = delta > 0 ? 'més baixa' : 'més alta';   // invers del correcte
+            const wrongCmp   = delta > 0 ? 'més alta' : 'més baixa';   // invers del correcte
             const verb       = p1.x < 0 ? 'era' : p1.x === 0 ? 'és' : 'serà';
             const absD       = Math.abs(delta);
             const falseLevel = absD === 1 ? 3 : absD <= 3 ? 2 : 1;
