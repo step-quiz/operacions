@@ -63,13 +63,14 @@
     * { box-sizing: border-box; }
 
     html { overflow: hidden; }
+    @media (max-height: 600px) { html { overflow: auto; } }
     body {
       margin: 0;
       background: var(--bg-body);
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       color: var(--text-main);
       padding: 10px;
-      padding-bottom: 60px;
+      padding-bottom: 75px;
       min-height: 100vh;
       overflow-x: hidden;
       display: flex;
@@ -151,7 +152,7 @@
     .link-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; margin-bottom: 4px; display: block; }
     .link-output { width: 100%; min-height: 45px; height: 45px; font-family: monospace; font-size: 11px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-heavy); background: #e2e8f0; word-break: break-all; user-select: all; -webkit-user-select: all; cursor: text; line-height: 1.3; display: flex; align-items: center; }
 
-    .btn-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    .btn-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
     .copy-btn, .open-btn, .help-btn { height: 38px; cursor: pointer; border-radius: 6px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; border: none; gap: 6px; transition: all 0.2s ease; }
     .copy-btn { flex: 0.8; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); }
     .help-btn { flex: 0.9; background: #ffffff; color: var(--text-main); border: 1px solid var(--border-heavy); }
@@ -176,6 +177,12 @@
       .mobile-nav { display: flex; }
       .quiz-panel { display: none; }
       .quiz-panel.active { display: block; animation: fade-in 0.3s ease-out forwards; animation-delay: 0s !important; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding-bottom: 100px; }
+      .bottom-icon { bottom: 88px !important; }
+      .copy-btn, .open-btn, .help-btn { font-size: 12px; }
     }
 
     .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
@@ -445,8 +452,8 @@
     </span>
   </footer>
 
-  <a href="a/a-index.html" title="Activitats adaptades" aria-label="Activitats adaptades"
-     style="position: fixed; bottom: 14px; left: 14px; z-index: 10000;
+  <a href="a/a-index.html" title="Activitats adaptades" aria-label="Activitats adaptades" class="bottom-icon"
+     style="position: fixed; bottom: 65px; left: 14px; z-index: 10000;
             width: 48px; height: 48px; border-radius: 50%;
             background: #eceee0; border: 2px solid #b8be8a;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -459,8 +466,8 @@
          onerror="this.style.display='none'">
   </a>
 
-  <a href="https://cb.step-quiz.net/" title="CB Step Quiz" aria-label="CB Step Quiz"
-     style="position: fixed; bottom: 14px; left: 72px; z-index: 10000;
+  <a href="https://cb.step-quiz.net/" title="CB Step Quiz" aria-label="CB Step Quiz" class="bottom-icon"
+     style="position: fixed; bottom: 65px; left: 72px; z-index: 10000;
             width: 48px; height: 48px; border-radius: 50%;
             background: #e2e8f0; border: 2px solid #b8be8a;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -473,8 +480,8 @@
     CB
   </a>
 
-  <a href="analitzador-stepquiz.html" title="Analitzador de resultats" aria-label="Analitzador de resultats"
-     style="position: fixed; bottom: 14px; right: 14px; z-index: 10000;
+  <a href="analitzador-stepquiz.html" title="Analitzador de resultats" aria-label="Analitzador de resultats" class="bottom-icon"
+     style="position: fixed; bottom: 65px; left: 130px; z-index: 10000;
             width: 48px; height: 48px; border-radius: 50%;
             background: #eceee0; border: 2px solid #b8be8a;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
