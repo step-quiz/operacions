@@ -60,6 +60,7 @@ const EXERCISE_CODES = {
     'proporciodirecta':   'PR',
     'decimals':             'DI',
     'vocabulari':         'VO',
+    'probabilitat':       'PB',
     // Batxillerat
     'complexos':                 'CX',
     'derivades':                 'DV',

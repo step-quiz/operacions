@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+ * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/utils.js
  * ROL: Llibreria de funcions utilitàries pures i genèriques.
  * ARQUITECTURA:
@@ -45,6 +45,18 @@ function randIntNonZero(min, max) {
  */
 function pick(arr) {
     return arr[randInt(0, arr.length - 1)];
+}
+
+/**
+ * Barreja un array in-place usant l'algorisme Fisher-Yates (Durstenfeld).
+ * Retorna el mateix array barrejat (permet encadenar).
+ */
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
 
 /**

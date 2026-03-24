@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * PROJECTE: Motor Educatiu de Derivades (Vanilla JS)
+ * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/config.js
  * ROL: Gestió de la configuració de la partida i paràmetres URL.
  * ARQUITECTURA:
