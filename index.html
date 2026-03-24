@@ -37,12 +37,16 @@
 
     const ACTIVITIES_BATX = [
       { file: 'rectes-plans.html', label: 'Equacions rectes i plans', yt: '' },
+      { separator: true },
       { file: 'esglaonar-matriu.html', label: 'Esglaonar una matriu', yt: '' },
       { file: 'inversa-matriu.html', label: "Inversa d'una matriu", yt: '' },
+      { separator: true },
       { file: 'ruffini.html', label: 'Ruffini (arrels enteres)', yt: '' },
       { file: 'complexos.html', label: 'Nombres complexos', yt: '' },
+      { separator: true },
       { file: 'derivades.html', label: 'Càlcul de derivades', yt: '' },
       { file: 'integrals.html', label: "Càlcul d'integrals", yt: '' },
+      { separator: true },
       { file: 'grafica-i-funcio.html', label: 'Gràfica i funció', yt: '' },
       { file: 'asimptotes.html', label: 'Asímptota + límit lateral', yt: '' },
       { file: 'grafica-funcio-i-derivada.html', label: 'Comparar gràfiques de funció i de derivada', yt: '' }
@@ -94,8 +98,8 @@
     @keyframes icon-slide-brake { from { transform: translateX(-60px) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-    .main-wrapper { display: flex; gap: 30px; justify-content: center; width: 100%; max-width: 1000px; align-items: flex-start; }
-    .quiz-panel { width: var(--panel-w); max-width: 100%; padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-heavy); }
+    .main-wrapper { display: flex; gap: 30px; justify-content: center; width: 100%; max-width: 1000px; align-items: stretch; }
+    .quiz-panel { width: var(--panel-w); max-width: 100%; padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-heavy); display: flex; flex-direction: column; }
     #panel-eso  { background-color: var(--eso-bg);  opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
     #panel-batx { background-color: var(--batx-bg); opacity: 0; animation: fade-in 0.24s ease-out 1.80s forwards; }
 
@@ -154,7 +158,7 @@
     .cd-separator { height: 1px; background: #94a3b8; margin: 4px 6px; }
 
     /* Link block */
-    .link-block { margin-top: 5px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
+    .link-block { margin-top: 5px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
     .link-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; margin-bottom: 4px; display: block; }
     .link-output { width: 100%; min-height: 45px; height: 45px; font-family: monospace; font-size: 11px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-heavy); background: #e2e8f0; word-break: break-all; user-select: all; -webkit-user-select: all; cursor: text; line-height: 1.3; display: flex; align-items: center; }
 
