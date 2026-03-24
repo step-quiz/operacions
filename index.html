@@ -15,17 +15,22 @@
     const ACTIVITIES_ESO = [
       { file: 'vocabulari.html', label: 'Vocabulari geometria', yt: '' },
       { file: 'area-perimetre.html', label: 'Àrea i perímetre', yt: 'area-perimetre-tutorial.html' },
+      { separator: true },
       { file: 'enters.html', label: 'Nombres enters', yt: 'https://youtu.be/7M6oAKwovag' },
       { file: 'enters-ordenar.html', label: 'Ordenar nombres enters', yt: '' },
       { file: 'recta-numerica.html', label: 'Recta numèrica', yt: '', difficulty: true },
+      { separator: true },
       { file: 'potencies.html', label: 'Potències de base natural', yt: ''},
       { file: 'factoritzar.html', label: 'Descomposar en factors primers', yt: 'https://youtu.be/s2LGUllVMfM' },
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ' },
+      { separator: true },
       { file: 'proporciodirecta.html', label: 'Proporció directa', yt: 'a/proporciodirectatutorial', difficulty: true },
       { file: 'fraccions.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI', difficulty: true },
       { file: 'decimals.html', label: 'Nombres decimals', yt: 'a/decimals-tutorial', difficulty: true },
+      { separator: true },
       { file: 'equacions.html', label: 'Equacions de 1r grau', yt: 'https://youtu.be/Ad9BBLqYgyc' },
       { file: 'sistemes-equacions.html', label: "Sistemes d'equacions", yt: '' },
+      { separator: true },
       { file: 'radicals.html', label: 'Simplificació de radicals', yt: '' },
       { file: 'pla-cartesia.html', label: 'Pla cartesià', yt: '', difficulty: true }
     ];
@@ -146,6 +151,7 @@
     .cd-option.selected { font-weight: 600; color: var(--accent); background: #eff6ff; }
     .cd-check { width: 13px; height: 13px; flex-shrink: 0; color: var(--accent); opacity: 0; }
     .cd-option.selected .cd-check { opacity: 1; }
+    .cd-separator { height: 1px; background: #94a3b8; margin: 4px 6px; }
 
     /* Link block */
     .link-block { margin-top: 5px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
@@ -283,6 +289,12 @@
       function render() {
         list.innerHTML = '';
         activities.forEach(a => {
+          if (a.separator) {
+            const hr = document.createElement('div');
+            hr.className = 'cd-separator';
+            list.appendChild(hr);
+            return;
+          }
           const div = document.createElement('div');
           div.className = 'cd-option' + (a.file === currentFile ? ' selected' : '');
           div.innerHTML = `
@@ -305,7 +317,17 @@
       label.textContent = def.label;
       render();
 
-      trigger.addEventListener('click', e => { e.stopPropagation(); wrap.classList.toggle('open'); });
+      trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        wrap.classList.toggle('open');
+        if (wrap.classList.contains('open')) {
+          const panel = wrap.closest('.quiz-panel');
+          const panelRect = panel.getBoundingClientRect();
+          const triggerRect = trigger.getBoundingClientRect();
+          const available = panelRect.bottom - triggerRect.bottom - 12;
+          list.style.maxHeight = Math.min(320, Math.max(100, available)) + 'px';
+        }
+      });
       list.addEventListener('click', e => e.stopPropagation());
 
       return { getValue };
