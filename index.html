@@ -214,6 +214,62 @@
     }
 
     .help-btn { display: none; }
+
+    /* ── Animació derrapada sabatilla ── */
+    .icon-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: flex-end;
+    }
+
+    /* Línies de derrapada: apareixen mentre frena, es dissolen */
+    .icon-wrap::before {
+      content: '';
+      position: absolute;
+      bottom: 11px;
+      left: -4px;
+      width: 0;
+      height: 10px;
+      opacity: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        #94a3b8 0px, #94a3b8 2px,
+        transparent 2px, transparent 5px,
+        #cbd5e1 5px, #cbd5e1 7px,
+        transparent 7px, transparent 10px
+      );
+      border-radius: 1px;
+      animation: skid 0.55s cubic-bezier(0.15, 0, 0.6, 1) 0.75s forwards;
+    }
+
+    /* Núvol de pols: apareix just quan s'atura i es dissipa */
+    .icon-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: 10px;
+      left: 0px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      opacity: 0;
+      box-shadow:
+        -10px  0px 5px 4px rgba(148,163,184,0.35),
+        -18px -3px 4px 3px rgba(148,163,184,0.20),
+         -6px -6px 3px 2px rgba(148,163,184,0.15);
+      animation: dust 0.9s ease-out 1.0s forwards;
+    }
+
+    @keyframes skid {
+      0%   { width: 0;    opacity: 0; }
+      25%  { width: 28px; opacity: 0.75; }
+      100% { width: 32px; opacity: 0; }
+    }
+
+    @keyframes dust {
+      0%   { opacity: 0;   transform: scale(0.4) translateX(0); }
+      15%  { opacity: 0.9; }
+      100% { opacity: 0;   transform: scale(2.0) translateX(-10px); }
+    }
   </style>
 <link rel="stylesheet" href="css/chromebook.css">
 </head>
@@ -222,7 +278,7 @@
   <div class="title-container">
     <h1 class="title-row-1">
       <span class="text-step">Step</span>
-      <img src="icon.png" alt="Icona" class="inline-icon">
+      <span class="icon-wrap"><img src="icon.png" alt="Icona" class="inline-icon"></span>
       <span class="text-step">Quiz</span>
     </h1>
     <div class="title-row-2">Matemàtiques</div>
