@@ -228,12 +228,12 @@
       position: absolute;
       bottom: 11px;
       left: 4px;
-      width: 0;
+      width: 32px;
       height: 6px;
       opacity: 0;
       background:
-        linear-gradient(to right, #b8c4d0, #b8c4d0) left top    / 80% 2px no-repeat,
-        linear-gradient(to right, #cbd5e1, #cbd5e1) left bottom / 100% 2px no-repeat;
+        linear-gradient(to right, #b8c4d0, #b8c4d0) left top    / 26px 2px no-repeat,
+        linear-gradient(to right, #cbd5e1, #cbd5e1) left bottom / 32px 2px no-repeat;
       border-radius: 1px;
       animation: skid 0.55s cubic-bezier(0.15, 0, 0.6, 1) 0.20s forwards;
     }
@@ -256,9 +256,9 @@
     }
 
     @keyframes skid {
-      0%   { width: 0;    opacity: 0; }
-      25%  { width: 28px; opacity: 0.75; }
-      100% { width: 32px; opacity: 0; }
+      0%   { clip-path: inset(0 100% 0 0); opacity: 0; }
+      25%  { clip-path: inset(0 10%  0 0); opacity: 0.75; }
+      100% { clip-path: inset(0 0%   0 0); opacity: 0; }
     }
 
     @keyframes dust {
