@@ -229,15 +229,11 @@
       bottom: 11px;
       left: 4px;
       width: 0;
-      height: 10px;
+      height: 6px;
       opacity: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        #b8c4d0 0px, #b8c4d0 2px,
-        transparent 2px, transparent 4px,
-        #cbd5e1 4px, #cbd5e1 6px,
-        transparent 6px, transparent 10px
-      );
+      background:
+        linear-gradient(to right, #b8c4d0, #b8c4d0) left top    / 80% 2px no-repeat,
+        linear-gradient(to right, #cbd5e1, #cbd5e1) left bottom / 100% 2px no-repeat;
       border-radius: 1px;
       animation: skid 0.55s cubic-bezier(0.15, 0, 0.6, 1) 0.20s forwards;
     }
