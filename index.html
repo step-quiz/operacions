@@ -159,6 +159,7 @@
 
     /* Link block */
     .link-block { margin-top: auto; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
+    #panel-batx .link-block { margin-top: 16px; }
     .panel-spacer { display: none; }
 
     @media (max-width: 1050px) {
@@ -192,6 +193,7 @@
       .mobile-nav { display: flex; }
       .quiz-panel { display: none; }
       .quiz-panel.active { display: flex; flex: 1; animation: fade-in 0.3s ease-out forwards; animation-delay: 0s !important; }
+      .quiz-panel { justify-content: flex-start; }
     }
 
     @media (max-width: 480px) {
@@ -272,7 +274,6 @@
           <div class="cd-list"></div>
         </div>
       </div>
-      <div class="panel-spacer"></div>
       <div class="link-block">
         <div class="btn-row">
           <button id="c-batx" class="copy-btn">Copia</button>
