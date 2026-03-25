@@ -257,11 +257,12 @@ const EX = {
   'EN':'enters','EO':'enters-ordenar','FR':'fraccions','EQ':'equacions',
   'SE':'sistemes-equacions','MC':'mcd-mcm','PT':'potencies','FA':'factoritzar',
   'RA':'radicals','RN':'recta-numerica','AP':'area-perimetre','PC':'pla-cartesia',
-  'PR':'proporciodirecta','DI':'diners','VO':'vocabulari','CX':'complexos',
+  'PR':'proporciodirecta','DI':'decimals','VO':'vocabulari','CX':'complexos',
   'DV':'derivades','IT':'integrals','AS':'asimptotes','RU':'ruffini',
   'GF':'grafica-i-funcio','GD':'grafica-funcio-i-derivada','RP':'rectes-plans',
   'EM':'esglaonar-matriu','IM':'inversa-matriu',
   'AE':'a-enters','AD':'a-decimals','AN':'a-diners','AQ':'a-equacions','AO':'a-proporciodirecta',
+  'PB':'probabilitat','ED':'estadistica','MJ':'mitjana','EI':'estadistica-inversa',
   'CB':'competencies-basiques',
 };
 const LC='TRWAGMYFPDXBNJZSQVHLCKE', GAP=15;
@@ -532,6 +533,9 @@ function checkCBButton() {
     setTimeout(() => btn.classList.remove('btn-cb-shake'), 2100);
   }
   btn._wasReady = ready;
+  btn.disabled = !ready;
+  btn.style.opacity = ready ? '' : '0.45';
+  btn.style.cursor  = ready ? '' : 'not-allowed';
 }
 
 function openCB() {
@@ -543,8 +547,8 @@ function openCB() {
   const dateFi = document.getElementById('f-date');
   if (!cbRows.length || dt === '') {
     // Auto-set exercise to cb if not set
-    if (exSel && exSel.value !== 'cb') {
-      exSel.value = 'cb';
+    if (exSel && exSel.value !== 'competencies-basiques') {
+      exSel.value = 'competencies-basiques';
       applyFilters();
     }
     // Highlight date field
