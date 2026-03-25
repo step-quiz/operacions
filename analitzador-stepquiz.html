@@ -299,10 +299,18 @@ function parseCode(raw){
   if(p.length===9&&/^[A-Z][a-z][a-z0-9]{2}$/.test(p[0])&&/^\d{4}$/.test(p[1])&&/^\d{4}$/.test(p[2])&&/^[A-Z0-9]{2}$/.test(p[3])&&/^[0-3]$/.test(p[4])&&/^[1-5]$/.test(p[5])&&/^\d{2}$/.test(p[6])&&/^\d{3}$/.test(p[7])&&/^[01234]{30}$/.test(p[8])){
     const ltr=p[0][0],salt=p[0].slice(1),dd=+p[1].slice(0,2),mm=+p[1].slice(2,4),hh=+p[2].slice(0,2),mn=+p[2].slice(2,4);
     const ni=+p[7],ok=chk(ltr,salt,dd,mm,hh,mn,ni);
-    return{format:'v2',valid:ok,checksumOk:ok,exercise:EX[p[3]]||p[3],exerciseCode:p[3],
+    const result={format:'v2',valid:ok,checksumOk:ok,exercise:EX[p[3]]||p[3],exerciseCode:p[3],
       note:ni/10,difficulty:+p[4],sessions:+p[5],questions:+p[6],
       day:dd,month:mm,hour:hh,minute:mn,results:p[8],resultsArray:p[8].split('').map(Number),
-      error:ok?null:'Checksum invàlid'};}
+      cbNivell:null,cbAny:null,cbMode:null,
+      error:ok?null:'Checksum invàlid'};
+    // Decodifica camps CB del salt i sessions (si exerciseCode==='CB')
+    if(p[3]==='CB'){
+      result.cbNivell=salt[0]==='q'?'4t ESO':salt[0]==='s'?'2n ESO':null;
+      result.cbAny=(salt[1]&&salt[2]&&/^\d{2}$/.test(salt[1]+salt[2]))?'20'+salt[1]+salt[2]:null;
+      result.cbMode=(+p[5]===1)?'Examen':(+p[5]===2)?'Pràctica':null;
+    }
+    return result;}
   if(p.length>=6&&/^[A-Z][a-z][a-z0-9]{2}$/.test(p[0])&&/^\d{4}$/.test(p[1])&&/^\d{4}$/.test(p[2])&&/^[0-9]{30}$/.test(p[p.length-2])&&p[p.length-1]==='cb'){
     const ltr=p[0][0],salt=p[0].slice(1),dd=+p[1].slice(0,2),mm=+p[1].slice(2,4),hh=+p[2].slice(0,2),mn=+p[2].slice(2,4);
     const nota=parseFloat(p[3].replace(',','.')),ni=Math.round(nota*100),ok=chk(ltr,salt,dd,mm,hh,mn,ni);
@@ -378,11 +386,14 @@ function renderDet(row){
     {k:'Validació',v:p.checksumOk?'✅ OK':'❌ KO'},
     {k:'Nota',v:p.note!==null?p.note.toFixed(2).replace('.',','):'—'}];
   items.push({k:'Activitat',v:p.exercise||p.exerciseCode||'—'});
-  if(p.cbNivell) items.push({k:'Nivell',v:p.cbNivell});
-  if(p.cbAny)    items.push({k:'Any prova',v:p.cbAny});
-  if(p.format==='v2'){
+  if(p.cbNivell) items.push({k:'Curs',v:p.cbNivell});
+  if(p.cbAny)    items.push({k:'Convocatòria',v:'CB ' + p.cbAny});
+  if(p.cbMode)   items.push({k:'Mode',v:p.cbMode});
+  if(p.format==='v2'&&p.exerciseCode!=='CB'){
     items.push({k:'Dificultat',v:p.difficulty===0?'—':`Nivell ${p.difficulty}`});
     items.push({k:'Sessions',v:String(p.sessions)});
+    items.push({k:'Preguntes',v:String(p.questions)});
+  } else if(p.format==='v2'&&p.exerciseCode==='CB'){
     items.push({k:'Preguntes',v:String(p.questions)});
   }
   const ss=p.sessions||1,qq=p.questions||30;
@@ -509,7 +520,7 @@ document.addEventListener('paste',e=>{
 
 function checkCBButton() {
   const dt = document.getElementById('f-date').value;
-  const cbRows = filtRows.filter(r => r.parsed.format === 'v1-cb' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
+  const cbRows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
   const ready = dt !== '' && cbRows.length >= 2;
   const btn = document.getElementById('btn-cb');
   if (!btn) return;
@@ -525,7 +536,7 @@ function checkCBButton() {
 
 function openCB() {
   const dt = document.getElementById('f-date').value;
-  const cbRows = filtRows.filter(r => r.parsed.format === 'v1-cb' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
+  const cbRows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
 
   // Auto-correct filters if not ready
   const exSel = document.getElementById('f-ex');
@@ -566,10 +577,11 @@ function openCB() {
   const [y,m,d] = dt.split('-');
   const dateLabel = `${d}/${m}/${y}`;
 
-  // Decodifica nivell i any del salt (per al títol)
+  // Decodifica nivell, any i mode del primer codi CB (per al títol)
   const firstRow = cbRows[0];
   const cbNivellLabel = firstRow && firstRow.parsed.cbNivell ? ` · ${firstRow.parsed.cbNivell}` : '';
-  const cbAnyLabel    = firstRow && firstRow.parsed.cbAny    ? ` · ${firstRow.parsed.cbAny}`    : '';
+  const cbAnyLabel    = firstRow && firstRow.parsed.cbAny    ? ` · CB ${firstRow.parsed.cbAny}` : '';
+  const cbModeLabel   = firstRow && firstRow.parsed.cbMode   ? ` · ${firstRow.parsed.cbMode}`   : '';
 
   // ── SUMMARY ──
   let summaryHtml = `<div class="cb-legend">
@@ -578,7 +590,7 @@ function openCB() {
     <div class="cb-li"><div class="cb-ld" style="background:var(--r3)"></div>3r+ intents</div>
     <div class="cb-li"><div class="cb-ld" style="background:var(--r4)"></div>Fallit</div>
   </div>
-  <p class="cb-section-title">Resum per pregunta — ${cbRows.length} alumnes · ${dateLabel}${cbNivellLabel}${cbAnyLabel}</p>
+  <p class="cb-section-title">Resum per pregunta — ${cbRows.length} alumnes · ${dateLabel}${cbNivellLabel}${cbAnyLabel}${cbModeLabel}</p>
   <div class="cb-summary-grid">`;
 
   const BAR_H = 60; // total bar height px
@@ -624,7 +636,7 @@ function openCB() {
 
   summaryHtml += `</tbody></table></div>`;
 
-  document.getElementById('cb-modal-title').textContent = `Resum CB — ${dateLabel}${cbNivellLabel}${cbAnyLabel}`;
+  document.getElementById('cb-modal-title').textContent = `Resum CB — ${dateLabel}${cbNivellLabel}${cbAnyLabel}${cbModeLabel}`;
   document.getElementById('cb-modal-body').innerHTML = summaryHtml;
   document.getElementById('cb-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -633,7 +645,7 @@ function openCB() {
 
 function exportCBtxt() {
   const dt = document.getElementById('f-date').value;
-  const cbRows = filtRows.filter(r => r.parsed.format === 'v1-cb' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
+  const cbRows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
   if (!cbRows.length || !dt) return;
 
   const N = 30;
@@ -659,8 +671,13 @@ function exportCBtxt() {
   const fmtQ = s =>
     `P${String(s.q).padStart(2,' ')}:  1r=${String(s.pcts[0]).padStart(3)}%  2n=${String(s.pcts[1]).padStart(3)}%  3r=${String(s.pcts[2]).padStart(3)}%  4t=${String(s.pcts[3]).padStart(3)}%`;
 
+  const fr = cbRows[0];
+  const nLabel = fr&&fr.parsed.cbNivell ? ' · '+fr.parsed.cbNivell : '';
+  const aLabel = fr&&fr.parsed.cbAny    ? ' · CB '+fr.parsed.cbAny : '';
+  const mLabel = fr&&fr.parsed.cbMode   ? ' · '+fr.parsed.cbMode   : '';
+
   const lines = [
-    `Resum CB — ${dateLabel} — ${cbRows.length} alumnes`,
+    `Resum CB — ${dateLabel}${nLabel}${aLabel}${mLabel} — ${cbRows.length} alumnes`,
     '='.repeat(56),
     '',
     `PREGUNTES A MILLORAR (${hard.length})`,
