@@ -65,7 +65,7 @@ window.QuestionBank = (() => {
         const distractors  = DL.buildDieSingle(n);
         const { solutionTex, options } = _buildOptions(solutionFrac, distractors);
         return {
-            promptText: `Llancem un dau equilibrat de 6 cares. Quina és la probabilitat de <strong>${cond.text}</strong>?`,
+            promptText: `Llancem un dau equilibrat de 6 cares. Quina és la probabilitat de ${cond.text}?`,
             solutionTex,
             options,
             meta: { family: 'die-single', level: 1, params: { condition: cond.text, favorable: n } }
@@ -88,7 +88,7 @@ window.QuestionBank = (() => {
         const distractors  = DL.buildIndependent(pCoin, dieCond.pDie);
         const { solutionTex, options } = _buildOptions(solutionFrac, distractors);
         return {
-            promptText: `Llancem una moneda equilibrada i un dau de 6 cares. Quina és la probabilitat de treure <strong>${coinFace}</strong> a la moneda i <strong>${dieCond.text}</strong>?`,
+            promptText: `Llancem una moneda equilibrada i un dau de 6 cares. Quina és la probabilitat de treure ${coinFace} a la moneda i ${dieCond.text}?`,
             solutionTex,
             options,
             meta: { family: 'coin-die', level: 1, params: { coinFace, dieCond: dieCond.text } }
@@ -99,17 +99,17 @@ window.QuestionBank = (() => {
     function generateTwoCoins() {
         const scenarios = [
             {
-                text: 'treure <strong>dues cares</strong>',
+                text: 'treure dues cares',
                 frac: ME.frac(1, 4),
                 pA: ME.frac(1, 2), pB: ME.frac(1, 2)
             },
             {
-                text: 'no treure <strong>cap cara</strong> (dues creus)',
+                text: 'no treure cap cara (dues creus)',
                 frac: ME.frac(1, 4),
                 pA: ME.frac(1, 2), pB: ME.frac(1, 2)
             },
             {
-                text: 'treure <strong>almenys una cara</strong>',
+                text: 'treure almenys una cara',
                 frac: ME.frac(3, 4),
                 pA: ME.frac(1, 2), pB: ME.frac(1, 2)
             },
@@ -140,11 +140,11 @@ window.QuestionBank = (() => {
         let red;
         do { red = randInt(2, 5); } while (red === blue);
         const colors = pick([
-            { main: 'blaves', other: 'vermelles' },
-            { main: 'verdes', other: 'grogues' },
-            { main: 'blanques', other: 'negres' },
+            { main: 'blaves',   sing: 'blava',   other: 'vermelles', otherSing: 'vermella' },
+            { main: 'verdes',   sing: 'verda',   other: 'grogues',   otherSing: 'groga' },
+            { main: 'blanques', sing: 'blanca',  other: 'negres',    otherSing: 'negra' },
         ]);
-        return { b: blue, r: red, t: blue + red, cMain: colors.main, cOther: colors.other };
+        return { b: blue, r: red, t: blue + red, cMain: colors.main, singMain: colors.sing, cOther: colors.other, singOther: colors.otherSing };
     }
 
     function _boxText(box) {
@@ -158,7 +158,7 @@ window.QuestionBank = (() => {
         const distractors  = DL.buildWithReplacement(box.b, box.t);
         const { solutionTex, options } = _buildOptions(solutionFrac, distractors);
         return {
-            promptText: `Una caixa conté ${_boxText(box)}. Extraiem una bola, l'apuntem i <strong>la tornem a la caixa</strong>. Després n'extraiem una altra. Quina és la probabilitat que <strong>les dues siguin ${box.cMain}</strong>?`,
+            promptText: `Una caixa conté ${_boxText(box)}. Extraiem una bola, l'apuntem i la tornem a la caixa. Després n'extraiem una altra. Quina és la probabilitat que les dues siguin ${box.cMain}?`,
             solutionTex,
             options,
             meta: { family: 'balls-with-repl', level: 2, params: { b: box.b, r: box.r, t: box.t } }
@@ -172,7 +172,7 @@ window.QuestionBank = (() => {
         const distractors  = DL.buildWithoutReplacement(box.b, box.t);
         const { solutionTex, options } = _buildOptions(solutionFrac, distractors);
         return {
-            promptText: `Una caixa conté ${_boxText(box)}. Extraiem una bola <strong>sense tornar-la a la caixa</strong>, i després n'extraiem una altra. Quina és la probabilitat que <strong>les dues siguin ${box.cMain}</strong>?`,
+            promptText: `Una caixa conté ${_boxText(box)}. Extraiem una bola sense tornar-la a la caixa, i després n'extraiem una altra. Quina és la probabilitat que les dues siguin ${box.cMain}?`,
             solutionTex,
             options,
             meta: { family: 'balls-without-repl', level: 2, params: { b: box.b, r: box.r, t: box.t } }
@@ -186,7 +186,7 @@ window.QuestionBank = (() => {
         const distractors  = DL.buildDiffColorNoRepl(box.b, box.r, box.t);
         const { solutionTex, options } = _buildOptions(solutionFrac, distractors);
         return {
-            promptText: `Una caixa conté ${_boxText(box)}. Extraiem dues boles <strong>sense reposició</strong>. Quina és la probabilitat que la primera sigui <strong>${box.cMain.slice(0, -2) + 'a'}</strong> i la segona sigui <strong>${box.cOther.slice(0, -2) + 'a'}</strong>?`,
+            promptText: `Una caixa conté ${_boxText(box)}. Extraiem dues boles sense reposició. Quina és la probabilitat que la primera sigui ${box.singMain} i la segona sigui ${box.singOther}?`,
             solutionTex,
             options,
             meta: { family: 'balls-diff-color', level: 2, params: { b: box.b, r: box.r, t: box.t } }
@@ -207,7 +207,7 @@ window.QuestionBank = (() => {
         const distractors  = DL.buildConditionalBalls(b, t);
         const { solutionTex, options } = _buildOptions(solutionFrac, distractors);
         return {
-            promptText: `Una caixa conté ${b} boles ${box.cMain} i ${box.r} boles ${box.cOther}. Extraiem dues boles sense reposició. <strong>Sabent que la primera bola és ${box.cMain.slice(0, -2) + 'a'}</strong>, quina és la probabilitat que la segona també sigui <strong>${box.cMain.slice(0, -2) + 'a'}</strong>?`,
+            promptText: `Una caixa conté ${b} boles ${box.cMain} i ${box.r} boles ${box.cOther}. Extraiem dues boles sense reposició. Sabent que la primera bola és ${box.singMain}, quina és la probabilitat que la segona també sigui ${box.singMain}?`,
             solutionTex,
             options,
             meta: { family: 'conditional-balls', level: 3, params: { b, r: box.r, t } }
@@ -245,7 +245,7 @@ window.QuestionBank = (() => {
         const distractors  = DL.buildConditionalTable(ctx.nTarget, ctx.nCond, ctx.nOther, N);
         const { solutionTex, options } = _buildOptions(solutionFrac, distractors);
         return {
-            promptText: `En una classe de <strong>${N} alumnes</strong>, <strong>${nA}</strong> aproven matemàtiques i <strong>${nB}</strong> fan esport. <strong>${nAB}</strong> alumnes aproven matemàtiques i alhora fan esport. Si triem un alumne a l'atzar que <strong>${ctx.condLabel}</strong>, quina és la probabilitat que <strong>${ctx.askLabel}</strong>?`,
+            promptText: `En una classe de ${N} alumnes, ${nA} aproven matemàtiques i ${nB} fan esport. ${nAB} alumnes aproven matemàtiques i alhora fan esport. Si triem un alumne a l'atzar que ${ctx.condLabel}, quina és la probabilitat que ${ctx.askLabel}?`,
             solutionTex,
             options,
             meta: { family: 'conditional-table', level: 3, params: { nAB, nA, nB, N } }

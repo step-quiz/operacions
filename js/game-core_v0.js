@@ -63,7 +63,6 @@ const EXERCISE_CODES = {
     'probabilitat':       'PB',
     'estadistica':        'ED',
     'mitjana':            'MJ',
-    'estadistica-inversa':'EI',
     // Batxillerat
     'complexos':                 'CX',
     'derivades':                 'DV',

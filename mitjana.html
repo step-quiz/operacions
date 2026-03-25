@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Activitat interactiva de matemàtiques — Probabilitat">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Mitjana aritmètica i ponderada">
     <link rel="icon" href="icon.png">
-    <title>Probabilitat</title>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <title>Mitjana Aritmètica</title>
 
     <script>
         window.APP_CONFIG = {
@@ -22,20 +19,18 @@
     <!--
         ORDRE DE CÀRREGA
         Capa compartida: utils → config → game-core
-        Capa específica de probabilitat:
-          math-engine → strings → distractor-lib → question-bank → probabilitat (defer)
+        Capa específica: math-engine → strings → question-bank → mitjana (defer)
     -->
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
     <script src="js/game-core.js"></script>
-    <script src="js/probabilitat/math-engine.js"></script>
-    <script src="js/probabilitat/strings.js"></script>
-    <script src="js/probabilitat/distractor-lib.js"></script>
-    <script src="js/probabilitat/question-bank.js"></script>
-    <script defer src="js/probabilitat/probabilitat.js"></script>
+    <script src="js/mitjana/math-engine.js"></script>
+    <script src="js/mitjana/strings.js"></script>
+    <script src="js/mitjana/question-bank.js"></script>
+    <script defer src="js/mitjana/mitjana.js"></script>
 
     <link rel="stylesheet" href="css/shared.css?v=1">
-    <link rel="stylesheet" href="css/probabilitat.css?v=1">
+    <link rel="stylesheet" href="css/mitjana.css?v=1">
     <link rel="stylesheet" href="css/chromebook.css">
 </head>
 <body>
@@ -44,29 +39,39 @@
     <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
         <img src="icon.png" alt="Inici">
     </a>
-    <h1>Probabilitat</h1>
+    <h1>Mitjana Aritmètica</h1>
 </div>
 
 <div class="panel" id="main-panel">
     <div id="game-screen" style="display:none;">
         <div class="header-info">
             <div class="header-left">
-                <div class="header-meta" id="lvl-display">Pregunta 1 de 6</div>
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Pregunta 1 de 6</div>
             </div>
             <div class="score-text" id="score-display">Punts: 0</div>
             <div id="attempts-display" class="attempts-counter">Intents: 3</div>
         </div>
 
-        <div class="prompt-box">
-            <div id="prompt-display" class="prompt-text"></div>
+        <!-- Enunciat -->
+        <div class="enunciat-wrap" id="enunciat"></div>
+
+        <!-- Input de resposta -->
+        <div class="input-wrap" id="input-zone"></div>
+
+        <!-- Feedback -->
+        <div class="feedback-wrap">
+            <div id="missatge-feedback" class="feedback-bar" style="opacity:0;"></div>
         </div>
 
-        <div id="options-container" class="options-grid"></div>
-        <div id="missatge-feedback" style="min-height: 40px; margin-top: 15px; text-align: center; font-size: 1.1em; opacity: 0; transition: opacity 0.3s; padding: 0 15px;">
+        <!-- Ajuda -->
+        <div class="help-bar">
+            <button class="btn-help" id="btn-help">💡 Ajuda</button>
+        </div>
+        <div class="help-panel" id="help-panel">
+            <div id="help-content"></div>
         </div>
     </div>
-
-    <div id="session-summary" style="display:none;"></div>
 </div>
 
 </body>

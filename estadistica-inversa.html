@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Estadística inversa">
+    <link rel="icon" href="icon.png">
+    <title>Estadística Inversa</title>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    5,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!--
+        ORDRE DE CÀRREGA
+        Capa compartida: utils → config → game-core
+        Capa específica: math-engine → question-bank → estadistica-inversa (defer)
+
+        NIVELLS (paràmetre URL ?nivell=):
+          1: una condició (mitjana O mediana O moda), 1 solució
+          2: dues condicions, 2 solucions
+          3: tres condicions (mitjana + mediana + moda), 2 solucions
+    -->
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/game-core.js"></script>
+    <script src="js/estadistica-inversa/math-engine.js"></script>
+    <script src="js/estadistica-inversa/question-bank.js"></script>
+    <script defer src="js/estadistica-inversa/estadistica-inversa.js"></script>
+
+    <link rel="stylesheet" href="css/shared.css?v=1">
+    <link rel="stylesheet" href="css/estadistica-inversa.css?v=1">
+    <link rel="stylesheet" href="css/chromebook.css">
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Estadística Inversa</h1>
+</div>
+
+<div class="panel" id="main-panel">
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Pregunta 1 de 5</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter" style="display:none;"></div>
+        </div>
+
+        <!-- Enunciat -->
+        <div class="prompt-box" id="prompt-box"></div>
+
+        <!-- Badges de condicions -->
+        <div class="cond-badges" id="cond-badges"></div>
+
+        <!-- Progrés (solucions trobades / demanades) -->
+        <div class="progress-info" id="progress-info"></div>
+
+        <!-- Inputs de l'alumne -->
+        <div class="input-grid" id="input-grid"></div>
+
+        <!-- Botó comprovar -->
+        <div class="check-bar">
+            <button class="btn-submit" id="btn-check">Comprova</button>
+        </div>
+
+        <!-- Diagnòstic pas a pas -->
+        <div class="diagnostic-box" id="diagnostic-box"></div>
+
+        <!-- Feedback -->
+        <div class="feedback-wrap">
+            <div id="missatge-feedback" class="feedback-bar" style="opacity:0;"></div>
+        </div>
+
+        <!-- Ajuda -->
+        <div class="help-bar">
+            <button class="btn-help" id="btn-help">💡 Ajuda</button>
+        </div>
+        <div class="help-panel" id="help-panel">
+            <div id="help-content"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

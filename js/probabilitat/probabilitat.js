@@ -36,15 +36,22 @@ function buildLevel() {
     isTransitioning = false;
     attemptsLeft    = MAX_INTENTS;
 
-    els.lvlDisplay.innerText      = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    // showScreen() posa display:block com a inline style; cal corregir-ho
+    const _gs = document.getElementById('game-screen');
+    if (_gs) _gs.style.display = 'grid';
+
+    const _lvl = new URLSearchParams(window.location.search).get('nivell');
+    const _sessText = TOTAL_SESSIONS > 1 ? `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS} · ` : '';
+    const _lvlText  = _lvl ? ` · Nivell ${_lvl}` : '';
+    els.lvlDisplay.innerText      = `${_sessText}Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}${_lvlText}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
     els.feedback.style.opacity    = '0';
     els.feedback.innerHTML        = '';
 
     challengeData = QuestionBank.generateChallenge();
 
-    // Enunciat com a HTML (no KaTeX)
-    els.promptDisplay.innerHTML = challengeData.promptText;
+    // Enunciat com a HTML (no KaTeX); <br> inicial per separació visual
+    els.promptDisplay.innerHTML = '<br>' + challengeData.promptText;
 
     const allOptions = shuffle([...challengeData.options]);
 
@@ -55,6 +62,7 @@ function buildLevel() {
         const span = document.createElement('span');
         katex.render(opt.tex, span, { throwOnError: false, displayMode: false });
         btn.appendChild(span);
+        if (!/\\/.test(opt.tex)) btn.classList.add('opt-integer');
         btn.onclick = () => checkAnswer(opt, btn);
         els.optionsContainer.appendChild(btn);
     });
