@@ -249,12 +249,12 @@ function injectSharedHTML() {
     panel.appendChild(sessionEnd);
 
     // 4. Pantalla final
-    if (window._fixedSessionActive) finalScreen.querySelector('#btn-copiar').style.display = 'none';
     const finalScreen = document.createElement('div');
     finalScreen.id = 'final-screen';
     finalScreen.style.display = 'none';
     finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     panel.appendChild(finalScreen);
+    if (window._fixedSessionActive) finalScreen.querySelector('#btn-copiar').style.display = 'none';
 }
 
 // ── TECLAT NUMERIC CUSTOM ────────────────────────────────────────────────────
