@@ -249,6 +249,7 @@ function injectSharedHTML() {
     panel.appendChild(sessionEnd);
 
     // 4. Pantalla final
+    if (window._fixedSessionActive) finalScreen.querySelector('#btn-copiar').style.display = 'none';
     const finalScreen = document.createElement('div');
     finalScreen.id = 'final-screen';
     finalScreen.style.display = 'none';
@@ -362,6 +363,7 @@ function showHistorySummary() {
     const liBad = errades.length ? errades.map(e => `<li style="margin-bottom:12px;background:#fef2f2;padding:12px;border-radius:6px;border:1px solid #fecaca;"><div style="margin-bottom:4px;"><strong>P:</strong> <span style="font-family:monospace;">${escapeHtml(e.question)}</span></div><div style="color:#dc2626;"><strong>R:</strong> <span style="font-family:monospace;">${escapeHtml(e.answer)}</span></div></li>`).join('') : '<li style="color:var(--text-muted);font-style:italic;">Cap errada! Partida perfecta 🎉</li>';
     sc.innerHTML = `<div style="padding:20px;text-align:left;"><h2 style="text-align:center;color:var(--primary);margin-bottom:25px;">Resum de les teves respostes</h2><h3 style="color:var(--success);border-bottom:2px solid var(--success);padding-bottom:5px;">🟢 Encerts (${encerts.length})</h3><ul style="list-style:none;padding:0;margin-bottom:24px;">${liOk}</ul><h3 style="color:var(--danger);border-bottom:2px solid var(--danger);padding-bottom:5px;">🔴 Errades (${errades.length})</h3><ul style="list-style:none;padding:0;margin-bottom:20px;">${liBad}</ul><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:24px;"><button class="btn-submit" onclick="copiarResultats();this.innerText='Copiat! ✅';this.style.backgroundColor='var(--success)';setTimeout(()=>{this.style.display='none'},3000);" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     sc.style.display = 'block';
+    if (window._fixedSessionActive) { const b = sc.querySelector('button[onclick*="copiarResultats"]'); if (b) b.style.display = 'none'; }
 }
 
 // ── GENERADOR DE CODI v2 ─────────────────────────────────────────────────────
