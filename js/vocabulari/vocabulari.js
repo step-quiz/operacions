@@ -122,6 +122,8 @@
     let _puntsFiguraActual = 0;
     // [CANVI 3] chip seleccionat en mode tap-to-select (mòbil portrait)
     let _selectedChip      = null;
+    // [FIX CB] paraula en curs del drag desktop; fallback per al bug drop/SVG de Chrome
+    let _dragPointerWord   = null;
 
     // =========================================================================
     // REFS DOM
@@ -414,7 +416,17 @@
                 dz.addEventListener('drop',      e => {
                     e.preventDefault();
                     dz.classList.remove('dz-over');
+                    _dragPointerWord = null;                // [FIX CB] l'event drop ha funcionat, netejem
                     _handleDrop(dz, e.dataTransfer.getData('text/plain'));
+                });
+                // [FIX CB] Fallback per a Chromebooks on l'event 'drop' no es dispara sobre SVG.
+                // pointerup sempre funciona: si _dragPointerWord té valor és que drop no l'ha netejat.
+                dz.addEventListener('pointerup', () => {
+                    if (!_dragPointerWord) return;
+                    dz.classList.remove('dz-over');
+                    const word = _dragPointerWord;
+                    _dragPointerWord = null;
+                    _handleDrop(dz, word);
                 });
             });
         } else {
@@ -501,9 +513,14 @@
                 chip.draggable = true;
                 chip.addEventListener('dragstart', e => {
                     e.dataTransfer.setData('text/plain', et.text);
+                    _dragPointerWord = et.text;             // [FIX CB] fallback Chromebook
                     setTimeout(() => chip.classList.add('dragging'), 0);
                 });
-                chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+                chip.addEventListener('dragend', () => {
+                    chip.classList.remove('dragging');
+                    // Netejem amb un petit delay per deixar que 'drop' o 'pointerup' actuïn primer
+                    setTimeout(() => { _dragPointerWord = null; }, 50);
+                });
                 chip.addEventListener('touchstart', _onTouchStart, { passive: false });
             }
 
