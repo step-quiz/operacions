@@ -39,7 +39,8 @@ body {
     font-family: 'Barlow', 'Segoe UI', sans-serif;
     background-color: var(--bg);
     color: var(--text);
-    height: 100dvh;
+    height: 100vh;            /* fallback per a Chrome < 108 (Chromebooks antics) */
+    height: 100dvh;           /* millora en browsers moderns */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -90,18 +91,14 @@ body {
     min-height: 0;        /* permet que flex fill redueixi per sota del contingut */
 }
 
-/* ---- GAME SCREEN: ha de propagar l'altura flex fins a game-body ---- */
-/* game-core.js fa display:'block' a showScreen(); forcem display:flex sempre,
-   i només deixem display:none quan game-core ho posa explícitament via style. */
+/* ---- GAME SCREEN: propaga l'altura flex fins a game-body ---- */
+/* buildLevel() (recta-numerica.js) estableix style.display='flex' directament,
+   que és la manera fiable en totes les versions de Chrome/Chromebook.
+   Aquí només definim el layout quan és visible. */
 #game-screen {
-    display: flex !important;
     flex-direction: column;
     flex: 1 1 0;
     min-height: 0;
-}
-#game-screen[style*="display: none"],
-#game-screen[style*="display:none"] {
-    display: none !important;
 }
 
 /* ---- CAPÇALERA DEL JOC ---- */
