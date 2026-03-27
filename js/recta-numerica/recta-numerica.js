@@ -151,8 +151,9 @@ function renderSVG(cloud, yr) {
  * Construeix una nova pregunta. Cridat per game-core.js via startSession().
  */
 function buildLevel() {
-    // display:flex garantit per CSS (#game-screen { display:flex !important })
-    // Vegeu recta-numerica.css — ja no cal forçar-ho des de JS.
+    // Força display:flex directament — fiable en totes les versions de Chrome/Chromebook.
+    // (game-core.js pot haver deixat el game-screen amb display:'block' o 'none')
+    els.gameScreen.style.display = 'flex';
 
     isAnswered   = false;
     attemptsLeft = MAX_INTENTS;
