@@ -223,10 +223,10 @@ CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
 
 /* ================================================================
    3. LANDSCAPE CHROMEBOOK — teclat sempre a sota, mai al costat
-   ================================================================ */
+//        display: block !important;
+================================================================ */
 @media (min-width: 1024px) and (any-pointer: coarse) {
     .panel {
-        display: block !important;
         flex-direction: column !important;
     }
     #customKeyboard {
