@@ -122,8 +122,6 @@
     let _puntsFiguraActual = 0;
     // [CANVI 3] chip seleccionat en mode tap-to-select (mòbil portrait)
     let _selectedChip      = null;
-    // [FIX CB] paraula en curs del drag desktop; fallback per al bug drop/SVG de Chrome
-    let _dragPointerWord   = null;
 
     // =========================================================================
     // REFS DOM
@@ -410,24 +408,31 @@
         if (DEBUG) _injectDebugGrid();
 
         if (MODALITAT === 'A') {
-            els.figureSvg.querySelectorAll('.drop-zone').forEach(dz => {
-                dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dz-over'); });
-                dz.addEventListener('dragleave', () => dz.classList.remove('dz-over'));
-                dz.addEventListener('drop',      e => {
-                    e.preventDefault();
-                    dz.classList.remove('dz-over');
-                    _dragPointerWord = null;                // [FIX CB] l'event drop ha funcionat, netejem
-                    _handleDrop(dz, e.dataTransfer.getData('text/plain'));
-                });
-                // [FIX CB] Fallback per a Chromebooks on l'event 'drop' no es dispara sobre SVG.
-                // pointerup sempre funciona: si _dragPointerWord té valor és que drop no l'ha netejat.
-                dz.addEventListener('pointerup', () => {
-                    if (!_dragPointerWord) return;
-                    dz.classList.remove('dz-over');
-                    const word = _dragPointerWord;
-                    _dragPointerWord = null;
-                    _handleDrop(dz, word);
-                });
+            // [FIX CB v2] Els events drop/dragover/dragleave sobre elements <g> del SVG
+            // no es disparen de manera fiable en alguns Chrome OS (el browser els intercepta
+            // internament durant HTML5 drag). El 'pointerup' tampoc no és una solució vàlida
+            // perquè queda suprimit durant una operació drag HTML5.
+            // Solució: escoltar els tres events al SVG arrel i calcular sobre quina
+            // drop-zone cau el cursor amb .closest('.drop-zone'). El drop sobre el SVG
+            // root sempre es dispara correctament.
+            els.figureSvg.addEventListener('dragover', e => {
+                e.preventDefault();
+                const dz = e.target.closest('.drop-zone');
+                els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
+                if (dz) dz.classList.add('dz-over');
+            });
+            els.figureSvg.addEventListener('dragleave', e => {
+                // Només treure l'highlight si el cursor surt del SVG complet
+                if (!els.figureSvg.contains(e.relatedTarget)) {
+                    els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
+                }
+            });
+            els.figureSvg.addEventListener('drop', e => {
+                e.preventDefault();
+                els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
+                const word = e.dataTransfer.getData('text/plain');
+                const dz   = e.target.closest('.drop-zone');
+                if (dz) _handleDrop(dz, word);
             });
         } else {
             _highlightWriteTarget();
@@ -513,13 +518,10 @@
                 chip.draggable = true;
                 chip.addEventListener('dragstart', e => {
                     e.dataTransfer.setData('text/plain', et.text);
-                    _dragPointerWord = et.text;             // [FIX CB] fallback Chromebook
                     setTimeout(() => chip.classList.add('dragging'), 0);
                 });
                 chip.addEventListener('dragend', () => {
                     chip.classList.remove('dragging');
-                    // Netejem amb un petit delay per deixar que 'drop' o 'pointerup' actuïn primer
-                    setTimeout(() => { _dragPointerWord = null; }, 50);
                 });
                 chip.addEventListener('touchstart', _onTouchStart, { passive: false });
             }
