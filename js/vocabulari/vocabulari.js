@@ -542,8 +542,12 @@
      * Condició: pantalla tàctil + ample ≤ 600px + orientació portrait.
      */
     function _isMobilePortrait() {
-        return _isTouchDevice()
-            && window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches;
+        if (!_isTouchDevice()) return false;
+        // Mòbil portrait estret
+        if (window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches) return true;
+        // Chromebook / tablet tàctil (pantalla gran): drag HTML5 no és fiable sobre SVG
+        if (window.matchMedia('(min-width: 1024px) and (any-pointer: coarse)').matches) return true;
+        return false;
     }
 
     /**
