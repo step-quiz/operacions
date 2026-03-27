@@ -39,7 +39,7 @@ body {
     font-family: 'Barlow', 'Segoe UI', sans-serif;
     background-color: var(--bg);
     color: var(--text);
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -91,11 +91,17 @@ body {
 }
 
 /* ---- GAME SCREEN: ha de propagar l'altura flex fins a game-body ---- */
+/* game-core.js fa display:'block' a showScreen(); forcem display:flex sempre,
+   i només deixem display:none quan game-core ho posa explícitament via style. */
 #game-screen {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     flex: 1 1 0;
     min-height: 0;
+}
+#game-screen[style*="display: none"],
+#game-screen[style*="display:none"] {
+    display: none !important;
 }
 
 /* ---- CAPÇALERA DEL JOC ---- */
