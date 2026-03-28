@@ -1098,3 +1098,9 @@ h1 {
     80%  { transform: scale(1.05) rotate(-2deg); opacity: 0.7; }
     100% { transform: scale(1)    rotate(0deg);  opacity: 1;   }
 }
+
+/* [FIX m6] En landscape molt petit, permetre scroll per veure botons tallats.
+   En portrait i landscape normal, overflow:hidden es manté per al drag-and-drop. */
+@media (orientation: landscape) and (max-height: 500px) {
+    body { overflow-y: auto; }
+}
