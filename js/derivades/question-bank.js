@@ -76,10 +76,20 @@ function _selectDistractors(pool, correctTex, count, fallbacks) {
     });
     Object.values(byType).forEach(arr => arr.sort(() => Math.random() - 0.5));
 
-    // 3. Ordena els tipus: NO_DERIVATIVE primer (anchor pedagògic), resta aleatòria
+    // 3. Ordena els tipus amb prioritats pedagògiques fixes:
+    //    [FIX PEDAGÒGIC] CHAIN_FORGOT / LOG_FORGOT_CHAIN representen l'error
+    //    "m'oblido de multiplicar per h'(x)" en composicions. Ha d'aparèixer
+    //    SEMPRE que existeixi al pool (l'error més freqüent i didàctic).
+    //    NO_DERIVATIVE és l'anchor fonamental ("no he derivat res").
+    //    Ordre: NO_DERIVATIVE → CHAIN_FORGOT/LOG_FORGOT_CHAIN → resta aleatòria.
     const types = Object.keys(byType).sort(() => Math.random() - 0.5);
-    const ndIdx = types.indexOf('NO_DERIVATIVE');
-    if (ndIdx > 0) { types.splice(ndIdx, 1); types.unshift('NO_DERIVATIVE'); }
+
+    // Mou els tipus prioritaris al davant (en ordre invers d'inserció)
+    const priorityOrder = ['CHAIN_FORGOT', 'LOG_FORGOT_CHAIN', 'NO_DERIVATIVE'];
+    for (const pt of priorityOrder) {
+        const idx = types.indexOf(pt);
+        if (idx > 0) { types.splice(idx, 1); types.unshift(pt); }
+    }
 
     // 4. Round-robin: una ronda = un distractor per tipus
     const result = [];
