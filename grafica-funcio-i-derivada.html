@@ -38,7 +38,7 @@
             justify-content: flex-start;
             margin: 0;
             padding: 10px;
-            min-height: 100vh;
+            min-height: 100vh; min-height: 100dvh; /* [FIX BUG4] */
             transition: background-color 1s ease;
         }
         
@@ -290,7 +290,16 @@ border-radius: 8px;
     <script>
         let currentOperation = 0, sessionScore = 0, isTransitioning = false, showLegend = false;
         let currentProblem = { fOriginal: null, fDerivada: null, colorOriginal: '', colorDerivada: '' };
-        const ctx = document.getElementById('graph-canvas').getContext('2d');
+        const _gfdCanvas = document.getElementById('graph-canvas');
+        const ctx = _gfdCanvas.getContext('2d');
+
+        // [FIX BUG3] Escalar el canvas per devicePixelRatio.
+        (function _applyDPR() {
+            const dpr = window.devicePixelRatio || 1;
+            _gfdCanvas.width  = Math.round(600 * dpr);
+            _gfdCanvas.height = Math.round(600 * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        })();
 
         // Si el nombre és enter (ex. 4,00), mostrem només "4"
         const fmt = (val) => {

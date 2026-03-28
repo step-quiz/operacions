@@ -1,0 +1,554 @@
+/*
+============================================================================
+PROJECTE: Recta Numèrica Doble
+FITXER: css/recta-numerica.css
+ROL: Estils complets de l'aplicació (standalone, sense shared.css).
+ESTÈTICA: Meteorologia / visualització científica — blaus oceànics, net.
+FONT: Barlow (Google Fonts)
+============================================================================
+*/
+
+/* ---- VARIABLES ---- */
+:root {
+    --panel-width:   92vw;
+    --primary:       #0077b6;
+    --primary-light: #e0f4ff;
+    --primary-dark:  #023e8a;
+    --accent:        #00b4d8;
+    --bg:            #f0f9ff;
+    --panel:         #ffffff;
+    --text:          #0f172a;
+    --muted:         #64748b;
+    --border:        #e2e8f0;
+    --border-heavy:  #94a3b8;
+    --success:       #059669;
+    --success-light: #d1fae5;
+    --danger:        #dc2626;
+    --danger-light:  #fee2e2;
+    --warn:          #d97706;
+    --warn-light:    #fef3c7;
+    --radius:        10px;
+    --shadow:        0 4px 20px rgba(0,0,0,0.07);
+}
+
+/* ---- RESET ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ---- BODY ---- */
+body {
+    font-family: 'Barlow', 'Segoe UI', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    height: 100vh;            /* fallback per a Chrome < 108 (Chromebooks antics) */
+    height: 100dvh;           /* millora en browsers moderns */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* [FIX BUG6] safe-area-inset per a iPhones amb notch */
+    padding: 16px
+             max(16px, env(safe-area-inset-right))
+             max(12px, env(safe-area-inset-bottom))
+             max(16px, env(safe-area-inset-left));
+}
+
+/* ---- CAPÇALERA ---- */
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: var(--panel-width);
+    justify-content: center;
+}
+.title-row h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--primary-dark);
+}
+.home-icon-link {
+    width: 48px; height: 48px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    display: block;
+    flex-shrink: 0;
+}
+.home-icon-link:hover { opacity: 1; }
+.home-icon-link img   { width: 100%; height: 100%; object-fit: contain; }
+
+/* ---- PANELL PRINCIPAL ---- */
+.panel {
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    border-top: 5px solid var(--primary);
+    width: 100%;
+    max-width: var(--panel-width);
+    overflow: hidden;
+    flex: 1 1 0;          /* ocupa l'altura restant després del title-row */
+    display: flex;
+    flex-direction: column;
+    min-height: 0;        /* permet que flex fill redueixi per sota del contingut */
+}
+
+/* ---- GAME SCREEN: propaga l'altura flex fins a game-body ---- */
+/* buildLevel() (recta-numerica.js) estableix style.display='flex' directament,
+   que és la manera fiable en totes les versions de Chrome/Chromebook.
+   Aquí només definim el layout quan és visible. */
+#game-screen {
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+/* ---- CAPÇALERA DEL JOC ---- */
+.game-header {
+    background: #f1f8ff;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.header-left { display: flex; flex-direction: column; gap: 2px; }
+#level-display  { font-size: 0.85em; color: var(--muted); font-weight: 500; }
+#q-display      { font-size: 1.1em; font-weight: 700; color: var(--primary-dark); }
+#score-display  { font-size: 1.1em; font-weight: 700; color: var(--success); font-family: monospace; }
+#attempts-display {
+    font-family: monospace;
+    font-size: 1em;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-heavy);
+    background: white;
+    color: var(--muted);
+    font-weight: 600;
+    transition: all 0.2s;
+}
+#attempts-display.danger { color: var(--danger); border-color: var(--danger); }
+
+/* ---- LAYOUT DOS COLUMNES ---- */
+.game-body {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.game-left {
+    width: 30%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 14px 16px 20px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.game-right {
+    width: 70%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 16px 12px 12px;
+    overflow-y: auto;   /* [ROUND 2 — scroll vertical quan el gràfic no hi cap (Chromebook, etc.)] */
+    min-height: 0;
+}
+
+/* ---- ETIQUETA EIX X (HTML, fora del SVG) ---- */
+.axis-label-x {
+    text-align: right;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.85em;
+    color: #000000;
+    padding-right: 4px;
+    margin-top: 2px;
+}
+
+/* ---- GRÀFIC SVG ---- */
+#graph-container {
+    width: 100%;
+}
+#graph-container svg {
+    border-radius: 6px;
+    display: block;
+    /* [ROUND 9 — width=90% de .game-right; aspect-ratio 560:420 calcula l'alçada automàticament.
+       Robust a qualsevol viewport, zoom o plataforma. Tots els punts sempre visibles
+       per construcció (cloud-engine garanteix x∈[-5,5] i y∈[p,q] dins el viewBox).] */
+    width: 90%;
+    height: auto;
+    aspect-ratio: 560 / 420;
+}
+
+/* ---- PREGUNTA ---- */
+#question-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    color: var(--primary-dark);
+    line-height: 1.45;
+    margin-bottom: 14px;
+    /* Altura fixa = 3 línies: font-size * line-height * 3 */
+    min-height: calc(1.05em * 1.45 * 3);
+    display: flex;
+    align-items: flex-end;
+}
+
+/* ---- OPCIONS: GRID (Q1/Q2) ---- */
+.options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ---- OPCIONS: LIST (Q3/Q4) ---- */
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ---- BOTÓ D'OPCIÓ ---- */
+@keyframes popIn {
+    from { opacity: 0; transform: translateY(6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+.btn-option {
+    padding: 11px 13px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 1em;
+    font-weight: 600;
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    background: white;
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.35;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    opacity: 0;
+    animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botons de llista: indicador circular a l'esquerra */
+.options-list .btn-option,
+.options-grid .btn-option {
+    text-align: left;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-left: 12px;
+}
+.options-list .btn-option::before,
+.options-grid .btn-option::before {
+    content: '';
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    transition: border-color 0.15s, background 0.15s;
+}
+.options-list .btn-option:hover::before,
+.options-grid .btn-option:hover::before {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+.options-list .btn-option.correct::before,
+.options-grid .btn-option.correct::before {
+    border-color: var(--success) !important;
+    background: var(--success) !important;
+}
+.options-list .btn-option.wrong::before,
+.options-grid .btn-option.wrong::before {
+    border-color: var(--danger) !important;
+    background: var(--danger) !important;
+}
+.options-list .btn-option.reveal-answer::before,
+.options-grid .btn-option.reveal-answer::before {
+    border-color: #6ee7b7 !important;
+    background: #6ee7b7 !important;
+}
+
+@media (hover: hover) {
+    .btn-option:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+}
+.btn-option:active      { transform: scale(0.97); }
+.btn-option:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Estat: correcte */
+.btn-option.correct {
+    background: var(--success-light) !important;
+    border-color: var(--success) !important;
+    color: var(--success) !important;
+}
+
+/* Estat: erroni (clicat per l'alumne) */
+.btn-option.wrong {
+    background: var(--danger-light) !important;
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+    opacity: 1 !important;
+    pointer-events: none;
+    animation: shake 0.25s forwards;
+}
+
+/* Estat: correcte revelat quan s'esgoten els intents (verd clar, no taronja) */
+.btn-option.reveal-answer {
+    background: #d1fae5 !important;   /* verd molt clar */
+    border-color: #6ee7b7 !important; /* verd menta */
+    color: #065f46 !important;        /* verd fosc llegible */
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-5px); }
+    75%       { transform: translateX(5px); }
+}
+
+/* ---- FEEDBACK ---- */
+.feedback-area {
+    min-height: 40px;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 500;
+    line-height: 1.5;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.feedback-correct {
+    background: var(--success-light);
+    border: 1.5px solid var(--success);
+    color: #065f46;
+}
+.feedback-wrong {
+    background: #f1f5f9;
+    border: 1.5px solid #cbd5e1;
+    color: #000000;
+}
+.feedback-neutral {
+    background: #f8fafc;
+    border: 1.5px solid #94a3b8;
+    color: #334155;
+}
+
+/* ---- RESUM FINAL ---- */
+#summary-screen { display: none; }
+.summary-wrap {
+    padding: 36px 24px 40px;
+    text-align: center;
+    animation: popIn 0.4s ease;
+}
+.summary-trophy   { font-size: 4em; margin-bottom: 10px; }
+.summary-title    { font-size: 1.5em; font-weight: 700; color: var(--primary-dark); margin-bottom: 16px; }
+.summary-score-row {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.summary-score-label { font-size: 0.9em; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.summary-score-value { font-size: 2.2em; font-weight: 800; color: var(--primary); font-family: monospace; }
+
+.summary-bar-bg {
+    background: var(--border);
+    border-radius: 99px;
+    height: 12px;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto 24px;
+    overflow: hidden;
+}
+.summary-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--primary));
+    border-radius: 99px;
+    transition: width 0.8s ease;
+}
+
+.summary-stats {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+.summary-stat {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    min-width: 90px;
+    border: 2px solid transparent;
+}
+.summary-stat--ok   { background: var(--success-light); border-color: #6ee7b7; }
+.summary-stat--warn { background: var(--warn-light);    border-color: #fcd34d; }
+.summary-stat--err  { background: var(--danger-light);  border-color: #fca5a5; }
+.stat-num  { font-size: 1.8em; font-weight: 800; }
+.summary-stat--ok   .stat-num { color: var(--success); }
+.summary-stat--warn .stat-num { color: var(--warn);    }
+.summary-stat--err  .stat-num { color: var(--danger);  }
+.stat-desc { font-size: 0.78em; color: var(--muted); }
+
+.btn-restart {
+    padding: 13px 36px;
+    background: var(--primary);
+    color: white;
+    font-family: 'Barlow', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-restart:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-restart:active { transform: scale(0.97); }
+
+/* ---- BOTÓ SEGÜENT PREGUNTA (quan s'esgoten els intents) ---- */
+.btn-next {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 13px 16px;
+    background: var(--primary);
+    color: white;
+    font-family: 'Barlow', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    text-align: center;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    animation: popIn 0.25s ease forwards;
+}
+.btn-next:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-next:active { transform: scale(0.97); }
+
+
+/* ---- BOTÓ TUTORIAL + ICONA REC — [ROUND 5 / actualitzat R6] ---- */
+.btn-tutorial {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-tutorial:hover  { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-tutorial:active { transform: scale(0.97); }
+
+.rec-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #ff3b30;   /* vermell REC — valor fix intencionat */
+    box-shadow: 0 0 0 2px rgba(255,59,48,0.35);
+    /* [ROUND 6 — 4 cicles d'1s de parpelleig, després s'apaga definitivament] */
+    animation:
+        rec-blink 1s ease-in-out 4,
+        rec-off   0s linear 1 4s forwards;
+    flex-shrink: 0;
+}
+@keyframes rec-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.25; }
+}
+@keyframes rec-off {
+    to { opacity: 0; }
+}
+
+/* ---- OVERLAY FADE-OUT — [ROUND 5] ---- */
+#fade-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: opacity 1.5s ease;   /* [ROUND 6 — 1500ms, segons especificació] */
+}
+#fade-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ---- RESPONSIU ---- */
+
+/* Tablet: columnes més estretes però mantenim layout horitzontal */
+@media (max-width: 780px) {
+    .game-body { flex-direction: column-reverse; }
+    .game-left, .game-right { width: 100%; border-right: none; }
+    .game-left  { border-top: 1px solid var(--border); padding: 14px 14px 14px 14px; }
+    .game-right { padding: 12px 14px 4px; }
+}
+
+@media (max-width: 600px) {
+    body { padding: 10px 10px 30px; }
+    .title-row h1  { font-size: 1.15em; }
+    .game-header   { padding: 10px 14px; }
+    #question-prompt { font-size: 1em; }
+    .options-grid  { gap: 8px; }
+    .btn-option    { font-size: 0.95em; padding: 10px 8px; min-height: 44px; }
+    .feedback-area { font-size: 0.9em; }
+}
+
+@media (max-width: 400px) {
+    .title-row h1 { font-size: 1em; letter-spacing: 0.5px; }
+    .btn-tutorial { font-size: 0.75em; padding: 6px 10px; }
+}
+
+/* ---- INTEGRACIÓ game-core.js ---- */
+
+/* El mini overlay s'injecta dins #game-screen (flex-column).
+   El posicionem en absolut per cobrir tota l'àrea de joc sense
+   desplaçar el layout de dues columnes. */
+#game-screen { position: relative; }
+
+#mini-victory-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.96);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* session-end-screen i final-screen injectats per game-core:
+   assegura scroll intern si el contingut és llarg */
+#session-end-screen,
+#final-screen {
+    overflow-y: auto;
+}

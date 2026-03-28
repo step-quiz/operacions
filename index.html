@@ -86,7 +86,7 @@
       color: var(--text-main);
       padding: 10px;
       padding-bottom: 75px;
-      min-height: 100vh;
+      min-height: 100vh; min-height: 100dvh; /* [FIX BUG4] */
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
@@ -520,7 +520,14 @@
       [els.d, els.fix, els.s, els.o, els.i, els.m, els.dim, els.nivell].filter(Boolean).forEach(el => el.addEventListener('change', build));
 
       els.copy.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(els.link.textContent);
+        // [FIX BUG5] try-catch + fallback per a HTTP, Safari antic, etc.
+        try {
+          await navigator.clipboard.writeText(els.link.textContent);
+        } catch {
+          // Fallback: seleccionar el textarea perquè l'usuari copiï manualment
+          const ta = document.querySelector('.link-output');
+          if (ta) { ta.select(); document.execCommand('copy'); }
+        }
         els.status.textContent = 'Copiat ✅';
         setTimeout(() => els.status.textContent = '', 2000);
       });

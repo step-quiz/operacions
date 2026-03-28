@@ -262,7 +262,17 @@
         let showFuncLabel    = false;
         let lastSeedStr      = '';
 
-        const ctx = document.getElementById('graph-canvas').getContext('2d');
+        const _gfCanvas = document.getElementById('graph-canvas');
+        const ctx = _gfCanvas.getContext('2d');
+
+        // [FIX BUG3] Escalar el canvas per devicePixelRatio.
+        // Tot el codi dibuixa en espai 600×600; el canvas físic té més píxels.
+        (function _applyDPR() {
+            const dpr = window.devicePixelRatio || 1;
+            _gfCanvas.width  = Math.round(600 * dpr);
+            _gfCanvas.height = Math.round(600 * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        })();
 
         const TYPE_INFO = {
             directa:    { label: 'Funció de proporció directa',    levels: [1,2,3], confusedWith: ['afi', 'quadratica', 'inversa'] },
