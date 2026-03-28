@@ -8,18 +8,33 @@
 
     <!--
     ============================================================
-    FITXER: pentomino-area-perimetre.html
+    FITXER: area-perimetre.html
     ROL: Joc educatiu per practicar àrea i perímetre de pentominós.
-         Cada pentomino té 5 quadrats de costat 1 cm.
-         Àrea sempre = 5 cm². Perímetre varia (10 o 12 cm).
 
-    PARÀMETRES URL:
-      ?totalsessions=N    (default 1, màx 20)
-      ?totaloperations=N  (default 5, màx 30)
-      ?maxintents=N       (default 4, màx 10)
-      ?maxenllocmitjana=0 (default 1 = millor sessió, 0 = mitjana)
+    [FIX A1] Migrat a game-core.js: sessions, nota, codi v2,
+             teclat compartit, historial, recordResult.
     ============================================================
     -->
+
+    <!-- 1. Configuració per defecte -->
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    5,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!-- 2. Fitxers compartits (ordre important) -->
+    <script src="js/fixed-sessions.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+
+    <!-- 3. Estils compartits -->
+    <link rel="stylesheet" href="css/shared.css">
+
+    <!-- 4. Estils específics d'àrea-perímetre (sobreescriu shared.css on cal) -->
 
     <style>
         :root {
@@ -541,6 +556,9 @@
 <body>
 
 <div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
     <h1>Càlcul d'àrea i de perímetre</h1>
 </div>
 
@@ -611,267 +629,21 @@
     </div>
 </div>
 
+<script src="js/game-core.js"></script>
+
 <script>
 // ============================================================
-// UTILS
+// [FIX A1] Migrat a game-core.js v2
+// Eliminat: getIntParam, randInt, parseStrictInt (→ utils.js)
+// Eliminat: config (→ config.js)
+// Eliminat: game-core state/functions (→ game-core.js)
+// Eliminat: isTouchDevice, keyboard, injectSharedHTML (→ game-core.js)
+// Eliminat: copiarResultats v1 (→ game-core.js v2)
 // ============================================================
-function getIntParam(params, key, fallback, min, max) {
-    const raw = params.get(key);
-    if (raw === null) return fallback;
-    const n = Number(raw);
-    if (!Number.isInteger(n)) return fallback;
-    if (n < min || n > max) return fallback;
-    return n;
-}
-function randInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-function parseStrictInt(str) {
-    str = String(str).trim();
-    if (!/^\d+$/.test(str)) return NaN;
-    return parseInt(str, 10);
-}
 
 // ============================================================
-// CONFIG
+// PENTOMINÓS — Biblioteca de formes
 // ============================================================
-const _urlParams         = new URLSearchParams(window.location.search);
-const TOTAL_SESSIONS     = getIntParam(_urlParams,'totalsessions',   1, 1, 20);
-const TOTAL_OPERATIONS   = getIntParam(_urlParams,'totaloperations', 5, 1, 30);
-const MAX_INTENTS        = getIntParam(_urlParams,'maxintents',      4, 1, 10);
-const MAX_ENLLOC_MITJANA = getIntParam(_urlParams,'maxenllocmitjana',1, 0,  1);
-
-// ============================================================
-// GAME-CORE: estat compartit
-// ============================================================
-const bgColors = [
-    '#f8fafc','#eff6ff','#f0fdf4','#fefce8','#fff1f2',
-    '#f5f3ff','#ecfeff','#fdf4ff','#fffbeb','#faf5ff'
-];
-
-let sessionHistory   = [];
-let currentSession   = 0;
-let currentOperation = 0;
-let sessionScore     = 0;
-let sessionScores    = [];
-let attemptsLeft     = 0;
-let isTransitioning  = false;
-
-function showScreen(id) {
-    ['game-screen','session-end-screen','final-screen'].forEach(sid => {
-        const el = document.getElementById(sid);
-        if (el) el.style.display = 'none';
-    });
-    const target = document.getElementById(id);
-    if (target) target.style.display = 'block';
-}
-function startGame() {
-    currentSession = 0; sessionScores = []; sessionHistory = [];
-    showScreen('game-screen'); startSession();
-}
-function startSession() {
-    currentOperation = 0; sessionScore = 0;
-    // Reinicia l'estat de selecció de figures per a la sessió
-    _sessionUsedNames = new Set();
-    _lastShapeType    = null;
-    _consecTypeCount  = 0;
-    buildLevel();
-}
-function endSession() {
-    sessionScores.push(sessionScore);
-    if (currentSession + 1 >= TOTAL_SESSIONS) {
-        renderFinalSummary(); showScreen('final-screen');
-    } else {
-        showScreen('session-end-screen');
-        const t = document.getElementById('session-end-title');
-        if (t) t.innerText = `Sessió ${currentSession+1} completada`;
-        const b = document.getElementById('btn-next-session');
-        if (b) { b.style.display='none'; setTimeout(()=>{b.style.display='inline-block';isTransitioning=false;},1000); }
-    }
-}
-function startNextSession() { currentSession++; showScreen('game-screen'); startSession(); }
-function calculaNotaSobre10() {
-    if (!sessionScores.length) return 0;
-    if (MAX_ENLLOC_MITJANA===1) return Number((Math.max(...sessionScores)/TOTAL_OPERATIONS).toFixed(1));
-    return Number((sessionScores.reduce((a,s)=>a+s,0)/(TOTAL_SESSIONS*TOTAL_OPERATIONS)).toFixed(1));
-}
-function renderFinalSummary() {
-    let html='';
-    for(let i=0;i<sessionScores.length;i++){
-        const nota=(sessionScores[i]/TOTAL_OPERATIONS).toFixed(1).replace('.',',');
-        html+=`<div class="session-line"><span>Sessió ${i+1}</span><span>${nota}</span></div>`;
-    }
-    const nota10=calculaNotaSobre10().toFixed(1).replace('.',',');
-    const txt=MAX_ENLLOC_MITJANA===1?'La sessió amb nota més alta obté:':'La nota mitjana és:';
-    html+=`<div style="margin-top:18px;text-align:left;">
-        <div style="font-size:.95em;color:var(--text-muted);margin-bottom:4px;">${txt}</div>
-        <div style="font-size:1.5em;font-weight:bold;color:var(--success);font-family:monospace;">${nota10} / 10</div>
-    </div>`;
-    const el=document.getElementById('final-summary'); if(el) el.innerHTML=html;
-}
-function finalitzar() { window.location.reload(); }
-
-function showMiniOverlay(levelPoints) {
-    const vt=document.getElementById('mini-vic-text');
-    const vi=document.getElementById('mini-vic-icon');
-    const vp=document.getElementById('mini-vic-points');
-    const ov=document.getElementById('mini-victory-overlay');
-    let wt;
-    if(levelPoints>0){
-        if(vt){vt.innerText='Molt bé!';vt.style.color='#047857';} if(vi)vi.innerText='⭐';
-        if(vp){vp.innerText=`+${levelPoints} punts`;vp.style.color='#059669';} wt=1500;
-    } else {
-        if(vt){vt.innerText='Intents esgotats';vt.style.color='var(--danger)';}  if(vi)vi.innerText='❌';
-        if(vp){vp.innerText='0 punts';vp.style.color='var(--danger)';} wt=3000;
-    }
-    if(ov){ov.style.display='flex';ov.setAttribute('aria-hidden','false');}
-    return wt;
-}
-function hideMiniOverlay() {
-    const ov=document.getElementById('mini-victory-overlay');
-    if(ov){ov.style.display='none';ov.setAttribute('aria-hidden','true');}
-}
-function recordAnswerToHistory(q,a,ok) { sessionHistory.push({question:q,answer:a,isCorrect:ok}); }
-
-// ── Injecció HTML compartit ──────────────────────────────────
-function injectSharedHTML() {
-    const gs=document.getElementById('game-screen');
-    const panel=document.querySelector('.panel');
-    if(!gs||!panel) return;
-
-    // Mini overlay
-    const ov=document.createElement('div');
-    ov.id='mini-victory-overlay'; ov.setAttribute('aria-hidden','true');
-    ov.innerHTML=`<div class="vic-message-row">
-        <div class="mini-vic-text" id="mini-vic-text">Molt bé!</div>
-        <div class="star-icon" id="mini-vic-icon">⭐</div>
-    </div><div class="mini-vic-points" id="mini-vic-points">+10 punts</div>`;
-    gs.appendChild(ov);
-
-    // Teclat custom (layout estàndard, sense TAB)
-    const kb=document.createElement('div');
-    kb.id='customKeyboard';
-    kb.innerHTML=`<div class="kb-grid kb-no-minus">
-        <button class="kb-btn" data-key="7">7</button>
-        <button class="kb-btn" data-key="8">8</button>
-        <button class="kb-btn" data-key="9">9</button>
-        <button class="kb-btn kb-del"   data-key="del">⌫</button>
-        <button class="kb-btn" data-key="4">4</button>
-        <button class="kb-btn" data-key="5">5</button>
-        <button class="kb-btn" data-key="6">6</button>
-        <button class="kb-btn kb-minus" data-key="-">−</button>
-        <button class="kb-btn" data-key="1">1</button>
-        <button class="kb-btn" data-key="2">2</button>
-        <button class="kb-btn" data-key="3">3</button>
-        <button class="kb-btn kb-enter" data-key="enter">→</button>
-        <button class="kb-btn" data-key="0">0</button>
-    </div>`;
-    panel.appendChild(kb);
-
-    // Pantalla fi de sessió
-    const se=document.createElement('div');
-    se.id='session-end-screen';
-    se.innerHTML=`<div class="trophy-icon">👍</div>
-        <h2 id="session-end-title">Sessió completada</h2>
-        <button class="btn-green" id="btn-next-session" onclick="startNextSession()">
-            Començar sessió següent</button>`;
-    panel.appendChild(se);
-
-    // Pantalla final
-    const fs=document.createElement('div');
-    fs.id='final-screen'; fs.style.display='none';
-    fs.innerHTML=`<h2>Resum final 🏆</h2>
-        <div class="final-layout">
-            <div id="final-summary" class="final-summary"></div>
-            <div class="trophy-icon">🏆</div>
-        </div>
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px;">
-            <button id="btn-copiar" class="btn-submit" onclick="copiarResultats()" style="background:#334155;">
-                📝 Copiar codi</button>
-            <button class="btn-submit" onclick="finalitzar()" style="background:var(--text-muted);">
-                🔄 Tornar a jugar</button>
-        </div>`;
-    panel.appendChild(fs);
-}
-
-// ============================================================
-// TECLAT NUMÈRIC CUSTOM
-// ============================================================
-function isTouchDevice() {
-    return window.matchMedia('(any-pointer: coarse)').matches;
-}
-let _kbActiveInput=null, _kbClearOnNext=false;
-
-function initCustomKeyboard() {
-    document.querySelectorAll('#customKeyboard .kb-btn').forEach(btn => {
-        btn.addEventListener('pointerdown', e => {
-            e.preventDefault();
-            if (!_kbActiveInput) return;
-            const key=btn.dataset.key;
-            if (key==='del') {
-                if (_kbClearOnNext) { _kbActiveInput.value=''; _kbClearOnNext=false; _kbActiveInput.classList.remove('kb-selected'); }
-                else _kbActiveInput.value=_kbActiveInput.value.slice(0,-1);
-            } else if (key==='enter') {
-                // Salt intel·ligent: si l'altre input està buit, hi salta; si tots plens, valida.
-                const ai=document.getElementById('area-input');
-                const pi=document.getElementById('perim-input');
-                const inputs=[ai,pi].filter(i=>i && i.dataset.locked!=='true');
-                const cur=_kbActiveInput;
-                const empty=inputs.find(i=>i!==cur && i.value.trim()==='');
-                if(cur && cur.value.trim()!=='' && empty){
-                    showCustomKeyboard(empty);
-                } else {
-                    checkAnswers();
-                }
-            } else {
-                if (_kbClearOnNext) { _kbActiveInput.value=''; _kbClearOnNext=false; _kbActiveInput.classList.remove('kb-selected'); }
-                if (_kbActiveInput.value.length<2) _kbActiveInput.value+=key;
-            }
-        });
-    });
-    window.addEventListener('orientationchange',()=>{
-        const kb=document.getElementById('customKeyboard');
-        if(!_kbActiveInput||!kb||!kb.classList.contains('kb-visible')) return;
-        setTimeout(()=>kb.scrollIntoView({behavior:'smooth',block:'nearest'}),300);
-    });
-}
-
-function showCustomKeyboard(inp) {
-    if (inp && inp.dataset.locked==='true') return;
-    if (_kbActiveInput) _kbActiveInput.classList.remove('kb-active-input');
-    _kbActiveInput=inp; _kbClearOnNext=false;
-    inp.setAttribute('inputmode','none'); inp.setAttribute('readonly','readonly');
-    inp.classList.add('kb-active-input');
-    if (!inp._kbDirectTapBound) {
-        inp._kbDirectTapBound=true;
-        inp.addEventListener('pointerdown', e=>{
-            if(!isTouchDevice()) return;
-            if(inp.dataset.locked==='true') return;
-            e.preventDefault(); showCustomKeyboard(inp);
-        });
-    }
-    const kb=document.getElementById('customKeyboard');
-    if(kb){ kb.classList.add('kb-visible'); setTimeout(()=>kb.scrollIntoView({behavior:'smooth',block:'nearest'}),50); }
-    inp.focus();
-}
-
-function hideCustomKeyboard() {
-    const kb=document.getElementById('customKeyboard');
-    if(kb) kb.classList.remove('kb-visible');
-    if(_kbActiveInput){
-        _kbActiveInput.classList.remove('kb-active-input');
-        if(_kbActiveInput.dataset.locked!=='true'){
-            _kbActiveInput.removeAttribute('readonly');
-            _kbActiveInput.removeAttribute('inputmode');
-        }
-    }
-    _kbActiveInput=null; _kbClearOnNext=false;
-}
-
-// ============================================================
-// PENTOMINÓS
-// ============================================================
-// Biblioteca completa: trominos (2) + tetrominós (5) + pentominós (12)
 const SHAPE_LIBRARY = [
     // ── TROMINOS (àrea = 3) ───────────────────────────────────
     {name:'I3', type:'tromino',  cells:[[0,0],[0,1],[0,2]],                         onlyHorizontal:true},
@@ -923,7 +695,6 @@ function computePerimeter(cells) {
 }
 function generateVariant(shape) {
     let cells=shape.cells.map(c=>[...c]);
-    // onlyHorizontal (I-shapes): només 0° o 180° (no canvia la forma)
     const rots = shape.onlyHorizontal ? 0 : randInt(0,3);
     for(let i=0;i<rots;i++) cells=rotateCells(cells);
     if(!shape.onlyHorizontal && Math.random()<0.5) cells=flipCells(cells);
@@ -932,47 +703,30 @@ function generateVariant(shape) {
         name:      shape.name,
         type:      shape.type,
         cells,
-        area:      cells.length,          // 3, 4 o 5 segons el tipus
+        area:      cells.length,
         perimeter: computePerimeter(cells)
     };
 }
 
 // ── Estat de selecció de figures ────────────────────────────
-let _sessionUsedNames = new Set(); // peces ja mostrades en aquesta sessió
-let _lastShapeType    = null;      // tipus de l'última peça ('tromino'|'tetromino'|'pentomino')
-let _consecTypeCount  = 0;         // quantes consecutives del mateix tipus portem
+let _sessionUsedNames = new Set();
+let _lastShapeType    = null;
+let _consecTypeCount  = 0;
 
-// Probabilitats base per tipus
 const BASE_PROBS = {tromino:0.10, tetromino:0.50, pentomino:0.40};
 
-/**
- * Retorna les probabilitats ajustades segons:
- *  - quantes peces de cada tipus queden sense usar a la sessió
- *  - la restricció de consecutives (1 consec → 80%, 2+ consec → 10%)
- */
 function getAdjustedProbs() {
     const types = ['tromino','tetromino','pentomino'];
-
-    // Peces disponibles per tipus (no usades en aquesta sessió)
     const available = {};
-    for(const t of types){
-        available[t] = SHAPE_LIBRARY.filter(s => s.type===t && !_sessionUsedNames.has(s.name));
-    }
-
-    // Probabilitats base, posem a 0 els tipus exhaurits
+    for(const t of types) available[t] = SHAPE_LIBRARY.filter(s => s.type===t && !_sessionUsedNames.has(s.name));
     let probs = {};
     for(const t of types) probs[t] = available[t].length > 0 ? BASE_PROBS[t] : 0;
-
-    // Aplica restricció de consecutives sobre el tipus actiu
     if(_lastShapeType && probs[_lastShapeType] > 0){
         const override = _consecTypeCount >= 2 ? 0.10 : 0.80;
         probs[_lastShapeType] = override;
     }
-
-    // Renormalitza
     const total = Object.values(probs).reduce((s,v)=>s+v, 0);
     if(total <= 0){
-        // tots exhaurits: permet repetir (reinicia el Set i torna a les base)
         _sessionUsedNames.clear();
         for(const t of types) probs[t] = BASE_PROBS[t];
         return probs;
@@ -980,8 +734,6 @@ function getAdjustedProbs() {
     for(const t of types) probs[t] /= total;
     return probs;
 }
-
-/** Escull un tipus aleatori segons les probabilitats donades */
 function pickType(probs) {
     const r = Math.random();
     let acc = 0;
@@ -991,39 +743,22 @@ function pickType(probs) {
     }
     return Object.keys(probs).find(t => probs[t] > 0);
 }
-
 function pickNextShape() {
     const probs    = getAdjustedProbs();
     const type     = pickType(probs);
     const pool     = SHAPE_LIBRARY.filter(s => s.type===type && !_sessionUsedNames.has(s.name));
-
-    // Fallback si el pool és buit (no hauria de passar, però per seguretat)
     const shape = pool.length > 0
         ? pool[randInt(0, pool.length-1)]
         : SHAPE_LIBRARY.filter(s=>s.type===type)[randInt(0, SHAPE_LIBRARY.filter(s=>s.type===type).length-1)];
-
     _sessionUsedNames.add(shape.name);
-
-    // Actualitza estat de consecutives
-    if(shape.type === _lastShapeType){
-        _consecTypeCount++;
-    } else {
-        _lastShapeType   = shape.type;
-        _consecTypeCount = 1;
-    }
-
+    if(shape.type === _lastShapeType) _consecTypeCount++;
+    else { _lastShapeType = shape.type; _consecTypeCount = 1; }
     return generateVariant(shape);
 }
 
 // ============================================================
 // SVG — etiquetes "1 cm" a dos costats del perímetre
 // ============================================================
-
-/**
- * Cerca la cel·la amb un costat horitzontal i un vertical exposats.
- * Prioritat: T+L > T+R > B+L > B+R (preferim la cantonada superior-esquerra
- * perquè les etiquetes caben dins el marge superior i esquerre del SVG).
- */
 function findLabelCell(cells) {
     const set=new Set(cells.map(([r,c])=>`${r},${c}`));
     const exp=(r,c,s)=>{
@@ -1033,18 +768,12 @@ function findLabelCell(cells) {
     for(const [s1,s2] of [['T','L'],['T','R'],['B','L'],['B','R']])
         for(const [r,c] of cells)
             if(exp(r,c,s1)&&exp(r,c,s2)) return {r,c,sides:[s1,s2]};
-    // Fallback: qualsevol dos costats
     for(const [r,c] of cells){
         const e=['T','B','L','R'].filter(s=>exp(r,c,s));
         if(e.length>=2) return {r,c,sides:e.slice(0,2)};
     }
     return null;
 }
-
-/**
- * Genera el SVG de les cotes "1 cm":
- * dues línies d'extensió + línia de cota + text, per a cada costat escollit.
- */
 function renderDimLabels(cells,CELL,PAD) {
     const found=findLabelCell(cells);
     if(!found) return '';
@@ -1057,59 +786,50 @@ function renderDimLabels(cells,CELL,PAD) {
     for(const side of sides){
         if(side==='T'){
             const ly=y0-OFF;
-            svg+=`
-              <line x1="${x0}"      y1="${y0}" x2="${x0}"      y2="${y0-EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            svg+=`<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0-EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <line x1="${x0+CELL}" y1="${y0}" x2="${x0+CELL}" y2="${y0-EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="${x0}"      y1="${ly}" x2="${x0+CELL}" y2="${ly}"     stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="${x0}" y1="${ly}" x2="${x0+CELL}" y2="${ly}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <text x="${x0+CELL/2}" y="${ly-GAP}" ${TA} text-anchor="middle" dominant-baseline="auto">1 cm</text>`;
         } else if(side==='B'){
             const ly=y0+CELL+OFF;
-            svg+=`
-              <line x1="${x0}"      y1="${y0+CELL}" x2="${x0}"      y2="${y0+CELL+EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            svg+=`<line x1="${x0}" y1="${y0+CELL}" x2="${x0}" y2="${y0+CELL+EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <line x1="${x0+CELL}" y1="${y0+CELL}" x2="${x0+CELL}" y2="${y0+CELL+EXT}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="${x0}"      y1="${ly}"       x2="${x0+CELL}" y2="${ly}"          stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="${x0}" y1="${ly}" x2="${x0+CELL}" y2="${ly}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <text x="${x0+CELL/2}" y="${ly+GAP+FS}" ${TA} text-anchor="middle" dominant-baseline="auto">1 cm</text>`;
         } else if(side==='L'){
             const lx=x0-OFF, cy=y0+CELL/2;
-            svg+=`
-              <line x1="${x0}" y1="${y0}"      x2="${x0-EXT}" y2="${y0}"      stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            svg+=`<line x1="${x0}" y1="${y0}" x2="${x0-EXT}" y2="${y0}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <line x1="${x0}" y1="${y0+CELL}" x2="${x0-EXT}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="${lx}" y1="${y0}"      x2="${lx}"     y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="${lx}" y1="${y0}" x2="${lx}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <text x="${lx-GAP}" y="${cy}" ${TA} text-anchor="middle" dominant-baseline="middle"
                     transform="rotate(-90,${lx-GAP},${cy})">1 cm</text>`;
         } else if(side==='R'){
             const lx=x0+CELL+OFF, cy=y0+CELL/2;
-            svg+=`
-              <line x1="${x0+CELL}" y1="${y0}"      x2="${x0+CELL+EXT}" y2="${y0}"      stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+            svg+=`<line x1="${x0+CELL}" y1="${y0}" x2="${x0+CELL+EXT}" y2="${y0}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <line x1="${x0+CELL}" y1="${y0+CELL}" x2="${x0+CELL+EXT}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="${lx}"      y1="${y0}"       x2="${lx}"           y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="${lx}" y1="${y0}" x2="${lx}" y2="${y0+CELL}" stroke="${LC}" stroke-width="1.5" stroke-linecap="round"/>
               <text x="${lx+GAP}" y="${cy}" ${TA} text-anchor="middle" dominant-baseline="middle"
                     transform="rotate(90,${lx+GAP},${cy})">1 cm</text>`;
         }
     }
     return svg;
 }
-
 function renderPentominoSVG(cells) {
     const CELL=54, PAD=48;
     const rows=Math.max(...cells.map(([r])=>r))+1;
     const cols=Math.max(...cells.map(([,c])=>c))+1;
     const W=cols*CELL+2*PAD, H=rows*CELL+2*PAD;
     const cellSet=new Set(cells.map(([r,c])=>`${r},${c}`));
-
-    // Només dibuixem fons als quadrats que pertanyen al pentominó (sense bounding box)
     let bg='';
     for(const [r,c] of cells){
         const x=PAD+c*CELL, y=PAD+r*CELL;
         bg+=`<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>`;
     }
-
     let pento='';
     for(const [r,c] of cells){
         const x=PAD+c*CELL, y=PAD+r*CELL;
         pento+=`<rect x="${x+2}" y="${y+2}" width="${CELL-4}" height="${CELL-4}" rx="4" fill="#0d9488" stroke="#0f766e" stroke-width="2"/>`;
     }
-
     const DIRS=[[-1,0,'T'],[1,0,'B'],[0,-1,'L'],[0,1,'R']];
     let lines='';
     for(const [r,c] of cells){
@@ -1125,25 +845,78 @@ function renderPentominoSVG(cells) {
             }
         }
     }
-
     const dimLabels=renderDimLabels(cells,CELL,PAD);
-
     return `<svg class="pentomino-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"
-                 xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Figura pentominó de 5 quadrats">
+                 xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Figura pentominó">
         ${bg}${pento}${lines}${dimLabels}
     </svg>`;
 }
 
 // ============================================================
+// OVERRIDES de game-core: protecció d'inputs bloquejats
+// ============================================================
+// Sobreescriu showCustomKeyboard per impedir activar inputs ja encertats (verd)
+function showCustomKeyboard(inp) {
+    if (inp && inp.dataset.locked === 'true') return;
+    if (_kbActiveInput) _kbActiveInput.classList.remove('kb-active-input');
+    _kbActiveInput = inp;
+    _kbClearOnNext = false;
+    inp.setAttribute('inputmode','none');
+    inp.setAttribute('readonly','readonly');
+    inp.classList.add('kb-active-input');
+    if (!inp._kbDirectTapBound) {
+        inp._kbDirectTapBound = true;
+        inp.addEventListener('pointerdown', e => {
+            if (!isTouchDevice()) return;
+            if (inp.dataset.locked === 'true') return;
+            e.preventDefault(); showCustomKeyboard(inp);
+        });
+    }
+    const kb = document.getElementById('customKeyboard');
+    if (kb) { kb.classList.add('kb-visible'); setTimeout(() => kb.scrollIntoView({behavior:'smooth',block:'nearest'}), 50); }
+    inp.focus();
+}
+
+// Sobreescriu hideCustomKeyboard per preservar readonly en inputs bloquejats
+function hideCustomKeyboard() {
+    const kb = document.getElementById('customKeyboard');
+    if (kb) kb.classList.remove('kb-visible');
+    if (_kbActiveInput) {
+        _kbActiveInput.classList.remove('kb-active-input');
+        if (_kbActiveInput.dataset.locked !== 'true') {
+            _kbActiveInput.removeAttribute('readonly');
+            if (!isTouchDevice()) _kbActiveInput.removeAttribute('inputmode');
+        }
+    }
+    _kbActiveInput = null;
+    _kbClearOnNext = false;
+}
+
+// checkCurrentCell: salt intel·ligent entre àrea/perímetre, o valida
+function checkCurrentCell() {
+    const ai = document.getElementById('area-input');
+    const pi = document.getElementById('perim-input');
+    const inputs = [ai, pi].filter(i => i && i.dataset.locked !== 'true');
+    const cur = _kbActiveInput;
+    const empty = inputs.find(i => i !== cur && i.value.trim() === '');
+    if (cur && cur.value.trim() !== '' && empty) {
+        showCustomKeyboard(empty);
+    } else {
+        checkAnswers();
+    }
+}
+
+// ============================================================
 // LÒGICA DEL JOC
 // ============================================================
-let currentPentomino=null;
-let isPenalizing=false;
-let _helpVisible=false;
-let _areaLocked=false;   // cert quan l'àrea ja s'ha encertat
-let _perimLocked=false;  // cert quan el perímetre ja s'ha encertat
+let currentPentomino = null;
+let isPenalizing     = false;
+let _helpVisible     = false;
+let _areaLocked      = false;
+let _perimLocked     = false;
+let _helpTimer       = null;
 
-const els={
+const els = {
     body:            document.body,
     gameScreen:      document.getElementById('game-screen'),
     sessionDisplay:  document.getElementById('session-display'),
@@ -1154,9 +927,8 @@ const els={
     helpBox:         document.getElementById('help-box'),
     answerReveal:    document.getElementById('answer-reveal'),
     answerRevealVals:document.getElementById('answer-reveal-vals'),
-    get areaInput()    { return document.getElementById('area-input');  },
-    get perimInput()   { return document.getElementById('perim-input'); },
-    get warningBox()   { return document.getElementById('warning-box'); },
+    get areaInput()  { return document.getElementById('area-input');  },
+    get perimInput() { return document.getElementById('perim-input'); },
 };
 
 function showWarning(type, text) {
@@ -1171,58 +943,56 @@ function clearWarning() {
 }
 
 function updateHeader() {
-    els.sessionDisplay.innerText =`Sessió ${currentSession+1} de ${TOTAL_SESSIONS}`;
-    els.lvlDisplay.innerText     =`Figura ${currentOperation+1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.innerText   =`Punts: ${sessionScore}`;
-    els.attemptsDisplay.innerText=`Intents: ${attemptsLeft}`;
-    els.attemptsDisplay.className='attempts-counter'+(attemptsLeft<=2?' danger':'');
+    els.sessionDisplay.innerText  = `Sessió ${currentSession+1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText      = `Figura ${currentOperation+1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft <= 2 ? ' danger' : '');
 }
 
-/**
- * Bloqueja l'input en verd quan la resposta és correcta.
- * L'alumne ja no pot modificar el valor encertat.
- */
 function lockInput(inp) {
-    inp.dataset.locked='true';
+    inp.dataset.locked = 'true';
     inp.setAttribute('readonly','readonly');
     inp.classList.remove('kb-active-input','kb-selected','error-shake');
     inp.classList.add('input-locked');
-    if(_kbActiveInput===inp){ inp.classList.remove('kb-active-input'); _kbActiveInput=null; }
+    if (_kbActiveInput === inp) { inp.classList.remove('kb-active-input'); _kbActiveInput = null; }
 }
 
 function buildLevel() {
-    attemptsLeft=MAX_INTENTS; isPenalizing=false; isTransitioning=false;
-    _areaLocked=false; _perimLocked=false;
-    currentPentomino=pickNextShape();
+    // Reinici de sessió (game-core crida buildLevel amb currentOperation=0)
+    if (currentOperation === 0) {
+        _sessionUsedNames = new Set();
+        _lastShapeType    = null;
+        _consecTypeCount  = 0;
+    }
 
-    els.body.style.backgroundColor=
-        bgColors[(currentSession*TOTAL_OPERATIONS+currentOperation)%bgColors.length];
+    attemptsLeft    = MAX_INTENTS;
+    isPenalizing    = false;
+    isTransitioning = false;
+    _areaLocked     = false;
+    _perimLocked    = false;
+    currentPentomino = pickNextShape();
 
-    els.pentoContainer.innerHTML=renderPentominoSVG(currentPentomino.cells);
+    els.body.style.backgroundColor =
+        bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
 
-    [els.areaInput,els.perimInput].forEach(inp=>{
-        inp.value=''; inp.dataset.locked='';
+    els.pentoContainer.innerHTML = renderPentominoSVG(currentPentomino.cells);
+
+    [els.areaInput, els.perimInput].forEach(inp => {
+        inp.value = '';
+        inp.dataset.locked = '';
         inp.classList.remove('input-locked','error-shake','kb-active-input','kb-selected');
-        inp.removeAttribute('readonly'); inp.removeAttribute('inputmode');
+        inp.removeAttribute('readonly');
+        inp.removeAttribute('inputmode');
     });
 
     resetHelp();
     clearWarning();
     els.answerReveal.classList.remove('visible');
-    els.answerRevealVals.textContent='';
+    els.answerRevealVals.textContent = '';
     updateHeader();
 
-    if(isTouchDevice()){
-        [els.areaInput,els.perimInput].forEach(inp=>{
-            if(!inp._kbDirectTapBound){
-                inp._kbDirectTapBound=true;
-                inp.addEventListener('pointerdown',e=>{
-                    if(!isTouchDevice()) return;
-                    if(inp.dataset.locked==='true') return;
-                    e.preventDefault(); showCustomKeyboard(inp);
-                });
-            }
-        });
+    if (isTouchDevice()) {
         showCustomKeyboard(els.areaInput);
     } else {
         els.areaInput.focus();
@@ -1237,47 +1007,32 @@ function resetHelp() {
     const sep = document.getElementById('help-sep');
     if (p2)  p2.style.display  = 'none';
     if (sep) sep.style.display = 'none';
-    const b = document.getElementById('btn-ajuda'); if (b) b.textContent = '💡 Ajuda';
+    const b = document.getElementById('btn-ajuda');
+    if (b) b.textContent = '💡 Ajuda';
 }
-
-/**
- * Obre/tanca la caixa d'ajuda. Quan s'obre, fa scroll
- * perquè l'alumne la vegi sense haver de buscar-la.
- */
-let _helpTimer = null;
 
 function toggleHelp() {
     _helpVisible = !_helpVisible;
     els.helpBox.classList.toggle('visible', _helpVisible);
     const b = document.getElementById('btn-ajuda');
     if (b) b.textContent = _helpVisible ? '💡 Amaga ajuda' : '💡 Ajuda';
-
     if (_helpVisible) {
-        // Mostra la primera frase immediatament, amaga la segona
         const p1  = document.getElementById('help-p1');
         const p2  = document.getElementById('help-p2');
         const sep = document.getElementById('help-sep');
         if (p1)  p1.style.display  = 'block';
         if (p2)  p2.style.display  = 'none';
         if (sep) sep.style.display = 'none';
-
-        // Scroll per assegurar visibilitat
         setTimeout(() => els.helpBox.scrollIntoView({behavior:'smooth', block:'nearest'}), 80);
-
-        // Després de 1.5 s, mostra el separador i la segona frase
         if (_helpTimer) clearTimeout(_helpTimer);
         _helpTimer = setTimeout(() => {
             const p2b  = document.getElementById('help-p2');
             const sepb = document.getElementById('help-sep');
-            if (sepb) { sepb.style.display = 'block'; }
-            if (p2b)  { p2b.style.display  = 'block';
-                        p2b.style.animation = 'none';
-                        void p2b.offsetWidth;
-                        p2b.style.animation = 'fadeIn 0.35s ease'; }
+            if (sepb) sepb.style.display = 'block';
+            if (p2b)  { p2b.style.display = 'block'; p2b.style.animation = 'none'; void p2b.offsetWidth; p2b.style.animation = 'fadeIn 0.35s ease'; }
             setTimeout(() => els.helpBox.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
         }, 1500);
     } else {
-        // Amaga-ho tot i cancel·la el timer pendent
         if (_helpTimer) { clearTimeout(_helpTimer); _helpTimer = null; }
         const p2  = document.getElementById('help-p2');
         const sep = document.getElementById('help-sep');
@@ -1287,48 +1042,44 @@ function toggleHelp() {
 }
 
 function shakeEl(el) {
-    if(!el) return;
+    if (!el) return;
     el.classList.remove('error-shake');
-    void el.offsetWidth; // forçar reflow per reiniciar l'animació
+    void el.offsetWidth;
     el.classList.add('error-shake');
-    setTimeout(()=>el.classList.remove('error-shake'),400);
+    setTimeout(() => el.classList.remove('error-shake'), 400);
 }
 
 // ── Verificació ──────────────────────────────────────────────
 function checkAnswers() {
-    if(isTransitioning||isPenalizing) return;
-    const ai=els.areaInput, pi=els.perimInput;
-
+    if (isTransitioning || isPenalizing) return;
+    const ai = els.areaInput, pi = els.perimInput;
     const areaEmpty  = !_areaLocked  && !ai.value.trim();
     const perimEmpty = !_perimLocked && !pi.value.trim();
 
-    // ── Cas 1: com a mínim una casella buida ────────────────────
-    if(areaEmpty || perimEmpty) {
+    if (areaEmpty || perimEmpty) {
         clearWarning();
         showWarning('empty', "⚠️ Has d'omplir les dues caselles.");
-        if(areaEmpty)  shakeEl(ai);
-        if(perimEmpty) shakeEl(pi);
-        // Focus al primer camp buit
+        if (areaEmpty)  shakeEl(ai);
+        if (perimEmpty) shakeEl(pi);
         const toFocus = areaEmpty ? ai : pi;
-        if(isTouchDevice()) showCustomKeyboard(toFocus); else toFocus.focus();
+        if (isTouchDevice()) showCustomKeyboard(toFocus); else toFocus.focus();
         return;
     }
 
     clearWarning();
+    const areaVal  = _areaLocked  ? currentPentomino.area      : parseStrictInt(ai.value.trim());
+    const perimVal = _perimLocked ? currentPentomino.perimeter : parseStrictInt(pi.value.trim());
 
-    const areaVal =_areaLocked  ? currentPentomino.area      : parseStrictInt(ai.value.trim());
-    const perimVal=_perimLocked ? currentPentomino.perimeter : parseStrictInt(pi.value.trim());
+    if (!_areaLocked  && isNaN(areaVal))  { shakeEl(ai); return; }
+    if (!_perimLocked && isNaN(perimVal)) { shakeEl(pi); return; }
 
-    if(!_areaLocked  && isNaN(areaVal))  { shakeEl(ai); return; }
-    if(!_perimLocked && isNaN(perimVal)) { shakeEl(pi); return; }
+    const areaOk  = _areaLocked  || (areaVal  === currentPentomino.area);
+    const perimOk = _perimLocked || (perimVal === currentPentomino.perimeter);
 
-    const areaOk =_areaLocked  || (areaVal ===currentPentomino.area);
-    const perimOk=_perimLocked || (perimVal===currentPentomino.perimeter);
-
-    // ── Cas 2: l'alumne ha intercanviat àrea i perímetre ────────
-    if(!areaOk && !perimOk && !_areaLocked && !_perimLocked) {
-        const swapped = (areaVal===currentPentomino.perimeter) && (perimVal===currentPentomino.area);
-        if(swapped) {
+    // Cas: l'alumne ha intercanviat àrea i perímetre
+    if (!areaOk && !perimOk && !_areaLocked && !_perimLocked) {
+        const swapped = (areaVal === currentPentomino.perimeter) && (perimVal === currentPentomino.area);
+        if (swapped) {
             showWarning('swap', '⚠️ Atenció, potser has confós àrea amb perímetre. Revisa-ho.');
             shakeEl(ai); shakeEl(pi);
             recordAnswerToHistory(
@@ -1339,123 +1090,90 @@ function checkAnswers() {
         }
     }
 
-    if(!areaOk)  shakeEl(ai);
-    if(!perimOk) shakeEl(pi);
+    if (!areaOk)  shakeEl(ai);
+    if (!perimOk) shakeEl(pi);
 
-    const question  =`[${currentPentomino.name}] Àrea=${currentPentomino.area}cm² · Per.=${currentPentomino.perimeter}cm`;
-    const areaStr   =_areaLocked  ? String(currentPentomino.area)      : ai.value.trim();
-    const perimStr  =_perimLocked ? String(currentPentomino.perimeter) : pi.value.trim();
-    const answerLbl =`Àrea:${areaStr}cm² · Per.:${perimStr}cm`;
+    const question  = `[${currentPentomino.name}] Àrea=${currentPentomino.area}cm² · Per.=${currentPentomino.perimeter}cm`;
+    const areaStr   = _areaLocked  ? String(currentPentomino.area)      : ai.value.trim();
+    const perimStr  = _perimLocked ? String(currentPentomino.perimeter) : pi.value.trim();
+    const answerLbl = `Àrea:${areaStr}cm² · Per.:${perimStr}cm`;
 
-    // Bloqueja les respostes correctes noves (color verd, readonly)
-    if(areaOk  && !_areaLocked)  { _areaLocked=true;  lockInput(ai); }
-    if(perimOk && !_perimLocked) { _perimLocked=true; lockInput(pi); }
+    if (areaOk  && !_areaLocked)  { _areaLocked  = true; lockInput(ai); }
+    if (perimOk && !_perimLocked) { _perimLocked = true; lockInput(pi); }
 
-    if(areaOk && perimOk){
-        recordAnswerToHistory(question,answerLbl,true);
+    if (areaOk && perimOk) {
+        recordAnswerToHistory(question, answerLbl, true);
         hideCustomKeyboard();
         finishOperation(true);
         return;
     }
 
-    // Almenys un error: esborra el camp incorrecte i penalitza
-    recordAnswerToHistory(question,answerLbl,false);
-    if(!areaOk)  ai.value='';
-    if(!perimOk) pi.value='';
+    recordAnswerToHistory(question, answerLbl, false);
+    if (!areaOk)  ai.value = '';
+    if (!perimOk) pi.value = '';
     penalize();
 }
 
 // ── Penalització ─────────────────────────────────────────────
 function penalize() {
-    if(isPenalizing||isTransitioning) return;
-    isPenalizing=true;
+    if (isPenalizing || isTransitioning) return;
+    isPenalizing = true;
     els.attemptsDisplay.classList.add('blink');
-    setTimeout(()=>{
+    setTimeout(() => {
         els.attemptsDisplay.classList.remove('blink');
-        attemptsLeft--; updateHeader();
-        if(attemptsLeft<=0){
-            isTransitioning=true; hideCustomKeyboard();
-            els.answerRevealVals.textContent=
+        attemptsLeft--;
+        updateHeader();
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;
+            hideCustomKeyboard();
+            els.answerRevealVals.textContent =
                 `Àrea = ${currentPentomino.area} cm²  ·  Perímetre = ${currentPentomino.perimeter} cm`;
             els.answerReveal.classList.add('visible');
-            setTimeout(()=>finishOperation(false),2600);
+            setTimeout(() => finishOperation(false), 2600);
         } else {
-            // Focalitza el primer camp no bloquejat
-            const toFocus=!_areaLocked?els.areaInput:els.perimInput;
-            if(isTouchDevice()) showCustomKeyboard(toFocus); else toFocus.focus();
+            const toFocus = !_areaLocked ? els.areaInput : els.perimInput;
+            if (isTouchDevice()) showCustomKeyboard(toFocus); else toFocus.focus();
         }
-        isPenalizing=false;
-    },700);
+        isPenalizing = false;
+    }, 700);
 }
 
 // ── Fi d'operació ────────────────────────────────────────────
 function finishOperation(success) {
-    const fails=MAX_INTENTS-attemptsLeft;
-    const pts=success?Math.max(0,10-fails*2):0;
-    sessionScore+=pts;
-    const wt=showMiniOverlay(pts);
-    setTimeout(()=>{
+    const fails = MAX_INTENTS - attemptsLeft;
+    const pts   = success ? Math.max(0, 10 - fails * 2) : 0;
+    sessionScore += pts;
+
+    // [FIX A1] Registre v2 de resultats per pregunta
+    recordResult(success ? Math.min(fails + 1, 3) : 4);
+
+    const wt = showMiniOverlay(pts);
+    setTimeout(() => {
         hideMiniOverlay();
-        if(currentOperation+1>=TOTAL_OPERATIONS) endSession();
-        else { currentOperation++; buildLevel(); }
-    },wt);
+        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+            endSession();
+        } else {
+            currentOperation++;
+            buildLevel();
+        }
+    }, wt);
 }
 
 // ── Enter (teclat físic) ─────────────────────────────────────
-document.addEventListener('keydown',e=>{
-    if(e.key!=='Enter') return;
-    const gs=document.getElementById('game-screen');
-    if(!gs||gs.style.display==='none') return;
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const gs = document.getElementById('game-screen');
+    if (!gs || gs.style.display === 'none') return;
     e.preventDefault();
-    if(!isTransitioning) checkAnswers();
+    if (!isTransitioning) checkAnswers();
 });
-function checkCurrentCell(){ checkAnswers(); }
-
-// ============================================================
-// CODI PER AL PROFESSOR (antifrau)
-// ============================================================
-async function copiarResultats(){
-    const ch='abcdefghijklmnopqrstuvwxyz';
-    const rs=Array.from({length:3},()=>ch[randInt(0,25)]).join('');
-    const now=new Date();
-    const dia=String(now.getDate()).padStart(2,'0');
-    const mes=String(now.getMonth()+1).padStart(2,'0');
-    const hora=String(now.getHours()).padStart(2,'0');
-    const min=String(now.getMinutes()).padStart(2,'0');
-    const nota=calculaNotaSobre10();
-    const nf=nota.toFixed(2).padStart(5,'0').replace('.',',');
-    const ni=Math.round(nota*100);
-    const asc=rs.charCodeAt(0);
-    const suma=ni+parseInt(dia)+parseInt(mes)+parseInt(hora)+parseInt(min)+asc;
-    const ll='TRWAGMYFPDXBNJZSQVHLCKE';
-    const lletra=ll[suma%23];
-    const fitxer=window.location.pathname.split('/').pop().replace('.html','')||'pentomino';
-    const out=`${lletra}${rs}-${dia}${mes}-${hora}${min}-${nf}-${fitxer}`;
-    try{
-        await navigator.clipboard.writeText(out);
-        const btn=document.getElementById('btn-copiar');
-        if(btn){btn.innerText='Copiat! ✅';btn.style.backgroundColor='var(--success)';
-                setTimeout(()=>btn.style.display='none',3000);}
-    } catch(err){
-        let box=document.getElementById('fallback-code-box');
-        if(!box){
-            box=document.createElement('div'); box.id='fallback-code-box';
-            box.style.cssText='margin:14px auto;padding:14px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:420px;';
-            box.innerHTML=`<div style="font-size:.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div>
-            <div id="fallback-code-text" style="font-family:monospace;font-size:1.1em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;"></div>`;
-            document.querySelector('.panel').appendChild(box);
-        }
-        document.getElementById('fallback-code-text').textContent=out;
-        box.style.display='block';
-        box.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }
-}
 
 // ============================================================
 // INICI
 // ============================================================
 injectSharedHTML();
-initCustomKeyboard();
+initCustomKeyboard({ allowNegative: false, allowZero: true });
+validateConfig();
 startGame();
 </script>
 </body>

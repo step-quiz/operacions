@@ -1,7 +1,21 @@
 # PATCH CHANGELOG — Step Quiz
 # Aplica amb copy-paste a l'arrel del projecte (mateixa estructura de carpetes)
 
-## Fitxers modificats (6):
+## Fitxers modificats (7):
+
+### area-perimetre.html
+- **[FIX A1]** Migrat completament a game-core.js v2. Canvis:
+  - Afegit APP_CONFIG + càrrega de fixed-sessions.js, utils.js, config.js,
+    game-core.js i css/shared.css
+  - Eliminades ~500 línies de codi duplicat (utils, config, estat, sessions,
+    teclat, injectSharedHTML, copiarResultats v1)
+  - Afegit `recordResult()` a `finishOperation()` — ara l'analitzador mostra
+    el desglossament per pregunta (format v2, 30 caràcters)
+  - `copiarResultats()` ara genera codi v2 (9 segments) en lloc de v1 (5 segments)
+  - Sessions fixes (`?fixed=A/B/C`) ara funcionen correctament
+  - Afegida icona home al títol (coherent amb la resta de jocs)
+  - Overrides de showCustomKeyboard/hideCustomKeyboard per protegir inputs
+    bloquejats (verd) i salt intel·ligent àrea↔perímetre
 
 ### css/shared.css
 - **[FIX A4]** Afegit `min-height: 100dvh` al body (amb 100vh com fallback).
@@ -42,10 +56,6 @@
 
 ## Bugs NO corregits en aquest patch (requereixen més treball):
 
-- **C1** (7 jocs sense codi de resultats): Requereix implementar copiarResultats()
-  o integrar game-core.js a cada joc standalone. No és un patch simple.
-- **A1** (area-perimetre format v1): Requereix migrar a game-core.js o
-  reimplementar copiarResultats() en format v2.
 - **M2** (zoom tàctil): Afegir maximum-scale=1.0 a 49 fitxers és mecànic però
   extensiu; a més, pot afectar accessibilitat (WCAG 1.4.4).
 - **M3** (Tab handling): Requereix implementació específica per a cada joc
