@@ -1,340 +1,279 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap');
+/*
+============================================================================
+FITXER: css/chromebook.css
+ROL: Adaptacions per a Chromebooks i dispositius tàctils amb pantalla ≥ 1024px.
+CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
+============================================================================
+*/
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ================================================================
+   1. AJUSTOS GLOBALS — Chromebooks i dispositius tàctils ≥ 1024px
+   ================================================================ */
+@media (min-width: 1024px) and (any-pointer: coarse) {
 
-:root {
-    --bg-color:      #f0f6ff;
-    --primary:       #2563eb;
-    --primary-light: #dbeafe;
-    --primary-dark:  #1d4ed8;
-    --primary-hover: #1e40af;
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;
-    --border-light:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
-    --success:       #10b981;
-    --danger:        #ef4444;
-    --danger-light:  #fee2e2;
-}
+    body {
+        padding: 12px 16px;
+    }
 
-html { height: 100%; }
-body {
-    height: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;    /* [FIX BUG4] */
-    display: flex;
-    flex-direction: column;
-    font-family: 'Barlow', sans-serif;
-    background: var(--bg-color);
-    color: var(--text-main);
-    overflow: hidden;
-}
+    h1 { font-size: 1.45em; }
+    .subtitle { font-size: 1.05em; }
 
-/* ---- CAPÇALERA ---- */
-.title-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0 6px;
-}
-.title-row h1 {
-    font-size: clamp(.95rem, 1.8vw, 1.2rem);
-    font-weight: 700;
-    color: var(--primary-dark);
-}
+    .panel {
+        max-width: 840px;
+    }
 
-/* ---- PANELL ---- */
-.panel {
-    max-width: 98vw;
-    width: 98vw;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 16px rgba(0,0,0,.08);
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 0;
-    min-height: 0;
-    overflow: hidden;
-}
+    .header-info {
+        padding: 12px 16px;
+        gap: 8px;
+    }
 
-/* ---- HEADER INFO ---- */
-.header-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--border-light);
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    flex-shrink: 0;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.header-left { display: flex; flex-direction: column; gap: 1px; }
-.session-text { font-size: .82rem; }
-.level-text   { font-size: .75rem; color: var(--text-muted); }
-.score-text   { color: var(--primary-dark); font-weight: 700; }
-.badge {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: .78rem;
-    font-weight: 600;
-}
-.attempts-counter { font-weight: 700; color: var(--text-muted); }
-.attempts-counter.danger { color: var(--danger); }
+    /* ── TECLAT NUMÈRIC CUSTOM ── */
+    .kb-grid {
+        grid-template-columns: 72px 72px 72px 96px;
+        gap: 8px;
+    }
+    .kb-btn {
+        height: 56px;
+        font-size: 1.4rem;
+        border-radius: 12px;
+    }
+    .kb-btn.kb-enter { font-size: 1.6rem; }
+    .kb-btn.kb-del   { font-size: 1.2rem; }
 
-/* ---- GAME SCREEN ---- */
-#game-screen {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 0;
-    min-height: 0;
-}
+    #customKeyboard {
+        max-width: 780px;
+        padding: 14px 16px 18px;
+    }
 
-/* ---- LAYOUT DUES COLUMNES ---- */
-.game-body {
-    display: flex;
-    flex: 1 1 0;
-    min-height: 0;
-}
+    /* ── BOTONS PRINCIPALS ── */
+    .btn-submit,
+    .btn-green,
+    .btn-finalitzar,
+    .btn-check,
+    .btn-nou-exemple,
+    .btn-mega-next,
+    .btn-next,
+    .btn-ok,
+    .btn-restart,
+    .btn-back,
+    .summary-continue-btn,
+    .btn-next-figure {
+        min-height: 48px;
+        padding: 14px 28px;
+        font-size: 1.05em;
+    }
 
-/* Columna esquerra — pregunta + opcions */
-.game-left {
-    width: 36%;
-    display: flex;
-    flex-direction: column;
-    padding: 14px 12px 14px 16px;
-    border-right: 1px solid var(--border-light);
-    overflow-y: auto;
-    gap: 0;
-}
+    .btn-sign {
+        min-height: 48px;
+        padding: 14px 20px;
+        font-size: 1.1em;
+    }
 
-/* Columna dreta — gràfic SVG */
-.game-right {
-    width: 64%;
-    display: flex;
-    flex-direction: column;
-    padding: 10px 14px;
-    overflow: hidden;
-    min-height: 0;
-}
+    .btn-option {
+        min-height: 52px;
+        padding: 16px 14px;
+    }
 
-/* ---- FUNCTION BOX ---- */
-.function-box {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 14px;
-}
-.function-label {
-    color: var(--text-muted);
-    font-size: .78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.function-math {
-    font-size: 1em;
-    color: var(--primary-dark);
-    padding: 12px 16px;
-    background: #f0f6ff;
-    border-radius: 10px;
-    border: 2px solid var(--border-light);
-    overflow-x: auto;
-}
+    .ops-tab {
+        min-height: 44px;
+        font-size: 0.95rem;
+    }
 
-/* ---- OPCIONS 2×2 ---- */
-.options-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    width: 100%;
-}
+    .diff-btn,
+    .lvl-btn,
+    .section-btn,
+    .nav-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
 
-@keyframes popIn {
-    0%   { opacity: 0; transform: scale(0.95); }
-    100% { opacity: 1; transform: scale(1); }
-}
+    input[type="number"],
+    input[type="text"] {
+        min-height: 46px;
+        font-size: 1.25em;
+    }
 
-.btn-option {
-    padding: 14px 10px;
-    font-size: 1em;
-    border-radius: 10px;
-    border: 2px solid var(--border-heavy);
-    background: white;
-    color: var(--text-main);
-    cursor: pointer;
-    transition: background .2s, border-color .2s, transform .2s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 64px;
-    box-shadow: 0 2px 4px rgba(0,0,0,.04);
-    opacity: 0;
-    animation: popIn .3s cubic-bezier(.175,.885,.32,1.275) forwards;
-    overflow: hidden;
-    min-width: 0;
-}
+    .token-op {
+        padding: 8px 18px;
+        font-size: 1.05em;
+        min-height: 44px;
+        min-width: 44px;
+    }
 
-@media (hover: hover) {
-    .btn-option:hover {
-        background: var(--primary-light);
-        border-color: var(--primary);
-        transform: translateY(-2px);
+    /* ── MATRIUS ── */
+    .cell input,
+    .manual-cell {
+        min-height: 44px;
+        min-width: 44px;
+        font-size: 1.15rem;
+    }
+
+    /* ── COMPLEXOS ── */
+    .step-input {
+        min-height: 48px;
+        min-width: 58px;
+        font-size: 1.25rem;
+    }
+    .step-input-sm {
+        min-height: 42px;
+        min-width: 52px;
+    }
+    .frac-input .step-input {
+        min-height: 40px;
+        min-width: 52px;
+        font-size: 1.05rem;
+    }
+
+    /* ── RUFFINI ── */
+    .ruf-cell input {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* ── SISTEMES D'EQUACIONS ── */
+    .eq-cell input,
+    .sys-input {
+        min-height: 44px;
+        min-width: 42px;
+    }
+
+    /* ── FRACCIONS ── */
+    .frac-num-inp,
+    .frac-den-inp,
+    .det-input {
+        min-height: 44px;
+        min-width: 50px;
+        font-size: 1.2em;
+    }
+
+    .factor-input {
+        min-height: 44px;
+        font-size: 1.2em;
+    }
+
+    /* ── PLA CARTESIÀ ── */
+    .q-btn {
+        min-height: 44px;
+        min-width: 44px;
+        font-size: 1em;
+    }
+    .coord-input {
+        min-height: 44px;
+        font-size: 1.2em;
+    }
+
+    /* ── RECTA NUMÈRICA ── */
+    .nl-point-btn,
+    .nl-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* ── ÀREA I PERÍMETRE ── */
+    .form-btn {
+        min-height: 48px;
+        padding: 12px 16px;
+    }
+
+    .mini-vic-text { font-size: 1.8em; }
+    .star-icon { font-size: 2.8em; }
+
+    #final-screen button,
+    .final-actions > button {
+        min-height: 48px;
+        font-size: 1em;
+    }
+
+    /* ── VOCABULARI ── */
+    .voc-option-btn,
+    .choice-btn,
+    .voc-submit {
+        min-height: 48px;
+        font-size: 1.05em;
+    }
+
+    .tb-btn {
+        min-height: 40px;
+        min-width: 40px;
+    }
+
+    select {
+        min-height: 38px;
+        font-size: 14px;
     }
 }
-.btn-option:active { transform: scale(.97); }
-.btn-option:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 
-.btn-option .katex-html {
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-}
-.btn-option .katex-html::-webkit-scrollbar { display: none; }
 
-@keyframes shake {
-    0%,100% { transform: translateX(0); }
-    25%     { transform: translateX(-5px); }
-    75%     { transform: translateX(5px); }
-}
-.btn-option.correct {
-    background: var(--success) !important;
-    border-color: var(--success) !important;
-    color: white !important;
-}
-.btn-option.wrong {
-    background: var(--danger-light) !important;
-    border-color: var(--danger) !important;
-    color: var(--danger) !important;
-    opacity: 1 !important;
-    pointer-events: none;
-    cursor: not-allowed;
-    animation: shake .3s;
+/* ================================================================
+   2. INDEX — touch targets dels dropdowns i botons
+   ================================================================ */
+@media (min-width: 1024px) and (any-pointer: coarse) {
+    .cd-trigger {
+        min-height: 40px;
+    }
+    .cd-option {
+        min-height: 40px;
+        padding: 10px 12px;
+    }
+    .copy-btn, .open-btn, .help-btn {
+        min-height: 44px;
+    }
 }
 
-/* ---- FEEDBACK ---- */
-#missatge-feedback {
-    font-size: .88rem;
-    min-height: 36px;
-    transition: opacity .3s;
-    margin-top: 10px;
-    text-align: center;
-}
-.feedback-correct { color: var(--success); font-weight: 700; }
-.feedback-wrong   { color: var(--text-main); }
 
-.solution-reveal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 8px;
-    padding: 8px 12px;
-    background: #f0fdf4;
-    border: 2px solid #bbf7d0;
-    border-radius: 8px;
-}
-.solution-label {
-    color: #047857;
-    font-size: .82em;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    white-space: nowrap;
-}
-.solution-formula { color: #065f46; font-size: 1em; }
-
-/* ---- GRÀFIC SVG ---- */
-#graph-canvas {
-    width: 100%;
-    flex: 1 1 0;
-    min-height: 0;
-    display: flex;
-}
-#graph-canvas svg {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 6px;
+/* ================================================================
+   3. LANDSCAPE CHROMEBOOK — teclat sempre a sota, mai al costat
+   [FIX M5] Eliminats !important. Doble selector per especificitat.
+   ================================================================ */
+@media (min-width: 1024px) and (any-pointer: coarse) {
+    .panel.panel {
+        flex-direction: column;
+    }
+    #customKeyboard.kb-visible,
+    #customKeyboard {
+        flex: none;
+        width: 100%;
+        border-left: none;
+        border-top: 2px solid var(--border-heavy);
+        border-radius: 0 0 12px 12px;
+    }
 }
 
-/* ---- RESUM FINAL ---- */
-#session-summary { padding: 24px 20px 28px; overflow-y: auto; }
-.summary-score { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 20px; }
-.summary-score-label { font-size: .82em; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
-.summary-score-value { font-size: 2.2em; font-weight: 800; color: var(--primary-dark); }
 
-.summary-stats { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-.summary-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 16px; border-radius: 10px; min-width: 90px; border: 2px solid transparent; }
-.summary-stat--ok   { background: #f0fdf4; border-color: #bbf7d0; }
-.summary-stat--warn { background: #fffbeb; border-color: #fde68a; }
-.summary-stat--err  { background: #fef2f2; border-color: #fecaca; }
-.summary-stat-num { font-size: 1.8em; font-weight: 800; line-height: 1; }
-.summary-stat--ok   .summary-stat-num { color: #047857; }
-.summary-stat--warn .summary-stat-num { color: #b45309; }
-.summary-stat--err  .summary-stat-num { color: #b91c1c; }
-.summary-stat-desc { font-size: .78em; text-align: center; color: var(--text-muted); line-height: 1.3; }
-
-.summary-errors-title { font-size: .82em; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-bottom: 10px; text-align: center; }
-.summary-errors-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-.summary-error-item { background: #eff6ff; border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; padding: 10px 14px; }
-.summary-error-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.summary-error-type  { font-weight: 700; font-size: .92em; color: var(--primary-dark); }
-.summary-error-count { font-size: .78em; color: var(--primary); background: var(--primary-light); padding: 1px 8px; border-radius: 99px; white-space: nowrap; }
-.summary-no-errors { text-align: center; color: #047857; font-weight: 600; background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 10px; padding: 14px; margin-bottom: 24px; }
-
-.summary-continue-btn {
-    display: block; margin: 0 auto; padding: 12px 36px;
-    background: var(--primary); color: white; border: none; border-radius: 10px;
-    font-family: 'Barlow', sans-serif; font-size: 1em; font-weight: 700; cursor: pointer;
-    transition: background .2s, transform .15s;
-}
-.summary-continue-btn:hover  { background: var(--primary-hover); transform: translateY(-1px); }
-.summary-continue-btn:active { transform: scale(.97); }
-
-/* ---- RESPONSIVE ---- */
-@media (max-width: 780px) {
-    body { overflow: auto; }
-    .game-body { flex-direction: column; }
-    .game-left  { width: 100%; border-right: none; border-bottom: 1px solid var(--border-light); }
-    .game-right { width: 100%; }
-    #graph-container svg { height: 40vh; }
-}
-@media (max-width: 560px) {
-    .options-grid { grid-template-columns: 1fr; }
+/* ================================================================
+   4. CANVAS — limitar alçada al 300e
+   ================================================================ */
+@media (min-width: 1024px) and (max-width: 1400px) and (any-pointer: coarse) {
+    .canvas-container {
+        max-height: 55vh;
+    }
+    #graph-canvas {
+        max-height: 55vh;
+    }
 }
 
-/* ---- TOGGLE GRÀFICA ---- */
-.btn-toggle-graph {
-    display: block;
-    width: calc(100% - 0px);
-    padding: 10px 16px;
-    margin-bottom: 10px;
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    border: 2px dashed var(--primary);
-    border-radius: 10px;
-    font-family: 'Barlow', sans-serif;
-    font-size: .88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .2s, border-color .2s;
-    text-align: center;
-}
-.btn-toggle-graph:hover:not(:disabled) {
-    background: #bfdbfe;
-    border-color: var(--primary-dark);
-}
-.btn-toggle-graph.revealed {
-    background: #fef9c3;
-    border: 2px solid #f59e0b;
-    color: #92400e;
-    cursor: default;
+
+/* ================================================================
+   5. UX TÀCTIL — només en dispositius amb pantalla tàctil
+   ================================================================ */
+@media (any-pointer: coarse) {
+    html {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
+
+    button, a, .token-op, .kb-btn, .btn-sign, .btn-option,
+    .cd-option, .cd-trigger, input, select,
+    .ops-tab, .diff-btn, .lvl-btn, .nav-btn, .q-btn,
+    .section-btn, .tb-btn, .choice-btn, .voc-option-btn,
+    .form-btn, .btn-check, .btn-next, .btn-ok,
+    .nl-point-btn, .nl-btn {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    button, .token-op, .btn-sign, .btn-option, .ops-tab,
+    .kb-btn, .q-btn, .choice-btn, .voc-option-btn {
+        touch-action: manipulation;
+    }
 }
