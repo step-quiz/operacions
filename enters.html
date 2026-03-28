@@ -208,8 +208,9 @@
     // ---- GENERACIÓ D'EXPRESSIONS ----
     function getTerm() {
         if (Math.random() > 0.5) {
+            // [FIX m1] Almenys un operand no-zero per evitar 0·0 trivial
             return [
-                { type: 'num', val: randInt(-8, 8) },
+                { type: 'num', val: randIntNonZero(-8, 8) },
                 { type: 'op',  val: '·' },
                 { type: 'num', val: randInt(-8, 8) }
             ];

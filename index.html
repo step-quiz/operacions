@@ -78,7 +78,8 @@
     * { box-sizing: border-box; }
 
     html { overflow: hidden; }
-    @media (max-height: 600px) { html { overflow: auto; } }
+    /* [FIX A2] Augmentat de 600px a 850px per cobrir tauletes landscape i Chromebooks */
+    @media (max-height: 850px) { html { overflow: auto; } }
     body {
       margin: 0;
       background: var(--bg-body);
