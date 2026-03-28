@@ -1,63 +1,73 @@
-# PATCH CHANGELOG — Step Quiz
+# PATCH DEFINITIU — Step Quiz
 # Aplica amb copy-paste a l'arrel del projecte (mateixa estructura de carpetes)
+# Inclou els 6 patches pendents anteriors + els 6 moderats
 
-## Fitxers modificats (7):
-
-### area-perimetre.html
-- **[FIX A1]** Migrat completament a game-core.js v2. Canvis:
-  - Afegit APP_CONFIG + càrrega de fixed-sessions.js, utils.js, config.js,
-    game-core.js i css/shared.css
-  - Eliminades ~500 línies de codi duplicat (utils, config, estat, sessions,
-    teclat, injectSharedHTML, copiarResultats v1)
-  - Afegit `recordResult()` a `finishOperation()` — ara l'analitzador mostra
-    el desglossament per pregunta (format v2, 30 caràcters)
-  - `copiarResultats()` ara genera codi v2 (9 segments) en lloc de v1 (5 segments)
-  - Sessions fixes (`?fixed=A/B/C`) ara funcionen correctament
-  - Afegida icona home al títol (coherent amb la resta de jocs)
-  - Overrides de showCustomKeyboard/hideCustomKeyboard per protegir inputs
-    bloquejats (verd) i salt intel·ligent àrea↔perímetre
-
-### css/shared.css
-- **[FIX A4]** Afegit `min-height: 100dvh` al body (amb 100vh com fallback).
-  Corregeix botons inaccessibles en Safari/Chrome mòbil per a tots els 24 jocs
-  que carreguen shared.css.
+## Fitxers modificats (9):
 
 ### js/fixed-sessions.js
-- **[FIX C2]** Afegit `beforeunload` listener com a safety net per restaurar
-  `Math.random` original si l'alumne surt abans de la pantalla final.
-- **Eliminat codi mort:** `setInterval(_waitForGameCore)` que feia polling
-  innecessari i no feia res útil.
+- **[FIX C2]** Afegit `beforeunload` listener per restaurar `Math.random`
+  si l'alumne surt abans de la pantalla final.
+- Eliminat codi mort del `setInterval(_waitForGameCore)`.
 
 ### js/game-core.js
-- **[FIX A3]** `finalitzar()` ara demana confirmació amb `confirm()` abans de
-  fer `reload()`. Prevé pèrdua accidental del codi de resultats.
-- **[FIX M7]** `endSession()` mostra un text temporal "Preparant sessió
-  següent…" durant el segon d'espera del botó, en lloc de deixar la pantalla
-  buida.
-- **[FIX C3]** `initCustomKeyboard()` ara pre-estableix `inputmode="none"` a
-  tots els inputs del #game-screen en dispositius tàctils, evitant el flash del
-  teclat natiu al primer tap. `hideCustomKeyboard()` ara conserva l'atribut
-  en dispositius tàctils per evitar flashes posteriors.
+- **[FIX A3]** `finalitzar()` demana confirmació amb `confirm()`.
+- **[FIX C3]** `initCustomKeyboard()` pre-estableix `inputmode="none"` en
+  tàctils. `hideCustomKeyboard()` conserva l'atribut en tàctils.
+- **[FIX M7]** `endSession()` mostra "Preparant sessió següent…" durant 1s.
 
-### enters.html
-- **[FIX m1]** `getTerm()` multiplicació: primer operand canviat de
-  `randInt(-8,8)` a `randIntNonZero(-8,8)` per evitar operacions trivials
-  com 0·0 o 0·N.
+### css/shared.css
+- **[FIX A4]** `min-height: 100dvh` al body (cobreix els 24 jocs integrats).
+- **[FIX M2]** `touch-action: manipulation` global a tots els elements
+  interactius. Prevé double-tap-to-zoom sense bloquejar pinch-to-zoom
+  (respecta WCAG 1.4.4, no cal maximum-scale a cada HTML).
+- **[FIX M4]** `.panel` canviat de `overflow: hidden` a
+  `overflow-x: hidden; overflow-y: auto`. El border-radius segueix
+  funcionant, i el contingut dinàmic (teclat, historial, fallback) ja
+  no queda tallat.
+- **[FIX M5]** Landscape split-layout llindar augmentat de 500px a 600px
+  per cobrir mòbils moderns (500-600px d'alçada en landscape).
+
+### css/chromebook.css
+- **[FIX M5]** Eliminats tots els `!important` del bloc landscape Chromebook.
+  Substituïts per doble selector (`.panel.panel`, `#customKeyboard.kb-visible`)
+  per guanyar especificitat sense forçar.
 
 ### js/recta-numerica/recta-numerica.js
-- **[FIX m3]** `recordResult()` canviat de `attemptsLeft === MAX_INTENTS ? 1 : 2`
-  a `Math.min(MAX_INTENTS - attemptsLeft + 1, 3)` per registrar correctament
-  el 3r intent o posterior (codi 3), en lloc de col·lapsar-lo amb el 2n.
+- **[FIX m3]** `recordResult()` canviat a fórmula estàndard
+  `Math.min(MAX_INTENTS - attemptsLeft + 1, 3)`.
 
-### index.html
-- **[FIX A2]** Breakpoint `@media (max-height: ...)` augmentat de 600px a 850px
-  per permetre scroll en tauletes landscape i Chromebooks on el contingut
-  quedava tallat per `overflow: hidden`.
+### js/vocabulari/vocabulari.js
+- **[FIX M1]** `_isTouchDevice()` canviat de feature detection
+  (`ontouchstart`/`maxTouchPoints`) a media query
+  (`any-pointer: coarse`), coherent amb `game-core.js`.
 
-## Bugs NO corregits en aquest patch (requereixen més treball):
+### fraccions.html
+- **[FIX M3]** Afegit handler de tecla Tab al `keydown` listener.
+  Tab/Shift+Tab salten al següent/anterior input visible dins del pas
+  actiu. Funciona tant amb teclat físic com amb teclat custom.
 
-- **M2** (zoom tàctil): Afegir maximum-scale=1.0 a 49 fitxers és mecànic però
-  extensiu; a més, pot afectar accessibilitat (WCAG 1.4.4).
-- **M3** (Tab handling): Requereix implementació específica per a cada joc
-  multi-input (fraccions, sistemes, inversa-matriu, etc.).
-- **M1, M4, M5, M6**: Requereixen refactoritzacions CSS més àmplies.
+### js/sistemes-equacions/sistemes-equacions.js
+- **[FIX M3]** Afegit handler de tecla Tab al `keydown` listener.
+  Tab/Shift+Tab salten entre inputs del `stepSchema` actiu.
+
+### sistemes-equacions.html
+- **[FIX m7]** CDN de KaTeX canviat de `cdnjs.cloudflare.com` a
+  `cdn.jsdelivr.net`, coherent amb derivades, integrals, probabilitat
+  i la resta de fitxers que usen KaTeX.
+
+## Resum de bugs resolts en aquest patch:
+
+| ID  | Gravetat | Descripció |
+|-----|----------|------------|
+| C2  | Crític   | Math.random no es restaurava si l'alumne sortia |
+| C3  | Crític   | Flash teclat natiu en tàctils |
+| A3  | Alt      | "Tornar a jugar" sense confirmació |
+| A4  | Alt      | 100vh sense 100dvh a shared.css |
+| M1  | Moderat  | Detecció tàctil inconsistent vocabulari vs game-core |
+| M2  | Moderat  | Zoom tàctil per double-tap |
+| M3  | Moderat  | Tab handling absent en fraccions i sistemes |
+| M4  | Moderat  | .panel overflow:hidden tallava contingut dinàmic |
+| M5  | Moderat  | Landscape split llindar 500px + !important chromebook |
+| M7  | Moderat  | Botó sessió invisible 1s sense feedback |
+| m3  | Menor    | recordResult simplificat a recta-numèrica |
+| m7  | Menor    | KaTeX CDN diferent a sistemes-equacions |

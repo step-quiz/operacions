@@ -934,6 +934,21 @@ function finishSuccess() {
                 }
             }
         }
+        // [FIX M3] Tab salta al següent input visible dins del pas actiu
+        if (e.key === 'Tab') {
+            const activeStep = document.querySelector('.step-container.active');
+            if (!activeStep || els.gameScreen.style.display === 'none') return;
+            const inputs = Array.from(activeStep.querySelectorAll('input[type="text"].math-cell'))
+                               .filter(inp => inp.offsetParent !== null);
+            if (inputs.length <= 1) return;
+            const idx = inputs.indexOf(document.activeElement);
+            if (idx === -1) return;
+            const next = e.shiftKey
+                ? inputs[(idx - 1 + inputs.length) % inputs.length]
+                : inputs[(idx + 1) % inputs.length];
+            e.preventDefault();
+            if (isTouchDevice()) showCustomKeyboard(next); else next.focus();
+        }
     });
     // ---- checkCurrentCell: botó → del teclat custom ----
     // Lògica intel·ligent: salta al següent input buit visible dins del pas;

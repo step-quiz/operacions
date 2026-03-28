@@ -32,6 +32,14 @@ DEPENDÈNCIES: S'ha de carregar PRIMER a l'HTML, abans del CSS específic.
 /* ---- RESET BASE ---- */
 * { box-sizing: border-box; }
 
+/* [FIX M2] Prevenció global del double-tap-to-zoom en elements interactius.
+   touch-action:manipulation desactiva el zoom per doble tap sense bloquejar
+   el pinch-to-zoom (accessible WCAG 1.4.4, no cal maximum-scale a cada HTML) */
+button, input, select, textarea, label,
+a, [role="button"], [tabindex] {
+    touch-action: manipulation;
+}
+
 /* ---- BODY ---- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -42,8 +50,8 @@ body {
     align-items: center;
     margin: 0;
     padding: 20px;
-    min-height: 100vh;            /* fallback per a navegadors antics */
-    min-height: 100dvh;           /* [FIX A4] Safari/Chrome mòbil: respecta barra d'adreces dinàmica */
+    min-height: 100vh;            /* fallback navegadors antics */
+    min-height: 100dvh;           /* [FIX A4] Safari/Chrome mòbil: respecta barra d'adreces */
     transition: background-color 1s ease;
 }
 
@@ -95,7 +103,10 @@ h1 {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 910px;
-    overflow: hidden;
+    /* [FIX M4] overflow-x:hidden manté el clip del border-radius;
+       overflow-y:auto permet scroll per contingut dinàmic (teclat, historial, fallback) */
+    overflow-x: hidden;
+    overflow-y: auto;
     border: 1px solid var(--border-color);
     border-top: 6px solid var(--primary);
     transition: border-color 0.3s;
@@ -385,10 +396,9 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 
 /* ── Landscape mòbil: layout esquerra/dreta ──
-   El contingut del joc ocupa la columna esquerra (scroll vertical si cal)
-   i el teclat custom queda fixat a la columna dreta.
-   Així el teclat mai no empeny el contingut fora de la vista.          */
-@media (orientation: landscape) and (max-height: 500px) {
+   [FIX M5] Llindar augmentat de 500px a 600px per cobrir mòbils moderns
+   (500-600px d'alçada en landscape amb barra d'adreça oculta).            */
+@media (orientation: landscape) and (max-height: 600px) {
 
     /* Teclat compacte (mateix que abans) */
     .kb-grid         { grid-template-columns: 48px 48px 48px 64px; gap: 5px; }
