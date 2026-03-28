@@ -1414,6 +1414,21 @@ document.addEventListener('keydown', function(e) {
             if (!isTransitioning && !isPenalizing) checkStep();
         }
     }
+    // [FIX M3] Tab salta al següent input dins del pas actiu
+    if (e.key === 'Tab') {
+        if (els.gameScreen.style.display === 'none' ||
+            els.resolutionPanel.style.display === 'none') return;
+        var inputs = Array.from(els.stepSchema.querySelectorAll('input:not([readonly])'))
+                         .filter(function(inp) { return inp.offsetParent !== null; });
+        if (inputs.length <= 1) return;
+        var idx = inputs.indexOf(document.activeElement);
+        if (idx === -1) return;
+        var next = e.shiftKey
+            ? inputs[(idx - 1 + inputs.length) % inputs.length]
+            : inputs[(idx + 1) % inputs.length];
+        e.preventDefault();
+        if (typeof isTouchDevice === 'function' && isTouchDevice()) showCustomKeyboard(next); else next.focus();
+    }
 });
 
 validateConfig();

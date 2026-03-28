@@ -209,7 +209,8 @@ function checkAnswer(opt, btn) {
         els.scoreDisplay.textContent = `Punts: ${sessionScore}`;
 
         recordAnswerToHistory(challengeData.prompt, opt.text, true);
-        recordResult(attemptsLeft === MAX_INTENTS ? 1 : 2);
+        // [FIX m3] Formula estàndard: 1=1r intent, 2=2n, 3=3r o posterior
+        recordResult(Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
         _finishQuestion(pts);
 
     } else {

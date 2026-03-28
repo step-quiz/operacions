@@ -98,8 +98,9 @@
     //            quan apareix el teclat virtual del sistema.
     //  - No tàctil: focus directe, sense scroll addicional.
     // =========================================================================
+    // [FIX M1] Unificada amb game-core.js: any-pointer: coarse
     function _isTouchDevice() {
-        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        return window.matchMedia('(any-pointer: coarse)').matches;
     }
 
     // =========================================================================
