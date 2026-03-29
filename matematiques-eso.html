@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matemàtiques ESO · Batxillerat</title>
+  <style>
+    :root {
+      --text-main:   #1e293b;
+      --text-muted:  #64748b;
+      --bg-body:     #f8fafc;
+      --eso-bg:      #eff6ff;
+      --batx-bg:     #f1f5f9;
+      --accent:      #3b82f6;
+      --accent-dark: #1d4ed8;
+      --math-title:  #3486e4;
+      --border:      #cbd5e1;
+      --border-soft: #e2e8f0;
+      --white:       #ffffff;
+      --radius:      14px;
+      --shadow:      0 4px 20px -4px rgba(15,23,42,.08), 0 1px 4px -1px rgba(15,23,42,.05);
+      --shadow-lg:   0 10px 40px -8px rgba(15,23,42,.14);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMATIONS ─────────────────────────── */
+    @keyframes fade-up  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fade-in  { from { opacity:0; } to { opacity:1; } }
+
+    /* ══════════════════════════════════════════
+       HOME PAGE
+    ══════════════════════════════════════════ */
+    #page-home {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 0 16px 90px;
+    }
+
+    .home-header {
+      text-align: center;
+      padding: 48px 16px 36px;
+      animation: fade-up .5s ease-out both;
+    }
+    .home-title {
+      font-size: clamp(26px, 5vw, 40px);
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -.02em;
+      line-height: 1.1;
+    }
+    .home-title span { color: var(--math-title); }
+    .home-sub {
+      margin-top: 10px;
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+
+    .home-section {
+      max-width: 980px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .home-section + .home-section { margin-top: 40px; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      animation: fade-in .4s ease-out .25s both;
+    }
+    .section-head h2 { font-size: 19px; font-weight: 800; color: #0f172a; }
+
+    .section-badge {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      padding: 3px 9px; border-radius: 20px;
+    }
+    .badge-eso  { background: #dbeafe; color: #1d4ed8; }
+    .badge-batx { background: #e0e7ff; color: #4338ca; }
+
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .topic-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px 15px;
+      cursor: pointer;
+      transition: box-shadow .2s, transform .18s, border-color .18s;
+      box-shadow: var(--shadow);
+      animation: fade-up .4s ease-out both;
+      position: relative;
+      overflow: hidden;
+    }
+    .topic-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-3px);
+      border-color: var(--accent);
+    }
+    .topic-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), #60a5fa);
+      opacity: 0; transition: opacity .2s;
+    }
+    .topic-card:hover::before { opacity: 1; }
+
+    .topic-card.coming {
+      opacity: .55; cursor: default;
+    }
+    .topic-card.coming:hover {
+      box-shadow: var(--shadow); transform: none; border-color: var(--border);
+    }
+    .topic-card.coming::before { display: none; }
+
+    .card-icon  { font-size: 28px; margin-bottom: 10px; display: block; line-height: 1; }
+    .card-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .card-desc  { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+
+    .card-foot  { margin-top: 14px; }
+    .card-pill  {
+      display: inline-block;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      padding: 2px 8px; border-radius: 20px;
+    }
+    .pill-ok     { background: #dcfce7; color: #15803d; }
+    .pill-coming { background: var(--border-soft); color: var(--text-muted); }
+
+    /* ══════════════════════════════════════════
+       TOPIC PAGE
+    ══════════════════════════════════════════ */
+    #page-topic {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .topic-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      height: 52px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 13px; font-weight: 600; color: var(--accent);
+      cursor: pointer; padding: 5px 10px 5px 5px;
+      border-radius: 8px; border: none; background: none;
+      transition: background .15s; white-space: nowrap;
+    }
+    .back-btn:hover { background: var(--eso-bg); }
+    .back-btn svg { width: 15px; height: 15px; }
+
+    .bar-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+    .bar-title { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .bar-sub   { font-size: 12px; color: var(--text-muted); }
+
+    .bar-spacer { flex: 1; }
+
+    .copy-link-btn {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      background: var(--bg-body); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 8px; cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .copy-link-btn:hover { background: var(--eso-bg); color: var(--accent); border-color: var(--accent); }
+    .copy-link-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .copy-link-btn.copied { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+
+    .classroom-btn {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      background: var(--bg-body); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 8px; cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .classroom-btn:hover { background: #fefce8; color: #a16207; border-color: #fde047; }
+    .classroom-btn.copied { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .classroom-btn.error  { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      animation: fade-up .3s ease-out both;
+    }
+    .panel:nth-child(2) { animation-delay: .05s; }
+    .panel:nth-child(3) { animation-delay: .10s; }
+
+    .panel-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--bg-body);
+      flex-shrink: 0;
+    }
+    .panel-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-pdf    { background: #f59e0b; }
+    .dot-theory { background: var(--accent); }
+    .dot-solved { background: #10b981; }
+
+    .panel-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+    .panel-name  { font-size: 13px; font-weight: 600; color: var(--text-main); }
+
+    .panel-body { flex: 1; overflow: hidden; min-height: 0; }
+    .panel-body iframe { width: 100%; height: 100%; border: none; display: block; }
+
+    .video-wrap { display: flex; flex-direction: column; height: 100%; }
+    .video-list { flex: 1; overflow-y: auto; }
+
+    /* ── Hero thumbnail (top of panel) ── */
+    .yt-hero {
+      display: block;
+      position: relative;
+      width: 100%; aspect-ratio: 16/9;
+      flex-shrink: 0;
+      overflow: hidden;
+      background: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .yt-hero img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: opacity .2s;
+    }
+    .yt-hero:hover img { opacity: .78; }
+    .yt-hero-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 7px;
+      background: linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 60%);
+    }
+    .yt-hero-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: #ff0000; color: #fff;
+      font-size: 12px; font-weight: 700;
+      padding: 7px 16px; border-radius: 22px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.4);
+      transition: background .15s, transform .15s;
+      white-space: nowrap;
+    }
+    .yt-hero:hover .yt-hero-btn { background: #cc0000; transform: scale(1.05); }
+    .yt-hero-btn svg { width: 15px; height: 15px; fill: white; flex-shrink: 0; }
+    .yt-hero-title {
+      font-size: 11px; font-weight: 600; color: #fff;
+      text-align: center; padding: 0 14px; line-height: 1.35;
+      text-shadow: 0 1px 4px rgba(0,0,0,.9);
+      overflow: hidden;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+
+    /* ── Video card: two sibling columns ── */
+    .video-item {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border-soft);
+      transition: background .12s;
+      min-height: 72px;
+    }
+    .video-item:hover { background: #f8fafc; }
+    .video-item.v-active {
+      background: #eff6ff;
+      border-left: 3px solid var(--accent);
+    }
+    .video-item.v-active .v-title { color: var(--accent-dark); font-weight: 700; }
+
+    /* LEFT: thumbnail + YT button */
+    .v-left {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 5px;
+      padding: 8px 8px 8px 10px;
+      border-right: 1px solid var(--border-soft);
+    }
+    .v-thumb {
+      width: 90px; height: 51px;
+      border-radius: 5px;
+      background: var(--border-soft);
+      overflow: hidden; position: relative;
+      flex-shrink: 0;
+    }
+    .v-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .v-thumb-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.28);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .v-thumb-overlay svg { width: 22px; height: 22px; fill: white; opacity: .9; }
+
+    .yt-btn {
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+      background: #ff0000; color: #fff;
+      font-size: 10px; font-weight: 700;
+      padding: 4px 8px; border-radius: 20px;
+      text-decoration: none;
+      transition: background .15s, transform .15s;
+      white-space: nowrap; width: 90px;
+    }
+    .yt-btn:hover { background: #cc0000; transform: scale(1.04); }
+    .yt-btn svg { width: 12px; height: 12px; fill: white; flex-shrink: 0; }
+
+    /* RIGHT: title + teacher note */
+    .v-right {
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 8px 12px 8px 10px;
+      gap: 4px;
+    }
+    .v-title {
+      font-size: .78rem; font-weight: 600; color: var(--text-main);
+      line-height: 1.3;
+    }
+    .v-note {
+      font-size: .72rem; color: var(--text-muted);
+      line-height: 1.4;
+      font-style: italic;
+    }
+    .v-note:empty::before {
+      content: '—';
+      color: var(--border);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    footer {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: #f8f9fa; border-top: 1px solid #ccc;
+      padding: 8px 16px; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; font-size: .78em; color: #475569; flex-wrap: wrap; text-align: center;
+    }
+    footer a { color: #475569; }
+
+    @media (max-width: 860px)  { .panels { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px)  {
+      .panels { grid-template-columns: 1fr; padding: 8px; }
+      .bar-sub { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ HOME ═══════════ -->
+<div id="page-home">
+  <div class="home-header">
+    <div class="home-title">Matemàtiques<br><span>ESO · Batxillerat</span></div>
+    <div class="home-sub">Apunts en PDF · Teoria en vídeo · Problemes resolts · Catalunya 2026</div>
+  </div>
+
+  <div class="home-section">
+    <div class="section-head">
+      <h2>ESO</h2>
+      <span class="section-badge badge-eso">Secundària obligatòria</span>
+    </div>
+    <div class="topic-grid" id="grid-eso"></div>
+  </div>
+
+  <div class="home-section" style="margin-top:36px">
+    <div class="section-head">
+      <h2>Batxillerat</h2>
+      <span class="section-badge badge-batx">Ensenyament postobligatori</span>
+    </div>
+    <div class="topic-grid" id="grid-batx"></div>
+  </div>
+</div>
+
+<!-- ═══════════ TOPIC ═══════════ -->
+<div id="page-topic">
+  <div class="topic-bar">
+    <button class="back-btn" onclick="goHome()">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="13 4 7 10 13 16"/>
+      </svg>
+      Tots els temes
+    </button>
+    <div class="bar-sep"></div>
+    <div>
+      <span class="bar-title" id="bar-title"></span>
+      <span class="bar-sub"   id="bar-sub"></span>
+    </div>
+    <div class="bar-spacer"></div>
+    <button class="copy-link-btn" id="copy-link-btn" onclick="copyTopicLink()">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      Copia enllaç
+    </button>
+    <button class="classroom-btn" id="classroom-btn" onclick="copyClassroomText()">
+      📋 Text Classroom
+    </button>
+  </div>
+  <div class="panels" id="panels-wrap"></div>
+</div>
+
+<footer>
+  © 2026 Ús educatiu lliure &nbsp;·&nbsp;
+  <a href="http://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>
+</footer>
+
+<script>
+/* ─── CONFIG ────────────────────────────────────────── */
+// ✏️  Canvia aquesta URL pel domini on allotges el fitxer:
+const BASE_URL = 'https://el-teu-domini.com/matematiques-eso.html';
+
+/* ─── DATA ─────────────────────────────────────────── */
+const ALL_TOPICS = {
+  eso: [
+    {
+      id: 'trigonometria', icon: '📐', title: 'Trigonometria',
+      desc: 'Raons trigonomètriques, circumferència goniomètrica, resolució de triangles',
+      ready: true,
+      pdf: { src: 'Bogdan_-_Trigonometria-apunts-i-problemes.pdf', author: 'Bogdan Crintea' },
+      theory: {
+        channel: 'Píldoras Matemáticas',
+        videos: [
+          { id: 'wkEO3C2CBG4', title: 'Introducció a la Trigonometria',           note: '' },
+          { id: 'SYsnjzHuvfc', title: 'Raons trigonomètriques',                    note: '' },
+          { id: 'yCw4GQ33rVk', title: 'Sinus, cosinus i tangent',                  note: '' },
+          { id: 'qmIqJqHQRIs', title: 'Angles i circumferència goniomètrica',      note: '' },
+          { id: 'hdHaqKbDDtc', title: 'Identitats i relacions trigonomètriques',   note: '' },
+        ]
+      },
+      solved: {
+        channel: 'Matemàtiques amb Bogdan',
+        videos: [
+          { id: 'gNiFx-U9gD4', title: 'Ex 1 – Raons trigonomètriques dels angles', note: '' },
+          { id: 'eNPx8VB4z4U', title: 'Ex 2 – Triangle rectangle catets 5 i 12 cm', note: '' },
+          { id: 'kaqStTKJozQ', title: 'Ex 3 – Raons a partir de sin(α)',            note: '' },
+          { id: 'VqkC8HGiq5o', title: 'Ex 4 – Raons a partir de cos i tg',         note: '' },
+          { id: '6NA9q85avx0', title: 'Ex 5 – sin(α) = 2·cos(α)',                  note: '' },
+          { id: 'cbQAphh3Hi0', title: 'Ex 6 – Angles i quadrants (sin = 1/3)',     note: '' },
+          { id: 'MLoP2oROPkE', title: 'Ex 7 – Angles i quadrants (cos = 2/3)',     note: '' },
+          { id: 'LExSoMiprQU', title: 'Ex 8 – Angle del 2n quadrant',              note: '' },
+          { id: '4mqCRMJuzJY', title: 'Ex 9 – Equacions trigonomètriques',         note: '' },
+          { id: '073xMduKNnU', title: 'Ex 10 – Equacions trigonomètriques II',     note: '' },
+          { id: 'EXaBzQi-fAE', title: 'Ex 11 – Resolució de triangles',            note: '' },
+          { id: '6jVaspfGhTE', title: 'Ex 12 – Altura triangle equilàter',         note: '' },
+          { id: 'rsYHNk40udQ', title: 'Ex 13 – Àrea pentàgon regular',             note: '' },
+          { id: 'bg85tVNTOvo', title: 'Ex 14 – Àrea triangle isòsceles 45°',       note: '' },
+          { id: 'eYbLQFoNBWg', title: 'Ex 15 – Altura globus (cable 100 m, 72°)',  note: '' },
+          { id: 'ePASVGY-iFQ', title: 'Ex 16 – Altura estel (fil 100 m, 60°)',     note: '' },
+          { id: 'VlwJYNOAv7E', title: 'Ex 17 – Tenda de campanya cònica',          note: '' },
+          { id: 'HPGU94BNvWc', title: "Ex 18 – Diagonal interior d'un cub",        note: '' },
+          { id: 'B7UF4IAT2sU', title: 'Ex 19 – Distància al far des del vaixell',  note: '' },
+          { id: 'GiAXIn0El_E', title: 'Ex 20 – Altura arbre i amplada del riu',    note: '' },
+        ]
+      }
+    },
+    { id: 'algebra',     icon: '🔢', title: 'Àlgebra',     desc: 'Equacions, sistemes, polinomis',                      ready: false },
+    { id: 'geometria',   icon: '📏', title: 'Geometria',   desc: 'Àrea, perímetre, volums i semblança',                  ready: false },
+    { id: 'estadistica', icon: '📊', title: 'Estadística', desc: 'Mesures centrals, dispersió i probabilitat',           ready: false },
+    { id: 'funcions',    icon: '📈', title: 'Funcions',    desc: 'Lineal, quadràtica, exponencial, logarítmica',         ready: false },
+    { id: 'nombres',     icon: '🔣', title: 'Nombres',     desc: 'Enters, fraccions, potències i radicals',              ready: false },
+  ],
+  batx: [
+    { id: 'derivades',  icon: '∂', title: 'Derivades',           desc: 'Regles de derivació i derivada composta',        ready: false },
+    { id: 'integrals',  icon: '∫', title: 'Integrals',           desc: 'Integració directa, per parts i substitució',   ready: false },
+    { id: 'matrius',    icon: '⊞', title: 'Matrius',             desc: 'Operacions, determinants, rang i inversa',       ready: false },
+    { id: 'complexos',  icon: '𝑖', title: 'Nombres complexos',   desc: 'Forma binòmica, polar i operacions',             ready: false },
+    { id: 'vectorial',  icon: '→', title: 'Geometria vectorial', desc: "Vectors, rectes i plans a l'espai",              ready: false },
+  ]
+};
+
+/* ─── STATE ────────────────────────────────────────── */
+let currentTopic = null;
+
+/* ─── BUILD HOME GRIDS ─────────────────────────────── */
+function buildGrid(containerId, topics) {
+  const grid = document.getElementById(containerId);
+  topics.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'topic-card' + (t.ready ? '' : ' coming');
+    card.style.animationDelay = (i * .06) + 's';
+    card.innerHTML = `
+      <span class="card-icon">${t.icon}</span>
+      <div class="card-title">${t.title}</div>
+      <div class="card-desc">${t.desc}</div>
+      <div class="card-foot">
+        <span class="card-pill ${t.ready ? 'pill-ok' : 'pill-coming'}">
+          ${t.ready ? '✓ Disponible' : 'Aviat'}
+        </span>
+      </div>`;
+    if (t.ready) card.addEventListener('click', () => openTopic(t));
+    grid.appendChild(card);
+  });
+}
+
+buildGrid('grid-eso',  ALL_TOPICS.eso);
+buildGrid('grid-batx', ALL_TOPICS.batx);
+
+/* ─── NAVIGATION ───────────────────────────────────── */
+function openTopic(t) {
+  currentTopic = t;
+  // Reset video selections for new topic
+  makeVideoPanel._state = {};
+
+  document.getElementById('bar-title').textContent = t.icon + '  ' + t.title;
+  document.getElementById('bar-sub').textContent   = ' · ' + t.desc;
+
+  // Update URL without reloading (no-op in sandboxed iframes)
+  try { history.pushState({ subject: t.id }, '', '?subject=' + t.id); } catch(e) {}
+
+  renderPanels();
+
+  document.getElementById('page-home').style.display  = 'none';
+  document.getElementById('page-topic').style.display = 'flex';
+}
+
+function goHome() {
+  try { history.pushState({}, '', window.location.pathname); } catch(e) {}
+  document.getElementById('page-topic').style.display = 'none';
+  document.getElementById('page-home').style.display  = 'flex';
+}
+
+function copyTopicLink() {
+  const url = BASE_URL + '?subject=' + currentTopic.id;
+
+  function showCopied() {
+    const btn = document.getElementById('copy-link-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = '👍 Copiat!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             fill="none" stroke="currentColor" width="13" height="13">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        Copia enllaç`;
+    }, 2000);
+  }
+
+  // Modern API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(showCopied).catch(() => fallback());
+  } else {
+    fallback();
+  }
+
+  function fallback() {
+    // Create a temporary textarea and copy from it
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try {
+      document.execCommand('copy');
+      showCopied();
+    } catch {
+      // Last resort: show the URL so the user can copy manually
+      prompt('Copia aquest enllaç:', url);
+    }
+    document.body.removeChild(ta);
+  }
+}
+
+
+function copyClassroomText() {
+  const btn = document.getElementById('classroom-btn');
+  const id  = currentTopic.id;
+
+  fetch('data-classroom.csv')
+    .then(r => {
+      if (!r.ok) throw new Error('No s\'ha pogut carregar data-classroom.csv');
+      return r.text();
+    })
+    .then(csv => {
+      // Parse CSV rows (skip header), handles quoted fields
+      const rows = csv.trim().split('\n').slice(1);
+      let found = null;
+      for (const row of rows) {
+        const match = row.match(/^([^,]+),(.+)$/s);
+        if (!match) continue;
+        if (match[1].trim() === id) {
+          found = match[2].trim().replace(/^"|"$/g, '');
+          break;
+        }
+      }
+      if (!found) throw new Error(`No s'ha trobat text per a "${id}".`);
+
+      // Append the direct link at the end
+      const link = BASE_URL + '?subject=' + id;
+      const full = found + '\n\n🔗 ' + link;
+
+      // Copy to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(full);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = full;
+        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    })
+    .then(() => {
+      btn.classList.add('copied');
+      btn.textContent = '👍 Copiat!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '📋 Text Classroom';
+      }, 2000);
+    })
+    .catch(err => {
+      btn.classList.add('error');
+      btn.textContent = '⚠️ Error';
+      console.error(err);
+      setTimeout(() => {
+        btn.classList.remove('error');
+        btn.innerHTML = '📋 Text Classroom';
+      }, 2500);
+    });
+}
+
+window.addEventListener('popstate', () => {
+  const id = new URLSearchParams(window.location.search).get('subject');
+  if (id) {
+    const t = [...ALL_TOPICS.eso, ...ALL_TOPICS.batx].find(x => x.id === id && x.ready);
+    if (t) { openTopic(t); return; }
+  }
+  document.getElementById('page-topic').style.display = 'none';
+  document.getElementById('page-home').style.display  = 'flex';
+});
+
+// Auto-open topic from URL on page load
+(function() {
+  const id = new URLSearchParams(window.location.search).get('subject');
+  if (id) {
+    const t = [...ALL_TOPICS.eso, ...ALL_TOPICS.batx].find(x => x.id === id && x.ready);
+    if (t) openTopic(t);
+  }
+})();
+
+/* ─── RENDER ───────────────────────────────────────── */
+function renderPanels() {
+  const wrap = document.getElementById('panels-wrap');
+  wrap.innerHTML = '';
+  wrap.appendChild(makePDFPanel());
+  wrap.appendChild(makeVideoPanel('theory'));
+  wrap.appendChild(makeVideoPanel('solved'));
+}
+
+function makePDFPanel() {
+  const t = currentTopic;
+  const div = document.createElement('div');
+  div.className = 'panel';
+  div.innerHTML = `
+    <div class="panel-head">
+      <div class="panel-dot dot-pdf"></div>
+      <div>
+        <div class="panel-label">PDF · Apunts i exercicis</div>
+        <div class="panel-name">${t.pdf.author}</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <iframe src="${t.pdf.src}" title="Apunts PDF"></iframe>
+    </div>`;
+  return div;
+}
+
+function makeVideoPanel(type) {
+  const t      = currentTopic;
+  const cfg    = t[type];
+  const dotCls = type === 'theory' ? 'dot-theory' : 'dot-solved';
+  const label  = type === 'theory' ? 'Vídeos de teoria' : 'Problemes resolts';
+
+  // Track active video index per panel type
+  if (!makeVideoPanel._state) makeVideoPanel._state = {};
+  if (makeVideoPanel._state[type] === undefined) makeVideoPanel._state[type] = 0;
+  const activeIdx = makeVideoPanel._state[type];
+  const activeVid = cfg.videos[activeIdx];
+
+  const div = document.createElement('div');
+  div.className = 'panel';
+
+  const listHTML = cfg.videos.map((v, i) => `
+    <div class="video-item${i === activeIdx ? ' v-active' : ''}" data-idx="${i}">
+      <div class="v-left">
+        <div class="v-thumb">
+          <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
+          <div class="v-thumb-overlay">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <a class="yt-btn"
+           href="https://www.youtube.com/watch?v=${v.id}"
+           target="_blank" rel="noopener"
+           onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          YouTube
+        </a>
+      </div>
+      <div class="v-right">
+        <div class="v-title">${v.title}</div>
+        <div class="v-note">${v.note || ''}</div>
+      </div>
+    </div>`).join('');
+
+  div.innerHTML = `
+    <div class="panel-head">
+      <div class="panel-dot ${dotCls}"></div>
+      <div>
+        <div class="panel-label">${label}</div>
+        <div class="panel-name">${cfg.channel}</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="video-wrap">
+        <a class="yt-hero"
+           href="https://www.youtube.com/watch?v=${activeVid.id}"
+           target="_blank" rel="noopener" id="hero-${type}">
+          <img id="hero-img-${type}"
+               src="https://img.youtube.com/vi/${activeVid.id}/hqdefault.jpg"
+               alt="${activeVid.title}">
+          <div class="yt-hero-overlay">
+            <div class="yt-hero-btn">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              Obre a YouTube
+            </div>
+            <div class="yt-hero-title" id="hero-title-${type}">${activeVid.title}</div>
+          </div>
+        </a>
+        <div class="video-list" id="vlist-${type}">${listHTML}</div>
+      </div>
+    </div>`;
+
+  // Click on a list item → update hero (no page reload)
+  div.querySelectorAll('.video-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = +el.dataset.idx;
+      const v   = cfg.videos[idx];
+      makeVideoPanel._state[type] = idx;
+
+      // Update hero
+      const hero = div.querySelector(`#hero-${type}`);
+      hero.href = `https://www.youtube.com/watch?v=${v.id}`;
+      div.querySelector(`#hero-img-${type}`).src =
+        `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`;
+      div.querySelector(`#hero-title-${type}`).textContent = v.title;
+
+      // Update active state in list
+      div.querySelectorAll('.video-item').forEach((e, i) =>
+        e.classList.toggle('v-active', i === idx));
+
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+  });
+
+  return div;
+}
+</script>
+</body>
+</html>
