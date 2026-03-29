@@ -47,29 +47,55 @@
 
     .home-header {
       text-align: center;
-      padding: 48px 16px 36px;
+      padding: 36px 16px 24px;
       animation: fade-up .5s ease-out both;
     }
     .home-title {
-      font-size: clamp(26px, 5vw, 40px);
+      font-size: clamp(22px, 4vw, 32px);
       font-weight: 800;
       color: #0f172a;
       letter-spacing: -.02em;
-      line-height: 1.1;
     }
-    .home-title span { color: var(--math-title); }
-    .home-sub {
-      margin-top: 10px;
-      font-size: 15px;
+
+    /* ── Level tabs ── */
+    .level-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin: 20px auto 0;
+      background: #e2e8f0;
+      border-radius: 12px;
+      padding: 5px;
+      width: fit-content;
+      animation: fade-in .4s ease-out .3s both;
+      opacity: 0;
+    }
+    .level-tabs input[type="radio"] { display: none; }
+    .level-tabs label {
+      padding: 9px 28px;
+      font-size: 14px;
+      font-weight: 700;
       color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .18s, color .18s, box-shadow .18s;
+      user-select: none;
+    }
+    .level-tabs label:hover { color: var(--text-main); }
+    .level-tabs input:checked + label {
+      background: var(--white);
+      color: var(--text-main);
+      box-shadow: 0 2px 6px rgba(15,23,42,.1);
     }
 
     .home-section {
       max-width: 980px;
       margin: 0 auto;
       width: 100%;
+      display: none;
     }
-    .home-section + .home-section { margin-top: 40px; }
+    .home-section.active { display: block; }
+    .home-section + .home-section { margin-top: 0; }
 
     .section-head {
       display: flex;
@@ -389,11 +415,16 @@
 <!-- ═══════════ HOME ═══════════ -->
 <div id="page-home">
   <div class="home-header">
-    <div class="home-title">Matemàtiques<br><span>ESO · Batxillerat</span></div>
-    <div class="home-sub">Apunts en PDF · Teoria en vídeo · Problemes resolts · Catalunya 2026</div>
+    <div class="home-title">Material de matemàtiques</div>
+    <div class="level-tabs">
+      <input type="radio" name="level" id="tab-eso" value="eso" checked>
+      <label for="tab-eso">ESO</label>
+      <input type="radio" name="level" id="tab-batx" value="batx">
+      <label for="tab-batx">Batxillerat</label>
+    </div>
   </div>
 
-  <div class="home-section">
+  <div class="home-section active" id="section-eso">
     <div class="section-head">
       <h2>ESO</h2>
       <span class="section-badge badge-eso">Secundària obligatòria</span>
@@ -401,7 +432,7 @@
     <div class="topic-grid" id="grid-eso"></div>
   </div>
 
-  <div class="home-section" style="margin-top:36px">
+  <div class="home-section" id="section-batx">
     <div class="section-head">
       <h2>Batxillerat</h2>
       <span class="section-badge badge-batx">Ensenyament postobligatori</span>
@@ -569,6 +600,14 @@ function buildGrid(containerId, topics) {
 }
 buildGrid('grid-eso',  ALL_TOPICS.eso);
 buildGrid('grid-batx', ALL_TOPICS.batx);
+
+// Tab switching
+document.querySelectorAll('input[name="level"]').forEach(radio => {
+  radio.addEventListener('change', e => {
+    document.querySelectorAll('.home-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + e.target.value).classList.add('active');
+  });
+});
 
 /* ─── NAVIGATION ─────────────────────────────────────────────────── */
 async function openTopic(t) {
