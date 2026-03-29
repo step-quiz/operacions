@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <title>Trigonometria — Valors exactes</title>
+    <style>
+/* ============================================================
+   VARIABLES BASE
+   ============================================================ */
+:root {
+    --bg-color:      #f5f3ff;
+    --panel-bg:      #ffffff;
+    --text-main:     #1e293b;
+    --text-muted:    #64748b;
+    --primary:       #7c3aed;
+    --primary-light: #ede9fe;
+    --primary-hover: #6d28d9;
+    --primary-dark:  #4c1d95;
+    --accent:        #d97706;
+    --danger:        #ef4444;
+    --danger-light:  #fef2f2;
+    --success:       #10b981;
+    --border-color:  #e2e8f0;
+    --border-heavy:  #cbd5e1;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+* { box-sizing: border-box; }
+
+button, input, a, [role="button"], [tabindex] {
+    touch-action: manipulation;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    transition: background-color 1s ease;
+}
+
+/* ============================================================
+   TÍTOL
+   ============================================================ */
+h1 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #3b0764;
+    font-size: 1.6em;
+    margin-bottom: 5px;
+    text-align: center;
+}
+.subtitle {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 5px;
+}
+.title-row h1 { margin: 0; }
+
+.home-icon-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    border: 2px solid var(--primary);
+    text-decoration: none;
+    font-size: 2em;
+    opacity: 0.85;
+    transition: opacity 0.2s, transform 0.2s;
+    flex-shrink: 0;
+}
+.home-icon-link:hover { opacity: 1; transform: scale(1.08); }
+
+/* ============================================================
+   PANELL PRINCIPAL
+   ============================================================ */
+.panel {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 910px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-top: 6px solid var(--primary);
+    transition: border-color 0.3s;
+    position: relative;
+}
+
+/* ============================================================
+   CAPÇALERA DEL JOC
+   ============================================================ */
+.header-info {
+    background-color: #f5f3ff;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.header-left    { display: flex; flex-direction: column; gap: 2px; }
+.session-text   { font-size: 1em;  color: var(--text-muted); }
+.level-text     { font-size: 1.2em; color: #3b0764; }
+.score-text     { font-size: 1.2em; color: var(--primary); font-family: monospace; }
+.attempts-counter {
+    font-family: monospace;
+    font-size: 1.2em;
+    color: var(--text-muted);
+    padding: 5px 10px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid var(--border-heavy);
+    transition: all 0.3s;
+}
+.attempts-counter.danger { color: var(--danger); border-color: var(--danger); }
+
+/* ============================================================
+   ZONA PROBLEMA (cercle + expressió)
+   ============================================================ */
+.problem-box {
+    padding: 20px 20px 10px 20px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.circle-and-expression {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 35px;
+    flex-wrap: wrap;
+}
+
+#unit-circle-svg {
+    width: 200px;
+    height: 200px;
+    flex-shrink: 0;
+}
+
+.expression-display { text-align: center; }
+
+.trig-expression {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 2.8em;
+    font-weight: bold;
+    color: var(--primary-dark);
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+.trig-fn    { color: var(--primary); }
+.trig-angle { color: var(--accent); }
+
+.quadrant-hint {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin-top: 6px;
+    font-style: italic;
+}
+
+/* Pista visual: cosinus = x, sinus = y */
+.trig-hint-labels {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.trig-hint-pill {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.82em;
+    font-weight: bold;
+    font-family: monospace;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.trig-hint-pill.visible { opacity: 1; }
+
+/* ============================================================
+   PANELL DE RESOLUCIÓ PAS A PAS
+   ============================================================ */
+.resolution-panel {
+    background-color: #f8fafc;
+    border-top: 1px solid var(--border-color);
+    padding: 22px 20px 28px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.step-instruction {
+    font-size: 1.15em;
+    color: #334155;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.step-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.3s;
+}
+.step-container.active { display: flex; }
+
+/* ============================================================
+   BOTONS DE SIGNE
+   ============================================================ */
+.sign-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+.btn-sign {
+    padding: 14px 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: #334155;
+    cursor: pointer;
+    transition: 0.2s;
+    flex: 1;
+    min-width: 90px;
+    max-width: 170px;
+    text-align: center;
+}
+@media (hover: hover) {
+    .btn-sign:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+    }
+}
+.btn-sign:active { transform: scale(0.95); }
+.btn-sign:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-sign.error-shake {
+    background-color: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger);
+    animation: shake 0.25s;
+}
+
+/* ============================================================
+   BOTONS DE VALOR
+   ============================================================ */
+.value-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+    max-width: 420px;
+}
+.btn-value {
+    padding: 20px 10px;
+    font-size: 1.35em;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: #334155;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+    min-height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (hover: hover) {
+    .btn-value:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(124,58,237,0.2);
+    }
+}
+.btn-value:active { transform: scale(0.95); }
+.btn-value:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-value.error-shake {
+    background-color: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger);
+    animation: shake 0.25s;
+}
+
+/* Fracció visual dins el botó */
+.frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+    vertical-align: middle;
+    font-size: 0.88em;
+}
+.frac .num { border-bottom: 2px solid currentColor; padding: 1px 4px; }
+.frac .den { padding: 1px 4px; }
+
+/* ============================================================
+   MINI OVERLAY (victòria / error entre operacions)
+   ============================================================ */
+#mini-victory-overlay {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 20px;
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    animation: fadeIn 0.3s;
+}
+.vic-message-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+.star-icon {
+    font-size: 3em;
+    animation: pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    text-shadow: 0 4px 15px rgba(250,204,21,0.6);
+}
+.mini-vic-text {
+    font-size: 2em;
+    font-weight: bold;
+    color: #047857;
+    text-shadow: 0 2px 5px white;
+}
+.mini-vic-points {
+    font-size: 1.2em;
+    font-weight: bold;
+    font-family: monospace;
+    color: #059669;
+    background: rgba(255,255,255,0.95);
+    padding: 5px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* ============================================================
+   PANTALLES FI DE SESSIÓ / FINAL
+   ============================================================ */
+#session-end-screen,
+#final-screen {
+    display: none;
+    padding: 40px 20px;
+    text-align: center;
+}
+#session-end-screen h2,
+#final-screen h2 { color: var(--success); font-size: 1.8em; margin-bottom: 25px; }
+
+.final-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin: 0 auto 25px;
+    max-width: 480px;
+    flex-wrap: wrap-reverse;
+}
+.final-summary {
+    flex: 1;
+    text-align: left;
+    font-size: 1.1em;
+    line-height: 1.8;
+    min-width: 220px;
+}
+.final-summary .session-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-family: monospace;
+    font-size: 1.1em;
+}
+.trophy-icon { font-size: 6em; margin-bottom: 10px; animation: bounce 1.5s infinite; }
+.final-layout .trophy-icon { margin: 0; font-size: 4.5em; }
+
+/* ============================================================
+   BOTONS ACCIÓ
+   ============================================================ */
+.btn-submit {
+    background-color: #475569;
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.btn-submit:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-submit:active { transform: scale(0.95); }
+@media (hover: hover) { .btn-submit:hover { background-color: #334155; } }
+
+.btn-green {
+    background-color: #059669;
+    color: white;
+    border: none;
+    padding: 15px 35px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: none;
+}
+.btn-green:active { transform: scale(0.95); }
+@media (hover: hover) { .btn-green:hover { background-color: #047857; } }
+
+/* ============================================================
+   TECLAT NUMÈRIC CUSTOM (mòbil)
+   ============================================================ */
+#customKeyboard {
+    display: none;
+    width: 100%;
+    background: #f1f5f9;
+    border-top: 2px solid var(--border-heavy);
+    padding: 12px;
+}
+#customKeyboard.kb-visible { display: block; }
+.kb-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-width: 320px;
+    margin: 0 auto;
+}
+.kb-btn {
+    padding: 14px 0;
+    font-size: 1.2em;
+    font-family: monospace;
+    font-weight: bold;
+    border: 2px solid var(--border-heavy);
+    border-radius: 6px;
+    background: white;
+    color: #334155;
+    cursor: pointer;
+    text-align: center;
+}
+.kb-btn.kb-del   { background: #fef3c7; color: #92400e; }
+.kb-btn.kb-minus { background: #fef3c7; color: #92400e; }
+.kb-btn.kb-enter { background: var(--primary); color: white; border-color: var(--primary-hover); }
+.kb-btn.kb-zero  { grid-column: span 2; }
+.kb-grid.kb-no-minus .kb-btn.kb-minus { opacity: 0.25; pointer-events: none; }
+.kb-grid.kb-no-zero  .kb-btn.kb-zero  { opacity: 0.25; pointer-events: none; }
+
+/* ============================================================
+   ANIMACIONS
+   ============================================================ */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-7px); }
+    75%       { transform: translateX(7px); }
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-15px); }
+}
+@keyframes pop {
+    0%   { transform: scale(0); }
+    80%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+@keyframes blinkAttempts {
+    0%, 100% { background-color: #fef3c7; }
+    50%       { background-color: white; }
+}
+.attempts-counter.blink { animation: blinkAttempts 0.22s linear 5; }
+
+/* ============================================================
+   RESPONSIU
+   ============================================================ */
+@media (max-width: 820px) { .panel { width: 95%; } }
+@media (max-width: 500px) {
+    .trig-expression { font-size: 2.2em; }
+    #unit-circle-svg { width: 160px; height: 160px; }
+    .circle-and-expression { gap: 18px; }
+    .btn-value { font-size: 1.15em; padding: 16px 8px; min-height: 58px; }
+    .value-buttons { max-width: 340px; gap: 10px; }
+    .btn-sign { font-size: 1em; padding: 12px 12px; }
+}
+@media (max-width: 360px) {
+    .trig-expression { font-size: 1.8em; }
+    #unit-circle-svg { width: 130px; height: 130px; }
+    .btn-value { font-size: 1em; }
+}
+    </style>
+</head>
+<body>
+
+<!-- ============================================================
+     CAPÇALERA
+     ============================================================ -->
+<div class="title-row">
+    <h1>Trigonometria</h1>
+</div>
+
+
+<!-- ============================================================
+     PANELL PRINCIPAL
+     ============================================================ -->
+<div class="panel" id="main-panel">
+
+    <!-- PANTALLA DEL JOC -->
+    <div id="game-screen" style="display:none;">
+
+        <!-- Capçalera info -->
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Pregunta 1 de 8</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 4</div>
+        </div>
+
+        <!-- Zona del problema: cercle + expressió -->
+        <div class="problem-box" id="problem-box">
+            <div class="circle-and-expression">
+                <!-- Cercle unitat SVG -->
+                <svg id="unit-circle-svg" viewBox="0 0 200 200"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-label="Cercle trigonomètric" role="img">
+                </svg>
+
+                <!-- Expressió i pistes -->
+                <div class="expression-display">
+                    <div class="trig-expression" id="trig-expression" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panell de resolució pas a pas -->
+        <div class="resolution-panel" id="resolution-panel">
+            <div class="step-instruction" id="step-instruction" aria-live="polite"></div>
+
+
+            <!-- Pas 2: Valor exacte -->
+            <div class="step-container" id="step-value">
+                <div class="value-buttons" id="value-buttons" role="group" aria-label="Valor exacte">
+                    <!-- Omplert dinàmicament -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini overlay victòria/fracàs -->
+        <div id="mini-victory-overlay" aria-live="assertive" aria-atomic="true">
+            <div class="vic-message-row">
+                <div class="mini-vic-text"   id="mini-vic-text">Molt bé!</div>
+                <div class="star-icon"        id="mini-vic-icon">⭐</div>
+            </div>
+            <div class="mini-vic-points"     id="mini-vic-points">+1 punt</div>
+        </div>
+
+    </div><!-- /game-screen -->
+
+    <!-- PANTALLA FI DE SESSIÓ -->
+    <div id="session-end-screen">
+        <div class="trophy-icon">👍</div>
+        <h2 id="session-end-title">Sessió completada</h2>
+        <button class="btn-green" id="btn-next-session" onclick="startNextSession()">
+            Començar sessió següent
+        </button>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+    <div id="final-screen">
+        <div class="trophy-icon">🏆</div>
+        <h2>Activitat completada!</h2>
+        <div class="final-layout">
+            <div id="final-summary" class="final-summary"></div>
+        </div>
+        <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;">
+            <button class="btn-submit"
+                    onclick="showHistorySummary()"
+                    style="background-color:var(--primary);">
+                📋 Informe
+            </button>
+            <button class="btn-submit"
+                    onclick="finalitzar()"
+                    style="background-color:var(--text-muted);">
+                🔄 Tornar a jugar
+            </button>
+        </div>
+    </div>
+
+</div><!-- /panel -->
+
+
+<script>
+/* ================================================================
+   CONFIGURACIÓ
+   ================================================================ */
+const TOTAL_SESSIONS   = 1;
+const TOTAL_OPERATIONS = 8;
+const MAX_INTENTS      = 4;
+
+/* ================================================================
+   PALETA DE FONS
+   ================================================================ */
+const bgColors = [
+    '#f8fafc','#f5f3ff','#f0fdf4','#fefce8','#fff1f2',
+    '#ede9fe','#ecfeff','#fdf4ff','#fffbeb','#faf5ff'
+];
+
+/* ================================================================
+   ESTAT DEL JOC
+   ================================================================ */
+let currentSession   = 0;
+let currentOperation = 0;
+let sessionScore     = 0;
+let sessionScores    = [];
+let attemptsLeft     = 0;
+let isTransitioning  = false;
+let sessionHistory   = [];  // per informe final
+
+/* ================================================================
+   CACHE DOM
+   ================================================================ */
+const els = {
+    body:              document.body,
+    gameScreen:        document.getElementById('game-screen'),
+    sessionDisplay:    document.getElementById('session-display'),
+    lvlDisplay:        document.getElementById('lvl-display'),
+    scoreDisplay:      document.getElementById('score-display'),
+    attemptsDisplay:   document.getElementById('attempts-display'),
+    problemBox:        document.getElementById('problem-box'),
+    trigExpression:    document.getElementById('trig-expression'),
+    resolutionPanel:   document.getElementById('resolution-panel'),
+    stepInstruction:   document.getElementById('step-instruction'),
+    stepValue:         document.getElementById('step-value'),
+    valueButtons:      document.getElementById('value-buttons'),
+    unitCircleSvg:     document.getElementById('unit-circle-svg'),
+    miniOverlay:       document.getElementById('mini-victory-overlay'),
+    vicText:           document.getElementById('mini-vic-text'),
+    vicIcon:           document.getElementById('mini-vic-icon'),
+    vicPoints:         document.getElementById('mini-vic-points'),
+};
+
+/* ================================================================
+   GESTIÓ DE PANTALLES
+   ================================================================ */
+function showScreen(id) {
+    ['game-screen','session-end-screen','final-screen'].forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.style.display = 'none';
+    });
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+}
+
+/* ================================================================
+   INICI / FI
+   ================================================================ */
+function startGame() {
+    currentSession = 0;
+    sessionScores  = [];
+    sessionHistory = [];
+    showScreen('game-screen');
+    startSession();
+}
+
+function startSession() {
+    currentOperation = 0;
+    sessionScore     = 0;
+    buildLevel();
+}
+
+function endSession() {
+    sessionScores.push(sessionScore);
+    if (currentSession + 1 >= TOTAL_SESSIONS) {
+        renderFinalSummary();
+        showScreen('final-screen');
+    } else {
+        showScreen('session-end-screen');
+        document.getElementById('session-end-title').innerText =
+            `Sessió ${currentSession + 1} completada`;
+        const btn = document.getElementById('btn-next-session');
+        btn.style.display = 'none';
+        setTimeout(() => {
+            btn.style.display = 'inline-block';
+            isTransitioning = false;
+        }, 1000);
+    }
+}
+
+function startNextSession() {
+    currentSession++;
+    showScreen('game-screen');
+    startSession();
+}
+
+function calculaNotaSobre10() {
+    if (!sessionScores.length) return 0;
+    return Number((Math.max(...sessionScores) / TOTAL_OPERATIONS).toFixed(1));
+}
+
+function renderFinalSummary() {
+    let html = '';
+    for (let i = 0; i < sessionScores.length; i++) {
+        const pct = (sessionScores[i] / TOTAL_OPERATIONS).toFixed(1).replace('.', ',');
+        html += `<div class="session-line"><span>Sessió ${i+1}</span><span>${pct}</span></div>`;
+    }
+    const nota = calculaNotaSobre10().toFixed(1).replace('.', ',');
+    html += `<div style="margin-top:20px;text-align:left;">
+        <div style="font-size:0.95em;color:var(--text-muted);margin-bottom:5px;">La nota és:</div>
+        <div style="font-size:1.5em;font-weight:bold;color:var(--success);font-family:monospace;">
+            ${nota} / 10
+        </div></div>`;
+    document.getElementById('final-summary').innerHTML = html;
+}
+
+function finalitzar() {
+    if (confirm('Segur que vols tornar a començar?')) window.location.reload();
+}
+
+/* ================================================================
+   MINI OVERLAY
+   ================================================================ */
+function showMiniOverlay(levelPoints, correctLabel) {
+    els.miniOverlay.style.display = 'flex';
+    if (levelPoints > 0) {
+        els.vicText.innerText       = 'Molt bé!';
+        els.vicText.style.color     = '#047857';
+        els.vicIcon.innerText       = '⭐';
+        els.vicPoints.innerText     = '+1 punt';
+        els.vicPoints.style.color   = '#059669';
+        return 1500;
+    } else {
+        els.vicText.innerText       = 'Intents esgotats';
+        els.vicText.style.color     = 'var(--danger)';
+        els.vicIcon.innerText       = '❌';
+        els.vicPoints.innerHTML     = correctLabel
+            ? `Resposta: <strong style="font-family:monospace">${correctLabel}</strong>`
+            : '0 punts';
+        els.vicPoints.style.color   = '#64748b';
+        return 3000;
+    }
+}
+function hideMiniOverlay() { els.miniOverlay.style.display = 'none'; }
+
+/* ================================================================
+   INFORME FINAL
+   ================================================================ */
+function showHistorySummary() {
+    const panel = document.querySelector('.panel');
+    ['game-screen','session-end-screen','final-screen'].forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.style.display = 'none';
+    });
+    let sc = document.getElementById('history-summary-screen');
+    if (!sc) { sc = document.createElement('div'); sc.id = 'history-summary-screen'; panel.appendChild(sc); }
+
+    const encerts = sessionHistory.filter(i =>  i.ok);
+    const errades = sessionHistory.filter(i => !i.ok);
+    const liOk  = encerts.length
+        ? encerts.map(e => `<li style="padding:6px 0;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:10px;font-family:monospace;font-size:1em;color:#047857">
+            <span>${e.q}</span><span>${e.a}</span></li>`).join('')
+        : '<li style="color:var(--text-muted);padding:6px 0">Cap encert.</li>';
+    const liBad = errades.length
+        ? errades.map(e => `<li style="padding:6px 0;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:10px;font-family:monospace;font-size:1em;color:#dc2626">
+            <span>${e.q}</span><span>${e.a}</span></li>`).join('')
+        : '<li style="color:var(--text-muted);padding:6px 0">Cap errada! Partida perfecta 🎉</li>';
+
+    sc.innerHTML = `<div style="padding:30px 20px;max-width:700px;margin:0 auto;">
+        <h2 style="color:var(--primary);margin-bottom:20px;text-align:center">Resum de respostes</h2>
+        <h3 style="color:#047857;margin-bottom:8px">🟢 Encerts (${encerts.length})</h3>
+        <ul style="list-style:none;padding:0;margin-bottom:24px">${liOk}</ul>
+        <h3 style="color:#dc2626;margin-bottom:8px">🔴 Errades (${errades.length})</h3>
+        <ul style="list-style:none;padding:0;margin-bottom:24px">${liBad}</ul>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+            <button class="btn-submit" onclick="renderFinalSummary();showScreen('final-screen');"
+                    style="background-color:var(--primary)">← Tornar al resum</button>
+            <button class="btn-submit" onclick="finalitzar()"
+                    style="background-color:var(--text-muted)">🔄 Tornar a jugar</button>
+        </div>
+    </div>`;
+    sc.style.display = 'block';
+}
+
+/* ================================================================
+   TAULA DE VALORS TRIGONOMÈTRICS
+   Fem servir IDs de string per evitar problemes amb floats.
+   ================================================================ */
+const V = {
+    ZERO:        'zero',
+    ONE:         'one',
+    NEG_ONE:     'neg_one',
+    HALF:        'half',
+    NEG_HALF:    'neg_half',
+    SQRT2_2:     'sqrt2_2',
+    NEG_SQRT2_2: 'neg_sqrt2_2',
+    SQRT3_2:     'sqrt3_2',
+    NEG_SQRT3_2: 'neg_sqrt3_2',
+    SQRT3:       'sqrt3',
+    NEG_SQRT3:   'neg_sqrt3',
+    SQRT3_3:     'sqrt3_3',
+    NEG_SQRT3_3: 'neg_sqrt3_3',
+    UNDEF:       'undef',
+};
+
+/* HTML de cada valor (fracció visual) */
+const VAL_HTML = {
+    zero:        '0',
+    one:         '1',
+    neg_one:     '−1',
+    half:        '<span class="frac"><span class="num">1</span><span class="den">2</span></span>',
+    neg_half:    '−<span class="frac"><span class="num">1</span><span class="den">2</span></span>',
+    sqrt2_2:     '<span class="frac"><span class="num">√2</span><span class="den">2</span></span>',
+    neg_sqrt2_2: '−<span class="frac"><span class="num">√2</span><span class="den">2</span></span>',
+    sqrt3_2:     '<span class="frac"><span class="num">√3</span><span class="den">2</span></span>',
+    neg_sqrt3_2: '−<span class="frac"><span class="num">√3</span><span class="den">2</span></span>',
+    sqrt3:       '√3',
+    neg_sqrt3:   '−√3',
+    sqrt3_3:     '<span class="frac"><span class="num">√3</span><span class="den">3</span></span>',
+    neg_sqrt3_3: '−<span class="frac"><span class="num">√3</span><span class="den">3</span></span>',
+    undef:       '<span style="font-size:2em;line-height:1">∞</span>',
+};
+
+/* Text pla per l'informe */
+const VAL_TEXT = {
+    zero: '0', one: '1', neg_one: '−1',
+    half: '1/2', neg_half: '−1/2',
+    sqrt2_2: '√2/2', neg_sqrt2_2: '−√2/2',
+    sqrt3_2: '√3/2', neg_sqrt3_2: '−√3/2',
+    sqrt3: '√3', neg_sqrt3: '−√3',
+    sqrt3_3: '√3/3', neg_sqrt3_3: '−√3/3',
+    undef: '∞',
+};
+
+/* Signe de cada valor */
+const VAL_SIGN = {
+    zero: 'zero', one: 'positiu', neg_one: 'negatiu',
+    half: 'positiu', neg_half: 'negatiu',
+    sqrt2_2: 'positiu', neg_sqrt2_2: 'negatiu',
+    sqrt3_2: 'positiu', neg_sqrt3_2: 'negatiu',
+    sqrt3: 'positiu', neg_sqrt3: 'negatiu',
+    sqrt3_3: 'positiu', neg_sqrt3_3: 'negatiu',
+    undef: 'indefinit',
+};
+
+/* Valor absolut de cada valor (per al pas 2) */
+const VAL_ABS = {
+    zero: 'zero', one: 'one', neg_one: 'one',
+    half: 'half', neg_half: 'half',
+    sqrt2_2: 'sqrt2_2', neg_sqrt2_2: 'sqrt2_2',
+    sqrt3_2: 'sqrt3_2', neg_sqrt3_2: 'sqrt3_2',
+    sqrt3: 'sqrt3', neg_sqrt3: 'sqrt3',
+    sqrt3_3: 'sqrt3_3', neg_sqrt3_3: 'sqrt3_3',
+    undef: 'undef',
+};
+
+/* Pool de tots els valors possibles per generar distractors */
+const ALL_VALS = ['zero','one','neg_one','half','neg_half','sqrt2_2','neg_sqrt2_2',
+                  'sqrt3_2','neg_sqrt3_2','sqrt3','neg_sqrt3','sqrt3_3','neg_sqrt3_3','undef'];
+
+/* Taula completa per angle (0–360°, multiples de 30 o 45) */
+const TRIG = {
+    0:   { sin: V.ZERO,        cos: V.ONE,         tan: V.ZERO        },
+    30:  { sin: V.HALF,        cos: V.SQRT3_2,     tan: V.SQRT3_3     },
+    45:  { sin: V.SQRT2_2,     cos: V.SQRT2_2,     tan: V.ONE         },
+    60:  { sin: V.SQRT3_2,     cos: V.HALF,        tan: V.SQRT3       },
+    90:  { sin: V.ONE,         cos: V.ZERO,        tan: V.UNDEF       },
+    120: { sin: V.SQRT3_2,     cos: V.NEG_HALF,    tan: V.NEG_SQRT3   },
+    135: { sin: V.SQRT2_2,     cos: V.NEG_SQRT2_2, tan: V.NEG_ONE     },
+    150: { sin: V.HALF,        cos: V.NEG_SQRT3_2, tan: V.NEG_SQRT3_3 },
+    180: { sin: V.ZERO,        cos: V.NEG_ONE,     tan: V.ZERO        },
+    210: { sin: V.NEG_HALF,    cos: V.NEG_SQRT3_2, tan: V.SQRT3_3     },
+    225: { sin: V.NEG_SQRT2_2, cos: V.NEG_SQRT2_2, tan: V.ONE         },
+    240: { sin: V.NEG_SQRT3_2, cos: V.NEG_HALF,    tan: V.SQRT3       },
+    270: { sin: V.NEG_ONE,     cos: V.ZERO,        tan: V.UNDEF       },
+    300: { sin: V.NEG_SQRT3_2, cos: V.HALF,        tan: V.NEG_SQRT3   },
+    315: { sin: V.NEG_SQRT2_2, cos: V.SQRT2_2,     tan: V.NEG_ONE     },
+    330: { sin: V.NEG_HALF,    cos: V.SQRT3_2,     tan: V.NEG_SQRT3_3 },
+};
+
+/* Pools d'angles progressius per dificultat */
+const POOLS = {
+    easy:   [0, 30, 45, 60, 90],                                         // Q1 + eixos
+    medium: [0, 30, 45, 60, 90, 120, 135, 150, 180],                     // Q1 + Q2
+    full:   [0,30,45,60,90,120,135,150,180,210,225,240,270,300,315,330], // Tots
+};
+
+/* ================================================================
+   ESTAT ESPECÍFIC DE TRIG
+   ================================================================ */
+let currentAngle = 0;
+let currentFunc  = 'sin';
+let correctValue = V.ZERO;
+let isPenalizing = false;
+
+/* ================================================================
+   GENERACIÓ DE PROBLEMES
+   ================================================================ */
+function getPoolForOp(opIdx) {
+    const half = TOTAL_OPERATIONS / 2;
+    if (opIdx < half) return { angles: POOLS.medium, funcs: ['sin', 'cos'] };
+    return                   { angles: POOLS.full,   funcs: ['sin', 'cos', 'tan'] };
+}
+
+function pickProblem(opIdx) {
+    const { angles, funcs } = getPoolForOp(opIdx);
+    const half = TOTAL_OPERATIONS / 2;
+    let angle, fn, val, tries = 0;
+    do {
+        angle = angles[Math.floor(Math.random() * angles.length)];
+        fn    = funcs [Math.floor(Math.random() * funcs.length)];
+        val   = TRIG[angle][fn];
+        tries++;
+        // Evitar tan indefinida a la primera fase
+    } while (tries < 60 && val === V.UNDEF && opIdx < half);
+    return { angle, fn, val };
+}
+
+function getQuadrantText(angle) {
+    const a = ((angle % 360) + 360) % 360;
+    if (a === 0   || a === 360) return '(eix positiu de les x)';
+    if (a === 90)               return '(eix positiu de les y)';
+    if (a === 180)              return '(eix negatiu de les x)';
+    if (a === 270)              return '(eix negatiu de les y)';
+    if (a > 0   && a < 90)     return '(1r quadrant)';
+    if (a > 90  && a < 180)    return '(2n quadrant)';
+    if (a > 180 && a < 270)    return '(3r quadrant)';
+    return                            '(4t quadrant)';
+}
+
+/* ================================================================
+   CERCLE UNITAT SVG
+   ================================================================ */
+function drawCircle(angle) {
+    const deg   = ((angle % 360) + 360) % 360;
+    const rad   = deg * Math.PI / 180;
+    const cx = 100, cy = 100, r = 72;
+
+    const px = +(cx + r * Math.cos(rad)).toFixed(3);
+    const py = +(cy - r * Math.sin(rad)).toFixed(3);
+
+    // Arc de l'angle (petit, decoratiu)
+    const arcR = 20;
+    const arcX = +(cx + arcR * Math.cos(rad)).toFixed(3);
+    const arcY = +(cy - arcR * Math.sin(rad)).toFixed(3);
+    const bigArc = deg > 180 ? 1 : 0;
+
+    // Punt de text de l'angle (posicionat fora de l'arc)
+    const midRad  = rad / 2;
+    const lblDist = arcR + 16;
+    const lblX    = +(cx + lblDist * Math.cos(midRad)).toFixed(1);
+    const lblY    = +(cy - lblDist * Math.sin(midRad) + 4).toFixed(1);
+
+    // Color del punt i de la línia (violet primary)
+    const PC = '#7c3aed';  // punt i radi
+    const AC = '#d97706';  // arc angle
+
+    els.unitCircleSvg.innerHTML = `
+        <!-- Cercle unitat -->
+        <circle cx="${cx}" cy="${cy}" r="${r}"
+                fill="none" stroke="#ddd6fe" stroke-width="1.8"/>
+
+        <!-- Eixos -->
+        <line x1="${cx-r-14}" y1="${cy}" x2="${cx+r+14}" y2="${cy}"
+              stroke="#cbd5e1" stroke-width="1"/>
+        <line x1="${cx}" y1="${cy-r-14}" x2="${cx}" y2="${cy+r+14}"
+              stroke="#cbd5e1" stroke-width="1"/>
+
+        <!-- Etiquetes d'eixos -->
+        <text x="${cx+r+6}" y="${cy+4}" font-size="9.5" fill="#94a3b8"
+              font-family="monospace">1</text>
+        <text x="${cx-r-18}" y="${cy+4}" font-size="9.5" fill="#94a3b8"
+              font-family="monospace">−1</text>
+        <text x="${cx+3}" y="${cy-r-6}" font-size="9.5" fill="#94a3b8"
+              font-family="monospace">1</text>
+        <text x="${cx+3}" y="${cy+r+13}" font-size="9.5" fill="#94a3b8"
+              font-family="monospace">−1</text>
+
+        <!-- Arc de l'angle -->
+        <path d="M ${cx+arcR} ${cy} A ${arcR} ${arcR} 0 ${bigArc} 0 ${arcX} ${arcY}"
+              fill="none" stroke="${AC}" stroke-width="2.2" opacity="0.85"/>
+
+        <!-- Línies de projecció (dashed) -->
+        <line x1="${px}" y1="${py}" x2="${px}" y2="${cy}"
+              stroke="${PC}" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.45"/>
+        <line x1="${px}" y1="${py}" x2="${cx}" y2="${py}"
+              stroke="${PC}" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.45"/>
+
+        <!-- Línia del radi -->
+        <line x1="${cx}" y1="${cy}" x2="${px}" y2="${py}"
+              stroke="${PC}" stroke-width="2.5"/>
+
+        <!-- Punt sobre el cercle -->
+        <circle cx="${px}" cy="${py}" r="5.5"
+                fill="${PC}" stroke="white" stroke-width="2.2"/>
+
+        <!-- Label de l'angle -->
+        <text x="${lblX}" y="${lblY}" font-size="11" fill="${AC}"
+              font-family="monospace" font-weight="bold"
+              text-anchor="middle">${angle}°</text>
+    `;
+}
+
+/* ================================================================
+   CONSTRUCCIÓ DEL NIVELL
+   ================================================================ */
+function buildLevel() {
+    attemptsLeft    = MAX_INTENTS;
+    isPenalizing    = false;
+    isTransitioning = false;
+
+    els.body.style.backgroundColor =
+        bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+
+    const problem = pickProblem(currentOperation);
+    currentAngle = problem.angle;
+    currentFunc  = problem.fn;
+    correctValue = problem.val;
+
+    // Dibuixa cercle
+    drawCircle(currentAngle);
+
+    // Expressió
+    const fnLabel = { sin:'sin', cos:'cos', tan:'tan' };
+    els.trigExpression.innerHTML =
+        `<span class="trig-fn">${fnLabel[currentFunc]}</span>`+
+        `(<span class="trig-angle">${currentAngle}°</span>)`;
+
+    // Capçalera
+    els.sessionDisplay.innerText  = `Sessió ${currentSession+1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText      = `Pregunta ${currentOperation+1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.attemptsDisplay.className = 'attempts-counter';
+
+    // Reset UI → directament al valor
+    hideMiniOverlay();
+    els.problemBox.style.display     = 'flex';
+    els.resolutionPanel.style.display = 'flex';
+    els.stepValue.classList.add('active');
+
+    buildValueButtons();
+    const fnName = fnLabel[currentFunc];
+    els.stepInstruction.innerHTML =
+        `Quant val `+
+        `<span style="font-family:monospace;color:var(--primary)">${fnName}(${currentAngle}°)</span>?`;
+}
+
+/* ================================================================
+   PENALITZACIÓ
+   ================================================================ */
+function penalize(btn) {
+    if (isPenalizing || isTransitioning || attemptsLeft <= 0) return;
+    isPenalizing = true;
+    if (btn) {
+        btn.classList.add('error-shake');
+        setTimeout(() => btn.classList.remove('error-shake'), 400);
+    }
+    els.attemptsDisplay.classList.add('blink');
+    setTimeout(() => {
+        els.attemptsDisplay.classList.remove('blink');
+        attemptsLeft--;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' +
+            (attemptsLeft < 2 ? ' danger' : '');
+        isPenalizing = false;
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;
+            els.stepSign.classList.remove('active');
+            els.stepValue.classList.remove('active');
+            _finishOp(0);
+        }
+    }, 650);
+}
+
+/* ================================================================
+   FI D'OPERACIÓ
+   ================================================================ */
+function _finishOp(points) {
+    sessionScore += points;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+    // Per a l'informe: registrem el problema i la resolució
+    const fnLabel = { sin:'sin', cos:'cos', tan:'tan' };
+    sessionHistory.push({
+        q:  `${fnLabel[currentFunc]}(${currentAngle}°)`,
+        a:  VAL_TEXT[correctValue],
+        ok: points > 0,
+    });
+
+    // Label de la resposta correcta per al mini overlay d'error
+    const correctLabel = points === 0
+        ? `${fnLabel[currentFunc]}(${currentAngle}°) = ${VAL_TEXT[correctValue]}`
+        : null;
+
+    const waitTime = showMiniOverlay(points, correctLabel);
+
+    setTimeout(() => {
+        hideMiniOverlay();
+        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+            endSession();
+        } else {
+            currentOperation++;
+            buildLevel();
+        }
+    }, waitTime);
+}
+
+/* ================================================================
+   VALOR DIRECTE (un sol pas)
+   ================================================================ */
+function oppositeVal(valId) {
+    if (valId === 'zero' || valId === 'undef') return null;
+    return valId.startsWith('neg_') ? valId.slice(4) : 'neg_' + valId;
+}
+
+function buildValueButtons() {
+    // Distractor 1: el valor oposat de signe (−k si la resposta és k)
+    const opposite  = oppositeVal(correctValue);
+
+    // Distractor 2: la funció germana del mateix angle (cos si preguntem sin, i viceversa)
+    const companion = currentFunc === 'sin' ? TRIG[currentAngle]['cos']
+                    : currentFunc === 'cos' ? TRIG[currentAngle]['sin']
+                    : null;
+
+    const mustHave = [opposite, companion]
+        .filter(v => v !== null && v !== correctValue);
+    // Deduplicar (pot passar que opposite === companion)
+    const mustHaveUniq = [...new Set(mustHave)];
+
+    const pool = ALL_VALS.filter(v => v !== correctValue && !mustHaveUniq.includes(v));
+    for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    const options = [correctValue, ...mustHaveUniq, ...pool].slice(0, 4);
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    els.valueButtons.innerHTML = '';
+    options.forEach(valId => {
+        const btn = document.createElement('button');
+        btn.className   = 'btn-value';
+        btn.innerHTML   = VAL_HTML[valId];
+        btn.setAttribute('aria-label', VAL_TEXT[valId]);
+        btn.onclick = () => checkValue(valId, btn);
+        els.valueButtons.appendChild(btn);
+    });
+}
+
+function checkValue(valId, btn) {
+    if (isTransitioning || isPenalizing || attemptsLeft <= 0) return;
+    if (valId !== correctValue) {
+        penalize(btn);
+        return;
+    }
+    els.stepValue.classList.remove('active');
+    isTransitioning = true;
+    _finishOp(1);
+}
+
+/* ================================================================
+   ARRANCADA
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    startGame();
+});
+</script>
+</body>
+</html>

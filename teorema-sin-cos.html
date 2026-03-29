@@ -226,60 +226,109 @@ h1 {
 .step-container.active { display: flex; }
 
 /* ================================================================
-   BOTONS DE TEOREMA (Pas 1)
+   BOTÓ D'AJUDA
    ================================================================ */
-.theorem-buttons {
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: 100%;
-}
-.btn-theorem {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-    padding: 18px 20px;
-    border-radius: 10px;
-    border: 2px solid var(--border-heavy);
+.btn-help {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 2px solid #d97706;
     background: white;
-    color: #334155;
-    cursor: pointer;
-    transition: 0.2s;
-    flex: 1;
-    min-width: 210px;
-    max-width: 340px;
-    text-align: left;
-}
-.btn-theorem .thm-name {
-    font-size: 1.05em;
+    color: #92400e;
+    font-size: 0.9em;
     font-weight: bold;
-    color: #334155;
-}
-.btn-theorem .thm-formula {
-    font-size: 0.82em;
-    font-family: 'Courier New', Courier, monospace;
-    color: var(--text-muted);
-    line-height: 1.5;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    touch-action: manipulation;
 }
 @media (hover: hover) {
-    .btn-theorem:hover {
-        background: var(--primary-light);
-        border-color: var(--primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(15,118,110,0.15);
-    }
-    .btn-theorem:hover .thm-name { color: var(--primary-dark); }
+    .btn-help:hover { background: #fef3c7; transform: scale(1.04); }
 }
-.btn-theorem:active     { transform: scale(0.97); }
-.btn-theorem:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-.btn-theorem.error-shake {
-    background: var(--danger-light);
-    border-color: var(--danger);
-    animation: shake 0.25s;
+.btn-help:active { transform: scale(0.96); }
+.btn-help:focus-visible { outline: 3px solid #d97706; outline-offset: 2px; }
+.btn-help.open { background: #fef3c7; border-color: #b45309; }
+
+/* ================================================================
+   PANEL D'AJUDA (hints)
+   ================================================================ */
+.help-panel {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 480px;
+    animation: fadeIn 0.25s;
 }
-.btn-theorem.error-shake .thm-name { color: var(--danger); }
+.help-panel.visible { display: flex; }
+
+/* Contenidor de cada pista */
+.hint-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88em;
+    line-height: 1.4;
+    color: #78350f;
+    transition: box-shadow 0.2s;
+}
+/* Millor teorema: ressaltat en verd */
+.hint-item.hint-best {
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.12);
+}
+
+/* Columna esquerra: badge + icona */
+.hint-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    min-width: 34px;
+}
+.hint-item .hint-icon { font-size: 1.3em; line-height: 1; }
+
+/* Badges de prioritat */
+.hint-badge {
+    font-size: 0.7em;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+.badge-best    { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.badge-second  { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.badge-tip     { background: #fef9c3; color: #713f12; border: 1px solid #fde68a; }
+
+/* Cos de la pista */
+.hint-item .hint-body { display: flex; flex-direction: column; gap: 3px; }
+.hint-item .hint-name { font-weight: bold; color: #92400e; }
+.hint-item.hint-best .hint-name { color: #166534; }
+.hint-item .hint-formula {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95em;
+    color: #b45309;
+    background: rgba(0,0,0,0.03);
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+.hint-item.hint-best .hint-formula { color: #047857; }
+/* Explicació del perquè */
+.hint-reason {
+    font-size: 0.85em;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 2px;
+}
+.hint-item.hint-best .hint-reason { color: #15803d; font-style: normal; font-weight: 500; }
 
 /* ================================================================
    BOTONS DE VALOR (Pas 2)
@@ -534,31 +583,20 @@ h1 {
             <div class="find-label" id="find-label">Troba el costat <span class="find-name">b</span></div>
         </div>
 
-        <!-- Panell de resolució pas a pas -->
+        <!-- Panell de resolució -->
         <div class="resolution-panel" id="resolution-panel">
             <div class="step-instruction" id="step-instruction" aria-live="polite"></div>
-            <div class="formula-hint"     id="formula-hint"></div>
 
-            <!-- Pas 1: quin teorema? -->
-            <div class="step-container" id="step-theorem">
-                <div class="theorem-buttons" role="group" aria-label="Tria el teorema">
-                    <button class="btn-theorem"
-                            onclick="checkTheorem('sinus', this)"
-                            aria-label="Teorema del sinus">
-                        <span class="thm-name">📏 Teorema del sinus</span>
-                        <span class="thm-formula">a/sin(A) = b/sin(B) = c/sin(C)</span>
-                    </button>
-                    <button class="btn-theorem"
-                            onclick="checkTheorem('cosinus', this)"
-                            aria-label="Teorema del cosinus">
-                        <span class="thm-name">📐 Teorema del cosinus</span>
-                        <span class="thm-formula">c² = a² + b² − 2ab·cos(C)</span>
-                    </button>
-                </div>
-            </div>
+            <!-- Botó d'ajuda -->
+            <button class="btn-help" id="btn-help" onclick="toggleHelp()">
+                💡 Ajuda
+            </button>
 
-            <!-- Pas 2: quin és el valor? -->
-            <div class="step-container" id="step-value">
+            <!-- Panel de pistes (oculte per defecte) -->
+            <div class="help-panel" id="help-panel" aria-live="polite"></div>
+
+            <!-- Botons de valor -->
+            <div class="step-container active" id="step-value">
                 <div class="value-buttons" id="value-buttons"
                      role="group" aria-label="Tria el valor"></div>
             </div>
@@ -612,7 +650,7 @@ h1 {
 /* ================================================================
    CONFIGURACIÓ
    ================================================================ */
-const TOTAL_SESSIONS   = 1;
+const TOTAL_SESSIONS   = 5;
 const TOTAL_OPERATIONS = 8;
 const MAX_INTENTS      = 4;
 
@@ -642,6 +680,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'b' },
         answer: '2', distractors: ['1', '√3', '√2'],
         step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 30, B: 45, C: 105 },
     },
     {
         id:  1, difficulty: 0,
@@ -650,6 +689,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'b' },
         answer: '1', distractors: ['2', '√3', '√2'],
         step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 60, B: 30, C: 90 },
     },
 
     /* ─── DIFICULTAT 1 — Sinus + Cosinus, trobar costat ──────── */
@@ -660,6 +700,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'b' },
         answer: '√3', distractors: ['2', '1', '√2'],
         step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 30, B: 60, C: 90 },
     },
     {
         id:  3, difficulty: 1,
@@ -668,6 +709,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'b' },
         answer: '√2', distractors: ['1', '2', '√3'],
         step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 45, B: 90, C: 45 },
     },
     {
         id:  4, difficulty: 1,
@@ -676,6 +718,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'c' },
         answer: '2', distractors: ['√3', '2√2', '4'],
         step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 60, B: 60, C: 60 },
     },
     {
         id:  5, difficulty: 1,
@@ -684,6 +727,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'c' },
         answer: '√2', distractors: ['1', '2', '√3'],
         step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 45, B: 45, C: 90 },
     },
     {
         id:  6, difficulty: 1,
@@ -692,6 +736,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'c' },
         answer: '5', distractors: ['6', '7', '3√2'],
         step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 37, B: 53, C: 90 },
     },
 
     /* ─── DIFICULTAT 2 — Mixt: costat i angle ────────────────── */
@@ -702,6 +747,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'b' },
         answer: '√3', distractors: ['2', '1', '√6'],
         step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 45, B: 60, C: 75 },
     },
     {
         id:  8, difficulty: 2,
@@ -710,6 +756,7 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'B' },
         answer: '60°', distractors: ['45°', '90°', '30°'],
         step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 30, B: 60, C: 90 },
     },
     {
         id:  9, difficulty: 2,
@@ -718,6 +765,7 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'B' },
         answer: '45°', distractors: ['60°', '30°', '90°'],
         step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 30, B: 45, C: 105 },
     },
     {
         id: 10, difficulty: 2,
@@ -726,6 +774,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'c' },
         answer: '√3', distractors: ['2', '√2', '1'],
         step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 30, B: 30, C: 120 },
     },
     {
         id: 11, difficulty: 2,
@@ -734,6 +783,7 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'C' },
         answer: '90°', distractors: ['60°', '45°', '30°'],
         step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+        numericAngles: { A: 37, B: 53, C: 90 },
     },
 
     /* ─── DIFICULTAT 3 — Avançat: angles obtus i valors compostos */
@@ -744,6 +794,7 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'B' },
         answer: '90°', distractors: ['45°', '60°', '120°'],
         step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 60, B: 90, C: 30 },
     },
     {
         id: 13, difficulty: 3,
@@ -752,6 +803,7 @@ const PROBLEMS = [
         find:  { type: 'side', name: 'c' },
         answer: '2√3', distractors: ['2', '4', '√6'],
         step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 30, B: 30, C: 120 },
     },
     {
         id: 14, difficulty: 3,
@@ -760,6 +812,7 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'A' },
         answer: '60°', distractors: ['45°', '90°', '30°'],
         step2hint: 'cos(A) = (b² + c² − a²) / (2bc)',
+        numericAngles: { A: 60, B: 60, C: 60 },
     },
     {
         id: 15, difficulty: 3,
@@ -768,6 +821,7 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'C' },
         answer: '120°', distractors: ['90°', '60°', '150°'],
         step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+        numericAngles: { A: 30, B: 30, C: 120 },
     },
     {
         id: 16, difficulty: 3,
@@ -776,6 +830,7 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'C' },
         answer: '90°', distractors: ['60°', '120°', '45°'],
         step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+        numericAngles: { A: 45, B: 45, C: 90 },
     },
     {
         id: 17, difficulty: 3,
@@ -784,24 +839,230 @@ const PROBLEMS = [
         find:  { type: 'angle', name: 'C' },
         answer: '90°', distractors: ['60°', '30°', '120°'],
         step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+        numericAngles: { A: 30, B: 60, C: 90 },
+    },
+
+    /* ─── NOU BLOC — Sinus AAS, trobar costat ───────────────────── */
+    {
+        id: 18, difficulty: 0,
+        theorem: 'sinus',
+        given: { sides: { a: '2' }, angles: { A: 90, B: 30 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '1', distractors: ['2', '√3', '√2'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 90, B: 30, C: 60 },
+    },
+    {
+        id: 19, difficulty: 0,
+        theorem: 'sinus',
+        given: { sides: { a: '√3' }, angles: { A: 60, B: 90 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '2', distractors: ['1', '√3', '√6'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 60, B: 90, C: 30 },
+    },
+    {
+        id: 20, difficulty: 1,
+        theorem: 'sinus',
+        given: { sides: { a: '√3' }, angles: { A: 30, B: 90 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '2√3', distractors: ['√3', '3', '√6'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 30, B: 90, C: 60 },
+    },
+    {
+        id: 21, difficulty: 1,
+        theorem: 'sinus',
+        given: { sides: { a: '1' }, angles: { A: 45, B: 90 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '√2', distractors: ['1', '2', '√3'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 45, B: 90, C: 45 },
+    },
+    {
+        id: 22, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '1' }, angles: { A: 30, B: 120 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '√3', distractors: ['1', '2', '√2'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 30, B: 120, C: 30 },
+    },
+    {
+        id: 23, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '√6' }, angles: { A: 60, B: 45 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '2', distractors: ['√3', '√6', '√2'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 60, B: 45, C: 75 },
+    },
+    {
+        id: 24, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '√2' }, angles: { A: 45, B: 30 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '1', distractors: ['√2', '2', '√3'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+        numericAngles: { A: 45, B: 30, C: 105 },
+    },
+
+    /* ─── NOU BLOC — Sinus SSA, trobar angle ────────────────────── */
+    {
+        id: 25, difficulty: 1,
+        theorem: 'sinus',
+        given: { sides: { a: '2', b: '1' }, angles: { A: 90 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '30°', distractors: ['45°', '60°', '90°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 90, B: 30, C: 60 },
+    },
+    {
+        id: 26, difficulty: 1,
+        theorem: 'sinus',
+        given: { sides: { a: '2', b: '√3' }, angles: { A: 90 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '60°', distractors: ['30°', '45°', '90°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 90, B: 60, C: 30 },
+    },
+    {
+        id: 27, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '√3', b: '√2' }, angles: { A: 60 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '45°', distractors: ['30°', '60°', '90°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 60, B: 45, C: 75 },
+    },
+    {
+        id: 28, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '√2', b: '√3' }, angles: { A: 45 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '60°', distractors: ['30°', '45°', '90°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 45, B: 60, C: 75 },
+    },
+    {
+        id: 29, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '√2', b: '2' }, angles: { A: 45 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '90°', distractors: ['30°', '60°', '45°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+        numericAngles: { A: 45, B: 90, C: 45 },
+    },
+
+    /* ─── NOU BLOC — Cosinus SAS, trobar costat ─────────────────── */
+    {
+        id: 30, difficulty: 1,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '2' }, angles: { C: 60 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '√3', distractors: ['1', '2', '√5'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 30, B: 90, C: 60 },
+    },
+    {
+        id: 31, difficulty: 2,
+        theorem: 'cosinus',
+        given: { sides: { a: '√3', b: '2' }, angles: { C: 30 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '1', distractors: ['2', '√3', '√2'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 60, B: 90, C: 30 },
+    },
+    {
+        id: 32, difficulty: 1,
+        theorem: 'cosinus',
+        given: { sides: { a: '2', b: '2' }, angles: { C: 90 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '2√2', distractors: ['2', '4', '√2'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 45, B: 45, C: 90 },
+    },
+    {
+        id: 33, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '√3', b: '√3' }, angles: { C: 120 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '3', distractors: ['2√3', '√3', '2'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 30, B: 30, C: 120 },
+    },
+    {
+        id: 34, difficulty: 1,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '√3' }, angles: { C: 90 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '2', distractors: ['√2', '√3', '√5'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+        numericAngles: { A: 30, B: 60, C: 90 },
+    },
+
+    /* ─── NOU BLOC — Cosinus SSS, trobar angle ──────────────────── */
+    {
+        id: 35, difficulty: 2,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '√3', c: '2' } },
+        find:  { type: 'angle', name: 'A' },
+        answer: '30°', distractors: ['45°', '60°', '90°'],
+        step2hint: 'cos(A) = (b² + c² − a²) / (2bc)',
+        numericAngles: { A: 30, B: 60, C: 90 },
+    },
+    {
+        id: 36, difficulty: 2,
+        theorem: 'cosinus',
+        given: { sides: { a: '√2', b: '√2', c: '2' } },
+        find:  { type: 'angle', name: 'A' },
+        answer: '45°', distractors: ['30°', '60°', '90°'],
+        step2hint: 'cos(A) = (b² + c² − a²) / (2bc)',
+        numericAngles: { A: 45, B: 45, C: 90 },
+    },
+    {
+        id: 37, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '2', b: '2√3', c: '4' } },
+        find:  { type: 'angle', name: 'C' },
+        answer: '90°', distractors: ['60°', '120°', '45°'],
+        step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+        numericAngles: { A: 30, B: 60, C: 90 },
+    },
+    {
+        id: 38, difficulty: 2,
+        theorem: 'cosinus',
+        given: { sides: { a: '√3', b: '1', c: '2' } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '30°', distractors: ['45°', '60°', '90°'],
+        step2hint: 'cos(B) = (a² + c² − b²) / (2ac)',
+        numericAngles: { A: 60, B: 30, C: 90 },
+    },
+    {
+        id: 39, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '1', c: '√3' } },
+        find:  { type: 'angle', name: 'C' },
+        answer: '120°', distractors: ['90°', '60°', '150°'],
+        step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+        numericAngles: { A: 30, B: 30, C: 120 },
     },
 ];
 
 /* ================================================================
-   POOLS PER DIFICULTAT
+   BARALLA ALEATÒRIA — tots els 40 problemes, sense repetició
+   S'amestren una sola vegada; quan s'esgoten, es tornen a mesclar.
    ================================================================ */
-const POOLS = {
-    0: PROBLEMS.filter(p => p.difficulty === 0),
-    1: PROBLEMS.filter(p => p.difficulty === 1),
-    2: PROBLEMS.filter(p => p.difficulty === 2),
-    3: PROBLEMS.filter(p => p.difficulty === 3),
-};
+let shuffledDeck = [];
+let deckPos      = 0;
 
-function getDifficulty(opIdx) {
-    if (opIdx < 2) return 0;
-    if (opIdx < 4) return 1;
-    if (opIdx < 6) return 2;
-    return 3;
+function shuffleDeck() {
+    shuffledDeck = PROBLEMS.map((_, i) => i);          // índexs 0..39
+    for (let i = shuffledDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledDeck[i], shuffledDeck[j]] = [shuffledDeck[j], shuffledDeck[i]];
+    }
+    deckPos = 0;
 }
 
 /* ================================================================
@@ -815,7 +1076,6 @@ let attemptsLeft     = 0;
 let isTransitioning  = false;
 let isPenalizing     = false;
 let sessionHistory   = [];
-let usedIds          = new Set();
 let currentProblem   = null;
 
 /* ================================================================
@@ -833,8 +1093,8 @@ const els = {
     findLabel:       document.getElementById('find-label'),
     resolutionPanel: document.getElementById('resolution-panel'),
     stepInstruction: document.getElementById('step-instruction'),
-    formulaHint:     document.getElementById('formula-hint'),
-    stepTheorem:     document.getElementById('step-theorem'),
+    helpBtn:         document.getElementById('btn-help'),
+    helpPanel:       document.getElementById('help-panel'),
     stepValue:       document.getElementById('step-value'),
     valueButtons:    document.getElementById('value-buttons'),
     miniOverlay:     document.getElementById('mini-victory-overlay'),
@@ -859,7 +1119,8 @@ function showScreen(id) {
    INICI / FI
    ================================================================ */
 function startGame() {
-    currentSession = 0; sessionScores = []; sessionHistory = []; usedIds = new Set();
+    currentSession = 0; sessionScores = []; sessionHistory = [];
+    shuffleDeck();
     showScreen('game-screen');
     startSession();
 }
@@ -965,50 +1226,93 @@ function showHistorySummary() {
 }
 
 /* ================================================================
-   SELECCIÓ DE PROBLEMA PER DIFICULTAT (sense repetició)
+   SELECCIÓ DE PROBLEMA — ordre aleatori, sense repetició fins
+   que s'han gastat els 40 (TOTAL_SESSIONS × TOTAL_OPERATIONS)
    ================================================================ */
-function selectProblem(opIdx) {
-    const diff = getDifficulty(opIdx);
-    let pool = POOLS[diff].filter(p => !usedIds.has(p.id));
-    if (!pool.length) pool = POOLS[diff]; // reinicia si exhaurit
-    const p = pool[Math.floor(Math.random() * pool.length)];
-    usedIds.add(p.id);
-    return p;
+function selectProblem() {
+    if (deckPos >= shuffledDeck.length) shuffleDeck(); // seguretat: mai hauria de passar
+    return PROBLEMS[shuffledDeck[deckPos++]];
 }
 
 /* ================================================================
-   DIBUIX DEL TRIANGLE SVG (esquema fix, etiquetes dinàmiques)
+   DIBUIX DEL TRIANGLE SVG — coordenades calculades a partir dels
+   angles reals de cada problema (numericAngles: {A, B, C}).
 
-   Posicions fixes (viewBox 0 0 240 175):
-     A = (25, 155) — vèrtex baix-esquerra
-     B = (215,155) — vèrtex baix-dreta
-     C = (120, 22) — vèrtex dalt
-
-   Labels:
-     Lletres vèrtex (fora): A(9,166) B(225,166) C(119,10)
-     Costat a (BC): label a (185, 88) — costat dret
-     Costat b (AC): label a (55, 88)  — costat esquerre
-     Costat c (AB): label a (120,171) — base
-     Angle A (interior vèrtex): (52, 140)
-     Angle B (interior vèrtex): (183, 140)
-     Angle C (interior vèrtex): (120, 52)
+   Convenció:
+     A = vèrtex baix-esquerra  (angle A)
+     B = vèrtex baix-dreta     (angle B)
+     C = vèrtex dalt           (angle C)
+     a = costat BC (oposat a A)
+     b = costat AC (oposat a B)
+     c = costat AB (base, oposat a C)
    ================================================================ */
 function drawTriangle(problem) {
     const { given, find } = problem;
+    const na = problem.numericAngles;   // { A, B, C } en graus
 
-    // Retorna { text, color, bold, size } o null
+    // ── Càlcul de vèrtexs a partir dels angles reals ──────────────
+    const toRad = d => d * Math.PI / 180;
+    const sinA  = Math.sin(toRad(na.A));
+    const sinB  = Math.sin(toRad(na.B));
+    const sinC  = Math.sin(toRad(na.C));
+    const cosA  = Math.cos(toRad(na.A));
+
+    // Per la llei dels sinus, els costats són proporcionals als sinus dels angles.
+    // Fixem A a l'origen i B a (sinC, 0); C es dedueix geomètricament:
+    //   Cx = sinB · cos(A)     Cy = sinB · sin(A)   (cap amunt = positiu)
+    const c_rel  = sinC;           // llargada relativa de la base AB
+    const Cx_rel = sinB * cosA;    // component horitzontal de AC
+    const Cy_rel = sinB * sinA;    // alçada de C sobre la base (sempre > 0)
+
+    // Escalar i centrar dins el viewBox 240 × 175 amb padding de 28 px
+    const vW = 240, vH = 175, pad = 28;
+    const scale = Math.min((vW - 2*pad) / c_rel, (vH - 2*pad) / Cy_rel);
+
+    const triW = c_rel  * scale;
+    const ox   = (vW - triW) / 2;   // centrat horitzontal
+    const oy   = vH - pad;           // base a la part baixa
+
+    const Av = { x: ox,                  y: oy };
+    const Bv = { x: ox + triW,           y: oy };
+    const Cv = { x: ox + Cx_rel * scale, y: oy - Cy_rel * scale };
+
+    // Centroide per orientar etiquetes
+    const gx = (Av.x + Bv.x + Cv.x) / 3;
+    const gy = (Av.y + Bv.y + Cv.y) / 3;
+
+    // Posició d'etiqueta de costat: meitat + desplaçament cap enfora del centroide
+    function sidePos(p1, p2, dist = 14) {
+        const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+        const dx = mx - gx, dy = my - gy;
+        const l  = Math.hypot(dx, dy) || 1;
+        return { x: mx + dx / l * dist, y: my + dy / l * dist };
+    }
+
+    // Posició d'etiqueta d'angle: vèrtex desplaçat cap al centroide
+    function anglePos(v, dist = 20) {
+        const dx = gx - v.x, dy = gy - v.y;
+        const l  = Math.hypot(dx, dy) || 1;
+        return { x: v.x + dx / l * dist, y: v.y + dy / l * dist };
+    }
+
+    // Posició de la lletra del vèrtex: cap enfora del centroide
+    function vertexPos(v, dist = 14) {
+        const dx = v.x - gx, dy = v.y - gy;
+        const l  = Math.hypot(dx, dy) || 1;
+        return { x: v.x + dx / l * dist, y: v.y + dy / l * dist };
+    }
+
+    // ── Etiquetes de costats i angles ─────────────────────────────
     function getLabel(type, name) {
-        if (find.type === type && find.name === name) {
+        if (find.type === type && find.name === name)
             return { text: '?', color: '#d97706', bold: true, size: 17 };
-        }
         if (type === 'side') {
             const v = given.sides?.[name];
             return v ? { text: v, color: '#334155', bold: true, size: 14 } : null;
         } else {
             const v = given.angles?.[name];
             return (v !== undefined && v !== null)
-                ? { text: v+'°', color: '#0f766e', bold: false, size: 13 }
-                : null;
+                ? { text: v + '°', color: '#0f766e', bold: false, size: 13 } : null;
         }
     }
 
@@ -1017,11 +1321,9 @@ function drawTriangle(problem) {
         const ff = lbl.bold
             ? `font-family="'Courier New', monospace"`
             : `font-family="'Segoe UI', sans-serif"`;
-        return `<text x="${x}" y="${y}"
-                      text-anchor="${anchor}"
-                      dominant-baseline="middle"
-                      ${ff}
-                      font-size="${lbl.size}"
+        return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}"
+                      text-anchor="${anchor}" dominant-baseline="middle"
+                      ${ff} font-size="${lbl.size}"
                       font-weight="${lbl.bold ? 'bold' : '600'}"
                       fill="${lbl.color}">${lbl.text}</text>`;
     }
@@ -1033,23 +1335,22 @@ function drawTriangle(problem) {
     const lBa = getLabel('angle', 'B');
     const lCa = getLabel('angle', 'C');
 
-    // Destacar costat/angle desconegut en el triangle
+    // ── Color de costats (groc si és el que cal trobar) ───────────
     function strokeColor(type, name) {
         return (find.type === type && find.name === name) ? '#d97706' : '#94a3b8';
     }
     function strokeW(type, name) {
         return (find.type === type && find.name === name) ? 3 : 2.2;
     }
-
     const lineA = `stroke="${strokeColor('side','a')}" stroke-width="${strokeW('side','a')}"`;
     const lineB = `stroke="${strokeColor('side','b')}" stroke-width="${strokeW('side','b')}"`;
     const lineC = `stroke="${strokeColor('side','c')}" stroke-width="${strokeW('side','c')}"`;
 
-    // Marcador d'angle recte (quadradet petit)
+    // ── Marcador d'angle recte ─────────────────────────────────────
     function rightAngleMark(vx, vy, p1x, p1y, p2x, p2y, size = 11) {
         const d1x = p1x-vx, d1y = p1y-vy;
         const d2x = p2x-vx, d2y = p2y-vy;
-        const l1 = Math.hypot(d1x,d1y), l2 = Math.hypot(d2x,d2y);
+        const l1  = Math.hypot(d1x, d1y), l2 = Math.hypot(d2x, d2y);
         const u1x = d1x/l1*size, u1y = d1y/l1*size;
         const u2x = d2x/l2*size, u2y = d2y/l2*size;
         const mx  = vx+u1x+u2x, my = vy+u1y+u2y;
@@ -1057,53 +1358,56 @@ function drawTriangle(problem) {
                           fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linejoin="miter"/>`;
     }
 
-    // Afegir marcador d'angle recte si un angle és 90°
+    // Marcar els angles de 90° usant numericAngles (inclou el que cal trobar!)
     let extraMarkers = '';
-    const allAngles = { ...given.angles };
-    if (find.type === 'angle') {
-        // No coneixem l'angle que busquem, però sí els altres
-    }
-    for (const [name, val] of Object.entries(allAngles)) {
-        if (val === 90) {
-            if (name === 'A') extraMarkers += rightAngleMark(25,155, 215,155, 120,22);
-            if (name === 'B') extraMarkers += rightAngleMark(215,155, 25,155, 120,22);
-            if (name === 'C') extraMarkers += rightAngleMark(120,22, 25,155, 215,155);
-        }
-    }
+    if (na.A === 90) extraMarkers += rightAngleMark(Av.x, Av.y, Bv.x, Bv.y, Cv.x, Cv.y);
+    if (na.B === 90) extraMarkers += rightAngleMark(Bv.x, Bv.y, Av.x, Av.y, Cv.x, Cv.y);
+    if (na.C === 90) extraMarkers += rightAngleMark(Cv.x, Cv.y, Av.x, Av.y, Bv.x, Bv.y);
+
+    // ── Posicions calculades ───────────────────────────────────────
+    const pA  = sidePos(Bv, Cv);   // etiqueta costat a = BC
+    const pB  = sidePos(Av, Cv);   // etiqueta costat b = AC
+    const pC  = sidePos(Av, Bv);   // etiqueta costat c = AB
+    const pAa = anglePos(Av);      // etiqueta angle A
+    const pBa = anglePos(Bv);      // etiqueta angle B
+    const pCa = anglePos(Cv);      // etiqueta angle C
+    const vA  = vertexPos(Av);     // lletra vèrtex A
+    const vB  = vertexPos(Bv);     // lletra vèrtex B
+    const vC  = vertexPos(Cv);     // lletra vèrtex C
 
     els.triangleSvg.innerHTML = `
         <!-- Costats del triangle -->
-        <line x1="25"  y1="155" x2="215" y2="155" ${lineC}/>
-        <line x1="25"  y1="155" x2="120" y2="22"  ${lineB}/>
-        <line x1="120" y1="22"  x2="215" y2="155" ${lineA}/>
+        <line x1="${Av.x.toFixed(1)}" y1="${Av.y.toFixed(1)}"
+              x2="${Bv.x.toFixed(1)}" y2="${Bv.y.toFixed(1)}" ${lineC}/>
+        <line x1="${Av.x.toFixed(1)}" y1="${Av.y.toFixed(1)}"
+              x2="${Cv.x.toFixed(1)}" y2="${Cv.y.toFixed(1)}" ${lineB}/>
+        <line x1="${Bv.x.toFixed(1)}" y1="${Bv.y.toFixed(1)}"
+              x2="${Cv.x.toFixed(1)}" y2="${Cv.y.toFixed(1)}" ${lineA}/>
 
         ${extraMarkers}
 
         <!-- Punts als vèrtexs -->
-        <circle cx="25"  cy="155" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
-        <circle cx="215" cy="155" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
-        <circle cx="120" cy="22"  r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
+        <circle cx="${Av.x.toFixed(1)}" cy="${Av.y.toFixed(1)}" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
+        <circle cx="${Bv.x.toFixed(1)}" cy="${Bv.y.toFixed(1)}" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
+        <circle cx="${Cv.x.toFixed(1)}" cy="${Cv.y.toFixed(1)}" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
 
-        <!-- Lletres de vèrtex (sempre visibles, fora del triangle) -->
-        <text x="9"   y="168" text-anchor="middle" dominant-baseline="middle"
-              font-size="14" font-weight="bold" fill="#0f766e"
-              font-family="'Segoe UI', sans-serif">A</text>
-        <text x="231" y="168" text-anchor="middle" dominant-baseline="middle"
-              font-size="14" font-weight="bold" fill="#0f766e"
-              font-family="'Segoe UI', sans-serif">B</text>
-        <text x="120" y="9"  text-anchor="middle" dominant-baseline="middle"
-              font-size="14" font-weight="bold" fill="#0f766e"
-              font-family="'Segoe UI', sans-serif">C</text>
+        <!-- Lletres de vèrtex (fora del triangle) -->
+        <text x="${vA.x.toFixed(1)}" y="${vA.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
+              font-size="14" font-weight="bold" fill="#0f766e" font-family="'Segoe UI', sans-serif">A</text>
+        <text x="${vB.x.toFixed(1)}" y="${vB.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
+              font-size="14" font-weight="bold" fill="#0f766e" font-family="'Segoe UI', sans-serif">B</text>
+        <text x="${vC.x.toFixed(1)}" y="${vC.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
+              font-size="14" font-weight="bold" fill="#0f766e" font-family="'Segoe UI', sans-serif">C</text>
 
         <!-- Etiquetes de costats -->
-        ${svgTxt(188, 88, la, 'start')}
-        ${svgTxt(52,  88, lb, 'end')}
-        ${svgTxt(120, 172, lc, 'middle')}
+        ${svgTxt(pA.x,  pA.y,  la)}
+        ${svgTxt(pB.x,  pB.y,  lb)}
+        ${svgTxt(pC.x,  pC.y,  lc)}
 
         <!-- Etiquetes d'angles (interior dels vèrtexs) -->
-        ${svgTxt(52,  140, lAa, 'middle')}
-        ${svgTxt(183, 140, lBa, 'middle')}
-        ${svgTxt(120,  52, lCa, 'middle')}
+        ${svgTxt(pAa.x, pAa.y, lAa)}
+        ${svgTxt(pBa.x, pBa.y, lBa)}
+        ${svgTxt(pCa.x, pCa.y, lCa)}
     `;
 }
 
@@ -1118,7 +1422,7 @@ function buildLevel() {
     els.body.style.backgroundColor =
         bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
 
-    currentProblem = selectProblem(currentOperation);
+    currentProblem = selectProblem();
     const p = currentProblem;
 
     // Dibuixa el triangle
@@ -1136,23 +1440,26 @@ function buildLevel() {
     els.findLabel.innerHTML =
         `Troba ${typeLabel} <span class="find-name">${p.find.name}</span>`;
 
-    // Instrucció pas 1
+    // Instrucció directa: resol el triangle
     const findNameLbl = p.find.type === 'side'
         ? `el costat <strong>${p.find.name}</strong>`
         : `l'angle <strong>${p.find.name}</strong>`;
-    els.stepInstruction.innerHTML =
-        `Quin teorema cal aplicar per trobar ${findNameLbl}?`;
+    els.stepInstruction.innerHTML = `Quant val ${findNameLbl}?`;
 
-    // Oculta pista de fórmula
-    els.formulaHint.textContent = '';
-    els.formulaHint.classList.remove('visible');
+    // Amaga el panel d'ajuda i reseteja el botó
+    els.helpPanel.innerHTML = '';
+    els.helpPanel.classList.remove('visible');
+    els.helpBtn.classList.remove('open');
+    els.helpBtn.textContent = '💡 Ajuda';
+
+    // Construeix els botons de valor directament
+    buildValueButtons();
 
     // Reset UI
     hideMiniOverlay();
     els.problemBox.style.display      = 'flex';
     els.resolutionPanel.style.display = 'flex';
-    els.stepTheorem.classList.add('active');
-    els.stepValue.classList.remove('active');
+    els.stepValue.classList.add('active');
 }
 
 /* ================================================================
@@ -1175,7 +1482,6 @@ function penalize(btn) {
         isPenalizing = false;
         if (attemptsLeft <= 0) {
             isTransitioning = true;
-            els.stepTheorem.classList.remove('active');
             els.stepValue.classList.remove('active');
             _finishOp(0);
         }
@@ -1213,50 +1519,159 @@ function _finishOp(points) {
 }
 
 /* ================================================================
-   PAS 1: TEOREMA
+   AJUDA — toggleHelp i buildHints
    ================================================================ */
-function checkTheorem(selected, btn) {
-    if (isTransitioning || isPenalizing || attemptsLeft <= 0) return;
-    const correct = currentProblem.theorem;
+function toggleHelp() {
+    const open = els.helpPanel.classList.contains('visible');
+    if (open) {
+        els.helpPanel.classList.remove('visible');
+        els.helpBtn.classList.remove('open');
+        els.helpBtn.textContent = '💡 Ajuda';
+    } else {
+        els.helpPanel.innerHTML = buildHints(currentProblem);
+        els.helpPanel.classList.add('visible');
+        els.helpBtn.classList.add('open');
+        els.helpBtn.textContent = '✖ Tanca';
+    }
+}
 
-    if (selected !== correct) {
-        penalize(btn);
-        // Mostrar retroalimentació pedagògica breu
-        const wrongName = selected === 'sinus' ? 'sinus' : 'cosinus';
-        const corrName  = correct  === 'sinus' ? 'sinus' : 'cosinus';
-        els.formulaHint.textContent =
-            `No. El teorema del ${wrongName} no és adequat aquí. Intenta-ho altra vegada.`;
-        els.formulaHint.classList.add('visible');
-        setTimeout(() => {
-            if (!isTransitioning) {
-                els.formulaHint.textContent = '';
-                els.formulaHint.classList.remove('visible');
-            }
-        }, 1800);
-        return;
+/* ---------------------------------------------------------------
+   getTriangleCase — classifica el triangle segons les dades donades
+   Retorna: 'AAS' | 'SSA' | 'SAS' | 'SSS' | 'OTHER'
+   Convenció: costats en minúscula (a,b,c), angles en majúscula (A,B,C)
+   L'angle inclòs dels costats a i b és C (l'oposat al costat c).
+--------------------------------------------------------------- */
+function getTriangleCase(sideKeys, angleKeys) {
+    const nS = sideKeys.length;
+    const nA = angleKeys.length;
+    if (nS === 3)            return 'SSS';
+    if (nA >= 2 && nS >= 1) return 'AAS';   // 2+ angles + 1 costat
+    if (nS === 2 && nA === 1) {
+        // L'angle és inclòs si NO és oposat a cap dels costats coneguts
+        // (costat 'a' és oposat a 'A', etc.)
+        const angLower = angleKeys[0].toLowerCase(); // 'a','b' o 'c'
+        return sideKeys.includes(angLower) ? 'SSA' : 'SAS';
+    }
+    return 'OTHER';
+}
+
+/* ---------------------------------------------------------------
+   buildHints — genera les pistes ordenades per idoneïtat:
+     · 1r: el millor teorema per a aquest triangle concret
+     · 2n: alternativa útil (si n'hi ha)
+     · 💡: propietat addicional (isòsceles, etc.)
+--------------------------------------------------------------- */
+function buildHints(p) {
+    const na          = p.numericAngles;
+    const sideKeys    = Object.keys(p.given.sides   || {});
+    const angleKeys   = Object.keys(p.given.angles  || {});
+    const nS          = sideKeys.length;
+    const hasRight    = Object.values(na).some(v => v === 90);
+    const findSide    = p.find.type === 'side';
+
+    const case_       = getTriangleCase(sideKeys, angleKeys);
+
+    // Isòsceles: dos angles iguals
+    const av          = Object.values(na);
+    const isIso       = av[0]===av[1] || av[1]===av[2] || av[0]===av[2];
+
+    const ranked = [];
+
+    /* ── Casos ── */
+    if (hasRight && nS >= 2 && findSide) {
+        // PITÀGORES: triangle rectangle + 2 costats coneguts
+        ranked.push({
+            badge: '1r 🏆', badgeClass: 'badge-best', best: true,
+            icon: '📐', name: 'Teorema de Pitàgores',
+            formula: 'a² + b² = c²  (c = hipotenusa)',
+            reason: 'Triangle rectangle amb 2 costats: mètode directe i òptim.',
+        });
+        ranked.push({
+            badge: '2n', badgeClass: 'badge-second', best: false,
+            icon: '📐', name: 'Teorema del cosinus',
+            formula: 'c² = a² + b² − 2ab·cos(90°) = a² + b²',
+            reason: 'Funciona, però amb cos(90°) = 0 es redueix a Pitàgores.',
+        });
+
+    } else if (case_ === 'AAS') {
+        // 2 angles + 1 costat → trobar costat
+        ranked.push({
+            badge: '1r 🏆', badgeClass: 'badge-best', best: true,
+            icon: '📏', name: 'Teorema del sinus',
+            formula: p.step2hint,
+            reason: 'Coneixes 2 angles i 1 costat: la raó del sinus és directa.',
+        });
+
+    } else if (case_ === 'SSA') {
+        // 2 costats + angle oposat a un → trobar angle
+        ranked.push({
+            badge: '1r 🏆', badgeClass: 'badge-best', best: true,
+            icon: '📏', name: 'Teorema del sinus',
+            formula: p.step2hint,
+            reason: 'Coneixes 2 costats i l\'angle oposat a un: la raó del sinus és directa.',
+        });
+
+    } else if (case_ === 'SAS') {
+        // 2 costats + angle inclòs → trobar tercer costat
+        ranked.push({
+            badge: '1r 🏆', badgeClass: 'badge-best', best: true,
+            icon: '📐', name: 'Teorema del cosinus',
+            formula: p.step2hint,
+            reason: 'Coneixes 2 costats i l\'angle entre ells: el cosinus és l\'únic mètode directe.',
+        });
+        ranked.push({
+            badge: '2n', badgeClass: 'badge-second', best: false,
+            icon: '📏', name: 'Teorema del sinus',
+            formula: 'a / sin(A) = b / sin(B) = c / sin(C)',
+            reason: 'Un cop trobat el tercer costat, pots trobar els angles restants.',
+        });
+
+    } else if (case_ === 'SSS') {
+        // 3 costats → trobar angle
+        ranked.push({
+            badge: '1r 🏆', badgeClass: 'badge-best', best: true,
+            icon: '📐', name: 'Teorema del cosinus',
+            formula: p.step2hint,
+            reason: 'Coneixes els 3 costats: despeça directament l\'angle.',
+        });
+        ranked.push({
+            badge: '2n', badgeClass: 'badge-second', best: false,
+            icon: '📏', name: 'Teorema del sinus',
+            formula: 'a / sin(A) = b / sin(B)',
+            reason: 'Possible alternativa, però primer necessitaries trobar un angle.',
+        });
     }
 
-    // Teorema correcte → passa al pas 2
-    els.stepTheorem.classList.remove('active');
-    els.formulaHint.classList.remove('visible');
+    // Propietat isòsceles (suplement)
+    if (isIso) {
+        const eqPairs = [];
+        if (na.A === na.B) eqPairs.push('A = B → a = b');
+        if (na.B === na.C) eqPairs.push('B = C → b = c');
+        if (na.A === na.C) eqPairs.push('A = C → a = c');
+        ranked.push({
+            badge: '💡', badgeClass: 'badge-tip', best: false,
+            icon: '🔁', name: 'Propietat isòsceles',
+            formula: eqPairs.join('  ·  '),
+            reason: 'Angles iguals → costats iguals. Pot simplificar els càlculs.',
+        });
+    }
 
-    // Actualitza instrucció amb la fórmula específica
-    const findNameLbl = currentProblem.find.type === 'side'
-        ? `el costat <strong>${currentProblem.find.name}</strong>`
-        : `l'angle <strong>${currentProblem.find.name}</strong>`;
-    els.stepInstruction.innerHTML = `Quant val ${findNameLbl}?`;
-
-    // Mostra la pista de fórmula
-    els.formulaHint.textContent = currentProblem.step2hint;
-    els.formulaHint.classList.add('visible');
-
-    // Construeix els botons de valor
-    buildValueButtons();
-    els.stepValue.classList.add('active');
+    return ranked.map(h => `
+        <div class="hint-item${h.best ? ' hint-best' : ''}">
+            <div class="hint-left">
+                <span class="hint-badge ${h.badgeClass}">${h.badge}</span>
+                <span class="hint-icon">${h.icon}</span>
+            </div>
+            <div class="hint-body">
+                <span class="hint-name">${h.name}</span>
+                <span class="hint-formula">${h.formula}</span>
+                <span class="hint-reason">${h.reason}</span>
+            </div>
+        </div>`).join('');
 }
 
 /* ================================================================
-   PAS 2: VALOR (4 opcions múltiples)
+   VALOR (4 opcions múltiples)
    ================================================================ */
 function buildValueButtons() {
     const p = currentProblem;
@@ -1285,7 +1700,6 @@ function checkValue(val, btn) {
     }
     // Correcte!
     els.stepValue.classList.remove('active');
-    els.formulaHint.classList.remove('visible');
     isTransitioning = true;
     _finishOp(1);
 }
