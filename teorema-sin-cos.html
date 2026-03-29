@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <title>Triangles — Sinus i Cosinus</title>
+    <style>
+/* ================================================================
+   VARIABLES DE COLOR — tema verd-esmeralda (diferent de la part 1)
+   ================================================================ */
+:root {
+    --bg-color:      #f0fdfa;
+    --panel-bg:      #ffffff;
+    --text-main:     #1e293b;
+    --text-muted:    #64748b;
+    --primary:       #0f766e;
+    --primary-light: #ccfbf1;
+    --primary-hover: #0d9488;
+    --primary-dark:  #134e4a;
+    --accent:        #d97706;
+    --danger:        #ef4444;
+    --danger-light:  #fef2f2;
+    --success:       #10b981;
+    --border-color:  #e2e8f0;
+    --border-heavy:  #cbd5e1;
+}
+
+/* ================================================================
+   RESET & BASE
+   ================================================================ */
+* { box-sizing: border-box; }
+button, input, a, [role="button"], [tabindex] { touch-action: manipulation; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    transition: background-color 1s ease;
+}
+
+/* ================================================================
+   TÍTOL I CAPÇALERA
+   ================================================================ */
+h1 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #134e4a;
+    font-size: 1.6em;
+    margin: 0;
+    text-align: center;
+}
+.subtitle {
+    color: var(--text-muted);
+    font-size: 1.05em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Fila de títol: botó Part-1 esquerra + h1 centre */
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 5px;
+    width: 100%;
+    max-width: 910px;
+    position: relative;
+}
+
+/* Botó Part 1 (accés a la primera activitat) */
+.part1-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    background: white;
+    border: 2px solid var(--primary);
+    color: var(--primary-dark);
+    text-decoration: none;
+    font-size: 0.78em;
+    font-weight: bold;
+    line-height: 1.2;
+    transition: background 0.2s, transform 0.2s;
+    flex-shrink: 0;
+    text-align: center;
+    min-width: 72px;
+}
+.part1-btn:hover { background: var(--primary-light); transform: scale(1.06); }
+.part1-btn .btn-icon { font-size: 1.7em; line-height: 1; }
+.part1-btn .btn-label { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ================================================================
+   PANELL PRINCIPAL
+   ================================================================ */
+.panel {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 910px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-top: 6px solid var(--primary);
+    transition: border-color 0.3s;
+    position: relative;
+}
+
+/* ================================================================
+   CAPÇALERA DEL JOC
+   ================================================================ */
+.header-info {
+    background-color: #f0fdfa;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.header-left    { display: flex; flex-direction: column; gap: 2px; }
+.session-text   { font-size: 1em;  color: var(--text-muted); }
+.level-text     { font-size: 1.2em; color: #134e4a; }
+.score-text     { font-size: 1.2em; color: var(--primary); font-family: monospace; }
+.attempts-counter {
+    font-family: monospace;
+    font-size: 1.2em;
+    color: var(--text-muted);
+    padding: 5px 10px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid var(--border-heavy);
+    transition: all 0.3s;
+}
+.attempts-counter.danger { color: var(--danger); border-color: var(--danger); }
+
+/* ================================================================
+   ZONA DEL PROBLEMA (SVG triangle + etiqueta)
+   ================================================================ */
+.problem-box {
+    padding: 18px 20px 4px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+#triangle-svg {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+}
+
+.find-label {
+    font-size: 1.15em;
+    font-weight: bold;
+    color: #134e4a;
+    text-align: center;
+    padding: 4px 0;
+    letter-spacing: 0.3px;
+}
+.find-label .find-name {
+    font-family: 'Courier New', monospace;
+    color: var(--accent);
+    font-size: 1.15em;
+}
+
+/* ================================================================
+   PANELL DE RESOLUCIÓ PAS A PAS
+   ================================================================ */
+.resolution-panel {
+    background-color: #f8fafc;
+    border-top: 1px solid var(--border-color);
+    padding: 22px 20px 28px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+}
+
+.step-instruction {
+    font-size: 1.12em;
+    color: #334155;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0;
+}
+.formula-hint {
+    display: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95em;
+    color: var(--primary-dark);
+    background: var(--primary-light);
+    border: 1px solid #99f6e4;
+    border-radius: 6px;
+    padding: 7px 16px;
+    text-align: center;
+    opacity: 0.9;
+    animation: fadeIn 0.3s;
+}
+.formula-hint.visible { display: block; }
+
+.step-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.3s;
+}
+.step-container.active { display: flex; }
+
+/* ================================================================
+   BOTONS DE TEOREMA (Pas 1)
+   ================================================================ */
+.theorem-buttons {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+.btn-theorem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 18px 20px;
+    border-radius: 10px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: #334155;
+    cursor: pointer;
+    transition: 0.2s;
+    flex: 1;
+    min-width: 210px;
+    max-width: 340px;
+    text-align: left;
+}
+.btn-theorem .thm-name {
+    font-size: 1.05em;
+    font-weight: bold;
+    color: #334155;
+}
+.btn-theorem .thm-formula {
+    font-size: 0.82em;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+@media (hover: hover) {
+    .btn-theorem:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15,118,110,0.15);
+    }
+    .btn-theorem:hover .thm-name { color: var(--primary-dark); }
+}
+.btn-theorem:active     { transform: scale(0.97); }
+.btn-theorem:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-theorem.error-shake {
+    background: var(--danger-light);
+    border-color: var(--danger);
+    animation: shake 0.25s;
+}
+.btn-theorem.error-shake .thm-name { color: var(--danger); }
+
+/* ================================================================
+   BOTONS DE VALOR (Pas 2)
+   ================================================================ */
+.value-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+    max-width: 440px;
+}
+.btn-value {
+    padding: 20px 10px;
+    font-size: 1.35em;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: #334155;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (hover: hover) {
+    .btn-value:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15,118,110,0.2);
+    }
+}
+.btn-value:active     { transform: scale(0.95); }
+.btn-value:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-value.error-shake {
+    background: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger);
+    animation: shake 0.25s;
+}
+
+/* ================================================================
+   MINI OVERLAY (victòria / fracàs)
+   ================================================================ */
+#mini-victory-overlay {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 20px;
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    animation: fadeIn 0.3s;
+}
+.vic-message-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+.star-icon {
+    font-size: 3em;
+    animation: pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    text-shadow: 0 4px 15px rgba(250,204,21,0.6);
+}
+.mini-vic-text {
+    font-size: 2em;
+    font-weight: bold;
+    color: #047857;
+    text-shadow: 0 2px 5px white;
+}
+.mini-vic-points {
+    font-size: 1.2em;
+    font-weight: bold;
+    font-family: monospace;
+    color: #059669;
+    background: rgba(255,255,255,0.95);
+    padding: 5px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* ================================================================
+   PANTALLES FI DE SESSIÓ / FINAL
+   ================================================================ */
+#session-end-screen,
+#final-screen {
+    display: none;
+    padding: 40px 20px;
+    text-align: center;
+}
+#session-end-screen h2,
+#final-screen h2 { color: var(--success); font-size: 1.8em; margin-bottom: 25px; }
+
+.final-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin: 0 auto 25px;
+    max-width: 480px;
+    flex-wrap: wrap-reverse;
+}
+.final-summary {
+    flex: 1;
+    text-align: left;
+    font-size: 1.1em;
+    line-height: 1.8;
+    min-width: 220px;
+}
+.final-summary .session-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-family: monospace;
+    font-size: 1.1em;
+}
+.trophy-icon { font-size: 6em; margin-bottom: 10px; animation: bounce 1.5s infinite; }
+.final-layout .trophy-icon { margin: 0; font-size: 4.5em; }
+
+/* ================================================================
+   BOTONS ACCIÓ
+   ================================================================ */
+.btn-submit {
+    background-color: #475569;
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    touch-action: manipulation;
+}
+.btn-submit:active { transform: scale(0.95); }
+@media (hover: hover) { .btn-submit:hover { background-color: #334155; } }
+
+.btn-green {
+    background-color: #059669;
+    color: white;
+    border: none;
+    padding: 15px 35px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: none;
+    touch-action: manipulation;
+}
+.btn-green:active { transform: scale(0.95); }
+@media (hover: hover) { .btn-green:hover { background-color: #047857; } }
+
+/* ================================================================
+   ANIMACIONS
+   ================================================================ */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-7px); }
+    75%       { transform: translateX(7px); }
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-15px); }
+}
+@keyframes pop {
+    0%   { transform: scale(0); }
+    80%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+@keyframes blinkAttempts {
+    0%, 100% { background-color: #fef3c7; }
+    50%       { background-color: white; }
+}
+.attempts-counter.blink { animation: blinkAttempts 0.22s linear 5; }
+
+/* ================================================================
+   RESPONSIU
+   ================================================================ */
+@media (max-width: 820px) { .panel { width: 95%; } }
+@media (max-width: 520px) {
+    .btn-theorem { min-width: 160px; padding: 14px 14px; }
+    .btn-theorem .thm-name { font-size: 0.95em; }
+    .btn-theorem .thm-formula { font-size: 0.75em; }
+    .btn-value { font-size: 1.15em; min-height: 58px; }
+    .value-buttons { max-width: 360px; gap: 10px; }
+    #triangle-svg { max-width: 260px; }
+}
+@media (max-width: 380px) {
+    .btn-theorem { min-width: 130px; }
+    .btn-value { font-size: 1em; }
+    #triangle-svg { max-width: 220px; }
+    h1 { font-size: 1.3em; }
+}
+    </style>
+</head>
+<body>
+
+<!-- ================================================================
+     CAPÇALERA
+     ================================================================ -->
+<div class="title-row">
+    <!-- Botó Part 1: accés a Valors Exactes -->
+    <a href="trigonometria.html"
+       class="part1-btn"
+       title="Part 1: Valors exactes de sin, cos i tan"
+       aria-label="Activitat Part 1: Valors exactes">
+        <span class="btn-icon">📐</span>
+        <span class="btn-label">Part 1</span>
+    </a>
+    <h1>Triangles</h1>
+</div>
+<div class="subtitle">Teorema del sinus · Teorema del cosinus</div>
+
+<!-- ================================================================
+     PANELL PRINCIPAL
+     ================================================================ -->
+<div class="panel" id="main-panel">
+
+    <!-- PANTALLA DEL JOC -->
+    <div id="game-screen" style="display:none;">
+
+        <!-- Capçalera info -->
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Problema 1 de 8</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 4</div>
+        </div>
+
+        <!-- Zona del problema: triangle SVG + etiqueta de cerca -->
+        <div class="problem-box" id="problem-box">
+            <svg id="triangle-svg"
+                 viewBox="0 0 240 175"
+                 xmlns="http://www.w3.org/2000/svg"
+                 aria-label="Triangle del problema" role="img">
+            </svg>
+            <div class="find-label" id="find-label">Troba el costat <span class="find-name">b</span></div>
+        </div>
+
+        <!-- Panell de resolució pas a pas -->
+        <div class="resolution-panel" id="resolution-panel">
+            <div class="step-instruction" id="step-instruction" aria-live="polite"></div>
+            <div class="formula-hint"     id="formula-hint"></div>
+
+            <!-- Pas 1: quin teorema? -->
+            <div class="step-container" id="step-theorem">
+                <div class="theorem-buttons" role="group" aria-label="Tria el teorema">
+                    <button class="btn-theorem"
+                            onclick="checkTheorem('sinus', this)"
+                            aria-label="Teorema del sinus">
+                        <span class="thm-name">📏 Teorema del sinus</span>
+                        <span class="thm-formula">a/sin(A) = b/sin(B) = c/sin(C)</span>
+                    </button>
+                    <button class="btn-theorem"
+                            onclick="checkTheorem('cosinus', this)"
+                            aria-label="Teorema del cosinus">
+                        <span class="thm-name">📐 Teorema del cosinus</span>
+                        <span class="thm-formula">c² = a² + b² − 2ab·cos(C)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pas 2: quin és el valor? -->
+            <div class="step-container" id="step-value">
+                <div class="value-buttons" id="value-buttons"
+                     role="group" aria-label="Tria el valor"></div>
+            </div>
+        </div>
+
+        <!-- Mini overlay victòria/fracàs -->
+        <div id="mini-victory-overlay" aria-live="assertive" aria-atomic="true">
+            <div class="vic-message-row">
+                <div class="mini-vic-text" id="mini-vic-text">Molt bé!</div>
+                <div class="star-icon"     id="mini-vic-icon">⭐</div>
+            </div>
+            <div class="mini-vic-points"   id="mini-vic-points">+1 punt</div>
+        </div>
+
+    </div><!-- /game-screen -->
+
+    <!-- PANTALLA FI DE SESSIÓ -->
+    <div id="session-end-screen">
+        <div class="trophy-icon">👍</div>
+        <h2 id="session-end-title">Sessió completada</h2>
+        <button class="btn-green" id="btn-next-session" onclick="startNextSession()">
+            Començar sessió següent
+        </button>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+    <div id="final-screen">
+        <div class="trophy-icon">🏆</div>
+        <h2>Activitat completada!</h2>
+        <div class="final-layout">
+            <div id="final-summary" class="final-summary"></div>
+        </div>
+        <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;">
+            <button class="btn-submit"
+                    onclick="showHistorySummary()"
+                    style="background-color:var(--primary);">
+                📋 Informe
+            </button>
+            <button class="btn-submit"
+                    onclick="finalitzar()"
+                    style="background-color:var(--text-muted);">
+                🔄 Tornar a jugar
+            </button>
+        </div>
+    </div>
+
+</div><!-- /panel -->
+
+
+<script>
+/* ================================================================
+   CONFIGURACIÓ
+   ================================================================ */
+const TOTAL_SESSIONS   = 1;
+const TOTAL_OPERATIONS = 8;
+const MAX_INTENTS      = 4;
+
+/* ================================================================
+   PALETA DE FONS
+   ================================================================ */
+const bgColors = [
+    '#f0fdfa','#f8fafc','#f0fdf4','#fefce8','#fff1f2',
+    '#ecfeff','#f5f3ff','#fffbeb','#fdf4ff','#f8fafc'
+];
+
+/* ================================================================
+   PROBLEMES — dades pedagògiques
+   Convenció de vèrtexs:
+     A (baix-esquerra) · B (baix-dreta) · C (dalt)
+     a = costat BC (oposat a A)
+     b = costat AC (oposat a B)
+     c = costat AB (base, oposat a C)
+   ================================================================ */
+const PROBLEMS = [
+
+    /* ─── DIFICULTAT 0 — Sinus, trobar costat ─────────────────── */
+    {
+        id:  0, difficulty: 0,
+        theorem: 'sinus',
+        given: { sides: { a: '√2' }, angles: { A: 30, B: 45 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '2', distractors: ['1', '√3', '√2'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+    },
+    {
+        id:  1, difficulty: 0,
+        theorem: 'sinus',
+        given: { sides: { a: '√3' }, angles: { A: 60, B: 30 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '1', distractors: ['2', '√3', '√2'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+    },
+
+    /* ─── DIFICULTAT 1 — Sinus + Cosinus, trobar costat ──────── */
+    {
+        id:  2, difficulty: 1,
+        theorem: 'sinus',
+        given: { sides: { a: '1' }, angles: { A: 30, B: 60 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '√3', distractors: ['2', '1', '√2'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+    },
+    {
+        id:  3, difficulty: 1,
+        theorem: 'sinus',
+        given: { sides: { a: '1' }, angles: { A: 45, B: 90 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '√2', distractors: ['1', '2', '√3'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+    },
+    {
+        id:  4, difficulty: 1,
+        theorem: 'cosinus',
+        given: { sides: { a: '2', b: '2' }, angles: { C: 60 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '2', distractors: ['√3', '2√2', '4'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+    },
+    {
+        id:  5, difficulty: 1,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '1' }, angles: { C: 90 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '√2', distractors: ['1', '2', '√3'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+    },
+    {
+        id:  6, difficulty: 1,
+        theorem: 'cosinus',
+        given: { sides: { a: '3', b: '4' }, angles: { C: 90 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '5', distractors: ['6', '7', '3√2'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+    },
+
+    /* ─── DIFICULTAT 2 — Mixt: costat i angle ────────────────── */
+    {
+        id:  7, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '√2' }, angles: { A: 45, B: 60 } },
+        find:  { type: 'side', name: 'b' },
+        answer: '√3', distractors: ['2', '1', '√6'],
+        step2hint: 'b = a · sin(B) / sin(A)',
+    },
+    {
+        id:  8, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '1', b: '√3' }, angles: { A: 30 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '60°', distractors: ['45°', '90°', '30°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+    },
+    {
+        id:  9, difficulty: 2,
+        theorem: 'sinus',
+        given: { sides: { a: '√2', b: '2' }, angles: { A: 30 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '45°', distractors: ['60°', '30°', '90°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+    },
+    {
+        id: 10, difficulty: 2,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '1' }, angles: { C: 120 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '√3', distractors: ['2', '√2', '1'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+    },
+    {
+        id: 11, difficulty: 2,
+        theorem: 'cosinus',
+        given: { sides: { a: '3', b: '4', c: '5' } },
+        find:  { type: 'angle', name: 'C' },
+        answer: '90°', distractors: ['60°', '45°', '30°'],
+        step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+    },
+
+    /* ─── DIFICULTAT 3 — Avançat: angles obtus i valors compostos */
+    {
+        id: 12, difficulty: 3,
+        theorem: 'sinus',
+        given: { sides: { a: '√3', b: '2' }, angles: { A: 60 } },
+        find:  { type: 'angle', name: 'B' },
+        answer: '90°', distractors: ['45°', '60°', '120°'],
+        step2hint: 'sin(B) = b · sin(A) / a',
+    },
+    {
+        id: 13, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '2', b: '2' }, angles: { C: 120 } },
+        find:  { type: 'side', name: 'c' },
+        answer: '2√3', distractors: ['2', '4', '√6'],
+        step2hint: 'c² = a² + b² − 2ab · cos(C)',
+    },
+    {
+        id: 14, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '1', c: '1' } },
+        find:  { type: 'angle', name: 'A' },
+        answer: '60°', distractors: ['45°', '90°', '30°'],
+        step2hint: 'cos(A) = (b² + c² − a²) / (2bc)',
+    },
+    {
+        id: 15, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '2', b: '2', c: '2√3' } },
+        find:  { type: 'angle', name: 'C' },
+        answer: '120°', distractors: ['90°', '60°', '150°'],
+        step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+    },
+    {
+        id: 16, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '√2', b: '√2', c: '2' } },
+        find:  { type: 'angle', name: 'C' },
+        answer: '90°', distractors: ['60°', '120°', '45°'],
+        step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+    },
+    {
+        id: 17, difficulty: 3,
+        theorem: 'cosinus',
+        given: { sides: { a: '1', b: '√3', c: '2' } },
+        find:  { type: 'angle', name: 'C' },
+        answer: '90°', distractors: ['60°', '30°', '120°'],
+        step2hint: 'cos(C) = (a² + b² − c²) / (2ab)',
+    },
+];
+
+/* ================================================================
+   POOLS PER DIFICULTAT
+   ================================================================ */
+const POOLS = {
+    0: PROBLEMS.filter(p => p.difficulty === 0),
+    1: PROBLEMS.filter(p => p.difficulty === 1),
+    2: PROBLEMS.filter(p => p.difficulty === 2),
+    3: PROBLEMS.filter(p => p.difficulty === 3),
+};
+
+function getDifficulty(opIdx) {
+    if (opIdx < 2) return 0;
+    if (opIdx < 4) return 1;
+    if (opIdx < 6) return 2;
+    return 3;
+}
+
+/* ================================================================
+   ESTAT DEL JOC
+   ================================================================ */
+let currentSession   = 0;
+let currentOperation = 0;
+let sessionScore     = 0;
+let sessionScores    = [];
+let attemptsLeft     = 0;
+let isTransitioning  = false;
+let isPenalizing     = false;
+let sessionHistory   = [];
+let usedIds          = new Set();
+let currentProblem   = null;
+
+/* ================================================================
+   CACHE DOM
+   ================================================================ */
+const els = {
+    body:            document.body,
+    gameScreen:      document.getElementById('game-screen'),
+    sessionDisplay:  document.getElementById('session-display'),
+    lvlDisplay:      document.getElementById('lvl-display'),
+    scoreDisplay:    document.getElementById('score-display'),
+    attemptsDisplay: document.getElementById('attempts-display'),
+    problemBox:      document.getElementById('problem-box'),
+    triangleSvg:     document.getElementById('triangle-svg'),
+    findLabel:       document.getElementById('find-label'),
+    resolutionPanel: document.getElementById('resolution-panel'),
+    stepInstruction: document.getElementById('step-instruction'),
+    formulaHint:     document.getElementById('formula-hint'),
+    stepTheorem:     document.getElementById('step-theorem'),
+    stepValue:       document.getElementById('step-value'),
+    valueButtons:    document.getElementById('value-buttons'),
+    miniOverlay:     document.getElementById('mini-victory-overlay'),
+    vicText:         document.getElementById('mini-vic-text'),
+    vicIcon:         document.getElementById('mini-vic-icon'),
+    vicPoints:       document.getElementById('mini-vic-points'),
+};
+
+/* ================================================================
+   GESTIÓ DE PANTALLES
+   ================================================================ */
+function showScreen(id) {
+    ['game-screen','session-end-screen','final-screen'].forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.style.display = 'none';
+    });
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+}
+
+/* ================================================================
+   INICI / FI
+   ================================================================ */
+function startGame() {
+    currentSession = 0; sessionScores = []; sessionHistory = []; usedIds = new Set();
+    showScreen('game-screen');
+    startSession();
+}
+function startSession() {
+    currentOperation = 0; sessionScore = 0;
+    buildLevel();
+}
+function endSession() {
+    sessionScores.push(sessionScore);
+    if (currentSession + 1 >= TOTAL_SESSIONS) {
+        renderFinalSummary(); showScreen('final-screen');
+    } else {
+        showScreen('session-end-screen');
+        document.getElementById('session-end-title').innerText =
+            `Sessió ${currentSession+1} completada`;
+        const btn = document.getElementById('btn-next-session');
+        btn.style.display = 'none';
+        setTimeout(() => { btn.style.display = 'inline-block'; isTransitioning = false; }, 1000);
+    }
+}
+function startNextSession() {
+    currentSession++; showScreen('game-screen'); startSession();
+}
+function calculaNotaSobre10() {
+    if (!sessionScores.length) return 0;
+    return Number((Math.max(...sessionScores) / TOTAL_OPERATIONS).toFixed(1));
+}
+function renderFinalSummary() {
+    let html = '';
+    for (let i = 0; i < sessionScores.length; i++) {
+        const pct = (sessionScores[i]/TOTAL_OPERATIONS).toFixed(1).replace('.', ',');
+        html += `<div class="session-line"><span>Sessió ${i+1}</span><span>${pct}</span></div>`;
+    }
+    const nota = calculaNotaSobre10().toFixed(1).replace('.', ',');
+    html += `<div style="margin-top:20px;text-align:left;">
+        <div style="font-size:0.95em;color:var(--text-muted);margin-bottom:5px;">La nota és:</div>
+        <div style="font-size:1.5em;font-weight:bold;color:var(--success);font-family:monospace;">${nota} / 10</div>
+    </div>`;
+    document.getElementById('final-summary').innerHTML = html;
+}
+function finalitzar() {
+    if (confirm('Segur que vols tornar a començar?')) window.location.reload();
+}
+
+/* ================================================================
+   MINI OVERLAY
+   ================================================================ */
+function showMiniOverlay(points, correctLabel) {
+    els.miniOverlay.style.display = 'flex';
+    if (points > 0) {
+        els.vicText.innerText     = 'Molt bé!';
+        els.vicText.style.color   = '#047857';
+        els.vicIcon.innerText     = '⭐';
+        els.vicPoints.innerText   = '+1 punt';
+        els.vicPoints.style.color = '#059669';
+        return 1500;
+    } else {
+        els.vicText.innerText     = 'Intents esgotats';
+        els.vicText.style.color   = 'var(--danger)';
+        els.vicIcon.innerText     = '❌';
+        els.vicPoints.innerHTML   = correctLabel
+            ? `Resposta: <strong style="font-family:monospace">${correctLabel}</strong>`
+            : '0 punts';
+        els.vicPoints.style.color = '#64748b';
+        return 3000;
+    }
+}
+function hideMiniOverlay() { els.miniOverlay.style.display = 'none'; }
+
+/* ================================================================
+   INFORME FINAL
+   ================================================================ */
+function showHistorySummary() {
+    const panel = document.querySelector('.panel');
+    ['game-screen','session-end-screen','final-screen'].forEach(s => {
+        const el = document.getElementById(s); if (el) el.style.display = 'none';
+    });
+    let sc = document.getElementById('history-summary-screen');
+    if (!sc) { sc = document.createElement('div'); sc.id = 'history-summary-screen'; panel.appendChild(sc); }
+    const encerts = sessionHistory.filter(i => i.ok);
+    const errades = sessionHistory.filter(i => !i.ok);
+    const liOk  = encerts.length
+        ? encerts.map(e => `<li style="padding:6px 0;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:10px;font-size:0.95em;color:#047857">
+            <span>${e.q}</span><span style="font-family:monospace;font-weight:bold">${e.a}</span></li>`).join('')
+        : '<li style="color:var(--text-muted);padding:6px 0">Cap encert.</li>';
+    const liBad = errades.length
+        ? errades.map(e => `<li style="padding:6px 0;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:10px;font-size:0.95em;color:#dc2626">
+            <span>${e.q}</span><span style="font-family:monospace;font-weight:bold">${e.a}</span></li>`).join('')
+        : '<li style="color:var(--text-muted);padding:6px 0">Cap errada! Partida perfecta 🎉</li>';
+    sc.innerHTML = `<div style="padding:30px 20px;max-width:700px;margin:0 auto;">
+        <h2 style="color:var(--primary);margin-bottom:20px;text-align:center">Resum de respostes</h2>
+        <h3 style="color:#047857;margin-bottom:8px">🟢 Encerts (${encerts.length})</h3>
+        <ul style="list-style:none;padding:0;margin-bottom:24px">${liOk}</ul>
+        <h3 style="color:#dc2626;margin-bottom:8px">🔴 Errades (${errades.length})</h3>
+        <ul style="list-style:none;padding:0;margin-bottom:24px">${liBad}</ul>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+            <button class="btn-submit" onclick="renderFinalSummary();showScreen('final-screen');"
+                    style="background-color:var(--primary)">← Tornar al resum</button>
+            <button class="btn-submit" onclick="finalitzar()"
+                    style="background-color:var(--text-muted)">🔄 Tornar a jugar</button>
+        </div></div>`;
+    sc.style.display = 'block';
+}
+
+/* ================================================================
+   SELECCIÓ DE PROBLEMA PER DIFICULTAT (sense repetició)
+   ================================================================ */
+function selectProblem(opIdx) {
+    const diff = getDifficulty(opIdx);
+    let pool = POOLS[diff].filter(p => !usedIds.has(p.id));
+    if (!pool.length) pool = POOLS[diff]; // reinicia si exhaurit
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    usedIds.add(p.id);
+    return p;
+}
+
+/* ================================================================
+   DIBUIX DEL TRIANGLE SVG (esquema fix, etiquetes dinàmiques)
+
+   Posicions fixes (viewBox 0 0 240 175):
+     A = (25, 155) — vèrtex baix-esquerra
+     B = (215,155) — vèrtex baix-dreta
+     C = (120, 22) — vèrtex dalt
+
+   Labels:
+     Lletres vèrtex (fora): A(9,166) B(225,166) C(119,10)
+     Costat a (BC): label a (185, 88) — costat dret
+     Costat b (AC): label a (55, 88)  — costat esquerre
+     Costat c (AB): label a (120,171) — base
+     Angle A (interior vèrtex): (52, 140)
+     Angle B (interior vèrtex): (183, 140)
+     Angle C (interior vèrtex): (120, 52)
+   ================================================================ */
+function drawTriangle(problem) {
+    const { given, find } = problem;
+
+    // Retorna { text, color, bold, size } o null
+    function getLabel(type, name) {
+        if (find.type === type && find.name === name) {
+            return { text: '?', color: '#d97706', bold: true, size: 17 };
+        }
+        if (type === 'side') {
+            const v = given.sides?.[name];
+            return v ? { text: v, color: '#334155', bold: true, size: 14 } : null;
+        } else {
+            const v = given.angles?.[name];
+            return (v !== undefined && v !== null)
+                ? { text: v+'°', color: '#0f766e', bold: false, size: 13 }
+                : null;
+        }
+    }
+
+    function svgTxt(x, y, lbl, anchor = 'middle') {
+        if (!lbl) return '';
+        const ff = lbl.bold
+            ? `font-family="'Courier New', monospace"`
+            : `font-family="'Segoe UI', sans-serif"`;
+        return `<text x="${x}" y="${y}"
+                      text-anchor="${anchor}"
+                      dominant-baseline="middle"
+                      ${ff}
+                      font-size="${lbl.size}"
+                      font-weight="${lbl.bold ? 'bold' : '600'}"
+                      fill="${lbl.color}">${lbl.text}</text>`;
+    }
+
+    const la  = getLabel('side',  'a');
+    const lb  = getLabel('side',  'b');
+    const lc  = getLabel('side',  'c');
+    const lAa = getLabel('angle', 'A');
+    const lBa = getLabel('angle', 'B');
+    const lCa = getLabel('angle', 'C');
+
+    // Destacar costat/angle desconegut en el triangle
+    function strokeColor(type, name) {
+        return (find.type === type && find.name === name) ? '#d97706' : '#94a3b8';
+    }
+    function strokeW(type, name) {
+        return (find.type === type && find.name === name) ? 3 : 2.2;
+    }
+
+    const lineA = `stroke="${strokeColor('side','a')}" stroke-width="${strokeW('side','a')}"`;
+    const lineB = `stroke="${strokeColor('side','b')}" stroke-width="${strokeW('side','b')}"`;
+    const lineC = `stroke="${strokeColor('side','c')}" stroke-width="${strokeW('side','c')}"`;
+
+    // Marcador d'angle recte (quadradet petit)
+    function rightAngleMark(vx, vy, p1x, p1y, p2x, p2y, size = 11) {
+        const d1x = p1x-vx, d1y = p1y-vy;
+        const d2x = p2x-vx, d2y = p2y-vy;
+        const l1 = Math.hypot(d1x,d1y), l2 = Math.hypot(d2x,d2y);
+        const u1x = d1x/l1*size, u1y = d1y/l1*size;
+        const u2x = d2x/l2*size, u2y = d2y/l2*size;
+        const mx  = vx+u1x+u2x, my = vy+u1y+u2y;
+        return `<polyline points="${(vx+u1x).toFixed(1)},${(vy+u1y).toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)} ${(vx+u2x).toFixed(1)},${(vy+u2y).toFixed(1)}"
+                          fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linejoin="miter"/>`;
+    }
+
+    // Afegir marcador d'angle recte si un angle és 90°
+    let extraMarkers = '';
+    const allAngles = { ...given.angles };
+    if (find.type === 'angle') {
+        // No coneixem l'angle que busquem, però sí els altres
+    }
+    for (const [name, val] of Object.entries(allAngles)) {
+        if (val === 90) {
+            if (name === 'A') extraMarkers += rightAngleMark(25,155, 215,155, 120,22);
+            if (name === 'B') extraMarkers += rightAngleMark(215,155, 25,155, 120,22);
+            if (name === 'C') extraMarkers += rightAngleMark(120,22, 25,155, 215,155);
+        }
+    }
+
+    els.triangleSvg.innerHTML = `
+        <!-- Costats del triangle -->
+        <line x1="25"  y1="155" x2="215" y2="155" ${lineC}/>
+        <line x1="25"  y1="155" x2="120" y2="22"  ${lineB}/>
+        <line x1="120" y1="22"  x2="215" y2="155" ${lineA}/>
+
+        ${extraMarkers}
+
+        <!-- Punts als vèrtexs -->
+        <circle cx="25"  cy="155" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
+        <circle cx="215" cy="155" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
+        <circle cx="120" cy="22"  r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
+
+        <!-- Lletres de vèrtex (sempre visibles, fora del triangle) -->
+        <text x="9"   y="168" text-anchor="middle" dominant-baseline="middle"
+              font-size="14" font-weight="bold" fill="#0f766e"
+              font-family="'Segoe UI', sans-serif">A</text>
+        <text x="231" y="168" text-anchor="middle" dominant-baseline="middle"
+              font-size="14" font-weight="bold" fill="#0f766e"
+              font-family="'Segoe UI', sans-serif">B</text>
+        <text x="120" y="9"  text-anchor="middle" dominant-baseline="middle"
+              font-size="14" font-weight="bold" fill="#0f766e"
+              font-family="'Segoe UI', sans-serif">C</text>
+
+        <!-- Etiquetes de costats -->
+        ${svgTxt(188, 88, la, 'start')}
+        ${svgTxt(52,  88, lb, 'end')}
+        ${svgTxt(120, 172, lc, 'middle')}
+
+        <!-- Etiquetes d'angles (interior dels vèrtexs) -->
+        ${svgTxt(52,  140, lAa, 'middle')}
+        ${svgTxt(183, 140, lBa, 'middle')}
+        ${svgTxt(120,  52, lCa, 'middle')}
+    `;
+}
+
+/* ================================================================
+   CONSTRUCCIÓ DEL NIVELL
+   ================================================================ */
+function buildLevel() {
+    attemptsLeft    = MAX_INTENTS;
+    isPenalizing    = false;
+    isTransitioning = false;
+
+    els.body.style.backgroundColor =
+        bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+
+    currentProblem = selectProblem(currentOperation);
+    const p = currentProblem;
+
+    // Dibuixa el triangle
+    drawTriangle(p);
+
+    // Actualitza la capçalera
+    els.sessionDisplay.innerText  = `Sessió ${currentSession+1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText      = `Problema ${currentOperation+1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.attemptsDisplay.className = 'attempts-counter';
+
+    // Etiqueta "Troba el costat/angle X"
+    const typeLabel = p.find.type === 'side' ? 'el costat' : "l'angle";
+    els.findLabel.innerHTML =
+        `Troba ${typeLabel} <span class="find-name">${p.find.name}</span>`;
+
+    // Instrucció pas 1
+    const findNameLbl = p.find.type === 'side'
+        ? `el costat <strong>${p.find.name}</strong>`
+        : `l'angle <strong>${p.find.name}</strong>`;
+    els.stepInstruction.innerHTML =
+        `Quin teorema cal aplicar per trobar ${findNameLbl}?`;
+
+    // Oculta pista de fórmula
+    els.formulaHint.textContent = '';
+    els.formulaHint.classList.remove('visible');
+
+    // Reset UI
+    hideMiniOverlay();
+    els.problemBox.style.display      = 'flex';
+    els.resolutionPanel.style.display = 'flex';
+    els.stepTheorem.classList.add('active');
+    els.stepValue.classList.remove('active');
+}
+
+/* ================================================================
+   PENALITZACIÓ
+   ================================================================ */
+function penalize(btn) {
+    if (isPenalizing || isTransitioning || attemptsLeft <= 0) return;
+    isPenalizing = true;
+    if (btn) {
+        btn.classList.add('error-shake');
+        setTimeout(() => btn.classList.remove('error-shake'), 400);
+    }
+    els.attemptsDisplay.classList.add('blink');
+    setTimeout(() => {
+        els.attemptsDisplay.classList.remove('blink');
+        attemptsLeft--;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' +
+            (attemptsLeft < 2 ? ' danger' : '');
+        isPenalizing = false;
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;
+            els.stepTheorem.classList.remove('active');
+            els.stepValue.classList.remove('active');
+            _finishOp(0);
+        }
+    }, 650);
+}
+
+/* ================================================================
+   FI D'OPERACIÓ
+   ================================================================ */
+function _finishOp(points) {
+    const p = currentProblem;
+    sessionScore += points;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+    // Registre per a l'informe
+    const typeLabel = p.find.type === 'side' ? 'costat' : 'angle';
+    sessionHistory.push({
+        q:  `${typeLabel} ${p.find.name} del triangle`,
+        a:  p.answer,
+        ok: points > 0,
+    });
+
+    const correctLabel = points === 0 ? `${p.find.name} = ${p.answer}` : null;
+    const waitTime = showMiniOverlay(points, correctLabel);
+
+    setTimeout(() => {
+        hideMiniOverlay();
+        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+            endSession();
+        } else {
+            currentOperation++;
+            buildLevel();
+        }
+    }, waitTime);
+}
+
+/* ================================================================
+   PAS 1: TEOREMA
+   ================================================================ */
+function checkTheorem(selected, btn) {
+    if (isTransitioning || isPenalizing || attemptsLeft <= 0) return;
+    const correct = currentProblem.theorem;
+
+    if (selected !== correct) {
+        penalize(btn);
+        // Mostrar retroalimentació pedagògica breu
+        const wrongName = selected === 'sinus' ? 'sinus' : 'cosinus';
+        const corrName  = correct  === 'sinus' ? 'sinus' : 'cosinus';
+        els.formulaHint.textContent =
+            `No. El teorema del ${wrongName} no és adequat aquí. Intenta-ho altra vegada.`;
+        els.formulaHint.classList.add('visible');
+        setTimeout(() => {
+            if (!isTransitioning) {
+                els.formulaHint.textContent = '';
+                els.formulaHint.classList.remove('visible');
+            }
+        }, 1800);
+        return;
+    }
+
+    // Teorema correcte → passa al pas 2
+    els.stepTheorem.classList.remove('active');
+    els.formulaHint.classList.remove('visible');
+
+    // Actualitza instrucció amb la fórmula específica
+    const findNameLbl = currentProblem.find.type === 'side'
+        ? `el costat <strong>${currentProblem.find.name}</strong>`
+        : `l'angle <strong>${currentProblem.find.name}</strong>`;
+    els.stepInstruction.innerHTML = `Quant val ${findNameLbl}?`;
+
+    // Mostra la pista de fórmula
+    els.formulaHint.textContent = currentProblem.step2hint;
+    els.formulaHint.classList.add('visible');
+
+    // Construeix els botons de valor
+    buildValueButtons();
+    els.stepValue.classList.add('active');
+}
+
+/* ================================================================
+   PAS 2: VALOR (4 opcions múltiples)
+   ================================================================ */
+function buildValueButtons() {
+    const p = currentProblem;
+    // Barreja resposta + 3 distractors
+    const options = [p.answer, ...p.distractors];
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+    }
+    els.valueButtons.innerHTML = '';
+    options.forEach(val => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-value';
+        btn.textContent = val;
+        btn.setAttribute('aria-label', val);
+        btn.onclick = () => checkValue(val, btn);
+        els.valueButtons.appendChild(btn);
+    });
+}
+
+function checkValue(val, btn) {
+    if (isTransitioning || isPenalizing || attemptsLeft <= 0) return;
+    if (val !== currentProblem.answer) {
+        penalize(btn);
+        return;
+    }
+    // Correcte!
+    els.stepValue.classList.remove('active');
+    els.formulaHint.classList.remove('visible');
+    isTransitioning = true;
+    _finishOp(1);
+}
+
+/* ================================================================
+   ARRANCADA
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => { startGame(); });
+</script>
+</body>
+</html>
