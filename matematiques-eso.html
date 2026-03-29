@@ -155,13 +155,15 @@
     .topic-bar {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 0 18px;
+      gap: 10px;
+      padding: 0 14px;
       height: 52px;
       background: var(--white);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
+    .bar-info  { flex: 1; min-width: 0; overflow: hidden; }
+    .bar-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .back-btn {
       display: flex; align-items: center; gap: 5px;
       font-size: 13px; font-weight: 600; color: var(--accent);
@@ -176,13 +178,11 @@
     .bar-title { font-size: 15px; font-weight: 700; color: #0f172a; }
     .bar-sub   { font-size: 12px; color: var(--text-muted); }
 
-    .bar-spacer { flex: 1; }
-
     .copy-link-btn {
       display: flex; align-items: center; gap: 6px;
       font-size: 12px; font-weight: 600; color: var(--text-muted);
       background: var(--bg-body); border: 1px solid var(--border);
-      padding: 5px 12px; border-radius: 8px; cursor: pointer;
+      padding: 5px 11px; border-radius: 8px; cursor: pointer;
       transition: background .15s, color .15s, border-color .15s;
       white-space: nowrap;
     }
@@ -191,16 +191,23 @@
     .copy-link-btn.copied { color: #15803d; border-color: #86efac; background: #f0fdf4; }
 
     .classroom-btn {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; gap: 5px;
       font-size: 12px; font-weight: 600; color: var(--text-muted);
       background: var(--bg-body); border: 1px solid var(--border);
-      padding: 5px 12px; border-radius: 8px; cursor: pointer;
+      padding: 5px 11px; border-radius: 8px; cursor: pointer;
       transition: background .15s, color .15s, border-color .15s;
       white-space: nowrap;
     }
     .classroom-btn:hover { background: #fefce8; color: #a16207; border-color: #fde047; }
     .classroom-btn.copied { color: #15803d; border-color: #86efac; background: #f0fdf4; }
     .classroom-btn.error  { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
+
+    /* On narrow screens: hide button text, keep icon only */
+    @media (max-width: 520px) {
+      .btn-label { display: none; }
+      .copy-link-btn, .classroom-btn { padding: 6px 8px; }
+      .bar-sub { display: none; }
+    }
 
     .panels {
       display: grid;
@@ -374,10 +381,7 @@
     footer a { color: #475569; }
 
     @media (max-width: 860px)  { .panels { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 560px)  {
-      .panels { grid-template-columns: 1fr; padding: 8px; }
-      .bar-sub { display: none; }
-    }
+    @media (max-width: 560px)  { .panels { grid-template-columns: 1fr; padding: 8px; } }
   </style>
 </head>
 <body>
@@ -417,21 +421,22 @@
       Tots els temes
     </button>
     <div class="bar-sep"></div>
-    <div>
+    <div class="bar-info">
       <span class="bar-title" id="bar-title"></span>
       <span class="bar-sub"   id="bar-sub"></span>
     </div>
-    <div class="bar-spacer"></div>
-    <button class="copy-link-btn" id="copy-link-btn" onclick="copyTopicLink()">
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </svg>
-      Copia enllaç
-    </button>
-    <button class="classroom-btn" id="classroom-btn" onclick="copyClassroomText()">
-      📋 Text Classroom
-    </button>
+    <div class="bar-actions">
+      <button class="copy-link-btn" id="copy-link-btn" onclick="copyTopicLink()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span class="btn-label">Copia enllaç</span>
+      </button>
+      <button class="classroom-btn" id="classroom-btn" onclick="copyClassroomText()">
+        📋 <span class="btn-label">Text Classroom</span>
+      </button>
+    </div>
   </div>
   <div class="panels" id="panels-wrap"></div>
 </div>
@@ -442,59 +447,32 @@
 </footer>
 
 <script>
-/* ─── CONFIG ────────────────────────────────────────── */
-// ✏️  Canvia aquesta URL pel domini on allotges el fitxer:
+/* ─── CONFIG ─────────────────────────────────────────────────────────
+   ✏️  Canvia BASE_URL pel domini on allotges el fitxer.
+   ✏️  CSV_FILE ha d'estar a la mateixa carpeta que l'HTML.
+──────────────────────────────────────────────────────────────────── */
 const BASE_URL = 'https://el-teu-domini.com/matematiques-eso.html';
+const CSV_FILE = 'data-classroom.csv';
 
-/* ─── DATA ─────────────────────────────────────────── */
+/* ─── PANEL METADATA
+   Les claus coincideixen amb les capçaleres del CSV.
+   Aquí és l'ÚNICA vegada que s'escriu qui és cada canal/autor.
+──────────────────────────────────────────────────────────────────── */
+const PANEL_META = {
+  'apunts-bogdan':    { dot: 'dot-pdf',    type: 'pdf',   label: 'PDF · Apunts i exercicis', name: 'Bogdan Crintea'              },
+  'teoria-pildoras':  { dot: 'dot-theory', type: 'video', label: 'Vídeos de teoria',          name: 'Píldoras Matemáticas'        },
+  'problemes-bogdan': { dot: 'dot-solved', type: 'video', label: 'Problemes resolts',         name: 'Matemàtiques amb Bogdan'     },
+};
+
+/* ─── UI METADATA (home grid only — no contingut) ────────────────── */
 const ALL_TOPICS = {
   eso: [
-    {
-      id: 'trigonometria', icon: '📐', title: 'Trigonometria',
-      desc: 'Raons trigonomètriques, circumferència goniomètrica, resolució de triangles',
-      ready: true,
-      pdf: { src: 'Bogdan_-_Trigonometria-apunts-i-problemes.pdf', author: 'Bogdan Crintea' },
-      theory: {
-        channel: 'Píldoras Matemáticas',
-        videos: [
-          { id: 'wkEO3C2CBG4', title: 'Introducció a la Trigonometria',           note: '' },
-          { id: 'SYsnjzHuvfc', title: 'Raons trigonomètriques',                    note: '' },
-          { id: 'yCw4GQ33rVk', title: 'Sinus, cosinus i tangent',                  note: '' },
-          { id: 'qmIqJqHQRIs', title: 'Angles i circumferència goniomètrica',      note: '' },
-          { id: 'hdHaqKbDDtc', title: 'Identitats i relacions trigonomètriques',   note: '' },
-        ]
-      },
-      solved: {
-        channel: 'Matemàtiques amb Bogdan',
-        videos: [
-          { id: 'gNiFx-U9gD4', title: 'Ex 1 – Raons trigonomètriques dels angles', note: '' },
-          { id: 'eNPx8VB4z4U', title: 'Ex 2 – Triangle rectangle catets 5 i 12 cm', note: '' },
-          { id: 'kaqStTKJozQ', title: 'Ex 3 – Raons a partir de sin(α)',            note: '' },
-          { id: 'VqkC8HGiq5o', title: 'Ex 4 – Raons a partir de cos i tg',         note: '' },
-          { id: '6NA9q85avx0', title: 'Ex 5 – sin(α) = 2·cos(α)',                  note: '' },
-          { id: 'cbQAphh3Hi0', title: 'Ex 6 – Angles i quadrants (sin = 1/3)',     note: '' },
-          { id: 'MLoP2oROPkE', title: 'Ex 7 – Angles i quadrants (cos = 2/3)',     note: '' },
-          { id: 'LExSoMiprQU', title: 'Ex 8 – Angle del 2n quadrant',              note: '' },
-          { id: '4mqCRMJuzJY', title: 'Ex 9 – Equacions trigonomètriques',         note: '' },
-          { id: '073xMduKNnU', title: 'Ex 10 – Equacions trigonomètriques II',     note: '' },
-          { id: 'EXaBzQi-fAE', title: 'Ex 11 – Resolució de triangles',            note: '' },
-          { id: '6jVaspfGhTE', title: 'Ex 12 – Altura triangle equilàter',         note: '' },
-          { id: 'rsYHNk40udQ', title: 'Ex 13 – Àrea pentàgon regular',             note: '' },
-          { id: 'bg85tVNTOvo', title: 'Ex 14 – Àrea triangle isòsceles 45°',       note: '' },
-          { id: 'eYbLQFoNBWg', title: 'Ex 15 – Altura globus (cable 100 m, 72°)',  note: '' },
-          { id: 'ePASVGY-iFQ', title: 'Ex 16 – Altura estel (fil 100 m, 60°)',     note: '' },
-          { id: 'VlwJYNOAv7E', title: 'Ex 17 – Tenda de campanya cònica',          note: '' },
-          { id: 'HPGU94BNvWc', title: "Ex 18 – Diagonal interior d'un cub",        note: '' },
-          { id: 'B7UF4IAT2sU', title: 'Ex 19 – Distància al far des del vaixell',  note: '' },
-          { id: 'GiAXIn0El_E', title: 'Ex 20 – Altura arbre i amplada del riu',    note: '' },
-        ]
-      }
-    },
-    { id: 'algebra',     icon: '🔢', title: 'Àlgebra',     desc: 'Equacions, sistemes, polinomis',                      ready: false },
-    { id: 'geometria',   icon: '📏', title: 'Geometria',   desc: 'Àrea, perímetre, volums i semblança',                  ready: false },
-    { id: 'estadistica', icon: '📊', title: 'Estadística', desc: 'Mesures centrals, dispersió i probabilitat',           ready: false },
-    { id: 'funcions',    icon: '📈', title: 'Funcions',    desc: 'Lineal, quadràtica, exponencial, logarítmica',         ready: false },
-    { id: 'nombres',     icon: '🔣', title: 'Nombres',     desc: 'Enters, fraccions, potències i radicals',              ready: false },
+    { id: 'trigonometria', icon: '📐', title: 'Trigonometria', desc: 'Raons trigonomètriques, circumferència goniomètrica, resolució de triangles', ready: true  },
+    { id: 'algebra',       icon: '🔢', title: 'Àlgebra',       desc: 'Equacions, sistemes, polinomis',                                              ready: false },
+    { id: 'geometria',     icon: '📏', title: 'Geometria',     desc: 'Àrea, perímetre, volums i semblança',                                         ready: false },
+    { id: 'estadistica',   icon: '📊', title: 'Estadística',   desc: 'Mesures centrals, dispersió i probabilitat',                                  ready: false },
+    { id: 'funcions',      icon: '📈', title: 'Funcions',      desc: 'Lineal, quadràtica, exponencial, logarítmica',                                ready: false },
+    { id: 'nombres',       icon: '🔣', title: 'Nombres',       desc: 'Enters, fraccions, potències i radicals',                                     ready: false },
   ],
   batx: [
     { id: 'derivades',  icon: '∂', title: 'Derivades',           desc: 'Regles de derivació i derivada composta',        ready: false },
@@ -505,10 +483,71 @@ const ALL_TOPICS = {
   ]
 };
 
-/* ─── STATE ────────────────────────────────────────── */
-let currentTopic = null;
+/* ─── STATE ──────────────────────────────────────────────────────── */
+let currentTopic     = null;   // { id, icon, title, desc, ready }  — des de ALL_TOPICS
+let currentTopicData = null;   // { subject, text, apunts-bogdan, teoria-pildoras[], problemes-bogdan[] } — des del CSV
 
-/* ─── BUILD HOME GRIDS ─────────────────────────────── */
+/* ─── CSV PARSER ─────────────────────────────────────────────────── */
+// Parseja una línia de CSV gestionant camps entre cometes.
+function parseCSVRow(line) {
+  const fields = [];
+  let i = 0;
+  while (i <= line.length) {
+    if (i === line.length) { fields.push(''); break; }
+    if (line[i] === '"') {
+      i++;
+      let val = '';
+      while (i < line.length) {
+        if (line[i] === '"' && line[i + 1] === '"') { val += '"'; i += 2; }
+        else if (line[i] === '"') { i++; break; }
+        else val += line[i++];
+      }
+      fields.push(val);
+      if (line[i] === ',') i++;
+    } else {
+      let val = '';
+      while (i < line.length && line[i] !== ',') val += line[i++];
+      fields.push(val.trim());
+      if (line[i] === ',') i++;
+    }
+  }
+  return fields;
+}
+
+// Parseja una cel·la de vídeos: "id:Títol|id:Títol|..."
+function parseVideos(cell) {
+  if (!cell || !cell.trim()) return [];
+  return cell.trim().split('|').map(entry => {
+    const sep = entry.indexOf(':');
+    if (sep < 0) return null;
+    return { id: entry.substring(0, sep).trim(), title: entry.substring(sep + 1).trim(), note: '' };
+  }).filter(Boolean);
+}
+
+// Carrega el CSV i retorna les dades de la fila corresponent a l'id demanat.
+async function fetchTopicData(id) {
+  const res = await fetch(CSV_FILE);
+  if (!res.ok) throw new Error('No s\'ha pogut carregar ' + CSV_FILE);
+  const lines   = (await res.text()).trim().split('\n');
+  const headers = parseCSVRow(lines[0]);  // subject, text, apunts-bogdan, teoria-pildoras, problemes-bogdan
+
+  for (let i = 1; i < lines.length; i++) {
+    const fields = parseCSVRow(lines[i]);
+    if (fields[0] !== id) continue;
+    const row = {};
+    headers.forEach((h, idx) => row[h] = fields[idx] || '');
+    return {
+      subject:            row['subject'],
+      text:               row['text'],
+      'apunts-bogdan':    row['apunts-bogdan'],
+      'teoria-pildoras':  parseVideos(row['teoria-pildoras']),
+      'problemes-bogdan': parseVideos(row['problemes-bogdan']),
+    };
+  }
+  throw new Error(`No s'ha trobat la fila "${id}" al CSV.`);
+}
+
+/* ─── HOME GRID ──────────────────────────────────────────────────── */
 function buildGrid(containerId, topics) {
   const grid = document.getElementById(containerId);
   topics.forEach((t, i) => {
@@ -528,26 +567,38 @@ function buildGrid(containerId, topics) {
     grid.appendChild(card);
   });
 }
-
 buildGrid('grid-eso',  ALL_TOPICS.eso);
 buildGrid('grid-batx', ALL_TOPICS.batx);
 
-/* ─── NAVIGATION ───────────────────────────────────── */
-function openTopic(t) {
-  currentTopic = t;
-  // Reset video selections for new topic
+/* ─── NAVIGATION ─────────────────────────────────────────────────── */
+async function openTopic(t) {
+  currentTopic     = t;
+  currentTopicData = null;
   makeVideoPanel._state = {};
 
   document.getElementById('bar-title').textContent = t.icon + '  ' + t.title;
   document.getElementById('bar-sub').textContent   = ' · ' + t.desc;
-
-  // Update URL without reloading (no-op in sandboxed iframes)
   try { history.pushState({ subject: t.id }, '', '?subject=' + t.id); } catch(e) {}
 
-  renderPanels();
-
+  // Mostra la pàgina del tema amb indicador de càrrega
   document.getElementById('page-home').style.display  = 'none';
   document.getElementById('page-topic').style.display = 'flex';
+  document.getElementById('panels-wrap').innerHTML =
+    `<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;
+                 color:var(--text-muted);font-size:14px;gap:8px;padding:60px 20px;">
+       ⏳ Carregant recursos…
+     </div>`;
+
+  try {
+    currentTopicData = await fetchTopicData(t.id);
+    renderPanels();
+  } catch (err) {
+    document.getElementById('panels-wrap').innerHTML =
+      `<div style="grid-column:1/-1;padding:40px;color:#b91c1c;font-size:14px;">
+         ⚠️ ${err.message}
+       </div>`;
+    console.error(err);
+  }
 }
 
 function goHome() {
@@ -556,110 +607,71 @@ function goHome() {
   document.getElementById('page-home').style.display  = 'flex';
 }
 
-function copyTopicLink() {
-  const url = BASE_URL + '?subject=' + currentTopic.id;
-
-  function showCopied() {
-    const btn = document.getElementById('copy-link-btn');
-    btn.classList.add('copied');
-    btn.innerHTML = '👍 Copiat!';
-    setTimeout(() => {
-      btn.classList.remove('copied');
-      btn.innerHTML = `
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             fill="none" stroke="currentColor" width="13" height="13">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>
-        Copia enllaç`;
-    }, 2000);
-  }
-
-  // Modern API
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(showCopied).catch(() => fallback());
-  } else {
-    fallback();
-  }
-
-  function fallback() {
-    // Create a temporary textarea and copy from it
-    const ta = document.createElement('textarea');
-    ta.value = url;
-    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
+/* ─── CLIPBOARD HELPERS ──────────────────────────────────────────── */
+function writeToClipboard(text, onOk, onFail) {
+  const doFallback = () => {
     try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
       document.execCommand('copy');
-      showCopied();
-    } catch {
-      // Last resort: show the URL so the user can copy manually
-      prompt('Copia aquest enllaç:', url);
-    }
-    document.body.removeChild(ta);
-  }
+      document.body.removeChild(ta);
+      onOk();
+    } catch { onFail && onFail(); }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(text).then(onOk).catch(doFallback);
+  else
+    doFallback();
 }
 
+function copyTopicLink() {
+  const btn = document.getElementById('copy-link-btn');
+  const url = BASE_URL + '?subject=' + currentTopic.id;
+  writeToClipboard(url,
+    () => {
+      btn.classList.add('copied');
+      btn.innerHTML = '👍 <span class="btn-label">Copiat!</span>';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" fill="none" stroke="currentColor" width="13" height="13">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg><span class="btn-label">Copia enllaç</span>`;
+      }, 2000);
+    },
+    () => prompt('Copia aquest enllaç:', url)
+  );
+}
 
 function copyClassroomText() {
   const btn = document.getElementById('classroom-btn');
-  const id  = currentTopic.id;
-
-  fetch('data-classroom.csv')
-    .then(r => {
-      if (!r.ok) throw new Error('No s\'ha pogut carregar data-classroom.csv');
-      return r.text();
-    })
-    .then(csv => {
-      // Parse CSV rows (skip header), handles quoted fields
-      const rows = csv.trim().split('\n').slice(1);
-      let found = null;
-      for (const row of rows) {
-        const match = row.match(/^([^,]+),(.+)$/s);
-        if (!match) continue;
-        if (match[1].trim() === id) {
-          found = match[2].trim().replace(/^"|"$/g, '');
-          break;
-        }
-      }
-      if (!found) throw new Error(`No s'ha trobat text per a "${id}".`);
-
-      // Append the direct link at the end
-      const link = BASE_URL + '?subject=' + id;
-      const full = found + '\n\n🔗 ' + link;
-
-      // Copy to clipboard
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        return navigator.clipboard.writeText(full);
-      } else {
-        const ta = document.createElement('textarea');
-        ta.value = full;
-        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
-    })
-    .then(() => {
+  if (!currentTopicData) return;  // dades del CSV ja carregades en obrir el tema
+  const full = currentTopicData.text + '\n\n🔗 ' + BASE_URL + '?subject=' + currentTopic.id;
+  writeToClipboard(full,
+    () => {
       btn.classList.add('copied');
-      btn.textContent = '👍 Copiat!';
+      btn.innerHTML = '👍 <span class="btn-label">Copiat!</span>';
       setTimeout(() => {
         btn.classList.remove('copied');
-        btn.innerHTML = '📋 Text Classroom';
+        btn.innerHTML = '📋 <span class="btn-label">Text Classroom</span>';
       }, 2000);
-    })
-    .catch(err => {
+    },
+    () => {
       btn.classList.add('error');
-      btn.textContent = '⚠️ Error';
-      console.error(err);
+      btn.innerHTML = '⚠️ <span class="btn-label">Error</span>';
       setTimeout(() => {
         btn.classList.remove('error');
-        btn.innerHTML = '📋 Text Classroom';
+        btn.innerHTML = '📋 <span class="btn-label">Text Classroom</span>';
       }, 2500);
-    });
+    }
+  );
 }
 
+/* ─── BROWSER HISTORY ────────────────────────────────────────────── */
 window.addEventListener('popstate', () => {
   const id = new URLSearchParams(window.location.search).get('subject');
   if (id) {
@@ -670,7 +682,7 @@ window.addEventListener('popstate', () => {
   document.getElementById('page-home').style.display  = 'flex';
 });
 
-// Auto-open topic from URL on page load
+// Obre directament el tema si la URL ja té ?subject=
 (function() {
   const id = new URLSearchParams(window.location.search).get('subject');
   if (id) {
@@ -679,49 +691,47 @@ window.addEventListener('popstate', () => {
   }
 })();
 
-/* ─── RENDER ───────────────────────────────────────── */
+/* ─── RENDER PANELS ──────────────────────────────────────────────── */
 function renderPanels() {
   const wrap = document.getElementById('panels-wrap');
   wrap.innerHTML = '';
   wrap.appendChild(makePDFPanel());
-  wrap.appendChild(makeVideoPanel('theory'));
-  wrap.appendChild(makeVideoPanel('solved'));
+  wrap.appendChild(makeVideoPanel('teoria-pildoras'));
+  wrap.appendChild(makeVideoPanel('problemes-bogdan'));
 }
 
 function makePDFPanel() {
-  const t = currentTopic;
-  const div = document.createElement('div');
+  const meta = PANEL_META['apunts-bogdan'];
+  const src  = currentTopicData['apunts-bogdan'];
+  const div  = document.createElement('div');
   div.className = 'panel';
   div.innerHTML = `
     <div class="panel-head">
-      <div class="panel-dot dot-pdf"></div>
+      <div class="panel-dot ${meta.dot}"></div>
       <div>
-        <div class="panel-label">PDF · Apunts i exercicis</div>
-        <div class="panel-name">${t.pdf.author}</div>
+        <div class="panel-label">${meta.label}</div>
+        <div class="panel-name">${meta.name}</div>
       </div>
     </div>
     <div class="panel-body">
-      <iframe src="${t.pdf.src}" title="Apunts PDF"></iframe>
+      <iframe src="${src}" title="Apunts PDF"></iframe>
     </div>`;
   return div;
 }
 
-function makeVideoPanel(type) {
-  const t      = currentTopic;
-  const cfg    = t[type];
-  const dotCls = type === 'theory' ? 'dot-theory' : 'dot-solved';
-  const label  = type === 'theory' ? 'Vídeos de teoria' : 'Problemes resolts';
+function makeVideoPanel(colKey) {
+  const meta   = PANEL_META[colKey];
+  const videos = currentTopicData[colKey];
 
-  // Track active video index per panel type
   if (!makeVideoPanel._state) makeVideoPanel._state = {};
-  if (makeVideoPanel._state[type] === undefined) makeVideoPanel._state[type] = 0;
-  const activeIdx = makeVideoPanel._state[type];
-  const activeVid = cfg.videos[activeIdx];
+  if (!makeVideoPanel._state[colKey]) makeVideoPanel._state[colKey] = 0;
+  const activeIdx = makeVideoPanel._state[colKey];
+  const activeVid = videos[activeIdx] || videos[0];
 
   const div = document.createElement('div');
   div.className = 'panel';
 
-  const listHTML = cfg.videos.map((v, i) => `
+  const listHTML = videos.map((v, i) => `
     <div class="video-item${i === activeIdx ? ' v-active' : ''}" data-idx="${i}">
       <div class="v-left">
         <div class="v-thumb">
@@ -730,10 +740,8 @@ function makeVideoPanel(type) {
             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           </div>
         </div>
-        <a class="yt-btn"
-           href="https://www.youtube.com/watch?v=${v.id}"
-           target="_blank" rel="noopener"
-           onclick="event.stopPropagation()">
+        <a class="yt-btn" href="https://www.youtube.com/watch?v=${v.id}"
+           target="_blank" rel="noopener" onclick="event.stopPropagation()">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           YouTube
         </a>
@@ -746,18 +754,17 @@ function makeVideoPanel(type) {
 
   div.innerHTML = `
     <div class="panel-head">
-      <div class="panel-dot ${dotCls}"></div>
+      <div class="panel-dot ${meta.dot}"></div>
       <div>
-        <div class="panel-label">${label}</div>
-        <div class="panel-name">${cfg.channel}</div>
+        <div class="panel-label">${meta.label}</div>
+        <div class="panel-name">${meta.name}</div>
       </div>
     </div>
     <div class="panel-body">
       <div class="video-wrap">
-        <a class="yt-hero"
-           href="https://www.youtube.com/watch?v=${activeVid.id}"
-           target="_blank" rel="noopener" id="hero-${type}">
-          <img id="hero-img-${type}"
+        <a class="yt-hero" href="https://www.youtube.com/watch?v=${activeVid.id}"
+           target="_blank" rel="noopener" id="hero-${colKey}">
+          <img id="hero-img-${colKey}"
                src="https://img.youtube.com/vi/${activeVid.id}/hqdefault.jpg"
                alt="${activeVid.title}">
           <div class="yt-hero-overlay">
@@ -765,31 +772,26 @@ function makeVideoPanel(type) {
               <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               Obre a YouTube
             </div>
-            <div class="yt-hero-title" id="hero-title-${type}">${activeVid.title}</div>
+            <div class="yt-hero-title" id="hero-title-${colKey}">${activeVid.title}</div>
           </div>
         </a>
-        <div class="video-list" id="vlist-${type}">${listHTML}</div>
+        <div class="video-list">${listHTML}</div>
       </div>
     </div>`;
 
-  // Click on a list item → update hero (no page reload)
+  // Clic a la llista → actualitza la miniatura gran sense recarregar
   div.querySelectorAll('.video-item').forEach(el => {
     el.addEventListener('click', () => {
       const idx = +el.dataset.idx;
-      const v   = cfg.videos[idx];
-      makeVideoPanel._state[type] = idx;
-
-      // Update hero
-      const hero = div.querySelector(`#hero-${type}`);
+      const v   = videos[idx];
+      makeVideoPanel._state[colKey] = idx;
+      const hero = div.querySelector(`#hero-${colKey}`);
       hero.href = `https://www.youtube.com/watch?v=${v.id}`;
-      div.querySelector(`#hero-img-${type}`).src =
+      div.querySelector(`#hero-img-${colKey}`).src =
         `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`;
-      div.querySelector(`#hero-title-${type}`).textContent = v.title;
-
-      // Update active state in list
+      div.querySelector(`#hero-title-${colKey}`).textContent = v.title;
       div.querySelectorAll('.video-item').forEach((e, i) =>
         e.classList.toggle('v-active', i === idx));
-
       el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
   });
@@ -797,5 +799,6 @@ function makeVideoPanel(type) {
   return div;
 }
 </script>
+
 </body>
 </html>
