@@ -272,10 +272,10 @@
     .panel:nth-child(5) { animation-delay: .24s; }
 
     /* Els panells de vídeo (col 2 i 3) necessiten altura explícita per fer scroll intern */
-    .panel-col2 .video-list,
-    .panel-col3 .video-list {
-      max-height: none;
-      flex: 1;
+    .panel-col2 .video-list.open,
+    .panel-col3 .video-list.open {
+      max-height: calc(100dvh - 220px);
+      flex: 1 1 auto;
       overflow-y: auto;
     }
     .panel-col2 .video-wrap,
@@ -354,9 +354,51 @@
 
     /* ── Hero YouTube thumbnail ──────────────────────────────────────── */
     .video-wrap { display: flex; flex-direction: column; }   /* natural height */
+    /* ── Playlist toggle button ─────────────────────────────────────── */
+    .playlist-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 14px;
+      font-size: 12px; font-weight: 600; letter-spacing: -.01em;
+      color: var(--text-2);
+      cursor: pointer; border: none;
+      background: var(--surface-2);
+      border-top: 1px solid var(--divider-2);
+      width: 100%; text-align: left;
+      transition: background .15s var(--ease), color .15s var(--ease);
+      flex-shrink: 0; gap: 8px;
+      user-select: none;
+    }
+    .playlist-toggle:hover { background: var(--bg); color: var(--text); }
+    .playlist-toggle.open  { color: var(--accent); }
+    .playlist-toggle .toggle-arrow {
+      width: 14px; height: 14px; flex-shrink: 0;
+      stroke: currentColor; fill: none;
+      transition: transform .22s var(--ease);
+    }
+    .playlist-toggle.open .toggle-arrow { transform: rotate(90deg); }
+    .playlist-count {
+      display: inline-flex; align-items: center;
+      background: rgba(0,0,0,.06); color: var(--text-3);
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 980px;
+      margin-left: 4px;
+    }
+    .playlist-toggle.open .playlist-count {
+      background: rgba(0,113,227,.1); color: var(--accent);
+    }
+
     .video-list {
+      /* plegada per defecte */
+      overflow: hidden;
+      max-height: 0;
+      flex: 0 0 0;
+      transition: max-height .35s var(--ease);
+    }
+    .video-list.open {
       overflow-y: auto;
-      max-height: 400px;        /* 60% més que l'implícit anterior ~250px */
+      /* màxim de pantalla disponible, scroll intern */
+      max-height: calc(100dvh - 220px);
+      flex: 1 1 auto;
     }
 
     .yt-hero {
@@ -492,8 +534,8 @@
       .panel-col1 { grid-column: auto; }
       .panel-col2 { grid-column: auto; grid-row: auto; }
       .panel-col3 { grid-column: auto; grid-row: auto; }
-      .panel-col2 .video-list,
-      .panel-col3 .video-list { max-height: 360px; flex: none; overflow-y: auto; }
+      .panel-col2 .video-list.open,
+      .panel-col3 .video-list.open { max-height: calc(100dvh - 200px); flex: 1 1 auto; overflow-y: auto; }
       .panel-col2 .video-wrap,
       .panel-col3 .video-wrap { height: auto; flex: none; }
       .panel-col2 .panel-body,
@@ -503,8 +545,8 @@
     /* Mòbil vertical */
     @media (max-width: 600px) {
       .panels { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px 24px; }
-      .panel-col2 .video-list,
-      .panel-col3 .video-list { max-height: 300px; }
+      .panel-col2 .video-list.open,
+      .panel-col3 .video-list.open { max-height: calc(100dvh - 180px); }
     }
 
     /* Mòbil horitzontal */
@@ -962,9 +1004,33 @@ function makeVideoPanel(colKey, colClass) {
             <div class="yt-hero-title" id="hero-title-${colKey}">${activeVid.title}</div>
           </div>
         </a>
-        <div class="video-list">${listHTML}</div>
+        <button class="playlist-toggle" aria-expanded="false" aria-controls="list-${colKey}">
+          <span>
+            Playlist
+            <span class="playlist-count">${videos.length}</span>
+          </span>
+          <svg class="toggle-arrow" viewBox="0 0 24 24" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </button>
+        <div class="video-list" id="list-${colKey}">${listHTML}</div>
       </div>
     </div>`;
+
+  // Toggle playlist collapse/expand
+  const toggleBtn = div.querySelector('.playlist-toggle');
+  const listEl    = div.querySelector('.video-list');
+  toggleBtn.addEventListener('click', () => {
+    const isOpen = listEl.classList.toggle('open');
+    toggleBtn.classList.toggle('open', isOpen);
+    toggleBtn.setAttribute('aria-expanded', isOpen);
+    if (isOpen) {
+      // scroll the active item into view when opening
+      const activeItem = listEl.querySelector('.v-active');
+      if (activeItem) activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  });
 
   // Clic a la llista → actualitza la miniatura gran sense recarregar
   div.querySelectorAll('.video-item').forEach(el => {
