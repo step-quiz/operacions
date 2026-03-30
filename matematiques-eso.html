@@ -879,9 +879,9 @@ function copyClassroomText() {
     }, 2000);
   }
 
-  if (!currentTopicData || !currentTopicData.text) { showErr(); return; }
+  if (!currentTopicData) { showErr(); return; }
 
-  const full = currentTopicData.text + '\n\n🔗 ' + BASE_URL + '?subject=' + currentTopic.id;
+  const full = 'Fes els exercicis que es descriuen a continuació.\nFes fotografies dels exercicis a la teva llibreta, crea un únic PDF i adjunta\'l a la teva tasca Classroom.\nEls exercicis es troben aquí:\n🔗 ' + BASE_URL + '?subject=' + currentTopic.id;
   writeToClipboard(full, showOk, showErr);
 }
 
@@ -949,7 +949,6 @@ function makeDrivePanel(colKey, colClass) {
     ${hasUrl
       ? `<a class="drive-link" href="${url}" target="_blank" rel="noopener">
            <div class="drive-icon">${icon}</div>
-           <div class="drive-label">${meta.label}</div>
            <div class="drive-open-btn">
              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2.5"
