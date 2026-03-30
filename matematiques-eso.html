@@ -170,9 +170,10 @@
     #page-topic {
       display: none;
       flex-direction: column;
-      height: 100vh;           /* fallback */
-      height: 100svh;          /* ⑦ exclou barres dinàmiques del navegador */
-      overflow: hidden;
+      min-height: 100vh;
+      min-height: 100svh;
+      overflow-y: auto;          /* scroll vertical sempre actiu */
+      overflow-x: hidden;
     }
 
     /* ── Top bar ─────────────────────────────────────────────────────── */
@@ -242,11 +243,11 @@
     .panels {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      padding: 10px;
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
+      gap: 20px;                /* més espai entre panells */
+      padding: 16px 20px 24px;
+      max-width: 1280px;        /* limita l'amplada total → ~30% menys per panell */
+      margin: 0 auto;
+      width: 100%;
     }
 
     .panel {
@@ -265,27 +266,30 @@
     /* ── Panel header ────────────────────────────────────────────────── */
     .panel-head {
       display: flex; align-items: center; gap: 9px;
-      padding: 10px 14px 9px;
+      padding: 12px 14px 11px;
       border-bottom: 1px solid var(--divider-2);
       background: var(--surface);
       flex-shrink: 0;
     }
-    .panel-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .panel-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .dot-pdf    { background: var(--amber); }
     .dot-theory { background: var(--accent); }
     .dot-solved { background: var(--green); }
     .dot-lock   { background: var(--purple); }
-    .dot-quiz   { background: #06b6d4; }   /* cyan */
+    .dot-quiz   { background: #06b6d4; }
 
     .panel-label {
-      font-size: 9.5px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
+      font-size: 13px;           /* era 9.5px → ×1.8 ≈ 17px, ajustat a 13px per llegibilitat */
+      font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
       color: var(--text-3);
     }
     .panel-name {
-      font-size: 12.5px; font-weight: 600;
+      font-size: 16px;           /* era 12.5px → ×1.8 ≈ 22px, ajustat a 16px */
+      font-weight: 600;
       letter-spacing: -.01em;
       color: var(--text);
+      margin-top: 1px;
     }
 
     .panel-body { flex: 1; overflow: hidden; min-height: 0; }
@@ -293,19 +297,19 @@
 
     /* ── Drive link panels ───────────────────────────────────────────── */
     .drive-link {
-      flex: 1; display: flex; flex-direction: column;
+      display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 13px; padding: 28px 18px;
+      gap: 10px; padding: 20px 14px;      /* menys padding → panell més baix */
       text-decoration: none; color: var(--text);
       transition: background .18s var(--ease);
       border-radius: 0 0 var(--radius) var(--radius);
     }
     .drive-link:hover { background: var(--bg); }
-    .drive-icon  { font-size: 3rem; line-height: 1; }
-    .drive-label { font-size: .82rem; font-weight: 600; text-align: center; line-height: 1.4; color: var(--text); }
+    .drive-icon  { font-size: 2.2rem; line-height: 1; }   /* icona més petita */
+    .drive-label { font-size: .88rem; font-weight: 600; text-align: center; line-height: 1.4; color: var(--text); }
     .drive-open-btn {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: .73rem; font-weight: 600;
+      font-size: .78rem; font-weight: 600;
       padding: 6px 15px; border-radius: 980px;
       background: rgba(0,0,0,.05); color: var(--text-2);
       transition: background .18s, color .18s;
@@ -320,8 +324,11 @@
     }
 
     /* ── Hero YouTube thumbnail ──────────────────────────────────────── */
-    .video-wrap { display: flex; flex-direction: column; height: 100%; }
-    .video-list { flex: 1; overflow-y: auto; }
+    .video-wrap { display: flex; flex-direction: column; }   /* natural height */
+    .video-list {
+      overflow-y: auto;
+      max-height: 400px;        /* 60% més que l'implícit anterior ~250px */
+    }
 
     .yt-hero {
       display: block; position: relative;
@@ -447,57 +454,25 @@
     /* ── Responsive ──────────────────────────────────────────────────── */
 
     /* ① Panels: 5 col → 3 col → 2 col → 1 col */
-    @media (max-width: 1350px) { .panels { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 1100px) { .panels { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 1280px) { .panels { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 860px)  { .panels { grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; } }
 
-    /* ② Mòbil vertical: panells en columna amb scroll (no overflow:hidden) */
+    /* ② Mòbil vertical */
     @media (max-width: 600px) {
-      .panels {
-        grid-template-columns: 1fr;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 8px;
-        gap: 8px;
-        /* En mòbil els panells s'apilen: cada un creix a la seva alçada natural */
-        flex: none;
-        min-height: 0;
-        height: auto;
-        max-height: none;
-      }
-      /* Els panells fills no necessiten ocupar tota l'alçada quan s'apilen */
-      .panel {
-        height: auto;
-        min-height: 320px;
-      }
-      /* La llista de vídeos té alçada màxima fixa en lloc d'ocupar tot */
-      .video-list { max-height: 360px; overflow-y: auto; }
-      /* El video-wrap en mòbil no ha de ser height:100% */
-      .video-wrap { height: auto; }
-      /* Topic page scroll en mòbil */
-      #page-topic { height: auto; min-height: 100svh; overflow-y: auto; }
+      .panels { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px 24px; }
+      .video-list { max-height: 300px; }
     }
 
-    /* ③ Mòbil horitzontal: 2 columnes compactes */
+    /* ③ Mòbil horitzontal */
     @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
-      .panels {
-        grid-template-columns: 1fr 1fr;
-        overflow-y: auto;
-        flex: none;
-        height: auto;
-        max-height: none;
-      }
-      .panel { height: auto; min-height: 260px; }
-      .video-list { max-height: 220px; }
-      .video-wrap { height: auto; }
-      #page-topic { height: auto; min-height: 100svh; overflow-y: auto; }
-      /* Barra superior compacta */
+      .panels { grid-template-columns: 1fr 1fr; gap: 14px; padding: 10px 14px; }
+      .video-list { max-height: 200px; }
       .topic-bar { height: 46px; }
-      .back-btn  { font-size: 13px; }
       .bar-title { font-size: 13px; }
       .home-header { padding: 24px 16px 20px; }
     }
 
-    /* ④ Barra d'eines: "Tots els temes" es trunca en pantalles molt estretes */
+    /* ④ Barra d'eines estreta */
     @media (max-width: 400px) {
       .back-btn .back-label { display: none; }
       .back-btn { padding: 6px 6px; }
@@ -931,7 +906,7 @@ function makeVideoPanel(colKey) {
           <div class="yt-hero-overlay">
             <div class="yt-hero-btn">
               <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              Obre a YouTube
+              Obre
             </div>
             <div class="yt-hero-title" id="hero-title-${colKey}">${activeVid.title}</div>
           </div>
