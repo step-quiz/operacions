@@ -18,10 +18,6 @@
  */
 
 /* ── CONFIGURACIÓ DEL JOC ───────────────────────────────────────────────── */
-const TOTAL_SESSIONS    = window.APP_CONFIG?.defaultSessions      ?? 3;
-const TOTAL_OPERATIONS  = window.APP_CONFIG?.defaultOperations    ?? 8;
-const MAX_INTENTS       = window.APP_CONFIG?.defaultIntents       ?? 4;
-const MAX_ENLLOC_MITJANA= window.APP_CONFIG?.defaultEnllocMitjana ?? 1;
 
 /* ── PROBLEMES ──────────────────────────────────────────────────────────── */
 /*
