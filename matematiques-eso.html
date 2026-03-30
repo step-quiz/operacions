@@ -315,7 +315,7 @@
       background: var(--surface);
       flex-shrink: 0;
     }
-    .panel-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .panel-dot  { display: none; }
     .dot-pdf    { background: var(--amber); }
     .dot-theory { background: var(--accent); }
     .dot-solved { background: var(--green); }
@@ -349,7 +349,7 @@
       border-radius: 0 0 var(--radius) var(--radius);
       flex: 1; min-height: 0;             /* ocupa l'espai lliure de la fila */
     }
-    .drive-link:hover { background: var(--bg); }
+    .drive-link:hover { background: rgba(0,0,0,.18); }
     .drive-icon  { font-size: 1.6rem; line-height: 1; }
     .drive-label { font-size: .88rem; font-weight: 600; text-align: center; line-height: 1.4; color: var(--text); }
     .drive-open-btn {
@@ -361,11 +361,11 @@
       letter-spacing: -.01em;
     }
     .drive-link:hover .drive-open-btn {
-      background: rgba(0,113,227,.1); color: var(--accent);
+      background: rgba(0,113,227,.25); color: var(--accent);
     }
-    .panel-lock .drive-link:hover { background: rgba(191,90,242,.04); }
+    .panel-lock .drive-link:hover { background: rgba(0,0,0,.18); }
     .panel-lock .drive-link:hover .drive-open-btn {
-      background: rgba(191,90,242,.1); color: #8c3fbb;
+      background: rgba(191,90,242,.25); color: #8c3fbb;
     }
 
     /* ── Hero YouTube thumbnail ──────────────────────────────────────── */
@@ -375,7 +375,7 @@
       display: flex; align-items: center; justify-content: space-between;
       flex-shrink: 0;
       padding: 9px 14px;
-      font-size: 12px; font-weight: 600; letter-spacing: -.01em;
+      font-size: 17px; font-weight: 600; letter-spacing: -.01em;
       color: var(--text-2);
       cursor: pointer; border: none;
       background: var(--surface-2);
@@ -385,7 +385,7 @@
       flex-shrink: 0; gap: 8px;
       user-select: none;
     }
-    .playlist-toggle:hover { background: var(--bg); color: var(--text); }
+    .playlist-toggle:hover { background: rgba(0,0,0,.16); color: var(--text); }
     .playlist-toggle.open  { color: var(--accent); }
     .playlist-toggle .toggle-arrow {
       width: 14px; height: 14px; flex-shrink: 0;
@@ -461,7 +461,7 @@
       transition: background .14s var(--ease);
       min-height: 70px;
     }
-    .video-item:hover   { background: rgba(0,0,0,.025); }
+    .video-item:hover   { background: rgba(0,0,0,.10); }
     .video-item.v-active {
       background: rgba(0,113,227,.06);
       border-left: 2.5px solid var(--accent);
@@ -642,8 +642,8 @@
 </div>
 
 <footer>
-  © 2026 Ús educatiu lliure &nbsp;·&nbsp;
-  <a href="http://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>
+  © 2026 [DAVID ARSO CIVIL]. Ús educatiu lliure. Prohibida la comercialització i la modificació
+  (<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>).
 </footer>
 
 <script>
@@ -659,7 +659,7 @@ const CSV_FILE = 'data-classroom.csv';
    Aquí és l'ÚNICA vegada que s'escriu qui és cada canal/autor.
 ──────────────────────────────────────────────────────────────────── */
 const PANEL_META = {
-  'apunts-bogdan':         { dot: 'dot-pdf',    type: 'drive', label: 'PDF · Apunts i exercicis',  name: 'Bogdan Crintea'          },
+  'apunts-bogdan':         { dot: 'dot-pdf',    type: 'drive', label: 'Apunts i exercicis',        name: 'Bogdan Crintea'          },
   'teoria-pildoras':       { dot: 'dot-theory', type: 'video', label: 'Vídeos de teoria',           name: 'Píldoras Matemáticas'    },
   'problemes-bogdan':      { dot: 'dot-solved', type: 'video', label: 'Problemes resolts',          name: 'Matemàtiques amb Bogdan' },
   'material-complementari':{ dot: 'dot-lock',   type: 'drive', label: 'Material complementari',    name: '🔒 Accés restringit'     },
@@ -934,7 +934,7 @@ function makeDrivePanel(colKey, colClass) {
   };
   const icon    = ICONS[colKey] || '📄';
   const isLock  = colKey === 'material-complementari';
-  const btnText = colKey === 'exercicis-stepquiz' ? 'Obre Step Quiz' : 'Obre al Drive';
+  const btnText = colKey === 'exercicis-stepquiz' ? 'Obre' : 'Obre';
 
   const div = document.createElement('div');
   div.className = 'panel' + (isLock ? ' panel-lock' : '') + (colClass ? ' ' + colClass : '');
