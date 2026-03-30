@@ -1,0 +1,165 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/raons-trigonometria.css
+ROL: Estils específics del joc "Trigonometria — Valors exactes".
+     Carrega DESPRÉS de css/shared.css.
+ARQUITECTURA:
+- Sobreescriu les variables de color de shared.css amb el tema violeta.
+- Inclou únicament els components exclusius d'aquest joc:
+  cercle unitat, expressió trigonomètrica, botons de valor, fracció visual.
+============================================================================
+*/
+
+/* ── TEMA DE COLOR (sobreescriptura del shared.css) ─────────────────────── */
+:root {
+    --bg-color:      #f5f3ff;
+    --primary:       #7c3aed;
+    --primary-light: #ede9fe;
+    --primary-hover: #6d28d9;
+    --primary-dark:  #4c1d95;
+    --accent:        #d97706;
+}
+
+/* ── ZONA DEL PROBLEMA (cercle + expressió) ────────────────────────────── */
+.problem-box {
+    padding: 20px 20px 10px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.circle-and-expression {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 35px;
+    flex-wrap: wrap;
+}
+
+#unit-circle-svg {
+    width: 200px;
+    height: 200px;
+    flex-shrink: 0;
+}
+
+.expression-display { text-align: center; }
+
+.trig-expression {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 2.8em;
+    font-weight: bold;
+    color: var(--primary-dark);
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+.trig-fn    { color: var(--primary); }
+.trig-angle { color: var(--accent); }
+
+/* ── PANELL DE RESOLUCIÓ ────────────────────────────────────────────────── */
+.resolution-panel {
+    background-color: #f8fafc;
+    border-top: 1px solid var(--border-color);
+    padding: 22px 20px 28px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.step-instruction {
+    font-size: 1.15em;
+    color: #334155;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.step-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.3s;
+}
+.step-container.active { display: flex; }
+
+/* ── BOTONS DE VALOR (4 opcions múltiples) ──────────────────────────────── */
+.value-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.btn-value {
+    padding: 20px 10px;
+    font-size: 1.35em;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: #334155;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+    min-height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+}
+@media (hover: hover) {
+    .btn-value:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(124,58,237,0.2);
+    }
+}
+.btn-value:active           { transform: scale(0.95); }
+.btn-value:focus-visible    { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-value.error-shake {
+    background-color: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger);
+    animation: shake 0.25s;
+}
+
+/* ── FRACCIÓ VISUAL DINS EL BOTÓ ────────────────────────────────────────── */
+.frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+    vertical-align: middle;
+    font-size: 0.88em;
+}
+.frac .num { border-bottom: 2px solid currentColor; padding: 1px 4px; }
+.frac .den { padding: 1px 4px; }
+
+/* ── COMPTADOR D'INTENTS (blink específic) ──────────────────────────────── */
+@keyframes blinkAttempts {
+    0%, 100% { background-color: #fef3c7; }
+    50%       { background-color: white; }
+}
+.attempts-counter.blink { animation: blinkAttempts 0.22s linear 5; }
+
+/* ── RESPONSIU ──────────────────────────────────────────────────────────── */
+@media (max-width: 500px) {
+    .trig-expression { font-size: 2.2em; }
+    #unit-circle-svg { width: 160px; height: 160px; }
+    .circle-and-expression { gap: 18px; }
+    .btn-value { font-size: 1.15em; padding: 16px 8px; min-height: 58px; }
+    .value-buttons { max-width: 340px; gap: 10px; }
+}
+@media (max-width: 360px) {
+    .trig-expression { font-size: 1.8em; }
+    #unit-circle-svg { width: 130px; height: 130px; }
+    .btn-value { font-size: 1em; }
+}

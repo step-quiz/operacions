@@ -75,6 +75,8 @@ const EXERCISE_CODES = {
     'rectes-plans':              'RP',
     'esglaonar-matriu':          'EM',
     'inversa-matriu':            'IM',
+    'raons-trigonometria':       'RT',
+    'teorema-sin-cos':           'TC',
     // Adaptades (a/)
     'a-enters':           'AE',
     'a-decimals':         'AD',
