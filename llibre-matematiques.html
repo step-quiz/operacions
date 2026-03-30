@@ -555,11 +555,7 @@
       flex: 1; font-size: .82rem; font-weight: 500;
       letter-spacing: -.005em; line-height: 1.35;
     }
-    .sq-open {
-      flex-shrink: 0; color: var(--text-3);
-      transition: color .15s var(--ease);
-    }
-    .sq-item:hover .sq-open { color: var(--accent); }
+    .sq-item:hover .sq-title { color: var(--accent); }
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 3px; }
@@ -725,7 +721,7 @@ const PANEL_META = {
   'apunts-bogdan':         { dot: 'dot-pdf',    type: 'drive', label: 'Apunts i exercicis',        name: 'Bogdan Crintea'          },
   'teoria-pildoras':       { dot: 'dot-theory', type: 'video', label: 'Vídeos de teoria',           name: 'Píldoras Matemáticas'    },
   'problemes-bogdan':      { dot: 'dot-solved', type: 'video', label: 'Problemes resolts',          name: 'Matemàtiques amb Bogdan' },
-  'material-complementari':{ dot: 'dot-lock',   type: 'drive', label: 'Material complementari',    name: 'Recursos extra'     },
+  'material-complementari':{ dot: 'dot-lock',   type: 'drive', label: 'Material complementari',    name: ''     },
   'exercicis-stepquiz':    { dot: 'dot-quiz',   type: 'drive', label: 'Exercicis interactius',      name: 'Step Quiz'               },
 };
 
@@ -792,7 +788,7 @@ function parseVideos(cell) {
 // Parseja la cel·la d'exercicis stepquiz: suporta 1 o més enllaços.
 // Format: "url" (1 sol enllaç sense títol)
 //    o bé: "títol1::url1|títol2::url2|..." (múltiples enllaços amb títol)
-//    o bé: "url" (retro-compatible: URL sola → títol per defecte "Obre")
+//    o bé: "url" (retro-compatible: extreu el nom de la pàgina de la URL)
 function parseStepquizLinks(cell) {
   if (!cell || !cell.trim()) return [];
   return cell.trim().split('|').map(entry => {
@@ -803,9 +799,21 @@ function parseStepquizLinks(cell) {
       // Format "títol::url"
       return { title: entry.substring(0, sep).trim(), url: entry.substring(sep + 2).trim() };
     }
-    // URL sola (retro-compatible)
-    return { title: 'Obre', url: entry };
+    // URL sola → extreu el nom del fitxer sense extensió
+    const pageName = extractPageName(entry);
+    return { title: pageName, url: entry };
   }).filter(Boolean);
+}
+
+// Extreu el nom de la pàgina d'una URL (p.ex. "https://step-quiz.net/raons-trigonometria.html" → "raons-trigonometria")
+function extractPageName(url) {
+  try {
+    const path = new URL(url).pathname;            // "/raons-trigonometria.html"
+    const file = path.split('/').pop();            // "raons-trigonometria.html"
+    return file.replace(/\.[^.]+$/, '') || file;   // "raons-trigonometria"
+  } catch {
+    return url;
+  }
 }
 
 // Carrega el CSV i retorna les dades de la fila corresponent a l'id demanat.
@@ -1031,7 +1039,11 @@ function makeDrivePanel(colKey, colClass) {
   };
   const icon    = ICONS[colKey] || '📄';
   const isLock  = colKey === 'material-complementari';
-  const btnText = colKey === 'exercicis-stepquiz' ? 'Obre' : 'Obre';
+  let btnText = 'Obre';
+  if (colKey === 'exercicis-stepquiz') {
+    const links = currentTopicData[colKey] || [];
+    btnText = links.length > 0 ? links[0].title : 'Obre';
+  }
 
   const div = document.createElement('div');
   div.className = 'panel' + (isLock ? ' panel-lock' : '') + (colClass ? ' ' + colClass : '');
@@ -1047,13 +1059,6 @@ function makeDrivePanel(colKey, colClass) {
       ? `<a class="drive-link" href="${url}" target="_blank" rel="noopener">
            <div class="drive-icon">${icon}</div>
            <div class="drive-open-btn">
-             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-               <polyline points="15 3 21 3 21 9"/>
-               <line x1="10" y1="14" x2="21" y2="3"/>
-             </svg>
              ${btnText}
            </div>
          </a>`
@@ -1077,29 +1082,14 @@ function makeStepquizPlaylist(colKey, colClass) {
     <a class="sq-item" href="${lk.url}" target="_blank" rel="noopener">
       <div class="sq-icon">✏️</div>
       <div class="sq-title">${lk.title}</div>
-      <div class="sq-open">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          <polyline points="15 3 21 3 21 9"/>
-          <line x1="10" y1="14" x2="21" y2="3"/>
-        </svg>
-      </div>
+      <div class="sq-title">${lk.title}</div>
     </a>`).join('');
 
   div.innerHTML = `
-    <div class="panel-head">
-      <div class="panel-dot ${meta.dot}"></div>
-      <div>
-        <div class="panel-label">${meta.label}</div>
-        <div class="panel-name">${meta.name}</div>
-      </div>
-    </div>
     <div class="panel-body">
       <button class="playlist-toggle" aria-expanded="false" aria-controls="list-sq">
         <span>
-          Exercicis
+          Step Quiz
           <span class="playlist-count">${links.length}</span>
         </span>
         <svg class="toggle-arrow" viewBox="0 0 24 24" stroke-width="2.5"
