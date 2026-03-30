@@ -212,11 +212,13 @@
       white-space: nowrap;
       letter-spacing: -.01em;
     }
-    .back-btn:hover { background: rgba(0,0,0,.10); color: var(--text); }
+    @media (hover: hover) {
+      .back-btn:hover { background: rgba(0,0,0,.10); color: var(--text); }
+    }
     .back-btn svg   { width: 13px; height: 13px; opacity: .7; }
 
     .bar-sep   { width: 1px; height: 20px; background: var(--divider); flex-shrink: 0; }
-    .bar-title { font-size: 20px; font-weight: 700; letter-spacing: -.03em; color: var(--text); }
+    .bar-title { font-size: 20px; font-weight: 700; letter-spacing: -.03em; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .bar-sub   { display: none; }
 
     /* Shared action button style */
@@ -232,7 +234,9 @@
       letter-spacing: -.01em;
     }
     .bar-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; flex-shrink: 0; }
-    .bar-btn:hover { background: rgba(0,0,0,.1); color: var(--text); }
+    @media (hover: hover) {
+      .bar-btn:hover { background: rgba(0,0,0,.1); color: var(--text); }
+    }
 
     .copy-link-btn         { }
     .copy-link-btn.copied  { background: rgba(52,199,89,.15); color: #1a7a3a; }
@@ -244,7 +248,8 @@
 
     @media (max-width: 520px) {
       .btn-label { display: none; }
-      .bar-btn   { padding: 7px 9px; }
+      .bar-btn   { padding: 8px 10px; min-height: 36px; }
+      .back-btn  { min-height: 36px; }
       .bar-sub   { display: none; }
     }
 
@@ -349,7 +354,6 @@
       border-radius: 0 0 var(--radius) var(--radius);
       flex: 1; min-height: 0;             /* ocupa l'espai lliure de la fila */
     }
-    .drive-link:hover { background: rgba(0,0,0,.18); }
     .drive-icon  { font-size: 1.6rem; line-height: 1; }
     .drive-label { font-size: .88rem; font-weight: 600; text-align: center; line-height: 1.4; color: var(--text); }
     .drive-open-btn {
@@ -360,12 +364,11 @@
       transition: background .18s, color .18s;
       letter-spacing: -.01em;
     }
-    .drive-link:hover .drive-open-btn {
-      background: rgba(0,113,227,.25); color: var(--accent);
-    }
-    .panel-lock .drive-link:hover { background: rgba(0,0,0,.18); }
-    .panel-lock .drive-link:hover .drive-open-btn {
-      background: rgba(191,90,242,.25); color: #8c3fbb;
+    @media (hover: hover) {
+      .drive-link:hover { background: rgba(0,0,0,.18); }
+      .drive-link:hover .drive-open-btn { background: rgba(0,113,227,.25); color: var(--accent); }
+      .panel-lock .drive-link:hover { background: rgba(0,0,0,.18); }
+      .panel-lock .drive-link:hover .drive-open-btn { background: rgba(191,90,242,.25); color: #8c3fbb; }
     }
 
     /* ── Hero YouTube thumbnail ──────────────────────────────────────── */
@@ -385,7 +388,9 @@
       flex-shrink: 0; gap: 8px;
       user-select: none;
     }
-    .playlist-toggle:hover { background: rgba(0,0,0,.16); color: var(--text); }
+    @media (hover: hover) {
+      .playlist-toggle:hover { background: rgba(0,0,0,.16); color: var(--text); }
+    }
     .playlist-toggle.open  { color: var(--accent); }
     .playlist-toggle .toggle-arrow {
       width: 14px; height: 14px; flex-shrink: 0;
@@ -427,7 +432,10 @@
       width: 100%; height: 100%; object-fit: cover; display: block;
       transition: opacity .22s var(--ease);
     }
-    .yt-hero:hover img { opacity: .75; }
+    @media (hover: hover) {
+      .yt-hero:hover img { opacity: .75; }
+      .yt-hero:hover .yt-hero-btn { background: #d42b22; transform: scale(1.06); }
+    }
     .yt-hero-overlay {
       position: absolute; inset: 0;
       display: flex; flex-direction: column;
@@ -443,7 +451,6 @@
       transition: background .15s, transform .2s var(--spring);
       white-space: nowrap;
     }
-    .yt-hero:hover .yt-hero-btn { background: #d42b22; transform: scale(1.06); }
     .yt-hero-btn svg { width: 14px; height: 14px; fill: white; flex-shrink: 0; }
     .yt-hero-title {
       font-size: 11px; font-weight: 500; color: rgba(255,255,255,.9);
@@ -461,7 +468,9 @@
       transition: background .14s var(--ease);
       min-height: 70px;
     }
-    .video-item:hover   { background: rgba(0,0,0,.10); }
+    @media (hover: hover) {
+      .video-item:hover { background: rgba(0,0,0,.10); }
+    }
     .video-item.v-active {
       background: rgba(0,113,227,.06);
       border-left: 2.5px solid var(--accent);
@@ -567,16 +576,36 @@
       .panels { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px 80px; height: auto; flex: none; }
       .panel-col2 .video-list.open,
       .panel-col3 .video-list.open { max-height: 55vh; }
+      /* Capçalera home més compacta */
+      #page-home { padding: 0 14px 72px; }
+      .home-header { padding: 28px 16px 20px; }
+      .level-tabs label { padding: 8px 18px; }
+      /* Dues columnes a la graella de temes */
+      .topic-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+      /* Títol de la barra de navegació més petit */
+      .bar-title { font-size: 17px; }
     }
 
     /* Mòbil horitzontal */
     @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
-      .panels { grid-template-columns: 1fr 1fr; gap: 14px; padding: 10px 14px; }
+      .panels { grid-template-columns: 1fr 1fr; gap: 14px; padding: 10px 14px 66px; }
       .panel-col2 .video-list,
       .panel-col3 .video-list { max-height: 200px; }
       .topic-bar { height: 46px; }
       .bar-title { font-size: 13px; }
-      .home-header { padding: 24px 16px 20px; }
+      /* Capçalera home molt compacta en horitzontal */
+      .home-header { padding: 16px 16px 12px; }
+      #page-home { padding: 0 16px 60px; }
+      /* Hero de vídeo limitat en alçada per deixar veure la playlist */
+      .yt-hero { max-height: 140px; }
+      /* Graella de temes amb targetes més petites */
+      .topic-grid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); }
+      /* Footer més discret */
+      footer { padding-top: 5px; padding-bottom: max(5px, env(safe-area-inset-bottom)); font-size: .65em; }
+      /* Panel heads compactes */
+      .panel-head { padding: 8px 12px; }
+      .panel-name { font-size: 14px; }
+      .panel-label { font-size: 11px; }
     }
 
     /* Barra estreta */
