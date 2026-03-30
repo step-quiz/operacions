@@ -514,9 +514,9 @@ function buildHints(p) {
         c: 'c = √(a² − b²)',
     };
     const reasonMap = {
-        a: 'Coneixes els dos catets: aplica directament Pitàgores per trobar la hipotenusa.',
-        b: 'Coneixes la hipotenusa i un catet: aïlla el catet desconegut a Pitàgores.',
-        c: 'Coneixes la hipotenusa i un catet: aïlla el catet desconegut a Pitàgores.',
+        a: 'Coneixes els dos catets: troba la hipotenusa.',
+        b: 'Coneixes la hipotenusa i un catet: aïlla el catet desconegut.',
+        c: 'Coneixes la hipotenusa i un catet: aïlla el catet desconegut.',
     };
 
     const hints = [
