@@ -1,0 +1,269 @@
+/* ═══════════════════════════════════════════════════════
+   triangle-rectangle.css
+   Estils específics de l'activitat "Triangles rectangles".
+   Els estils base (capçalera, botons .sq-btn, colors, etc.)
+   venen de shared.css
+═══════════════════════════════════════════════════════ */
+
+/* ── Àrea principal ────────────────────────────────────── */
+#sq-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 16px 90px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+#sq-op-counter {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  letter-spacing: .04em;
+}
+
+/* ── Triangle SVG ──────────────────────────────────────── */
+#tri-container {
+  width: 100%;
+  max-width: 320px;
+  background: #ffffff;
+  border: 1px solid var(--border-heavy, #cbd5e1);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 4px 14px -4px rgba(15, 23, 42, .07);
+}
+
+#tri-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Línies del triangle */
+.tri-side {
+  stroke: var(--text-main, #1e293b);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.tri-side.unknown {
+  stroke: var(--accent, #3b82f6);
+  stroke-dasharray: 7 4;
+}
+
+/* Etiquetes de costats */
+.tri-val {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--text-main, #1e293b);
+}
+.tri-val.unknown {
+  fill: var(--accent, #3b82f6);
+}
+.tri-val.var-lbl {
+  font-size: 11.5px;
+  font-weight: 400;
+  fill: var(--text-muted, #64748b);
+}
+
+/* Etiqueta alfa */
+.tri-alpha {
+  font-family: 'Georgia', serif;
+  font-size: 14px;
+  font-weight: 700;
+  fill: #7c3aed;
+}
+.tri-alpha.unknown {
+  fill: var(--accent, #3b82f6);
+}
+
+/* Angle arc */
+.tri-arc {
+  fill: none;
+  stroke: #7c3aed;
+  stroke-width: 1.5;
+}
+.tri-angle-sq {
+  fill: none;
+  stroke: var(--text-main, #1e293b);
+  stroke-width: 1.8;
+}
+
+/* ── Àrea de passos ────────────────────────────────────── */
+#step-area {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border: 1px solid var(--border-heavy, #cbd5e1);
+  border-radius: 16px;
+  padding: 20px 22px 18px;
+  box-shadow: 0 4px 14px -4px rgba(15, 23, 42, .07);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Badge "Pas 1/3" */
+#step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--accent, #3b82f6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 99px;
+  align-self: flex-start;
+  letter-spacing: .04em;
+}
+
+#step-question {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text-main, #1e293b);
+}
+
+/* ── Blocs d'input ─────────────────────────────────────── */
+.input-block {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.input-block.hidden { display: none; }
+
+/* Botons de raó: sin / cos / tan */
+.ratio-btn {
+  flex: 1;
+  min-width: 72px;
+  height: 44px;
+  border: 2px solid var(--border-heavy, #cbd5e1);
+  border-radius: 10px;
+  background: #f8fafc;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main, #1e293b);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s, box-shadow .15s;
+}
+.ratio-btn:hover {
+  border-color: var(--accent, #3b82f6);
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+.ratio-btn.selected {
+  border-color: var(--accent, #3b82f6);
+  background: var(--accent, #3b82f6);
+  color: #fff;
+  transform: scale(1.04);
+}
+.ratio-btn.wrong {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #ef4444;
+  animation: shake .35s ease;
+}
+
+/* Input numèric + botó Comprova */
+#num-field {
+  flex: 1;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid var(--border-heavy, #cbd5e1);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: var(--text-main, #1e293b);
+  transition: border-color .15s, box-shadow .15s;
+  -moz-appearance: textfield;
+}
+#num-field::-webkit-outer-spin-button,
+#num-field::-webkit-inner-spin-button { -webkit-appearance: none; }
+#num-field:focus {
+  outline: none;
+  border-color: var(--accent, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+#num-field.wrong { border-color: #ef4444; }
+
+/* ── Feedback ──────────────────────────────────────────── */
+.feedback {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 10px;
+  line-height: 1.45;
+}
+.feedback.hidden { display: none; }
+.feedback.ok {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.feedback.wrong {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* ── Botons de navegació ───────────────────────────────── */
+#nav-btns {
+  display: flex;
+  gap: 10px;
+}
+
+/* ── Pantalla final ────────────────────────────────────── */
+#end-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(248, 250, 252, .96);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn .3s ease;
+}
+#end-screen.hidden { display: none; }
+
+#end-card {
+  background: #fff;
+  border: 1px solid var(--border-heavy, #cbd5e1);
+  border-radius: 20px;
+  padding: 36px 40px;
+  text-align: center;
+  box-shadow: 0 20px 50px -10px rgba(15,23,42,.15);
+  max-width: 340px;
+  width: 90%;
+  animation: scaleIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+#end-icon { font-size: 52px; margin-bottom: 12px; }
+#end-title { margin: 0 0 8px; font-size: 22px; font-weight: 800; }
+#end-score  { margin: 0 0 22px; color: var(--text-muted, #64748b); font-size: 15px; }
+
+/* ── Animacions ────────────────────────────────────────── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60%  { transform: translateX(-5px); }
+  40%,80%  { transform: translateX(5px); }
+}
+@keyframes fadeIn  { from { opacity:0 } to { opacity:1 } }
+@keyframes scaleIn { from { transform:scale(.85); opacity:0 } to { transform:scale(1); opacity:1 } }
+@keyframes popIn   { from { transform:scale(.7); opacity:0 } to { transform:scale(1); opacity:1 } }
+
+.answer-revealed {
+  animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  #step-area { padding: 16px 16px 14px; }
+  .ratio-btn  { font-size: 15px; height: 40px; }
+  #num-field  { height: 40px; font-size: 15px; }
+}
