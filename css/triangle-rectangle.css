@@ -1,269 +1,263 @@
-/* ═══════════════════════════════════════════════════════
-   triangle-rectangle.css
-   Estils específics de l'activitat "Triangles rectangles".
-   Els estils base (capçalera, botons .sq-btn, colors, etc.)
-   venen de shared.css
-═══════════════════════════════════════════════════════ */
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/triangle-rectangle.css
+ROL: Estils específics del joc "Triangle Rectangle — Teorema de Pitàgores".
+     Carrega DESPRÉS de css/shared.css.
+ARQUITECTURA:
+- Sobreescriu les variables de color de shared.css amb el tema indigo-violeta.
+- Inclou únicament els components exclusius d'aquest joc:
+  triangle SVG dret, franja de fórmula, pistes (hints), botons de valor.
+============================================================================
+*/
 
-/* ── Àrea principal ────────────────────────────────────── */
-#sq-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  padding: 12px 16px 90px;
-  max-width: 520px;
-  margin: 0 auto;
-}
+/* ── COMPACTACIÓ VERTICAL (overrides shared.css per cabre en portàtil) ──── */
+body                { padding: 8px 20px; }
+.home-icon-link     { width: 48px; height: 48px; }
+.title-row          { margin-bottom: 0; }
+h1                  { font-size: 1.4em; }
+.header-info        { padding: 8px 20px; }
+.level-text         { font-size: 1.1em; }
+.score-text         { font-size: 1.1em; }
+.attempts-counter   { font-size: 1.1em; padding: 4px 8px; }
 
-#sq-op-counter {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted, #64748b);
-  letter-spacing: .04em;
-}
-
-/* ── Triangle SVG ──────────────────────────────────────── */
-#tri-container {
-  width: 100%;
-  max-width: 320px;
-  background: #ffffff;
-  border: 1px solid var(--border-heavy, #cbd5e1);
-  border-radius: 16px;
-  padding: 12px;
-  box-shadow: 0 4px 14px -4px rgba(15, 23, 42, .07);
+/* ── TEMA DE COLOR (sobreescriptura del shared.css) ─────────────────────── */
+:root {
+    --bg-color:      #f5f3ff;
+    --primary:       #6d28d9;
+    --primary-light: #ede9fe;
+    --primary-hover: #7c3aed;
+    --primary-dark:  #4c1d95;
+    --accent:        #d97706;
+    --unknown-color: #7c3aed;
 }
 
-#tri-svg {
-  display: block;
-  width: 100%;
-  height: auto;
+/* ── H1 (color específic del tema) ─────────────────────────────────────── */
+h1 { color: #3b0764; }
+
+/* ── CAPÇALERA DEL JOC ──────────────────────────────────────────────────── */
+.header-info { background-color: #f5f3ff; }
+.level-text  { color: #3b0764; }
+
+/* ── FRANJA DE FÓRMULA ──────────────────────────────────────────────────── */
+.formula-strip {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.05em;
+    font-weight: bold;
+    color: #4c1d95;
+    background: #ede9fe;
+    border: 1.5px solid #c4b5fd;
+    border-radius: 20px;
+    padding: 5px 20px;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+    text-align: center;
+    user-select: none;
 }
 
-/* Línies del triangle */
-.tri-side {
-  stroke: var(--text-main, #1e293b);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-}
-.tri-side.unknown {
-  stroke: var(--accent, #3b82f6);
-  stroke-dasharray: 7 4;
+/* ── ZONA DEL PROBLEMA (SVG triangle) ──────────────────────────────────── */
+.problem-box {
+    padding: 8px 20px 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
 }
 
-/* Etiquetes de costats */
-.tri-val {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  fill: var(--text-main, #1e293b);
-}
-.tri-val.unknown {
-  fill: var(--accent, #3b82f6);
-}
-.tri-val.var-lbl {
-  font-size: 11.5px;
-  font-weight: 400;
-  fill: var(--text-muted, #64748b);
+#triangle-svg {
+    width: 100%;
+    max-width: 220px;
+    max-height: 155px;
+    height: auto;
 }
 
-/* Etiqueta alfa */
-.tri-alpha {
-  font-family: 'Georgia', serif;
-  font-size: 14px;
-  font-weight: 700;
-  fill: #7c3aed;
-}
-.tri-alpha.unknown {
-  fill: var(--accent, #3b82f6);
-}
-
-/* Angle arc */
-.tri-arc {
-  fill: none;
-  stroke: #7c3aed;
-  stroke-width: 1.5;
-}
-.tri-angle-sq {
-  fill: none;
-  stroke: var(--text-main, #1e293b);
-  stroke-width: 1.8;
+/* ── PANELL DE RESOLUCIÓ ────────────────────────────────────────────────── */
+.resolution-panel {
+    background-color: #f8fafc;
+    border-top: 1px solid var(--border-color);
+    padding: 10px 20px 12px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
 }
 
-/* ── Àrea de passos ────────────────────────────────────── */
-#step-area {
-  width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  border: 1px solid var(--border-heavy, #cbd5e1);
-  border-radius: 16px;
-  padding: 20px 22px 18px;
-  box-shadow: 0 4px 14px -4px rgba(15, 23, 42, .07);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.step-instruction {
+    font-size: 1.08em;
+    color: #334155;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.3;
+    margin: 0;
 }
 
-/* Badge "Pas 1/3" */
-#step-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--accent, #3b82f6);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 3px 10px;
-  border-radius: 99px;
-  align-self: flex-start;
-  letter-spacing: .04em;
+.step-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.3s;
+}
+.step-container.active { display: flex; }
+
+/* ── BOTÓ D'AJUDA ────────────────────────────────────────────────────────── */
+.btn-help {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid var(--accent);
+    background: white;
+    color: #92400e;
+    font-size: 0.85em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    touch-action: manipulation;
+}
+@media (hover: hover) {
+    .btn-help:hover { background: #fef3c7; transform: scale(1.04); }
+}
+.btn-help:active { transform: scale(0.96); }
+.btn-help:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn-help.open { background: #fef3c7; border-color: #b45309; }
+
+/* ── PANELL D'AJUDA (hints) ─────────────────────────────────────────────── */
+.help-panel {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 480px;
+    animation: fadeIn 0.25s;
+}
+.help-panel.visible { display: flex; }
+
+.hint-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88em;
+    line-height: 1.5;
+    color: #78350f;
+}
+.hint-item.hint-best {
+    background: #f5f3ff;
+    border: 2px solid #c4b5fd;
+    box-shadow: 0 2px 8px rgba(109,40,217,0.10);
 }
 
-#step-question {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.55;
-  color: var(--text-main, #1e293b);
+.hint-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    min-width: 34px;
+}
+.hint-item .hint-icon { font-size: 1.3em; line-height: 1; }
+
+.hint-badge {
+    font-size: 0.7em;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+.badge-best   { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; }
+.badge-second { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.badge-tip    { background: #fef9c3; color: #713f12; border: 1px solid #fde68a; }
+
+.hint-item .hint-body    { display: flex; flex-direction: column; gap: 3px; }
+.hint-item .hint-name    { font-weight: bold; color: #6d28d9; }
+.hint-item.hint-best .hint-name { color: #4c1d95; }
+.hint-item .hint-formula {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95em;
+    color: #5b21b6;
+    background: rgba(0,0,0,0.03);
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+.hint-reason {
+    font-size: 0.85em;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 2px;
+}
+.hint-item.hint-best .hint-reason {
+    color: #5b21b6;
+    font-style: normal;
+    font-weight: 500;
 }
 
-/* ── Blocs d'input ─────────────────────────────────────── */
-.input-block {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.input-block.hidden { display: none; }
-
-/* Botons de raó: sin / cos / tan */
-.ratio-btn {
-  flex: 1;
-  min-width: 72px;
-  height: 44px;
-  border: 2px solid var(--border-heavy, #cbd5e1);
-  border-radius: 10px;
-  background: #f8fafc;
-  font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-main, #1e293b);
-  cursor: pointer;
-  transition: border-color .15s, background .15s, transform .1s, box-shadow .15s;
-}
-.ratio-btn:hover {
-  border-color: var(--accent, #3b82f6);
-  background: #eff6ff;
-  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
-}
-.ratio-btn.selected {
-  border-color: var(--accent, #3b82f6);
-  background: var(--accent, #3b82f6);
-  color: #fff;
-  transform: scale(1.04);
-}
-.ratio-btn.wrong {
-  border-color: #ef4444;
-  background: #fef2f2;
-  color: #ef4444;
-  animation: shake .35s ease;
+/* ── BOTONS DE VALOR (4 opcions múltiples) ──────────────────────────────── */
+.value-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 440px;
 }
 
-/* Input numèric + botó Comprova */
-#num-field {
-  flex: 1;
-  height: 44px;
-  padding: 0 12px;
-  font-size: 16px;
-  font-weight: 600;
-  border: 2px solid var(--border-heavy, #cbd5e1);
-  border-radius: 10px;
-  background: #f8fafc;
-  color: var(--text-main, #1e293b);
-  transition: border-color .15s, box-shadow .15s;
-  -moz-appearance: textfield;
+.btn-value {
+    padding: 13px 10px;
+    font-size: 1.35em;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    color: #334155;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
 }
-#num-field::-webkit-outer-spin-button,
-#num-field::-webkit-inner-spin-button { -webkit-appearance: none; }
-#num-field:focus {
-  outline: none;
-  border-color: var(--accent, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+@media (hover: hover) {
+    .btn-value:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(109,40,217,0.18);
+    }
 }
-#num-field.wrong { border-color: #ef4444; }
-
-/* ── Feedback ──────────────────────────────────────────── */
-.feedback {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 10px 14px;
-  border-radius: 10px;
-  line-height: 1.45;
-}
-.feedback.hidden { display: none; }
-.feedback.ok {
-  background: #f0fdf4;
-  color: #15803d;
-  border: 1px solid #bbf7d0;
-}
-.feedback.wrong {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+.btn-value:active          { transform: scale(0.95); }
+.btn-value:focus-visible   { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-value.error-shake {
+    background: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger);
+    animation: shake 0.25s;
 }
 
-/* ── Botons de navegació ───────────────────────────────── */
-#nav-btns {
-  display: flex;
-  gap: 10px;
+/* ── COMPTADOR D'INTENTS (blink específic) ──────────────────────────────── */
+@keyframes blinkAttempts {
+    0%, 100% { background-color: #ede9fe; }
+    50%       { background-color: white; }
 }
+.attempts-counter.blink { animation: blinkAttempts 0.22s linear 5; }
 
-/* ── Pantalla final ────────────────────────────────────── */
-#end-screen {
-  position: fixed;
-  inset: 0;
-  background: rgba(248, 250, 252, .96);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  animation: fadeIn .3s ease;
+/* ── RESPONSIU ──────────────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+    .btn-value   { font-size: 1.15em; min-height: 58px; }
+    .value-buttons { max-width: 360px; gap: 10px; }
+    #triangle-svg { max-width: 260px; }
 }
-#end-screen.hidden { display: none; }
-
-#end-card {
-  background: #fff;
-  border: 1px solid var(--border-heavy, #cbd5e1);
-  border-radius: 20px;
-  padding: 36px 40px;
-  text-align: center;
-  box-shadow: 0 20px 50px -10px rgba(15,23,42,.15);
-  max-width: 340px;
-  width: 90%;
-  animation: scaleIn .35s cubic-bezier(.34,1.56,.64,1);
-}
-#end-icon { font-size: 52px; margin-bottom: 12px; }
-#end-title { margin: 0 0 8px; font-size: 22px; font-weight: 800; }
-#end-score  { margin: 0 0 22px; color: var(--text-muted, #64748b); font-size: 15px; }
-
-/* ── Animacions ────────────────────────────────────────── */
-@keyframes shake {
-  0%,100% { transform: translateX(0); }
-  20%,60%  { transform: translateX(-5px); }
-  40%,80%  { transform: translateX(5px); }
-}
-@keyframes fadeIn  { from { opacity:0 } to { opacity:1 } }
-@keyframes scaleIn { from { transform:scale(.85); opacity:0 } to { transform:scale(1); opacity:1 } }
-@keyframes popIn   { from { transform:scale(.7); opacity:0 } to { transform:scale(1); opacity:1 } }
-
-.answer-revealed {
-  animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
-}
-
-/* ── Responsive ────────────────────────────────────────── */
-@media (max-width: 480px) {
-  #step-area { padding: 16px 16px 14px; }
-  .ratio-btn  { font-size: 15px; height: 40px; }
-  #num-field  { height: 40px; font-size: 15px; }
+@media (max-width: 380px) {
+    .btn-value   { font-size: 1em; }
+    #triangle-svg { max-width: 220px; }
+    .formula-strip { font-size: 0.92em; }
 }
