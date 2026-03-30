@@ -11,6 +11,17 @@ ARQUITECTURA:
 ============================================================================
 */
 
+/* ── COMPACTACIÓ VERTICAL (overrides shared.css per cabre en portàtil) ──── */
+body                { padding: 8px 20px; }
+.home-icon-link     { width: 48px; height: 48px; }
+.title-row          { margin-bottom: 0; }
+.subtitle           { display: none; }
+h1                  { font-size: 1.4em; }
+.header-info        { padding: 8px 20px; }
+.level-text         { font-size: 1.1em; }
+.score-text         { font-size: 1.1em; }
+.attempts-counter   { font-size: 1.1em; padding: 4px 8px; }
+
 /* ── TEMA DE COLOR (sobreescriptura del shared.css) ─────────────────────── */
 :root {
     --bg-color:      #f0fdfa;
@@ -31,16 +42,17 @@ h1 { color: #134e4a; }
 
 /* ── ZONA DEL PROBLEMA (SVG triangle + etiqueta) ────────────────────────── */
 .problem-box {
-    padding: 10px 20px 2px;
+    padding: 8px 20px 0;
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 0;
 }
 
 #triangle-svg {
     width: 100%;
-    max-width: 240px;
+    max-width: 210px;
+    max-height: 140px;
     height: auto;
 }
 
@@ -48,20 +60,20 @@ h1 { color: #134e4a; }
 .resolution-panel {
     background-color: #f8fafc;
     border-top: 1px solid var(--border-color);
-    padding: 14px 20px 16px;
+    padding: 10px 20px 12px;
     display: none;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    gap: 10px;
+    gap: 8px;
 }
 
 .step-instruction {
-    font-size: 1.12em;
+    font-size: 1.05em;
     color: #334155;
     font-weight: bold;
     text-align: center;
-    line-height: 1.4;
+    line-height: 1.3;
     margin: 0;
 }
 
@@ -78,13 +90,13 @@ h1 { color: #134e4a; }
 .btn-help {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
+    gap: 5px;
+    padding: 6px 14px;
     border-radius: 20px;
     border: 2px solid #d97706;
     background: white;
     color: #92400e;
-    font-size: 0.9em;
+    font-size: 0.85em;
     font-weight: bold;
     cursor: pointer;
     transition: background 0.2s, transform 0.15s;
@@ -176,7 +188,7 @@ h1 { color: #134e4a; }
 .value-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
     max-width: 440px;
 }
@@ -193,7 +205,7 @@ h1 { color: #134e4a; }
     cursor: pointer;
     transition: 0.2s;
     text-align: center;
-    min-height: 54px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
