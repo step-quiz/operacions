@@ -453,9 +453,12 @@
     }
     .yt-hero-btn svg { width: 14px; height: 14px; fill: white; flex-shrink: 0; }
     .yt-hero-title {
-      font-size: 11px; font-weight: 500; color: rgba(255,255,255,.9);
-      text-align: center; padding: 0 16px; line-height: 1.35;
-      text-shadow: 0 1px 3px rgba(0,0,0,.8);
+      font-size: 11px; font-weight: 600; color: var(--text);
+      text-align: center; padding: 5px 12px; line-height: 1.35;
+      text-shadow: none;
+      background: rgba(230,230,232,.88);
+      border-radius: 6px;
+      max-width: calc(100% - 32px);
       overflow: hidden;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     }
@@ -526,6 +529,37 @@
     .v-note:empty::before { content: '—'; color: var(--text-3); }
 
     /* ── Scrollbar ───────────────────────────────────────────────────── */
+
+    /* ── Stepquiz link list (playlist mode) ───────────────────────────── */
+    .sq-list {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .35s var(--ease);
+    }
+    .sq-list.open {
+      overflow-y: auto;
+      max-height: 400px;
+    }
+    .sq-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      text-decoration: none; color: var(--text);
+      border-bottom: 1px solid var(--divider-2);
+      transition: background .14s var(--ease);
+    }
+    @media (hover: hover) {
+      .sq-item:hover { background: rgba(0,0,0,.06); }
+    }
+    .sq-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .sq-title {
+      flex: 1; font-size: .82rem; font-weight: 500;
+      letter-spacing: -.005em; line-height: 1.35;
+    }
+    .sq-open {
+      flex-shrink: 0; color: var(--text-3);
+      transition: color .15s var(--ease);
+    }
+    .sq-item:hover .sq-open { color: var(--accent); }
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 3px; }
@@ -691,7 +725,7 @@ const PANEL_META = {
   'apunts-bogdan':         { dot: 'dot-pdf',    type: 'drive', label: 'Apunts i exercicis',        name: 'Bogdan Crintea'          },
   'teoria-pildoras':       { dot: 'dot-theory', type: 'video', label: 'Vídeos de teoria',           name: 'Píldoras Matemáticas'    },
   'problemes-bogdan':      { dot: 'dot-solved', type: 'video', label: 'Problemes resolts',          name: 'Matemàtiques amb Bogdan' },
-  'material-complementari':{ dot: 'dot-lock',   type: 'drive', label: 'Material complementari',    name: '🔒'     },
+  'material-complementari':{ dot: 'dot-lock',   type: 'drive', label: 'Material complementari',    name: 'Recursos extra'     },
   'exercicis-stepquiz':    { dot: 'dot-quiz',   type: 'drive', label: 'Exercicis interactius',      name: 'Step Quiz'               },
 };
 
@@ -716,7 +750,7 @@ const ALL_TOPICS = {
 
 /* ─── STATE ──────────────────────────────────────────────────────── */
 let currentTopic     = null;   // { id, icon, title, desc, ready }  — des de ALL_TOPICS
-let currentTopicData = null;   // { subject, text, apunts-bogdan, teoria-pildoras[], problemes-bogdan[] } — des del CSV
+let currentTopicData = null;   // { subject, apunts-bogdan, teoria-pildoras[], problemes-bogdan[], material-complementari, exercicis-stepquiz[] } — des del CSV
 
 /* ─── CSV PARSER ─────────────────────────────────────────────────── */
 // Parseja una línia de CSV gestionant camps entre cometes.
@@ -755,12 +789,31 @@ function parseVideos(cell) {
   }).filter(Boolean);
 }
 
+// Parseja la cel·la d'exercicis stepquiz: suporta 1 o més enllaços.
+// Format: "url" (1 sol enllaç sense títol)
+//    o bé: "títol1::url1|títol2::url2|..." (múltiples enllaços amb títol)
+//    o bé: "url" (retro-compatible: URL sola → títol per defecte "Obre")
+function parseStepquizLinks(cell) {
+  if (!cell || !cell.trim()) return [];
+  return cell.trim().split('|').map(entry => {
+    entry = entry.trim();
+    if (!entry) return null;
+    const sep = entry.indexOf('::');
+    if (sep >= 0) {
+      // Format "títol::url"
+      return { title: entry.substring(0, sep).trim(), url: entry.substring(sep + 2).trim() };
+    }
+    // URL sola (retro-compatible)
+    return { title: 'Obre', url: entry };
+  }).filter(Boolean);
+}
+
 // Carrega el CSV i retorna les dades de la fila corresponent a l'id demanat.
 async function fetchTopicData(id) {
   const res = await fetch(CSV_FILE);
   if (!res.ok) throw new Error('No s\'ha pogut carregar ' + CSV_FILE);
   const lines   = (await res.text()).trim().split('\n');
-  const headers = parseCSVRow(lines[0]);  // subject, text, apunts-bogdan, teoria-pildoras, problemes-bogdan
+  const headers = parseCSVRow(lines[0]);  // subject, apunts-bogdan, teoria-pildoras, problemes-bogdan, material-complementari, exercicis-stepquiz
 
   for (let i = 1; i < lines.length; i++) {
     const fields = parseCSVRow(lines[i]);
@@ -769,12 +822,11 @@ async function fetchTopicData(id) {
     headers.forEach((h, idx) => row[h] = fields[idx] || '');
     return {
       subject:                row['subject'],
-      text:                   row['text'],
       'apunts-bogdan':        row['apunts-bogdan'],
       'teoria-pildoras':      parseVideos(row['teoria-pildoras']),
       'problemes-bogdan':     parseVideos(row['problemes-bogdan']),
       'material-complementari': row['material-complementari'] || '',
-      'exercicis-stepquiz':     row['exercicis-stepquiz'] || '',
+      'exercicis-stepquiz':     parseStepquizLinks(row['exercicis-stepquiz'] || ''),
     };
   }
   throw new Error(`No s'ha trobat la fila "${id}" al CSV.`);
@@ -941,7 +993,15 @@ function renderPanels() {
 
   // Col 1: 3 panells apilats
   wrap.appendChild(makeDrivePanel('apunts-bogdan',          'panel-col1'));
-  wrap.appendChild(makeDrivePanel('exercicis-stepquiz',     'panel-col1'));
+
+  // exercicis-stepquiz: si hi ha >1 enllaç, es mostra com a playlist; si no, panell simple
+  const sqLinks = currentTopicData['exercicis-stepquiz'] || [];
+  if (sqLinks.length > 1) {
+    wrap.appendChild(makeStepquizPlaylist('exercicis-stepquiz', 'panel-col1'));
+  } else {
+    wrap.appendChild(makeDrivePanel('exercicis-stepquiz',     'panel-col1'));
+  }
+
   wrap.appendChild(makeDrivePanel('material-complementari', 'panel-col1'));
 
   // Col 2: vídeos de teoria (span 3 files)
@@ -953,12 +1013,20 @@ function renderPanels() {
 
 function makeDrivePanel(colKey, colClass) {
   const meta   = PANEL_META[colKey];
-  const url    = currentTopicData[colKey] || '';
+
+  // exercicis-stepquiz és ara un array d'objectes [{title, url}]
+  let url;
+  if (colKey === 'exercicis-stepquiz') {
+    const links = currentTopicData[colKey] || [];
+    url = links.length > 0 ? links[0].url : '';
+  } else {
+    url = currentTopicData[colKey] || '';
+  }
   const hasUrl = url.trim() !== '';
 
   const ICONS = {
     'apunts-bogdan':          '📄',
-    'material-complementari': '🔒',
+    'material-complementari': '📦',
     'exercicis-stepquiz':     '✏️',
   };
   const icon    = ICONS[colKey] || '📄';
@@ -994,6 +1062,68 @@ function makeDrivePanel(colKey, colClass) {
            <div class="drive-label" style="color:var(--text-2)">No disponible per a aquest tema</div>
          </div>`
     }`;
+  return div;
+}
+
+/* Panell amb llista d'enllaços stepquiz (format playlist, com els vídeos) */
+function makeStepquizPlaylist(colKey, colClass) {
+  const meta  = PANEL_META[colKey];
+  const links = currentTopicData[colKey] || [];
+
+  const div = document.createElement('div');
+  div.className = 'panel' + (colClass ? ' ' + colClass : '');
+
+  const listHTML = links.map((lk, i) => `
+    <a class="sq-item" href="${lk.url}" target="_blank" rel="noopener">
+      <div class="sq-icon">✏️</div>
+      <div class="sq-title">${lk.title}</div>
+      <div class="sq-open">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </div>
+    </a>`).join('');
+
+  div.innerHTML = `
+    <div class="panel-head">
+      <div class="panel-dot ${meta.dot}"></div>
+      <div>
+        <div class="panel-label">${meta.label}</div>
+        <div class="panel-name">${meta.name}</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <button class="playlist-toggle" aria-expanded="false" aria-controls="list-sq">
+        <span>
+          Exercicis
+          <span class="playlist-count">${links.length}</span>
+        </span>
+        <svg class="toggle-arrow" viewBox="0 0 24 24" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 6 15 12 9 18"/>
+        </svg>
+      </button>
+      <div class="sq-list" id="list-sq">${listHTML}</div>
+    </div>`;
+
+  // Toggle collapse/expand
+  const toggleBtn = div.querySelector('.playlist-toggle');
+  const listEl    = div.querySelector('.sq-list');
+  // Obre per defecte
+  listEl.classList.add('open');
+  toggleBtn.classList.add('open');
+  toggleBtn.setAttribute('aria-expanded', true);
+
+  toggleBtn.addEventListener('click', () => {
+    const isOpen = listEl.classList.toggle('open');
+    toggleBtn.classList.toggle('open', isOpen);
+    toggleBtn.setAttribute('aria-expanded', isOpen);
+  });
+
   return div;
 }
 
