@@ -390,7 +390,6 @@ const els = {
     attemptsDisplay: document.getElementById('attempts-display'),
     problemBox:      document.getElementById('problem-box'),
     triangleSvg:     document.getElementById('triangle-svg'),
-    findLabel:       document.getElementById('find-label'),
     resolutionPanel: document.getElementById('resolution-panel'),
     stepInstruction: document.getElementById('step-instruction'),
     helpBtn:         document.getElementById('btn-help'),
@@ -567,10 +566,6 @@ function buildLevel() {
     els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
     els.attemptsDisplay.className = 'attempts-counter';
-
-    const typeLabel = p.find.type === 'side' ? 'el costat' : "l'angle";
-    els.findLabel.innerHTML =
-        `Troba ${typeLabel} <span class="find-name">${p.find.name}</span>`;
 
     const findNameLbl = p.find.type === 'side'
         ? `el costat <strong>${p.find.name}</strong>`
