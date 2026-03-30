@@ -10,14 +10,18 @@
  *
  * CONVENCIÓ DEL TRIANGLE:
  *   A (baix-esquerra) = angle recte  ·  B (baix-dreta)  ·  C (dalt-esquerra)
- *   a = catet vertical (AC)
- *   b = catet horitzontal (AB)
- *   c = hipotenusa (BC)
- *   Pitàgores:  a² + b² = c²
+ *   a = hipotenusa (BC)
+ *   b = catet vertical (AC)
+ *   c = catet horitzontal (AB)
+ *   Pitàgores:  b² + c² = a²
  * ============================================================================
  */
 
 /* ── CONFIGURACIÓ DEL JOC ───────────────────────────────────────────────── */
+const TOTAL_SESSIONS    = window.APP_CONFIG?.defaultSessions      ?? 3;
+const TOTAL_OPERATIONS  = window.APP_CONFIG?.defaultOperations    ?? 8;
+const MAX_INTENTS       = window.APP_CONFIG?.defaultIntents       ?? 4;
+const MAX_ENLLOC_MITJANA= window.APP_CONFIG?.defaultEnllocMitjana ?? 1;
 
 /* ── PROBLEMES ──────────────────────────────────────────────────────────── */
 /*
@@ -30,150 +34,150 @@
  */
 const PROBLEMS = [
 
-    /* ── Troba la hipotenusa (c = √(a²+b²)) ────────────────────────────── */
+    /* ── Troba la hipotenusa (a = √(b²+c²)) ────────────────────────────── */
     {
-        id: 0, find: 'c',
-        given: { a: '3', b: '4' },
+        id: 0, find: 'a',
+        given: { b: '3', c: '4' },
         answer: '5',
         distractors: ['7', '√7', '2√2'],
-        hint: 'c = √(3² + 4²) = √(9 + 16) = √25 = 5',
+        hint: 'a = √(3² + 4²) = √(9 + 16) = √25 = 5',
     },
     {
-        id: 1, find: 'c',
-        given: { a: '5', b: '12' },
+        id: 1, find: 'a',
+        given: { b: '5', c: '12' },
         answer: '13',
         distractors: ['17', '11', '√119'],
-        hint: 'c = √(5² + 12²) = √(25 + 144) = √169 = 13',
+        hint: 'a = √(5² + 12²) = √(25 + 144) = √169 = 13',
     },
     {
-        id: 2, find: 'c',
-        given: { a: '6', b: '8' },
+        id: 2, find: 'a',
+        given: { b: '6', c: '8' },
         answer: '10',
         distractors: ['14', '√28', '7'],
-        hint: 'c = √(6² + 8²) = √(36 + 64) = √100 = 10',
+        hint: 'a = √(6² + 8²) = √(36 + 64) = √100 = 10',
     },
     {
-        id: 3, find: 'c',
-        given: { a: '1', b: '1' },
+        id: 3, find: 'a',
+        given: { b: '1', c: '1' },
         answer: '√2',
         distractors: ['2', '√3', '1'],
-        hint: 'c = √(1² + 1²) = √(1 + 1) = √2',
+        hint: 'a = √(1² + 1²) = √(1 + 1) = √2',
     },
     {
-        id: 4, find: 'c',
-        given: { a: '1', b: '2' },
+        id: 4, find: 'a',
+        given: { b: '1', c: '2' },
         answer: '√5',
         distractors: ['3', '√3', '√7'],
-        hint: 'c = √(1² + 2²) = √(1 + 4) = √5',
+        hint: 'a = √(1² + 2²) = √(1 + 4) = √5',
     },
     {
-        id: 5, find: 'c',
-        given: { a: '2', b: '2' },
+        id: 5, find: 'a',
+        given: { b: '2', c: '2' },
         answer: '2√2',
         distractors: ['4', '√6', '2√3'],
-        hint: 'c = √(2² + 2²) = √(4 + 4) = √8 = 2√2',
+        hint: 'a = √(2² + 2²) = √(4 + 4) = √8 = 2√2',
     },
     {
-        id: 6, find: 'c',
-        given: { a: '8', b: '15' },
+        id: 6, find: 'a',
+        given: { b: '8', c: '15' },
         answer: '17',
         distractors: ['23', '16', '√161'],
-        hint: 'c = √(8² + 15²) = √(64 + 225) = √289 = 17',
+        hint: 'a = √(8² + 15²) = √(64 + 225) = √289 = 17',
     },
     {
-        id: 7, find: 'c',
-        given: { a: '3', b: '3' },
+        id: 7, find: 'a',
+        given: { b: '3', c: '3' },
         answer: '3√2',
         distractors: ['6', '√15', '9'],
-        hint: 'c = √(3² + 3²) = √(9 + 9) = √18 = 3√2',
+        hint: 'a = √(3² + 3²) = √(9 + 9) = √18 = 3√2',
     },
     {
-        id: 8, find: 'c',
-        given: { a: '7', b: '24' },
+        id: 8, find: 'a',
+        given: { b: '7', c: '24' },
         answer: '25',
         distractors: ['31', '√527', '√625'],
-        hint: 'c = √(7² + 24²) = √(49 + 576) = √625 = 25',
+        hint: 'a = √(7² + 24²) = √(49 + 576) = √625 = 25',
     },
 
-    /* ── Troba el catet a (a = √(c²−b²)) ───────────────────────────────── */
+    /* ── Troba el catet b (b = √(a²−c²)) ───────────────────────────────── */
     {
-        id: 9, find: 'a',
-        given: { b: '4', c: '5' },
+        id: 9, find: 'b',
+        given: { a: '5', c: '4' },
         answer: '3',
         distractors: ['1', '√41', '6'],
-        hint: 'a = √(c² − b²) = √(25 − 16) = √9 = 3',
+        hint: 'b = √(a² − c²) = √(25 − 16) = √9 = 3',
     },
     {
-        id: 10, find: 'a',
-        given: { b: '12', c: '13' },
+        id: 10, find: 'b',
+        given: { a: '13', c: '12' },
         answer: '5',
         distractors: ['1', '7', '√119'],
-        hint: 'a = √(c² − b²) = √(169 − 144) = √25 = 5',
+        hint: 'b = √(a² − c²) = √(169 − 144) = √25 = 5',
     },
     {
-        id: 11, find: 'a',
-        given: { b: '6', c: '10' },
+        id: 11, find: 'b',
+        given: { a: '10', c: '6' },
         answer: '8',
         distractors: ['4', '√164', '√136'],
-        hint: 'a = √(c² − b²) = √(100 − 36) = √64 = 8',
+        hint: 'b = √(a² − c²) = √(100 − 36) = √64 = 8',
     },
     {
-        id: 12, find: 'a',
-        given: { b: '1', c: '√2' },
+        id: 12, find: 'b',
+        given: { a: '√2', c: '1' },
         answer: '1',
         distractors: ['√3', '2', '√5'],
-        hint: 'a = √(c² − b²) = √(2 − 1) = √1 = 1',
+        hint: 'b = √(a² − c²) = √(2 − 1) = √1 = 1',
     },
     {
-        id: 13, find: 'a',
-        given: { b: '1', c: '√5' },
+        id: 13, find: 'b',
+        given: { a: '√5', c: '1' },
         answer: '2',
         distractors: ['4', '√6', '√3'],
-        hint: 'a = √(c² − b²) = √(5 − 1) = √4 = 2',
+        hint: 'b = √(a² − c²) = √(5 − 1) = √4 = 2',
     },
     {
-        id: 14, find: 'a',
-        given: { b: '8', c: '17' },
+        id: 14, find: 'b',
+        given: { a: '17', c: '8' },
         answer: '15',
         distractors: ['9', '7', '√353'],
-        hint: 'a = √(c² − b²) = √(289 − 64) = √225 = 15',
+        hint: 'b = √(a² − c²) = √(289 − 64) = √225 = 15',
     },
 
-    /* ── Troba el catet b (b = √(c²−a²)) ───────────────────────────────── */
+    /* ── Troba el catet c (c = √(a²−b²)) ───────────────────────────────── */
     {
-        id: 15, find: 'b',
-        given: { a: '3', c: '5' },
+        id: 15, find: 'c',
+        given: { a: '5', b: '3' },
         answer: '4',
         distractors: ['2', '√34', '6'],
-        hint: 'b = √(c² − a²) = √(25 − 9) = √16 = 4',
+        hint: 'c = √(a² − b²) = √(25 − 9) = √16 = 4',
     },
     {
-        id: 16, find: 'b',
-        given: { a: '5', c: '13' },
+        id: 16, find: 'c',
+        given: { a: '13', b: '5' },
         answer: '12',
         distractors: ['8', '√194', '10'],
-        hint: 'b = √(c² − a²) = √(169 − 25) = √144 = 12',
+        hint: 'c = √(a² − b²) = √(169 − 25) = √144 = 12',
     },
     {
-        id: 17, find: 'b',
-        given: { a: '9', c: '15' },
+        id: 17, find: 'c',
+        given: { a: '15', b: '9' },
         answer: '12',
         distractors: ['6', '√306', '10'],
-        hint: 'b = √(c² − a²) = √(225 − 81) = √144 = 12',
+        hint: 'c = √(a² − b²) = √(225 − 81) = √144 = 12',
     },
     {
-        id: 18, find: 'b',
-        given: { a: '7', c: '25' },
+        id: 18, find: 'c',
+        given: { a: '25', b: '7' },
         answer: '24',
         distractors: ['18', '26', '√576'],
-        hint: 'b = √(c² − a²) = √(625 − 49) = √576 = 24',
+        hint: 'c = √(a² − b²) = √(625 − 49) = √576 = 24',
     },
     {
-        id: 19, find: 'b',
-        given: { a: '2', c: '√8' },
+        id: 19, find: 'c',
+        given: { a: '√8', b: '2' },
         answer: '2',
         distractors: ['4', '√12', '√6'],
-        hint: 'b = √(c² − a²) = √(8 − 4) = √4 = 2',
+        hint: 'c = √(a² − b²) = √(8 − 4) = √4 = 2',
     },
 ];
 
@@ -221,20 +225,23 @@ function evalVal(s) {
  * Independentment de quin sigui el valor desconegut.
  */
 function getTriangleDimensions(p) {
-    let aN, bN;
-    if (p.find === 'c') {
-        aN = evalVal(p.given.a);
+    let bN, cN;
+    if (p.find === 'a') {
+        // Coneixem els dos catets
         bN = evalVal(p.given.b);
-    } else if (p.find === 'a') {
+        cN = evalVal(p.given.c);
+    } else if (p.find === 'b') {
+        // Coneixem la hipotenusa i el catet c; calculem b
+        cN = evalVal(p.given.c);
+        const aN = evalVal(p.given.a);
+        bN = Math.sqrt(Math.max(0, aN * aN - cN * cN));
+    } else {   // find === 'c'
+        // Coneixem la hipotenusa i el catet b; calculem c
         bN = evalVal(p.given.b);
-        const cN = evalVal(p.given.c);
-        aN = Math.sqrt(Math.max(0, cN * cN - bN * bN));
-    } else {   // find === 'b'
-        aN = evalVal(p.given.a);
-        const cN = evalVal(p.given.c);
-        bN = Math.sqrt(Math.max(0, cN * cN - aN * aN));
+        const aN = evalVal(p.given.a);
+        cN = Math.sqrt(Math.max(0, aN * aN - bN * bN));
     }
-    return { aN: aN || 1, bN: bN || 1 };
+    return { aN: bN || 1, bN: cN || 1 };  // aN=visual vertical (b), bN=visual horitzontal (c)
 }
 
 /* ── BARALLA I SELECCIÓ DE PROBLEMES ─────────────────────────────────────── */
@@ -283,22 +290,22 @@ function drawRightTriangle(p) {
     // ── Colors
     const COL_KNOWN    = '#334155';
     const COL_UNKNOWN  = '#7c3aed';
-    const isAUnk = (p.find === 'a');
-    const isBUnk = (p.find === 'b');
-    const isCUnk = (p.find === 'c');
+    const isAUnk = (p.find === 'a');  // hipotenusa desconeguda
+    const isBUnk = (p.find === 'b');  // catet vertical desconegut
+    const isCUnk = (p.find === 'c');  // catet horitzontal desconegut
 
-    const colA = isAUnk ? COL_UNKNOWN : COL_KNOWN;
-    const colB = isBUnk ? COL_UNKNOWN : COL_KNOWN;
-    const colC = isCUnk ? COL_UNKNOWN : COL_KNOWN;
+    const colA = isBUnk ? COL_UNKNOWN : COL_KNOWN;  // costat vertical = b
+    const colB = isCUnk ? COL_UNKNOWN : COL_KNOWN;  // costat horitzontal = c
+    const colC = isAUnk ? COL_UNKNOWN : COL_KNOWN;  // hipotenusa = a
 
-    const strokeA = `stroke="${colA}" stroke-width="2.5"${isAUnk ? ' stroke-dasharray="7,4"' : ''}`;
-    const strokeB = `stroke="${colB}" stroke-width="2.5"${isBUnk ? ' stroke-dasharray="7,4"' : ''}`;
-    const strokeC = `stroke="${colC}" stroke-width="2.5"${isCUnk ? ' stroke-dasharray="7,4"' : ''}`;
+    const strokeA = `stroke="${colA}" stroke-width="2.5"${isBUnk ? ' stroke-dasharray="7,4"' : ''}`;
+    const strokeB = `stroke="${colB}" stroke-width="2.5"${isCUnk ? ' stroke-dasharray="7,4"' : ''}`;
+    const strokeC = `stroke="${colC}" stroke-width="2.5"${isAUnk ? ' stroke-dasharray="7,4"' : ''}`;
 
     // ── Etiquetes de valors
-    const labelA = isAUnk ? '?' : p.given.a;
-    const labelB = isBUnk ? '?' : p.given.b;
-    const labelC = isCUnk ? '?' : p.given.c;
+    const labelA = isBUnk ? '?' : p.given.b;  // costat esquerre = b
+    const labelB = isCUnk ? '?' : p.given.c;  // costat baix = c
+    const labelC = isAUnk ? '?' : p.given.a;  // hipotenusa = a
 
     // ── Posicions d'etiquetes
     const midAY  = (AY + CY) / 2;          // mig costat a  → a l'esquerra
@@ -383,9 +390,9 @@ function buildLevel() {
     els.attemptsDisplay.className = 'attempts-counter';
 
     const findLabel = {
-        a: 'el catet <strong>a</strong>',
+        a: 'la hipotenusa <strong>a</strong>',
         b: 'el catet <strong>b</strong>',
-        c: 'la hipotenusa <strong>c</strong>',
+        c: 'el catet <strong>c</strong>',
     }[currentProblem.find];
     els.stepInstruction.innerHTML = `Quant val ${findLabel}?`;
 
@@ -469,7 +476,7 @@ function _finishOp(points) {
     sessionScore += points;
     els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
 
-    const labelMap = { a: 'catet a', b: 'catet b', c: 'hipotenusa c' };
+    const labelMap = { a: 'hipotenusa a', b: 'catet b', c: 'catet c' };
     recordAnswerToHistory(
         `${labelMap[p.find]} del triangle (a=${p.given.a ?? '?'}, b=${p.given.b ?? '?'}, c=${p.given.c ?? '?'})`,
         p.answer,
@@ -506,14 +513,14 @@ function toggleHelp() {
 
 function buildHints(p) {
     const formulaMap = {
-        c: 'c = √(a² + b²)',
-        a: 'a = √(c² − b²)',
-        b: 'b = √(c² − a²)',
+        a: 'a = √(b² + c²)',
+        b: 'b = √(a² − c²)',
+        c: 'c = √(a² − b²)',
     };
     const reasonMap = {
-        c: 'Coneixes els dos catets: aplica directament Pitàgores per trobar la hipotenusa.',
-        a: 'Coneixes la hipotenusa i un catet: aïlla el catet desconegut a Pitàgores.',
+        a: 'Coneixes els dos catets: aplica directament Pitàgores per trobar la hipotenusa.',
         b: 'Coneixes la hipotenusa i un catet: aïlla el catet desconegut a Pitàgores.',
+        c: 'Coneixes la hipotenusa i un catet: aïlla el catet desconegut a Pitàgores.',
     };
 
     const hints = [
@@ -523,13 +530,6 @@ function buildHints(p) {
             name:    'Teorema de Pitàgores',
             formula: formulaMap[p.find],
             reason:  reasonMap[p.find],
-        },
-        {
-            badge: '💡', badgeClass: 'badge-tip', best: false,
-            icon:    '🔢',
-            name:    'Càlcul pas a pas',
-            formula: p.hint,
-            reason:  'Substitueix els valors i simplifica l\'arrel.',
         },
     ];
 
