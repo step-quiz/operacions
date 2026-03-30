@@ -534,7 +534,7 @@
     .v-note {
       font-size: .7rem; color: var(--text-2); line-height: 1.4; font-style: italic;
     }
-    .v-note:empty::before { content: '—'; color: var(--text-3); }
+    .v-note:empty { display: none; }
 
     /* ── Scrollbar ───────────────────────────────────────────────────── */
 
@@ -906,7 +906,15 @@ async function openTopic(t) {
     setTimeout(() => {
       const toggles = document.querySelectorAll('.panel-col2 .playlist-toggle, .panel-col3 .playlist-toggle');
       toggles.forEach(t => t.classList.add('select-atencio-shake'));
-      setTimeout(() => toggles.forEach(t => t.classList.remove('select-atencio-shake')), 1250);
+      setTimeout(() => {
+        toggles.forEach(t => {
+          t.classList.remove('select-atencio-shake');
+          // Desplega la playlist si encara està tancada
+          if (t.getAttribute('aria-expanded') !== 'true') {
+            t.click();
+          }
+        });
+      }, 1250);
     }, 2220);
 
   } catch (err) {
