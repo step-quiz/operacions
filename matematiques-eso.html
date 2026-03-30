@@ -254,7 +254,7 @@
       grid-template-columns: 1fr 1.6fr 1.6fr;
       grid-template-rows: repeat(3, 1fr);
       gap: 14px 40px;
-      padding: 14px 40px;
+      padding: 14px 40px 44px;
       width: 100%;
       /* NO height:100% — s'usa flex:1 del #panels-wrap per tenir l'alçada real */
     }
@@ -262,9 +262,12 @@
     /* Col 1: els tres panells petits s'apilen normalment (una fila cada un) */
     .panel-col1 { grid-column: 1; }
 
-    /* Cols 2 i 3: un panell que ocupa totes 3 files */
-    .panel-col2 { grid-column: 2; grid-row: 1 / 4; }
-    .panel-col3 { grid-column: 3; grid-row: 1 / 4; }
+    /* Cols 2 i 3: ocupen totes 3 files però s'alineen a l'inici quan la playlist és tancada */
+    .panel-col2 { grid-column: 2; grid-row: 1 / 4; align-self: start; }
+    .panel-col3 { grid-column: 3; grid-row: 1 / 4; align-self: start; }
+    /* Quan la playlist és oberta, s'estiren per omplir */
+    .panel-col2.playlist-open,
+    .panel-col3.playlist-open { align-self: stretch; }
 
     .panel {
       background: var(--surface);
@@ -409,10 +412,9 @@
       transition: max-height .35s var(--ease);
     }
     .video-list.open {
-      flex: 1 1 0;
-      min-height: 0;
       overflow-y: auto;
-      /* max-height eliminat: el panel row del grid ja limita l'alçada */
+      max-height: calc(100dvh - 54px - 44px - 52px - 42px);
+      /* 54=topbar, 44=footer-pad, 52=panel-head, 42=toggle-btn */
     }
 
     .yt-hero {
@@ -1044,6 +1046,7 @@ function makeVideoPanel(colKey, colClass) {
     const isOpen = listEl.classList.toggle('open');
     toggleBtn.classList.toggle('open', isOpen);
     toggleBtn.setAttribute('aria-expanded', isOpen);
+    div.classList.toggle('playlist-open', isOpen);
     if (isOpen) {
       // scroll the active item into view when opening
       const activeItem = listEl.querySelector('.v-active');
