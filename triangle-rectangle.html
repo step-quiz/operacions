@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Triangles rectangles · Step Quiz</title>
+  <link rel="icon" href="icon.png" />
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="triangle-rectangle.css" />
+</head>
+<body>
+
+  <!-- ── Capçalera de sessió (game-core.js pot sobreescriure) ── -->
+  <header id="sq-header">
+    <div id="sq-session-info">
+      Sessió <span id="sq-cur-session">1</span>/<span id="sq-total-sessions">1</span>
+    </div>
+    <div id="sq-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <div id="sq-progress-fill"></div>
+    </div>
+    <div id="sq-error-info">
+      Errors: <span id="sq-cur-errors">0</span>/<span id="sq-max-errors">4</span>
+    </div>
+  </header>
+
+  <!-- ── Àrea principal ── -->
+  <main id="sq-main">
+
+    <!-- Comptador de problema -->
+    <div id="sq-op-counter">
+      Problema <span id="sq-cur-op">1</span>/<span id="sq-total-ops">6</span>
+    </div>
+
+    <!-- Visualització del triangle (SVG generat per JS) -->
+    <div id="tri-container">
+      <svg id="tri-svg" viewBox="0 0 300 210" aria-label="Triangle rectangle">
+        <!-- Contingut generat per triangle-rectangle.js -->
+      </svg>
+    </div>
+
+    <!-- Àrea de passos -->
+    <section id="step-area" aria-live="polite">
+      <div id="step-badge">
+        <span id="step-num">1</span>/<span id="step-total">3</span>
+      </div>
+      <p id="step-question"></p>
+
+      <!-- Input tipus: triar raó trigonomètrica -->
+      <div id="input-ratio" class="input-block hidden">
+        <button class="ratio-btn" data-ratio="sin">sin</button>
+        <button class="ratio-btn" data-ratio="cos">cos</button>
+        <button class="ratio-btn" data-ratio="tan">tan</button>
+      </div>
+
+      <!-- Input tipus: valor numèric -->
+      <div id="input-number" class="input-block hidden">
+        <input id="num-field" type="number" step="any" placeholder="Escriu la resposta…"
+               autocomplete="off" inputmode="decimal" />
+        <button id="check-btn" class="sq-btn sq-btn-primary">Comprova</button>
+      </div>
+
+      <!-- Feedback (correcte / incorrecte) -->
+      <div id="step-feedback" class="feedback hidden" role="status"></div>
+
+      <!-- Botons de navegació -->
+      <div id="nav-btns">
+        <button id="next-step-btn" class="sq-btn sq-btn-secondary hidden">Pas següent →</button>
+        <button id="next-problem-btn" class="sq-btn sq-btn-primary hidden">Problema següent →</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Pantalla final de sessió ── -->
+  <div id="end-screen" class="hidden">
+    <div id="end-card">
+      <div id="end-icon">🎯</div>
+      <h2 id="end-title">Sessió completada</h2>
+      <p id="end-score"></p>
+      <button id="end-btn" class="sq-btn sq-btn-primary">Torna a l'inici</button>
+    </div>
+  </div>
+
+  <!-- ── Scripts ── -->
+  <script src="game-core.js" defer></script>
+  <script src="triangle-rectangle.js" defer></script>
+
+</body>
+</html>
