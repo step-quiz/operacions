@@ -217,6 +217,103 @@ function evalVal(s) {
 }
 
 /**
+ * Formata un número com a string matemàtic llegible.
+ * Retorna: '5', '√2', '3√2', '2√5', etc.
+ */
+function formatVal(n) {
+    if (!isFinite(n) || n <= 0) return null;
+    // Enter exacte?
+    const ri = Math.round(n);
+    if (Math.abs(ri - n) < 0.001 && ri > 0) return String(ri);
+    // Forma k√m (k enter 1..20, m enter 2..300)?
+    for (let k = 1; k <= 20; k++) {
+        const m = (n * n) / (k * k);
+        const mR = Math.round(m);
+        if (Math.abs(mR - m) < 0.001 && mR >= 2 && mR <= 300) {
+            if (Math.abs(k * Math.sqrt(mR) - n) < 0.001) {
+                return k === 1 ? `√${mR}` : `${k}√${mR}`;
+            }
+        }
+    }
+    // Decimal amb 1 xifra
+    return n.toFixed(1);
+}
+
+/**
+ * Genera dinàmicament 3 distractors intel·ligents per a un problema:
+ *   A (sempre)   — fórmula errònia (suma↔resta invertida)
+ *   B (40%)      — la solució al quadrat
+ *   C (40%)      — suma catets (si cerquem hipotenusa) o
+ *                  hipotenusa − catet conegut (si cerquem un catet)
+ * Els buits restants s'omplen amb els distractors originals del problema
+ * i, si cal, amb variacions numèriques simples.
+ */
+function generateDistractors(p) {
+    const ans    = evalVal(p.answer);
+    const chosen = [];   // strings ja triats
+
+    // Afegeix un valor si és vàlid, diferent de la resposta i no duplicat
+    function add(val) {
+        if (val == null) return false;
+        const s   = String(val);
+        const n   = evalVal(s);
+        if (!isFinite(n) || n <= 0) return false;
+        if (Math.abs(n - ans) < 0.001) return false;                           // igual a la resposta
+        if (chosen.some(c => Math.abs(evalVal(c) - n) < 0.001)) return false;  // duplicat
+        chosen.push(s);
+        return true;
+    }
+
+    // ── A. Fórmula errònia (sempre present) ──────────────────────────────
+    let dA = null;
+    if (p.find === 'a') {
+        // Calien b²+c²; en canvi: √(max²−min²)
+        const bN = evalVal(p.given.b), cN = evalVal(p.given.c);
+        const diff = Math.abs(bN * bN - cN * cN);
+        if (diff > 0.001) dA = formatVal(Math.sqrt(diff));
+    } else {
+        // Calia a²−x²; en canvi: √(a²+x²)
+        const aN = evalVal(p.given.a);
+        const xN = p.find === 'b' ? evalVal(p.given.c) : evalVal(p.given.b);
+        dA = formatVal(Math.sqrt(aN * aN + xN * xN));
+    }
+    if (!add(dA)) add(p.distractors[0]);  // fallback si dA = 0 o coincideix
+
+    // ── B. Solució al quadrat (40%) ───────────────────────────────────────
+    if (Math.random() < 0.4) {
+        add(formatVal(ans * ans));
+    }
+
+    // ── C. Suma catets / Resta hipotenusa−catet (40%) ─────────────────────
+    if (Math.random() < 0.4) {
+        let dC = null;
+        if (p.find === 'a') {
+            dC = formatVal(evalVal(p.given.b) + evalVal(p.given.c));
+        } else if (p.find === 'b') {
+            dC = formatVal(evalVal(p.given.a) - evalVal(p.given.c));
+        } else {
+            dC = formatVal(evalVal(p.given.a) - evalVal(p.given.b));
+        }
+        add(dC);
+    }
+
+    // ── Farcit amb distractors originals ─────────────────────────────────
+    for (const d of p.distractors) {
+        if (chosen.length >= 3) break;
+        add(d);
+    }
+
+    // ── Farcit amb variacions numèriques si encara en falten ─────────────
+    const extras = [ans + 2, ans + 4, ans - 2, ans * 2, ans + 6, ans + 1];
+    for (const e of extras) {
+        if (chosen.length >= 3) break;
+        add(formatVal(e));
+    }
+
+    return chosen.slice(0, 3);
+}
+
+/**
  * Retorna les dimensions numèriques dels dos catets (aN, bN).
  * Independentment de quin sigui el valor desconegut.
  */
@@ -409,7 +506,7 @@ function buildLevel() {
 /* ── BOTONS DE VALOR (4 opcions múltiples barrejades) ───────────────────── */
 function buildValueButtons() {
     const p       = currentProblem;
-    const options = [p.answer, ...p.distractors];
+    const options = [p.answer, ...generateDistractors(p)];
 
     // Fisher–Yates shuffle
     for (let i = options.length - 1; i > 0; i--) {
