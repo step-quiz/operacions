@@ -55,6 +55,14 @@
     }
     @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
 
+    /* ── Shake-and-bright (atenció a les playlists) ────────────────── */
+    .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
+    @keyframes select-shake-wave {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); background-color: #fef08a; }
+      20%, 40%, 60%, 80% { transform: translateX(4px); background-color: #ffedd5; }
+    }
+
     /* ══════════════════════════════════════════════════════════════════
        HOME PAGE
     ══════════════════════════════════════════════════════════════════ */
@@ -893,6 +901,14 @@ async function openTopic(t) {
   try {
     currentTopicData = await fetchTopicData(t.id);
     renderPanels();
+
+    // Shake-and-bright: crida l'atenció a les playlists de vídeo
+    setTimeout(() => {
+      const toggles = document.querySelectorAll('.panel-col2 .playlist-toggle, .panel-col3 .playlist-toggle');
+      toggles.forEach(t => t.classList.add('select-atencio-shake'));
+      setTimeout(() => toggles.forEach(t => t.classList.remove('select-atencio-shake')), 1250);
+    }, 2220);
+
   } catch (err) {
     document.getElementById('panels-wrap').innerHTML =
       `<div style="grid-column:1/-1;padding:40px;color:#b91c1c;font-size:14px;">
@@ -1081,7 +1097,6 @@ function makeStepquizPlaylist(colKey, colClass) {
   const listHTML = links.map((lk, i) => `
     <a class="sq-item" href="${lk.url}" target="_blank" rel="noopener">
       <div class="sq-icon">✏️</div>
-      <div class="sq-title">${lk.title}</div>
       <div class="sq-title">${lk.title}</div>
     </a>`).join('');
 
