@@ -170,10 +170,8 @@
     #page-topic {
       display: none;
       flex-direction: column;
-      min-height: 100vh;
-      min-height: 100svh;
-      overflow-y: auto;          /* scroll vertical sempre actiu */
-      overflow-x: hidden;
+      height: 100dvh;            /* exactament la pantalla, sense scroll de pàgina */
+      overflow: hidden;
     }
 
     /* ── Top bar ─────────────────────────────────────────────────────── */
@@ -242,13 +240,13 @@
     /* ── Panels ──────────────────────────────────────────────────────── */
     .panels {
       display: grid;
-      grid-template-columns: 1fr 1.6fr 1.6fr;  /* col1 lleugerament menys ampla */
-      grid-template-rows: repeat(3, auto);
-      gap: 16px;
-      padding: 16px 20px 28px;
-      max-width: 1280px;
-      margin: 0 auto;
-      width: 100%;
+      grid-template-columns: 1fr 1.6fr 1.6fr;
+      grid-template-rows: repeat(3, 1fr);   /* 3 files iguals — omple l'espai disponible */
+      gap: 14px;
+      padding: 14px 20px;
+      /* Ocupa tot el que queda sota la top-bar, descomptant el footer fix */
+      flex: 1;
+      min-height: 0;            /* imprescindible perquè flex + grid no desborden */
     }
 
     /* Col 1: els tres panells petits s'apilen normalment (una fila cada un) */
@@ -265,6 +263,7 @@
       display: flex; flex-direction: column;
       overflow: hidden;
       animation: fade-up .35s var(--spring) both;
+      min-height: 0;            /* permet que el panel s'encongeixi en el grid 1fr */
     }
     .panel:nth-child(2) { animation-delay: .06s; }
     .panel:nth-child(3) { animation-delay: .12s; }
@@ -283,7 +282,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      height: 100%;
+      min-height: 0;
     }
     .panel-col2 .panel-body,
     .panel-col3 .panel-body {
@@ -328,13 +327,14 @@
     .drive-link {
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 10px; padding: 20px 14px;      /* menys padding → panell més baix */
+      gap: 7px; padding: 10px 14px;       /* compacte per caber en pantalla */
       text-decoration: none; color: var(--text);
       transition: background .18s var(--ease);
       border-radius: 0 0 var(--radius) var(--radius);
+      flex: 1; min-height: 0;             /* ocupa l'espai lliure de la fila */
     }
     .drive-link:hover { background: var(--bg); }
-    .drive-icon  { font-size: 2.2rem; line-height: 1; }   /* icona més petita */
+    .drive-icon  { font-size: 1.6rem; line-height: 1; }
     .drive-label { font-size: .88rem; font-weight: 600; text-align: center; line-height: 1.4; color: var(--text); }
     .drive-open-btn {
       display: inline-flex; align-items: center; gap: 6px;
@@ -524,13 +524,16 @@
 
     /* ── Responsive ──────────────────────────────────────────────────── */
 
-    /* Tablet: 2 columnes (col1 + una de vídeo per fila) */
+    /* Tablet: 2 columnes (scroll normal, sense constraintd'alçada) */
     @media (max-width: 900px) {
       .panels {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: none;
-        gap: 14px; padding: 12px 16px;
+        gap: 14px; padding: 12px 16px 80px;
+        height: auto; flex: none;
+        overflow-y: auto;
       }
+      #page-topic { overflow-y: auto; height: auto; min-height: 100dvh; }
       .panel-col1 { grid-column: auto; }
       .panel-col2 { grid-column: auto; grid-row: auto; }
       .panel-col3 { grid-column: auto; grid-row: auto; }
@@ -540,11 +543,12 @@
       .panel-col3 .video-wrap { height: auto; flex: none; }
       .panel-col2 .panel-body,
       .panel-col3 .panel-body { overflow: visible; min-height: 0; flex: none; }
+      .drive-link { flex: none; }
     }
 
     /* Mòbil vertical */
     @media (max-width: 600px) {
-      .panels { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px 24px; }
+      .panels { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px 80px; height: auto; flex: none; }
       .panel-col2 .video-list.open,
       .panel-col3 .video-list.open { max-height: calc(100dvh - 180px); }
     }
