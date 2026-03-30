@@ -336,8 +336,6 @@
 
   <div class="header">
     <h1>🎬 Links Config</h1>
-    <p>Enganxa l'URL d'una playlist de YouTube, selecciona i reordena els vídeos,<br>
-       i copia el text llest per enganxar al CSV.</p>
   </div>
 
   <!-- Step 1: URL input -->
@@ -385,19 +383,9 @@
     <div class="video-list" id="video-list"></div>
   </div>
 
-  <!-- Step 3: Output -->
-  <div class="card" id="output-section">
-    <div class="card-title">3 · Text per al CSV</div>
-    <div class="output-box" id="output-box"></div>
-    <div class="copy-row">
-      <button class="copy-btn" id="copy-btn" onclick="copyOutput()">Copia</button>
-      <span class="count-badge" id="copy-count"></span>
-    </div>
-  </div>
-
-  <!-- Step 4: Add single video manually -->
+  <!-- Step 3: Add single video manually -->
   <div class="card">
-    <div class="card-title">4 · Afegeix un vídeo manualment</div>
+    <div class="card-title">3 · Afegeix un vídeo manualment</div>
     <div class="manual-row">
       <input class="manual-input" id="manual-input" type="url"
              placeholder="https://www.youtube.com/watch?v=xxxxxxxx"
@@ -405,6 +393,16 @@
       <button class="manual-btn" id="manual-btn" onclick="addManualVideo()">+ Afegeix</button>
     </div>
     <div class="manual-status" id="manual-status"></div>
+  </div>
+
+  <!-- Step 4: Output -->
+  <div class="card" id="output-section">
+    <div class="card-title">4 · Text per al CSV</div>
+    <div class="output-box" id="output-box"></div>
+    <div class="copy-row">
+      <button class="copy-btn" id="copy-btn" onclick="copyOutput()">Copia</button>
+      <span class="count-badge" id="copy-count"></span>
+    </div>
   </div>
 
 </div>
@@ -478,11 +476,13 @@ async function fetchPlaylist() {
   document.getElementById('output-section').style.display = 'none';
 
   try {
+    const prevCount = selected.size === 0 && allVideos.length === 0 ? 0 : selected.size;
     if (apiKey) {
       await fetchPlaylistWithAPI(pid, apiKey);
     } else {
       await fetchPlaylistWithRSS(pid);
     }
+    // Selecciona tots els vídeos (antics i nous)
     selected = new Set(allVideos.map((_, i) => i));
     renderList();
     renderOutput();
@@ -505,15 +505,19 @@ async function fetchPlaylistWithRSS(pid) {
   const entries = [...xml.querySelectorAll('entry')];
   if (entries.length === 0)
     throw new Error('Playlist buida o no trobada. Comprova que la playlist és pública.');
-  allVideos = entries.map(e => ({
+
+  const existingIds = new Set(allVideos.map(v => v.id));
+  const newVideos = entries.map(e => ({
     id:    e.querySelector('videoId')?.textContent || '',
     title: e.querySelector('title')?.textContent   || '(sense títol)',
-  })).filter(v => v.id);
+  })).filter(v => v.id && !existingIds.has(v.id));
+
+  allVideos = [...allVideos, ...newVideos];
 }
 
 /* ── API v3 path (amb API key, tots els vídeos) ─── */
 async function fetchPlaylistWithAPI(pid, apiKey) {
-  allVideos = [];
+  const existingIds = new Set(allVideos.map(v => v.id));
   let pageToken = '';
   let page = 1;
 
@@ -537,8 +541,10 @@ async function fetchPlaylistWithAPI(pid, apiKey) {
     for (const item of items) {
       const vid   = item.snippet?.resourceId?.videoId;
       const title = item.snippet?.title;
-      if (vid && title && title !== 'Deleted video' && title !== 'Private video') {
+      if (vid && title && title !== 'Deleted video' && title !== 'Private video'
+          && !existingIds.has(vid)) {
         allVideos.push({ id: vid, title });
+        existingIds.add(vid);
       }
     }
 
@@ -798,12 +804,9 @@ async function addManualVideo() {
   allVideos.push({ id: vid, title });
   selected.add(newIdx);
 
-  // Update UI
-  if (allVideos.length > 1) {
-    // Show video list if it was hidden (no playlist loaded)
-    document.getElementById('video-section').style.display  = 'block';
-    document.getElementById('output-section').style.display = 'block';
-  }
+  // Show sections as soon as there's at least 1 video
+  document.getElementById('video-section').style.display  = 'block';
+  document.getElementById('output-section').style.display = 'block';
   renderList();
   renderOutput();
 
