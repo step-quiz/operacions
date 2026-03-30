@@ -242,13 +242,21 @@
     /* ── Panels ──────────────────────────────────────────────────────── */
     .panels {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 20px;                /* més espai entre panells */
-      padding: 16px 20px 24px;
-      max-width: 1280px;        /* limita l'amplada total → ~30% menys per panell */
+      grid-template-columns: 1fr 1.6fr 1.6fr;  /* col1 lleugerament menys ampla */
+      grid-template-rows: repeat(3, auto);
+      gap: 16px;
+      padding: 16px 20px 28px;
+      max-width: 1280px;
       margin: 0 auto;
       width: 100%;
     }
+
+    /* Col 1: els tres panells petits s'apilen normalment (una fila cada un) */
+    .panel-col1 { grid-column: 1; }
+
+    /* Cols 2 i 3: un panell que ocupa totes 3 files */
+    .panel-col2 { grid-column: 2; grid-row: 1 / 4; }
+    .panel-col3 { grid-column: 3; grid-row: 1 / 4; }
 
     .panel {
       background: var(--surface);
@@ -262,6 +270,27 @@
     .panel:nth-child(3) { animation-delay: .12s; }
     .panel:nth-child(4) { animation-delay: .18s; }
     .panel:nth-child(5) { animation-delay: .24s; }
+
+    /* Els panells de vídeo (col 2 i 3) necessiten altura explícita per fer scroll intern */
+    .panel-col2 .video-list,
+    .panel-col3 .video-list {
+      max-height: none;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .panel-col2 .video-wrap,
+    .panel-col3 .video-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .panel-col2 .panel-body,
+    .panel-col3 .panel-body {
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
 
     /* ── Panel header ────────────────────────────────────────────────── */
     .panel-head {
@@ -453,29 +482,45 @@
 
     /* ── Responsive ──────────────────────────────────────────────────── */
 
-    /* ① Panels: 5 col → 3 col → 2 col → 1 col */
-    @media (max-width: 1280px) { .panels { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 860px)  { .panels { grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; } }
-
-    /* ② Mòbil vertical */
-    @media (max-width: 600px) {
-      .panels { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px 24px; }
-      .video-list { max-height: 300px; }
+    /* Tablet: 2 columnes (col1 + una de vídeo per fila) */
+    @media (max-width: 900px) {
+      .panels {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: none;
+        gap: 14px; padding: 12px 16px;
+      }
+      .panel-col1 { grid-column: auto; }
+      .panel-col2 { grid-column: auto; grid-row: auto; }
+      .panel-col3 { grid-column: auto; grid-row: auto; }
+      .panel-col2 .video-list,
+      .panel-col3 .video-list { max-height: 360px; flex: none; overflow-y: auto; }
+      .panel-col2 .video-wrap,
+      .panel-col3 .video-wrap { height: auto; flex: none; }
+      .panel-col2 .panel-body,
+      .panel-col3 .panel-body { overflow: visible; min-height: 0; flex: none; }
     }
 
-    /* ③ Mòbil horitzontal */
+    /* Mòbil vertical */
+    @media (max-width: 600px) {
+      .panels { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px 24px; }
+      .panel-col2 .video-list,
+      .panel-col3 .video-list { max-height: 300px; }
+    }
+
+    /* Mòbil horitzontal */
     @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
       .panels { grid-template-columns: 1fr 1fr; gap: 14px; padding: 10px 14px; }
-      .video-list { max-height: 200px; }
+      .panel-col2 .video-list,
+      .panel-col3 .video-list { max-height: 200px; }
       .topic-bar { height: 46px; }
       .bar-title { font-size: 13px; }
       .home-header { padding: 24px 16px 20px; }
     }
 
-    /* ④ Barra d'eines estreta */
+    /* Barra estreta */
     @media (max-width: 400px) {
       .back-btn .back-label { display: none; }
-      .back-btn { padding: 6px 6px; }
+      .back-btn { padding: 6px; }
     }
   </style>
 </head>
@@ -801,14 +846,20 @@ window.addEventListener('popstate', () => {
 function renderPanels() {
   const wrap = document.getElementById('panels-wrap');
   wrap.innerHTML = '';
-  wrap.appendChild(makeDrivePanel('apunts-bogdan'));
-  wrap.appendChild(makeVideoPanel('teoria-pildoras'));
-  wrap.appendChild(makeVideoPanel('problemes-bogdan'));
-  wrap.appendChild(makeDrivePanel('material-complementari'));
-  wrap.appendChild(makeDrivePanel('exercicis-stepquiz'));
+
+  // Col 1: 3 panells apilats
+  wrap.appendChild(makeDrivePanel('apunts-bogdan',          'panel-col1'));
+  wrap.appendChild(makeDrivePanel('exercicis-stepquiz',     'panel-col1'));
+  wrap.appendChild(makeDrivePanel('material-complementari', 'panel-col1'));
+
+  // Col 2: vídeos de teoria (span 3 files)
+  wrap.appendChild(makeVideoPanel('teoria-pildoras',  'panel-col2'));
+
+  // Col 3: problemes resolts (span 3 files)
+  wrap.appendChild(makeVideoPanel('problemes-bogdan', 'panel-col3'));
 }
 
-function makeDrivePanel(colKey) {
+function makeDrivePanel(colKey, colClass) {
   const meta   = PANEL_META[colKey];
   const url    = currentTopicData[colKey] || '';
   const hasUrl = url.trim() !== '';
@@ -823,7 +874,7 @@ function makeDrivePanel(colKey) {
   const btnText = colKey === 'exercicis-stepquiz' ? 'Obre Step Quiz' : 'Obre al Drive';
 
   const div = document.createElement('div');
-  div.className = 'panel' + (isLock ? ' panel-lock' : '');
+  div.className = 'panel' + (isLock ? ' panel-lock' : '') + (colClass ? ' ' + colClass : '');
   div.innerHTML = `
     <div class="panel-head">
       <div class="panel-dot ${meta.dot}"></div>
@@ -855,7 +906,7 @@ function makeDrivePanel(colKey) {
   return div;
 }
 
-function makeVideoPanel(colKey) {
+function makeVideoPanel(colKey, colClass) {
   const meta   = PANEL_META[colKey];
   const videos = currentTopicData[colKey];
 
@@ -865,7 +916,7 @@ function makeVideoPanel(colKey) {
   const activeVid = videos[activeIdx] || videos[0];
 
   const div = document.createElement('div');
-  div.className = 'panel';
+  div.className = 'panel' + (colClass ? ' ' + colClass : '');
 
   const listHTML = videos.map((v, i) => `
     <div class="video-item${i === activeIdx ? ' v-active' : ''}" data-idx="${i}">
