@@ -688,26 +688,41 @@
 
       /* Franja "ara reproduint": borde inferior ben visible */
       .yt-now-playing {
-        border-bottom: 2.5px solid rgba(0,0,0,.18) !important;
+        border-bottom: 3px solid rgba(0,0,0,.55) !important;
       }
 
-      /* Toggle "Playlist": borde superior i inferior destacats */
+      /* Toggle "Playlist": borde superior molt pronunciat */
       .panel-col2 .playlist-toggle,
       .panel-col3 .playlist-toggle {
-        border-top: 2.5px solid rgba(0,0,0,.18) !important;
-        border-bottom: 2.5px solid rgba(0,0,0,.10);
+        border-top: 3px solid rgba(0,0,0,.55) !important;
+        border-bottom: 2px solid rgba(0,0,0,.25) !important;
       }
 
-      /* Items de la playlist: separadors més visibles */
+      /* Zona de la playlist: fons gris per distingir-la clarament */
+      .panel-col2 .video-list,
+      .panel-col3 .video-list {
+        background: #e8e8ed;
+      }
+
+      /* Items sobre fons gris: card blanc per destacar */
       .panel-col2 .video-item,
       .panel-col3 .video-item {
-        border-bottom: 1.5px solid rgba(0,0,0,.10);
+        background: #ffffff;
+        border-bottom: 2px solid rgba(0,0,0,.18);
+        margin: 4px 6px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .panel-col2 .video-item.v-active,
+      .panel-col3 .video-item.v-active {
+        background: #e8f0fe;
+        border-left: 3px solid var(--accent);
       }
 
       /* Separador entre miniatura i text dins cada item */
       .panel-col2 .v-left,
       .panel-col3 .v-left {
-        border-right: 1.5px solid rgba(0,0,0,.10);
+        border-right: 2px solid rgba(0,0,0,.12);
       }
 
       /* Amaga el grup no activa via classe JS */
