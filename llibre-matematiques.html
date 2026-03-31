@@ -380,7 +380,59 @@
     }
 
     /* ── Hero YouTube thumbnail ──────────────────────────────────────── */
-    .video-wrap { display: flex; flex-direction: column; }   /* natural height */
+    .video-wrap { display: flex; flex-direction: column; }
+
+    /* ── Mobile: compact now-playing strip instead of big hero ─── */
+    .yt-now-playing {
+      display: none;            /* ocult per defecte — escriptori usa .yt-hero */
+    }
+
+    @media (max-width: 900px) {
+      /* Amaga el hero gran */
+      .yt-hero { display: none; }
+
+      /* Mostra la franja compacta */
+      .yt-now-playing {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--divider-2);
+        text-decoration: none;
+        flex-shrink: 0;
+        min-height: 0;
+      }
+      .yt-np-thumb {
+        width: 64px; height: 36px;
+        border-radius: 6px;
+        overflow: hidden; flex-shrink: 0;
+        background: #000; position: relative;
+      }
+      .yt-np-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .yt-np-title {
+        flex: 1; font-size: .76rem; font-weight: 500;
+        color: var(--text); line-height: 1.3;
+        overflow: hidden;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      }
+      .yt-np-btn {
+        display: flex; align-items: center; gap: 3px;
+        background: var(--red); color: #fff;
+        font-size: 10px; font-weight: 600;
+        padding: 5px 10px; border-radius: 980px;
+        white-space: nowrap; flex-shrink: 0;
+        min-height: 28px;
+      }
+      .yt-np-btn svg { width: 10px; height: 10px; fill: white; }
+
+      /* Playlist: ocupa tot l'espai disponible */
+      .video-list.open {
+        max-height: 65vh;
+        overflow-y: auto;
+        flex: 1 1 auto;
+      }
+    }
     /* ── Playlist toggle button ─────────────────────────────────────── */
     .playlist-toggle {
       display: flex; align-items: center; justify-content: space-between;
@@ -1272,6 +1324,7 @@ function makeVideoPanel(colKey, colClass) {
     </div>
     <div class="panel-body">
       <div class="video-wrap">
+        <!-- Hero gran (escriptori) -->
         <a class="yt-hero" href="https://www.youtube.com/watch?v=${activeVid.id}"
            target="_blank" rel="noopener" id="hero-${colKey}">
           <img id="hero-img-${colKey}"
@@ -1283,6 +1336,20 @@ function makeVideoPanel(colKey, colClass) {
               Obre
             </div>
             <div class="yt-hero-title" id="hero-title-${colKey}">${activeVid.title}</div>
+          </div>
+        </a>
+        <!-- Franja compacta (mòbil) -->
+        <a class="yt-now-playing" id="np-${colKey}"
+           href="https://www.youtube.com/watch?v=${activeVid.id}"
+           target="_blank" rel="noopener">
+          <div class="yt-np-thumb">
+            <img id="np-img-${colKey}"
+                 src="https://img.youtube.com/vi/${activeVid.id}/mqdefault.jpg" alt="">
+          </div>
+          <div class="yt-np-title" id="np-title-${colKey}">${activeVid.title}</div>
+          <div class="yt-np-btn">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            Obre
           </div>
         </a>
         <button class="playlist-toggle" aria-expanded="false" aria-controls="list-${colKey}">
@@ -1314,17 +1381,27 @@ function makeVideoPanel(colKey, colClass) {
     }
   });
 
-  // Clic a la llista → actualitza la miniatura gran sense recarregar
+  // Clic a la llista → actualitza el hero (escriptori) i la franja mòbil
   div.querySelectorAll('.video-item').forEach(el => {
     el.addEventListener('click', () => {
       const idx = +el.dataset.idx;
       const v   = videos[idx];
       makeVideoPanel._state[colKey] = idx;
+
+      // Hero gran (escriptori)
       const hero = div.querySelector(`#hero-${colKey}`);
       hero.href = `https://www.youtube.com/watch?v=${v.id}`;
       div.querySelector(`#hero-img-${colKey}`).src =
         `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`;
       div.querySelector(`#hero-title-${colKey}`).textContent = v.title;
+
+      // Franja compacta (mòbil)
+      const np = div.querySelector(`#np-${colKey}`);
+      np.href = `https://www.youtube.com/watch?v=${v.id}`;
+      div.querySelector(`#np-img-${colKey}`).src =
+        `https://img.youtube.com/vi/${v.id}/mqdefault.jpg`;
+      div.querySelector(`#np-title-${colKey}`).textContent = v.title;
+
       div.querySelectorAll('.video-item').forEach((e, i) =>
         e.classList.toggle('v-active', i === idx));
       el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
