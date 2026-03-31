@@ -585,12 +585,46 @@
     }
     footer a { color: var(--text-2); }
 
+    /* ── Mobile tab bar (Documents / Vídeos) ────────────────────────── */
+    .mobile-tabs {
+      display: none;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--divider);
+      padding: 6px 14px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .mobile-tabs input[type="radio"] { display: none; }
+    .mobile-tabs label {
+      flex: 1; text-align: center;
+      padding: 8px 0;
+      font-size: 13px; font-weight: 600;
+      color: var(--text-2);
+      border-radius: 980px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      user-select: none;
+    }
+    .mobile-tabs input:checked + label {
+      background: var(--accent);
+      color: #fff;
+    }
+
     /* ── Responsive ──────────────────────────────────────────────────── */
 
-    /* Tablet: 2 columnes (scroll normal, sense constraintd'alçada) */
+    /* Tablet i mòbil ≤ 900px: tabs de navegació + columna única */
     @media (max-width: 900px) {
+      .mobile-tabs { display: flex; }
+
+      /* Amaga la columna no activa via classe JS */
+      .panels.show-docs .panel-col2,
+      .panels.show-docs .panel-col3 { display: none; }
+      .panels.show-vids .panel-col1  { display: none; }
+
       .panels {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         grid-template-rows: none;
         gap: 14px; padding: 12px 16px 80px;
         height: auto; flex: none;
@@ -704,6 +738,13 @@
         📋 <span class="btn-label">Text Classroom</span>
       </button>
     </div>
+  </div>
+  <!-- Tabs mòbil: visibles quan ≤ 900px -->
+  <div class="mobile-tabs" id="mobile-tabs">
+    <input type="radio" name="mobile-tab" id="mtab-docs" value="docs" checked>
+    <label for="mtab-docs">📄 Documents</label>
+    <input type="radio" name="mobile-tab" id="mtab-vids" value="vids">
+    <label for="mtab-vids">▶ Vídeos</label>
   </div>
   <div class="panels" id="panels-wrap"></div>
 </div>
@@ -879,6 +920,25 @@ document.querySelectorAll('input[name="level"]').forEach(radio => {
   });
 });
 
+/* ─── MOBILE TABS ────────────────────────────────────────────────── */
+document.querySelectorAll('input[name="mobile-tab"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const wrap = document.getElementById('panels-wrap');
+    wrap.classList.toggle('show-docs', radio.value === 'docs');
+    wrap.classList.toggle('show-vids', radio.value === 'vids');
+    // Scroll to top of panels on tab switch
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+function resetMobileTabs() {
+  const docsRadio = document.getElementById('mtab-docs');
+  if (docsRadio) docsRadio.checked = true;
+  const wrap = document.getElementById('panels-wrap');
+  wrap.classList.add('show-docs');
+  wrap.classList.remove('show-vids');
+}
+
 /* ─── NAVIGATION ─────────────────────────────────────────────────── */
 async function openTopic(t) {
   currentTopic     = t;
@@ -888,6 +948,9 @@ async function openTopic(t) {
   document.getElementById('bar-title').textContent = t.icon + '  ' + t.title;
   document.getElementById('bar-sub').textContent   = ' · ' + t.desc;
   try { history.pushState({ subject: t.id }, '', '?subject=' + t.id); } catch(e) {}
+
+  // Reset mobile tabs to Documents
+  resetMobileTabs();
 
   // Mostra la pàgina del tema amb indicador de càrrega
   document.getElementById('page-home').style.display  = 'none';
