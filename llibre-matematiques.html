@@ -926,8 +926,8 @@ document.querySelectorAll('input[name="mobile-tab"]').forEach(radio => {
     const wrap = document.getElementById('panels-wrap');
     wrap.classList.toggle('show-docs', radio.value === 'docs');
     wrap.classList.toggle('show-vids', radio.value === 'vids');
-    // Scroll to top of panels on tab switch
-    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Torna al principi de la pàgina per veure sempre els tabs
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
 
@@ -951,6 +951,8 @@ async function openTopic(t) {
 
   // Reset mobile tabs to Documents
   resetMobileTabs();
+  // Sempre al principi per veure la barra de tabs
+  window.scrollTo(0, 0);
 
   // Mostra la pàgina del tema amb indicador de càrrega
   document.getElementById('page-home').style.display  = 'none';
