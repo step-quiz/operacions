@@ -388,9 +388,6 @@
     }
 
     @media (max-width: 900px) {
-      /* Amaga el hero gran */
-      .yt-hero { display: none; }
-
       /* Mostra la franja compacta */
       .yt-now-playing {
         display: flex;
@@ -686,7 +683,10 @@
     @media (max-width: 900px) {
       .mobile-tabs { display: flex; }
 
-      /* Amaga la columna no activa via classe JS */
+      /* Amaga el hero gran — aquí ve DESPRÉS de .yt-hero { display:block } */
+      .yt-hero { display: none !important; }
+
+      /* Amaga el grup no activa via classe JS */
       .panels.show-docs .panel-col2,
       .panels.show-docs .panel-col3 { display: none; }
       .panels.show-vids .panel-col1  { display: none; }
@@ -1369,13 +1369,21 @@ function makeVideoPanel(colKey, colClass) {
   // Toggle playlist collapse/expand
   const toggleBtn = div.querySelector('.playlist-toggle');
   const listEl    = div.querySelector('.video-list');
+
+  // Auto-obre la playlist en mòbil
+  if (window.innerWidth <= 900) {
+    listEl.classList.add('open');
+    toggleBtn.classList.add('open');
+    toggleBtn.setAttribute('aria-expanded', 'true');
+    div.classList.add('playlist-open');
+  }
+
   toggleBtn.addEventListener('click', () => {
     const isOpen = listEl.classList.toggle('open');
     toggleBtn.classList.toggle('open', isOpen);
     toggleBtn.setAttribute('aria-expanded', isOpen);
     div.classList.toggle('playlist-open', isOpen);
     if (isOpen) {
-      // scroll the active item into view when opening
       const activeItem = listEl.querySelector('.v-active');
       if (activeItem) activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
