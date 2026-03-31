@@ -336,18 +336,20 @@
     .dot-quiz   { background: #06b6d4; }
 
     .panel-label {
-      font-size: 13px;           /* era 9.5px → ×1.8 ≈ 17px, ajustat a 13px per llegibilitat */
+      font-size: 13px;
       font-weight: 700;
       text-transform: uppercase; letter-spacing: .06em;
       color: var(--text-3);
     }
     .panel-name {
-      font-size: 16px;           /* era 12.5px → ×1.8 ≈ 22px, ajustat a 16px */
+      font-size: 16px;
       font-weight: 600;
       letter-spacing: -.01em;
       color: var(--text);
       margin-top: 1px;
     }
+    /* Títol fusionat (mòbil vertical) — ocult per defecte */
+    .panel-fused { display: none; }
 
     .panel-body { flex: 1; overflow: hidden; min-height: 0; }
     .panel-body iframe { width: 100%; height: 100%; border: none; display: block; }
@@ -765,26 +767,68 @@
       .bar-title { font-size: 17px; }
     }
 
-    /* Mòbil horitzontal */
+    /* ── Mòbil vertical: títol i subtítol en una sola línia ─────────── */
+    @media (max-width: 900px) and (orientation: portrait) {
+      .panel-col2 .panel-head,
+      .panel-col3 .panel-head {
+        padding: 8px 14px;
+      }
+      /* Amaga label i name separats */
+      .panel-col2 .panel-label,
+      .panel-col3 .panel-label,
+      .panel-col2 .panel-name,
+      .panel-col3 .panel-name { display: none; }
+
+      /* Mostra el títol fusionat */
+      .panel-col2 .panel-fused,
+      .panel-col3 .panel-fused {
+        display: block;
+        font-size: 14px; font-weight: 600;
+        letter-spacing: -.01em; color: var(--text);
+        line-height: 1.2;
+      }
+    }
+
+    /* ── Mòbil horitzontal: pantalla de "gira el mòbil" ─────────────── */
     @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
-      .panels { grid-template-columns: 1fr 1fr; gap: 14px; padding: 10px 14px 66px; }
-      .panel-col2 .video-list,
-      .panel-col3 .video-list { max-height: 200px; }
-      .topic-bar { height: 46px; }
-      .bar-title { font-size: 13px; }
-      /* Capçalera home molt compacta en horitzontal */
+      /* Amaga tot el contingut del topic */
+      #page-topic .panels,
+      #page-topic .mobile-tabs { display: none !important; }
+
+      /* Mostra el missatge de gir */
+      #rotate-msg { display: flex !important; }
+
+      /* Home: compacte */
       .home-header { padding: 16px 16px 12px; }
       #page-home { padding: 0 16px 60px; }
-      /* Hero de vídeo limitat en alçada per deixar veure la playlist */
-      .yt-hero { max-height: 140px; }
-      /* Graella de temes amb targetes més petites */
       .topic-grid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); }
-      /* Footer més discret */
       footer { padding-top: 5px; padding-bottom: max(5px, env(safe-area-inset-bottom)); font-size: .65em; }
-      /* Panel heads compactes */
-      .panel-head { padding: 8px 12px; }
-      .panel-name { font-size: 14px; }
-      .panel-label { font-size: 11px; }
+    }
+
+    /* Missatge gir: estils base (ocult per defecte) */
+    #rotate-msg {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-2);
+      flex: 1;
+    }
+    #rotate-msg .rotate-icon {
+      font-size: 3rem;
+      animation: rotate-hint 2s ease-in-out infinite;
+    }
+    @keyframes rotate-hint {
+      0%, 100% { transform: rotate(0deg); }
+      40%       { transform: rotate(-90deg); }
+      60%       { transform: rotate(-90deg); }
+    }
+    #rotate-msg p {
+      font-size: 15px; font-weight: 600;
+      letter-spacing: -.01em;
     }
 
     /* Barra estreta */
@@ -852,6 +896,11 @@
     <label for="mtab-docs">📄 Documents</label>
     <input type="radio" name="mobile-tab" id="mtab-vids" value="vids">
     <label for="mtab-vids">▶ Vídeos</label>
+  </div>
+  <!-- Missatge gir (mòbil horitzontal) -->
+  <div id="rotate-msg">
+    <div class="rotate-icon">📱</div>
+    <p>Gira el mòbil en vertical, si us plau</p>
   </div>
   <div class="panels" id="panels-wrap"></div>
 </div>
@@ -1359,6 +1408,11 @@ function makeVideoPanel(colKey, colClass) {
       <div>
         <div class="panel-label">${meta.label}</div>
         <div class="panel-name">${meta.name}</div>
+        <div class="panel-fused">${
+          colKey === 'teoria-pildoras'
+            ? 'Vídeos teoria <span style="color:var(--text-2);font-weight:400">(Píldoras matemáticas)</span>'
+            : 'Problemes resolts <span style="color:var(--text-2);font-weight:400">(Bogdan)</span>'
+        }</div>
       </div>
     </div>
     <div class="panel-body">
