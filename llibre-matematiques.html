@@ -686,6 +686,30 @@
       /* Amaga el hero gran — aquí ve DESPRÉS de .yt-hero { display:block } */
       .yt-hero { display: none !important; }
 
+      /* Franja "ara reproduint": borde inferior ben visible */
+      .yt-now-playing {
+        border-bottom: 2.5px solid rgba(0,0,0,.18) !important;
+      }
+
+      /* Toggle "Playlist": borde superior i inferior destacats */
+      .panel-col2 .playlist-toggle,
+      .panel-col3 .playlist-toggle {
+        border-top: 2.5px solid rgba(0,0,0,.18) !important;
+        border-bottom: 2.5px solid rgba(0,0,0,.10);
+      }
+
+      /* Items de la playlist: separadors més visibles */
+      .panel-col2 .video-item,
+      .panel-col3 .video-item {
+        border-bottom: 1.5px solid rgba(0,0,0,.10);
+      }
+
+      /* Separador entre miniatura i text dins cada item */
+      .panel-col2 .v-left,
+      .panel-col3 .v-left {
+        border-right: 1.5px solid rgba(0,0,0,.10);
+      }
+
       /* Amaga el grup no activa via classe JS */
       .panels.show-docs .panel-col2,
       .panels.show-docs .panel-col3 { display: none; }
