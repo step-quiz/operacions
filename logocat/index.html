@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOGOcat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo"><span class="logo-icon"><svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><polygon points="8,1 2,15 14,15"/></svg></span> <span>LOGOcat</span></div>
+
+  <div id="state-badge" aria-live="polite">
+    <div id="state-dot"></div>
+    <span id="state-lbl">aturat</span>
+  </div>
+
+  <div class="topbar-actions">
+    <div class="lang-group">
+      <span class="lang-group-lbl" id="lbl-codelang">Codi:</span>
+      <div class="lang-switcher" id="codelang-switcher">
+        <button class="lang-btn" onclick="setCodeLang('ca')">CAT</button>
+        <button class="lang-btn" onclick="setCodeLang('es')">CAST</button>
+        <button class="lang-btn" onclick="setCodeLang('en')">ENG</button>
+      </div>
+    </div>
+    <div class="lang-group">
+      <span class="lang-group-lbl" id="lbl-userlang">Idioma:</span>
+      <div class="lang-switcher" id="userlang-switcher">
+        <button class="lang-btn" onclick="setUserLang('ca')">CAT</button>
+        <button class="lang-btn" onclick="setUserLang('es')">CAST</button>
+        <button class="lang-btn" onclick="setUserLang('en')">ENG</button>
+      </div>
+    </div>
+    <button class="btn" id="btn-challenges" onclick="openChallenges()">🎯 Reptes</button>
+    <button class="btn" id="btn-ref" onclick="toggleRef()">📋 Ref</button>
+    <button class="btn" id="btn-theme" onclick="toggleLight()">Fosc / Clar</button>
+  </div>
+
+  <button class="topbar-hamburger" id="topbar-hamburger" aria-label="Menú" aria-expanded="false">☰</button>
+</header>
+
+<div class="main">
+  <!-- Left: Canvas -->
+  <div class="canvas-col">
+    <div class="canvas-area" id="canvas-area">
+      <canvas id="canvas-draw"></canvas>
+      <canvas id="canvas-turtle"></canvas>
+    </div>
+
+    <div class="status-bar">
+      <span><span id="lbl-pos">Pos:</span> <strong id="st-pos">(0, 0)</strong></span>
+      <span><span id="lbl-heading">Dir:</span> <strong id="st-heading">0°</strong></span>
+      <span id="st-pen-wrap"><span id="lbl-pen">Llapis:</span> <strong id="st-pen">baix ✏️</strong></span>
+    </div>
+
+    <div class="exec-controls">
+      <div class="btns">
+        <button class="btn p" id="btn-run"   onclick="runProgram()">▶ Executa</button>
+        <button class="btn g" id="btn-step"  onclick="stepProgram()">⏭ Pas</button>
+        <button class="btn r" id="btn-stop"  onclick="stopProgram()">■ Para</button>
+        <button class="btn"   id="btn-reset" onclick="resetCanvas()">↺ Reinicia</button>
+        <button class="btn"   id="btn-clear" onclick="clearLog()">⌫ Log</button>
+        <button class="btn"   id="btn-hint"  onclick="showNextHint()" style="display:none" disabled>🔒 Pista</button>
+        <button class="btn"   id="btn-goal"  onclick="showGoalModal()" style="display:none">🎯 Objectiu</button>
+      </div>
+      <div id="hint-panel" class="hint-panel"></div>
+      <div class="speed-row">
+        <span id="lbl-speed">Velocitat:</span>
+        <input type="range" id="speed" min="1" max="6" step="1" value="3">
+        <span id="speed-lbl">3</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Editor -->
+  <div class="code-col">
+    <div id="ref-panel" class="ref-panel" role="complementary" aria-label="Referència ràpida"></div>
+    <div class="editor-wrap">
+      <div id="line-numbers"></div>
+      <div class="editor-inner">
+        <div  id="line-bg"        aria-hidden="true"></div>
+        <pre  id="code-highlight" aria-hidden="true"></pre>
+        <textarea id="code-editor" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div id="log-wrap">
+      <div id="log-resize"></div>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Reptes -->
+<div class="modal-bg" id="modal-challenges">
+  <div class="modal modal-wide">
+    <div class="modal-hd">
+      <span id="modal-challenges-title">🎯 Reptes</span>
+      <button onclick="closeModal('modal-challenges')">✕</button>
+    </div>
+    <div id="challenges-list"></div>
+    <div class="modal-ft">
+      <button class="btn" id="btn-modal-close" onclick="closeModal('modal-challenges')">Tanca</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Repte superat -->
+<div class="modal-bg" id="modal-success">
+  <div class="modal" style="max-width:380px;padding:0;overflow:hidden;">
+    <div class="modal-success-inner">
+      <span class="success-icon" id="success-icon">🎉</span>
+      <div class="success-challenge" id="success-challenge"></div>
+      <div class="success-title"    id="success-title"></div>
+      <div class="success-msg"      id="success-msg"></div>
+      <div class="modal-ft" style="justify-content:center;gap:10px;padding:0 0 4px;">
+        <button class="btn p" id="btn-success-more"  onclick="closeModal('modal-success');openChallenges()">🎯 Reptes</button>
+        <button class="btn"   id="btn-success-close" onclick="closeModal('modal-success')">Continua</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Objectiu del repte -->
+<div class="modal-bg" id="modal-goal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-hd">
+      <span id="modal-goal-title">🎯 Objectiu</span>
+      <button onclick="closeModal('modal-goal')">✕</button>
+    </div>
+    <div id="goal-body" class="goal-body">
+      <div id="goal-challenge-name" class="goal-challenge-name"></div>
+      <div id="goal-instructions" class="goal-instructions"></div>
+      <div id="goal-visual-label" class="goal-visual-label"></div>
+      <canvas id="goal-canvas" width="280" height="280"></canvas>
+    </div>
+    <div class="modal-ft">
+      <button class="btn" id="btn-goal-close" onclick="closeModal('modal-goal')">Tanca</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Benvinguda -->
+<div class="modal-bg" id="modal-onboard">
+  <div class="modal modal-onboard">
+    <div class="onboard-body">
+      <span class="onboard-icon"       id="onboard-icon"></span>
+      <div  class="onboard-step-title" id="onboard-title"></div>
+      <div  class="onboard-step-body"  id="onboard-body"></div>
+    </div>
+    <div class="onboard-dots" id="onboard-dots"></div>
+    <div class="onboard-nav">
+      <button class="btn"   id="onboard-prev" onclick="onboardPrev()" style="visibility:hidden">← Enrere</button>
+      <button class="btn p" id="onboard-next" onclick="onboardNext()">Següent →</button>
+    </div>
+    <button class="btn-onboard-skip" id="onboard-skip" onclick="onboardSkip()">Salta</button>
+  </div>
+</div>
+
+<script src="logo.js"></script>
+</body>
+</html>
