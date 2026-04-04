@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="description" content="Step Quiz: activitats de matemàtiques, adaptació a la diversitat, proves de competència, programació amb Karel. David Arso Civil.">
+  <meta name="author" content="David Arso Civil" />
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://step-quiz.net/">
+
+  <meta property="og:title" content="Step Quiz — Aplicacions">
+  <meta property="og:description" content="Panell d'aplicacions educatives de matemàtiques i programació.">
+  <meta property="og:url" content="https://step-quiz.net/">
+  <meta property="og:image" content="https://step-quiz.net/icon.png">
+  <meta property="og:type" content="website">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Step Quiz",
+    "url": "https://step-quiz.net",
+    "author": { "@type": "Person", "name": "David Arso Civil" },
+    "description": "Aplicacions educatives de matemàtiques i programació."
+  }
+  </script>
+
+  <title>Step Quiz — Matemàtiques, Programació i Competència Matemàtica | David Arso Civil</title>
+
+  <style>
+    :root {
+      --text-main:    #1e293b;
+      --text-muted:   #64748b;
+      --bg-body:      #f8fafc;
+      --math-title:   #3486e4;
+      --border-heavy: #cbd5e1;
+      --accent:       #3b82f6;
+    }
+
+    * { box-sizing: border-box; }
+    html { height: 100%; }
+    body {
+      overflow-x: hidden;
+      margin: 0;
+      background: var(--bg-body);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text-main);
+      padding: 48px 16px 90px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Títol ── */
+    .title-container { text-align: center; margin-bottom: 32px; }
+    .title-row-1 {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; font-size: 36px; font-weight: 800; color: #0f172a; margin: 0 0 2px;
+    }
+    .title-row-2 { font-size: 20px; font-weight: 400; color: var(--math-title); margin-top: -10px; }
+
+    .inline-icon { height: 50px; opacity: 0; animation: icon-slide-brake 0.9s cubic-bezier(0.1, 1.0, 0.2, 1.0) 0.1s forwards; }
+    .text-step   { opacity: 0; animation: fade-in 0.43s ease-out 0.6s forwards; }
+    .title-row-2 { opacity: 0; animation: fade-in 0.24s ease-out 1.3s forwards; }
+
+    @keyframes icon-slide-brake {
+      from { transform: translateX(-90px) scale(0.8); opacity: 0; }
+      to   { transform: translateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── Grid fila 1 ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px; width: 100%; max-width: 1010px;
+    }
+
+    /* ── Grid fila 2 ── */
+    .grid-row2 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px; width: 100%; max-width: 1010px; margin-top: 14px;
+    }
+    @media (max-width: 600px) { .grid-row2 { grid-template-columns: 1fr; } }
+
+    /* ── Cards ── */
+    .app-card {
+      background: #fff;
+      border: 1px solid var(--border-heavy);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+      padding: 20px 22px 18px;
+      display: flex; flex-direction: column; gap: 10px;
+      opacity: 0; animation: fade-in 0.28s ease-out forwards;
+    }
+    .app-card:nth-child(1) { animation-delay: 0.80s; background-color: #eff6ff; }
+    .app-card:nth-child(2) { animation-delay: 0.95s; background-color: #f1f5f9; }
+    .app-card:nth-child(3) { animation-delay: 1.10s; background-color: #eff6ff; }
+
+    .card-header { display: flex; align-items: center; gap: 10px; }
+    .card-emoji  { font-size: 28px; line-height: 1; flex-shrink: 0; }
+    .card-title  { font-size: 17px; font-weight: 800; color: #0f172a; margin: 0; }
+
+    .card-footer { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+    .card-url {
+      font-family: monospace; font-size: 11px; color: var(--text-muted);
+      background: #e2e8f0; border: 1px solid var(--border-heavy);
+      border-radius: 6px; padding: 5px 9px;
+      word-break: break-all; line-height: 1.4; flex: 1;
+    }
+
+    .open-btn {
+      flex-shrink: 0; min-height: 44px; padding: 0 18px;
+      background: var(--accent); color: #fff; font-weight: 700; font-size: 13px;
+      border: none; border-radius: 8px; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.2s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .open-btn:hover  { background: #1e3a8a; transform: translateY(-1px) scale(1.2); }
+    .open-btn:active { transform: translateY(0) scale(1); }
+
+    .arrow-icon { width: 14px; height: 14px; stroke: #fff; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    /* ── Footer ── */
+    footer {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background-color: #f8f9fa; border-top: 1px solid #ccc;
+      padding: 10px 16px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      gap: 15px; flex-wrap: wrap; text-align: center;
+    }
+    footer span { font-size: 0.85em; color: #333; }
+    footer a { color: #333; text-decoration: underline; }
+
+    /* ── Ko-fi ── */
+    .kofi-wrap {
+      position: fixed; top: 16px; right: 16px; z-index: 300;
+      opacity: 0; pointer-events: none; transition: opacity 0.35s;
+    }
+    .kofi-wrap.kofi-show { opacity: 1; pointer-events: auto; }
+
+    .kofi-btn {
+      position: relative; white-space: nowrap;
+      padding: 8px 16px; border-radius: 24px; font-weight: 700; font-size: 14px;
+      color: #fff; border: none; background: #ff5e5b;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18); cursor: pointer;
+      text-decoration: none; display: inline-block;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .kofi-wrap.kofi-show .kofi-btn { animation: kofi-shake-blink 3s ease-out forwards; }
+    @keyframes kofi-shake-blink {
+      0%   { transform: translateX(0);    background: #fbbf24; }
+      8%   { transform: translateX(-7px); background: #94a3b8; }
+      16%  { transform: translateX( 7px); background: #fbbf24; }
+      24%  { transform: translateX(-6px); background: #94a3b8; }
+      32%  { transform: translateX( 6px); background: #fbbf24; }
+      40%  { transform: translateX(-5px); background: #94a3b8; }
+      48%  { transform: translateX( 5px); background: #fbbf24; }
+      56%  { transform: translateX(-4px); background: #94a3b8; }
+      64%  { transform: translateX( 4px); background: #fbbf24; }
+      72%  { transform: translateX(-3px); background: #94a3b8; }
+      80%  { transform: translateX( 3px); background: #fbbf24; }
+      90%  { transform: translateX(-1px); background: #94a3b8; }
+      100% { transform: translateX(0);    background: #ff5e5b; }
+    }
+
+    .sparks-container { position: absolute; top: 50%; left: 50%; width: 0; height: 0; pointer-events: none; }
+    .spark { position: absolute; width: 7px; height: 7px; border-radius: 50%; opacity: 0; transform-origin: center; }
+    .kofi-wrap.kofi-show .spark { animation: spark-fly 1.8s ease-out forwards; }
+    @keyframes spark-fly {
+      0%   { opacity: 1; transform: rotate(var(--a)) translateY(0)      scale(1); }
+      60%  { opacity: 0.9; }
+      100% { opacity: 0;   transform: rotate(var(--a)) translateY(-72px) scale(0.3); }
+    }
+    .sp1 { --a:   0deg; background: #f59e0b; animation-delay: 3.00s; }
+    .sp2 { --a:  45deg; background: #ef4444; animation-delay: 3.05s; }
+    .sp3 { --a:  90deg; background: #a855f7; animation-delay: 3.10s; }
+    .sp4 { --a: 135deg; background: #10b981; animation-delay: 3.15s; }
+    .sp5 { --a: 180deg; background: #3b82f6; animation-delay: 3.20s; }
+    .sp6 { --a: 225deg; background: #f59e0b; animation-delay: 3.25s; }
+    .sp7 { --a: 270deg; background: #ec4899; animation-delay: 3.30s; }
+    .sp8 { --a: 315deg; background: #14b8a6; animation-delay: 3.35s; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .title-row-1 { font-size: 28px; }
+      .title-row-2 { font-size: 16px; }
+      .inline-icon  { height: 40px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 360px) {
+      body { padding-left: 10px; padding-right: 10px; }
+      .card-url { font-size: 10px; }
+      .open-btn { padding: 0 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Títol -->
+  <div class="title-container">
+    <h1 class="title-row-1">
+      <span class="text-step">Step</span>
+      <img src="icon-petjada.png" alt="" class="inline-icon" width="30" height="30"
+           onerror="this.style.display='none'">
+      <span class="text-step">Quiz</span>
+    </h1>
+  </div>
+
+  <!-- Fila 1 -->
+  <div class="grid">
+
+    <div class="app-card">
+      <div class="card-header">
+        <img src="icon.png" alt="" style="width:50px;height:50px;object-fit:contain;flex-shrink:0;border-radius:6px;"
+             onerror="this.style.display='none'">
+        <h2 class="card-title">Activitats de matemàtiques</h2>
+      </div>
+      <div class="card-footer">
+        <div class="card-url">https://step-quiz.net</div>
+        <a class="open-btn" href="https://step-quiz.net" target="_blank" rel="noopener">
+          Obre <svg class="arrow-icon" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="app-card">
+      <div class="card-header">
+        <img src="icon-green.png" alt="" style="width:50px;height:50px;object-fit:contain;flex-shrink:0;border-radius:6px;"
+             onerror="this.style.display='none'">
+        <h2 class="card-title">Adaptació a la diversitat</h2>
+      </div>
+      <div class="card-footer">
+        <div class="card-url">https://step-quiz.net/a/a-index</div>
+        <a class="open-btn" href="https://step-quiz.net/a/a-index" target="_blank" rel="noopener">
+          Obre <svg class="arrow-icon" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="app-card">
+      <div class="card-header">
+        <img src="icon_cb.png" alt="" style="width:50px;height:50px;object-fit:contain;flex-shrink:0;border-radius:6px;"
+             onerror="this.style.display='none'">
+        <h2 class="card-title">Proves de competència matemàtica</h2>
+      </div>
+      <div class="card-footer">
+        <div class="card-url">https://cb.step-quiz.net</div>
+        <a class="open-btn" href="https://cb.step-quiz.net" target="_blank" rel="noopener">
+          Obre <svg class="arrow-icon" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Fila 2 -->
+  <div class="grid-row2">
+
+    <div class="app-card" style="background-color:#eff6ff; animation-delay:1.25s;">
+      <div class="card-header">
+        <svg width="30" height="30" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;border-radius:6px;">
+          <rect width="32" height="32" fill="#0a0a0a"/>
+          <text x="3"  y="10" font-family="monospace" font-size="7" fill="#00ff41" opacity="1.0">1</text>
+          <text x="3"  y="18" font-family="monospace" font-size="7" fill="#00cc33" opacity="0.8">0</text>
+          <text x="3"  y="26" font-family="monospace" font-size="7" fill="#007a1f" opacity="0.5">1</text>
+          <text x="11" y="7"  font-family="monospace" font-size="7" fill="#00ff41" opacity="0.9">0</text>
+          <text x="11" y="15" font-family="monospace" font-size="7" fill="#00cc33" opacity="0.7">1</text>
+          <text x="11" y="23" font-family="monospace" font-size="7" fill="#007a1f" opacity="0.4">0</text>
+          <text x="11" y="31" font-family="monospace" font-size="7" fill="#004010" opacity="0.2">1</text>
+          <text x="19" y="11" font-family="monospace" font-size="7" fill="#00ff41" opacity="1.0">1</text>
+          <text x="19" y="19" font-family="monospace" font-size="7" fill="#00cc33" opacity="0.75">1</text>
+          <text x="19" y="27" font-family="monospace" font-size="7" fill="#007a1f" opacity="0.45">0</text>
+          <text x="27" y="8"  font-family="monospace" font-size="7" fill="#00ff41" opacity="0.85">0</text>
+          <text x="27" y="16" font-family="monospace" font-size="7" fill="#00cc33" opacity="0.6">0</text>
+          <text x="27" y="24" font-family="monospace" font-size="7" fill="#007a1f" opacity="0.35">1</text>
+        </svg>
+        <h2 class="card-title">Aprendre a programar</h2>
+      </div>
+      <div class="card-footer">
+        <div class="card-url">https://karelcat.step-quiz.net</div>
+        <a class="open-btn" href="https://karelcat.step-quiz.net/" target="_blank" rel="noopener">
+          Obre <svg class="arrow-icon" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="app-card" style="background-color:#f1f5f9; animation-delay:1.40s;">
+      <div class="card-header">
+        <span class="card-emoji">📖</span>
+        <h2 class="card-title">Llibre de matemàtiques</h2>
+      </div>
+      <div class="card-footer">
+        <div class="card-url">https://step-quiz.net/llibre-matematiques</div>
+        <a class="open-btn" href="https://step-quiz.net/llibre-matematiques" target="_blank" rel="noopener">
+          Obre <svg class="arrow-icon" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- cel·la buida: ocupa el 3r lloc de la fila 2 -->
+    <div></div>
+
+    <div class="app-card" style="background-color:#f1f5f9; animation-delay:1.55s;">
+      <div class="card-header">
+        <span class="card-emoji">🗺️</span>
+        <h2 class="card-title">Configurar mapes</h2>
+      </div>
+      <div class="card-footer">
+        <div class="card-url">https://karelcat.step-quiz.net/edit-mapa</div>
+        <a class="open-btn" href="https://karelcat.step-quiz.net/edit-mapa" target="_blank" rel="noopener">
+          Obre <svg class="arrow-icon" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="app-card" style="background-color:#eff6ff; animation-delay:1.70s;">
+      <div class="card-header">
+        <svg width="32" height="32" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;" aria-label="Logo">
+          <polygon points="18,4 34,32 2,32" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="18" y1="10" x2="18" y2="28" stroke="#a5d6a7" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="18" cy="9" r="2.2" fill="#ffffff" opacity="0.85"/>
+        </svg>
+        <h2 class="card-title">Programar amb LOGO</h2>
+      </div>
+      <div class="card-footer">
+        <div class="card-url">https://logocat.step-quiz.net</div>
+        <a class="open-btn" href="https://logocat.step-quiz.net/" target="_blank" rel="noopener">
+          Obre <svg class="arrow-icon" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="flex-shrink:0;">
+      <img alt="Llicència CC BY-NC-ND" style="border-width:0;height:31px;"
+           src="https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png"
+           onerror="this.style.display='none'" />
+    </a>
+    <span>
+      © 2026 <strong>[DAVID ARSO CIVIL]</strong>. Ús educatiu lliure.
+      Prohibida la comercialització i la modificació
+      (<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>).
+    </span>
+  </footer>
+
+  <!-- Ko-fi -->
+  <div class="kofi-wrap" id="kofiWrap">
+    <div class="sparks-container">
+      <div class="spark sp1"></div><div class="spark sp2"></div>
+      <div class="spark sp3"></div><div class="spark sp4"></div>
+      <div class="spark sp5"></div><div class="spark sp6"></div>
+      <div class="spark sp7"></div><div class="spark sp8"></div>
+    </div>
+    <a class="kofi-btn" href="https://ko-fi.com/davidarsocivil" target="_blank" rel="noopener"
+       aria-label="Invita'm a un cafè a Ko-fi">☕ Ko-fi</a>
+  </div>
+
+  <script>
+    setTimeout(function() {
+      document.getElementById('kofiWrap').classList.add('kofi-show');
+    }, 5000);
+  </script>
+
+</body>
+</html>
