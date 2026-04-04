@@ -1,0 +1,286 @@
+{
+  "_info": "Fitxer de referència del vocabulari de Karel. Les traduccions reals estan a karel.js (objecte I18N). Aquest JSON és el document de referència per afegir nous idiomes o revisar les traduccions.",
+  "ca": {
+    "_nom": "Català",
+    "ui": {
+      "challenges": "🎯 Reptes",
+      "challenges_title": "🎯 Reptes — tria un exercici per començar",
+      "toggle_theme": "Fosc / Clar",
+      "run": "▶ Executa",
+      "step": "⏭ Pas",
+      "stop": "■ Para",
+      "reset": "↺ Reinicia",
+      "clear_log": "⌫ Missatges",
+      "speed": "Velocitat:",
+      "bag": "Motxilla:",
+      "close": "Tanca",
+      "level_easy": "⭐ Fàcil",
+      "level_medium": "⭐⭐ Mitjà",
+      "level_hard": "⭐⭐⭐ Difícil",
+      "ref_btn": "📋 Referència",
+      "ref_cmd": "Moviment",
+      "ref_cond": "Condicions",
+      "ref_kw": "Estructures",
+      "success_title": "Repte superat!",
+      "success_msg": "Excel·lent! Has resolt l'exercici correctament.",
+      "success_more": "🎯 Més reptes",
+      "success_close": "Continua",
+      "onboard_next": "Següent →",
+      "onboard_prev": "← Enrere",
+      "onboard_start": "Comencem! 🚀",
+      "onboard_skip": "Salta"
+    },
+    "state": {
+      "idle": "aturat",
+      "running": "executant",
+      "step": "pas a pas",
+      "error": "error"
+    },
+    "speed": [
+      "Molt lent",
+      "Lent",
+      "Normal",
+      "Ràpid",
+      "Molt ràpid",
+      "Màxim"
+    ],
+    "log": {
+      "running": "▶ Executant...",
+      "step_mode": "⏭ Mode pas a pas",
+      "done": "✓ Programa acabat",
+      "reset": "↺ Reiniciat",
+      "map_loaded": "Mapa carregat ✓",
+      "stop_first": "Para el programa primer!",
+      "line": "línia",
+      "inf_loop": "⚠ Bucle infinit detectat! (>50.000 iteracions)",
+      "deep_rec": "⚠ Recursió massa profunda! (>50 crides)",
+      "challenge": "🎯 Repte"
+    },
+    "err": {
+      "wall": "xoc amb la paret",
+      "no_water": "no hi ha aigua al davant",
+      "bag_empty": "la motxilla és buida",
+      "proc_undef": "procediment no definit",
+      "syntax": "Error de sintaxi"
+    },
+    "tokens": {
+      "_info": "Les ordres i condicions que l'alumne escriurà al codi",
+      "commands": {
+        "move": "avança",
+        "turn_right": "gira.dreta",
+        "turn_left": "gira.esquerra",
+        "turn_around": "gira.enrere",
+        "grab": "agafa",
+        "drop": "deixa"
+      },
+      "conditions": {
+        "wall_ahead": "veu-paret",
+        "free_ahead": "veu-lliure",
+        "water_ahead": "veu-aigua",
+        "bag_empty": "motxilla-buida",
+        "bag_full": "motxilla-plena"
+      },
+      "keywords": {
+        "if": "si",
+        "else": [
+          "sinó",
+          "sino"
+        ],
+        "while": "mentre",
+        "repeat": "repeteix",
+        "not": "no",
+        "and": "i",
+        "or": "o",
+        "procedure": "procediment"
+      }
+    }
+  },
+  "es": {
+    "_nom": "Castellano",
+    "ui": {
+      "challenges": "🎯 Retos",
+      "challenges_title": "🎯 Retos — elige un ejercicio para comenzar",
+      "toggle_theme": "Oscuro / Claro",
+      "run": "▶ Ejecuta",
+      "step": "⏭ Paso",
+      "stop": "■ Para",
+      "reset": "↺ Reinicia",
+      "clear_log": "⌫ Mensajes",
+      "speed": "Velocidad:",
+      "bag": "Mochila:",
+      "close": "Cerrar",
+      "level_easy": "⭐ Fácil",
+      "level_medium": "⭐⭐ Medio",
+      "level_hard": "⭐⭐⭐ Difícil",
+      "ref_btn": "📋 Referencia",
+      "ref_cmd": "Movimiento",
+      "ref_cond": "Condiciones",
+      "ref_kw": "Estructuras",
+      "success_title": "¡Reto superado!",
+      "success_msg": "¡Excelente! Has resuelto el ejercicio correctamente.",
+      "success_more": "🎯 Más retos",
+      "success_close": "Continuar",
+      "onboard_next": "Siguiente →",
+      "onboard_prev": "← Atrás",
+      "onboard_start": "¡Empecemos! 🚀",
+      "onboard_skip": "Saltar"
+    },
+    "state": {
+      "idle": "detenido",
+      "running": "ejecutando",
+      "step": "paso a paso",
+      "error": "error"
+    },
+    "speed": [
+      "Muy lento",
+      "Lento",
+      "Normal",
+      "Rápido",
+      "Muy rápido",
+      "Máximo"
+    ],
+    "log": {
+      "running": "▶ Ejecutando...",
+      "step_mode": "⏭ Modo paso a paso",
+      "done": "✓ Programa terminado",
+      "reset": "↺ Reiniciado",
+      "map_loaded": "Mapa cargado ✓",
+      "stop_first": "¡Para el programa primero!",
+      "line": "línea",
+      "inf_loop": "⚠ ¡Bucle infinito detectado! (>50.000 iteraciones)",
+      "deep_rec": "⚠ ¡Recursión demasiado profunda! (>50 llamadas)",
+      "challenge": "🎯 Reto"
+    },
+    "err": {
+      "wall": "choque con la pared",
+      "no_water": "no hay agua delante",
+      "bag_empty": "la mochila está vacía",
+      "proc_undef": "procedimiento no definido",
+      "syntax": "Error de sintaxis"
+    },
+    "tokens": {
+      "_info": "Las órdenes y condiciones que el alumno escribirá en el código",
+      "commands": {
+        "move": "avanza",
+        "turn_right": "gira.derecha",
+        "turn_left": "gira.izquierda",
+        "turn_around": "gira.atrás",
+        "grab": "coge",
+        "drop": "suelta"
+      },
+      "conditions": {
+        "wall_ahead": "hay-pared",
+        "free_ahead": "hay-camino",
+        "water_ahead": "hay-agua",
+        "bag_empty": "mochila-vacía",
+        "bag_full": "mochila-llena"
+      },
+      "keywords": {
+        "if": "si",
+        "else": [
+          "sino"
+        ],
+        "while": "mientras",
+        "repeat": "repite",
+        "not": "no",
+        "and": "y",
+        "or": "o",
+        "procedure": "procedimiento"
+      }
+    }
+  },
+  "en": {
+    "_nom": "English",
+    "ui": {
+      "challenges": "🎯 Challenges",
+      "challenges_title": "🎯 Challenges — pick an exercise to start",
+      "toggle_theme": "Dark / Light",
+      "run": "▶ Run",
+      "step": "⏭ Step",
+      "stop": "■ Stop",
+      "reset": "↺ Reset",
+      "clear_log": "⌫ Messages",
+      "speed": "Speed:",
+      "bag": "Bag:",
+      "close": "Close",
+      "level_easy": "⭐ Easy",
+      "level_medium": "⭐⭐ Medium",
+      "level_hard": "⭐⭐⭐ Hard",
+      "ref_btn": "📋 Reference",
+      "ref_cmd": "Movement",
+      "ref_cond": "Conditions",
+      "ref_kw": "Structures",
+      "success_title": "Challenge complete!",
+      "success_msg": "Excellent! You solved the exercise correctly.",
+      "success_more": "🎯 More challenges",
+      "success_close": "Continue",
+      "onboard_next": "Next →",
+      "onboard_prev": "← Back",
+      "onboard_start": "Let's go! 🚀",
+      "onboard_skip": "Skip"
+    },
+    "state": {
+      "idle": "stopped",
+      "running": "running",
+      "step": "step mode",
+      "error": "error"
+    },
+    "speed": [
+      "Very slow",
+      "Slow",
+      "Normal",
+      "Fast",
+      "Very fast",
+      "Maximum"
+    ],
+    "log": {
+      "running": "▶ Running...",
+      "step_mode": "⏭ Step mode",
+      "done": "✓ Program done",
+      "reset": "↺ Reset",
+      "map_loaded": "Map loaded ✓",
+      "stop_first": "Stop the program first!",
+      "line": "line",
+      "inf_loop": "⚠ Infinite loop detected! (>50,000 iterations)",
+      "deep_rec": "⚠ Recursion too deep! (>50 nested calls)",
+      "challenge": "🎯 Challenge"
+    },
+    "err": {
+      "wall": "hit a wall",
+      "no_water": "no water in front",
+      "bag_empty": "bag is empty",
+      "proc_undef": "procedure not defined",
+      "syntax": "Syntax error"
+    },
+    "tokens": {
+      "_info": "The commands and conditions the student will write in the code",
+      "commands": {
+        "move": "move",
+        "turn_right": "turn.right",
+        "turn_left": "turn.left",
+        "turn_around": "turn.around",
+        "grab": "grab",
+        "drop": "drop"
+      },
+      "conditions": {
+        "wall_ahead": "wall-ahead",
+        "free_ahead": "path-clear",
+        "water_ahead": "water-ahead",
+        "bag_empty": "bag-empty",
+        "bag_full": "bag-full"
+      },
+      "keywords": {
+        "if": "if",
+        "else": [
+          "else"
+        ],
+        "while": "while",
+        "repeat": "repeat",
+        "not": "not",
+        "and": "and",
+        "or": "or",
+        "procedure": "procedure"
+      }
+    }
+  }
+}
