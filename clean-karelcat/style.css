@@ -519,6 +519,9 @@ body.light .lbg-row.active {
   50%     { filter: drop-shadow(0 0 8px rgba(230,132,204,.8)); }
 }
 
+/* Contorn de la medusa: ocult en fosc, visible en clar */
+.karel-outline { display: none; }
+
 /* Direcció de la Medusa via data-dir (JS: svg.setAttribute('data-dir', ...)) */
 .karel-entity[data-dir="top"]    { transform: rotate(0deg); }
 .karel-entity[data-dir="right"]  { transform: rotate(90deg); }
@@ -743,6 +746,7 @@ body.light .c-a { background: var(--cell-empty) !important; }
 body.light .c-k { background: var(--cell-empty) !important; }
 /* Medusa: MATEIX color rosat que en mode fosc */
 body.light .karel-entity { color: #E684CC; filter: drop-shadow(0 0 4px rgba(230,132,204,.5)); }
+body.light .karel-outline { display: inline; }
 
 /* ── Stanford-like World Grid (light mode) ─────────────── */
 body.light .world-area { background: #ffffff; }
