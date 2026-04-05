@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>Llenguatge Algebraic</title>
+
+    <!-- 1. Configuració per defecte ESPECÍFICA d'aquest joc -->
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    10,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!-- 2. Fitxers compartits (ordre important: utils → config → game-core) -->
+    <script src="js/fixed-sessions.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+
+    <!-- 3. Estils compartits -->
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ---- Variables de color específiques de llenguatge algebraic ---- */
+        :root {
+            --bg-color:      #f5f3ff;
+            --primary:       #7c3aed;
+            --primary-light: #ede9fe;
+            --primary-hover: #6d28d9;
+            --primary-dark:  #4c1d95;
+            --accent:        #f59e0b;
+        }
+
+        /* ---- Overrides de color específics ---- */
+        h1 { color: var(--primary-dark); }
+        .header-info { background-color: #f5f3ff; }
+        .level-text  { color: var(--primary-dark); }
+        .score-text  { color: var(--primary); }
+
+        /* ---- ZONA DE PREGUNTA ---- */
+        .question-box {
+            padding: 30px 25px 20px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .question-context {
+            font-size: 1em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-style: italic;
+        }
+
+        .question-text {
+            font-size: 1.35em;
+            font-weight: bold;
+            color: var(--text-main);
+            line-height: 1.5;
+            max-width: 600px;
+            animation: fadeIn 0.3s;
+        }
+
+        .question-text .var-highlight {
+            color: var(--primary);
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 900;
+            font-size: 1.1em;
+        }
+
+        /* ---- ZONA D'OPCIONS ---- */
+        .options-panel {
+            padding: 10px 20px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+            animation: fadeIn 0.3s;
+        }
+
+        .btn-option {
+            background: white;
+            border: 2.5px solid #d8d0f0;
+            border-radius: 12px;
+            padding: 18px 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.35em;
+            font-weight: bold;
+            color: var(--primary-dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            text-align: center;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .btn-option:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        @media (hover: hover) {
+            .btn-option:hover {
+                background-color: var(--primary-light);
+                border-color: var(--primary);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+            }
+        }
+
+        .btn-option:active {
+            transform: scale(0.97);
+        }
+
+        .btn-option.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+            animation: correctPop 0.4s ease;
+        }
+
+        .btn-option.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+            animation: shake 0.3s;
+        }
+
+        .btn-option.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .btn-option.reveal-correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+            opacity: 1 !important;
+            pointer-events: none;
+        }
+
+        /* ---- RESPONSIU ---- */
+        @media (max-width: 480px) {
+            .question-text  { font-size: 1.15em; }
+            .question-box   { padding: 20px 15px 15px; }
+            .options-panel  { padding: 8px 15px 25px; }
+            .options-grid   { gap: 10px; }
+            .btn-option     { font-size: 1.15em; padding: 15px 10px; }
+        }
+
+        @media (max-width: 350px) {
+            .question-text  { font-size: 1.05em; }
+            .btn-option     { font-size: 1em; padding: 12px 8px; }
+            .options-grid   { gap: 8px; }
+        }
+
+        /* Per a preguntes amb expressions llargues, layout vertical */
+        .options-grid.vertical {
+            grid-template-columns: 1fr;
+            max-width: 340px;
+        }
+
+        /* ---- ANIMACIONS ---- */
+        @keyframes correctPop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .attempts-counter.blink-warning { animation: blinkAttempts 1s ease-in-out; }
+        @keyframes blinkAttempts {
+            0%   { background-color: #facc15; }
+            25%  { background-color: white; }
+            50%  { background-color: #facc15; }
+            75%  { background-color: white; }
+            100% { background-color: #facc15; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Llenguatge Algebraic</h1>
+</div>
+
+<div class="panel" id="main-panel">
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Pregunta 1 de 10</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 4</div>
+        </div>
+
+        <div class="question-box" id="question-box">
+            <div class="question-context" id="question-context"></div>
+            <div class="question-text" id="question-text"></div>
+        </div>
+
+        <div class="options-panel" id="options-panel">
+            <div class="options-grid" id="options-grid"></div>
+        </div>
+    </div>
+</div>
+
+<script src="js/game-core.js"></script>
+<script>
+    // ── ELEMENTS DOM ────────────────────────────────────────────────────────────
+    const els = {
+        body:            document.body,
+        gameScreen:      document.getElementById('game-screen'),
+        sessionDisplay:  document.getElementById('session-display'),
+        lvlDisplay:      document.getElementById('lvl-display'),
+        scoreDisplay:    document.getElementById('score-display'),
+        attemptsDisplay: document.getElementById('attempts-display'),
+        questionContext: document.getElementById('question-context'),
+        questionText:    document.getElementById('question-text'),
+        optionsGrid:     document.getElementById('options-grid'),
+    };
+
+    let isPenalizing = false;
+    let currentQuestion = null;
+
+    // ── BANC DE PREGUNTES ────────────────────────────────────────────────────────
+    // Cada funció retorna { context, text, answer, distractors[] }
+    // 'answer' és la resposta correcta (string)
+    // 'distractors' conté 3 opcions incorrectes (strings)
+
+    function generateQuestionPool() {
+        const pool = [];
+
+        // ──────── BLOC 1: Edat i anys ────────
+        pool.push(() => {
+            const n = randInt(2, 12);
+            return {
+                context: 'Edat',
+                text: `Si avui tinc <span class="var-highlight">x</span> anys, quants anys tindré d'aquí ${n} anys?`,
+                answer: `x + ${n}`,
+                distractors: [`x − ${n}`, `${n}x`, `${n}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 10);
+            return {
+                context: 'Edat',
+                text: `Si avui tinc <span class="var-highlight">x</span> anys, quants anys tenia fa ${n} anys?`,
+                answer: `x − ${n}`,
+                distractors: [`x + ${n}`, `${n}x`, `${n} − x`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Edat',
+                text: `La meva germana té el doble d'anys que jo. Si jo tinc <span class="var-highlight">x</span> anys, quants té ella?`,
+                answer: `2x`,
+                distractors: [`x + 2`, `x − 2`, `x / 2`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Edat',
+                text: `El meu avi té el triple d'anys que el meu pare. Si el meu pare té <span class="var-highlight">x</span> anys, quants anys té l'avi?`,
+                answer: `3x`,
+                distractors: [`x + 3`, `x³`, `x / 3`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 5);
+            return {
+                context: 'Edat',
+                text: `En Marc té <span class="var-highlight">x</span> anys i la seva mare ${n} vegades més. Quants anys té la mare?`,
+                answer: `${n}x`,
+                distractors: [`x + ${n}`, `x − ${n}`, `x / ${n}`]
+            };
+        });
+
+        // ──────── BLOC 2: Operacions bàsiques ────────
+        pool.push(() => {
+            const n = randInt(3, 15);
+            return {
+                context: 'Nombres',
+                text: `La suma d'un nombre <span class="var-highlight">x</span> i ${n}.`,
+                answer: `x + ${n}`,
+                distractors: [`x − ${n}`, `${n}x`, `x · ${n} + ${n}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 10);
+            return {
+                context: 'Nombres',
+                text: `El doble d'un nombre <span class="var-highlight">x</span>, augmentat en ${n}.`,
+                answer: `2x + ${n}`,
+                distractors: [`2(x + ${n})`, `x + ${2 * n}`, `2x − ${n}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 8);
+            return {
+                context: 'Nombres',
+                text: `El triple d'un nombre <span class="var-highlight">x</span>, disminuït en ${n}.`,
+                answer: `3x − ${n}`,
+                distractors: [`3(x − ${n})`, `3x + ${n}`, `x − ${3 * n}`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Nombres',
+                text: `La meitat d'un nombre <span class="var-highlight">x</span>.`,
+                answer: `x / 2`,
+                distractors: [`2x`, `x − 2`, `x · 2`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Nombres',
+                text: `La tercera part d'un nombre <span class="var-highlight">x</span>.`,
+                answer: `x / 3`,
+                distractors: [`3x`, `x − 3`, `x + 3`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Nombres',
+                text: `El quadrat d'un nombre <span class="var-highlight">x</span>.`,
+                answer: `x²`,
+                distractors: [`2x`, `x + 2`, `√x`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Nombres',
+                text: `El cub d'un nombre <span class="var-highlight">x</span>.`,
+                answer: `x³`,
+                distractors: [`3x`, `x + 3`, `x · 3`]
+            };
+        });
+
+        // ──────── BLOC 3: Nombres consecutius ────────
+        pool.push(() => {
+            return {
+                context: 'Consecutius',
+                text: `Si un nombre és <span class="var-highlight">x</span>, quin és el nombre consecutiu (el següent)?`,
+                answer: `x + 1`,
+                distractors: [`x − 1`, `2x`, `x · 1`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Consecutius',
+                text: `Si un nombre és <span class="var-highlight">x</span>, quin és el nombre anterior?`,
+                answer: `x − 1`,
+                distractors: [`x + 1`, `x / 1`, `−x`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Consecutius',
+                text: `La suma de dos nombres consecutius, si el primer és <span class="var-highlight">x</span>.`,
+                answer: `2x + 1`,
+                distractors: [`x + 1`, `2x`, `x²`]
+            };
+        });
+
+        // ──────── BLOC 4: Diners i preus ────────
+        pool.push(() => {
+            const n = randInt(2, 8);
+            return {
+                context: 'Diners',
+                text: `Tinc <span class="var-highlight">x</span> euros i em gasto ${n} €. Quants euros em queden?`,
+                answer: `x − ${n}`,
+                distractors: [`x + ${n}`, `${n} − x`, `${n}x`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(5, 20);
+            return {
+                context: 'Diners',
+                text: `Tinc <span class="var-highlight">x</span> euros i em donen ${n} € més. Quants euros tinc ara?`,
+                answer: `x + ${n}`,
+                distractors: [`x − ${n}`, `${n}x`, `${n}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 5);
+            return {
+                context: 'Diners',
+                text: `Compro ${n} llibretes que costen <span class="var-highlight">x</span> euros cadascuna. Quant pago en total?`,
+                answer: `${n}x`,
+                distractors: [`x + ${n}`, `x / ${n}`, `x − ${n}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(3, 6);
+            return {
+                context: 'Diners',
+                text: `Repartim <span class="var-highlight">x</span> euros entre ${n} amics a parts iguals. Quant rep cadascú?`,
+                answer: `x / ${n}`,
+                distractors: [`${n}x`, `x − ${n}`, `x + ${n}`]
+            };
+        });
+
+        // ──────── BLOC 5: Geometria ────────
+        pool.push(() => {
+            return {
+                context: 'Geometria',
+                text: `El perímetre d'un quadrat de costat <span class="var-highlight">x</span>.`,
+                answer: `4x`,
+                distractors: [`x + 4`, `x²`, `2x`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Geometria',
+                text: `L'àrea d'un quadrat de costat <span class="var-highlight">x</span>.`,
+                answer: `x²`,
+                distractors: [`4x`, `2x`, `x + x`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 8);
+            return {
+                context: 'Geometria',
+                text: `El perímetre d'un rectangle de base <span class="var-highlight">x</span> i altura ${n}.`,
+                answer: `2x + ${2 * n}`,
+                distractors: [`${n}x`, `x + ${n}`, `2x · ${n}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 6);
+            return {
+                context: 'Geometria',
+                text: `L'àrea d'un rectangle de base <span class="var-highlight">x</span> i altura ${n}.`,
+                answer: `${n}x`,
+                distractors: [`x + ${n}`, `2x + ${2 * n}`, `x²`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Geometria',
+                text: `L'àrea d'un triangle de base <span class="var-highlight">x</span> i altura <span class="var-highlight">x</span>.`,
+                answer: `x² / 2`,
+                distractors: [`x²`, `2x`, `x + x`]
+            };
+        });
+
+        // ──────── BLOC 6: Situacions quotidianes ────────
+        pool.push(() => {
+            const n = randInt(2, 5);
+            return {
+                context: 'Vida quotidiana',
+                text: `En una classe hi ha <span class="var-highlight">x</span> alumnes. Si n'arriben ${n} més, quants n'hi ha en total?`,
+                answer: `x + ${n}`,
+                distractors: [`x − ${n}`, `${n}x`, `x`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 4);
+            return {
+                context: 'Vida quotidiana',
+                text: `En una classe hi ha <span class="var-highlight">x</span> alumnes i se'n van ${n}. Quants en queden?`,
+                answer: `x − ${n}`,
+                distractors: [`x + ${n}`, `${n}x`, `${n} − x`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Vida quotidiana',
+                text: `En un aparcament hi ha <span class="var-highlight">x</span> cotxes i el doble de motos. Quantes motos hi ha?`,
+                answer: `2x`,
+                distractors: [`x + 2`, `x / 2`, `x²`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(3, 7);
+            return {
+                context: 'Vida quotidiana',
+                text: `Cada dia camino <span class="var-highlight">x</span> km. Quants km camino en ${n} dies?`,
+                answer: `${n}x`,
+                distractors: [`x + ${n}`, `x / ${n}`, `x − ${n}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 5);
+            return {
+                context: 'Vida quotidiana',
+                text: `Si tinc <span class="var-highlight">x</span> cromos i el meu amic en té ${n} menys que jo, quants en té el meu amic?`,
+                answer: `x − ${n}`,
+                distractors: [`x + ${n}`, `${n} − x`, `${n}x`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(3, 8);
+            return {
+                context: 'Vida quotidiana',
+                text: `Si tinc <span class="var-highlight">x</span> cromos i el meu amic en té ${n} més que jo, quants en té el meu amic?`,
+                answer: `x + ${n}`,
+                distractors: [`x − ${n}`, `${n}x`, `${n}`]
+            };
+        });
+
+        // ──────── BLOC 7: Expressions més elaborades ────────
+        pool.push(() => {
+            const n = randInt(2, 5);
+            return {
+                context: 'Nombres',
+                text: `L'oposat d'un nombre <span class="var-highlight">x</span>.`,
+                answer: `−x`,
+                distractors: [`1/x`, `x`, `|x|`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 5);
+            return {
+                context: 'Nombres',
+                text: `L'invers d'un nombre <span class="var-highlight">x</span>.`,
+                answer: `1 / x`,
+                distractors: [`−x`, `x`, `x²`]
+            };
+        });
+        pool.push(() => {
+            const a = randInt(2, 4);
+            const b = randInt(1, 6);
+            return {
+                context: 'Nombres',
+                text: `El ${a === 2 ? 'doble' : a === 3 ? 'triple' : 'quàdruple'} d'un nombre <span class="var-highlight">x</span>, menys ${b}.`,
+                answer: `${a}x − ${b}`,
+                distractors: [`${a}x + ${b}`, `${a}(x − ${b})`, `x − ${a * b}`]
+            };
+        });
+        pool.push(() => {
+            const a = randInt(2, 4);
+            const b = randInt(1, 5);
+            return {
+                context: 'Nombres',
+                text: `${a === 2 ? 'El doble' : a === 3 ? 'El triple' : 'El quàdruple'} de la suma d'un nombre <span class="var-highlight">x</span> i ${b}.`,
+                answer: `${a}(x + ${b})`,
+                distractors: [`${a}x + ${b}`, `${a}x + ${a + b}`, `x + ${a * b}`]
+            };
+        });
+        pool.push(() => {
+            const n = randInt(2, 5);
+            return {
+                context: 'Nombres',
+                text: `La meitat d'un nombre <span class="var-highlight">x</span>, augmentada en ${n}.`,
+                answer: `x / 2 + ${n}`,
+                distractors: [`(x + ${n}) / 2`, `2x + ${n}`, `x / ${2 * n}`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Nombres',
+                text: `La suma d'un nombre <span class="var-highlight">x</span> i el seu quadrat.`,
+                answer: `x + x²`,
+                distractors: [`x²`, `2x²`, `(x + x)²`]
+            };
+        });
+        pool.push(() => {
+            return {
+                context: 'Nombres',
+                text: `La diferència entre el quadrat d'un nombre <span class="var-highlight">x</span> i el propi nombre.`,
+                answer: `x² − x`,
+                distractors: [`x − x²`, `x²`, `(x − 1)²`]
+            };
+        });
+
+        return pool;
+    }
+
+    const questionPool = generateQuestionPool();
+    let usedQuestions = [];
+
+    // ── GENERAR PREGUNTA NOVA ────────────────────────────────────────────────────
+    function pickNewQuestion() {
+        if (usedQuestions.length >= questionPool.length) {
+            usedQuestions = [];
+        }
+        let idx;
+        do {
+            idx = randInt(0, questionPool.length - 1);
+        } while (usedQuestions.includes(idx));
+        usedQuestions.push(idx);
+        return questionPool[idx]();
+    }
+
+    // ── BUILD LEVEL (cridat per game-core) ──────────────────────────────────────
+    function buildLevel() {
+        attemptsLeft    = MAX_INTENTS;
+        isTransitioning = false;
+        isPenalizing    = false;
+
+        currentQuestion = pickNewQuestion();
+
+        const colorIndex = (currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length;
+        els.body.style.backgroundColor = bgColors[colorIndex];
+
+        updateHeader();
+        renderQuestion();
+    }
+
+    // ── ACTUALITZAR CAPÇALERA ────────────────────────────────────────────────────
+    function updateHeader() {
+        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText      = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter';
+        if (attemptsLeft < 5) els.attemptsDisplay.classList.add('danger');
+    }
+
+    // ── RENDERITZAR PREGUNTA ─────────────────────────────────────────────────────
+    function renderQuestion() {
+        els.questionContext.innerText = currentQuestion.context;
+        els.questionText.innerHTML    = currentQuestion.text;
+
+        // Barrejar opcions
+        const allOptions = [currentQuestion.answer, ...currentQuestion.distractors];
+        shuffle(allOptions);
+
+        // Decidir si cal layout vertical (expressions llargues)
+        const maxLen = Math.max(...allOptions.map(o => o.length));
+        els.optionsGrid.className = 'options-grid' + (maxLen > 12 ? ' vertical' : '');
+
+        // Crear botons
+        els.optionsGrid.innerHTML = '';
+        allOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.textContent = opt;
+            btn.setAttribute('aria-label', `Opció: ${opt}`);
+            btn.addEventListener('click', () => checkAnswer(btn, opt));
+            els.optionsGrid.appendChild(btn);
+        });
+    }
+
+    // ── COMPROVAR RESPOSTA ────────────────────────────────────────────────────────
+    function checkAnswer(btn, selectedOption) {
+        if (isTransitioning || isPenalizing) return;
+
+        const stepQuestion = currentQuestion.text.replace(/<[^>]*>/g, '');
+
+        if (selectedOption === currentQuestion.answer) {
+            // ✅ Correcte
+            btn.classList.add('correct');
+            disableAllOptions();
+
+            if (typeof recordAnswerToHistory === 'function') {
+                recordAnswerToHistory(stepQuestion, selectedOption, true);
+            }
+
+            const fails       = MAX_INTENTS - attemptsLeft;
+            const levelPoints = Math.max(0, 10 - fails);
+
+            // Petit delay per veure el feedback verd
+            setTimeout(() => finishQuestion(levelPoints), 700);
+
+        } else {
+            // ❌ Incorrecte
+            btn.classList.add('incorrect');
+
+            if (typeof recordAnswerToHistory === 'function') {
+                recordAnswerToHistory(stepQuestion, selectedOption, false);
+            }
+
+            penalize(btn);
+        }
+    }
+
+    // ── PENALITZACIÓ ─────────────────────────────────────────────────────────────
+    function penalize(btn) {
+        if (isPenalizing || isTransitioning) return;
+        isPenalizing = true;
+        els.attemptsDisplay.classList.add('blink-warning');
+
+        setTimeout(() => {
+            els.attemptsDisplay.classList.remove('blink-warning');
+            attemptsLeft--;
+            updateHeader();
+
+            // Treure feedback visual del botó incorrecte i desactivar-lo
+            btn.classList.remove('incorrect');
+            btn.classList.add('disabled');
+            btn.style.opacity = '0.4';
+
+            if (attemptsLeft <= 0) {
+                // Mostrar la resposta correcta
+                isTransitioning = true;
+                revealCorrectAnswer();
+                setTimeout(() => finishQuestion(0), 1500);
+            }
+
+            isPenalizing = false;
+        }, 600);
+    }
+
+    // ── REVELAR RESPOSTA CORRECTA ────────────────────────────────────────────────
+    function revealCorrectAnswer() {
+        const buttons = els.optionsGrid.querySelectorAll('.btn-option');
+        buttons.forEach(btn => {
+            if (btn.textContent === currentQuestion.answer) {
+                btn.classList.remove('disabled');
+                btn.classList.add('reveal-correct');
+            } else {
+                btn.classList.add('disabled');
+            }
+        });
+    }
+
+    // ── DESACTIVAR TOTES LES OPCIONS ─────────────────────────────────────────────
+    function disableAllOptions() {
+        isTransitioning = true;
+        const buttons = els.optionsGrid.querySelectorAll('.btn-option');
+        buttons.forEach(btn => btn.classList.add('disabled'));
+    }
+
+    // ── FINALITZAR PREGUNTA I AVANÇAR ────────────────────────────────────────────
+    function finishQuestion(levelPoints) {
+        recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
+
+        sessionScore += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+        const waitTime = typeof showMiniOverlay === 'function'
+            ? showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)', pointsColor: 'var(--success)' })
+            : 1500;
+
+        setTimeout(() => {
+            if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
+
+            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                if (typeof endSession === 'function') endSession();
+            } else {
+                currentOperation++;
+                buildLevel();
+            }
+        }, waitTime);
+    }
+
+    // ── ARRENCADA ────────────────────────────────────────────────────────────────
+    injectSharedHTML();
+    validateConfig();
+    // No cal teclat custom en aquest joc (és multi-resposta)
+    startGame();
+</script>
+</body>
+</html>
