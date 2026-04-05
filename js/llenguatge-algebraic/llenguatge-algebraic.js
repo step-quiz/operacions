@@ -142,7 +142,11 @@ function penalize(btn) {
         btn.classList.add('disabled');
         btn.style.opacity = '0.4';
 
-        if (attemptsLeft <= 0) {
+        // Comptem quantes opcions actives queden
+        const remaining = els.optionsGrid.querySelectorAll('.btn-option:not(.disabled)');
+
+        if (attemptsLeft <= 0 || remaining.length <= 1) {
+            // Intents esgotats O només queda 1 opció (trivial) → 0 punts
             isTransitioning = true;
             revealCorrectAnswer();
             setTimeout(() => finishQuestion(0), 1500);
