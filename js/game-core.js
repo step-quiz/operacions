@@ -83,6 +83,7 @@ const EXERCISE_CODES = {
     'a-diners':           'AN',
     'a-equacions':        'AQ',
     'a-proporciodirecta': 'AO',
+    'llenguatge-algebraic': 'LA',
 };
 
 // Lookup invers: codi 2 lletres -> nom exercici

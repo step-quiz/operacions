@@ -1,0 +1,178 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/llenguatge-algebraic.css
+ROL: Estils específics de l'activitat de llenguatge algebraic.
+ESTÈTICA: Paleta violeta — àlgebra, abstracció, raonament.
+DEPENDÈNCIES: Requereix css/shared.css carregat ABANS.
+============================================================================
+*/
+
+/* ---- Variables de color específiques ---- */
+:root {
+    --bg-color:      #f5f3ff;
+    --primary:       #7c3aed;
+    --primary-light: #ede9fe;
+    --primary-hover: #6d28d9;
+    --primary-dark:  #4c1d95;
+    --accent:        #f59e0b;
+}
+
+/* ---- Overrides de color específics ---- */
+h1 { color: var(--primary-dark); }
+.header-info { background-color: #f5f3ff; }
+.level-text  { color: var(--primary-dark); }
+.score-text  { color: var(--primary); }
+
+/* ---- ZONA DE PREGUNTA ---- */
+.question-box {
+    padding: 30px 25px 20px;
+    text-align: center;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.question-context {
+    font-size: 1em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-style: italic;
+}
+
+.question-text {
+    font-size: 1.35em;
+    font-weight: bold;
+    color: var(--text-main);
+    line-height: 1.5;
+    max-width: 600px;
+    animation: fadeIn 0.3s;
+}
+
+.question-text .var-highlight {
+    color: var(--primary);
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 900;
+    font-size: 1.1em;
+}
+
+/* ---- ZONA D'OPCIONS ---- */
+.options-panel {
+    padding: 10px 20px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 500px;
+    animation: fadeIn 0.3s;
+}
+
+.btn-option {
+    background: white;
+    border: 2.5px solid #d8d0f0;
+    border-radius: 12px;
+    padding: 18px 14px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.35em;
+    font-weight: bold;
+    color: var(--primary-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+    text-align: center;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.btn-option:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (hover: hover) {
+    .btn-option:hover {
+        background-color: var(--primary-light);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+    }
+}
+
+.btn-option:active {
+    transform: scale(0.97);
+}
+
+.btn-option.correct {
+    background-color: #d1fae5;
+    border-color: #10b981;
+    color: #065f46;
+    animation: correctPop 0.4s ease;
+}
+
+.btn-option.incorrect {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    color: #991b1b;
+    animation: shake 0.3s;
+}
+
+.btn-option.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.btn-option.reveal-correct {
+    background-color: #d1fae5;
+    border-color: #10b981;
+    color: #065f46;
+    opacity: 1 !important;
+    pointer-events: none;
+}
+
+/* ---- Per a expressions llargues, layout vertical ---- */
+.options-grid.vertical {
+    grid-template-columns: 1fr;
+    max-width: 340px;
+}
+
+/* ---- RESPONSIU ---- */
+@media (max-width: 480px) {
+    .question-text  { font-size: 1.15em; }
+    .question-box   { padding: 20px 15px 15px; }
+    .options-panel  { padding: 8px 15px 25px; }
+    .options-grid   { gap: 10px; }
+    .btn-option     { font-size: 1.15em; padding: 15px 10px; }
+}
+
+@media (max-width: 350px) {
+    .question-text  { font-size: 1.05em; }
+    .btn-option     { font-size: 1em; padding: 12px 8px; }
+    .options-grid   { gap: 8px; }
+}
+
+/* ---- ANIMACIONS ESPECÍFIQUES ---- */
+@keyframes correctPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.attempts-counter.blink-warning { animation: blinkAttempts 1s ease-in-out; }
+@keyframes blinkAttempts {
+    0%   { background-color: #facc15; }
+    25%  { background-color: white; }
+    50%  { background-color: #facc15; }
+    75%  { background-color: white; }
+    100% { background-color: #facc15; }
+}
