@@ -19,6 +19,9 @@ window.QuestionBank = (() => {
     const V = '<span class="var-highlight">x</span>';
     const pool = [];
 
+    // Noms variats per a les preguntes contextuals
+    const NOMS = ['en Pau', 'la Laia', 'en Marc', 'la Noa', 'en Moha', 'la Yasmina', 'en Joan', 'la Ruth', 'l\'Ainhoa', 'en Biel', 'la Fàtima', 'en Jan'];
+    function nom() { return pick(NOMS); }
     // =========================================================================
     // BLOC 1 — EDAT I ANYS  (10 preguntes: 0–9)
     // =========================================================================
@@ -59,14 +62,11 @@ window.QuestionBank = (() => {
         return { context: 'Edat', text: `D'aquí ${n} anys, quina edat tindré si ara tinc ${V} anys?`,
             answer: `x + ${n}`, distractors: [`x − ${n}`, `${n}x`, `x`] };
     });
-    pool.push(() => {
-        const n = randInt(2, 6);
-        return { context: 'Edat', text: `La Laia té ${V} anys. Quants anys tindrà quan passi el doble del temps que porta viva?`,
-            answer: `2x`, distractors: [`x + 2`, `x²`, `x / 2`] };
-    });
+
     pool.push(() => {
         const n = randInt(2, 4);
-        return { context: 'Edat', text: `En Pau i la seva germana es porten ${n} anys. Si en Pau té ${V} anys i és el gran, quants anys té la germana?`,
+        const p = nom();
+        return { context: 'Edat', text: `${p} i el seu germà/na es porten ${n} anys. Si ${p} té ${V} anys i és el/la gran, quants anys té el germà/na?`,
             answer: `x − ${n}`, distractors: [`x + ${n}`, `${n}x`, `${n}`] };
     });
 
@@ -148,10 +148,7 @@ window.QuestionBank = (() => {
         return { context: 'Consecutius', text: `Si un nombre ${V} és senar, quin és el següent nombre senar?`,
             answer: `x + 2`, distractors: [`x + 1`, `2x`, `x + 3`] };
     });
-    pool.push(() => {
-        return { context: 'Consecutius', text: `Si un nombre ${V} és parell, quin és el nombre parell anterior?`,
-            answer: `x − 2`, distractors: [`x − 1`, `x + 2`, `x / 2`] };
-    });
+
     pool.push(() => {
         return { context: 'Consecutius', text: `La suma d'un nombre ${V} i el seu consecutiu.`,
             answer: `2x + 1`, distractors: [`x + 1`, `2x`, `x²`] };
@@ -160,10 +157,7 @@ window.QuestionBank = (() => {
         return { context: 'Consecutius', text: `La suma de tres nombres consecutius, si el primer és ${V}.`,
             answer: `3x + 3`, distractors: [`3x`, `x + 3`, `3x + 1`] };
     });
-    pool.push(() => {
-        return { context: 'Consecutius', text: `Un nombre parell qualsevol. Si ${V} és un nombre enter, com s'escriu un parell?`,
-            answer: `2x`, distractors: [`x + 2`, `x²`, `x / 2`] };
-    });
+
 
     // =========================================================================
     // BLOC 4 — DINERS I PREUS  (10 preguntes: 30–39)
@@ -203,21 +197,14 @@ window.QuestionBank = (() => {
         return { context: 'Diners', text: `Pago ${V} euros per una entrada i ${n} € per les crispetes. Quant pago en total?`,
             answer: `x + ${n}`, distractors: [`x − ${n}`, `${n}x`, `x · ${n}`] };
     });
-    pool.push(() => {
-        const n = randInt(2, 4);
-        return { context: 'Diners', text: `Tinc ${V} euros i en guanyo el doble jugant a un joc de taula. Quant tinc ara en total?`,
-            answer: `3x`, distractors: [`2x`, `x + 2`, `x²`] };
-    });
+
     pool.push(() => {
         const a = randInt(2, 4);
         const b = randInt(1, 3);
         return { context: 'Diners', text: `Compro ${a} entrepans a ${V} euros i ${b} ampolles d'aigua a 1 €. Quant pago?`,
             answer: `${a}x + ${b}`, distractors: [`${a + b}x`, `${a}x − ${b}`, `x + ${a + b}`] };
     });
-    pool.push(() => {
-        return { context: 'Diners', text: `Un producte costa ${V} euros. Quin és el preu si puja el doble?`,
-            answer: `2x`, distractors: [`x + 2`, `x²`, `x / 2`] };
-    });
+
 
     // =========================================================================
     // BLOC 5 — GEOMETRIA  (8 preguntes: 40–47)
@@ -254,10 +241,7 @@ window.QuestionBank = (() => {
         return { context: 'Geometria', text: `El costat d'un quadrat és ${V}. Si l'augmentem en ${n}, quin serà el nou costat?`,
             answer: `x + ${n}`, distractors: [`${n}x`, `x − ${n}`, `x · ${n}`] };
     });
-    pool.push(() => {
-        return { context: 'Geometria', text: `La longitud d'una circumferència de radi ${V}. (Usa π)`,
-            answer: `2πx`, distractors: [`πx`, `πx²`, `x + π`] };
-    });
+
 
     // =========================================================================
     // BLOC 6 — ESCOLA I CLASSE  (8 preguntes: 48–55)
@@ -296,10 +280,7 @@ window.QuestionBank = (() => {
         return { context: 'Escola', text: `Tinc ${V} pàgines per llegir i cada dia en llegeixo ${n}. Quantes pàgines em falten després d'un dia?`,
             answer: `x − ${n}`, distractors: [`x + ${n}`, `${n}x`, `x / ${n}`] };
     });
-    pool.push(() => {
-        return { context: 'Escola', text: `He fet ${V} exercicis i la meva companya n'ha fet el doble. Quants n'ha fet ella?`,
-            answer: `2x`, distractors: [`x + 2`, `x / 2`, `x²`] };
-    });
+
 
     // =========================================================================
     // BLOC 7 — ESPORT, MENJAR I LLEURE  (8 preguntes: 56–63)
@@ -315,8 +296,8 @@ window.QuestionBank = (() => {
             answer: `x − ${n}`, distractors: [`x + ${n}`, `${n} − x`, `${n}x`] };
     });
     pool.push(() => {
-        return { context: 'Esport', text: `En un aparcament hi ha ${V} cotxes i el doble de motos. Quantes motos hi ha?`,
-            answer: `2x`, distractors: [`x + 2`, `x / 2`, `x²`] };
+        return { context: 'Esport', text: `En un aparcament hi ha ${V} cotxes i el doble de motos. Quants vehicles hi ha en total?`,
+            answer: `3x`, distractors: [`2x`, `x + 2`, `x²`] };
     });
     pool.push(() => {
         const n = randInt(2, 4);
@@ -329,23 +310,13 @@ window.QuestionBank = (() => {
             answer: `x / ${n}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
     });
     pool.push(() => {
-        const n = randInt(2, 4);
-        return { context: 'Esport', text: `Faig ${V} flexions cada dia. Quantes en faré en ${n} dies?`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x − ${n}`, `x / ${n}`] };
-    });
-    pool.push(() => {
         const n = randInt(3, 6);
         return { context: 'Lleure', text: `Tinc ${V} cançons a la playlist i n'afegeixo ${n} més. Quantes en tinc ara?`,
             answer: `x + ${n}`, distractors: [`x − ${n}`, `${n}x`, `${n}`] };
     });
-    pool.push(() => {
-        const n = randInt(2, 5);
-        return { context: 'Lleure', text: `Un videojoc dura ${V} minuts. Si hi jugo ${n} partides, quants minuts jugo en total?`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x − ${n}`, `x / ${n}`] };
-    });
 
     // =========================================================================
-    // BLOC 8 — TECNOLOGIA I VIDA MODERNA  (8 preguntes: 64–71)
+    // BLOC 8 — TECNOLOGIA I VIDA MODERNA
     // =========================================================================
     pool.push(() => {
         const n = randInt(2, 5);
@@ -363,13 +334,8 @@ window.QuestionBank = (() => {
             answer: `x − ${n}`, distractors: [`x + ${n}`, `${n} − x`, `${n}x`] };
     });
     pool.push(() => {
-        return { context: 'Tecnologia', text: `He pujat ${V} vídeos a internet i el meu canal té el triple de subscriptors que de vídeos. Quants subscriptors tinc?`,
+        return { context: 'Tecnologia', text: `Fa dos mesos tenia ${V} subscriptors i ara tinc el triple. Quants subscriptors tinc ara?`,
             answer: `3x`, distractors: [`x + 3`, `x³`, `x / 3`] };
-    });
-    pool.push(() => {
-        const n = randInt(2, 4);
-        return { context: 'Tecnologia', text: `Descarrego ${V} apps cada mes. Quantes apps descarrego en ${n} mesos?`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x / ${n}`, `x − ${n}`] };
     });
     pool.push(() => {
         const n = randInt(10, 30);
