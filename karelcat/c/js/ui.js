@@ -27,7 +27,7 @@ function setStateUI(state) {
   K.state.currentState = state;
   const dot = document.getElementById('state-dot');
   const lbl = document.getElementById('state-lbl');
-  if (dot) dot.className = 'state-' + state;
+  if (dot) dot.className = state;  // '', 'running', 'step', 'error' (el CSS ja sap aquests noms)
   if (lbl) lbl.textContent = K.t('state.' + state);
 
   // Mutació del botó principal: "Executa" quan res no corre, "Atura" mentre corre
