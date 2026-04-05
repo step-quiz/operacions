@@ -5,6 +5,9 @@
 (function init() {
   const S = K.state;
 
+  // 0) Aplica el tema guardat (fosc per defecte, clar si l'usuari ho va triar)
+  K.initTheme();
+
   // 1) Aplica el llenguatge de programació
   K.applyCodeLang(S.codeLang);
 

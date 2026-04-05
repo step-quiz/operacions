@@ -76,6 +76,7 @@ const COND_ACTIONS = ['rock-ahead','path-clear','pearl-here','bag-empty','bag-fu
 // ── LocalStorage keys ──
 
 const LS_KEY_CODE  = 'karel-code-v3';
+const LS_KEY_THEME = 'karel-theme';
 const LS_ONBOARD   = 'karel-onboard-done';
 
 
@@ -104,6 +105,7 @@ K.SPEED_DELAYS  = SPEED_DELAYS;
 K.CMD_ACTIONS   = CMD_ACTIONS;
 K.COND_ACTIONS  = COND_ACTIONS;
 K.LS_KEY_CODE   = LS_KEY_CODE;
+K.LS_KEY_THEME  = LS_KEY_THEME;
 K.LS_ONBOARD    = LS_ONBOARD;
 K.DEFAULT_CSV   = DEFAULT_CSV;
 K.DEFAULT_CODE  = DEFAULT_CODE;
