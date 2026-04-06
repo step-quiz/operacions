@@ -1,0 +1,518 @@
+/* ════════════════════════════════════════════════════════
+   curs.css — Estils per a les pàgines del curs
+   (índex de capítols + plantilla de capítol)
+════════════════════════════════════════════════════════ */
+
+/* ── Variables (coherents amb style.css) ────────────────── */
+
+:root {
+  --bg:           #000000;
+  --surface:      #141414;
+  --border:       #2a2a2a;
+  --text:         #ddddd8;
+  --muted:        #8a8a85;
+  --accent:       #a8a8a2;
+  --accent-hi:    #B9138D;       /* rosa medusa */
+  --error:        #ff5252;
+  --mono:         'Space Mono', 'Courier New', monospace;
+  --sans:         system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --sidebar-w:    240px;
+  --header-h:     48px;
+  --content-max:  720px;
+  --gap:          2rem;
+}
+
+/* ── Mode clar ──────────────────────────────────────────── */
+body.curs-light {
+  --bg:      #ffffff;
+  --surface: #f5f5f5;
+  --border:  #d0d0d0;
+  --text:    #1a1a1a;
+  --muted:   #6b7280;
+  --accent:  #2563eb;
+}
+
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: var(--accent-hi); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3 { font-family: var(--mono); line-height: 1.3; }
+code, pre {
+  font-family: var(--mono);
+  background: var(--surface);
+  border-radius: 3px;
+}
+code { padding: 1px 5px; font-size: 0.88em; }
+pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
+
+
+/* ════════════════════════════════════════════════════════
+   CAPÇALERA DEL CURS (present a totes les pàgines)
+════════════════════════════════════════════════════════ */
+
+.curs-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  gap: 1rem;
+}
+
+.curs-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.curs-header-logo:hover { text-decoration: none; color: var(--accent-hi); }
+.curs-header-logo .logo-icon { color: var(--accent-hi); }
+
+.curs-header-title {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.curs-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* Botó hamburger (visible < 820px) */
+#sidebar-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 5px 9px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Botó tema */
+.btn-curs-theme {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 5px 9px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+.btn-curs-theme:hover { border-color: var(--accent-hi); color: var(--accent-hi); }
+
+
+/* ════════════════════════════════════════════════════════
+   PÀGINA ÍNDEX DEL CURS (B.1)
+════════════════════════════════════════════════════════ */
+
+.curs-index-hero {
+  max-width: var(--content-max);
+  margin: 3rem auto 2rem;
+  padding: 0 1.5rem;
+}
+
+.curs-index-hero h1 {
+  font-size: 2rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.curs-index-hero p {
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 500px;
+}
+
+.capitols-list {
+  max-width: var(--content-max);
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+  list-style: none;
+}
+
+.capitol-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  background: var(--surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.capitol-card:hover {
+  border-color: var(--accent-hi);
+  background: color-mix(in srgb, var(--surface) 90%, var(--accent-hi) 10%);
+}
+
+.capitol-card a {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.capitol-card-num {
+  font-family: var(--mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-hi);
+  min-width: 2rem;
+  text-align: right;
+  line-height: 1;
+}
+
+.capitol-card-info { flex: 1; }
+.capitol-card-titol {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: block;
+}
+.capitol-card-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  display: block;
+  margin-top: 2px;
+}
+
+.capitol-card-arrow {
+  color: var(--muted);
+  font-size: 1rem;
+  transition: transform 0.15s;
+}
+.capitol-card:hover .capitol-card-arrow { transform: translateX(4px); color: var(--accent-hi); }
+
+/* Distintiu "pendent" */
+.capitol-card--pendent .capitol-card-num { opacity: 0.4; }
+.capitol-card--pendent .capitol-card-titol { opacity: 0.5; }
+.capitol-card--pendent .capitol-card-sub   { opacity: 0.4; }
+.capitol-card--pendent .capitol-card-arrow { opacity: 0.2; }
+.capitol-card--pendent { pointer-events: none; }
+
+
+/* ════════════════════════════════════════════════════════
+   LAYOUT CAPÍTOL (sidebar + contingut) — B.2 + B.3
+════════════════════════════════════════════════════════ */
+
+.curs-layout {
+  display: flex;
+  min-height: calc(100vh - var(--header-h));
+}
+
+
+/* ── Barra lateral (B.2) ─────────────────────────────── */
+
+.curs-sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: left 0.25s ease;
+}
+
+.sidebar-header {
+  padding: 1rem 1rem 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0.25rem 0;
+}
+
+.sidebar-item a, .sidebar-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  color: var(--text);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+}
+.sidebar-item a:hover, .sidebar-link:hover {
+  background: var(--border);
+  text-decoration: none;
+  border-left-color: var(--muted);
+}
+.sidebar-item.active .sidebar-link,
+.sidebar-item.active a {
+  border-left-color: var(--accent-hi);
+  background: color-mix(in srgb, var(--bg) 80%, var(--accent-hi) 20%);
+}
+
+.sidebar-num {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-hi);
+  min-width: 1.6rem;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+.sidebar-item.active .sidebar-num { color: var(--accent-hi); }
+
+.sidebar-info { flex: 1; min-width: 0; }
+.sidebar-titol {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-sub {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+/* Overlay fosc (mòbil) */
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 49;
+}
+#sidebar-overlay.visible { display: block; }
+
+
+/* ── Contingut del capítol ───────────────────────────── */
+
+.curs-content {
+  flex: 1;
+  min-width: 0;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.chapter-content-inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+/* Capçalera del capítol */
+.chapter-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.chapter-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent-hi);
+  margin-bottom: 0.5rem;
+}
+
+.chapter-header h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.chapter-lead {
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 560px;
+}
+
+/* Seccions del capítol */
+.chapter-section {
+  margin-bottom: 2.5rem;
+}
+
+.chapter-section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+body.curs-light .chapter-section h2 { color: #1a1a1a; }
+
+.chapter-section p { margin-bottom: 0.85rem; }
+.chapter-section ul,
+.chapter-section ol { padding-left: 1.5rem; margin-bottom: 0.85rem; }
+.chapter-section li { margin-bottom: 0.3rem; }
+
+
+/* ── Simulador incrustat (B.4) ───────────────────────── */
+
+.simulador-wrap {
+  margin: 1.25rem 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.simulador-frame {
+  display: block;
+  width: 100%;
+  border: none;
+  background: var(--bg);
+}
+
+.simulador-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+.simulador-badge--exemple { color: var(--muted); }
+.simulador-badge--exercici { color: var(--accent-hi); }
+
+.simulador-caption {
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 6px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-style: italic;
+}
+
+
+/* ── Seccions d'exercici ─────────────────────────────── */
+
+.chapter-exercise {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+.chapter-exercise h2 {
+  margin-bottom: 0.5rem;
+}
+
+.exercise-enunciat {
+  background: color-mix(in srgb, var(--bg) 70%, var(--accent-hi) 30%);
+  border-left: 3px solid var(--accent-hi);
+  border-radius: 0 4px 4px 0;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+
+/* ── Navegació prev/next ─────────────────────────────── */
+
+.chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  gap: 1rem;
+}
+
+.btn-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface);
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-nav:hover { border-color: var(--accent-hi); color: var(--accent-hi); text-decoration: none; }
+.btn-nav--next { margin-left: auto; }
+.btn-nav--disabled { opacity: 0.3; pointer-events: none; }
+
+
+/* ════════════════════════════════════════════════════════
+   RESPONSIVE MÒBIL  (< 820px)
+════════════════════════════════════════════════════════ */
+
+@media (max-width: 820px) {
+  #sidebar-toggle { display: flex; align-items: center; }
+
+  .curs-header-title { display: none; }
+
+  .curs-sidebar {
+    position: fixed;
+    top: var(--header-h);
+    left: calc(-1 * var(--sidebar-w));
+    height: calc(100vh - var(--header-h));
+    z-index: 50;
+    box-shadow: none;
+    transition: left 0.25s ease, box-shadow 0.25s;
+  }
+  .curs-sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+
+  .curs-content { padding: 1.5rem 1rem 3rem; }
+  .chapter-header h1 { font-size: 1.4rem; }
+
+  .simulador-frame { height: 320px !important; }
+}
+
+@media (max-width: 540px) {
+  .capitols-list { padding: 0 0.75rem; }
+  .capitol-card a { padding: 0.85rem 1rem; }
+  .chapter-nav { flex-direction: column; }
+  .btn-nav--next { margin-left: 0; width: 100%; justify-content: center; }
+  .btn-nav--prev { width: 100%; justify-content: center; }
+}

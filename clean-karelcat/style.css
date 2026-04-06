@@ -1,0 +1,657 @@
+/* ════════════════════════════════════════════════════════
+   style.css — Karel
+════════════════════════════════════════════════════════ */
+
+:root {
+  --bg:         #000000;
+  --surface:    #141414;
+  --border:     #2a2a2a;
+  --text:       #ddddd8;
+  --muted:      #8a8a85;
+  --accent:     #a8a8a2;            /* gris clar — contrast net sobre fons fosc */
+  --accent-dim: rgba(168,168,162,0.13);
+  --error:      #ff5252;            /* FIX: suavitzat de #e30d0d per evitar agressivitat sobre negre */
+  --error-dim:  rgba(255,82,82,0.13);
+  --mono:       'Space Mono','Courier New',monospace;
+  --cell-size:  44px;
+  --topbar-h:   46px;
+  /* Editor typography — shared between all three editor layers */
+  --ed-font-size:   0.8rem;
+  --ed-line-height: 1.75;
+  --ed-pad-top:     12px;
+  --ed-pad-x:       14px;
+  /* Cel·les del tauler — extret a variables per facilitar el mode clar */
+  --cell-empty: #0C1017;
+  --cell-wall:  #0C1017;
+  --cell-aqua:  #000E1F;
+  --cell-karel: #24001A;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+/* ── MODE CLAR — Estil Stanford ─────────────────────── */
+body.light {
+  --bg:         #ffffff;            /* fons blanc net */
+  --surface:    #f8f9fa;            /* superfície gris molt clar */
+  --border:     #d0d0d0;            /* vora gris neutre */
+  --text:       #1a1a1a;            /* text quasi negre */
+  --muted:      #6b7280;            /* gris mitjà neutre */
+  --accent:     #2563eb;            /* blau Stanford-like */
+  --accent-dim: rgba(37,99,235,0.08);
+  --error:      #dc2626;
+  --error-dim:  rgba(220,38,38,0.08);
+  --cell-empty: #ffffff;            /* cel·la buida: blanc */
+  --cell-wall:  #ffffff;            /* paret: fons blanc (com bombolla) */
+  --cell-aqua:  #dbeafe;            /* cel·la d'aigua: blau pàl·lid */
+  --cell-karel: #ffffff;            /* cel·la Karel: blanc */
+}
+body.light { background: var(--bg); color: var(--text); }
+body {
+  font-family: var(--mono);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ── CAPÇALERA ────────────────────────────────────── */
+
+.topbar {
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.logo-icon {
+  display: inline-flex;
+  align-items: center;
+  color: #B9138D;
+  filter: drop-shadow(0 0 3px rgba(185,19,141,.5));
+}
+body.light .logo-icon { color: #B9138D; filter: drop-shadow(0 0 2px rgba(185,19,141,.3)); }
+
+.logo {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+
+/* Indicador d'estat */
+#state-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+#state-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+  transition: background 0.25s, box-shadow 0.25s;
+}
+#state-dot.running { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse-dot 1s ease-in-out infinite; }
+#state-dot.step    { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+#state-dot.error   { background: var(--error);  box-shadow: 0 0 8px var(--error); }
+@keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+
+/* ── TOOLBAR (nova fila d'execució) ───────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-bag {
+  font-size: 0.65rem;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-left: 3.5%;
+}
+.toolbar-bag strong { color: var(--text); }
+
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  flex: 0 0 30vw;
+  max-width: 30vw;
+  min-width: 120px;
+}
+.speed-row input[type=range] { flex: 1; width: auto; }
+input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+#speed-lbl { color: var(--text); min-width: 16px; text-align: center; }
+
+
+/* ── LAYOUT PRINCIPAL ─────────────────────────────── */
+
+.main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+
+
+/* ── COLUMNA ESQUERRA: CODI ──────────────────────── */
+
+.code-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+}
+
+
+/* ── COLUMNA DRETA: MÓN ─────────────────────────── */
+
+.map-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.world-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+}
+#world-grid {
+  display: inline-grid;
+  gap: 2px;
+  background: var(--border);
+  padding: 2px;
+  border-radius: 5px;
+  border: 3px solid #4a4a4a;
+}
+
+.editor-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+/* Numeració de línies */
+#line-numbers {
+  width: 38px;
+  padding: var(--ed-pad-top) 6px var(--ed-pad-top) 0;
+  background: #0a0a0a;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--ed-font-size);
+  line-height: var(--ed-line-height);
+  text-align: right;
+  user-select: none;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  pointer-events: none;
+}
+#line-numbers div { height: calc(var(--ed-font-size) * var(--ed-line-height)); }
+
+/* Contenidor de les tres capes (line-bg + highlight + textarea) */
+.editor-inner {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════
+   CAPA 1: #line-bg
+   Conté una fila per línia de codi.
+   Les files active/error reben un color de fons.
+   Es desplaça en sincronia amb el textarea.
+   IMPORTANT: overflow-y:scroll (scrollbar ocult)
+   permet establir scrollTop des de JS.
+══════════════════════════════════════════════ */
+#line-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow-x: hidden;
+  overflow-y: scroll;        /* cal per poder establir scrollTop */
+  scrollbar-width: none;     /* Firefox: amaga el scrollbar */
+  padding-top: var(--ed-pad-top);  /* alineat amb el padding del textarea */
+}
+#line-bg::-webkit-scrollbar { display: none; }  /* Chrome/Safari */
+
+.lbg-row {
+  display: block;
+  width: 100%;
+  height: calc(var(--ed-font-size) * var(--ed-line-height));
+}
+.lbg-row.active {
+  background: rgba(86,156,214,0.20);
+  box-shadow: inset 3px 0 0 var(--accent);   /* barra esquerra accent */
+  animation: step-pulse 0.3s ease;
+}
+.lbg-row.error  { background: var(--error-dim); }
+
+@keyframes step-pulse {
+  0%   { background: rgba(86,156,214,0.50); }
+  100% { background: rgba(86,156,214,0.20); }
+}
+body.light .lbg-row.active {
+  background: rgba(0,102,204,0.12);
+  box-shadow: inset 3px 0 0 var(--accent);
+  animation: step-pulse-light 0.3s ease;
+}
+@keyframes step-pulse-light {
+  0%   { background: rgba(0,102,204,0.28); }
+  100% { background: rgba(0,102,204,0.12); }
+}
+
+
+/* ══════════════════════════════════════════════
+   CAPA 2: #code-highlight
+   Overlay de sintaxi. Ha de renderitzar
+   el text EXACTAMENT igual que el textarea.
+   Regles crítiques:
+   - white-space: pre (IDÈNTIC al textarea)
+   - font, size, line-height, padding: IDÈNTICS
+   - pointer-events: none (no intercepta clics)
+   - No té display:block als spans interns →
+     els spans .code-line són inline per defecte.
+══════════════════════════════════════════════ */
+#code-highlight {
+  position: absolute;
+  inset: 0;
+  padding: var(--ed-pad-top) var(--ed-pad-x);
+  font-family: var(--mono);
+  font-size: var(--ed-font-size);
+  line-height: var(--ed-line-height);
+  white-space: pre;            /* ← FIX CURSOR: pre, no pre-wrap */
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--text);
+  margin: 0;
+  tab-size: 2;
+}
+
+/* .code-line: NO display:block, NO padding-left, NO border-left.
+   Qualsevol propietat de layout aquí desplaçaria el text
+   respecte al textarea i trencaria la posició del cursor. */
+.code-line { /* intencionalment buit — inline per defecte */ }
+
+/* Nota: el color de fons de línia activa/error l'aplica #line-bg,
+   NO .code-line, per evitar desplaçaments de layout. */
+
+
+/* ══════════════════════════════════════════════
+   CAPA 3: #code-editor (textarea)
+   Ha de tenir exactament el mateix font,
+   mida, padding i white-space que el highlight.
+   color:transparent → text invisible, però
+   caret-color:var(--text) mostra el cursor.
+══════════════════════════════════════════════ */
+#code-editor {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--text);
+  font-family: var(--mono);
+  font-size: var(--ed-font-size);
+  line-height: var(--ed-line-height);
+  border: none;
+  outline: none;
+  resize: none;
+  padding: var(--ed-pad-top) var(--ed-pad-x);
+  white-space: pre;            /* ← FIX CURSOR: pre, idèntic al highlight */
+  tab-size: 2;
+  overflow-y: auto;
+  overflow-x: auto;            /* scroll horitzontal per a línies llargues */
+  z-index: 1;
+}
+#code-editor::selection { background: rgba(86,156,214,0.25); }
+
+
+/* ── RESSALTAT SINTÀCTIC (colors dels spans) ─ */
+
+.hl-kw   { color: #569cd6; font-weight: 700; }  /* FIX: blau clàssic per keywords (era var(--accent)) */
+.hl-cmd  { color: #9cdcfe; }
+.hl-cond { color: #c586c0; }
+.hl-user { color: #4ec9b0; }
+.hl-num  { color: #b5cea8; }                    /* FIX: verd clàssic per números (era var(--accent)) */
+.hl-cm   { color: var(--muted); font-style: italic; }
+.hl-br   { color: var(--muted); }
+
+
+/* ── LOG ──────────────────────────────────────────── */
+
+#log-wrap {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 130px;
+  min-height: 40px;
+  max-height: 50%;
+  border-top: 1px solid var(--border);
+}
+#log-resize {
+  height: 5px;
+  background: var(--border);
+  cursor: ns-resize;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.15s;
+}
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  width: 28px; height: 2px;
+  border-radius: 1px;
+  background: var(--muted);
+  opacity: 0.5;
+}
+#log-resize:hover,
+#log-resize.dragging { background: var(--accent); }
+#log-resize:hover::after,
+#log-resize.dragging::after { background: #000; opacity: 0.5; }
+#log {
+  flex: 1;
+  overflow-y: auto;
+  background: #080808;
+  padding: 6px 12px;
+  font-size: 0.68rem;
+  line-height: 1.65;
+}
+#log p     { margin: 0; white-space: pre-wrap; }
+#log .ok   { color: var(--accent); }
+#log .err  { color: var(--error); font-weight: 700; }
+#log .inf  { color: var(--text); opacity: 0.75; }
+#log .dim  { color: var(--muted); }
+#log .cmd  { color: var(--muted); }
+#log .proc { color: #4ec9b0; }
+
+
+/* ── CEL·LES DEL MÓN ─────────────────────────────── */
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  user-select: none;
+  overflow: hidden;
+}
+.c-e { background: var(--cell-empty); }
+.c-p { background: var(--cell-wall); }
+.c-a { background: var(--cell-aqua); }
+.c-k { background: var(--cell-karel); }
+
+/* ── ASSETS SVG (Pixel Art) ──────────────────────── */
+
+/* Contenidor general: l'SVG omple tota la cel·la */
+.cell svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Medusa (Karel): rotació suau, pols subtil */
+.karel-entity {
+  transition: transform 0.2s ease-in-out;
+  transform-origin: center center;
+  color: #E684CC;
+  filter: drop-shadow(0 0 4px rgba(230,132,204,.5));
+  animation: medusa-pulse 2s ease-in-out infinite;
+}
+@keyframes medusa-pulse {
+  0%,100% { filter: drop-shadow(0 0 3px rgba(230,132,204,.4)); }
+  50%     { filter: drop-shadow(0 0 8px rgba(230,132,204,.8)); }
+}
+
+/* Contorn de la medusa: ocult en fosc, visible en clar */
+.karel-outline { display: none; }
+
+/* Direcció de la Medusa via data-dir (JS: svg.setAttribute('data-dir', ...)) */
+.karel-entity[data-dir="top"]    { transform: rotate(0deg); }
+.karel-entity[data-dir="right"]  { transform: rotate(90deg); }
+.karel-entity[data-dir="bottom"] { transform: rotate(180deg); }
+.karel-entity[data-dir="left"]   { transform: rotate(270deg); }
+
+/* Bombolla (aigua): moviment subtil de flotació */
+.c-a svg { animation: bob 2.5s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2px); } }
+
+
+/* ── BOTONS ───────────────────────────────────────── */
+
+.btn {
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color .1s, color .1s, background .1s, transform .08s;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn:hover  { border-color: var(--accent); color: var(--accent); }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--accent); color: #000; border-color: var(--accent); }
+.btn.p:hover { background: #c8c8c2; border-color: #c8c8c2; color: #000; }
+.btn.g { background: transparent; color: var(--accent); border-color: var(--accent); }
+.btn.g:hover { background: var(--accent-dim); }
+.btn.r { background: var(--error); color: #000; border-color: var(--error); }
+.btn.r:hover { background: #ff6b6b; border-color: #ff6b6b; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:disabled:hover { border-color: var(--border); color: var(--text); }
+.btn.full { width: 100%; padding: 8px 12px; font-size: 0.7rem; }
+
+
+/* ── MODE CLAR — overrides d'elements hardcodejats ── */
+
+/* Fons de l'editor i àrees — Stanford blanc net */
+body.light .editor-wrap    { background: #ffffff !important; }
+body.light #line-numbers   { background: #f5f5f5 !important; }
+body.light #log            { background: #f5f5f5 !important; }
+
+
+/* Cel·les del tauler: fons blanc per a totes */
+body.light .c-e { background: var(--cell-empty) !important; }
+body.light .c-p { background: var(--cell-wall)  !important; }
+body.light .c-a { background: var(--cell-empty) !important; }
+body.light .c-k { background: var(--cell-empty) !important; }
+/* Medusa: MATEIX color rosat que en mode fosc */
+body.light .karel-entity { color: #E684CC; filter: drop-shadow(0 0 4px rgba(230,132,204,.5)); }
+body.light .karel-outline { display: inline; }
+
+/* ── Stanford-like World Grid (light mode) ─────────────── */
+body.light .world-area { background: #ffffff; }
+body.light #world-grid {
+  background: #a0a0a0;   /* les línies del grid (gap) */
+  gap: 1px; padding: 1px; border-radius: 0;
+  border: 3px solid #000000;
+}
+body.light .cell { border-radius: 0; }
+/* Marca "+" a cada cel·la buida */
+body.light .c-e::after {
+  content: '+'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.55em; color: #a0a0a0; pointer-events: none;
+  font-family: var(--mono); line-height: 1;
+}
+body.light .c-p { border-radius: 0; }
+body.light .c-k::after { content: none; }
+/* Gota d'aigua: tint blau intens */
+body.light .c-a svg g[fill="#90CDF4"] { fill: #3b82f6; }
+body.light .c-a svg g[fill="#FFFFFF"] { fill: #93c5fd; }
+body.light .c-a svg g[fill="#2B6CB0"] { fill: #1d4ed8; }
+body.light .c-a svg g[fill="#63B3ED"] { fill: #60a5fa; }
+body.light .c-a svg { animation: none; }
+
+/* Topbar, status, controls: blanc net */
+body.light .topbar { background: #ffffff; border-bottom: 1px solid #d0d0d0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+body.light .btn { background: #ffffff; border-color: #d0d0d0; color: var(--text); }
+body.light .btn:hover { background: #f0f4ff; border-color: var(--accent); color: var(--accent); }
+body.light .btn.p { background: var(--accent); color: #fff; border-color: var(--accent); }
+body.light .btn.p:hover { background: #1d4ed8; }
+
+body.light #log-wrap { border-top-color: #e0e0e0; }
+body.light .log-ok  { color: #16a34a; }
+body.light .log-err { color: #dc2626; }
+body.light input[type=range] { accent-color: var(--accent); }
+body.light .code-col { border-right-color: #e0e0e0; }
+body.light .toolbar { background: #f8f9fa; border-bottom-color: #e0e0e0; }
+
+/* Text base de l'editor */
+body.light #code-highlight { color: var(--text); }
+body.light #line-bg        { background: transparent; }
+
+/* Ressaltat sintàctic: Stanford-like */
+body.light .hl-kw   { color: #0000ff; }   /* blau pur — keywords */
+body.light .hl-cmd  { color: #008080; }   /* teal     — comandes */
+body.light .hl-cond { color: #7b1fa2; }   /* porpra   — condicions */
+body.light .hl-user { color: #006400; }   /* verd fosc — funcions usuari */
+body.light .hl-num  { color: #098658; }   /* verd     — números */
+body.light .hl-cm   { color: #008000; }   /* verd clàssic — comentaris */
+body.light .hl-br   { color: #333333; }   /* gris fosc — claus/parèntesis */
+
+
+/* ── Botó de tema (topbar, extrem dret) ── */
+#btn-theme {
+  margin-left: auto;
+  padding: 5px 8px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+
+/* ── AUTOCOMPLETAT ────────────────────────────────── */
+
+.autocomplete-dropdown {
+  display: none;
+  position: fixed;
+  z-index: 500;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5);
+  min-width: 170px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.autocomplete-dropdown.visible { display: block; }
+
+.ac-item {
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: var(--ed-font-size);
+  font-family: var(--mono);
+  color: var(--text);
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.ac-item:hover,
+.ac-item.selected {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+/* tipus de token: comandes blau, condicions lila, keywords groc */
+.ac-item[data-kind="cmd"]  { color: #9cdcfe; }
+.ac-item[data-kind="cond"] { color: #c586c0; }
+.ac-item[data-kind="kw"]   { color: var(--accent); }
+.ac-item.selected,
+.ac-item:hover             { background: var(--accent-dim); }
+
+body.light .autocomplete-dropdown { box-shadow: 0 4px 14px rgba(0,0,0,.15); background: #ffffff; border-color: #d0d0d0; }
+body.light .ac-item[data-kind="cmd"]  { color: #008080; }
+body.light .ac-item[data-kind="cond"] { color: #7b1fa2; }
+body.light .ac-item[data-kind="kw"]   { color: #0000ff; }
+
+
+/* ── RESPONSIVE ───────────────────────────────────── */
+
+@media (max-width: 820px) {
+  html, body { height: auto; overflow: auto; }
+  .main { grid-template-columns: 1fr; }
+  /* En mòbil: mapa a dalt, codi a sota */
+  .map-col  { order: -1; border-bottom: 1px solid var(--border); }
+  .code-col { min-height: 60vh; border-right: none; }
+  .world-area { min-height: 40vw; }
+  .toolbar { flex-wrap: wrap; gap: 4px; }
+  .toolbar .btn { padding: 4px 8px; font-size: 0.62rem; }
+  .speed-row input[type=range] { width: 50px; }
+}
+
+@media (max-width: 820px) and (orientation: portrait) {
+  .map-col   { display: flex; flex-direction: column; }
+  .world-area { flex: 1; min-height: 0; }
+  .toolbar { padding: 4px 8px; }
+}
+
+
+
+/* ── MODE EMBED (B.4) — simulador incrustat en iframes del curs ── */
+/* Quan index.html?embed=1, s'amaga la topbar i tot s'ajusta. */
+
+body.embed .topbar { display: none; }
+
+/* En embed, el toolbar pot ser lleugerament més compacte */
+body.embed .toolbar {
+  padding: 4px 10px;
+  min-height: 36px;
+}
+body.embed .toolbar .btn { padding: 4px 10px; font-size: 0.68rem; }
+body.embed .toolbar .speed-row { gap: 6px; }
+body.embed #speed-lbl { display: none; }
+
+/* Log més petit en embed */
+body.embed #log-wrap { max-height: 80px; }
