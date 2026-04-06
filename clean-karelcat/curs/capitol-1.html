@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capítol 1 — Coneix en Karel | Karel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="curs.css">
+</head>
+<body>
+
+
+<!-- ══════════════════════════════════════════════════════
+     CAPÇALERA
+     ══════════════════════════════════════════════════════ -->
+<header class="curs-header">
+  <button id="sidebar-toggle" aria-label="Mostra/amaga els capítols" aria-expanded="false">☰</button>
+
+  <a href="index.html" class="curs-header-logo">
+    <span class="logo-icon">
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+           shape-rendering="crispEdges" width="18" height="18" aria-hidden="true">
+        <rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/>
+        <rect x="7" y="2" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/>
+        <rect x="9" y="2" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/>
+        <rect x="4" y="3" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/>
+        <rect x="10" y="3" width="1" height="1"/><rect x="11" y="3" width="1" height="1"/>
+        <rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/>
+        <rect x="5" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/>
+        <rect x="7" y="4" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/>
+        <rect x="9" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/>
+        <rect x="11" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/>
+        <rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/>
+        <rect x="6" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/>
+        <rect x="8" y="8" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/>
+        <rect x="10" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/>
+        <rect x="4" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/>
+        <rect x="8" y="9" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/>
+        <rect x="3" y="12" width="1" height="1"/><rect x="7" y="12" width="1" height="1"/>
+        <rect x="8" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/>
+        <rect x="6" y="3" width="1" height="1" fill="#141414"/>
+        <rect x="7" y="3" width="1" height="1" fill="#141414"/>
+        <rect x="8" y="3" width="1" height="1" fill="#141414"/>
+        <rect x="9" y="3" width="1" height="1" fill="#141414"/>
+      </svg>
+    </span>
+    Karel
+  </a>
+
+  <span class="curs-header-title">Capítol 1 — Coneix en Karel</span>
+
+  <div class="curs-header-actions">
+    <button id="btn-curs-theme" class="btn-curs-theme"
+            onclick="toggleCursTheme()" title="Canvia el tema" aria-label="Canvia el tema">☀️</button>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════════════════
+     LAYOUT PRINCIPAL: sidebar + contingut
+     ══════════════════════════════════════════════════════ -->
+<div class="curs-layout">
+
+  <!-- Overlay fosc per a mòbil -->
+  <div id="sidebar-overlay" aria-hidden="true"></div>
+
+  <!-- ── Barra lateral de navegació ── -->
+  <nav id="sidebar" class="curs-sidebar" aria-label="Capítols del curs">
+    <div class="sidebar-header">Capítols</div>
+    <div id="sidebar-nav"><!-- omplert per capitols.js --></div>
+  </nav>
+
+  <!-- ── Contingut del capítol ── -->
+  <main id="chapter-content" class="curs-content" tabindex="-1">
+    <div class="chapter-content-inner">
+
+
+      <!-- ─────────────────────────────────────────
+           CAPÇALERA DEL CAPÍTOL
+           ───────────────────────────────────────── -->
+      <header class="chapter-header">
+        <span class="chapter-badge">Capítol 1</span>
+        <h1>Coneix en Karel</h1>
+        <p class="chapter-lead">En Karel és una medusa programable que viu al fons del mar. En aquest capítol li donarem les tres primeres ordres: <code>move</code>, <code>turn_left</code> i <code>turn_right</code>.</p>
+      </header>
+
+
+      <!-- ─────────────────────────────────────────
+           SECCIÓ 1 — El món de en Karel
+           ───────────────────────────────────────── -->
+      <section class="chapter-section">
+        <h2>El món de en Karel</h2>
+
+        <p>En Karel viu dins d'una <strong>graella</strong>: una quadrícula de caselles, com un tauler d'escacs submarí. Cada casella pot estar buida, tenir una roca o tenir una perla.</p>
+
+        <p>En Karel ocupa sempre <strong>una sola casella</strong> i sempre mira en una de quatre direccions: Nord (amunt ↑), Sud (avall ↓), Est (a la dreta →) o Oest (a l'esquerra ←).</p>
+
+        <p>Al simulador, en Karel és la medusa rosa. La fletxa que hi ha al seu costat indica cap a on mira. Pots veure la seva posició, la seva direcció i el nombre de perles que porta a la motxilla a la barra superior.</p>
+
+        <p>El teu treball és escriure ordres al quadre de l'esquerra. En Karel les llegirà de dalt a baix i les executarà una per una quan premis <strong>▶ Executa</strong>.</p>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           SECCIÓ 2 — move
+           ───────────────────────────────────────── -->
+      <section class="chapter-section">
+        <h2>La primera ordre: <code>move</code></h2>
+
+        <p><code>move</code> fa avançar en Karel <strong>una casella</strong> en la direcció que mira. Si hi ha una roca o el límit del món davant seu, el programa s'atura i mostra un error.</p>
+
+        <p>Les ordres s'escriuen <strong>una per línia</strong>. En Karel les executa en ordre estricte, de dalt a baix, sense saltar-se'n cap.</p>
+
+        <p>En l'exemple següent, en Karel mira cap a l'Est i té tres ordres <code>move</code>. Prem <strong>▶ Executa</strong> i observa com avança casella a casella:</p>
+
+        <div class="simulador"
+             data-map=".,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,.\n.,.,.,.,."
+             data-code="move
+move
+move
+"
+             data-readonly="true"
+             data-label="Exemple"
+             data-title="En Karel executa les tres ordres move d'una en una, avançant cap a l'Est."
+             data-height="300">
+        </div>
+
+        <p>En Karel ha avançat tres caselles cap a la dreta perquè mirava cap a l'Est i tenia tres ordres <code>move</code>. Si hagués tingut una roca al davant, el programa hauria fallat.</p>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           SECCIÓ 3 — turn_left
+           ───────────────────────────────────────── -->
+      <section class="chapter-section">
+        <h2>Girar a l'esquerra: <code>turn_left</code></h2>
+
+        <p><code>turn_left</code> fa que en Karel giri <strong>90° cap a l'esquerra</strong> des del seu punt de vista. Girar <em>no</em> és avançar: en Karel canvia de direcció però no es mou de casella.</p>
+
+        <p>Pensa-ho com si tu fossis en Karel: si mires cap a l'Est (la dreta) i gires a l'esquerra, ara mires cap al Nord (amunt). Si tornes a girar a l'esquerra, mires cap a l'Oest (l'esquerra). Quatre girs complets et tornaran a la mateixa direcció inicial.</p>
+
+        <p>Observa l'exemple: en Karel avança dues caselles, gira a l'esquerra i puja dues caselles més:</p>
+
+        <div class="simulador"
+             data-map=".,.,.,.,.\n.,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,."
+             data-code="move
+move
+turn_left
+move
+move
+"
+             data-readonly="true"
+             data-label="Exemple"
+             data-title="Dos move cap a l'Est → turn_left (ara mira al Nord) → dos move cap amunt."
+             data-height="310">
+        </div>
+
+        <p>Primer en Karel avança dues caselles cap a l'Est. Llavors <code>turn_left</code> el fa mirar cap al Nord. Finalment avança dues caselles cap amunt. El codi és curt però en Karel ha recorregut un camí en forma de L.</p>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           SECCIÓ 4 — turn_right
+           ───────────────────────────────────────── -->
+      <section class="chapter-section">
+        <h2>Girar a la dreta: <code>turn_right</code></h2>
+
+        <p><code>turn_right</code> fa que en Karel giri <strong>90° cap a la dreta</strong> des del seu punt de vista. El funcionament és simètric a <code>turn_left</code>.</p>
+
+        <p>En l'exemple següent, en Karel comença a dalt a l'esquerra mirant cap a l'Est, avança dues caselles i gira a la dreta (ara mira al Sud), i baixa dues caselles:</p>
+
+        <div class="simulador"
+             data-map="K>,.,.,.,.\n.,.,.,.,.\n.,.,.,.,.\n.,.,.,.,."
+             data-code="move
+move
+turn_right
+move
+move
+"
+             data-readonly="true"
+             data-label="Exemple"
+             data-title="Dos move cap a l'Est → turn_right (ara mira al Sud) → dos move cap avall."
+             data-height="300">
+        </div>
+
+        <p>Quan en Karel mirava cap a l'Est i ha girat a la dreta, ara mira cap al Sud. Per a en Karel, la dreta sempre és relativa a la seva pròpia orientació, no a la del mapa.</p>
+
+        <p>Fins ara coneixes les tres ordres bàsiques de moviment:</p>
+        <ul>
+          <li><code>move</code> — avança una casella en la direcció actual.</li>
+          <li><code>turn_left</code> — gira 90° cap a l'esquerra (des del punt de vista de Karel).</li>
+          <li><code>turn_right</code> — gira 90° cap a la dreta (des del punt de vista de Karel).</li>
+        </ul>
+        <p>Amb aquestes tres ordres pots portar en Karel a qualsevol casella del món.</p>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           EXERCICI
+           ───────────────────────────────────────── -->
+      <section class="chapter-section chapter-exercise">
+        <h2>Exercici</h2>
+
+        <div class="exercise-enunciat">
+          En Karel és a la cantonada inferior esquerra i mira cap a l'Est. Hi ha una perla a la cantonada superior dreta. Escriu el codi per portar en Karel fins a la casella on és la perla.
+        </div>
+
+        <p>Pista: necessitaràs quatre ordres <code>move</code>, una ordre <code>turn_left</code> i tres ordres <code>move</code> més —&nbsp;però en quin ordre?</p>
+
+        <div class="simulador"
+             data-map=".,.,.,.,P\n.,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,."
+             data-code="// Escriu el teu codi aquí:
+
+"
+             data-label="Exercici"
+             data-title="Porta en Karel fins a la casella de la perla (cantonada superior dreta)."
+             data-height="340">
+        </div>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           NAVEGACIÓ PREV / NEXT
+           ───────────────────────────────────────── -->
+      <nav class="chapter-nav" aria-label="Navegació entre capítols">
+        <a href="index.html" class="btn-nav btn-nav--prev btn-nav--disabled"
+           aria-disabled="true">← Capítol anterior</a>
+        <a href="capitol-2.html" class="btn-nav btn-nav--next">Capítol següent →</a>
+      </nav>
+
+
+    </div><!-- .chapter-content-inner -->
+  </main>
+
+</div><!-- .curs-layout -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     Scripts
+     ══════════════════════════════════════════════════════ -->
+<script>const CURRENT_CAPITOL = 1;</script>
+<script src="capitols.js"></script>
+<script>
+  renderSidebar(CURRENT_CAPITOL);
+  renderSimuladors();
+  initSidebarToggle();
+
+  (function () {
+    const btn = document.getElementById('btn-curs-theme');
+    if (btn) btn.textContent = document.body.classList.contains('curs-light') ? '🌙' : '☀️';
+  })();
+</script>
+
+</body>
+</html>
