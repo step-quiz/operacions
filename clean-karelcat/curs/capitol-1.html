@@ -76,7 +76,9 @@
 
         <p>Les ordres s'escriuen una per línia. En Karel les executa en ordre estricte, de dalt a baix, sense saltar-se'n cap.</p>
 
-        <p>En l'exemple següent, en Karel mira cap a l'Est i té tres ordres <code>move</code>. Prem ▶ <strong>Executa</strong> i observa com avança:</p>
+        <p>En l'exemple següent, en Karel mira cap a l'Est i té tres ordres <code>move</code>.</p>
+        
+        <p>En aquests exemples, no pots modificar el codi. Prem ▶ <strong>Executa</strong> i observa com funciona:</p>
 
         <div class="simulador"
              data-map=".,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,.\n.,.,.,.,."
@@ -88,7 +90,7 @@ move
              data-height="300">
         </div>
 
-        <p>En Karel ha avançat tres caselles cap a la dreta perquè mirava cap a l'Est i tenia tres ordres <code>move</code>. Si hagués tingut una roca al davant, el programa hauria fallat.</p>
+        <p>En Karel ha avançat tres caselles cap a la dreta perquè mirava cap a l'Est i tenia tres ordres <code>move</code>. Si hagués trobat un impediment per avançar, el programa hauria fallat.</p>
       </section>
 
 
@@ -100,9 +102,9 @@ move
 
         <p><code>turn_left</code> fa que en Karel giri 90° cap a l'esquerra des del seu punt de vista. Girar <em>no</em> és avançar: en Karel canvia de direcció però no es mou de casella.</p>
 
-        <p>Pensa-ho com si tu fossis en Karel: si mires cap a l'Est (la dreta) i gires a l'esquerra, ara mires cap al Nord (amunt). Si tornes a girar a l'esquerra, mires cap a l'Oest (l'esquerra). Quatre girs complets et tornaran a la mateixa direcció inicial.</p>
+        <p>Per exemple, en l'exemple veuràs que en Karel està mirant cap a l'Est (la dreta). Quan faci un gir a l'esquerra, mirarà cap al Nord (amunt). Si torna a girar a l'esquerra, mirarà cap a l'Oest (l'esquerra). Finalment, al cap de quatre girs cap a l'esquerra, tornarà a la mateixa orientació inicial, és a dir, mirant cap a l'Est (la dreta).</p>
 
-        <p>Observa l'exemple: en Karel avança dues caselles, gira a l'esquerra i puja dues caselles més:</p>
+        <p>Observa l'exemple: en Karel avança dues caselles, gira a l'esquerra i avança dues caselles més.</p>
 
         <div class="simulador"
              data-map=".,.,.,.,.\n.,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,."
