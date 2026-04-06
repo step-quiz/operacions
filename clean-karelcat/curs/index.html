@@ -7,24 +7,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="curs.css">
 </head>
-<body>
+<body class="curs-light">
 
 <!-- ══════════════════════════════════════════════════════
      CAPÇALERA
+     (logo centralitzat via injectCursLogo(), sense toggle de tema)
      ══════════════════════════════════════════════════════ -->
 <header class="curs-header">
-  <a href="index.html" class="curs-header-logo" aria-label="Inici del curs">
+  <span class="curs-header-logo">
     <span class="logo-icon"></span>
     Karel
-  </a>
+  </span>
 
   <span class="curs-header-title">Curs de programació</span>
 
   <div class="curs-header-actions">
     <a href="../index.html" class="btn-curs-theme btn-curs-sim"
        title="Obre el simulador lliure">Simulador →</a>
-    <button id="btn-curs-theme" class="btn-curs-theme"
-            onclick="toggleCursTheme()" title="Canvia el tema" aria-label="Canvia el tema"></button>
   </div>
 </header>
 
@@ -57,13 +56,15 @@
   // Injecta el logo de la medusa al header (font única de veritat)
   injectCursLogo();
 
-  // Genera la llista de capítols a partir de CAPITOLS_DATA
+  // Genera la llista de capítols a partir de CAPITOLS_DATA.
+  //
+  // DISPONIBLES: conjunt de números de capítol que ja tenen arxiu HTML creat.
+  // Quan afegeixis un capítol-N.html nou, incorpora N a aquest set.
   (function renderIndex() {
     const list = document.getElementById('capitols-list');
     if (!list) return;
 
-    // Capítols disponibles (arxius ja creats). Actualitzar quan s'afegeixin capítols reals.
-    const DISPONIBLES = new Set([/* p.ex: 1, 2, 3 */]);
+    const DISPONIBLES = new Set([1]);
 
     let html = '';
     for (const c of CAPITOLS_DATA) {
@@ -77,7 +78,6 @@
             <span class="capitol-card-num">${c.num}</span>
             <span class="capitol-card-info">
               <span class="capitol-card-titol">${c.titol}</span>
-              <span class="capitol-card-sub">${c.subtitol}</span>
             </span>
             <span class="capitol-card-arrow">${disponible ? '→' : '···'}</span>
           </a>
@@ -85,9 +85,6 @@
     }
     list.innerHTML = html;
   })();
-
-  // Aplica la icona del botó tema via la funció de capitols.js
-  updateCursThemeBtn();
 </script>
 
 </body>

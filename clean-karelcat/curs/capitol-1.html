@@ -17,10 +17,10 @@
 <header class="curs-header">
   <button id="sidebar-toggle" aria-label="Mostra/amaga els capítols" aria-expanded="false">☰</button>
 
-  <a href="index.html" class="curs-header-logo">
+  <span class="curs-header-logo">
     <span class="logo-icon"></span>
     Karel
-  </a>
+  </span>
 
   <span class="curs-header-title">Capítol 1 — Coneix en Karel</span>
 </header>
@@ -34,7 +34,10 @@
   <div id="sidebar-overlay" aria-hidden="true"></div>
 
   <nav id="sidebar" class="curs-sidebar" aria-label="Capítols del curs">
-    <div class="sidebar-header">Capítols</div>
+    <div class="sidebar-header">
+      <a href="index.html" class="active">Capítols</a>
+      <a href="../index.html">Simulador</a>
+    </div>
     <div id="sidebar-nav"><!-- omplert per capitols.js --></div>
   </nav>
 

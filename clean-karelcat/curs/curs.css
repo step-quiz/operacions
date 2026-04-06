@@ -84,7 +84,7 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
   white-space: nowrap;
   text-decoration: none;
 }
-.curs-header-logo:hover { text-decoration: none; color: var(--accent-hi); }
+a.curs-header-logo:hover { text-decoration: none; color: var(--accent-hi); }
 .curs-header-logo .logo-icon { color: var(--accent-hi); }
 
 .curs-header-title {
@@ -205,13 +205,7 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
   font-size: 0.95rem;
   font-weight: 700;
   display: block;
-}
-.capitol-card-sub {
-  font-size: 0.78rem;
-  color: var(--muted);
-  font-family: var(--mono);
-  display: block;
-  margin-top: 2px;
+  color: #000;
 }
 
 .capitol-card-arrow {
@@ -224,7 +218,6 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
 /* Distintiu "pendent" */
 .capitol-card--pendent .capitol-card-num { opacity: 0.4; }
 .capitol-card--pendent .capitol-card-titol { opacity: 0.5; }
-.capitol-card--pendent .capitol-card-sub   { opacity: 0.4; }
 .capitol-card--pendent .capitol-card-arrow { opacity: 0.2; }
 .capitol-card--pendent { pointer-events: none; }
 
@@ -255,14 +248,26 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
 }
 
 .sidebar-header {
-  padding: 1rem 1rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 1rem 0.75rem;
   font-family: var(--mono);
   font-size: 0.7rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--muted);
   border-bottom: 1px solid var(--border);
   margin-bottom: 0.25rem;
+}
+.sidebar-header a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.1s;
+}
+.sidebar-header a:hover { color: var(--accent-hi); }
+.sidebar-header a.active {
+  color: #000;
+  font-weight: 700;
 }
 
 .sidebar-list {
@@ -302,7 +307,6 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
 }
 .sidebar-item.active .sidebar-num { color: var(--accent-hi); }
 
-.sidebar-info { flex: 1; min-width: 0; }
 .sidebar-titol {
   display: block;
   font-size: 0.82rem;
@@ -310,16 +314,8 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.sidebar-sub {
-  display: block;
-  font-size: 0.68rem;
-  color: var(--muted);
-  font-family: var(--mono);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 1px;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Overlay fosc (mòbil) */

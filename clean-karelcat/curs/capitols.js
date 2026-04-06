@@ -31,16 +31,16 @@ function injectCursLogo() {
 // ── Dades dels 10 capítols del curs ──────────────────────
 
 const CAPITOLS_DATA = [
-  { num: 1,  titol: 'Coneix en Karel',           subtitol: 'move · turn_left · turn_right',         arxiu: 'capitol-1.html'  },
-  { num: 2,  titol: 'Agafa i deixa',             subtitol: 'grab · drop · pearl_here',              arxiu: 'capitol-2.html'  },
-  { num: 3,  titol: 'Repeteix',                  subtitol: 'repeat(N) { ... }',                     arxiu: 'capitol-3.html'  },
-  { num: 4,  titol: 'Procediments',              subtitol: 'proc nom { ... }',                      arxiu: 'capitol-4.html'  },
-  { num: 5,  titol: 'Descomposició',             subtitol: 'Mètode top-down',                       arxiu: 'capitol-5.html'  },
-  { num: 6,  titol: 'Si',                        subtitol: 'if(cond) { ... } / else { ... }',       arxiu: 'capitol-6.html'  },
-  { num: 7,  titol: 'Mentre',                    subtitol: 'while(cond) { ... }',                   arxiu: 'capitol-7.html'  },
-  { num: 8,  titol: 'Combinant condicions',      subtitol: 'not(...) · and · or',                   arxiu: 'capitol-8.html'  },
-  { num: 9,  titol: 'Pensar com un programador', subtitol: '// comentaris · noms clars · codi net', arxiu: 'capitol-9.html'  },
-  { num: 10, titol: 'Reptes',                    subtitol: 'Col·lecció d\'exercicis',               arxiu: 'capitol-10.html' },
+  { num: 1,  titol: 'Coneix en Karel',           arxiu: 'capitol-1.html'  },
+  { num: 2,  titol: 'Agafa i deixa',             arxiu: 'capitol-2.html'  },
+  { num: 3,  titol: 'Repeteix',                  arxiu: 'capitol-3.html'  },
+  { num: 4,  titol: 'Procediments',              arxiu: 'capitol-4.html'  },
+  { num: 5,  titol: 'Descomposició',             arxiu: 'capitol-5.html'  },
+  { num: 6,  titol: 'Condicionals',              arxiu: 'capitol-6.html'  },
+  { num: 7,  titol: 'Mentre',                    arxiu: 'capitol-7.html'  },
+  { num: 8,  titol: 'Combinant condicions',      arxiu: 'capitol-8.html'  },
+  { num: 9,  titol: 'Com escriure codi',         arxiu: 'capitol-9.html'  },
+  { num: 10, titol: 'Reptes',                    arxiu: 'capitol-10.html' },
 ];
 
 
@@ -57,10 +57,7 @@ function renderSidebar(currentNum) {
       <li class="sidebar-item${isActive ? ' active' : ''}">
         <a href="${c.arxiu}" class="sidebar-link">
           <span class="sidebar-num">${String(c.num).padStart(2, '0')}</span>
-          <span class="sidebar-info">
-            <span class="sidebar-titol">${c.titol}</span>
-            <span class="sidebar-sub">${c.subtitol}</span>
-          </span>
+          <span class="sidebar-titol">${c.titol}</span>
         </a>
       </li>`;
   }
