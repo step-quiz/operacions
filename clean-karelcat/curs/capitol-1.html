@@ -115,12 +115,10 @@ move
 move
 "
              data-readonly="true"
-             data-label="Exemple"
-             data-title="Dos move cap a l'Est → turn_left (ara mira al Nord) → dos move cap amunt."
              data-height="310">
         </div>
 
-        <p>Primer en Karel avança dues caselles cap a l'Est. Llavors <code>turn_left</code> el fa mirar cap al Nord. Finalment avança dues caselles cap amunt. El codi és curt però en Karel ha recorregut un camí en forma de L.</p>
+        <p>Primer en Karel avança dues caselles cap a l'Est. Llavors <code>turn_left</code> el fa mirar cap al Nord. Finalment avança dues caselles cap amunt. En Karel ha recorregut un camí que fa cantonada.</p>
       </section>
 
 
@@ -130,9 +128,9 @@ move
       <section class="chapter-section">
         <h2>Girar a la dreta: <code>turn_right</code></h2>
 
-        <p><code>turn_right</code> fa que en Karel giri 90° cap a la dreta des del seu punt de vista. El funcionament és simètric a <code>turn_left</code>.</p>
+        <p><code>turn_right</code> fa que en Karel giri 90° cap a la dreta des del seu punt de vista. El funcionament és molt similar a <code>turn_left</code>.</p>
 
-        <p>En l'exemple següent, en Karel comença a dalt a l'esquerra mirant cap a l'Est, avança dues caselles i gira a la dreta (ara mira al Sud), i baixa dues caselles:</p>
+        <p>En l'exemple següent, en Karel comença a l'extrem superior esquerre, i mirant cap a l'Est. Avança dues caselles i gira a la dreta (per tant, mirarà al Sud). I avança dues caselles més:</p>
 
         <div class="simulador"
              data-map="K>,.,.,.,.\n.,.,.,.,.\n.,.,.,.,.\n.,.,.,.,."
@@ -143,20 +141,16 @@ move
 move
 "
              data-readonly="true"
-             data-label="Exemple"
-             data-title="Dos move cap a l'Est → turn_right (ara mira al Sud) → dos move cap avall."
              data-height="300">
         </div>
 
-        <p>Quan en Karel mirava cap a l'Est i ha girat a la dreta, ara mira cap al Sud. Per a en Karel, la dreta sempre és relativa a la seva pròpia orientació, no a la del mapa.</p>
-
         <p>Fins ara coneixes les tres ordres bàsiques de moviment:</p>
         <ul>
-          <li><code>move</code> — avança una casella en la direcció actual.</li>
+          <li><code>move</code> — avança una casella en la direcció i sentit actual.</li>
           <li><code>turn_left</code> — gira 90° cap a l'esquerra (des del punt de vista de Karel).</li>
           <li><code>turn_right</code> — gira 90° cap a la dreta (des del punt de vista de Karel).</li>
         </ul>
-        <p>Amb aquestes tres ordres pots portar en Karel a qualsevol casella del món.</p>
+        <p>Amb aquestes tres ordres pots portar en Karel a qualsevol casella del seu món.</p>
       </section>
 
 
@@ -167,10 +161,10 @@ move
         <h2>Exercici</h2>
 
         <div class="exercise-enunciat">
-          En Karel és a la cantonada inferior esquerra i mira cap a l'Est. Hi ha una perla a la cantonada superior dreta. Escriu el codi per portar en Karel fins a la casella on és la perla.
+          En Karel és a l'extrem inferior esquerre del seu món, i està orientat mirant cap a l'Est. Hi ha una perla a l'extrem oposat. Escriu el codi per portar en Karel fins a sobre de la casella on és la perla.
         </div>
 
-        <p>Pista: necessitaràs quatre ordres <code>move</code>, una ordre <code>turn_left</code> i tres ordres <code>move</code> més —&nbsp;però en quin ordre?</p>
+        <p>Pista. Hauràs d'escriure, en total, set ordres <code>move</code> i una ordre <code>turn_left</code></p>
 
         <div class="simulador"
              data-map=".,.,.,.,A\n.,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,."
@@ -178,7 +172,7 @@ move
 
 "
              data-label="Exercici"
-             data-title="Porta en Karel fins a la casella de la perla (cantonada superior dreta)."
+             data-title="Porta en Karel fins a la casella on hi ha la perla."
              data-height="340">
         </div>
       </section>
