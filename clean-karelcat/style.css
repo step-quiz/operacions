@@ -644,6 +644,22 @@ body.light .ac-item[data-kind="kw"]   { color: #0000ff; }
 
 body.embed .topbar { display: none; }
 
+/* En mode embed, el layout ha de ser SEMPRE horitzontal (editor | món),
+   fins i tot si l'iframe és estret. La mediaquery mòbil no s'ha d'activar
+   dins d'iframes incrustats al curs — aquí ja no hi ha "mòbil", només un
+   espai contenidor que el curs controla. */
+body.embed .main {
+  grid-template-columns: 1fr 1fr !important;
+}
+body.embed .map-col {
+  order: 0 !important;
+  border-bottom: none !important;
+}
+body.embed .code-col {
+  min-height: 0 !important;
+  border-right: 1px solid var(--border) !important;
+}
+
 /* En embed, el toolbar pot ser lleugerament més compacte */
 body.embed .toolbar {
   padding: 4px 10px;

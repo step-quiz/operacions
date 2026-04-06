@@ -7,52 +7,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="curs.css">
 </head>
-<body>
+<body class="curs-light">
 
 
 <!-- ══════════════════════════════════════════════════════
      CAPÇALERA
+     (logo via injectCursLogo(), sense toggle de tema)
      ══════════════════════════════════════════════════════ -->
 <header class="curs-header">
   <button id="sidebar-toggle" aria-label="Mostra/amaga els capítols" aria-expanded="false">☰</button>
 
   <a href="index.html" class="curs-header-logo">
-    <span class="logo-icon">
-      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-           shape-rendering="crispEdges" width="18" height="18" aria-hidden="true">
-        <rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/>
-        <rect x="7" y="2" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/>
-        <rect x="9" y="2" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/>
-        <rect x="4" y="3" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/>
-        <rect x="10" y="3" width="1" height="1"/><rect x="11" y="3" width="1" height="1"/>
-        <rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/>
-        <rect x="5" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/>
-        <rect x="7" y="4" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/>
-        <rect x="9" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/>
-        <rect x="11" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/>
-        <rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/>
-        <rect x="6" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/>
-        <rect x="8" y="8" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/>
-        <rect x="10" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/>
-        <rect x="4" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/>
-        <rect x="8" y="9" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/>
-        <rect x="3" y="12" width="1" height="1"/><rect x="7" y="12" width="1" height="1"/>
-        <rect x="8" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/>
-        <rect x="6" y="3" width="1" height="1" fill="#141414"/>
-        <rect x="7" y="3" width="1" height="1" fill="#141414"/>
-        <rect x="8" y="3" width="1" height="1" fill="#141414"/>
-        <rect x="9" y="3" width="1" height="1" fill="#141414"/>
-      </svg>
-    </span>
+    <span class="logo-icon"></span>
     Karel
   </a>
 
   <span class="curs-header-title">Capítol 1 — Coneix en Karel</span>
-
-  <div class="curs-header-actions">
-    <button id="btn-curs-theme" class="btn-curs-theme"
-            onclick="toggleCursTheme()" title="Canvia el tema" aria-label="Canvia el tema">☀️</button>
-  </div>
 </header>
 
 
@@ -61,16 +31,13 @@
      ══════════════════════════════════════════════════════ -->
 <div class="curs-layout">
 
-  <!-- Overlay fosc per a mòbil -->
   <div id="sidebar-overlay" aria-hidden="true"></div>
 
-  <!-- ── Barra lateral de navegació ── -->
   <nav id="sidebar" class="curs-sidebar" aria-label="Capítols del curs">
     <div class="sidebar-header">Capítols</div>
     <div id="sidebar-nav"><!-- omplert per capitols.js --></div>
   </nav>
 
-  <!-- ── Contingut del capítol ── -->
   <main id="chapter-content" class="curs-content" tabindex="-1">
     <div class="chapter-content-inner">
 
@@ -208,7 +175,7 @@ move
         <p>Pista: necessitaràs quatre ordres <code>move</code>, una ordre <code>turn_left</code> i tres ordres <code>move</code> més —&nbsp;però en quin ordre?</p>
 
         <div class="simulador"
-             data-map=".,.,.,.,P\n.,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,."
+             data-map=".,.,.,.,A\n.,.,.,.,.\n.,.,.,.,.\nK>,.,.,.,."
              data-code="// Escriu el teu codi aquí:
 
 "
@@ -241,14 +208,10 @@ move
 <script>const CURRENT_CAPITOL = 1;</script>
 <script src="capitols.js"></script>
 <script>
+  injectCursLogo();
   renderSidebar(CURRENT_CAPITOL);
   renderSimuladors();
   initSidebarToggle();
-
-  (function () {
-    const btn = document.getElementById('btn-curs-theme');
-    if (btn) btn.textContent = document.body.classList.contains('curs-light') ? '🌙' : '☀️';
-  })();
 </script>
 
 </body>

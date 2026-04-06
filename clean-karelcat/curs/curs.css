@@ -19,7 +19,7 @@
 
   --sidebar-w:    240px;
   --header-h:     48px;
-  --content-max:  720px;
+  --content-max:  960px;
   --gap:          2rem;
 }
 
@@ -129,6 +129,13 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
   line-height: 1;
 }
 .btn-curs-theme:hover { border-color: var(--accent-hi); color: var(--accent-hi); }
+
+/* Variant: enllaç al simulador lliure (botó de text, més petit) */
+.btn-curs-sim {
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  text-decoration: none;
+}
 
 
 /* ════════════════════════════════════════════════════════
@@ -367,7 +374,10 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
   max-width: 560px;
 }
 
-/* Seccions del capítol */
+/* Seccions del capítol.
+   El text (paràgrafs, títols, llistes) es limita a ~720px per llegibilitat.
+   Els simuladors (fora d'aquesta restricció) poden ocupar tot l'amplada
+   del contenidor (960px) per tenir prou espai horitzontal. */
 .chapter-section {
   margin-bottom: 2.5rem;
 }
@@ -376,22 +386,36 @@ pre  { padding: 1rem; overflow-x: auto; border: 1px solid var(--border); }
   font-size: 1.1rem;
   margin-bottom: 0.75rem;
   color: var(--text);
+  max-width: 720px;
 }
 body.curs-light .chapter-section h2 { color: #1a1a1a; }
 
-.chapter-section p { margin-bottom: 0.85rem; }
+.chapter-section p {
+  margin-bottom: 0.85rem;
+  max-width: 720px;
+}
 .chapter-section ul,
-.chapter-section ol { padding-left: 1.5rem; margin-bottom: 0.85rem; }
+.chapter-section ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.85rem;
+  max-width: 720px;
+}
 .chapter-section li { margin-bottom: 0.3rem; }
 
 
 /* ── Simulador incrustat (B.4) ───────────────────────── */
 
+/* El simulador ocupa tot l'amplada del contenidor de text del capítol.
+   Amb .chapter-content-inner a 960px, el simulador interior té prou
+   espai per mantenir layout horitzontal (editor | món) sense caure
+   a mode mòbil vertical. */
 .simulador-wrap {
-  margin: 1.25rem 0;
+  position: relative;
+  margin: 1.75rem 0;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
 }
 
 .simulador-frame {
