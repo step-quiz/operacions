@@ -1,112 +1,235 @@
 <!DOCTYPE html>
+<!--
+  ════════════════════════════════════════════════════════
+  PLANTILLA DE CAPÍTOL — clean-karelcat (B.3)
+  ════════════════════════════════════════════════════════
+
+  COM CREAR UN NOU CAPÍTOL:
+  ─────────────────────────
+  1. Copia aquest arxiu com a "capitol-N.html" (on N és el número).
+  2. Canvia CURRENT_CAPITOL (al final de l'arxiu) pel número del capítol.
+  3. Actualitza el <title> i tots els blocs marcats amb [CAP-N: ...].
+  4. Afegeix/elimina seccions <div class="chapter-section"> segons necessitat.
+  5. Per a cada exemple/exercici, usa un <div class="simulador"> amb:
+       data-map  = CSV del món (usa \n per a salts de línia)
+       data-code = codi Karel inicial
+       data-label = "Exemple" o "Exercici"
+       data-height = alçada en px (per defecte 340)
+       data-title  = llegenda sota el simulador (opcional)
+  6. Afegeix l'arxiu al conjunt DISPONIBLES a curs/index.html.
+  ════════════════════════════════════════════════════════
+-->
 <html lang="ca">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Karel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1">
+  <!-- [CAP-N: canvia el títol] -->
+  <title>Capítol N — Títol del capítol | Karel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="curs.css">
 </head>
 <body>
 
-
 <!-- ══════════════════════════════════════════════════════
-     FILA 1 — Identitat i informació
+     CAPÇALERA
      ══════════════════════════════════════════════════════ -->
-<header class="topbar">
-  <div class="logo">
+<header class="curs-header">
+  <button id="sidebar-toggle" aria-label="Mostra/amaga els capítols" aria-expanded="false">☰</button>
+
+  <a href="index.html" class="curs-header-logo">
     <span class="logo-icon">
-      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor" shape-rendering="crispEdges" width="18" height="18">
-        <rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="7" y="2" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/><rect x="9" y="2" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/>
-        <rect x="4" y="3" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/><rect x="10" y="3" width="1" height="1"/><rect x="11" y="3" width="1" height="1"/>
-        <rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/><rect x="9" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/>
-        <rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="7" y="5" width="1" height="1"/><rect x="8" y="5" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/>
-        <rect x="3" y="6" width="1" height="1"/><rect x="4" y="6" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="7" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="11" y="6" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/>
-        <rect x="3" y="7" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="5" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="9" y="7" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/><rect x="11" y="7" width="1" height="1"/><rect x="12" y="7" width="1" height="1"/>
-        <rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/><rect x="6" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/>
-        <rect x="4" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/><rect x="8" y="9" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/>
-        <rect x="4" y="10" width="1" height="1"/><rect x="7" y="10" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/>
-        <rect x="4" y="11" width="1" height="1"/><rect x="7" y="11" width="1" height="1"/><rect x="8" y="11" width="1" height="1"/><rect x="11" y="11" width="1" height="1"/>
-        <rect x="3" y="12" width="1" height="1"/><rect x="7" y="12" width="1" height="1"/><rect x="8" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/>
-        <rect x="3" y="13" width="1" height="1"/><rect x="7" y="13" width="1" height="1"/><rect x="8" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/>
-        <rect x="6" y="3" width="1" height="1" fill="#141414"/><rect x="7" y="3" width="1" height="1" fill="#141414"/><rect x="8" y="3" width="1" height="1" fill="#141414"/><rect x="9" y="3" width="1" height="1" fill="#141414"/>
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+           shape-rendering="crispEdges" width="18" height="18" aria-hidden="true">
+        <rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/>
+        <rect x="7" y="2" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/>
+        <rect x="9" y="2" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/>
+        <rect x="4" y="3" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/>
+        <rect x="10" y="3" width="1" height="1"/><rect x="11" y="3" width="1" height="1"/>
+        <rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/>
+        <rect x="5" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/>
+        <rect x="7" y="4" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/>
+        <rect x="9" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/>
+        <rect x="11" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/>
+        <rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/>
+        <rect x="6" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/>
+        <rect x="8" y="8" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/>
+        <rect x="10" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/>
+        <rect x="4" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/>
+        <rect x="8" y="9" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/>
+        <rect x="3" y="12" width="1" height="1"/><rect x="7" y="12" width="1" height="1"/>
+        <rect x="8" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/>
+        <rect x="6" y="3" width="1" height="1" fill="#141414"/>
+        <rect x="7" y="3" width="1" height="1" fill="#141414"/>
+        <rect x="8" y="3" width="1" height="1" fill="#141414"/>
+        <rect x="9" y="3" width="1" height="1" fill="#141414"/>
       </svg>
     </span>
-    <span>Karel</span>
-  </div>
+    Karel
+  </a>
 
-  <div class="topbar-actions">
-    <div id="state-badge" aria-live="polite">
-      <div id="state-dot"></div>
-      <span id="state-lbl">aturat</span>
-    </div>
-    <span class="toolbar-bag"><span id="lbl-bag">Motxilla:</span> <strong id="st-bag">0</strong></span>
-  </div>
+  <!-- [CAP-N: canvia "Capítol N — Títol"] -->
+  <span class="curs-header-title">Capítol N — Títol del capítol</span>
 
-  <button id="btn-theme"
-          class="btn"
-          onclick="toggleTheme()"
-          aria-label="Canvia el tema"
-          style="margin-left:auto; padding:5px 8px; line-height:1; flex-shrink:0;">
-  </button>
+  <div class="curs-header-actions">
+    <button id="btn-curs-theme" class="btn-curs-theme"
+            onclick="toggleCursTheme()" title="Canvia el tema" aria-label="Canvia el tema">☀️</button>
+  </div>
 </header>
 
 
 <!-- ══════════════════════════════════════════════════════
-     FILA 2 — Controls d'execució
+     LAYOUT PRINCIPAL: sidebar (B.2) + contingut (B.3)
      ══════════════════════════════════════════════════════ -->
-<div class="toolbar">
-  <button class="btn p" id="btn-run" onclick="handleRunClick()">▶ Executa</button>
-  <button class="btn"   id="btn-reset" onclick="resetKarel()">↺ Reinicia</button>
-  <div class="speed-row">
-    <span id="lbl-speed">Velocitat:</span>
-    <input type="range" id="speed" min="1" max="6" step="1" value="2">
-    <span id="speed-lbl">Lent</span>
-  </div>
-</div>
+<div class="curs-layout">
+
+  <!-- Overlay fosc per a mòbil -->
+  <div id="sidebar-overlay" aria-hidden="true"></div>
+
+  <!-- ── Barra lateral de navegació (B.2) ── -->
+  <nav id="sidebar" class="curs-sidebar" aria-label="Capítols del curs">
+    <div class="sidebar-header">Capítols</div>
+    <div id="sidebar-nav"><!-- omplert per capitols.js --></div>
+  </nav>
+
+  <!-- ── Contingut del capítol ── -->
+  <main id="chapter-content" class="curs-content" tabindex="-1">
+    <div class="chapter-content-inner">
+
+      <!-- ─────────────────────────────────────────
+           CAPÇALERA DEL CAPÍTOL
+           [CAP-N: canvia badge, h1, lead]
+           ───────────────────────────────────────── -->
+      <header class="chapter-header">
+        <span class="chapter-badge">Capítol N</span>
+        <h1>[Títol del capítol]</h1>
+        <p class="chapter-lead">[Descripció breu d'una o dues frases. Què aprendrà l'alumne en aquest capítol?]</p>
+      </header>
+
+
+      <!-- ─────────────────────────────────────────
+           SECCIÓ 1 — Introducció / concepte nou
+           [CAP-N: escriu l'explicació principal]
+           ───────────────────────────────────────── -->
+      <section class="chapter-section">
+        <h2>[Títol de la secció]</h2>
+        <p>[Explicació del concepte. Màxim 3-4 paràgrafs. Usa frases curtes i actives. L'alumne té 16 anys i és el primer cop que programa.]</p>
+        <p>Les ordres disponibles fins ara són:</p>
+        <ul>
+          <li><code>ordre_1</code> — [descripció]</li>
+          <li><code>ordre_2</code> — [descripció]</li>
+        </ul>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           EXEMPLE 1 — Simulador incrustat (B.4)
+           [CAP-N: ajusta data-map, data-code i data-title]
+
+           FORMAT del data-map:
+             K> = Karel mirant a l'Est
+             K^ = Karel mirant al Nord
+             K< = Karel mirant a l'Oest
+             Kv = Karel mirant al Sud
+             A  = Roca   P = Perla   . = buit
+             Files separades per \n  Columnes per comes
+
+           Usa data-readonly="true" per a exemples que no s'han d'editar.
+           ───────────────────────────────────────── -->
+      <section class="chapter-section">
+        <h2>Exemple</h2>
+        <p>[Explicació de l'exemple. Descriu el que fa el codi ABANS que l'alumne l'executi.]</p>
+
+        <div class="simulador"
+             data-map="K>,.,.,.,.,.\n.,.,.,.,.,.\n.,.,.,.,.,."
+             data-code="// Exemple: Karel es mou dues vegades cap a la dreta.\nmove\nmove\n"
+             data-label="Exemple"
+             data-title="Prem ▶ Executa per veure en Karel moure's."
+             data-height="340">
+          <!-- convertit a iframe per renderSimuladors() -->
+        </div>
+
+        <p>[Explicació del que ha passat DESPRÉS de l'exemple. Consolida el concepte.]</p>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           SECCIÓ 2 — Ampliació / segon concepte
+           [CAP-N: afegeix tantes seccions com calgui]
+           ───────────────────────────────────────── -->
+      <section class="chapter-section">
+        <h2>[Segon concepte]</h2>
+        <p>[Explicació del segon concepte, construint sobre l'anterior.]</p>
+
+        <div class="simulador"
+             data-map="K>,.,.,.,.,.\n.,.,.,.,.,.\n.,.,.,.,.,."
+             data-code="// Exemple 2: [descripció]\n\n"
+             data-label="Exemple"
+             data-height="340">
+        </div>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           EXERCICI — Simulador editable (B.4)
+           [CAP-N: ajusta l'enunciat, data-map i data-code]
+           ───────────────────────────────────────── -->
+      <section class="chapter-section chapter-exercise">
+        <h2>Exercici</h2>
+
+        <div class="exercise-enunciat">
+          [Enunciat de l'exercici. Formula-ho com una tasca concreta i avaluable.
+          Per exemple: «En Karel és a la cantonada inferior esquerra. Porta'l fins
+          a la perla que hi ha al racó superior dret i recull-la.»]
+        </div>
+
+        <p>[Pista opcional: «Necessitaràs N ordres <code>move</code> i M ordres <code>turn_left</code>.»]</p>
+
+        <div class="simulador"
+             data-map="K>,.,.,.,.,.\n.,.,.,.,.,.\n.,.,.,.,P,."
+             data-code="// Escriu el teu codi aquí:\n\n"
+             data-label="Exercici"
+             data-title="Escriu el teu codi a l'esquerra i prem ▶ Executa."
+             data-height="360">
+        </div>
+      </section>
+
+
+      <!-- ─────────────────────────────────────────
+           NAVEGACIÓ PREV / NEXT
+           [CAP-N: ajusta els hrefs i els textos]
+           ───────────────────────────────────────── -->
+      <nav class="chapter-nav" aria-label="Navegació entre capítols">
+        <!-- Primer capítol: afegeix btn-nav--disabled al primer prev -->
+        <a href="capitol-0.html" class="btn-nav btn-nav--prev btn-nav--disabled"
+           aria-disabled="true">← Capítol anterior</a>
+        <a href="capitol-2.html" class="btn-nav btn-nav--next">Capítol següent →</a>
+      </nav>
+
+    </div><!-- .chapter-content-inner -->
+  </main>
+
+</div><!-- .curs-layout -->
 
 
 <!-- ══════════════════════════════════════════════════════
-     ZONA PRINCIPAL — Editor + món
+     Scripts
      ══════════════════════════════════════════════════════ -->
-<div class="main">
-  <div class="code-col">
-    <div class="editor-wrap">
-      <div id="line-numbers"></div>
-      <div class="editor-inner">
-        <div  id="line-bg"        aria-hidden="true"></div>
-        <pre  id="code-highlight" aria-hidden="true"></pre>
-        <textarea id="code-editor" spellcheck="false"></textarea>
-      </div>
-    </div>
-    <div id="autocomplete" class="autocomplete-dropdown" role="listbox" aria-label="Autocompletat"></div>
-    <div id="log-wrap">
-      <div id="log"></div>
-    </div>
-  </div>
 
-  <div class="map-col">
-    <div class="world-area" id="world-area">
-      <div id="world-grid"></div>
-    </div>
-  </div>
-</div>
+<!-- [CAP-N: canvia el número aquí per marcar el capítol actiu a la sidebar] -->
+<script>const CURRENT_CAPITOL = 0;</script>
 
+<script src="capitols.js"></script>
+<script>
+  renderSidebar(CURRENT_CAPITOL);
+  renderSimuladors();
+  initSidebarToggle();
 
-<!-- ══════════════════════════════════════════════════════
-     Scripts — només els del nucli supervivent
-     ══════════════════════════════════════════════════════ -->
-<script src="js/constants.js"></script>
-<script src="js/i18n.js"></script>
-<script src="js/state.js"></script>
-<script src="js/tokenizer.js"></script>
-<script src="js/parser.js"></script>
-<script src="js/interpreter.js"></script>
-<script src="js/world.js"></script>
-<script src="js/renderer.js"></script>
-<script src="js/editor.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/execution.js"></script>
-<script src="js/main.js"></script>
+  // Actualitza la icona del botó tema
+  (function() {
+    const btn = document.getElementById('btn-curs-theme');
+    if (btn) btn.textContent = document.body.classList.contains('curs-light') ? '🌙' : '☀️';
+  })();
+</script>
+
 </body>
 </html>
