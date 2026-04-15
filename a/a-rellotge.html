@@ -68,11 +68,11 @@
         .resolution-panel {
             background: var(--bg-color);
             border-top: 1px solid var(--border-color);
-            padding: 24px 20px 28px;
+            padding: 12px 20px 14px;
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
             width: 100%;
             animation: fadeIn 0.25s ease;
         }
@@ -82,7 +82,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6px;
+            padding: 2px;
         }
         #clock-svg {
             filter: drop-shadow(0 4px 12px rgba(90,106,30,0.18));
@@ -335,7 +335,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            padding-top: 36px;
+            padding-top: 28px;
         }
         .btn-toggle-nombres {
             position: absolute;
@@ -373,7 +373,7 @@
         @media (max-width: 480px) {
             .inputs-wrap        { font-size: 2em; }
             .inputs-wrap input  { width: 62px; }
-            .resolution-panel   { padding: 16px 14px 20px; gap: 14px; }
+            .resolution-panel   { padding: 10px 14px 12px; gap: 8px; }
             .help-text          { font-size: 0.95em; padding: 10px 12px; }
         }
         @media (max-width: 350px) {
@@ -427,7 +427,7 @@
                     Mostrar nombres
                 </button>
                 <div class="clock-wrap">
-                    <svg id="clock-svg" viewBox="0 0 200 200" width="190" height="190"
+                    <svg id="clock-svg" viewBox="0 0 200 200" width="228" height="228"
                          xmlns="http://www.w3.org/2000/svg" aria-label="Rellotge">
                         <!-- Fons del rellotge -->
                         <circle cx="100" cy="100" r="88" fill="white"
