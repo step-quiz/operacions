@@ -302,11 +302,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 100%;
+            padding-top: 36px;
         }
         .btn-toggle-nombres {
             position: absolute;
             top: 0;
             right: 0;
+            z-index: 10;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -405,7 +408,7 @@
                             <!-- Agulla dels minuts (prima, llarga, negra) -->
                             <g id="min-hand"
                                style="transform-origin:0 0;transition:transform 0.6s ease;">
-                                <line x1="0" y1="6" x2="0" y2="-70"
+                                <line x1="0" y1="6" x2="0" y2="-63"
                                       stroke="#1e293b" stroke-width="3.5"
                                       stroke-linecap="round"/>
                             </g>
