@@ -553,6 +553,27 @@ function initClockFace() {
     const ticksEl = document.getElementById('clock-ticks');
     let ticks = '';
 
+    // Si és nivell 3, afegir les 48 subdivisions de minut (les que no coincideixen amb les 12 hores)
+    if (NIVELL === 3) {
+        for (let i = 0; i < 60; i++) {
+            if (i % 5 === 0) continue; // les marques d'hora ja es dibuixen a sota
+            const angle  = i * 6 * Math.PI / 180;
+            const sinA   = Math.sin(angle);
+            const cosA   = Math.cos(angle);
+            const outerR = 86;
+            const innerR = 83;
+
+            const x1 = (100 + innerR * sinA).toFixed(2);
+            const y1 = (100 - innerR * cosA).toFixed(2);
+            const x2 = (100 + outerR * sinA).toFixed(2);
+            const y2 = (100 - outerR * cosA).toFixed(2);
+
+            ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+                        stroke="#94a3b8" stroke-width="1"
+                        stroke-linecap="round"/>`;
+        }
+    }
+
     for (let i = 1; i <= 12; i++) {
         const angle  = i * 30 * Math.PI / 180;
         const sinA   = Math.sin(angle);
