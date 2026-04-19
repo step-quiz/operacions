@@ -1127,7 +1127,7 @@ if (minusBtn) {
 // Botó "Passar al nivell X" (fins a N2; N3 és el màxim per a NEE)
 (function initNextLevelBtn() {
     const btn = els.btnNextLevel;
-    if (!btn || NIVELL >= 2) return;   // N2 és el màxim amb botó per a NEE
+    if (!btn || NIVELL >= 3) return;   // N3 és el màxim, no cal botó
 
     btn.textContent = `Passar al nivell ${NIVELL + 1} ›`;
     btn.classList.add('visible');
