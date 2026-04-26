@@ -6,6 +6,7 @@
 <meta name="author" content="David Arso Civil">
 <title>PAU Matemàtiques — Repàs</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 /* ── Paleta coherent amb step-quiz.net ─────────────────────────────────────── */
 :root{
@@ -179,6 +180,41 @@ header h1{font-size:.92rem;font-weight:700;line-height:1.3;}
   transition:background .15s,color .15s;
 }
 .pdf-link:hover{background:var(--accent);color:#fff;}
+
+/* ── PDF VIEWER — mòbil (PDF.js) ────────────────────────────────────────────── */
+.pdf-pdfjs{
+  display:flex;flex-direction:column;gap:0;
+  border:1px solid var(--border);border-radius:6px;overflow:hidden;
+}
+.pdf-canvas-wrap{
+  background:#f0ede6;overflow-x:auto;
+  display:flex;justify-content:center;
+  min-height:200px;
+}
+.pdf-canvas{display:block;max-width:100%;}
+.pdf-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--surface);
+  border-top:1px solid var(--border);gap:10px;
+}
+.pdf-nav-btn{
+  font-size:1.2rem;padding:6px 16px;border:1px solid var(--border);
+  border-radius:5px;background:var(--surface);cursor:pointer;
+  color:var(--accent);font-weight:700;transition:background .15s;
+  -webkit-tap-highlight-color:transparent;
+  min-width:48px;min-height:44px;
+}
+.pdf-nav-btn:disabled{color:var(--border);cursor:default;}
+.pdf-nav-btn:not(:disabled):active{background:var(--accent);color:#fff;}
+.pdf-nav-info{
+  font-family:'Source Code Pro',monospace;font-size:.78rem;
+  color:var(--muted);flex:1;text-align:center;
+}
+.pdf-loading{
+  display:flex;align-items:center;justify-content:center;
+  min-height:200px;color:var(--muted);font-size:.85rem;
+  font-family:'Source Code Pro',monospace;
+}
 
 /* ── FOOTER (fix, igual que step-quiz.net) ──────────────────────────────────── */
 footer{
@@ -363,17 +399,111 @@ probabilitat: [
 }; // fi EXERS
 
 /* ── PDF VIEWER ─────────────────────────────────────────────────────────────── */
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+               || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
+
+if (IS_MOBILE) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+/* Estat de cada visor PDF (clau = viewer-id) */
+const PDF_STATE = {};
+
 function pdfPanel(id, tipus) {
   const fname = `${id}-${tipus}.pdf`;
   const path  = `data/${fname}`;
+
+  if (!IS_MOBILE) {
+    return `
+      <div class="pdf-wrap">
+        <iframe class="pdf-frame" src="${path}#pagemode=none" title="${tipus}"></iframe>
+        <div class="pdf-actions">
+          <span class="pdf-fname">${fname}</span>
+          <a class="pdf-link" href="${path}" target="_blank">Obre en nova pestanya ↗</a>
+        </div>
+      </div>`;
+  }
+
+  const vid = `pdfjs-${id}-${tipus}`;
   return `
-    <div class="pdf-wrap">
-      <iframe class="pdf-frame" src="${path}#pagemode=none" title="${tipus}"></iframe>
-      <div class="pdf-actions">
-        <span class="pdf-fname">${fname}</span>
-        <a class="pdf-link" href="${path}" target="_blank">Obre en nova pestanya ↗</a>
+    <div class="pdf-pdfjs" id="${vid}">
+      <div class="pdf-canvas-wrap">
+        <div class="pdf-loading">Carregant PDF…</div>
+      </div>
+      <div class="pdf-nav">
+        <button class="pdf-nav-btn" id="${vid}-prev"
+                onclick="pdfNav('${vid}',-1)" disabled>‹</button>
+        <span  class="pdf-nav-info" id="${vid}-info">—</span>
+        <button class="pdf-nav-btn" id="${vid}-next"
+                onclick="pdfNav('${vid}', 1)" disabled>›</button>
       </div>
     </div>`;
+}
+
+async function initPdfViewer(vid, path) {
+  if (PDF_STATE[vid]) return;           // ja carregat
+  PDF_STATE[vid] = null;                // marca "en curs" per evitar doble crida
+
+  try {
+    const doc = await pdfjsLib.getDocument(path).promise;
+    PDF_STATE[vid] = { doc, page: 1, total: doc.numPages, rendering: false };
+    await renderPdfPage(vid);
+  } catch(e) {
+    const container = document.getElementById(vid);
+    if (container) {
+      container.querySelector('.pdf-canvas-wrap').innerHTML =
+        `<div class="pdf-loading" style="color:#c95252">Error al carregar el PDF</div>`;
+    }
+    delete PDF_STATE[vid];
+  }
+}
+
+async function renderPdfPage(vid) {
+  const state = PDF_STATE[vid];
+  if (!state || state.rendering) return;
+  state.rendering = true;
+
+  const container = document.getElementById(vid);
+  if (!container) { state.rendering = false; return; }
+
+  const wrap = container.querySelector('.pdf-canvas-wrap');
+  const page = await state.doc.getPage(state.page);
+
+  const containerW = container.offsetWidth || window.innerWidth - 36;
+  const baseVP     = page.getViewport({ scale: 1 });
+  const scale      = containerW / baseVP.width;
+  const vp         = page.getViewport({ scale });
+
+  // Reutilitza o crea el canvas
+  let canvas = wrap.querySelector('canvas');
+  if (!canvas) {
+    wrap.innerHTML = '';
+    canvas = document.createElement('canvas');
+    canvas.className = 'pdf-canvas';
+    wrap.appendChild(canvas);
+  }
+  canvas.width  = vp.width;
+  canvas.height = vp.height;
+
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+
+  // Actualitza nav
+  document.getElementById(`${vid}-info`).textContent =
+    `pàg. ${state.page} / ${state.total}`;
+  document.getElementById(`${vid}-prev`).disabled = state.page <= 1;
+  document.getElementById(`${vid}-next`).disabled = state.page >= state.total;
+
+  state.rendering = false;
+}
+
+async function pdfNav(vid, delta) {
+  const state = PDF_STATE[vid];
+  if (!state) return;
+  const np = state.page + delta;
+  if (np < 1 || np > state.total) return;
+  state.page = np;
+  await renderPdfPage(vid);
 }
 
 /* ── NAVIGATION ─────────────────────────────────────────────────────────────── */
@@ -452,6 +582,10 @@ function showExercise(ex) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.querySelector('.tab-btn').classList.add('active');
   document.getElementById('tc-e').classList.add('active');
+  // Inicia el visor PDF de la pestanya activa (enunciat)
+  if (IS_MOBILE) initPdfViewer(`pdfjs-${ex.id}-e`, `data/${ex.id}-e.pdf`);
+  // Guarda l'id de l'exercici actiu per a showTab
+  document.getElementById('v-detail').dataset.exId = ex.id;
 }
 
 function goBack(to) {
@@ -464,6 +598,11 @@ function showTab(name, btn) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tc-' + name).classList.add('active');
+  // Inicia el visor PDF de la pestanya ara visible (càrrega diferida)
+  if (IS_MOBILE) {
+    const exId = document.getElementById('v-detail').dataset.exId;
+    if (exId) initPdfViewer(`pdfjs-${exId}-${name}`, `data/${exId}-${name}.pdf`);
+  }
 }
 
 function show(id) {
