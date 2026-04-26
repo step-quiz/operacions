@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="author" content="David Arso Civil">
+<title>PAU Matemàtiques — Repàs</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Paleta coherent amb step-quiz.net ─────────────────────────────────────── */
+:root{
+  --bg:       #f8fafc;   /* step-quiz --bg-body     */
+  --surface:  #ffffff;
+  --border:   #cbd5e1;   /* step-quiz --border-heavy */
+  --txt:      #1e293b;   /* step-quiz --text-main    */
+  --muted:    #64748b;   /* step-quiz --text-muted   */
+  --accent:   #3b82f6;   /* step-quiz --accent       */
+  --hd-bg:    #1e293b;   /* header = slate-800       */
+
+  /* Colors de categoria — harmònics amb la paleta cool/slate de step-quiz */
+  --alg:  #c95252;  /* rose-red suau    */
+  --geo:  #0d9488;  /* teal-600         */
+  --ana:  #7c5cbf;  /* violet suau      */
+  --pro:  #c47d30;  /* amber-600 suau   */
+
+  --alg-tint: rgba(201,82,82,.07);
+  --geo-tint: rgba(13,148,136,.07);
+  --ana-tint: rgba(124,92,191,.07);
+  --pro-tint: rgba(196,125,48,.07);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Libre Baskerville',Georgia,serif;
+  background:var(--bg);color:var(--txt);
+  min-height:100vh;
+  padding-bottom:68px; /* espai pel footer fix */
+}
+
+/* ── HEADER ────────────────────────────────────────────────────────────────── */
+header{
+  background:var(--hd-bg);color:#fff;
+  padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.hd-left{}
+header h1{font-size:.92rem;font-weight:700;line-height:1.3;}
+.breadcrumb{
+  font-family:'Source Code Pro',monospace;font-size:.67rem;
+  color:rgba(255,255,255,.55);margin-top:3px;
+}
+
+/* Enllaç Step Quiz a la capçalera */
+.site-link{
+  display:flex;align-items:center;gap:8px;
+  text-decoration:none;flex-shrink:0;
+  opacity:.85;transition:opacity .18s;
+}
+.site-link:hover{opacity:1;}
+.site-icon{
+  width:36px;height:36px;object-fit:contain;
+  border-radius:8px;
+}
+.site-label{
+  font-family:'Source Code Pro',monospace;font-size:.65rem;
+  color:rgba(255,255,255,.7);line-height:1.4;
+  text-align:right;white-space:nowrap;
+}
+
+/* ── VIEWS ─────────────────────────────────────────────────────────────────── */
+.view{display:none;padding:22px 18px 28px;max-width:820px;margin:0 auto;}
+.view.active{display:block;}
+
+/* ── CATEGORIES ─────────────────────────────────────────────────────────────── */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+.cat-card{
+  border:2px solid var(--border);border-radius:8px;padding:18px 16px;
+  cursor:pointer;background:var(--surface);text-align:left;
+  transition:transform .15s,box-shadow .15s,border-color .15s;
+}
+.cat-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.09);}
+.cat-card .num{font-family:'Source Code Pro',monospace;font-size:.63rem;color:var(--muted);margin-bottom:5px;}
+.cat-card h2{font-size:.93rem;font-weight:700;margin-bottom:5px;}
+.cat-card p{font-size:.77rem;color:var(--muted);line-height:1.5;}
+.cat-card[data-cat=algebra]     {border-color:var(--alg);}  .cat-card[data-cat=algebra]     h2{color:var(--alg);}
+.cat-card[data-cat=geometria]   {border-color:var(--geo);}  .cat-card[data-cat=geometria]   h2{color:var(--geo);}
+.cat-card[data-cat=analisi]     {border-color:var(--ana);}  .cat-card[data-cat=analisi]     h2{color:var(--ana);}
+.cat-card[data-cat=probabilitat]{border-color:var(--pro);}  .cat-card[data-cat=probabilitat]h2{color:var(--pro);}
+
+/* ── BACK BUTTON ────────────────────────────────────────────────────────────── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:'Source Code Pro',monospace;font-size:.73rem;
+  color:var(--accent);cursor:pointer;margin-bottom:20px;
+  padding:6px 11px;border:1px solid var(--accent);border-radius:5px;background:none;
+  transition:background .15s,color .15s;
+}
+.back-btn:hover{background:var(--accent);color:#fff;}
+
+/* ── LIST VIEW ──────────────────────────────────────────────────────────────── */
+.cat-title{font-size:1.05rem;font-weight:700;margin-bottom:20px;}
+
+.year-group{margin-bottom:26px;}
+.year-header{
+  display:flex;align-items:baseline;gap:12px;
+  margin-bottom:10px;padding-bottom:8px;
+  border-bottom:2px solid var(--border);
+}
+.year-label{
+  font-family:'Source Code Pro',monospace;
+  font-size:1.08rem;font-weight:600;
+  color:var(--txt);letter-spacing:.02em;
+}
+.year-count{font-family:'Source Code Pro',monospace;font-size:.66rem;color:var(--muted);}
+
+/* Exercici item */
+.ex-list{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.ex-item{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 16px;
+  border:1px solid var(--border);border-radius:6px;
+  cursor:pointer;background:var(--surface);position:relative;
+  box-shadow:inset 4px 0 0 transparent;
+  transition:box-shadow .18s ease,background .18s ease,border-color .18s ease,transform .18s ease;
+}
+.ex-item[data-cat=algebra]:hover{
+  box-shadow:inset 4px 0 0 var(--alg);background:var(--alg-tint);
+  border-color:color-mix(in srgb,var(--alg) 30%,var(--border));transform:translateX(3px);}
+.ex-item[data-cat=geometria]:hover{
+  box-shadow:inset 4px 0 0 var(--geo);background:var(--geo-tint);
+  border-color:color-mix(in srgb,var(--geo) 30%,var(--border));transform:translateX(3px);}
+.ex-item[data-cat=analisi]:hover{
+  box-shadow:inset 4px 0 0 var(--ana);background:var(--ana-tint);
+  border-color:color-mix(in srgb,var(--ana) 30%,var(--border));transform:translateX(3px);}
+.ex-item[data-cat=probabilitat]:hover{
+  box-shadow:inset 4px 0 0 var(--pro);background:var(--pro-tint);
+  border-color:color-mix(in srgb,var(--pro) 30%,var(--border));transform:translateX(3px);}
+
+.ex-badge{
+  font-family:'Source Code Pro',monospace;font-size:.6rem;
+  padding:3px 7px;border-radius:3px;color:#fff;white-space:nowrap;flex-shrink:0;opacity:.88;
+}
+.ex-info{flex:1;min-width:0;}
+.ex-title{font-size:.87rem;line-height:1.4;}
+.ex-sub{font-family:'Source Code Pro',monospace;font-size:.66rem;color:var(--muted);margin-top:3px;}
+.ex-arrow{
+  font-size:.85rem;color:var(--muted);flex-shrink:0;
+  opacity:0;transform:translateX(-4px);
+  transition:opacity .18s ease,transform .18s ease;user-select:none;
+}
+.ex-item:hover .ex-arrow{opacity:1;transform:translateX(0);}
+
+/* ── DETAIL ─────────────────────────────────────────────────────────────────── */
+.det-header{margin-bottom:16px;}
+.det-header h2{font-size:.98rem;font-weight:700;line-height:1.4;}
+.det-meta{font-family:'Source Code Pro',monospace;font-size:.68rem;color:var(--muted);margin-top:3px;}
+
+/* ── TABS ───────────────────────────────────────────────────────────────────── */
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:0;}
+.tab-btn{
+  flex:1;padding:10px 4px;font-family:'Libre Baskerville',serif;font-size:.82rem;
+  cursor:pointer;border:none;background:none;
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+  color:var(--muted);transition:color .1s;
+}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700;}
+.tab-btn:hover:not(.active){color:var(--txt);}
+.tab-content{display:none;padding:16px 0;}
+.tab-content.active{display:block;}
+
+/* ── PDF VIEWER ─────────────────────────────────────────────────────────────── */
+.pdf-wrap{display:flex;flex-direction:column;gap:8px;}
+.pdf-frame{width:100%;height:72vh;border:1px solid var(--border);border-radius:5px;background:#f0ede6;}
+.pdf-actions{display:flex;justify-content:space-between;align-items:center;}
+.pdf-fname{font-family:'Source Code Pro',monospace;font-size:.68rem;color:var(--muted);}
+.pdf-link{
+  font-family:'Source Code Pro',monospace;font-size:.72rem;color:var(--accent);
+  text-decoration:none;padding:5px 10px;border:1px solid var(--accent);border-radius:3px;
+  transition:background .15s,color .15s;
+}
+.pdf-link:hover{background:var(--accent);color:#fff;}
+
+/* ── FOOTER (fix, igual que step-quiz.net) ──────────────────────────────────── */
+footer{
+  position:fixed;bottom:0;left:0;width:100%;
+  background:#f8f9fa;border-top:1px solid #ccc;
+  padding:9px 16px;
+  padding-bottom:max(9px,env(safe-area-inset-bottom));
+  z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;flex-wrap:wrap;text-align:center;
+}
+footer a{color:#333;text-decoration:underline;font-size:.83rem;}
+footer span{font-size:.83rem;color:#333;font-family:'Source Code Pro',monospace;}
+.cc-img{border:0;height:22px;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd-left">
+    <h1>PAU Matemàtiques — Repàs per categories</h1>
+    <div class="breadcrumb" id="breadcrumb">Tria una categoria per començar</div>
+  </div>
+  <a class="site-link" href="https://step-quiz.net" target="_blank" rel="noopener"
+     title="Step Quiz — David Arso Civil">
+    <div class="site-label">Step Quiz<br>step-quiz.net</div>
+    <img class="site-icon" src="icon.png" alt="Step Quiz"
+         onerror="this.style.display='none'">
+  </a>
+</header>
+
+<!-- VIEW 1: Categories -->
+<div class="view active" id="v-cats">
+  <p style="font-size:.84rem;color:var(--muted);margin:4px 0 4px;">Selecciona la categoria que vols treballar:</p>
+  <div class="cat-grid">
+    <div class="cat-card" data-cat="algebra"      onclick="showCat('algebra')">
+      <div class="num">11 exercicis · 2023–2025</div>
+      <h2>Àlgebra</h2>
+      <p>Matrius, sistemes lineals amb paràmetre</p>
+    </div>
+    <div class="cat-card" data-cat="geometria"    onclick="showCat('geometria')">
+      <div class="num">7 exercicis · 2023–2025</div>
+      <h2>Geometria afí i mètrica</h2>
+      <p>Rectes i plans, distàncies, perpendiculars</p>
+    </div>
+    <div class="cat-card" data-cat="analisi"      onclick="showCat('analisi')">
+      <div class="num">22 exercicis · 2023–2025</div>
+      <h2>Anàlisi / Càlcul</h2>
+      <p>Funcions, Bolzano, tangents, integrals, optimització</p>
+    </div>
+    <div class="cat-card" data-cat="probabilitat" onclick="showCat('probabilitat')">
+      <div class="num">6 exercicis · 2024–2025</div>
+      <h2>Probabilitat</h2>
+      <p>Probabilitat total, Bayes, binomial B(n,p)</p>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW 2: List -->
+<div class="view" id="v-list">
+  <button class="back-btn" onclick="goBack('cats')">← Torna a les categories</button>
+  <div class="cat-title" id="list-title"></div>
+  <div id="ex-list"></div>
+</div>
+
+<!-- VIEW 3: Detail -->
+<div class="view" id="v-detail">
+  <button class="back-btn" onclick="goBack('list')">← Torna a la llista</button>
+  <div class="det-header">
+    <h2 id="det-title"></h2>
+    <div class="det-meta" id="det-meta"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('e',this)">📄 Enunciat</button>
+    <button class="tab-btn"        onclick="showTab('p',this)">💡 Pistes</button>
+    <button class="tab-btn"        onclick="showTab('s',this)">✅ Solució</button>
+  </div>
+  <div class="tab-content active" id="tc-e"></div>
+  <div class="tab-content"        id="tc-p"></div>
+  <div class="tab-content"        id="tc-s"></div>
+</div>
+
+<!-- FOOTER — copyright CC BY-NC-ND, com a step-quiz.net -->
+<footer>
+  <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/" style="flex-shrink:0;">
+    <img class="cc-img" alt="Llicència Creative Commons BY-NC-ND 4.0"
+         src="https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png"
+         onerror="this.style.display='none'">
+  </a>
+  <span>
+    © 2026 <strong>David Arso Civil</strong>. Ús educatiu lliure.
+    Prohibida la comercialització i la modificació
+    (<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>).
+  </span>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIGURACIÓ — EXERCICIS EXCLOSOS DEL REPÀS
+   Afegeix o treu IDs per adaptar-ho a cada convocatòria.
+   L'ID és el nom base del fitxer sense el sufix -e/-p/-s.pdf
+   ═══════════════════════════════════════════════════════════════════ */
+const EXCLOSOS = new Set([
+  // Exemple: 'alg-23j-q2',
+]);
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────
+   NAMING CONVENTION
+   Format: {cat}-{aa}{conv}-{ref}-{tipus}.pdf
+
+   {cat}   alg | geo | ana | pro
+   {aa}    23 | 24 | 25
+   {conv}  j (juny) | i (juny incidències) | s (setembre)
+   {ref}   q1…q6 (tots els anys)
+   {tipus} e (enunciat) | p (pistes) | s (solució)
+─────────────────────────────────────────────*/
+
+const CAT_COLOR = {algebra:'#c95252',geometria:'#0d9488',analisi:'#7c5cbf',probabilitat:'#c47d30'};
+const CAT_NAME  = {algebra:'Àlgebra',geometria:'Geometria afí i mètrica',analisi:'Anàlisi / Càlcul',probabilitat:'Probabilitat'};
+
+const EXERS = {
+
+algebra: [
+  {id:'alg-23j-q2',   any:'2023', conv:'Juny',        ref:'q2',   titol:'Producte de matrius A·B i propietat idempotent'},
+  {id:'alg-23j-q4',   any:'2023', conv:'Juny',        ref:'q4',   titol:'Sistema lineal amb paràmetre λ'},
+  {id:'alg-23s-q1',   any:'2023', conv:'Setembre',    ref:'q1',   titol:'Matriu inversa via (A−2I)²=3I'},
+  {id:'alg-23s-q3',   any:'2023', conv:'Setembre',    ref:'q3',   titol:'Sistema lineal amb paràmetre m'},
+  {id:'alg-24i-q2',   any:'2024', conv:'Juny (inc.)', ref:'q2',   titol:'Matriu invertible i equació matricial PX+Q=2R'},
+  {id:'alg-24j-q2',   any:'2024', conv:'Juny',        ref:'q2',   titol:'Sistema lineal amb paràmetre k'},
+  {id:'alg-24s-q2',   any:'2024', conv:'Setembre',    ref:'q2',   titol:'Sistema lineal amb paràmetre m'},
+  {id:'alg-25i-q2',   any:'2025', conv:'Juny (inc.)', ref:'q2',   titol:'Sistema amb plans π₁,π₂,π₃ (paràmetre a)'},
+  {id:'alg-25i-q4b',  any:'2025', conv:'Juny (inc.)', ref:'q4b',  titol:'Matrius que commuten; invertibilitat; A⁻¹=A'},
+  {id:'alg-25j-q2',   any:'2025', conv:'Juny',        ref:'q2',   titol:'Sistema lineal amb paràmetre p'},
+  {id:'alg-25s-q2',   any:'2025', conv:'Setembre',    ref:'q2',   titol:'Sistema lineal amb paràmetre m'},
+],
+
+geometria: [
+  {id:'geo-23j-q6',   any:'2023', conv:'Juny',        ref:'q6',   titol:'Plans perpendiculars i punt més proper a una recta'},
+  {id:'geo-23s-q5',   any:'2023', conv:'Setembre',    ref:'q5',   titol:'Perpendicular comuna de dues rectes i distància'},
+  {id:'geo-24i-q6',   any:'2024', conv:'Juny (inc.)', ref:'q6',   titol:'Posició relativa de rectes i perpendicular comuna'},
+  {id:'geo-24j-q6',   any:'2024', conv:'Juny',        ref:'q6',   titol:'Pla mediador i triangle isòsceles'},
+  {id:'geo-24s-q6',   any:'2024', conv:'Setembre',    ref:'q6',   titol:'Recta perpendicular a un pla i plans paral·lels'},
+  {id:'geo-25j-q4b',  any:'2025', conv:'Juny',        ref:'q4b',  titol:'Pla perpendicular a x+y=0 i recta mediadora'},
+  {id:'geo-25s-q4b',  any:'2025', conv:'Setembre',    ref:'q4b',  titol:'Plans paral·lels a 2x−y+z=5 i distàncies'},
+],
+
+analisi: [
+  {id:'ana-23j-q1',   any:'2023', conv:'Juny',        ref:'q1',   titol:'Polinomi cúbic determinat per condicions sobre f, f\', f\'\''},
+  {id:'ana-23j-q3',   any:'2023', conv:'Juny',        ref:'q3',   titol:'Funció f\'(x) per trams i recta tangent a f\''},
+  {id:'ana-23j-q5',   any:'2023', conv:'Juny',        ref:'q5',   titol:'Optimització: jardí rectangular adossat a un mur'},
+  {id:'ana-23s-q2',   any:'2023', conv:'Setembre',    ref:'q2',   titol:'f(x)=1/x: tangent i triangle d\'àrea constant'},
+  {id:'ana-23s-q4',   any:'2023', conv:'Setembre',    ref:'q4',   titol:'Bolzano i àrea entre f(x) i h(x)'},
+  {id:'ana-23s-q6',   any:'2023', conv:'Setembre',    ref:'q6',   titol:'Optimització: trapezi isòsceles d\'àrea màxima'},
+  {id:'ana-24i-q1',   any:'2024', conv:'Juny (inc.)', ref:'q1',   titol:'f(x)=−2+10(x−1)·ln(x): Bolzano, monotonia, límits'},
+  {id:'ana-24i-q3',   any:'2024', conv:'Juny (inc.)', ref:'q3',   titol:'Paràboles f_a: tangent i àrea entre corbes'},
+  {id:'ana-24i-q5',   any:'2024', conv:'Juny (inc.)', ref:'q5',   titol:'Optimització: decorat rectangle + semicercles'},
+  {id:'ana-24j-q1',   any:'2024', conv:'Juny',        ref:'q1',   titol:'f(x)=2·ln(x)/x: extrems, asímptotes, tangent'},
+  {id:'ana-24j-q3',   any:'2024', conv:'Juny',        ref:'q3',   titol:'Àrea d\'un terreny: cúbica i recta PR'},
+  {id:'ana-24j-q5',   any:'2024', conv:'Juny',        ref:'q5',   titol:'Optimització: cobert de fusta adossat a una paret'},
+  {id:'ana-24s-q1',   any:'2024', conv:'Setembre',    ref:'q1',   titol:'f(x)=3x¹³+5x³+2: Bolzano i monotonia'},
+  {id:'ana-24s-q3',   any:'2024', conv:'Setembre',    ref:'q3',   titol:'Àrees del logotip: cúbica i paràbola'},
+  {id:'ana-24s-q5',   any:'2024', conv:'Setembre',    ref:'q5',   titol:'Rectangle inscrit en y=e^(−2x): àrea màxima i tangent'},
+  {id:'ana-25i-q1',   any:'2025', conv:'Juny (inc.)', ref:'q1',   titol:'f(x)=√(1+x³): domini, derivada, tangent'},
+  {id:'ana-25i-q4a',  any:'2025', conv:'Juny (inc.)', ref:'q4a',  titol:'Optimització: ampolla cilindre + mitja esfera'},
+  {id:'ana-25j-q1',   any:'2025', conv:'Juny',        ref:'q1',   titol:'f(x)=(x²−2x)/(x−1): asímptotes, tangents, pendent'},
+  {id:'ana-25j-q4a',  any:'2025', conv:'Juny',        ref:'q4a',  titol:'Vela semiparabòlica: cost del material'},
+  {id:'ana-25s-q1',   any:'2025', conv:'Setembre',    ref:'q1',   titol:'Optimització: terreny triangular A(m) mínim'},
+  {id:'ana-25s-q3c',  any:'2025', conv:'Setembre',    ref:'q3c',  titol:'Trobar a, b, c de f(x)=ax³+bx²+cx per condicions'},
+  {id:'ana-25s-q4a',  any:'2025', conv:'Setembre',    ref:'q4a',  titol:'Vitrall Sagrada Família: sin(x/4) i cos(x/4)'},
+],
+
+probabilitat: [
+  {id:'pro-24i-q4',   any:'2024', conv:'Juny (inc.)', ref:'q4',   titol:'La Rut i els problemes: prob. total, Bayes, binomial'},
+  {id:'pro-24j-q4',   any:'2024', conv:'Juny',        ref:'q4',   titol:'Boles B,A,Y,E,S,F,A,N,S: sense i amb reemplaçament'},
+  {id:'pro-24s-q4',   any:'2024', conv:'Setembre',    ref:'q4',   titol:'Arrítmia i monitor Holter: prob. total i Bayes'},
+  {id:'pro-25i-q3',   any:'2025', conv:'Juny (inc.)', ref:'q3',   titol:'Filtre de correu brossa: prob. total, Bayes i integral'},
+  {id:'pro-25j-q3',   any:'2025', conv:'Juny',        ref:'q3',   titol:'Peces ferro/acer: prob. total, binomial i màxim f(p)'},
+  {id:'pro-25s-q3ab', any:'2025', conv:'Setembre',    ref:'q3ab', titol:'Sesamoïditis: probabilitat total i Bayes'},
+],
+
+}; // fi EXERS
+
+/* ── PDF VIEWER ─────────────────────────────────────────────────────────────── */
+function pdfPanel(id, tipus) {
+  const fname = `${id}-${tipus}.pdf`;
+  const path  = `data/${fname}`;
+  return `
+    <div class="pdf-wrap">
+      <iframe class="pdf-frame" src="${path}#pagemode=none" title="${tipus}"></iframe>
+      <div class="pdf-actions">
+        <span class="pdf-fname">${fname}</span>
+        <a class="pdf-link" href="${path}" target="_blank">Obre en nova pestanya ↗</a>
+      </div>
+    </div>`;
+}
+
+/* ── NAVIGATION ─────────────────────────────────────────────────────────────── */
+let currentCat = null;
+
+function showCat(cat) {
+  currentCat = cat;
+  show('v-list');
+  setBreadcrumb(CAT_NAME[cat]);
+
+  const titleEl = document.getElementById('list-title');
+  titleEl.textContent = CAT_NAME[cat];
+  titleEl.style.color = CAT_COLOR[cat];
+
+  const color = CAT_COLOR[cat];
+
+  // Filtra els exercicis exclosos
+  const exercicis = EXERS[cat].filter(ex => !EXCLOSOS.has(ex.id));
+
+  // Agrupa per any (ordre descendent)
+  const byYear = {};
+  exercicis.forEach(ex => {
+    if (!byYear[ex.any]) byYear[ex.any] = [];
+    byYear[ex.any].push(ex);
+  });
+  const years = Object.keys(byYear).sort((a, b) => b - a);
+
+  const container = document.getElementById('ex-list');
+  container.innerHTML = '';
+
+  years.forEach(year => {
+    const exs = byYear[year];
+    const group = document.createElement('div');
+    group.className = 'year-group';
+
+    const header = document.createElement('div');
+    header.className = 'year-header';
+    header.innerHTML = `
+      <span class="year-label">${year}</span>
+      <span class="year-count">${exs.length} exercici${exs.length !== 1 ? 's' : ''}</span>`;
+    group.appendChild(header);
+
+    const ul = document.createElement('ul');
+    ul.className = 'ex-list';
+
+    exs.forEach(ex => {
+      const li = document.createElement('li');
+      li.className = 'ex-item';
+      li.dataset.cat = cat;
+      li.innerHTML = `
+        <span class="ex-badge" style="background:${color}">${ex.conv}</span>
+        <div class="ex-info">
+          <div class="ex-title">${ex.titol}</div>
+          <div class="ex-sub">${ex.id}</div>
+        </div>
+        <span class="ex-arrow">→</span>`;
+      li.onclick = () => showExercise(ex);
+      ul.appendChild(li);
+    });
+
+    group.appendChild(ul);
+    container.appendChild(group);
+  });
+}
+
+function showExercise(ex) {
+  show('v-detail');
+  setBreadcrumb(CAT_NAME[currentCat] + ' › ' + ex.any + ' ' + ex.conv + ' ' + ex.ref.toUpperCase());
+  document.getElementById('det-title').textContent = ex.titol;
+  document.getElementById('det-meta').textContent  =
+    CAT_NAME[currentCat] + '  ·  ' + ex.any + '  ·  ' + ex.conv + '  ·  ' + ex.ref.toUpperCase() + '  ·  ' + ex.id;
+  document.getElementById('tc-e').innerHTML = pdfPanel(ex.id, 'e');
+  document.getElementById('tc-p').innerHTML = pdfPanel(ex.id, 'p');
+  document.getElementById('tc-s').innerHTML = pdfPanel(ex.id, 's');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector('.tab-btn').classList.add('active');
+  document.getElementById('tc-e').classList.add('active');
+}
+
+function goBack(to) {
+  if (to === 'cats') { show('v-cats'); setBreadcrumb('Tria una categoria per començar'); }
+  if (to === 'list') { show('v-list'); setBreadcrumb(CAT_NAME[currentCat]); }
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tc-' + name).classList.add('active');
+}
+
+function show(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setBreadcrumb(txt) {
+  document.getElementById('breadcrumb').textContent = txt;
+}
+
+/* Actualitza els recomptes de les targetes de categoria segons EXCLOSOS */
+document.querySelectorAll('.cat-card').forEach(card => {
+  const cat = card.dataset.cat;
+  if (!cat || !EXERS[cat]) return;
+  const n = EXERS[cat].filter(ex => !EXCLOSOS.has(ex.id)).length;
+  const numEl = card.querySelector('.num');
+  if (numEl) {
+    // Conserva el rang d'anys i substitueix el recompte
+    numEl.textContent = numEl.textContent.replace(/^\d+/, n);
+  }
+});
+</script>
+</body>
+</html>
