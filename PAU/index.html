@@ -472,7 +472,8 @@ async function renderPdfPage(vid) {
 
   const containerW = container.offsetWidth || window.innerWidth - 36;
   const baseVP     = page.getViewport({ scale: 1 });
-  const scale      = containerW / baseVP.width;
+  const dpr        = window.devicePixelRatio || 1;
+  const scale      = (containerW / baseVP.width) * dpr;
   const vp         = page.getViewport({ scale });
 
   // Reutilitza o crea el canvas
@@ -483,8 +484,11 @@ async function renderPdfPage(vid) {
     canvas.className = 'pdf-canvas';
     wrap.appendChild(canvas);
   }
-  canvas.width  = vp.width;
-  canvas.height = vp.height;
+  // Mida física (píxels reals) × dpr, mida CSS (píxels CSS) sense dpr
+  canvas.width        = vp.width;
+  canvas.height       = vp.height;
+  canvas.style.width  = (vp.width  / dpr) + 'px';
+  canvas.style.height = (vp.height / dpr) + 'px';
 
   await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
 
