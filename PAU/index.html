@@ -59,8 +59,25 @@ header h1{font-size:.92rem;font-weight:700;line-height:1.3;}
 }
 .site-link:hover{opacity:1;}
 .site-icon{
-  width:36px;height:36px;object-fit:contain;
+  width:47px;height:47px;object-fit:contain;
   border-radius:8px;
+}
+@keyframes icon-blink-shake{
+  0%  {transform:translateX(0);   opacity:1;}
+  8%  {transform:translateX(-7px);opacity:.15;}
+  16% {transform:translateX( 7px);opacity:1;}
+  24% {transform:translateX(-6px);opacity:.15;}
+  32% {transform:translateX( 6px);opacity:1;}
+  40% {transform:translateX(-5px);opacity:.15;}
+  48% {transform:translateX( 5px);opacity:1;}
+  58% {transform:translateX(-4px);opacity:.15;}
+  68% {transform:translateX( 4px);opacity:1;}
+  78% {transform:translateX(-2px);opacity:.15;}
+  88% {transform:translateX( 2px);opacity:1;}
+  100%{transform:translateX(0);   opacity:1;}
+}
+.site-icon.blink-shake{
+  animation:icon-blink-shake 2s ease-out forwards;
 }
 .site-label{
   font-family:'Source Code Pro',monospace;font-size:.65rem;
@@ -617,6 +634,12 @@ function show(id) {
 function setBreadcrumb(txt) {
   document.getElementById('breadcrumb').textContent = txt;
 }
+
+/* Blink-and-shake de la icona Step Quiz als 5 segons */
+setTimeout(() => {
+  const icon = document.querySelector('.site-icon');
+  if (icon) icon.classList.add('blink-shake');
+}, 5000);
 
 /* Actualitza els recomptes de les targetes de categoria segons EXCLOSOS */
 document.querySelectorAll('.cat-card').forEach(card => {
