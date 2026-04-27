@@ -1,527 +1,166 @@
-/*
-============================================================================
-PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
-FITXER: css/shared.css
-ROL: Estils globals i variables base compartides per tota la plataforma.
-ARQUITECTURA:
-- Utilitza variables CSS (:root) per permetre que futurs jocs puguin 
-  sobrescriure la paleta de colors fàcilment.
-- Inclou disseny responsiu (Mobile First) i accessibilitat (@media hover, 
-  focus-visible).
-- Conté els estils del teclat numèric customitzat i les pantalles finals.
-DEPENDÈNCIES: S'ha de carregar PRIMER a l'HTML, abans del CSS específic.
-============================================================================
-*/
-/* ---- VARIABLES BASE (fallbacks si el joc no les defineix) ---- */
-:root {
-    --bg-color:      #f8fafc;
-    --panel-bg:      #ffffff;
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;
-    --primary:       #0369a1;
-    --primary-light: #e0f2fe;
-    --primary-hover: #2563eb;
-    --primary-dark:  #0f172a;
-    --danger:        #ef4444;
-    --danger-light:  #fef2f2;
-    --success:       #10b981;
-    --border-color:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
-}
+/**
+ * ============================================================================
+ * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+ * FITXER: js/fixed-sessions.js
+ * ROL: Sessions fixes per al professorat. Quan la URL conté ?fixed=A (o B, C),
+ *      TOTS els alumnes que obrin el mateix enllaç obtindran exactament els
+ *      mateixos exercicis, amb els mateixos nombres i les mateixes opcions.
+ *
+ * COM FUNCIONA:
+ *   1. Substitueix Math.random() per un generador pseudoaleatori determinista
+ *      (Mulberry32) inicialitzat amb una llavor fixa per a cada sessió.
+ *   2. Injecta paràmetres URL automàticament (5 operacions, 1 sessió, nivell
+ *      i famílies segons l'activitat) via history.replaceState, ABANS que
+ *      config.js i game-core.js els llegeixin.
+ *   3. Mostra un badge visual "Sessió fixa A/B/C" perquè professor i alumne
+ *      sàpiguen que estan en mode determinista.
+ *
+ * ÚS PER AL PROFESSORAT:
+ *   enters.html?fixed=A          → Sessió A d'enters (tots fan el mateix)
+ *   enters.html?fixed=B          → Sessió B (exercicis diferents d'A)
+ *   derivades.html?fixed=C       → Sessió C de derivades (nivell avançat)
+ *   equacions.html?fixed=A&maxintents=5  → Es pot combinar amb altres params
+ *
+ * ORDRE DE CÀRREGA:
+ *   ⚠️ CRÍTIC: Ha de ser el PRIMER <script> de la pàgina, ABANS de utils.js.
+ *   <script src="js/fixed-sessions.js"></script>   ← PRIMER
+ *   <script src="js/utils.js"></script>
+ *   <script src="js/config.js"></script>
+ *   ...
+ *
+ * DEPENDÈNCIES: Cap. Autocontingut.
+ * ============================================================================
+ */
 
-/* ---- RESET BASE ---- */
-* { box-sizing: border-box; }
+(function() {
+    'use strict';
 
-/* ---- BODY ---- */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;            /* fallback per a navegadors antics */
-    min-height: 100dvh;           /* [FIX A4] Safari/Chrome mòbil: respecta barra d'adreces dinàmica */
-    transition: background-color 1s ease;
-}
+    const params   = new URLSearchParams(window.location.search);
+    const fixedRaw = params.get('fixed');
+    if (!fixedRaw) return;  // mode aleatori normal — no fem res
 
-/* ---- TÍTOL I SUBTÍTOL ---- */
-h1 {
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #334155;
-    font-size: 1.6em;
-    margin-bottom: 5px;
-    text-align: center;
-}
+    const fixedKey = fixedRaw.toUpperCase();
+    if (!['A', 'B', 'C'].includes(fixedKey)) return;
 
-.subtitle {
-    color: var(--text-muted);
-    font-size: 1.1em;
-    margin-bottom: 20px;
-    text-align: center;
-}
+    // ── 1. PRNG DETERMINISTA (Mulberry32) ────────────────────────────────
+    //    Mateixa llavor → mateixa seqüència → mateixos exercicis per a tothom.
+    const SEEDS = { A: 314159, B: 271828, C: 161803 };
+    let _seed = SEEDS[fixedKey];
+    const _originalRandom = Math.random;
 
-/* ---- ICONA HOME (title-row) ---- */
-.title-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    margin-bottom: 5px;
-}
-.title-row h1 { margin: 0; }
+    Math.random = function mulberry32() {
+        _seed |= 0;
+        _seed = _seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
 
-.home-icon-link {
-    display: block;
-    width: 78px;
-    height: 78px;
-    flex-shrink: 0;
-    opacity: 0.75;
-    transition: opacity 0.2s ease;
-}
-.home-icon-link:hover {
-    opacity: 1;
-    animation: home-blink-shake 0.55s ease forwards;
-}
-.home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
+    // ── 2. PARÀMETRES URL PER ACTIVITAT ──────────────────────────────────
+    //    Afegim paràmetres sense recarregar la pàgina. config.js i game-core.js
+    //    els trobaran quan es carreguin (perquè aquest script va PRIMER).
 
-/* ---- PANELL PRINCIPAL ---- */
-.panel {
-    background-color: var(--panel-bg);
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    width: 100%;
-    max-width: 910px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    border-top: 6px solid var(--primary);
-    transition: border-color 0.3s;
-    position: relative;
-}
+    const exercici = window.location.pathname.split('/').pop().replace('.html', '');
+    let changed = false;
 
-/* ---- CAPÇALERA DEL JOC ---- */
-.header-info {
-    background-color: #f1f5f9;
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-    flex-wrap: wrap;
-    gap: 10px;
-}
+    // 2a. Forçar 5 operacions i 1 sessió (si no s'ha especificat)
+    if (!params.has('totaloperations')) { params.set('totaloperations', '5'); changed = true; }
+    if (!params.has('totalsessions'))   { params.set('totalsessions', '1');   changed = true; }
 
-.header-left       { display: flex; flex-direction: column; gap: 2px; }
-.session-text      { font-size: 1em;  color: var(--text-muted); }
-.level-text        { font-size: 1.2em; color: #334155; }
-.score-text        { font-size: 1.2em; color: #059669; font-family: monospace; }
+    // 2b. Activitats amb NIVELLS: A→1, B→2, C→3
+    const NIVELLS_PER_SESSIO = {
+        'probabilitat':         { A: '1', B: '2', C: '3' },
+        'estadistica-inversa':  { A: '1', B: '2', C: '3' },
+        'asimptotes':           { A: '1', B: '2', C: '3' },
+        'descripcio-grafica':   { A: '1', B: '2', C: '3' },
+        'recta-numerica':       { A: '1', B: '2', C: '3' },
+    };
 
-.attempts-counter {
-    font-family: monospace;
-    font-size: 1.2em;
-    color: var(--text-muted);
-    padding: 5px 10px;
-    background: white;
-    border-radius: 4px;
-    border: 1px solid var(--border-heavy);
-    transition: all 0.3s;
-}
-.attempts-counter.danger { color: var(--danger); border-color: var(--danger); }
-
-/* ---- INPUTS NUMÈRICS (eliminar fletxes natives) ---- */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-input[type="number"] { -moz-appearance: textfield; }
-
-/* ---- BOTÓ PRINCIPAL (submit) ---- */
-.btn-submit {
-    background-color: #475569;
-    color: white;
-    border: none;
-    padding: 15px 25px;
-    font-size: 1em;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    text-transform: uppercase;
-    touch-action: manipulation;
-}
-.btn-submit:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-.btn-submit:active        { transform: scale(0.95); }
-@media (hover: hover) { .btn-submit:hover { background-color: #334155; } }
-.btn-submit.error-shake   { background-color: var(--danger); animation: shake 0.2s; }
-
-/* ---- BOTÓ VERD (sessió completada) ---- */
-.btn-green {
-    background-color: #059669;
-    color: white;
-    border: none;
-    padding: 15px 35px;
-    font-size: 1.1em;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    text-transform: uppercase;
-    touch-action: manipulation;
-    display: none;
-}
-.btn-green:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-.btn-green:active        { transform: scale(0.95); }
-@media (hover: hover) { .btn-green:hover { background-color: #047857; } }
-
-/* ---- BOTÓ FINALITZAR ---- */
-.btn-finalitzar {
-    background-color: #475569;
-    color: white;
-    border: none;
-    padding: 15px 35px;
-    font-size: 1.1em;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    text-transform: uppercase;
-    touch-action: manipulation;
-    margin-top: 15px;
-}
-.btn-finalitzar:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-.btn-finalitzar:active        { transform: scale(0.95); }
-@media (hover: hover) { .btn-finalitzar:hover { background-color: #334155; } }
-
-/* ---- PANTALLA FI DE SESSIÓ ---- */
-#session-end-screen {
-    display: none;
-    padding: 40px 20px;
-    text-align: center;
-}
-#session-end-screen h2 { color: var(--success); font-size: 1.8em; margin-bottom: 25px; }
-
-/* ---- PANTALLA FINAL ---- */
-#final-screen {
-    display: none;
-    padding: 40px 20px;
-    text-align: center;
-}
-#final-screen h2 { color: var(--success); font-size: 1.8em; margin-bottom: 25px; }
-
-.final-layout {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    margin: 0 auto 25px auto;
-    max-width: 480px;
-    flex-wrap: wrap-reverse;
-}
-.final-summary {
-    flex: 1;
-    text-align: left;
-    font-size: 1.1em;
-    line-height: 1.8;
-    min-width: 220px;
-    margin: 0;
-}
-.final-summary .session-line {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    border-bottom: 1px solid var(--border-color);
-    font-family: monospace;
-    font-size: 1.1em;
-}
-
-/* ---- ICONA TROFEU ---- */
-.trophy-icon { font-size: 6em; margin-bottom: 10px; animation: bounce 1.5s infinite; }
-.final-layout .trophy-icon { margin: 0; font-size: 4.5em; }
-
-/* ---- MINI OVERLAY (victòria / fracàs entre operacions) ---- */
-#mini-victory-overlay {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 30px 20px;
-    background-color: var(--bg-color);
-    border-top: 1px solid var(--border-color);
-    animation: fadeIn 0.3s;
-}
-
-.vic-message-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 10px;
-}
-
-.star-icon {
-    font-size: 3em;
-    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-shadow: 0px 4px 15px rgba(250, 204, 21, 0.6);
-}
-
-.mini-vic-text {
-    color: #047857;
-    font-size: 2em;
-    font-weight: bold;
-    text-shadow: 0px 2px 5px white;
-}
-
-.mini-vic-points {
-    color: #059669;
-    font-size: 1.3em;
-    font-weight: bold;
-    font-family: monospace;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 5px 20px;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* ---- RESPONSIU ---- */
-@media (max-width: 820px) {
-    .panel { width: 95%; }
-}
-
-@media (max-width: 600px) {
-    .home-icon-link { width: 52px; height: 52px; }
-    .title-row      { gap: 10px; }
-}
-
-@media (max-width: 480px) {
-    body            { padding: 10px; }
-    h1              { font-size: 1.3em; }
-    .subtitle       { font-size: 1em; margin-bottom: 15px; }
-    .header-info    { flex-direction: column; gap: 8px; padding: 12px; }
-    .header-left    { align-items: center; }
-    .level-text, .score-text, .attempts-counter { font-size: 1.1em; width: 100%; text-align: center; }
-    .session-text   { font-size: 0.95em; }
-    .trophy-icon    { font-size: 4.5em; }
-    #session-end-screen h2, #final-screen h2 { font-size: 1.5em; }
-    .star-icon      { font-size: 2.5em; }
-    .mini-vic-text  { font-size: 1.6em; }
-    .mini-vic-points{ font-size: 1.1em; }
-    .final-layout   { gap: 15px; }
-    .final-layout .trophy-icon { font-size: 4em; }
-}
-
-/* ════════════════════════════════════════════════════════════
-   TECLAT NUMÈRIC CUSTOM (mòbil / tàctil)
-   Layout: CSS Grid 4 columnes (3 dígits + acció)
-   ════════════════════════════════════════════════════════════ */
-
-#customKeyboard {
-    display: none;
-    background: #f1f5f9;
-    border: 2px solid var(--border-heavy);
-    border-radius: 12px;
-    padding: 12px 12px 16px;
-    margin-top: 12px;
-    width: 100%;
-    max-width: 700px;
-}
-#customKeyboard.kb-visible { display: block; }
-
-.kb-grid {
-    display: grid;
-    grid-template-columns: 58px 58px 58px 80px;
-    gap: 8px;
-    justify-content: center;
-}
-
-.kb-btn {
-    height: 52px;
-    border-radius: 10px;
-    border: 1.5px solid #cbd5e1;
-    background: white;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #1e293b;
-    cursor: pointer;
-    box-shadow: 0 2px 0 #cbd5e1;
-    transition: 0.08s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
-    user-select: none;
-}
-.kb-btn:active { transform: translateY(2px); box-shadow: none; }
-
-.kb-btn.kb-enter {
-    background: var(--primary);
-    border-color: var(--primary-dark);
-    color: white;
-    box-shadow: 0 2px 0 var(--primary-dark);
-    font-size: 1.5rem;
-}
-.kb-btn.kb-minus { background: #f8fafc; color: var(--primary); }
-.kb-btn.kb-del   { background: #fff1f2; border-color: #fca5a5; color: #b91c1c; font-size: 1.1rem; }
-
-/* Quan el joc no necessita negatius, el − queda invisible però manté l'espai al grid */
-.kb-grid.kb-no-minus .kb-minus { visibility: hidden; }
-/* Quan el joc no necessita el zero */
-.kb-grid.kb-no-zero .kb-zero   { visibility: hidden; }
-
-/* Estil d'input "seleccionat" pel teclat custom (simula text seleccionat) */
-.kb-selected {
-    background: var(--primary-light) !important;
-    border-color: var(--primary) !important;
-    color: var(--primary) !important;
-}
-
-/* Input actiu del teclat custom: fons blau clar per indicar on s'escriu */
-.kb-active-input {
-    background-color: var(--primary-light) !important;
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent) !important;
-    transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s !important;
-}
-
-/* ── Landscape mòbil: layout esquerra/dreta ──
-   El contingut del joc ocupa la columna esquerra (scroll vertical si cal)
-   i el teclat custom queda fixat a la columna dreta.
-   Així el teclat mai no empeny el contingut fora de la vista.          */
-@media (orientation: landscape) and (max-height: 500px) {
-
-    /* Teclat compacte (mateix que abans) */
-    .kb-grid         { grid-template-columns: 48px 48px 48px 64px; gap: 5px; }
-    .kb-btn          { height: 40px; font-size: 1.1rem; }
-    .kb-btn.kb-enter { font-size: 1.2rem; }
-
-    /* Panel passa a flex-row */
-    .panel {
-        display: flex;
-        flex-direction: row;
-        align-items: stretch;
-        max-width: 100%;
+    if (NIVELLS_PER_SESSIO[exercici] && !params.has('nivell')) {
+        const nivell = NIVELLS_PER_SESSIO[exercici][fixedKey];
+        if (nivell) { params.set('nivell', nivell); changed = true; }
     }
 
-    /* Columna esquerra: el joc, amb scroll si el contingut és alt */
-    #game-screen {
-        flex: 1 1 0;
-        min-width: 0;
-        overflow-y: auto;
-        max-height: 100svh;
+    // 2c. Activitats amb FAMÍLIES: cada sessió activa famílies diferents
+    const FAMILIES_PER_SESSIO = {
+        'derivades': {
+            A: 'power,power-coef,chain-exp-int',
+            B: 'log-kx,log-linear,chain-sin-int,chain-cos-int',
+            C: 'compound-exp-sin,compound-ln-sin,product,quotient',
+        },
+        'integrals': {
+            A: 'int-power',
+            B: 'int-power-coef',
+            C: 'int-exp-kx',
+        },
+    };
+
+    if (FAMILIES_PER_SESSIO[exercici] && !params.has('families')) {
+        const fam = FAMILIES_PER_SESSIO[exercici][fixedKey];
+        if (fam) { params.set('families', fam); changed = true; }
     }
 
-    /* Columna dreta: el teclat fixat al mínim imprescindible.
-       243px = 3×48 + 64 (botons) + 3×5 (gaps) + 2×10 (padding).   */
-    #customKeyboard {
-        flex: 0 0 243px;
-        width: 243px;
-        margin-top: 0;
-        padding: 10px 10px 12px;
-        border-top: none;
-        border-left: 2px solid var(--border-heavy);
-        border-right: none;
-        border-bottom: none;
-        border-radius: 0;
-        align-self: center;
+    // 2d. Activitats amb TIPUS: cada sessió usa un tipus de dades diferent
+    const TIPUS_PER_SESSIO = {
+        'estadistica': {
+            A: 'calcat',
+            B: 'alcada',
+            C: 'pulsacions',
+        },
+    };
+
+    if (TIPUS_PER_SESSIO[exercici] && !params.has('tipus')) {
+        const tipus = TIPUS_PER_SESSIO[exercici][fixedKey];
+        if (tipus) { params.set('tipus', tipus); changed = true; }
     }
-}
 
-/* ---- KEYFRAMES ---- */
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25%      { transform: translateX(-5px); }
-    75%      { transform: translateX(5px); }
-}
+    // Apliquem els canvis a la URL (sense recarregar la pàgina)
+    if (changed) {
+        history.replaceState(null, '', '?' + params.toString());
+    }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+    // ── 3. BADGE VISUAL ──────────────────────────────────────────────────
+    //    Mostra un indicador flotant perquè tothom sàpiga que és sessió fixa.
 
-@keyframes pop {
-    0%   { transform: scale(0); }
-    80%  { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
+    window.addEventListener('DOMContentLoaded', function() {
+        const badge = document.createElement('div');
+        badge.textContent = 'Sessió fixa ' + fixedKey;
+        badge.style.cssText = [
+            'position:fixed', 'top:8px', 'right:8px', 'z-index:9999',
+            'background:#1e293b', 'color:#fbbf24', 'padding:5px 14px',
+            'border-radius:6px', 'font-size:12px', 'font-weight:700',
+            'letter-spacing:0.5px', 'box-shadow:0 2px 8px rgba(0,0,0,0.15)',
+            'pointer-events:none', 'opacity:0.9',
+        ].join(';');
+        document.body.appendChild(badge);
+    });
 
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-15px); }
-}
+    // ── 4. RESTAURAR Math.random PER A copiarResultats ───────────────────
+    //    El salt del codi de verificació ha de ser aleatori DE VERITAT
+    //    (sinó tots els alumnes tindrien el mateix codi i el professor no
+    //    podria distingir-los). Restaurem l'original quan l'alumne acaba.
 
-@keyframes home-blink-shake {
-    0%   { transform: scale(1)    rotate(0deg);  opacity: 1;   }
-    15%  { transform: scale(1.15) rotate(-8deg); opacity: 0.3; }
-    30%  { transform: scale(1.15) rotate( 8deg); opacity: 1;   }
-    45%  { transform: scale(1.1)  rotate(-5deg); opacity: 0.3; }
-    60%  { transform: scale(1.1)  rotate( 5deg); opacity: 1;   }
-    80%  { transform: scale(1.05) rotate(-2deg); opacity: 0.7; }
-    100% { transform: scale(1)    rotate(0deg);  opacity: 1;   }
-}
+    window._fixedSessionActive = true;
+    window._restoreRandom = function() {
+        Math.random = _originalRandom;
+    };
 
+    // [FIX C2] Safety net: si l'alumne surt abans de la pantalla final
+    window.addEventListener('beforeunload', function() {
+        Math.random = _originalRandom;
+    });
 
-/* ============================================================
-   EXTRES: Accions del resum final + Resum d'historial
-   (optatiu: només s'activa si el joc ho fa servir)
-   ============================================================ */
+    // Restaurem quan el joc s'acaba (pantalla final visible)
+    window.addEventListener('DOMContentLoaded', function() {
+        const observer = new MutationObserver(function() {
+            const final = document.getElementById('final-screen');
+            if (final && final.style.display === 'block') {
+                Math.random = _originalRandom;
+                observer.disconnect();
+            }
+        });
+        const panel = document.querySelector('.panel') || document.body;
+        observer.observe(panel, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    });
 
-.panel-content { padding: 20px; }
-
-.final-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
-}
-.final-actions > button {
-    width: 100%;
-    max-width: 280px;
-    padding: 10px 14px;
-    font-size: 0.95em;
-}
-
-.btn-action-primary { background-color: var(--primary); }
-.btn-action-copy    { background-color: #a84359; color: white; }
-
-.history-summary-screen { display: none; }
-.history-summary {
-    text-align: left;
-}
-.history-summary h2 {
-    text-align: center;
-    color: var(--primary);
-    margin: 0 0 18px 0;
-}
-.history-title {
-    margin: 18px 0 10px 0;
-    padding-bottom: 6px;
-    border-bottom: 2px solid;
-    font-size: 1.1em;
-}
-.history-title--ok  { color: var(--success); border-color: var(--success); }
-.history-title--bad { color: var(--danger);  border-color: var(--danger); }
-
-.history-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 8px 0;
-}
-.history-item {
-    margin-bottom: 12px;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
-.history-item--ok  { background: #f0fdf4; border-color: #bbf7d0; }
-.history-item--bad { background: #fef2f2; border-color: #fecaca; }
-
-.history-q { margin-bottom: 6px; color: #334155; }
-.history-mono { font-family: monospace; font-size: 1.05em; }
-.history-a--ok  { color: #059669; }
-.history-a--bad { color: #dc2626; }
-
-.history-empty { color: var(--text-muted); font-style: italic; margin: 6px 0 0; }
-
-.history-actions { text-align: center; margin-top: 18px; }
+})();
