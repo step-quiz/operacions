@@ -74,7 +74,7 @@ window.FunctionEngine = (() => {
             monParts:  sgn > 0 ? ['decreixent', 'creixent'] : ['creixent', 'decreixent'],
             signBreaks: [r1, r2],
             signParts:  sgn > 0 ? ['positiu', 'negatiu', 'positiu'] : ['negatiu', 'positiu', 'negatiu'],
-            xRange: [r1 - 3, r2 + 3], yRange: [Math.min(vy, -1) - 2, Math.max(-vy, 1) + 2],
+            xRange: [r1 - 3, r2 + 3], yRange: [Math.min(0, vy) - 2, Math.max(0, vy) + 2],
             keyPoints: [
                 { x: r1, y: 0, type: 'root' },
                 { x: r2, y: 0, type: 'root' },

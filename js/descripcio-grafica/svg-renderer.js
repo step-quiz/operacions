@@ -82,9 +82,21 @@ window.SvgRenderer = (() => {
         // ---- Punts clau (zeros i extrems) ----
         (spec.keyPoints || []).forEach(({ x, y, type }) => {
             if (x < xMin || x > xMax || y < yMin || y > yMax) return;
-            const px = tx(x).toFixed(1), py = ty(y).toFixed(1);
+            const px = tx(x), py = ty(y);
             const col = type === 'root' ? '#ef4444' : '#f59e0b';
-            L.push(`<circle cx="${px}" cy="${py}" r="5.5" fill="${col}" stroke="white" stroke-width="1.5"/>`);
+
+            if (type === 'extremum') {
+                // Línia de caiguda vertical fins a l'eix X
+                const axisY = (yMin <= 0 && yMax >= 0) ? ty(0) : MT + PH;
+                L.push(`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${axisY.toFixed(1)}" stroke="${col}" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.55"/>`);
+                // Etiqueta de coordenades "(x, y)"
+                const fmtN = v => Number.isInteger(v) ? `${v < 0 ? '−' + (-v) : v}` : v.toFixed(1);
+                const abovePoint = y > (yMin + yMax) / 2;
+                const labelY = abovePoint ? py - 10 : py + 16;
+                L.push(`<text x="${px.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="11" font-weight="700" fill="${col}">(${fmtN(x)}, ${fmtN(y)})</text>`);
+            }
+
+            L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="${col}" stroke="white" stroke-width="1.5"/>`);
         });
 
         return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" ` +

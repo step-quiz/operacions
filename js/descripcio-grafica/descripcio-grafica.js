@@ -24,15 +24,11 @@
     'use strict';
 
     const _p         = new URLSearchParams(window.location.search);
-    const GAME_LEVEL = Math.min(3, Math.max(1, parseInt(_p.get('nivell')     || '1', 10)));
-    const TOTAL_Q    = Math.max(4,             parseInt(_p.get('preguntes')  || '8', 10));
+    let   currentLevel = Math.min(3, Math.max(1, parseInt(_p.get('nivell') || '1', 10)));
+    const TOTAL_Q      = Math.max(4, parseInt(_p.get('preguntes') || '8', 10));
     const TOTAL_ROUNDS = Math.max(2, Math.round(TOTAL_Q / 2));
 
-    const LEVEL_NAMES = {
-        1: 'Nivell 1 — lineal i quadràtica',
-        2: 'Nivell 2 — + cúbica',
-        3: 'Nivell 3 — + exponencial, arrel, racional',
-    };
+    const LEVEL_NAMES = {}; // reservat per a ús futur
 
     let currentRound = 0;
     let currentPhase = 'MONO';   // 'MONO' | 'SIGN'
@@ -46,7 +42,6 @@
         options:      document.getElementById('options-container'),
         feedback:     document.getElementById('missatge-feedback'),
         lvlDisplay:   document.getElementById('lvl-display'),
-        levelDisplay: document.getElementById('level-display'),
         badge:        document.getElementById('q-badge'),
         label:        document.getElementById('q-label'),
         graphCanvas:  document.getElementById('graph-canvas'),
@@ -57,7 +52,7 @@
     // ------------------------------------------------------------------ //
     function buildFunction() {
         isAnswered  = false;
-        currentSpec = FunctionEngine.generateFunction(GAME_LEVEL);
+        currentSpec = FunctionEngine.generateFunction(currentLevel);
 
         // La gràfica és sempre visible (l'alumne l'ha de llegir per respondre)
         els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
@@ -164,10 +159,29 @@
     }
 
     // ------------------------------------------------------------------ //
+    //  CANVI DE NIVELL (cridat des dels botons onclick del HTML)
+    // ------------------------------------------------------------------ //
+    window.setLevel = function (n) {
+        currentLevel = n;
+        // Actualitza estil actiu dels botons
+        [1, 2, 3].forEach(i => {
+            const b = document.getElementById(`lvl-btn-${i}`);
+            if (b) b.className = 'lvl-btn' + (i === n ? ' active' : '');
+        });
+        // Reinicia des del principi amb el nou nivell
+        currentRound = 0; currentPhase = 'MONO'; currentSpec = null;
+        buildFunction();
+    };
+
+    // ------------------------------------------------------------------ //
     //  INICI
     // ------------------------------------------------------------------ //
     window.addEventListener('DOMContentLoaded', () => {
-        els.levelDisplay.textContent = LEVEL_NAMES[GAME_LEVEL] || '';
+        // Sincronitza el botó actiu amb el nivell del paràmetre URL (si n'hi ha)
+        [1, 2, 3].forEach(i => {
+            const b = document.getElementById(`lvl-btn-${i}`);
+            if (b) b.className = 'lvl-btn' + (i === currentLevel ? ' active' : '');
+        });
         els.gameScreen.style.display = 'flex';
         buildFunction();
     });

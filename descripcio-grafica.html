@@ -40,9 +40,13 @@
     <div id="game-screen" style="display:none;">
         <div class="header-info">
             <div class="header-left">
-                <span class="session-text" id="level-display"></span>
-                <span class="session-sep">·</span>
-                <span class="level-text"  id="lvl-display">Pregunta 1 de 8</span>
+                    <div class="level-selector" id="level-selector">
+                        <button class="lvl-btn active" id="lvl-btn-1" onclick="setLevel(1)">Nivell 1</button>
+                        <button class="lvl-btn"        id="lvl-btn-2" onclick="setLevel(2)">Nivell 2</button>
+                        <button class="lvl-btn"        id="lvl-btn-3" onclick="setLevel(3)">Nivell 3</button>
+                    </div>
+                    <span class="session-sep">·</span>
+                    <span class="level-text" id="lvl-display">Pregunta 1 de 8</span>
             </div>
         </div>
 
