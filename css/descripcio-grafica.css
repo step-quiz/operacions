@@ -1,0 +1,211 @@
+/**
+ * css/descripcio-grafica.css
+ * Estils per a l'activitat "Descripció d'una gràfica".
+ * Paleta i tipografia coherents amb asimptotes.css.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg-color:      #f0f6ff;
+    --primary:       #2563eb;
+    --primary-light: #dbeafe;
+    --primary-dark:  #1d4ed8;
+    --primary-hover: #1e40af;
+    --text-main:     #1e293b;
+    --text-muted:    #64748b;
+    --border-light:  #e2e8f0;
+    --border-heavy:  #cbd5e1;
+    --success:       #10b981;
+    --danger:        #ef4444;
+    --danger-light:  #fee2e2;
+}
+
+/* ---- BASE ---- */
+html { height: 100%; }
+body {
+    height: 100%;
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; flex-direction: column;
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg-color);
+    color: var(--text-main);
+    overflow: hidden;
+}
+
+/* ---- CAPÇALERA ---- */
+.title-row {
+    display: flex; align-items: center; justify-content: center;
+    padding: 10px 0 6px;
+}
+.title-row h1 {
+    font-size: clamp(.95rem, 1.8vw, 1.2rem);
+    font-weight: 700; color: var(--primary-dark);
+}
+.home-icon-link {
+    display: block; width: 58px; height: 58px;
+    flex-shrink: 0; opacity: .75; transition: opacity .2s ease;
+}
+.home-icon-link:hover { opacity: 1; }
+.home-icon-link img { width: 100%; height: 100%; object-fit: contain; }
+
+/* ---- PANELL ---- */
+.panel {
+    max-width: 98vw; width: 98vw; margin: 0 auto;
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.08);
+    display: flex; flex-direction: column;
+    flex: 1 1 0; min-height: 0; overflow: hidden;
+}
+
+/* ---- HEADER INFO ---- */
+.header-info {
+    display: flex; align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+.header-left     { display: flex; align-items: center; gap: 6px; }
+.session-text    { font-size: .98rem; font-weight: 700; color: var(--text-muted); }
+.level-text      { font-size: .9rem;  font-weight: 600; color: var(--text-muted); }
+.session-sep     { color: var(--border-heavy); font-size: 1rem; }
+
+/* ---- GAME SCREEN ---- */
+#game-screen {
+    display: flex; flex-direction: column; flex: 1 1 0; min-height: 0;
+}
+
+/* ---- LAYOUT DUES COLUMNES ---- */
+.game-body { display: flex; flex: 1 1 0; min-height: 0; }
+
+.game-left {
+    width: 42%;
+    display: flex; flex-direction: column;
+    padding: 14px 12px 14px 16px;
+    border-right: 1px solid var(--border-light);
+    overflow-y: auto; gap: 0;
+}
+.game-right {
+    width: 58%;
+    display: flex; flex-direction: column;
+    padding: 10px 14px; overflow: hidden; min-height: 0;
+}
+
+/* ---- BADGE DE TIPUS DE PREGUNTA ---- */
+.question-badge {
+    display: inline-block;
+    font-size: .76rem; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase; color: var(--primary);
+    background: var(--primary-light);
+    padding: 4px 12px; border-radius: 20px;
+    margin-bottom: 8px; align-self: flex-start;
+}
+
+/* ---- FUNCTION BOX ---- */
+.function-box {
+    display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;
+}
+.function-label {
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--text-main); line-height: 1.3;
+}
+.function-math {
+    font-size: 1em; color: #111;
+    padding: 10px 14px; background: #f0f6ff;
+    border-radius: 10px; border: 2px solid var(--border-light);
+    overflow-x: auto;
+}
+
+/* ---- OPCIONS (llista 1 columna — textos llargs) ---- */
+.options-list {
+    display: flex; flex-direction: column; gap: 8px; width: 100%;
+}
+
+@keyframes popIn {
+    0%   { opacity: 0; transform: scale(.97) translateY(4px); }
+    100% { opacity: 1; transform: scale(1)   translateY(0);   }
+}
+@keyframes shake {
+    0%,100% { transform: translateX(0);  }
+    25%     { transform: translateX(-5px); }
+    75%     { transform: translateX(5px);  }
+}
+
+.btn-option {
+    padding: 11px 14px;
+    font-size: .93em; font-family: 'Barlow', sans-serif; font-weight: 500;
+    border-radius: 10px; border: 2px solid var(--border-heavy);
+    background: white; color: var(--text-main); cursor: pointer;
+    transition: background .15s, border-color .15s;
+    text-align: left; line-height: 1.4;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    opacity: 0;
+    animation: popIn .25s cubic-bezier(.175,.885,.32,1.275) forwards;
+}
+@media (hover: hover) {
+    .btn-option:hover:not([disabled]) {
+        background: var(--primary-light); border-color: var(--primary);
+    }
+}
+.btn-option:active { transform: scale(.98); }
+.btn-option:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+.btn-option.correct {
+    background: var(--success) !important; border-color: var(--success) !important;
+    color: white !important; pointer-events: none;
+}
+.btn-option.wrong {
+    background: var(--danger-light) !important; border-color: var(--danger) !important;
+    color: var(--danger) !important; opacity: 1 !important;
+    pointer-events: none; animation: shake .3s;
+}
+
+/* ---- FEEDBACK ---- */
+#missatge-feedback {
+    font-size: .87rem; min-height: 26px;
+    transition: opacity .2s; margin-top: 8px;
+    color: var(--text-muted);
+}
+.feedback-correct { color: var(--success); font-weight: 700; }
+
+/* ---- GRÀFIC SVG ---- */
+#graph-canvas {
+    width: 100%; flex: 1 1 0; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+#graph-canvas svg {
+    display: block; width: 100% !important;
+    height: 100% !important; max-height: 100%; border-radius: 6px;
+}
+
+/* ---- RESUM FINAL ---- */
+#session-summary {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    flex: 1; padding: 40px 20px; text-align: center;
+}
+.end-emoji { font-size: 3em; margin-bottom: 12px; }
+.end-title {
+    font-size: 1.6em; font-weight: 800;
+    color: var(--primary-dark); margin-bottom: 6px;
+}
+.end-sub   { font-size: 1rem; color: var(--text-muted); margin-bottom: 28px; }
+.summary-continue-btn {
+    display: inline-block; padding: 12px 36px;
+    background: var(--primary); color: white;
+    border: none; border-radius: 10px;
+    font-family: 'Barlow', sans-serif; font-size: 1em; font-weight: 700;
+    cursor: pointer; transition: background .2s, transform .15s;
+}
+.summary-continue-btn:hover  { background: var(--primary-hover); transform: translateY(-1px); }
+.summary-continue-btn:active { transform: scale(.97); }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 780px) {
+    body { overflow: auto; }
+    .game-body  { flex-direction: column; }
+    .game-left  { width: 100%; border-right: none; border-bottom: 1px solid var(--border-light); }
+    .game-right { width: 100%; min-height: 260px; }
+}

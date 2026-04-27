@@ -72,6 +72,7 @@
         'probabilitat':         { A: '1', B: '2', C: '3' },
         'estadistica-inversa':  { A: '1', B: '2', C: '3' },
         'asimptotes':           { A: '1', B: '2', C: '3' },
+        'descripcio-grafica':   { A: '1', B: '2', C: '3' },
         'recta-numerica':       { A: '1', B: '2', C: '3' },
     };
 
