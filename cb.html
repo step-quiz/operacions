@@ -353,7 +353,12 @@ td.blnk { color: var(--muted); text-align: center; }
 .startup-col:last-child  { padding-right: 0; }
 .startup-col-hdr {
   font-size: .70rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
-  color: var(--accent); padding-bottom: 6px; border-bottom: 2px solid var(--f-brd); margin-bottom: 2px;
+  color: #b03020; padding-bottom: 6px; border-bottom: 2px solid #b03020; margin-bottom: 2px;
+  transition: color .25s, border-color .25s;
+}
+.startup-col-hdr.complete {
+  color: #27ae60;
+  border-bottom-color: #27ae60;
 }
 .startup-divider {
   width: 1px; background: var(--border); flex-shrink: 0; margin: 28px 0 0;
@@ -425,6 +430,42 @@ td.blnk { color: var(--muted); text-align: center; }
 .key-grid-wrap   { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 3px; }
 #key-grid .sect-hdr { background: #555 !important; color: #fff; }
 #key-grid .cell     { border-left-color: #999 !important; }
+
+/* ── Tutorial de primera càrrega (spotlight sobre Tecles) ── */
+#kbd-tut-spotlight {
+  position: fixed;
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+  z-index: 400;
+  pointer-events: none;
+  animation: tut-pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes tut-pulse {
+  from { box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); }
+  to   { box-shadow: 0 0 0 9999px rgba(0,0,0,0.68); }
+}
+@keyframes tut-shake {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  15% { transform: translate(-3px, -1px) scale(1.06); }
+  30% { transform: translate(3px,  1px) scale(1.06); }
+  45% { transform: translate(-3px, 0)   scale(1.06); }
+  60% { transform: translate(3px,  0)   scale(1.06); }
+  80% { transform: translate(-1px, 0)   scale(1.03); }
+}
+@keyframes tut-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.tut-target {
+  position: relative;
+  z-index: 401;
+  background: var(--panel) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  animation:
+    tut-shake 0.6s ease-in-out infinite,
+    tut-blink 0.55s ease-in-out infinite;
+}
 </style>
 </head>
 <body>
@@ -465,7 +506,7 @@ td.blnk { color: var(--muted); text-align: center; }
 
 <!-- NAV ROW -->
 <div class="nav">
-  <button class="btn" onclick="openSettings()">⚙ Tecles</button>
+  <button class="btn" id="btn-tecles" onclick="openSettings()">⚙ Tecles</button>
   <button class="btn" onclick="openKeyEditor()">🔑 Clau</button>
   <span class="key-loaded" id="key-badge" style="display:none"></span>
   <button class="btn" id="btn-correct" onclick="openCorrect()" title="Cal carregar una clau de respostes" disabled>📊 Corregir</button>
@@ -788,6 +829,9 @@ function selectOpt(btn) {
   document.querySelectorAll(`.sopt[data-col="${col}"]`).forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   startupSel[col] = btn.dataset.val;
+  // Marcar el títol de la columna com a complet (verd)
+  const hdr = btn.closest('.startup-col').querySelector('.startup-col-hdr');
+  if (hdr) hdr.classList.add('complete');
   const allDone = startupSel.comp && startupSel.key && startupSel.pdf;
   document.getElementById('startup-go').disabled = !allDone;
 }
@@ -1356,6 +1400,45 @@ function confirmStudent() {
   curIdx = stuOrder.length - 1;
   qIdx   = 0;
   closeModal(); render(); syncPdfToCurrent();
+  maybeShowKeyboardTutorial();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TUTORIAL PRIMERA CÀRREGA — spotlight sobre el botó "Tecles"
+// ═══════════════════════════════════════════════════════════════════════
+function maybeShowKeyboardTutorial() {
+  if (localStorage.getItem('cb4-keyboard-tutorial-shown')) return;
+  // Petit retard perquè el modal de l'alumne acabi de tancar-se i es puguin
+  // mesurar bé les dimensions del botó "Tecles".
+  setTimeout(showKeyboardTutorial, 500);
+}
+
+function showKeyboardTutorial() {
+  if (localStorage.getItem('cb4-keyboard-tutorial-shown')) return;
+  const btn = document.getElementById('btn-tecles');
+  if (!btn) return;
+  // Marca'l com a vist immediatament per evitar dobles aparicions
+  localStorage.setItem('cb4-keyboard-tutorial-shown', '1');
+
+  const rect   = btn.getBoundingClientRect();
+  const cx     = rect.left + rect.width  / 2;
+  const cy     = rect.top  + rect.height / 2;
+  const radius = Math.max(rect.width, rect.height) / 2 + 18;
+
+  const spot = document.createElement('div');
+  spot.id = 'kbd-tut-spotlight';
+  spot.style.left   = (cx - radius) + 'px';
+  spot.style.top    = (cy - radius) + 'px';
+  spot.style.width  = (radius * 2) + 'px';
+  spot.style.height = (radius * 2) + 'px';
+  document.body.appendChild(spot);
+
+  btn.classList.add('tut-target');
+
+  setTimeout(() => {
+    spot.remove();
+    btn.classList.remove('tut-target');
+  }, 5000);
 }
 
 // Keyboard for the modal
