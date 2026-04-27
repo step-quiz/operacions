@@ -339,17 +339,6 @@ const EXCLOSOS = new Set([
 ]);
 /* ═══════════════════════════════════════════════════════════════════ */
 
-/* ─────────────────────────────────────────────
-   NAMING CONVENTION
-   Format: {cat}-{aa}{conv}-{ref}-{tipus}.pdf
-
-   {cat}   alg | geo | ana | pro
-   {aa}    23 | 24 | 25
-   {conv}  j (juny) | i (juny incidències) | s (setembre)
-   {ref}   q1…q6 (tots els anys)
-   {tipus} e (enunciat) | p (pistes) | s (solució)
-─────────────────────────────────────────────*/
-
 const CAT_COLOR = {algebra:'#c95252',geometria:'#0d9488',analisi:'#7c5cbf',probabilitat:'#c47d30'};
 const CAT_NAME  = {algebra:'Àlgebra',geometria:'Geometria afí i mètrica',analisi:'Anàlisi / Càlcul',probabilitat:'Probabilitat'};
 
@@ -641,16 +630,29 @@ setTimeout(() => {
   if (icon) icon.classList.add('blink-shake');
 }, 5000);
 
-/* Actualitza els recomptes de les targetes de categoria segons EXCLOSOS */
+/* Actualitza el recompte i el rang d'anys de les targetes de categoria
+   a partir d'EXERS[cat], filtrant EXCLOSOS. El rang es recalcula sol
+   en afegir o treure exercicis de qualsevol any. */
 document.querySelectorAll('.cat-card').forEach(card => {
   const cat = card.dataset.cat;
   if (!cat || !EXERS[cat]) return;
-  const n = EXERS[cat].filter(ex => !EXCLOSOS.has(ex.id)).length;
   const numEl = card.querySelector('.num');
-  if (numEl) {
-    // Conserva el rang d'anys i substitueix el recompte
-    numEl.textContent = numEl.textContent.replace(/^\d+/, n);
+  if (!numEl) return;
+
+  const items = EXERS[cat].filter(ex => !EXCLOSOS.has(ex.id));
+  const n = items.length;
+
+  if (n === 0) {
+    numEl.textContent = '0 exercicis';
+    return;
   }
+
+  const anys = items.map(ex => Number(ex.any));
+  const min = Math.min(...anys);
+  const max = Math.max(...anys);
+  const rang = (min === max) ? `${min}` : `${min}–${max}`;
+
+  numEl.textContent = `${n} exercicis · ${rang}`;
 });
 </script>
 </body>
