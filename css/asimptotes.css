@@ -1,3 +1,13 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/asimptotes.css
+ROL: Estils específics per al joc d'asímptotes i límits laterals.
+DEPENDÈNCIES: Autònom (inclou reset, variables i font).
+              Carregar ABANS de chromebook.css.
+============================================================================
+*/
+
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,7 +30,7 @@
 html { height: 100%; }
 body {
     height: 100%;
-    min-height: 100vh;
+    min-height: 100vh; min-height: 100dvh; /* [FIX BUG4] */
     display: flex;
     flex-direction: column;
     font-family: 'Barlow', sans-serif;
@@ -41,6 +51,9 @@ body {
     font-weight: 700;
     color: var(--primary-dark);
 }
+.home-icon-link { display:block; width:58px; height:58px; flex-shrink:0; opacity:.75; transition:opacity .2s ease; }
+.home-icon-link:hover { opacity:1; }
+.home-icon-link img { width:100%; height:100%; object-fit:contain; }
 
 /* ---- PANELL ---- */
 .panel {
@@ -57,34 +70,33 @@ body {
     overflow: hidden;
 }
 
-/* ---- HEADER INFO ---- */
 .header-info {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 8px 16px;
     border-bottom: 1px solid var(--border-light);
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--text-muted);
     flex-shrink: 0;
-    flex-wrap: wrap;
+}
+.header-left {
+    display: flex;
+    align-items: center;
     gap: 6px;
 }
-.header-left { display: flex; flex-direction: column; gap: 1px; }
-.session-text { font-size: .82rem; }
-.level-text   { font-size: .75rem; color: var(--text-muted); }
-.score-text   { color: var(--primary-dark); font-weight: 700; }
-.badge {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: .78rem;
-    font-weight: 600;
+.session-text {
+    font-size: calc(.82rem * 1.2); /* +20% */
+    font-weight: 700;
+    color: var(--text-muted);
 }
-.attempts-counter { font-weight: 700; color: var(--text-muted); }
-.attempts-counter.danger { color: var(--danger); }
+.level-text {
+    font-size: calc(.75rem * 1.2); /* +20% */
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.session-sep {
+    color: var(--border-heavy);
+    font-weight: 400;
+    font-size: 1rem;
+}
 
 /* ---- GAME SCREEN ---- */
 #game-screen {
@@ -101,7 +113,7 @@ body {
     min-height: 0;
 }
 
-/* Columna esquerra — pregunta + opcions */
+/* Columna esquerra */
 .game-left {
     width: 36%;
     display: flex;
@@ -112,7 +124,7 @@ body {
     gap: 0;
 }
 
-/* Columna dreta — gràfic SVG */
+/* Columna dreta */
 .game-right {
     width: 64%;
     display: flex;
@@ -129,16 +141,16 @@ body {
     gap: 8px;
     margin-bottom: 14px;
 }
+
 .function-label {
     color: var(--text-muted);
-    font-size: .78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0;
 }
 .function-math {
     font-size: 1em;
-    color: var(--primary-dark);
+    color: #111;
     padding: 12px 16px;
     background: #f0f6ff;
     border-radius: 10px;
@@ -256,12 +268,57 @@ body {
     flex: 1 1 0;
     min-height: 0;
     display: flex;
+    flex-direction: column;
 }
 #graph-canvas svg {
     display: block;
     width: 100% !important;
     height: 100% !important;
     border-radius: 6px;
+}
+
+.asymptote-toggle-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+.asymptote-toggle-label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    
+}
+.asymptote-toggle-btns {
+    display: flex;
+    gap: 4px;
+}
+.btn-asym {
+    padding: 3px 14px;
+    font-size: .78rem;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1.5px solid var(--border-heavy);
+    background: white;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.btn-asym.active-on {
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: white;
+}
+.btn-asym.active-off {
+    background: #f1f5f9;
+    border-color: var(--border-heavy);
+    color: var(--text-muted);
 }
 
 /* ---- RESUM FINAL ---- */
