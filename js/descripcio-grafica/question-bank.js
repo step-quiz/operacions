@@ -62,18 +62,18 @@ window.QuestionBank = (() => {
     // ------------------------------------------------------------------ //
     //  TEXT DE CONCAVITAT — agrupa intervals del mateix sentit amb ∪
     //  Ex: breaks=[2], parts=['avall','amunt']
-    //  →  "f(x) és còncava cap avall a (−∞, 2) i còncava cap amunt a (2, +∞)"
+    //  →  "f(x) té concavitat negativa a (−∞, 2) i amb concavitat positiva a (2, +∞)"
     // ------------------------------------------------------------------ //
     function _concLabel(breaks, parts) {
-        if (parts.every(p => p === 'amunt')) return 'f(x) és còncava cap amunt a (−∞, +∞)';
-        if (parts.every(p => p === 'avall')) return 'f(x) és còncava cap avall a (−∞, +∞)';
+        if (parts.every(p => p === 'amunt')) return 'f(x) té concavitat positiva a (−∞, +∞)';
+        if (parts.every(p => p === 'avall')) return 'f(x) té concavitat negativa a (−∞, +∞)';
         const pts = [-INF, ...breaks, INF];
         const seen = [], groups = {};
         parts.forEach((p, i) => {
             if (!groups[p]) { groups[p] = []; seen.push(p); }
             groups[p].push(_iv(pts[i], pts[i + 1]));
         });
-        const descs = seen.map(p => `còncava cap ${p} a ${groups[p].join(' ∪ ')}`);
+        const descs = seen.map(p => `amb concavitat ${p === 'amunt' ? 'positiva' : 'negativa'} a ${groups[p].join(' ∪ ')}`);
         if (descs.length === 1) return `f(x) és ${descs[0]}`;
         return `f(x) és ${descs.slice(0, -1).join(', ')} i ${descs[descs.length - 1]}`;
     }
@@ -164,8 +164,8 @@ window.QuestionBank = (() => {
         const { concBreaks, concParts, monBreaks } = spec;
         const correct = _concLabel(concBreaks, concParts);
         const distrs  = _genDistrs(correct, concBreaks, concParts, monBreaks, _concLabel, [
-            'f(x) és còncava cap amunt a (−∞, +∞)',
-            'f(x) és còncava cap avall a (−∞, +∞)'
+            'f(x) té concavitat positiva a (−∞, +∞)',
+            'f(x) té concavitat negativa a (−∞, +∞)'
         ]);
         return {
             type:    'Q_CONC',

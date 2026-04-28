@@ -43,6 +43,7 @@
         badge:       document.getElementById('q-badge'),
         label:       document.getElementById('q-label'),
         graphCanvas:  document.getElementById('graph-canvas'),
+        graphLegend:  document.getElementById('graph-legend'),
         graphFooter:  document.getElementById('graph-footer'),
         countdownBar: document.getElementById('countdown-bar'),
     };
@@ -115,7 +116,13 @@
             if (showColoredGraphs) {
                 // Petit delay per veure el botó verd, llavors mostra la gràfica acolorida
                 setTimeout(() => {
-                    els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVGColored(currentSpec, phase);
+                    const { svg, legend } = SvgRenderer.renderFuncSVGColored(currentSpec, phase);
+                    els.graphCanvas.innerHTML = svg;
+                    // Llegenda HTML sota el gràfic (mai tapa la corba)
+                    els.graphLegend.innerHTML = legend.map(e =>
+                        `<span class="legend-pill" style="--pill-color:${e.color}">${e.label}</span>`
+                    ).join('');
+                    els.graphLegend.style.display = 'flex';
                     _startCountdown(5000, advance);
                 }, 400);
             } else {
@@ -147,6 +154,7 @@
         if (_countdownTimer) { clearTimeout(_countdownTimer); _countdownTimer = null; }
         _advanceFn = null;
         if (els.graphFooter) els.graphFooter.style.display = 'none';
+        if (els.graphLegend) { els.graphLegend.style.display = 'none'; els.graphLegend.innerHTML = ''; }
     }
 
     /** Retorna l'índex de la següent fase, o null si s'ha acabat la funció. */

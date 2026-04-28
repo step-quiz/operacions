@@ -160,7 +160,7 @@ window.SvgRenderer = (() => {
             breaks      = spec.concBreaks;
             parts       = spec.concParts;
             colorMap    = { amunt: '#8b5cf6', avall: '#14b8a6' };
-            legendLabels= { amunt: 'còncava cap amunt', avall: 'còncava cap avall' };
+            legendLabels= { amunt: 'concavitat positiva', avall: 'concavitat negativa' };
         }
 
         let [xMin, xMax] = spec.xRange || [-6, 6];
@@ -245,20 +245,12 @@ window.SvgRenderer = (() => {
             L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="${col}" stroke="white" stroke-width="1.5"/>`);
         });
 
-        // ---- Llegenda ----
-        const legendEntries = [...new Set(parts)];  // colors únics, en ordre d'aparició
-        const lW = 160, lRowH = 20, lPad = 8;
-        const lH = lPad * 2 + legendEntries.length * lRowH;
-        const lX = ML + PW - lW - 6, lY = MT + 6;
-        L.push(`<rect x="${lX}" y="${lY}" width="${lW}" height="${lH}" rx="6" fill="white" fill-opacity="0.92" stroke="#e2e8f0" stroke-width="1"/>`);
-        legendEntries.forEach((part, i) => {
-            const cy = lY + lPad + i * lRowH + lRowH / 2;
-            const col = colorMap[part] || '#0077b6';
-            L.push(`<line x1="${lX+lPad}" y1="${cy}" x2="${lX+lPad+22}" y2="${cy}" stroke="${col}" stroke-width="3.5" stroke-linecap="round"/>`);
-            L.push(`<text x="${lX+lPad+30}" y="${(cy+4.5).toFixed(1)}" font-family="Barlow,sans-serif" font-size="11.5" font-weight="600" fill="#1e293b">${legendLabels[part]||part}</text>`);
-        });
+        // Legend data is returned separately for HTML injection (never overlaps the curve)
+        const legendEntries = [...new Set(parts)];
+        const legend = legendEntries.map(p => ({ label: legendLabels[p] || p, color: colorMap[p] || '#0077b6' }));
 
-        return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;max-height:100%;display:block">${L.join('')}</svg>`;
+        const svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;max-height:100%;display:block">${L.join('')}</svg>`;
+        return { svg, legend };
     }
 
     return { renderFuncSVG, renderFuncSVGColored };
