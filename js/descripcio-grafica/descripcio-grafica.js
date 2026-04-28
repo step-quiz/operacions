@@ -32,6 +32,9 @@
     let showColoredGraphs = true;   // preferència de l'usuari
     let _countdownTimer   = null;   // referència al setTimeout actiu
     let _advanceFn        = null;   // funció de pas guardada per skipCountdown
+    let _countdownPaused  = false;  // estat de pausa (tecla espai)
+    let _countdownStartTs = 0;      // ms en què s'ha (re)iniciat el tram actual
+    let _countdownLeft    = 0;      // ms restants quan es pausa
 
     const els = {
         gameScreen:  document.getElementById('game-screen'),
@@ -143,23 +146,59 @@
 
     // ------------------------------------------------------------------ //
     //  COUNTDOWN (barra de progrés + boto skip)
+    //  La tecla ESPAI pausa/reprèn (per si el docent vol explicar alguna cosa)
     // ------------------------------------------------------------------ //
     function _startCountdown(duration, callback) {
-        _advanceFn = callback;
+        _advanceFn         = callback;
+        _countdownPaused   = false;
+        _countdownLeft     = duration;
+        _countdownStartTs  = Date.now();
+
+        // Treu el focus del botó de resposta perquè ESPAI no el reactivi
+        if (document.activeElement && document.activeElement.blur) {
+            try { document.activeElement.blur(); } catch (e) { /* no-op */ }
+        }
+
         els.graphFooter.style.display = 'flex';
-        // Reinicia l'animació retirant i tornant a afegir l'element
         const bar = els.countdownBar;
+        bar.classList.remove('paused');
         bar.style.animation = 'none';
+        bar.style.animationPlayState = '';
         bar.offsetWidth;  // reflow
         bar.style.animation = `drainBar ${duration}ms linear forwards`;
         _countdownTimer = setTimeout(callback, duration);
     }
 
+    function _pauseCountdown() {
+        if (!_countdownTimer || _countdownPaused) return;
+        clearTimeout(_countdownTimer);
+        _countdownTimer = null;
+        _countdownLeft -= (Date.now() - _countdownStartTs);
+        if (_countdownLeft < 0) _countdownLeft = 0;
+        els.countdownBar.style.animationPlayState = 'paused';
+        els.countdownBar.classList.add('paused');
+        _countdownPaused = true;
+    }
+
+    function _resumeCountdown() {
+        if (!_countdownPaused || !_advanceFn) return;
+        _countdownPaused  = false;
+        _countdownStartTs = Date.now();
+        els.countdownBar.classList.remove('paused');
+        els.countdownBar.style.animationPlayState = 'running';
+        _countdownTimer = setTimeout(_advanceFn, _countdownLeft);
+    }
+
     function _clearCountdown() {
         if (_countdownTimer) { clearTimeout(_countdownTimer); _countdownTimer = null; }
-        _advanceFn = null;
+        _advanceFn       = null;
+        _countdownPaused = false;
         if (els.graphFooter) els.graphFooter.style.display = 'none';
         if (els.graphLegend) { els.graphLegend.style.display = 'none'; els.graphLegend.innerHTML = ''; }
+        if (els.countdownBar) {
+            els.countdownBar.style.animationPlayState = '';
+            els.countdownBar.classList.remove('paused');
+        }
     }
 
     /** Retorna l'índex de la següent fase, o null si s'ha acabat la funció. */
@@ -222,6 +261,21 @@
         _clearCountdown();
         buildFunction();
     };
+
+    // ------------------------------------------------------------------ //
+    //  TECLA ESPAI — pausa/reprèn el countdown si està actiu
+    // ------------------------------------------------------------------ //
+    document.addEventListener('keydown', (e) => {
+        if (e.code !== 'Space' && e.key !== ' ') return;
+        const tg = e.target || {};
+        const tn = (tg.tagName || '').toLowerCase();
+        if (tn === 'input' || tn === 'textarea' || tg.isContentEditable) return;
+        // Només actuem si hi ha un countdown actiu (després de respondre correctament)
+        if (!_advanceFn) return;
+        e.preventDefault();
+        if (_countdownPaused) _resumeCountdown();
+        else                  _pauseCountdown();
+    });
 
     // ------------------------------------------------------------------ //
     //  INICI

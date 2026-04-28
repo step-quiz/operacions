@@ -92,7 +92,7 @@ window.SvgRenderer = (() => {
                 const abovePoint = y > (yMin + yMax) / 2;
                 const lx = px + 36, ly = abovePoint ? py - 10 : py + 16;
                 L.push(`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="11" font-weight="700" fill="#8b1a1a">(${fmtN(x)}, ${fmtN(y)})</text>`);
-                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="white" stroke="#8b1a1a" stroke-width="2"/>`);
+                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="#8b1a1a" stroke="white" stroke-width="1.5"/>`);
                 return;
             }
 
@@ -231,7 +231,7 @@ window.SvgRenderer = (() => {
                 const fmtN = v => Number.isInteger(v)?`${v<0?'−'+(-v):v}`:v.toFixed(1);
                 const abv = y > (yMin+yMax)/2;
                 L.push(`<text x="${(px+36).toFixed(1)}" y="${(abv?py-10:py+16).toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="11" font-weight="700" fill="#8b1a1a">(${fmtN(x)}, ${fmtN(y)})</text>`);
-                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="white" stroke="#8b1a1a" stroke-width="2"/>`);
+                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="#8b1a1a" stroke="white" stroke-width="1.5"/>`);
                 return;
             }
             const col = '#8b1a1a';
