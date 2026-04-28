@@ -39,16 +39,24 @@ window.QuestionBank = (() => {
     function _iv(a, b) { return `(${_n(a)}, ${_n(b)})`; }
 
     // ------------------------------------------------------------------ //
-    //  TEXT DE MONOTONIA
-    //  Ex: monBreaks=[1,3], monParts=['creixent','decreixent','creixent']
-    //  →  "f(x) és creixent a (−∞, 1), decreixent a (1, 3) i creixent a (3, +∞)"
+    //  TEXT DE MONOTONIA — agrupa intervals del mateix sentit amb ∪
+    //  Ex: breaks=[-1,1], parts=['decreixent','creixent','decreixent']
+    //  →  "f(x) és decreixent a (−∞, −1) ∪ (1, +∞) i creixent a (−1, 1)"
     // ------------------------------------------------------------------ //
     function _monLabel(breaks, parts) {
         const pts  = [-INF, ...breaks, INF];
-        const segs = parts.map((p, i) => `${p} a ${_iv(pts[i], pts[i + 1])}`);
-        if (segs.length === 1) return `f(x) és ${segs[0]}`;
-        if (segs.length === 2) return `f(x) és ${segs[0]} i ${segs[1]}`;
-        return `f(x) és ${segs.slice(0, -1).join(', ')} i ${segs[segs.length - 1]}`;
+
+        // Agrupa intervals per sentit, mantenint l'ordre de primera aparició
+        const seen   = [];
+        const groups = {};
+        parts.forEach((p, i) => {
+            if (!groups[p]) { groups[p] = []; seen.push(p); }
+            groups[p].push(_iv(pts[i], pts[i + 1]));
+        });
+
+        const descs = seen.map(p => `${p} a ${groups[p].join(' ∪ ')}`);
+        if (descs.length === 1) return `f(x) és ${descs[0]}`;
+        return `f(x) és ${descs.slice(0, -1).join(', ')} i ${descs[descs.length - 1]}`;
     }
 
     // ------------------------------------------------------------------ //
@@ -132,7 +140,7 @@ window.QuestionBank = (() => {
         return {
             type:    'Q_MONO',
             badge:   'Monotonia de f(x)',
-            label:   'On és creixent i decreixent f(x)?',
+            label:   'Els intervals de monotonia de f(x) són aquests:',
             options: _shuffle([
                 { text: correct, isCorrect: true  },
                 ...distrs.map(t => ({ text: t, isCorrect: false }))
