@@ -31,7 +31,7 @@
     const LEVEL_NAMES = {}; // reservat per a ús futur
 
     let currentRound = 0;
-    let currentPhase = 'MONO';   // 'MONO' | 'SIGN'
+    let currentPhase = 'SIGN';   // 'SIGN' | 'MONO'
     let currentSpec  = null;
     let isAnswered   = false;
 
@@ -57,7 +57,7 @@
         // La gràfica és sempre visible (l'alumne l'ha de llegir per respondre)
         els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
 
-        currentPhase = 'MONO';
+        currentPhase = 'SIGN';
         buildQuestion();
     }
 
@@ -70,7 +70,7 @@
         els.feedback.innerHTML     = '';
 
         // Comptador
-        const absQ = currentRound * 2 + (currentPhase === 'MONO' ? 0 : 1) + 1;
+        const absQ = currentRound * 2 + (currentPhase === 'SIGN' ? 0 : 1) + 1;
         els.lvlDisplay.textContent = `Pregunta ${absQ} de ${TOTAL_ROUNDS * 2}`;
 
         // Genera pregunta
@@ -110,9 +110,9 @@
             els.feedback.style.opacity = '1';
 
             setTimeout(() => {
-                if (currentPhase === 'MONO') {
-                    // Passa a la pregunta de signe (mateixa gràfica)
-                    currentPhase = 'SIGN';
+                if (currentPhase === 'SIGN') {
+                    // Passa a la pregunta de monotonia (mateixa gràfica)
+                    currentPhase = 'MONO';
                     buildQuestion();
                 } else {
                     // Funció completada, passa a la següent
@@ -151,7 +151,7 @@
         els.summary.style.display = 'flex';
 
         document.getElementById('btn-restart').addEventListener('click', () => {
-            currentRound = 0; currentPhase = 'MONO'; currentSpec = null;
+            currentRound = 0; currentPhase = 'SIGN'; currentSpec = null;
             els.summary.style.display    = 'none';
             els.gameScreen.style.display = 'flex';
             buildFunction();
@@ -169,7 +169,7 @@
             if (b) b.className = 'lvl-btn' + (i === n ? ' active' : '');
         });
         // Reinicia des del principi amb el nou nivell
-        currentRound = 0; currentPhase = 'MONO'; currentSpec = null;
+        currentRound = 0; currentPhase = 'SIGN'; currentSpec = null;
         buildFunction();
     };
 

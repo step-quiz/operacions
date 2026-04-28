@@ -330,8 +330,8 @@ window.FunctionEngine = (() => {
     function generateFunction(level) {
         const byLevel = {
             1: ['linear', 'quad2', 'quadNoRoots'],
-            2: ['linear', 'quad2', 'quadNoRoots', 'cubicMono', 'cubicDouble'],
-            3: ['linear', 'quad2', 'quadNoRoots', 'cubicMono', 'cubicDouble', 'exp', 'sqrt', 'rational'],
+            2: ['quad2', 'quadNoRoots', 'cubicMono', 'cubicDouble'],
+            3: ['quad2', 'quadNoRoots', 'cubicMono', 'cubicDouble', 'exp', 'sqrt', 'rational'],
         };
         const t = _pick(byLevel[level] || byLevel[2]);
         switch (t) {
