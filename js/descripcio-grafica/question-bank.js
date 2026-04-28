@@ -1,18 +1,11 @@
 /**
  * js/descripcio-grafica/question-bank.js
- * Genera preguntes de monotonia i signe per a "Descripció d'una gràfica".
+ * Genera preguntes de signe, monotonia i concavitat.
  *
  * Cada pregunta retorna:
  *   { type, badge, label, options: [{text, isCorrect}, ...] }
  *
- * Les opcions (1 correcta + 3 distractors) s'expressen en text pla amb
- * intervals Unicode (−∞, +∞, ∪) per evitar KaTeX en els botons de resposta.
- *
- * Estratègia de distractors:
- *   1. Invertir creixent↔decreixent o positiu↔negatiu
- *   2. Usar els breakpoints de l'altra pregunta com a punts equivocats
- *   3. Desplaçar els breakpoints correctes ±1 o ±2
- *   4. Fallback: "sempre creixent/decreixent" o "sempre positiva/negativa"
+ * Notació d'intervals: Unicode pla (−∞, +∞, ∪) sense KaTeX als botons.
  */
 
 window.QuestionBank = (() => {
@@ -30,7 +23,6 @@ window.QuestionBank = (() => {
         return a;
     }
 
-    /** Formata un nombre per a intervals (Unicode, no LaTeX). */
     function _n(x) {
         if (x ===  INF) return '+∞';
         if (x === -INF) return '−∞';
@@ -44,16 +36,12 @@ window.QuestionBank = (() => {
     //  →  "f(x) és decreixent a (−∞, −1) ∪ (1, +∞) i creixent a (−1, 1)"
     // ------------------------------------------------------------------ //
     function _monLabel(breaks, parts) {
-        const pts  = [-INF, ...breaks, INF];
-
-        // Agrupa intervals per sentit, mantenint l'ordre de primera aparició
-        const seen   = [];
-        const groups = {};
+        const pts = [-INF, ...breaks, INF];
+        const seen = [], groups = {};
         parts.forEach((p, i) => {
             if (!groups[p]) { groups[p] = []; seen.push(p); }
             groups[p].push(_iv(pts[i], pts[i + 1]));
         });
-
         const descs = seen.map(p => `${p} a ${groups[p].join(' ∪ ')}`);
         if (descs.length === 1) return `f(x) és ${descs[0]}`;
         return `f(x) és ${descs.slice(0, -1).join(', ')} i ${descs[descs.length - 1]}`;
@@ -61,40 +49,51 @@ window.QuestionBank = (() => {
 
     // ------------------------------------------------------------------ //
     //  TEXT DE SIGNE
-    //  Ex: signBreaks=[2,6], signParts=['negatiu','positiu','negatiu']
-    //  →  "f(x) és positiva a (2, 6) i negativa a (−∞, 2) ∪ (6, +∞)"
     // ------------------------------------------------------------------ //
     function _signLabel(breaks, parts) {
-        if (parts.every(p => p === 'positiu')) return 'f(x) és positiva a (−∞, +∞)';
-        if (parts.every(p => p === 'negatiu')) return 'f(x) és negativa a (−∞, +∞)';
+        if (parts.every(p => p === 'positiu')) return 'f(x) > 0 a (−∞, +∞)';
+        if (parts.every(p => p === 'negatiu')) return 'f(x) < 0 a (−∞, +∞)';
         const pts = [-INF, ...breaks, INF];
         const pos = [], neg = [];
         parts.forEach((p, i) => (p === 'positiu' ? pos : neg).push(_iv(pts[i], pts[i + 1])));
-        return `f(x) és positiva a ${pos.join(' ∪ ')} i negativa a ${neg.join(' ∪ ')}`;
+        return `f(x) > 0 a ${pos.join(' ∪ ')} i f(x) < 0 a ${neg.join(' ∪ ')}`;
     }
 
     // ------------------------------------------------------------------ //
-    //  GENERADOR DE DISTRACTORS (genèric per a mono i signe)
-    //
-    //  @param correct     — string de la resposta correcta
-    //  @param breaks      — breakpoints de la pregunta actual
-    //  @param parts       — parts de la pregunta actual
-    //  @param otherBreaks — breakpoints de l'altra pregunta (fonts de distractors)
-    //  @param labelFn     — _monLabel o _signLabel
+    //  TEXT DE CONCAVITAT — agrupa intervals del mateix sentit amb ∪
+    //  Ex: breaks=[2], parts=['avall','amunt']
+    //  →  "f(x) és còncava cap avall a (−∞, 2) i còncava cap amunt a (2, +∞)"
     // ------------------------------------------------------------------ //
-    function _genDistrs(correct, breaks, parts, otherBreaks, labelFn) {
+    function _concLabel(breaks, parts) {
+        if (parts.every(p => p === 'amunt')) return 'f(x) és còncava cap amunt a (−∞, +∞)';
+        if (parts.every(p => p === 'avall')) return 'f(x) és còncava cap avall a (−∞, +∞)';
+        const pts = [-INF, ...breaks, INF];
+        const seen = [], groups = {};
+        parts.forEach((p, i) => {
+            if (!groups[p]) { groups[p] = []; seen.push(p); }
+            groups[p].push(_iv(pts[i], pts[i + 1]));
+        });
+        const descs = seen.map(p => `còncava cap ${p} a ${groups[p].join(' ∪ ')}`);
+        if (descs.length === 1) return `f(x) és ${descs[0]}`;
+        return `f(x) és ${descs.slice(0, -1).join(', ')} i ${descs[descs.length - 1]}`;
+    }
+
+    // ------------------------------------------------------------------ //
+    //  GENERADOR DE DISTRACTORS (genèric)
+    // ------------------------------------------------------------------ //
+    function _genDistrs(correct, breaks, parts, otherBreaks, labelFn, fallbacks) {
         const FLIP = parts.map(p =>
-            p === 'creixent' ? 'decreixent' :
-            p === 'decreixent' ? 'creixent' :
-            p === 'positiu'  ? 'negatiu'  : 'positiu'
+            p === 'creixent'  ? 'decreixent' :
+            p === 'decreixent'? 'creixent'   :
+            p === 'positiu'   ? 'negatiu'    :
+            p === 'negatiu'   ? 'positiu'    :
+            p === 'amunt'     ? 'avall'      : 'amunt'
         );
         const pool = [];
         const add  = d => { if (d !== correct && !pool.includes(d)) pool.push(d); };
 
-        // D1: invertir totes les parts
         add(labelFn(breaks, FLIP));
 
-        // D2–Dn: punts de tall alternatius
         const alts = [
             ...otherBreaks,
             ...(breaks.length > 0 ? [breaks[0] - 1, breaks[0] + 1, breaks[0] + 2, breaks[0] - 2] : []),
@@ -117,15 +116,7 @@ window.QuestionBank = (() => {
             if (pool.length >= 6) break;
         }
 
-        // Fallback "sempre"
-        const isMon = parts[0] === 'creixent' || parts[0] === 'decreixent';
-        if (isMon) {
-            add('f(x) és creixent a (−∞, +∞)');
-            add('f(x) és decreixent a (−∞, +∞)');
-        } else {
-            add('f(x) és positiva a (−∞, +∞)');
-            add('f(x) és negativa a (−∞, +∞)');
-        }
+        (fallbacks || []).forEach(f => add(f));
 
         return pool.slice(0, 3);
     }
@@ -133,10 +124,31 @@ window.QuestionBank = (() => {
     // ------------------------------------------------------------------ //
     //  API PÚBLICA
     // ------------------------------------------------------------------ //
+    function generateSignQ(spec) {
+        const { signBreaks, signParts, monBreaks } = spec;
+        const correct = _signLabel(signBreaks, signParts);
+        const distrs  = _genDistrs(correct, signBreaks, signParts, monBreaks, _signLabel, [
+            'f(x) > 0 a (−∞, +∞)',
+            'f(x) < 0 a (−∞, +∞)'
+        ]);
+        return {
+            type:    'Q_SIGN',
+            badge:   'Signe de f(x)',
+            label:   'Intervals on f(x) > 0 i on f(x) < 0:',
+            options: _shuffle([
+                { text: correct, isCorrect: true  },
+                ...distrs.map(t => ({ text: t, isCorrect: false }))
+            ])
+        };
+    }
+
     function generateMonoQ(spec) {
         const { monBreaks, monParts, signBreaks } = spec;
         const correct = _monLabel(monBreaks, monParts);
-        const distrs  = _genDistrs(correct, monBreaks, monParts, signBreaks, _monLabel);
+        const distrs  = _genDistrs(correct, monBreaks, monParts, signBreaks, _monLabel, [
+            'f(x) és creixent a (−∞, +∞)',
+            'f(x) és decreixent a (−∞, +∞)'
+        ]);
         return {
             type:    'Q_MONO',
             badge:   'Monotonia de f(x)',
@@ -148,14 +160,17 @@ window.QuestionBank = (() => {
         };
     }
 
-    function generateSignQ(spec) {
-        const { signBreaks, signParts, monBreaks } = spec;
-        const correct = _signLabel(signBreaks, signParts);
-        const distrs  = _genDistrs(correct, signBreaks, signParts, monBreaks, _signLabel);
+    function generateConcQ(spec) {
+        const { concBreaks, concParts, monBreaks } = spec;
+        const correct = _concLabel(concBreaks, concParts);
+        const distrs  = _genDistrs(correct, concBreaks, concParts, monBreaks, _concLabel, [
+            'f(x) és còncava cap amunt a (−∞, +∞)',
+            'f(x) és còncava cap avall a (−∞, +∞)'
+        ]);
         return {
-            type:    'Q_SIGN',
-            badge:   'Signe de f(x)',
-            label:   'On és positiva i negativa f(x)?',
+            type:    'Q_CONC',
+            badge:   'Concavitat de f(x)',
+            label:   'Els intervals de concavitat de f(x) són aquests:',
             options: _shuffle([
                 { text: correct, isCorrect: true  },
                 ...distrs.map(t => ({ text: t, isCorrect: false }))
@@ -163,5 +178,5 @@ window.QuestionBank = (() => {
         };
     }
 
-    return { generateMonoQ, generateSignQ };
+    return { generateSignQ, generateMonoQ, generateConcQ };
 })();
