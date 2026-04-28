@@ -46,7 +46,13 @@
                         <button class="lvl-btn"        id="lvl-btn-3" onclick="setLevel(3)">Nivell 3</button>
                     </div>
                     <span class="session-sep">·</span>
-                    <span class="level-text" id="lvl-display">Pregunta 1 de 8</span>
+                    <span class="level-text" id="lvl-display">Funció 1 de 4</span>
+            </div>
+            <div class="header-right">
+                <button class="colored-toggle active" id="btn-colored" onclick="toggleColoredGraphs()" title="Mostrar les gràfiques modificades">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="6" cy="13" r="2.5"/><circle cx="10" cy="19.5" r="2.5"/><path d="M13.5 9v1.5M19 15.5V17M6 15.5V17M10 22v-1"/></svg>
+                    Gràfiques acolorides
+                </button>
             </div>
         </div>
 
@@ -66,6 +72,10 @@
             <!-- Columna dreta: gràfic SVG (sempre visible) -->
             <div class="game-right">
                 <div id="graph-canvas"></div>
+                <div id="graph-footer" style="display:none;">
+                    <div id="countdown-wrap"><div id="countdown-bar"></div></div>
+                    <button id="btn-skip" onclick="skipCountdown()">Continua →</button>
+                </div>
             </div>
 
         </div>

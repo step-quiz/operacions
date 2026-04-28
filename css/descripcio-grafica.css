@@ -80,15 +80,57 @@ body {
 
 /* ---- HEADER INFO ---- */
 .header-info {
-    display: flex; align-items: center;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 8px 16px;
     border-bottom: 1px solid var(--border-light);
     flex-shrink: 0;
 }
 .header-left     { display: flex; align-items: center; gap: 6px; }
+.header-right    { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .session-text    { font-size: .98rem; font-weight: 700; color: var(--text-muted); }
 .level-text      { font-size: .9rem;  font-weight: 600; color: var(--text-muted); }
 .session-sep     { color: var(--border-heavy); font-size: 1rem; }
+
+/* ---- BOTÓ GRÀFIQUES ACOLORIDES ---- */
+.colored-toggle {
+    display: flex; align-items: center; gap: 5px;
+    border: 2px solid var(--border-heavy); padding: 5px 11px; border-radius: 8px;
+    cursor: pointer; font-family: 'Barlow', sans-serif;
+    font-size: .82rem; font-weight: 700;
+    color: var(--text-muted); background: transparent;
+    transition: all .2s;
+}
+.colored-toggle:hover { border-color: var(--primary); color: var(--primary); }
+.colored-toggle.active {
+    background: var(--primary-light); border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* ---- FOOTER DE GRÀFIC (countdown + skip) ---- */
+#graph-footer {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 2px 2px; flex-shrink: 0;
+}
+#countdown-wrap {
+    flex: 1; height: 5px; background: var(--border-light);
+    border-radius: 3px; overflow: hidden;
+}
+@keyframes drainBar {
+    from { width: 100%; }
+    to   { width: 0%;   }
+}
+#countdown-bar {
+    height: 100%; width: 100%;
+    background: var(--primary); border-radius: 3px;
+}
+#btn-skip {
+    flex-shrink: 0; padding: 4px 12px;
+    font-family: 'Barlow', sans-serif; font-size: .82rem; font-weight: 700;
+    border: none; background: var(--primary); color: white;
+    border-radius: 7px; cursor: pointer; transition: background .15s;
+    white-space: nowrap;
+}
+#btn-skip:hover { background: var(--primary-hover); }
 
 /* ---- GAME SCREEN ---- */
 #game-screen {

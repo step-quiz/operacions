@@ -26,9 +26,12 @@
     // Ordre de les fases per funció
     const PHASES = ['SIGN', 'MONO', 'CONC'];
 
-    let currentRound = 0;
-    let currentPhaseIdx = 0;   // índex dins PHASES
-    let currentSpec  = null;
+    let currentRound    = 0;
+    let currentPhaseIdx = 0;
+    let currentSpec     = null;
+    let showColoredGraphs = true;   // preferència de l'usuari
+    let _countdownTimer   = null;   // referència al setTimeout actiu
+    let _advanceFn        = null;   // funció de pas guardada per skipCountdown
 
     const els = {
         gameScreen:  document.getElementById('game-screen'),
@@ -39,7 +42,9 @@
         lvlDisplay:  document.getElementById('lvl-display'),
         badge:       document.getElementById('q-badge'),
         label:       document.getElementById('q-label'),
-        graphCanvas: document.getElementById('graph-canvas'),
+        graphCanvas:  document.getElementById('graph-canvas'),
+        graphFooter:  document.getElementById('graph-footer'),
+        countdownBar: document.getElementById('countdown-bar'),
     };
 
     // ------------------------------------------------------------------ //
@@ -93,27 +98,55 @@
             els.feedback.innerHTML     = '<span class="feedback-correct">✓ Correcte!</span>';
             els.feedback.style.opacity = '1';
 
-            setTimeout(() => {
-                // Avança a la fase següent (saltant CONC si hasConcavity=false)
+            const phase = PHASES[currentPhaseIdx];
+            const advance = () => {
+                _clearCountdown();
                 const nextIdx = _nextPhaseIdx(currentPhaseIdx);
                 if (nextIdx !== null) {
                     currentPhaseIdx = nextIdx;
                     buildQuestion();
                 } else {
                     currentRound++;
-                    if (currentRound >= TOTAL_ROUNDS) {
-                        _showSummary();
-                    } else {
-                        buildFunction();
-                    }
+                    if (currentRound >= TOTAL_ROUNDS) _showSummary();
+                    else buildFunction();
                 }
-            }, 1400);
+            };
+
+            if (showColoredGraphs) {
+                // Petit delay per veure el botó verd, llavors mostra la gràfica acolorida
+                setTimeout(() => {
+                    els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVGColored(currentSpec, phase);
+                    _startCountdown(5000, advance);
+                }, 400);
+            } else {
+                setTimeout(advance, 1400);
+            }
 
         } else {
             btn.classList.add('wrong');
             els.feedback.innerHTML     = 'Revisa la gràfica i torna-ho a intentar.';
             els.feedback.style.opacity = '1';
         }
+    }
+
+    // ------------------------------------------------------------------ //
+    //  COUNTDOWN (barra de progrés + boto skip)
+    // ------------------------------------------------------------------ //
+    function _startCountdown(duration, callback) {
+        _advanceFn = callback;
+        els.graphFooter.style.display = 'flex';
+        // Reinicia l'animació retirant i tornant a afegir l'element
+        const bar = els.countdownBar;
+        bar.style.animation = 'none';
+        bar.offsetWidth;  // reflow
+        bar.style.animation = `drainBar ${duration}ms linear forwards`;
+        _countdownTimer = setTimeout(callback, duration);
+    }
+
+    function _clearCountdown() {
+        if (_countdownTimer) { clearTimeout(_countdownTimer); _countdownTimer = null; }
+        _advanceFn = null;
+        if (els.graphFooter) els.graphFooter.style.display = 'none';
     }
 
     /** Retorna l'índex de la següent fase, o null si s'ha acabat la funció. */
@@ -143,11 +176,25 @@
         els.summary.style.display = 'flex';
         document.getElementById('btn-restart').addEventListener('click', () => {
             currentRound = 0; currentPhaseIdx = 0; currentSpec = null;
+            _clearCountdown();
             els.summary.style.display    = 'none';
             els.gameScreen.style.display = 'flex';
             buildFunction();
         });
     }
+
+    // ------------------------------------------------------------------ //
+    //  CONFIGURACIÓ — cridat des del botó onclick del HTML
+    // ------------------------------------------------------------------ //
+    window.toggleColoredGraphs = function () {
+        showColoredGraphs = !showColoredGraphs;
+        const btn = document.getElementById('btn-colored');
+        if (btn) btn.className = 'colored-toggle' + (showColoredGraphs ? ' active' : '');
+    };
+
+    window.skipCountdown = function () {
+        if (_advanceFn) { const fn = _advanceFn; _clearCountdown(); fn(); }
+    };
 
     // ------------------------------------------------------------------ //
     //  CANVI DE NIVELL (cridat des dels botons onclick del HTML)
@@ -159,6 +206,7 @@
             if (b) b.className = 'lvl-btn' + (i === n ? ' active' : '');
         });
         currentRound = 0; currentPhaseIdx = 0; currentSpec = null;
+        _clearCountdown();
         buildFunction();
     };
 
