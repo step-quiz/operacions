@@ -76,7 +76,7 @@ window.SvgRenderer = (() => {
 
         // ---- Corba ----
         _buildCurve(spec, tx, ty, xMin, xMax, yMin, yMax).forEach(d => {
-            L.push(`<path d="${d}" fill="none" stroke="#0077b6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`);
+            L.push(`<path d="${d}" fill="none" stroke="#000000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`);
         });
 
         // ---- Punts clau (zeros, extrems, inflexions) ----
@@ -87,16 +87,16 @@ window.SvgRenderer = (() => {
             if (type === 'inflexion') {
                 // Cercle buit en lila — marca el punt d'inflexió
                 const axisY = (yMin <= 0 && yMax >= 0) ? ty(0) : MT + PH;
-                L.push(`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${axisY.toFixed(1)}" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.5"/>`);
+                L.push(`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${axisY.toFixed(1)}" stroke="#8b1a1a" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.5"/>`);
                 const fmtN = v => Number.isInteger(v) ? `${v < 0 ? '−' + (-v) : v}` : v.toFixed(1);
                 const abovePoint = y > (yMin + yMax) / 2;
                 const lx = px + 36, ly = abovePoint ? py - 10 : py + 16;
-                L.push(`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="11" font-weight="700" fill="#7c3aed">(${fmtN(x)}, ${fmtN(y)})</text>`);
-                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="white" stroke="#7c3aed" stroke-width="2"/>`);
+                L.push(`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="11" font-weight="700" fill="#8b1a1a">(${fmtN(x)}, ${fmtN(y)})</text>`);
+                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="white" stroke="#8b1a1a" stroke-width="2"/>`);
                 return;
             }
 
-            const col = type === 'root' ? '#ef4444' : '#f59e0b';
+            const col = '#8b1a1a';
             if (type === 'extremum') {
                 const axisY = (yMin <= 0 && yMax >= 0) ? ty(0) : MT + PH;
                 L.push(`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${axisY.toFixed(1)}" stroke="${col}" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.55"/>`);
@@ -227,14 +227,14 @@ window.SvgRenderer = (() => {
             const px = tx(x), py = ty(y);
             if (type === 'inflexion') {
                 const axisY = (yMin <= 0 && yMax >= 0) ? ty(0) : MT + PH;
-                L.push(`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${axisY.toFixed(1)}" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.5"/>`);
+                L.push(`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${axisY.toFixed(1)}" stroke="#8b1a1a" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.5"/>`);
                 const fmtN = v => Number.isInteger(v)?`${v<0?'−'+(-v):v}`:v.toFixed(1);
                 const abv = y > (yMin+yMax)/2;
-                L.push(`<text x="${(px+36).toFixed(1)}" y="${(abv?py-10:py+16).toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="11" font-weight="700" fill="#7c3aed">(${fmtN(x)}, ${fmtN(y)})</text>`);
-                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="white" stroke="#7c3aed" stroke-width="2"/>`);
+                L.push(`<text x="${(px+36).toFixed(1)}" y="${(abv?py-10:py+16).toFixed(1)}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="11" font-weight="700" fill="#8b1a1a">(${fmtN(x)}, ${fmtN(y)})</text>`);
+                L.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5.5" fill="white" stroke="#8b1a1a" stroke-width="2"/>`);
                 return;
             }
-            const col = type === 'root' ? '#ef4444' : '#f59e0b';
+            const col = '#8b1a1a';
             if (type === 'extremum') {
                 const axisY = (yMin <= 0 && yMax >= 0) ? ty(0) : MT + PH;
                 L.push(`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${axisY.toFixed(1)}" stroke="${col}" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.55"/>`);

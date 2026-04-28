@@ -62,6 +62,11 @@
     //  NOVA PREGUNTA
     // ------------------------------------------------------------------ //
     function buildQuestion() {
+        // Restaura la gràfica negra (pot venir d'un estat acolorit)
+        if (currentSpec) {
+            els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
+        }
+        _clearCountdown();   // amaga llegenda i barra si quedaven visibles
         els.feedback.style.opacity = '0';
         els.feedback.innerHTML     = '';
         els.lvlDisplay.textContent = `Funció ${currentRound + 1} de ${TOTAL_ROUNDS}`;
