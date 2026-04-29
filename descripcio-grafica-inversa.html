@@ -153,6 +153,29 @@
 
         /* Petita separació entre la fórmula i els blocs */
         .function-box { margin-bottom: 4px; }
+
+        /* ---- FÓRMULA AMAGADA ---- */
+        .function-math.hidden-fx { display: none; }
+
+        .btn-reveal-fx {
+            align-self: flex-start;
+            padding: 7px 14px;
+            font-family: 'Barlow', sans-serif;
+            font-size: .85rem; font-weight: 700;
+            border: none; border-radius: 8px;
+            background: #1e293b; color: white;
+            cursor: pointer;
+            transition: background .15s, transform .12s;
+        }
+        .btn-reveal-fx:hover  { background: #0f172a; }
+        .btn-reveal-fx:active { transform: scale(.97); }
+
+        /* Línies de text separades dins cada bloc */
+        .desc-text .desc-line {
+            display: block;
+            margin-bottom: 2px;
+        }
+        .desc-text .desc-line:last-child { margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -188,7 +211,8 @@
                 <!-- Fórmula -->
                 <div class="function-box">
                     <div class="function-label">Descriu i dibuixa aquesta funció:</div>
-                    <div id="fx-display" class="function-math"></div>
+                    <button class="btn-reveal-fx" id="btn-reveal-fx" onclick="revealFx()">Visualitzar l'expressió de f(x)</button>
+                    <div id="fx-display" class="function-math hidden-fx"></div>
                 </div>
 
                 <!-- Bloc A: Signe -->
@@ -257,22 +281,90 @@
     let currentSpec   = null;
 
     const els = {
-        gameScreen: document.getElementById('game-screen'),
-        fxDisplay:  document.getElementById('fx-display'),
-        lvlDisplay: document.getElementById('lvl-display'),
-        textSign:   document.getElementById('text-sign'),
-        textMono:   document.getElementById('text-mono'),
-        textConc:   document.getElementById('text-conc'),
-        blockConc:  document.getElementById('block-conc'),
-        graphCanvas:document.getElementById('graph-canvas'),
-        graphLegend:document.getElementById('graph-legend'),
-        overlay:    document.getElementById('graph-overlay'),
+        gameScreen:  document.getElementById('game-screen'),
+        fxDisplay:   document.getElementById('fx-display'),
+        btnRevealFx: document.getElementById('btn-reveal-fx'),
+        lvlDisplay:  document.getElementById('lvl-display'),
+        textSign:    document.getElementById('text-sign'),
+        textMono:    document.getElementById('text-mono'),
+        textConc:    document.getElementById('text-conc'),
+        blockConc:   document.getElementById('block-conc'),
+        graphCanvas: document.getElementById('graph-canvas'),
+        graphLegend: document.getElementById('graph-legend'),
+        overlay:     document.getElementById('graph-overlay'),
     };
 
-    // ---- Extreu la resposta correcta d'un bloc de preguntes ----
-    function _correct(q) {
-        return q.options.find(o => o.isCorrect).text;
+    // ----------------------------------------------------------------
+    //  HELPERS D'INTERVALS (reproduïts del question-bank, notació pròpia)
+    // ----------------------------------------------------------------
+    const INF = Infinity;
+    function _n(x) {
+        if (x ===  INF) return '+∞';
+        if (x === -INF) return '−∞';
+        return x < 0 ? `−${-x}` : `${x}`;
     }
+    function _iv(a, b) { return `(${_n(a)}, ${_n(b)})`; }
+
+    // Agrupa intervals per valor i retorna array de línies HTML
+    function _groupLines(breaks, parts, labelFn) {
+        const pts = [-INF, ...breaks, INF];
+        const seen = [], groups = {};
+        parts.forEach((p, i) => {
+            const iv = _iv(pts[i], pts[i + 1]);
+            if (!groups[p]) { groups[p] = []; seen.push(p); }
+            groups[p].push(iv);
+        });
+        return seen.map(p => labelFn(p, groups[p].join(' ∪ ')));
+    }
+
+    function signLines(spec) {
+        const { signBreaks, signParts } = spec;
+        if (signParts.every(p => p === 'positiu')) return [`f(x) > 0 a l'interval (−∞, +∞)`];
+        if (signParts.every(p => p === 'negatiu')) return [`f(x) < 0 a l'interval (−∞, +∞)`];
+        return _groupLines(signBreaks, signParts, (p, ivs) =>
+            p === 'positiu'
+                ? `f(x) > 0 a l'interval ${ivs}`
+                : `f(x) < 0 a l'interval ${ivs}`
+        );
+    }
+
+    function monoLines(spec) {
+        const { monBreaks, monParts } = spec;
+        if (monParts.length === 1) {
+            const mot = monParts[0] === 'creixent' ? 'creixent' : 'decreixent';
+            return [`f(x) és ${mot} a l'interval (−∞, +∞)`];
+        }
+        return _groupLines(monBreaks, monParts, (p, ivs) =>
+            `f(x) és ${p} a l'interval ${ivs}`
+        );
+    }
+
+    function concLines(spec) {
+        if (!spec.hasConcavity) return null;
+        const { concBreaks, concParts } = spec;
+        if (concParts.length === 1) {
+            const mot = concParts[0] === 'amunt' ? 'positiva' : 'negativa';
+            return [`f(x) té concavitat ${mot} a l'interval (−∞, +∞)`];
+        }
+        return _groupLines(concBreaks, concParts, (p, ivs) => {
+            const mot = p === 'amunt' ? 'positiva' : 'negativa';
+            return `f(x) té concavitat ${mot} a l'interval ${ivs}`;
+        });
+    }
+
+    function _renderLines(el, lines) {
+        el.innerHTML = lines
+            .map(l => `<span class="desc-line">${l}</span>`)
+            .join('');
+    }
+
+    // ----------------------------------------------------------------
+    //  TOGGLE FÓRMULA
+    // ----------------------------------------------------------------
+    window.revealFx = function () {
+        els.fxDisplay.classList.remove('hidden-fx');
+        els.btnRevealFx.style.display = 'none';
+    };
 
     // ----------------------------------------------------------------
     //  CONSTRUEIX UNA NOVA FUNCIÓ
@@ -281,40 +373,37 @@
         functionCount++;
         els.lvlDisplay.textContent = `Funció ${functionCount}`;
 
+        // Amaga la fórmula de nou
+        els.fxDisplay.classList.add('hidden-fx');
+        els.btnRevealFx.style.display = '';
+
         // Genera l'especificació
         currentSpec = FunctionEngine.generateFunction(currentLevel);
 
-        // Fórmula KaTeX (espera que KaTeX estigui carregat)
+        // Fórmula KaTeX (renderitzada però amagada)
         if (window.katex) {
             katex.render(currentSpec.latex, els.fxDisplay, { throwOnError: false, displayMode: true });
         } else {
-            // Fallback: text pla fins que KaTeX carregui
             els.fxDisplay.textContent = currentSpec.latex;
-            document.addEventListener('katex-loaded', () => {
-                katex.render(currentSpec.latex, els.fxDisplay, { throwOnError: false, displayMode: true });
-            }, { once: true });
         }
 
-        // Blocs A / B / C — agafem la resposta correcta del QuestionBank
-        const signQ = QuestionBank.generateSignQ(currentSpec);
-        const monoQ = QuestionBank.generateMonoQ(currentSpec);
+        // Blocs A / B / C — text propi, per línies
+        _renderLines(els.textSign, signLines(currentSpec));
+        _renderLines(els.textMono, monoLines(currentSpec));
 
-        els.textSign.textContent = _correct(signQ);
-        els.textMono.textContent = _correct(monoQ);
-
-        if (currentSpec.hasConcavity) {
-            const concQ = QuestionBank.generateConcQ(currentSpec);
-            els.textConc.textContent = _correct(concQ);
+        const cLines = concLines(currentSpec);
+        if (cLines) {
+            _renderLines(els.textConc, cLines);
             els.blockConc.classList.remove('no-concavity');
         } else {
-            els.textConc.textContent = 'Aquesta família de funcions no té inflexió definida amb intervals enters.';
+            els.textConc.innerHTML = `<span class="desc-line">Aquesta família de funcions no té inflexió definida amb intervals enters.</span>`;
             els.blockConc.classList.add('no-concavity');
         }
 
         // Renderitza el gràfic (amagat sota l'overlay)
         els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
 
-        // Amaga la llegenda i tapa el gràfic de nou
+        // Torna a tapar el gràfic
         els.graphLegend.style.display = 'none';
         els.graphLegend.innerHTML     = '';
         els.overlay.classList.remove('hidden');
@@ -326,25 +415,12 @@
     window.revealGraph = function () {
         if (!currentSpec) return;
         els.overlay.classList.add('hidden');
-
-        // Opcional: mostra el gràfic acolorit amb llegenda (totes 3 propietats)
-        // Mostra primer SIGN (o pots canviar a MONO/CONC)
-        // Aquí mostrem la gràfica neutra (negra) per no distreure
-        // Si vols mostrar la acolorida, descomenta les línies de sota:
-        /*
-        const { svg, legend } = SvgRenderer.renderFuncSVGColored(currentSpec, 'SIGN');
-        els.graphCanvas.innerHTML = svg;
-        els.graphLegend.innerHTML = legend.map(e =>
-            `<span class="legend-pill" style="--pill-color:${e.color}">${e.label}</span>`
-        ).join('');
-        els.graphLegend.style.display = 'flex';
-        */
     };
 
     // ----------------------------------------------------------------
     //  CANVI DE NIVELL
     // ----------------------------------------------------------------
-    window.buildFunction = buildFunction;   // exposat per onclick del HTML
+    window.buildFunction = buildFunction;
 
     window.setLevel = function (n) {
         currentLevel = n;
@@ -356,7 +432,7 @@
     };
 
     // ----------------------------------------------------------------
-    //  INICI — espera KaTeX i DOM
+    //  INICI
     // ----------------------------------------------------------------
     window.addEventListener('DOMContentLoaded', () => {
         [1, 2, 3].forEach(i => {
@@ -365,7 +441,6 @@
         });
         els.gameScreen.style.display = 'flex';
 
-        // KaTeX és "defer" → pot no estar llest encara
         function tryBuild() {
             if (window.katex) { buildFunction(); }
             else               { setTimeout(tryBuild, 50); }
