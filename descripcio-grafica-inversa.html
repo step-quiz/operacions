@@ -53,9 +53,8 @@
             flex-shrink: 0;
         }
         .desc-badge {
-            font-size: .74rem; font-weight: 700; letter-spacing: .5px;
-            text-transform: uppercase;
-            background: var(--primary-light); color: var(--primary-dark);
+            font-size: .89rem; font-weight: 700;
+            background: var(--primary-light); color: var(--text-main);
             padding: 3px 10px; border-radius: 20px;
         }
         .desc-text {
@@ -71,8 +70,9 @@
         /* ---- BOTÓ NOVA FUNCIÓ ---- */
         .btn-nova {
             margin-top: 4px;
-            padding: 10px 0;
-            width: 100%;
+            padding: 10px 22px;
+            width: auto;
+            align-self: flex-start;
             font-family: 'Barlow', sans-serif;
             font-size: .95rem; font-weight: 700;
             border: none; border-radius: 10px;
@@ -235,7 +235,7 @@
                         <div class="overlay-icon">✏️</div>
                         <div class="overlay-msg">Dibuixa la gràfica<br>a la llibreta</div>
                         <div class="overlay-sub">Fes servir les tres característiques<br>de l'esquerra com a guia</div>
-                        <button class="btn-comprova" onclick="revealGraph()">Comprova la gràfica →</button>
+                        <button class="btn-comprova" onclick="revealGraph()">Visualitza la gràfica amagada →</button>
                     </div>
 
                     <!-- Llegenda acolorida (apareix quan es revela) -->
@@ -344,6 +344,8 @@
     // ----------------------------------------------------------------
     //  CANVI DE NIVELL
     // ----------------------------------------------------------------
+    window.buildFunction = buildFunction;   // exposat per onclick del HTML
+
     window.setLevel = function (n) {
         currentLevel = n;
         [1, 2, 3].forEach(i => {
