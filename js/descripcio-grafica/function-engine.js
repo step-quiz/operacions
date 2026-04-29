@@ -388,7 +388,22 @@ window.FunctionEngine = (() => {
 
     function _refillDeck(level) {
         const pool = [...(WEIGHTED_FAMILIES[level] || WEIGHTED_FAMILIES[2])];
-        _deck[level] = _shuffle(pool);
+        _shuffle(pool);
+
+        if (level >= 2) {
+            // Garanteix que les 2 primeres funcions tractades siguin cúbiques.
+            // pop() treu del final → les cúbiques han d'anar al final de l'array.
+            const cubicIdxs = [];
+            for (let i = 0; i < pool.length && cubicIdxs.length < 2; i++) {
+                if (pool[i].startsWith('cubic')) cubicIdxs.push(i);
+            }
+            // Retirem en ordre invers per no invalidar els índexs i afegim al final
+            for (let i = cubicIdxs.length - 1; i >= 0; i--) {
+                pool.push(pool.splice(cubicIdxs[i], 1)[0]);
+            }
+        }
+
+        _deck[level] = pool;
     }
 
     function _dealFamily(level) {
