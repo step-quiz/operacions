@@ -1,3 +1,45 @@
+# PATCH SEGÜENT — Fix detecció dispositius tàctils (29 abril 2026)
+
+## Bug corregit:
+- **[M8]** `isTouchDevice()` detectava com a "mòbil" qualsevol ordinador amb
+  pantalla tàctil disponible, encara que l'usuari estigués utilitzant ratolí o
+  trackpad. Això activava el teclat numèric custom i les regles CSS pensades
+  per Chromebooks en portàtils Windows/Linux/Mac amb touchscreen, trencant
+  el layout del panell del joc (l'equació deixava de veure's correctament).
+
+## Causa tècnica:
+- `(any-pointer: coarse)` retorna `true` si **qualsevol** pointing device
+  del sistema és coarse, encara que sigui una pantalla tàctil que l'usuari
+  no està fent servir.
+- Substituït per `(pointer: coarse)` (només el dispositiu principal) i,
+  a JavaScript, combinat amb `(hover: none)` per descartar amb seguretat
+  els portàtils tàctils on també hi ha un ratolí amb hover.
+
+## Fitxers modificats (4):
+
+### js/game-core.js (línia 280)
+- `isTouchDevice()`: `(any-pointer: coarse)` →
+  `(pointer: coarse) and (hover: none)`
+
+### css/chromebook.css (5 ocurrències: línies 12, 210, 228, 246, 259)
+- Totes les `(any-pointer: coarse)` → `(pointer: coarse)`
+
+### css/shared.css (línia 302)
+- Media query tauletes portrait (601-819px):
+  `(any-pointer: coarse)` → `(pointer: coarse)`
+
+### js/vocabulari/vocabulari.js (línies 103 i 569)
+- `_isTouchDevice()` re-unificada amb game-core.js (supersedeix part de [M1])
+- `_isMobilePortrait()`: check Chromebook actualitzat a `(pointer: coarse)`
+- Comentari `[FIX M1]` actualitzat per reflectir la nova lògica
+
+## Comportament resultant:
+- Portàtils amb pantalla tàctil + ratolí: NO activen mode tàctil ✅
+- Mòbils i tauletes: ACTIVEN mode tàctil ✅
+- Chromebooks autèntics en mode tablet: ACTIVEN mode tàctil ✅
+
+---
+
 # PATCH FINAL DEFINITIU — Step Quiz
 # Descomprimeix a l'arrel d'operacions-main i sobreescriu.
 # Inclou TOTS els fixes pendents (7) + els 8 de detall.
@@ -52,7 +94,7 @@
   del projecte (són còpies errònies, cap HTML els referencia)
 - **[m10]** Redundància tutorials: requereix refactorització arquitectural
 
-## Resum complet: 22 de 24 bugs resolts
+## Resum complet: 23 de 25 bugs resolts
 
 | ID  | Gravetat  | Estat |
 |-----|-----------|-------|
@@ -70,6 +112,7 @@
 | M5  | Moderat   | ✅ Resolt |
 | M6  | Detall    | ✅ Resolt |
 | M7  | Moderat   | ✅ Resolt |
+| M8  | Moderat   | ✅ Resolt (29-04-2026) |
 | m1  | Detall    | ✅ Resolt (patch anterior) |
 | m2  | Detall    | ✅ Resolt |
 | m3  | Detall    | ✅ Resolt |

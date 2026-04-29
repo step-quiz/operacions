@@ -277,7 +277,7 @@ function injectSharedHTML() {
 }
 
 // ── TECLAT NUMERIC CUSTOM ────────────────────────────────────────────────────
-function isTouchDevice() { return window.matchMedia('(any-pointer: coarse)').matches; }
+function isTouchDevice() { return window.matchMedia('(pointer: coarse) and (hover: none)').matches; }
 let _kbActiveInput = null;
 let _kbClearOnNext = false;
 

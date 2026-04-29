@@ -98,9 +98,9 @@
     //            quan apareix el teclat virtual del sistema.
     //  - No tàctil: focus directe, sense scroll addicional.
     // =========================================================================
-    // [FIX M1] Unificada amb game-core.js: any-pointer: coarse
+    // [FIX M1] Unificada amb game-core.js: pointer: coarse + hover: none
     function _isTouchDevice() {
-        return window.matchMedia('(any-pointer: coarse)').matches;
+        return window.matchMedia('(pointer: coarse) and (hover: none)').matches;
     }
 
     // =========================================================================
@@ -566,7 +566,7 @@
         // Mòbil portrait estret
         if (window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches) return true;
         // Chromebook / tablet tàctil (pantalla gran): drag HTML5 no és fiable sobre SVG
-        if (window.matchMedia('(min-width: 1024px) and (any-pointer: coarse)').matches) return true;
+        if (window.matchMedia('(min-width: 1024px) and (pointer: coarse)').matches) return true;
         return false;
     }
 

@@ -299,7 +299,7 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 
 /* [FIX M6] Tauletes portrait (601-819px): touch targets ampliats */
-@media (min-width: 601px) and (max-width: 819px) and (any-pointer: coarse) {
+@media (min-width: 601px) and (max-width: 819px) and (pointer: coarse) {
     .kb-grid         { grid-template-columns: 66px 66px 66px 88px; gap: 8px; }
     .kb-btn          { height: 54px; font-size: 1.35rem; border-radius: 11px; }
     .kb-btn.kb-enter { font-size: 1.5rem; }
