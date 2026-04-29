@@ -69,11 +69,12 @@
 
     // 2b. Activitats amb NIVELLS: A→1, B→2, C→3
     const NIVELLS_PER_SESSIO = {
-        'probabilitat':         { A: '1', B: '2', C: '3' },
-        'estadistica-inversa':  { A: '1', B: '2', C: '3' },
-        'asimptotes':           { A: '1', B: '2', C: '3' },
-        'descripcio-grafica':   { A: '1', B: '2', C: '3' },
-        'recta-numerica':       { A: '1', B: '2', C: '3' },
+        'probabilitat':              { A: '1', B: '2', C: '3' },
+        'estadistica-inversa':       { A: '1', B: '2', C: '3' },
+        'asimptotes':                { A: '1', B: '2', C: '3' },
+        'descripcio-grafica':        { A: '1', B: '2', C: '3' },
+        'descripcio-grafica-inversa':{ A: '1', B: '2', C: '3' },
+        'recta-numerica':            { A: '1', B: '2', C: '3' },
     };
 
     if (NIVELLS_PER_SESSIO[exercici] && !params.has('nivell')) {

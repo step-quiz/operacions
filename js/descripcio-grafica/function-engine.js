@@ -346,13 +346,49 @@ window.FunctionEngine = (() => {
     // ------------------------------------------------------------------ //
     //  API PÚBLICA
     // ------------------------------------------------------------------ //
+
+    // Famílies ponderades per nivell.
+    // Quad + cubic lleugerament sobrerepresentades; les altres presents però menys.
+    const WEIGHTED_FAMILIES = {
+        1: [
+            'linear',
+            'quad2', 'quad2', 'quad2',
+            'quadNoRoots', 'quadNoRoots', 'quadNoRoots',
+        ],
+        2: [
+            'quad2', 'quad2', 'quad2',
+            'quadNoRoots', 'quadNoRoots', 'quadNoRoots',
+            'cubicMono', 'cubicMono', 'cubicMono',
+            'cubicDouble', 'cubicDouble', 'cubicDouble',
+        ],
+        3: [
+            'linear',
+            'quad2', 'quad2', 'quad2',
+            'quadNoRoots', 'quadNoRoots', 'quadNoRoots',
+            'cubicMono', 'cubicMono', 'cubicMono',
+            'cubicDouble', 'cubicDouble', 'cubicDouble',
+            'exp', 'exp',
+            'sqrt', 'sqrt',
+            'rational', 'rational',
+        ],
+    };
+
+    // Baralla per nivell: garanteix que totes les famílies surtin abans de repetir.
+    // En sessions fixes (PRNG determinista), la baralla és reproducible I variada.
+    const _deck = {};
+
+    function _refillDeck(level) {
+        const pool = [...(WEIGHTED_FAMILIES[level] || WEIGHTED_FAMILIES[2])];
+        _deck[level] = _shuffle(pool);
+    }
+
+    function _dealFamily(level) {
+        if (!_deck[level] || _deck[level].length === 0) _refillDeck(level);
+        return _deck[level].pop();
+    }
+
     function generateFunction(level) {
-        const byLevel = {
-            1: ['linear', 'quad2', 'quadNoRoots'],
-            2: ['quad2', 'quadNoRoots', 'cubicMono', 'cubicDouble'],
-            3: ['quad2', 'quadNoRoots', 'cubicMono', 'cubicDouble', 'exp', 'sqrt', 'rational'],
-        };
-        const t = _pick(byLevel[level] || byLevel[2]);
+        const t = _dealFamily(level);
         switch (t) {
             case 'linear':      return makeLinear();
             case 'quad2':       return makeQuad2Roots();

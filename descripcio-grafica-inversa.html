@@ -276,7 +276,7 @@
 (function () {
     'use strict';
 
-    let currentLevel  = 1;
+    let currentLevel  = Math.min(3, Math.max(1, parseInt(new URLSearchParams(window.location.search).get('nivell') || '1', 10)));
     let functionCount = 0;
     let currentSpec   = null;
 
