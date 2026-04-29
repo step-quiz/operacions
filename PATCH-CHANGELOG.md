@@ -1,4 +1,63 @@
-# PATCH SEGÜENT — Fix detecció dispositius tàctils (29 abril 2026)
+# PATCH SEGÜENT — Auditoria cross-device (29 abril 2026, 2a part)
+
+## Bugs corregits:
+
+### [M9] Aplicació de [M8] a fitxers que se'n havien escapat
+La correcció [M8] només es va aplicar a `js/game-core.js` i `js/vocabulari/vocabulari.js`.
+Una auditoria posterior va revelar que `complexos.html` i `ruffini.html` definien
+**inline** la seva pròpia funció `isTouchDevice()` amb el patró antic
+`(any-pointer: coarse)`, així que continuaven trencant-se en portàtils tàctils.
+
+### [m11] iOS zoom forçat en inputs amb font-size < 16px
+iOS Safari fa zoom automàtic en obtenir focus a un `<input>` amb `font-size < 16px`,
+descentrant la pàgina. Tres inputs el patien:
+- `radicals.html` línia 172 (@media 480px): `0.8em` ≈ 12.8px
+- `radicals.html` línia 184 (@media 350px): `0.75em` ≈ 12px
+- `css/estadistica.css` línia 354 (@media 600px): `0.9em` ≈ 14.4px
+
+### [m12] `factoritzar.html` bloquejava el zoom de l'usuari (WCAG)
+El meta viewport tenia `maximum-scale=1.0, user-scalable=no`, cosa que viola
+WCAG 2.1 SC 1.4.4 (Resize Text) i impedeix als usuaris amb baixa visió
+ampliar el contingut a Android. iOS Safari ja l'ignorava per accessibilitat.
+
+## Fitxers modificats (5):
+
+### complexos.html (línia 369) — [M9]
+- `isTouchDevice()`: `(any-pointer: coarse)` →
+  `(pointer: coarse) and (hover: none)`
+
+### ruffini.html (línia 934) — [M9]
+- `isTouchDevice()`: `(any-pointer: coarse)` →
+  `(pointer: coarse) and (hover: none)`
+
+### radicals.html (línies 172 i 184) — [m11]
+- `.schema-input` font-size de `0.8em`/`0.75em` → `16px` (forçat al límit
+  iOS-safe). Les dimensions width/height es mantenen iguals.
+
+### css/estadistica.css (línia 354) — [m11]
+- `.cell-input` font-size de `0.9em` → `16px`. Dimensions iguals.
+
+### factoritzar.html (línia 5) — [m12]
+- Meta viewport: eliminat `maximum-scale=1.0, user-scalable=no`.
+
+## Comportament resultant:
+- Portàtils tàctils a `complexos.html` i `ruffini.html`: ja no activen mode
+  tàctil quan l'usuari fa servir ratolí/trackpad ✅
+- iPhones / iPads a `radicals.html` i el joc d'estadística: ja no fan zoom
+  forçat en tocar un input ✅
+- Android a `factoritzar.html`: l'usuari pot fer pinch-to-zoom per llegir
+  millor el contingut ✅
+
+## Notes pendents (Onada 3, no aplicades en aquest patch):
+- `area-perimetre-tutorial.html`: `height: 100vh` sense `100dvh` fallback
+  pot tallar contingut en iPad portrait.
+- `area-perimetre.html`, `PAU/index.html`: `min-height: 100vh` sense `dvh`
+  fallback (no bloquejant).
+- `setup_vocabulari.html`: `clipboard.writeText` sense `.catch()` ni fallback.
+
+---
+
+# PATCH ANTERIOR — Fix detecció dispositius tàctils (29 abril 2026)
 
 ## Bug corregit:
 - **[M8]** `isTouchDevice()` detectava com a "mòbil" qualsevol ordinador amb
@@ -94,7 +153,7 @@
   del projecte (són còpies errònies, cap HTML els referencia)
 - **[m10]** Redundància tutorials: requereix refactorització arquitectural
 
-## Resum complet: 23 de 25 bugs resolts
+## Resum complet: 26 de 28 bugs resolts
 
 | ID  | Gravetat  | Estat |
 |-----|-----------|-------|
@@ -113,6 +172,9 @@
 | M6  | Detall    | ✅ Resolt |
 | M7  | Moderat   | ✅ Resolt |
 | M8  | Moderat   | ✅ Resolt (29-04-2026) |
+| M9  | Crític    | ✅ Resolt (29-04-2026, audit) |
+| m11 | Alt       | ✅ Resolt (29-04-2026, audit) |
+| m12 | Alt       | ✅ Resolt (29-04-2026, audit) |
 | m1  | Detall    | ✅ Resolt (patch anterior) |
 | m2  | Detall    | ✅ Resolt |
 | m3  | Detall    | ✅ Resolt |

@@ -366,7 +366,7 @@ function htmlFrac(num,den,extraClass){
     const cls='frac'+(extraClass?' '+extraClass:'');
     return `<span class="${cls}"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
 }
-const isTouchDevice=()=>window.matchMedia('(any-pointer:coarse)').matches;
+const isTouchDevice=()=>window.matchMedia('(pointer: coarse) and (hover: none)').matches;
 
 // ─── TABS ─────────────────────────────────────────────────────────
 function switchOp(op,btn){

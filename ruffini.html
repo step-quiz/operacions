@@ -931,7 +931,7 @@
     }
 
     // ─── DETECCIÓ TÀCTIL ─────────────────────────────────────────────────────
-    const isTouchDevice = () => window.matchMedia('(any-pointer: coarse)').matches;
+    const isTouchDevice = () => window.matchMedia('(pointer: coarse) and (hover: none)').matches;
 
     function makeInput(dIdx, j) {
         const inp = document.createElement('input');
