@@ -377,6 +377,15 @@ window.FunctionEngine = (() => {
     // En sessions fixes (PRNG determinista), la baralla és reproducible I variada.
     const _deck = {};
 
+    // Fisher-Yates in-place shuffle (usa Math.random, determinista en sessions fixes)
+    function _shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
     function _refillDeck(level) {
         const pool = [...(WEIGHTED_FAMILIES[level] || WEIGHTED_FAMILIES[2])];
         _deck[level] = _shuffle(pool);
