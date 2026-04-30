@@ -444,6 +444,16 @@ td.blnk { color: var(--muted); text-align: center; }
 .faq-a br { display: block; margin-bottom: 6px; content: ""; }
 .faq-footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 10px; }
 
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: #1e5e2a; color: #fff; font-size: .72rem; font-weight: 600;
+  padding: 10px 22px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.22);
+  opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 9999;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; }
+
 /* ── Centre / Curs modal ── */
 .centre-box {
   background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
@@ -537,9 +547,18 @@ td.blnk { color: var(--muted); text-align: center; }
 
   <!-- CENTER: student nav (absolutely centred) -->
   <div class="hdr-center">
-    <button class="btn-hdr" onclick="prevStu()" title="Alumne anterior">←</button>
+    <button class="btn-hdr" id="btn-prev-stu" onclick="prevStu()" title="Alumne anterior">←</button>
     <div class="hdr-name" id="hdr-name" onclick="editNameInline()" title="Clica per editar el nom"></div>
-    <button class="btn-hdr" onclick="nextStu()" title="Alumne següent / alumne nou">→</button>
+    <button class="btn-hdr" id="btn-next-stu" onclick="nextStu()" title="Alumne següent / alumne nou">→</button>
+    <button id="btn-empty-cta" onclick="openModal()"
+      style="display:none;font-family:inherit;font-size:.68rem;font-weight:600;
+             color:var(--accent);background:transparent;border:1.5px dashed var(--accent);
+             border-radius:7px;padding:6px 14px;cursor:pointer;letter-spacing:.02em;
+             transition:background .12s,color .12s"
+      onmouseover="this.style.background='var(--accent)';this.style.color='#fff'"
+      onmouseout="this.style.background='transparent';this.style.color='var(--accent)'">
+      ＋ Clica aquí per introduir les respostes del primer full
+    </button>
   </div>
 
   <!-- RIGHT: badges + code -->
@@ -636,6 +655,7 @@ td.blnk { color: var(--muted); text-align: center; }
           <div style="display:flex;flex-direction:column;gap:4px">
             <label style="font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Nom del centre</label>
             <input id="sw-centre" class="name-input" type="text" placeholder="Institut"
+              list="centre-suggestions"
               style="width:100%;box-sizing:border-box"
               oninput="updateCentreFromWizard()"
               onchange="updateCentreFromWizard()">
@@ -673,6 +693,14 @@ td.blnk { color: var(--muted); text-align: center; }
     </div>
   </div>
 </div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<datalist id="centre-suggestions">
+  <option value="Institut Miquel Tarradell">
+  <option value="Institut">
+</datalist>
 
 <!-- FAQ MODAL -->
 <div class="overlay off" id="faq-overlay" onclick="if(event.target===this)closeFaq()">
@@ -754,7 +782,7 @@ td.blnk { color: var(--muted); text-align: center; }
     <div class="cfg-title">🏫 Centre i any acadèmic</div>
     <div class="centre-row">
       <label class="centre-lbl" for="centre-inp">Nom del centre</label>
-      <input class="name-input" id="centre-inp" type="text" placeholder="Institut" autocomplete="off">
+      <input class="name-input" id="centre-inp" type="text" placeholder="Institut" autocomplete="off" list="centre-suggestions">
     </div>
     <div class="centre-row">
       <label class="centre-lbl" for="curs-inp">Curs acadèmic</label>
@@ -1431,6 +1459,11 @@ function render() {
   const name = key ? stuNames[key] : null;
   const answers = key ? stuMap[key] : null;
 
+  const isEmpty = stuOrder.length === 0;
+  document.getElementById('btn-prev-stu').style.display  = isEmpty ? 'none' : '';
+  document.getElementById('btn-next-stu').style.display  = isEmpty ? 'none' : '';
+  document.getElementById('hdr-name').style.display      = isEmpty ? 'none' : '';
+  document.getElementById('btn-empty-cta').style.display = isEmpty ? '' : 'none';
   document.getElementById('stu-code').textContent = key ? `#${key}` : '—';
   document.getElementById('hdr-name').textContent = name || '';
 
@@ -2233,7 +2266,13 @@ function loadKeyTxt(input) {
         keyDraft = parsed.slice(0, Q);
         while (keyDraft.length < Q) keyDraft.push(null);
         keyDraftQIdx = 0;
-        renderKey();
+        // Desar automàticament i tancar l'editor
+        answerKey = keyDraft.map(v => v || '');
+        document.getElementById('key-badge').textContent   = '✓ Clau activada';
+        document.getElementById('key-badge').style.display = 'inline-block';
+        document.getElementById('btn-correct').disabled    = false;
+        closeKeyEditor();
+        showToast('✓ La clau ha estat carregada correctament');
       }
     } catch(err) { alert('Error llegint el fitxer: ' + err.message); }
   };
@@ -3332,6 +3371,16 @@ async function generateInformes() {
   URL.revokeObjectURL(url);
 }
 
+// ── Toast ──
+let _toastTimer = null;
+function showToast(msg, ms = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
 // ── FAQ ──
 function openFaq()  { document.getElementById('faq-overlay').classList.remove('off'); }
 function closeFaq() { document.getElementById('faq-overlay').classList.add('off'); }
@@ -3423,7 +3472,7 @@ render();
 document.getElementById('comp-overlay').classList.remove('off');
 // Preomplir els camps del wizard amb centreCfg
 document.getElementById('sw-centre').value = centreCfg.centre !== 'Institut' ? centreCfg.centre : '';
-document.getElementById('sw-curs').value   = centreCfg.curs   !== getDefaultCurs() ? centreCfg.curs : centreCfg.curs;
+document.getElementById('sw-curs').value   = centreCfg.curs;
 </script>
 </body>
 </html>
