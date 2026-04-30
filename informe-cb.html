@@ -295,40 +295,7 @@ body.has-pdf #stu-overlay { right: 50%; }
   width: min(580px, 96vw); box-shadow: 0 8px 32px rgba(0,0,0,.18);
   max-height: 92vh; overflow-y: auto;
 }
-.amb-header { display: grid; grid-template-columns: 26px 1fr 56px 48px; gap: 6px; padding: 0 8px; }
 .amb-hd { font-size: .52rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-.amb-row {
-  display: grid; grid-template-columns: 26px 1fr 56px 48px; gap: 6px; align-items: center;
-  padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg);
-}
-.amb-swatch {
-  width: 22px; height: 22px; border-radius: 4px; border: 2px solid var(--border);
-  cursor: pointer; flex-shrink: 0; transition: border-color .12s;
-}
-.amb-swatch:hover { border-color: var(--accent); }
-.amb-inp {
-  font-family: inherit; font-size: .65rem; font-weight: 600;
-  border: 1.5px solid var(--border); border-radius: 5px;
-  background: var(--panel); color: var(--text);
-  padding: 4px 6px; outline: none; width: 100%;
-}
-.amb-inp:focus { border-color: var(--accent); }
-.amb-inp.abbr  { text-transform: uppercase; text-align: center; }
-.amb-inp.qcount { text-align: center; }
-.del-btn {
-  font-family: inherit; font-size: .75rem; font-weight: 700;
-  width: 26px; height: 26px; border: 1px solid var(--border);
-  background: var(--panel); color: #cc4444; border-radius: 4px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: background .1s;
-}
-.del-btn:hover { background: #cc4444; color: #fff; }
-.del-btn:disabled { opacity: .3; cursor: default; }
-.del-btn:disabled:hover { background: var(--panel); color: #cc4444; }
-.amb-total { font-size: .62rem; text-align: right; padding-top: 2px; }
-.amb-total.ok  { color: #27ae60; }
-.amb-total.warn { color: var(--muted); }
-.amb-footer { display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 10px; align-items: center; }
 
 /* ── Answer key badge ── */
 /* .key-loaded merged above */
@@ -633,12 +600,6 @@ td.blnk { color: var(--muted); text-align: center; }
             <span class="sopt-label">Matemàtiques</span>
           </span>
         </button>
-        <button class="sopt" data-col="comp" data-val="default" onclick="selectOpt(this)">
-          <span class="sopt-icon">📝</span>
-          <span class="sopt-body">
-            <span class="sopt-label">Altres</span>
-          </span>
-        </button>
       </div>
 
       <div class="startup-divider"></div>
@@ -828,28 +789,6 @@ td.blnk { color: var(--muted); text-align: center; }
   </div>
 </div>
 
-<!-- ÀMBITS MODAL -->
-<div class="overlay off" id="amb-overlay" onclick="if(event.target===this)closeOverlay('amb-overlay')">
-  <div class="amb-box" style="width:min(420px,96vw)">
-    <div>
-      <div class="cfg-title">📐 Configuració de l'àmbit</div>
-      <div class="cfg-sub">Nom, abreviatura, color i nombre total de preguntes.</div>
-    </div>
-    <div class="amb-header">
-      <div class="amb-hd"></div>
-      <div class="amb-hd">Nom</div>
-      <div class="amb-hd" style="text-align:center">Abr.</div>
-      <div class="amb-hd" style="text-align:center">Preg.</div>
-    </div>
-    <div id="amb-list" style="display:flex;flex-direction:column;gap:5px"></div>
-    <div class="amb-total" id="amb-total"></div>
-    <div class="amb-footer">
-      <button class="btn" onclick="resetAmbitsDraft()">↺ Per defecte</button>
-      <div class="spacer"></div>
-      <button class="btn pri" onclick="applyAmbits()">✓ Desar i tancar</button>
-    </div>
-  </div>
-</div>
 
 <!-- KEY EDITOR OVERLAY -->
 <div class="overlay off" id="key-overlay" style="align-items:stretch;padding:10px" onclick="if(event.target===this)closeKeyEditor()">
@@ -914,11 +853,6 @@ td.blnk { color: var(--muted); text-align: center; }
 // ═══════════════════════════════════════════════════════════════════════
 // ÀMBITS
 // ═══════════════════════════════════════════════════════════════════════
-const DEFAULT_AMBITS = [
-  { name: 'Català',        abbrev: 'CAT', color: '#b03020', questions: 10 },
-  { name: 'Matemàtiques',  abbrev: 'MAT', color: '#1a4f8a', questions: 10 },
-  { name: 'Castellà',      abbrev: 'CAS', color: '#b07000', questions: 10 },
-];
 
 // ═══════════════════════════════════════════════════════════════════════
 // COMPETÈNCIA LLENGUA CATALANA — estructura de ítems
@@ -964,10 +898,6 @@ const COMPETENCIES = {
       { name: "Act. 3 · L'Hotel",             abbrev: 'ACT3', color: '#b07000', questions: 8  },
       { name: 'Act. 4 · Botons',              abbrev: 'ACT4', color: '#2a7a3a', questions: 11 },
     ]
-  },
-  default: {
-    label: 'Per defecte',
-    ambits: null
   }
 };
 
@@ -1022,16 +952,13 @@ function afterKeyEditor() {
   }
 }
 
-const AMBIT_PALETTE = [
-  '#b03020','#1a4f8a','#b07000','#2a7a3a','#7a20b0','#207a7a','#8a3a00','#4a4a8a'
-];
 
 let ambits = (function() {
   try {
     const s = localStorage.getItem('cb4-ambits');
     if (s) return JSON.parse(s);
   } catch(e) {}
-  return DEFAULT_AMBITS.map(a => ({...a}));
+  return COMPETENCIES.mat.ambits.map(a => ({...a}));
 })();
 
 function saveAmbitsCfg() {
@@ -1130,92 +1057,6 @@ function getAmbitForQ(qi) {
   return ranges.find(r => qi >= r.start && qi < r.end) || ranges[ranges.length - 1];
 }
 
-// Draft for the àmbits modal
-let draftAmbits = [];
-
-function openAmbits() {
-  draftAmbits = ambits.map(a => ({...a}));
-  renderAmbitsList();
-  document.getElementById('amb-overlay').classList.remove('off');
-}
-
-function renderAmbitsList() {
-  const list = document.getElementById('amb-list');
-  list.innerHTML = '';
-  draftAmbits.forEach((a, i) => {
-    const row = document.createElement('div');
-    row.className = 'amb-row';
-    const safeColor = a.color || AMBIT_PALETTE[i % AMBIT_PALETTE.length];
-    row.innerHTML = `
-      <div class="amb-swatch" style="background:${safeColor}" id="sw-${i}" title="Clic per canviar color"></div>
-      <input type="color" id="colpick-${i}" value="${safeColor}" style="display:none" oninput="draftAmbits[${i}].color=this.value;document.getElementById('sw-${i}').style.background=this.value">
-      <input class="amb-inp" value="${a.name}" oninput="draftAmbits[${i}].name=this.value" placeholder="Nom de l'àmbit">
-      <input class="amb-inp abbr" value="${(a.abbrev||'').toUpperCase()}" maxlength="4"
-             oninput="draftAmbits[${i}].abbrev=this.value.toUpperCase().slice(0,4);this.value=draftAmbits[${i}].abbrev" placeholder="ABR">
-      <input class="amb-inp qcount" type="number" min="1" max="60" value="${Math.max(1,a.questions|0)}"
-             oninput="draftAmbits[${i}].questions=Math.max(1,parseInt(this.value)||1);updateAmbitTotal()">
-      <button class="del-btn" onclick="removeAmbitDraft(${i})" ${draftAmbits.length<=1?'disabled':''} title="Eliminar àmbit">✕</button>
-    `;
-    row.querySelector('.amb-swatch').addEventListener('click', () => {
-      document.getElementById(`colpick-${i}`).click();
-    });
-    list.appendChild(row);
-  });
-  updateAmbitTotal();
-}
-
-function updateAmbitTotal() {
-  const total = draftAmbits.reduce((s, a) => s + Math.max(1, parseInt(a.questions) || 1), 0);
-  const el = document.getElementById('amb-total');
-  el.textContent = `Total preguntes: ${total}`;
-  el.className = 'amb-total ' + (total > 0 ? 'ok' : 'warn');
-}
-
-function addAmbit() {
-  const color = AMBIT_PALETTE[draftAmbits.length % AMBIT_PALETTE.length];
-  draftAmbits.push({ name: 'Nou àmbit', abbrev: 'NOU', color, questions: 10 });
-  renderAmbitsList();
-}
-
-function removeAmbitDraft(i) {
-  if (draftAmbits.length <= 1) return;
-  draftAmbits.splice(i, 1);
-  renderAmbitsList();
-}
-
-function resetAmbitsDraft() {
-  draftAmbits = DEFAULT_AMBITS.map(a => ({...a}));
-  renderAmbitsList();
-}
-
-function applyAmbits() {
-  const newQ = draftAmbits.reduce((s, a) => s + Math.max(1, parseInt(a.questions) || 1), 0);
-  const oldQ = getQ();
-
-  if (newQ < oldQ && stuOrder.length > 0) {
-    if (!confirm(
-      `Reduir de ${oldQ} a ${newQ} preguntes eliminarà les respostes de les últimes ${oldQ-newQ} preguntes.\nContinuar?`
-    )) return;
-    for (const key of stuOrder) {
-      stuMap[key] = stuMap[key].slice(0, newQ);
-    }
-  } else if (newQ > oldQ) {
-    for (const key of stuOrder) {
-      while (stuMap[key].length < newQ) stuMap[key].push(null);
-    }
-  }
-
-  ambits = draftAmbits.map(a => ({ ...a, questions: Math.max(1, parseInt(a.questions) || 1) }));
-  saveAmbitsCfg();
-  document.getElementById('amb-overlay').classList.add('off');
-
-  // Clamp cursor
-  const newQFinal = getQ();
-  if (qIdx >= newQFinal) qIdx = Math.max(0, newQFinal - 1);
-
-  buildGrid();
-  render();
-}
 
 // ═══════════════════════════════════════════════════════════════════════
 // KEY CONFIG
@@ -1414,7 +1255,6 @@ function buildGrid() {
   const opts = { prefix: '', onClick: qi => { if (curIdx >= 0) { qIdx = qi; render(); } } };
   if      (currentCompetencyId === 'mat') buildGridMat(grid, opts);
   else if (currentCompetencyId === 'cat') buildGridCat(grid, opts);
-  else                                    buildGridDefault(grid, opts);
 }
 
 function makeCell(qi, color, opts) {
@@ -1470,26 +1310,6 @@ function buildGridCat(grid, opts) {
   });
 }
 
-function buildGridDefault(grid, opts) {
-  const ranges = getAmbitRanges();
-  grid.style.display = 'flex'; grid.style.flexDirection = 'column'; grid.style.gap = '6px';
-  ranges.forEach(range => {
-    const sect = document.createElement('div'); sect.className = 'sect'; sect.style.flex = String(range.questions);
-    const hdr = document.createElement('div'); hdr.className = 'sect-hdr'; hdr.style.background = range.color; hdr.textContent = range.name.toUpperCase();
-    const cols = getColInfo(range.questions);
-    const sectGrid = document.createElement('div'); sectGrid.className = 'sect-grid';
-    cols.forEach(col => {
-      const colEl = document.createElement('div'); colEl.className = 'col';
-      const lbl = document.createElement('div'); lbl.className = 'col-lbl-range';
-      const s = range.start + col.start + 1, e2 = range.start + col.start + col.size;
-      lbl.textContent = s === e2 ? `${s}` : `${s} – ${e2}`;
-      const cells = document.createElement('div'); cells.className = 'cells';
-      for (let r = 0; r < col.size; r++) cells.appendChild(makeCell(range.start + col.start + r, range.color, opts));
-      colEl.appendChild(lbl); colEl.appendChild(cells); sectGrid.appendChild(colEl);
-    });
-    sect.appendChild(hdr); sect.appendChild(sectGrid); grid.appendChild(sect);
-  });
-}
 
 // ═══════════════════════════════════════════════════════════════════════
 // KEYBOARD REF
@@ -1833,7 +1653,6 @@ document.addEventListener('keydown', e => {
   const anyModalOpen =
     !document.getElementById('stu-overlay').classList.contains('off') ||
     !document.getElementById('cfg-overlay').classList.contains('off') ||
-    !document.getElementById('amb-overlay').classList.contains('off') ||
     !document.getElementById('comp-overlay').classList.contains('off');
 
   const pdfPromptOpen = !document.getElementById('pdf-prompt-overlay').classList.contains('off');
@@ -2178,7 +1997,6 @@ function buildKeyGrid() {
   const opts = { prefix: 'k', onClick: qi => { keyDraftQIdx = qi; renderKey(); } };
   if      (currentCompetencyId === 'mat') buildGridMat(grid, opts);
   else if (currentCompetencyId === 'cat') buildGridCat(grid, opts);
-  else                                    buildGridDefault(grid, opts);
 }
 
 function renderKey() {
@@ -3278,7 +3096,6 @@ function closeOverlay(id) {
   if (!el) return;
   if (id === 'cfg-overlay')    { closeSettings(); return; }
   if (id === 'key-overlay')    { closeKeyEditor(); return; }
-  if (id === 'amb-overlay')    { document.getElementById('amb-overlay').classList.add('off'); return; }
   el.classList.add('off');
 }
 
@@ -3308,11 +3125,7 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); closeSettings(); return;
   }
 
-  // 5. Àmbits modal
-  const amb = document.getElementById('amb-overlay');
-  if (amb && !amb.classList.contains('off')) {
-    e.preventDefault(); amb.classList.add('off'); return;
-  }
+
   // (stu-overlay, key-overlay, pdf-prompt have their own ESC handlers)
 }, true);  // capture phase so it runs before other handlers
 
