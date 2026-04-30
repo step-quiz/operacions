@@ -474,6 +474,7 @@ td.blnk { color: var(--muted); text-align: center; }
   background: var(--f-bg); border: 1px solid var(--border);
   border-radius: 3px; padding: 1px 5px; font-family: inherit; font-size: .66rem;
 }
+.faq-a br { display: block; margin-bottom: 6px; content: ""; }
 .faq-footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 10px; }
 
 /* ── Centre / Curs modal ── */
@@ -806,6 +807,10 @@ td.blnk { color: var(--muted); text-align: center; }
       el nom <strong id="auto-name-preview">alum_1</strong>
     </div>
     <div class="m-hint"><kbd>↵</kbd> confirma · <kbd>Esc</kbd> cancel·la</div>
+    <div id="load-hint" style="display:none;font-size:.60rem;color:#1a4f8a;background:#e8f0f8;border:1px solid #90b4d8;border-radius:7px;padding:9px 13px;text-align:center;line-height:1.7;max-width:260px">
+      💡 Si prefereixes carregar dades ja introduïdes,<br>
+      prem <kbd>Esc</kbd> i ves a <strong>Accions → Carregar dades</strong>
+    </div>
     <button class="btn pri" onclick="confirmStudent()">Confirmar →</button>
   </div>
 </div>
@@ -1577,11 +1582,11 @@ function editNameInline() {
 
 function openModal() {
   document.getElementById('d-name').value = '';
-  // Show what auto-name would be assigned
   const nextN = stuOrder.length + 1;
   const preview = `alum_${nextN}`;
   document.getElementById('auto-name-preview').textContent = preview;
   document.getElementById('m-prev').textContent = preview;
+  document.getElementById('load-hint').style.display = stuOrder.length === 0 ? 'block' : 'none';
   document.getElementById('stu-overlay').classList.remove('off');
   setTimeout(() => document.getElementById('d-name').focus(), 40);
   syncPdfToNextSlot();
