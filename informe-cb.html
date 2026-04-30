@@ -554,7 +554,7 @@ td.blnk { color: var(--muted); text-align: center; }
         <button class="dd-item" onclick="closeDropdowns();openSettings()">⚙️&nbsp; Configurar tecles personalitzades</button>
         <button class="dd-item" onclick="closeDropdowns();openCentreModal()">🏫&nbsp; Introduir centre i any</button>
         <div class="dd-sep"></div>
-        <button class="dd-item danger" onclick="closeDropdowns();clearAllData()">✕&nbsp; Esborrar-ho tot</button>
+        <button class="dd-item danger" onclick="closeDropdowns();clearAllData()">✕&nbsp; Esborrar respostes introduïdes</button>
       </div>
     </div>
   </div>
@@ -1548,15 +1548,24 @@ function editNameInline() {
   el.appendChild(inp);
   inp.focus();
   inp.select();
-  const commit = () => {
+
+  let cancelled = false;
+  const finalize = () => {
+    if (cancelled) {
+      // Restaura el nom anterior, sense modificar dades
+      el.textContent = stuNames[key] || key;
+      return;
+    }
     const val = inp.value.trim();
     stuNames[key] = val;
     el.textContent = val || key;
     markUnsaved();
   };
-  inp.addEventListener('blur',    commit);
+
+  inp.addEventListener('blur', finalize);
   inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); inp.blur(); }
+    if (e.key === 'Enter')  { e.preventDefault(); inp.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancelled = true; inp.blur(); }
   });
 }
 
@@ -1619,7 +1628,7 @@ let keyCfgDraft = {};
 let cfgActiveRow = 0;
 
 const CONFLICT_GROUPS = [
-  ['A', 'B', 'C', 'D', 'blank', 'erase'],
+  ['A', 'B', 'C', 'D', 'E', 'blank', 'erase'],
   ['V', 'F', 'blank', 'erase'],
 ];
 
@@ -1812,9 +1821,13 @@ document.addEventListener('keydown', e => {
   const Q = getQ();
   if (keyEditorOpen) return;   // key editor has its own handler
   const anyModalOpen =
-    !document.getElementById('stu-overlay').classList.contains('off') ||
-    !document.getElementById('cfg-overlay').classList.contains('off') ||
-    !document.getElementById('comp-overlay').classList.contains('off');
+    !document.getElementById('stu-overlay').classList.contains('off')     ||
+    !document.getElementById('cfg-overlay').classList.contains('off')     ||
+    !document.getElementById('comp-overlay').classList.contains('off')    ||
+    !document.getElementById('results-overlay').classList.contains('off') ||
+    !document.getElementById('correct-overlay').classList.contains('off') ||
+    !document.getElementById('faq-overlay').classList.contains('off')     ||
+    !document.getElementById('centre-overlay').classList.contains('off');
 
   const pdfPromptOpen = !document.getElementById('pdf-prompt-overlay').classList.contains('off');
   if (pdfPromptOpen) { if (e.key === 'Escape') { e.preventDefault(); skipPdf(); } return; }
@@ -2117,7 +2130,11 @@ async function importRespostes(input) {
 // CLEAR ALL DATA
 // ═══════════════════════════════════════════════════════════════════════
 function clearAllData() {
-  if (!confirm('Segur que vols esborrar TOTES les dades?\nTots els alumnes i respostes seran eliminats.')) return;
+  if (!confirm(
+    'Segur que vols esborrar les respostes introduïdes?\n' +
+    'Tots els alumnes i les seves respostes seran eliminats.\n\n' +
+    'La clau de respostes correctes i la configuració del centre es mantindran.'
+  )) return;
   stuMap = {}; stuNames = {}; stuOrder = [];
   curIdx = -1; qIdx = 0;
   hideCompletePrompt(); render(); openModal();
@@ -2170,24 +2187,6 @@ function buildKeyGrid() {
   if      (currentCompetencyId === 'mat')  buildGridMat(grid, opts);
   else if (currentCompetencyId === 'cat')  buildGridCat(grid, opts);
   else if (currentCompetencyId === 'cien') buildGridCien(grid, opts);
-}
-
-function buildGridCien(grid, opts) {
-  const colGroups = [[CIEN_RANGES[0], CIEN_RANGES[1]], [CIEN_RANGES[2]]];
-  grid.style.display = 'grid'; grid.style.gridTemplateColumns = '1fr 1fr';
-  grid.style.gap = '8px'; grid.style.alignItems = 'stretch';
-  grid.classList.add('grid-narrow');
-  colGroups.forEach(group => {
-    const colEl = document.createElement('div'); colEl.className = 'mat-col';
-    group.forEach(range => {
-      const sect = document.createElement('div'); sect.className = 'sect'; sect.style.flex = String(range.questions);
-      const hdr  = document.createElement('div'); hdr.className = 'sect-hdr'; hdr.style.background = range.color; hdr.textContent = range.name.toUpperCase();
-      const cells = document.createElement('div'); cells.className = 'cells';
-      for (let i = 0; i < range.questions; i++) cells.appendChild(makeCell(range.start + i, range.color, opts));
-      sect.appendChild(hdr); sect.appendChild(cells); colEl.appendChild(sect);
-    });
-    grid.appendChild(colEl);
-  });
 }
 
 function renderKey() {
@@ -2280,19 +2279,53 @@ function loadKeyTxt(input) {
       }
       const src = data.RESPOSTES || '';
       if (!src) { alert('Format de fitxer no reconegut.'); return; }
-      if (src) {
-        const parsed = src.split(',').map(v => v.trim() === '' ? null : v.trim().toUpperCase());
-        keyDraft = parsed.slice(0, Q);
-        while (keyDraft.length < Q) keyDraft.push(null);
-        keyDraftQIdx = 0;
-        // Desar automàticament i tancar l'editor
-        answerKey = keyDraft.map(v => v || '');
-        document.getElementById('key-badge').textContent   = '✓ Clau activada';
-        document.getElementById('key-badge').style.display = 'inline-block';
-        document.getElementById('btn-correct').disabled    = false;
-        closeKeyEditor();
-        showToast('✓ La clau ha estat carregada correctament');
+
+      const parsed = src.split(',').map(v => v.trim() === '' ? null : v.trim().toUpperCase());
+
+      // ── Validació 1: longitud ─────────────────────────────────────
+      if (parsed.length !== Q) {
+        alert(
+          `⚠ El fitxer conté ${parsed.length} respostes, però la competència actual ` +
+          `("${currentCompetencyId}") en requereix ${Q}.\n\nNo es carregarà la clau.`
+        );
+        return;
       }
+
+      // ── Validació 2: valors permesos ──────────────────────────────
+      const VALID = new Set(['A', 'B', 'C', 'D', 'E', '_']);
+      const badIdx = parsed.findIndex(v => v !== null && !VALID.has(v));
+      if (badIdx !== -1) {
+        alert(
+          `⚠ Valor invàlid a la posició ${badIdx + 1}: "${parsed[badIdx]}".\n\n` +
+          `Les respostes vàlides són A, B, C, D, E o _ (en blanc).\nNo es carregarà la clau.`
+        );
+        return;
+      }
+
+      // ── Validació 3: completesa ───────────────────────────────────
+      const filled = parsed.filter(v => v !== null).length;
+      if (filled < Q) {
+        // Carregar a l'editor i deixar que l'usuari completi manualment
+        keyDraft     = parsed;
+        keyDraftQIdx = parsed.findIndex(v => v === null);
+        if (keyDraftQIdx === -1) keyDraftQIdx = 0;
+        renderKey();
+        alert(
+          `⚠ El fitxer només té ${filled}/${Q} respostes.\n` +
+          `S'han carregat a l'editor; cal completar les ${Q - filled} restants abans de desar.`
+        );
+        return;
+      }
+
+      // ── Tot correcte: activar la clau ─────────────────────────────
+      keyDraft     = parsed;
+      keyDraftQIdx = 0;
+      answerKey    = keyDraft.map(v => v || '');
+      document.getElementById('key-badge').textContent   = '✓ Clau activada';
+      document.getElementById('key-badge').style.display = 'inline-block';
+      document.getElementById('btn-correct').disabled    = false;
+      closeKeyEditor();
+      showToast('✓ La clau ha estat carregada correctament');
     } catch(err) { alert('Error llegint el fitxer: ' + err.message); }
   };
   reader.readAsText(file);
