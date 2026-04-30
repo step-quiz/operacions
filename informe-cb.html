@@ -600,6 +600,12 @@ td.blnk { color: var(--muted); text-align: center; }
             <span class="sopt-label">Matemàtiques</span>
           </span>
         </button>
+        <button class="sopt" data-col="comp" data-val="cien" onclick="selectOpt(this)">
+          <span class="sopt-icon">🔬</span>
+          <span class="sopt-body">
+            <span class="sopt-label">Científico-tecnològica</span>
+          </span>
+        </button>
       </div>
 
       <div class="startup-divider"></div>
@@ -625,19 +631,23 @@ td.blnk { color: var(--muted); text-align: center; }
 
       <!-- COL 3: PDF -->
       <div class="startup-col">
-        <div class="startup-col-hdr">3 · Respostes de l'alumnat escanejades</div>
-        <button class="sopt" data-col="pdf" data-val="yes" onclick="selectOpt(this)">
-          <span class="sopt-icon">📄</span>
-          <span class="sopt-body">
-            <span class="sopt-label">Carregar PDF</span>
-          </span>
-        </button>
-        <button class="sopt" data-col="pdf" data-val="no" onclick="selectOpt(this)">
-          <span class="sopt-icon">✕</span>
-          <span class="sopt-body">
-            <span class="sopt-label">Sense PDF</span>
-          </span>
-        </button>
+        <div class="startup-col-hdr">3 · Centre i any acadèmic</div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 2px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Nom del centre</label>
+            <input id="sw-centre" class="name-input" type="text" placeholder="Institut"
+              style="width:100%;box-sizing:border-box"
+              oninput="updateCentreFromWizard()"
+              onchange="updateCentreFromWizard()">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Curs acadèmic</label>
+            <input id="sw-curs" class="name-input" type="text" placeholder="2025-2026"
+              style="width:160px;box-sizing:border-box"
+              oninput="updateCentreFromWizard()"
+              onchange="updateCentreFromWizard()">
+          </div>
+        </div>
       </div>
 
     </div>
@@ -882,6 +892,66 @@ const CAT_RANGES = [
   { name: 'Comprensió Escrita (2)', abbrev: 'CE2', color: '#2a7a3a', start: 25, end: 44, questions: 19 },
 ];
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// COMPETÈNCIA CIENTÍFICO-TECNOLÒGICA — estructura d'ítems
+// ═══════════════════════════════════════════════════════════════════════
+// Tipus disponibles: 'abcd', 'abcde', 'vf', 'bin'
+// 'bin' = binari amb etiquetes personalitzades (A=1a opció, B=2a opció)
+// binLabels: [label_A, label_B] — text curt per mostrar a la cel·la
+const CIEN_ITEMS = [
+  // Act.1 · L'Hidrogen Verd  (13 ítems)
+  { label:'1',   type:'abcd' },
+  { label:'2.1', type:'bin',  binLabels:['Av','In'] },   // Avantatge/Inconvenient
+  { label:'2.2', type:'bin',  binLabels:['Av','In'] },
+  { label:'2.3', type:'bin',  binLabels:['Av','In'] },
+  { label:'2.4', type:'bin',  binLabels:['Av','In'] },
+  { label:'3',   type:'abcd' },
+  { label:'4.1', type:'bin',  binLabels:['Ac','Pa'] },   // Actiu/Passiu
+  { label:'4.2', type:'bin',  binLabels:['Ac','Pa'] },
+  { label:'4.3', type:'bin',  binLabels:['Ac','Pa'] },
+  { label:'4.4', type:'bin',  binLabels:['Ac','Pa'] },
+  { label:'5',   type:'abcd' },
+  { label:'6',   type:'abcd' },
+  { label:'7',   type:'abcd' },
+  // Act.2 · Donar Sang és Donar Vida  (14 ítems)
+  { label:'8',    type:'abcd' },
+  { label:'9',    type:'abcd' },
+  { label:'10',   type:'abcd' },
+  { label:'11',   type:'abcd' },
+  { label:'12',   type:'abcd' },
+  { label:'13',   type:'abcd' },
+  { label:'14',   type:'abcd' },
+  { label:'15',   type:'abcd' },
+  { label:'16',   type:'abcd' },
+  { label:'17',   type:'abcd' },
+  { label:'18.1', type:'abcde' },
+  { label:'18.2', type:'abcde' },
+  { label:'18.3', type:'abcde' },
+  { label:'18.4', type:'abcde' },
+  // Act.3 · Observació de la Fauna Salvatge  (13 ítems)
+  { label:'19',   type:'abcd' },
+  { label:'20',   type:'abcd' },
+  { label:'21',   type:'abcd' },
+  { label:'22',   type:'abcd' },
+  { label:'23.1', type:'bin',  binLabels:['Po','Ne'] },  // Positiu/Negatiu
+  { label:'23.2', type:'bin',  binLabels:['Po','Ne'] },
+  { label:'23.3', type:'bin',  binLabels:['Po','Ne'] },
+  { label:'23.4', type:'bin',  binLabels:['Po','Ne'] },
+  { label:'24.1', type:'bin',  binLabels:['Sí','No'] },  // Sí/No
+  { label:'24.2', type:'bin',  binLabels:['Sí','No'] },
+  { label:'24.3', type:'bin',  binLabels:['Sí','No'] },
+  { label:'24.4', type:'bin',  binLabels:['Sí','No'] },
+  { label:'25',   type:'abcd' },
+];
+// Q=40 en total
+
+const CIEN_RANGES = [
+  { name: "Act. 1 · L'Hidrogen Verd",           abbrev: 'ACT1', color: '#7A3090', start:  0, end: 13, questions: 13 },
+  { name: 'Act. 2 · Donar Sang és Donar Vida',   abbrev: 'ACT2', color: '#C05820', start: 13, end: 27, questions: 14 },
+  { name: 'Act. 3 · Observació Fauna Salvatge',  abbrev: 'ACT3', color: '#1a7040', start: 27, end: 40, questions: 13 },
+];
+
 // ═══════════════════════════════════════════════════════════════════════
 // COMPETÈNCIES PREDEFINIDES
 // ═══════════════════════════════════════════════════════════════════════
@@ -898,7 +968,11 @@ const COMPETENCIES = {
       { name: "Act. 3 · L'Hotel",             abbrev: 'ACT3', color: '#b07000', questions: 8  },
       { name: 'Act. 4 · Botons',              abbrev: 'ACT4', color: '#2a7a3a', questions: 11 },
     ]
-  }
+  },
+  cien: {
+    label: 'Científico-tecnològica',
+    ambits: null  // uses CIEN_ITEMS / CIEN_RANGES directly
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -907,12 +981,19 @@ const COMPETENCIES = {
 const startupSel = { comp: null, key: null, pdf: null };
 let pendingAfterKey = null;  // 'pdf' | 'student' | null
 
+function updateCentreFromWizard() {
+  const centre = (document.getElementById('sw-centre').value.trim()) || 'Institut';
+  const curs   = (document.getElementById('sw-curs').value.trim())   || getDefaultCurs();
+  centreCfg = { centre, curs };
+  saveCentreCfg();
+}
+
 function selectOpt(btn) {
   const col = btn.dataset.col;
   document.querySelectorAll(`.sopt[data-col="${col}"]`).forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   startupSel[col] = btn.dataset.val;
-  const allDone = startupSel.comp && startupSel.key && startupSel.pdf;
+  const allDone = startupSel.comp && startupSel.key;
   document.getElementById('startup-go').disabled = !allDone;
 }
 
@@ -928,15 +1009,12 @@ function applyCompetency(id) {
 }
 
 function startApp() {
-  const { comp, key, pdf } = startupSel;
+  const { comp, key } = startupSel;
   applyCompetency(comp);
   document.getElementById('comp-overlay').classList.add('off');
-
   if (key === 'now') {
-    pendingAfterKey = pdf === 'yes' ? 'pdf' : 'student';
+    pendingAfterKey = 'student';
     openKeyEditor();
-  } else if (pdf === 'yes') {
-    document.getElementById('pdf-prompt-overlay').classList.remove('off');
   } else {
     openModal();
   }
@@ -1022,12 +1100,14 @@ document.addEventListener('keydown', e => {
 });
 
 function getQ() {
-  if (currentCompetencyId === 'cat') return CAT_ITEMS.length;
+  if (currentCompetencyId === 'cat')  return CAT_ITEMS.length;
+  if (currentCompetencyId === 'cien') return CIEN_ITEMS.length;
   return ambits.reduce((s, a) => s + Math.max(1, a.questions | 0), 0);
 }
 
 function getAmbitRanges() {
-  if (currentCompetencyId === 'cat') return CAT_RANGES;
+  if (currentCompetencyId === 'cat')  return CAT_RANGES;
+  if (currentCompetencyId === 'cien') return CIEN_RANGES;
   let start = 0;
   return ambits.map(a => {
     const q = Math.max(1, a.questions | 0);
@@ -1038,18 +1118,25 @@ function getAmbitRanges() {
 }
 
 function getItemType(qi) {
-  if (currentCompetencyId !== 'cat') return 'abcd';
-  return CAT_ITEMS[qi]?.type || 'abcd';
+  if (currentCompetencyId === 'cat')  return CAT_ITEMS[qi]?.type  || 'abcd';
+  if (currentCompetencyId === 'cien') return CIEN_ITEMS[qi]?.type || 'abcd';
+  return 'abcd';
 }
 function getItemLabel(qi) {
-  if (currentCompetencyId !== 'cat') return String(qi + 1);
-  return CAT_ITEMS[qi]?.label || String(qi + 1);
+  if (currentCompetencyId === 'cat')  return CAT_ITEMS[qi]?.label  || String(qi + 1);
+  if (currentCompetencyId === 'cien') return CIEN_ITEMS[qi]?.label || String(qi + 1);
+  return String(qi + 1);
 }
 function valDisplay(val, qi) {
   if (val === '_') return '—';
   if (val === null) return '·';
-  if (getItemType(qi) === 'vf') return val === 'A' ? 'V' : val === 'B' ? 'F' : val;
-  return val;
+  const type = getItemType(qi);
+  if (type === 'vf') return val === 'A' ? 'V' : val === 'B' ? 'F' : val;
+  if (type === 'bin') {
+    const bl = (currentCompetencyId === 'cien' ? CIEN_ITEMS[qi] : null)?.binLabels;
+    if (bl) return val === 'A' ? bl[0] : val === 'B' ? bl[1] : val;
+  }
+  return val;  // abcd, abcde: show as-is
 }
 
 function getAmbitForQ(qi) {
@@ -1061,13 +1148,14 @@ function getAmbitForQ(qi) {
 // ═══════════════════════════════════════════════════════════════════════
 // KEY CONFIG
 // ═══════════════════════════════════════════════════════════════════════
-const DEFAULT_KEYS = { A:'1', B:'2', C:'3', D:'4', V:'1', F:'2', blank:'0', erase:'x' };
+const DEFAULT_KEYS = { A:'1', B:'2', C:'3', D:'4', E:'5', V:'1', F:'2', blank:'0', erase:'x' };
 
 const ACTION_META = [
   { id:'A',     label:'Resposta A',        hint:'lletra de resposta' },
   { id:'B',     label:'Resposta B',        hint:'lletra de resposta' },
   { id:'C',     label:'Resposta C',        hint:'lletra de resposta' },
   { id:'D',     label:'Resposta D',        hint:'lletra de resposta' },
+  { id:'E',     label:'Resposta E (abcde)', hint:'preguntes amb 5 opcions' },
   { id:'V',     label:'Verdader (V/F)',     hint:'preguntes vertader/fals' },
   { id:'F',     label:'Fals (V/F)',         hint:'preguntes vertader/fals' },
   { id:'blank', label:'En blanc / Invàlid', hint:'sense resposta vàlida' },
@@ -1253,8 +1341,27 @@ function buildGrid() {
   grid.removeAttribute('style');
   grid.classList.remove('grid-narrow');
   const opts = { prefix: '', onClick: qi => { if (curIdx >= 0) { qIdx = qi; render(); } } };
-  if      (currentCompetencyId === 'mat') buildGridMat(grid, opts);
-  else if (currentCompetencyId === 'cat') buildGridCat(grid, opts);
+  if      (currentCompetencyId === 'mat')  buildGridMat(grid, opts);
+  else if (currentCompetencyId === 'cat')  buildGridCat(grid, opts);
+  else if (currentCompetencyId === 'cien') buildGridCien(grid, opts);
+}
+
+function buildGridCien(grid, opts) {
+  const colGroups = [[CIEN_RANGES[0], CIEN_RANGES[1]], [CIEN_RANGES[2]]];
+  grid.style.display = 'grid'; grid.style.gridTemplateColumns = '1fr 1fr';
+  grid.style.gap = '8px'; grid.style.alignItems = 'stretch';
+  grid.classList.add('grid-narrow');
+  colGroups.forEach(group => {
+    const colEl = document.createElement('div'); colEl.className = 'mat-col';
+    group.forEach(range => {
+      const sect = document.createElement('div'); sect.className = 'sect'; sect.style.flex = String(range.questions);
+      const hdr  = document.createElement('div'); hdr.className = 'sect-hdr'; hdr.style.background = range.color; hdr.textContent = range.name.toUpperCase();
+      const cells = document.createElement('div'); cells.className = 'cells';
+      for (let i = 0; i < range.questions; i++) cells.appendChild(makeCell(range.start + i, range.color, opts));
+      sect.appendChild(hdr); sect.appendChild(cells); colEl.appendChild(sect);
+    });
+    grid.appendChild(colEl);
+  });
 }
 
 function makeCell(qi, color, opts) {
@@ -1264,7 +1371,7 @@ function makeCell(qi, color, opts) {
   c.className = 'cell';
   c.id        = `${opts.prefix}c${qi}`;
   c.dataset.v = '';
-  if (isVF) c.dataset.vf = '1';
+  if (isVF || getItemType(qi) === 'bin') c.dataset.vf = '1';
   c.style.borderLeftColor = color;
   c.innerHTML = `<span class="q-n${label.length > 2 ? ' wide' : ''}">${label}</span>`
               + `<span class="q-a" id="${opts.prefix}a${qi}">·</span>`
@@ -1676,10 +1783,12 @@ document.addEventListener('keydown', e => {
   const lk = normalizeKey(e);
   if (lk === keyCfg.erase) { e.preventDefault(); goBack(); return; }
 
-  const isVF = getItemType(qIdx) === 'vf';
-  const answerMap = isVF
+  const _type = getItemType(qIdx);
+  const answerMap = (_type === 'vf' || _type === 'bin')
     ? { [keyCfg.V]: 'A', [keyCfg.F]: 'B', [keyCfg.blank]: '_' }
-    : { [keyCfg.A]: 'A', [keyCfg.B]: 'B', [keyCfg.C]: 'C', [keyCfg.D]: 'D', [keyCfg.blank]: '_' };
+    : _type === 'abcde'
+      ? { [keyCfg.A]: 'A', [keyCfg.B]: 'B', [keyCfg.C]: 'C', [keyCfg.D]: 'D', [keyCfg.E]: 'E', [keyCfg.blank]: '_' }
+      : { [keyCfg.A]: 'A', [keyCfg.B]: 'B', [keyCfg.C]: 'C', [keyCfg.D]: 'D', [keyCfg.blank]: '_' };
 
   const val = answerMap[lk];
   if (val !== undefined && curIdx >= 0) {
@@ -1774,7 +1883,10 @@ async function exportRespostes() {
     const dispAnswers = stuMap[key].map((v, qi) => {
       if (v === null) return '';
       if (v === '_')  return '—';
-      return valDisplay(v, qi);   // mostra V/F per preguntes V/F, A/B/C/D per la resta
+      const type = getItemType(qi);
+      // bin: exporta A/B (valors interns), no les etiquetes visuals
+      if (type === 'bin') return v;
+      return valDisplay(v, qi);   // vf → V/F, abcd/abcde → A/B/C/D/E
     });
     const row = ws.addRow([stuNames[key] || key, ...dispAnswers]);
     const bg = i % 2 === 0 ? WHITE : GREY;
@@ -1881,11 +1993,15 @@ async function importRespostes(input) {
       if (!raw || raw === '') return null;
       const r = raw.trim().toUpperCase();
       const type = importTypes ? importTypes[qi] : getItemType(qi);
-      if (type === 'vf') {
+      if (type === 'vf' || type === 'bin') {
         if (r === 'V')  return 'A';
         if (r === 'F')  return 'B';
         if (r === '—' || r === '-') return '_';
         if (r === 'A' || r === 'B' || r === '_') return r;
+        return null;
+      } else if (type === 'abcde') {
+        if (r === '—' || r === '-') return '_';
+        if (['A','B','C','D','E','_'].includes(r)) return r;
         return null;
       } else {
         if (r === '—' || r === '-') return '_';
@@ -1995,8 +2111,27 @@ function buildKeyGrid() {
   grid.innerHTML = '';
   grid.removeAttribute('style');
   const opts = { prefix: 'k', onClick: qi => { keyDraftQIdx = qi; renderKey(); } };
-  if      (currentCompetencyId === 'mat') buildGridMat(grid, opts);
-  else if (currentCompetencyId === 'cat') buildGridCat(grid, opts);
+  if      (currentCompetencyId === 'mat')  buildGridMat(grid, opts);
+  else if (currentCompetencyId === 'cat')  buildGridCat(grid, opts);
+  else if (currentCompetencyId === 'cien') buildGridCien(grid, opts);
+}
+
+function buildGridCien(grid, opts) {
+  const colGroups = [[CIEN_RANGES[0], CIEN_RANGES[1]], [CIEN_RANGES[2]]];
+  grid.style.display = 'grid'; grid.style.gridTemplateColumns = '1fr 1fr';
+  grid.style.gap = '8px'; grid.style.alignItems = 'stretch';
+  grid.classList.add('grid-narrow');
+  colGroups.forEach(group => {
+    const colEl = document.createElement('div'); colEl.className = 'mat-col';
+    group.forEach(range => {
+      const sect = document.createElement('div'); sect.className = 'sect'; sect.style.flex = String(range.questions);
+      const hdr  = document.createElement('div'); hdr.className = 'sect-hdr'; hdr.style.background = range.color; hdr.textContent = range.name.toUpperCase();
+      const cells = document.createElement('div'); cells.className = 'cells';
+      for (let i = 0; i < range.questions; i++) cells.appendChild(makeCell(range.start + i, range.color, opts));
+      sect.appendChild(hdr); sect.appendChild(cells); colEl.appendChild(sect);
+    });
+    grid.appendChild(colEl);
+  });
 }
 
 function renderKey() {
@@ -2016,7 +2151,7 @@ function renderKey() {
     ansEl.className   = 'q-a';
     ansEl.dataset.val = '';
     cell.style.borderLeftColor = a.color;
-    if (getItemType(qi) === 'vf') cell.dataset.vf = '1';
+    if (getItemType(qi) === 'vf' || getItemType(qi) === 'bin') cell.dataset.vf = '1';
 
     if (qi === keyDraftQIdx) {
       cell.classList.add('active');
@@ -2122,10 +2257,12 @@ document.addEventListener('keydown', e => {
   const lk = normalizeKey(e);
   if (lk === keyCfg.erase) { e.preventDefault(); keyGoBack(); return; }
 
-  const isVF      = getItemType(keyDraftQIdx) === 'vf';
-  const answerMap = isVF
+  const _ktype    = getItemType(keyDraftQIdx);
+  const answerMap = (_ktype === 'vf' || _ktype === 'bin')
     ? { [keyCfg.V]: 'A', [keyCfg.F]: 'B', [keyCfg.blank]: '_' }
-    : { [keyCfg.A]: 'A', [keyCfg.B]: 'B', [keyCfg.C]: 'C', [keyCfg.D]: 'D', [keyCfg.blank]: '_' };
+    : _ktype === 'abcde'
+      ? { [keyCfg.A]: 'A', [keyCfg.B]: 'B', [keyCfg.C]: 'C', [keyCfg.D]: 'D', [keyCfg.E]: 'E', [keyCfg.blank]: '_' }
+      : { [keyCfg.A]: 'A', [keyCfg.B]: 'B', [keyCfg.C]: 'C', [keyCfg.D]: 'D', [keyCfg.blank]: '_' };
 
   const val = answerMap[lk];
   if (val !== undefined) {
@@ -2977,7 +3114,140 @@ async function generateInformes() {
     ].join('\n');
   }
 
-  function buildSimplePage(r, grade, pct) {
+  // ═══════════════════════════════════════════════════════════════════════
+  // COMPETÈNCIA CIENTÍFICO-TECNOLÒGICA — Descriptors Competencials
+  // ═══════════════════════════════════════════════════════════════════════
+  // DC map: 40 ítems (0-39) → codi DC
+  // Font: taula de descriptors competencials del document de referència
+  const CIEN_DC_MAP = [
+    'DC1','DC2','DC2','DC2','DC2','DC3','DC2','DC2','DC2','DC2',  //  0-9  (Act.1 Q1-Q4.4)
+    'DC2','DC1','DC4',                                             // 10-12 (Q5,Q6,Q7)
+    'DC1','DC4','DC1','DC1','DC4','DC3','DC4','DC3','DC3',        // 13-22 (Act.2 Q8-Q17)
+    'DC3','DC3','DC3','DC3',                                       // 23-26 (Q18.1-18.4)
+    'DC2','DC2','DC2','DC1',                                       // 27-30 (Act.3 Q19-Q22)
+    'DC4','DC4','DC4','DC4',                                       // 31-34 (Q23.1-23.4)
+    'DC3','DC3','DC3','DC3',                                       // 35-38 (Q24.1-24.4)
+    'DC4'                                                          // 39    (Q25)
+  ];
+
+  const CIEN_DC_INFO = {
+    DC1: { label: 'Investigar i explicar fen\u00f2mens naturals',                                                color: '7A3090' },
+    DC2: { label: 'Plantejar i desenvolupar projectes tecnol\u00f2gics',                                        color: 'C05820' },
+    DC3: { label: 'Interpretar i comunicar informaci\u00f3 de car\u00e0cter cientificotecnol\u00f2gic',        color: '1a7040' },
+    DC4: { label: 'Proposar accions fonamentades cient\u00edficament per preservar la salut i el medi ambient', color: '1A4F8A' },
+  };
+  const CIEN_DC_ORDER = ['DC1','DC2','DC3','DC4'];
+
+  function computeCienDcScores(answers) {
+    const sc = {};
+    CIEN_DC_ORDER.forEach(c => { sc[c] = { correct: 0, total: 0 }; });
+    CIEN_DC_MAP.forEach((code, i) => {
+      if (i >= answers.length) return;
+      sc[code].total++;
+      const ans = answers[i];
+      if (ans && ans !== '_' && ans !== '?' && lastResults && lastResults[0] && ansKey && ansKey[i] && ans === ansKey[i])
+        sc[code].correct++;
+    });
+    return sc;
+  }
+
+  function computeCienDcScoresFromAnswers(answers) {
+    const sc = {};
+    CIEN_DC_ORDER.forEach(c => { sc[c] = { correct: 0, total: 0 }; });
+    CIEN_DC_MAP.forEach((code, i) => {
+      if (i >= answers.length) return;
+      sc[code].total++;
+      const ans = answers[i];
+      if (ans && ans !== '_' && ans !== '?' && ansKey && ansKey[i] && ans === ansKey[i])
+        sc[code].correct++;
+    });
+    return sc;
+  }
+
+  function synthesisCien(code) {
+    return {
+      NA: "L\u2019alumne/a no assoleix la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
+      AS: "L\u2019alumne/a assoleix amb domini suficient la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
+      AN: "L\u2019alumne/a assoleix amb bon domini la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
+      AE: "L\u2019alumne/a assoleix amb molt bon domini la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
+    }[code] || '';
+  }
+
+  function wCienDcTable(dcScores) {
+    const W1 = 4400, W2 = 1900, W3 = 2726; // total = 9026 DXA
+    const tblBrd = `<w:tblBorders>
+        <w:top    w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:left   w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:bottom w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:right  w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:insideH w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:insideV w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+      </w:tblBorders>`;
+    const headerRow = `<w:tr>
+      ${wCell({ text:'Descriptor competencial', bold:true, size:22, color:'FFFFFF', fill:'7A3090', width:W1 })}
+      ${wCell({ text:'Puntuaci\u00f3',          bold:true, size:22, color:'FFFFFF', fill:'7A3090', width:W2, align:'center' })}
+      ${wCell({ text:'Nivell',                  bold:true, size:22, color:'FFFFFF', fill:'7A3090', width:W3, align:'center' })}
+    </w:tr>`;
+    const dataRows = CIEN_DC_ORDER.map((code, j) => {
+      const info = CIEN_DC_INFO[code];
+      const sc   = dcScores[code];
+      const pct  = sc.total > 0 ? Math.round(sc.correct / sc.total * 100) : 0;
+      const g    = getGrade(pct);
+      const bg   = j % 2 === 0 ? 'FFFFFF' : 'F4F0F8';
+      const lvl  = g.code === 'NA' ? `${g.full}*` : g.full;
+      return `<w:tr>
+        ${wCell({ text: info.label,                             size:22, color:'1a1a1a',                           fill:bg, width:W1 })}
+        ${wCell({ text: `${sc.correct}/${sc.total} (${pct}%)`, size:22, color:'444444',                           fill:bg, width:W2, align:'center' })}
+        ${wCell({ text: lvl,                                    size:22, color: g.code==='NA' ? 'C0392B':'111111', fill:bg, width:W3, align:'center', bold:true })}
+      </w:tr>`;
+    }).join('');
+    return `<w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="9026" w:type="dxa"/>
+        ${tblBrd}
+        <w:tblLook w:val="0000"/>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="${W1}"/>
+        <w:gridCol w:w="${W2}"/>
+        <w:gridCol w:w="${W3}"/>
+      </w:tblGrid>
+      ${headerRow}${dataRows}
+    </w:tbl>`;
+  }
+
+  function buildCienPage(r, grade, pct) {
+    const dcScores  = computeCienDcScoresFromAnswers(r.answers);
+    const hasNaDc   = CIEN_DC_ORDER.some(code => {
+      const sc = dcScores[code];
+      return sc.total > 0 && getGrade(Math.round(sc.correct / sc.total * 100)).code === 'NA';
+    });
+    return [
+      wPara({ text: `Avaluaci\u00f3 de Compet\u00e8ncies B\u00e0siques  \u00b7  ${centreCfg.curs}`,
+              bold: true, size: 38, fill: 'E87722', color: 'FFFFFF', before: 100, after: 0 }),
+      wPara({ text: `4t d\u2019ESO  \u00b7  ${centreCfg.centre}`,
+              bold: false, size: 20, fill: 'E87722', color: 'FFFFFF', before: 0, after: 0 }),
+      wPara({ text: `Informe per a la fam\u00edlia de l\u2019alumne/a: ${r.name}`,
+              size: 20, color: 'FFFFFF', fill: 'E87722', before: 0, after: 120 }),
+      wPara({ text: 'Benvolguda fam\u00edlia,', bold: true, size: 22, color: '111111', before: 280, after: 80 }),
+      wPara({ text: 'Els presentem els resultats que el seu fill/a ha obtingut de les proves de compet\u00e8ncia b\u00e0sica de 4t d\u2019ESO. Aquests resultats s\u2019incorporaran al conjunt d\u2019informaci\u00f3 de l\u2019alumne/a i es tindran en compte en l\u2019avaluaci\u00f3 final, tot i que no seran determinants per a l\u2019obtenci\u00f3 del t\u00edtol de graduat en educaci\u00f3 secund\u00e0ria obligat\u00f2ria.',
+              size: 22, color: '333333', before: 0, after: 280 }),
+      wPara({ text: `Alumne/a: ${r.name}`, bold: true, size: 32, color: '111111', before: 0, after: 480 }),
+      wPara({ text: 'COMPET\u00c8NCIA CIENT\u00cdFICO-TECNOL\u00d2GICA',
+              bold: true, size: 21, fill: '7A3090', color: 'FFFFFF', before: 80, after: 80 }),
+      wPara({ text: synthesisCien(grade.code), size: 26, color: '333333',
+              align: 'left', before: 160, after: 240 }),
+      wPercentChart(pct),
+      wPara({ text: '', before: 240, after: 0 }),
+      wCienDcTable(dcScores),
+      hasNaDc
+        ? wPara({ text: '* No s\u2019assoleix el descriptor competencial i cal refor\u00e7ar-lo.',
+                  size: 18, color: 'C0392B', italic: true, before: 120, after: 0 })
+        : '',
+    ].join('\n');
+  }
+
+    function buildSimplePage(r, grade, pct) {
     return [
       wPara({ text: r.name, bold: true, size: 52, color: '1a1a1a',
               align: 'center', before: 3600, after: 480 }),
@@ -3001,7 +3271,9 @@ async function generateInformes() {
       ? buildMatPage(r, grade, pct)
       : currentCompetencyId === 'cat'
         ? buildCatPage(r, grade, pct)
-        : buildSimplePage(r, grade, pct);
+        : currentCompetencyId === 'cien'
+          ? buildCienPage(r, grade, pct)
+          : buildSimplePage(r, grade, pct);
 
     if (i < rows.length - 1)
       body += `<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
@@ -3133,6 +3405,9 @@ loadKeyCfg();
 buildGrid();
 render();
 document.getElementById('comp-overlay').classList.remove('off');
+// Preomplir els camps del wizard amb centreCfg
+document.getElementById('sw-centre').value = centreCfg.centre !== 'Institut' ? centreCfg.centre : '';
+document.getElementById('sw-curs').value   = centreCfg.curs   !== getDefaultCurs() ? centreCfg.curs : centreCfg.curs;
 </script>
 </body>
 </html>
