@@ -123,6 +123,8 @@
     let _puntsFiguraActual = 0;
     // [CANVI 3] chip seleccionat en mode tap-to-select (mòbil portrait)
     let _selectedChip      = null;
+    // [BUGFIX] flag per evitar acumulació de listeners al SVG arrel entre figures
+    let _svgDragListenersAdded = false;
 
     // =========================================================================
     // REFS DOM
@@ -416,25 +418,33 @@
             // Solució: escoltar els tres events al SVG arrel i calcular sobre quina
             // drop-zone cau el cursor amb .closest('.drop-zone'). El drop sobre el SVG
             // root sempre es dispara correctament.
-            els.figureSvg.addEventListener('dragover', e => {
-                e.preventDefault();
-                const dz = e.target.closest('.drop-zone');
-                els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
-                if (dz) dz.classList.add('dz-over');
-            });
-            els.figureSvg.addEventListener('dragleave', e => {
-                // Només treure l'highlight si el cursor surt del SVG complet
-                if (!els.figureSvg.contains(e.relatedTarget)) {
+            // [BUGFIX] Els listeners s'afegeixen UNA SOLA VEGADA: el SVG arrel persisteix
+            // entre figures (només innerHTML canvia) i, sense aquest guard, cada figura
+            // afegia un nou listener → cada drop disparava _handleDrop N vegades →
+            // _etOK s'incrementava N cops per encert → _finishLevel() s'activava
+            // prematurament (ex.: 2 encerts amb 2 listeners = _etOK=4 en una figura de 4).
+            if (!_svgDragListenersAdded) {
+                _svgDragListenersAdded = true;
+                els.figureSvg.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const dz = e.target.closest('.drop-zone');
                     els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
-                }
-            });
-            els.figureSvg.addEventListener('drop', e => {
-                e.preventDefault();
-                els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
-                const word = e.dataTransfer.getData('text/plain');
-                const dz   = e.target.closest('.drop-zone');
-                if (dz) _handleDrop(dz, word);
-            });
+                    if (dz) dz.classList.add('dz-over');
+                });
+                els.figureSvg.addEventListener('dragleave', e => {
+                    // Només treure l'highlight si el cursor surt del SVG complet
+                    if (!els.figureSvg.contains(e.relatedTarget)) {
+                        els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
+                    }
+                });
+                els.figureSvg.addEventListener('drop', e => {
+                    e.preventDefault();
+                    els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
+                    const word = e.dataTransfer.getData('text/plain');
+                    const dz   = e.target.closest('.drop-zone');
+                    if (dz) _handleDrop(dz, word);
+                });
+            }
         } else {
             _highlightWriteTarget();
         }
