@@ -444,6 +444,20 @@ td.blnk { color: var(--muted); text-align: center; }
 .faq-a br { display: block; margin-bottom: 6px; content: ""; }
 .faq-footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 10px; }
 
+/* ── Centre autocomplete ── */
+.centre-ac {
+  position: absolute; left: 0; right: 0; top: calc(100% + 3px);
+  background: var(--panel); border: 1px solid var(--accent);
+  border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  font-size: .72rem; z-index: 9999; display: none;
+}
+.centre-ac.show { display: block; }
+.centre-ac-item {
+  padding: 9px 14px; cursor: pointer; color: var(--text);
+  transition: background .1s;
+}
+.centre-ac-item:hover, .centre-ac-item.active { background: var(--accent); color: #fff; }
+
 /* ── Toast ── */
 #toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
@@ -654,11 +668,15 @@ td.blnk { color: var(--muted); text-align: center; }
         <div style="display:flex;flex-direction:column;gap:10px;padding:4px 2px">
           <div style="display:flex;flex-direction:column;gap:4px">
             <label style="font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Nom del centre</label>
+          <div style="position:relative">
             <input id="sw-centre" class="name-input" type="text" placeholder="Institut"
-              list="centre-suggestions"
+              autocomplete="off"
               style="width:100%;box-sizing:border-box"
-              oninput="updateCentreFromWizard()"
-              onchange="updateCentreFromWizard()">
+              oninput="centreAc(this,'sw-ac')"
+              onkeydown="centreAcKey(event,'sw-ac')"
+              onblur="setTimeout(()=>hideCentreAc('sw-ac'),150)">
+            <div id="sw-ac" class="centre-ac"></div>
+          </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px">
             <label style="font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Curs acadèmic</label>
@@ -696,11 +714,6 @@ td.blnk { color: var(--muted); text-align: center; }
 
 <!-- TOAST -->
 <div id="toast"></div>
-
-<datalist id="centre-suggestions">
-  <option value="Institut Miquel Tarradell">
-  <option value="Institut">
-</datalist>
 
 <!-- FAQ MODAL -->
 <div class="overlay off" id="faq-overlay" onclick="if(event.target===this)closeFaq()">
@@ -782,7 +795,13 @@ td.blnk { color: var(--muted); text-align: center; }
     <div class="cfg-title">🏫 Centre i any acadèmic</div>
     <div class="centre-row">
       <label class="centre-lbl" for="centre-inp">Nom del centre</label>
-      <input class="name-input" id="centre-inp" type="text" placeholder="Institut" autocomplete="off" list="centre-suggestions">
+      <div style="position:relative">
+        <input class="name-input" id="centre-inp" type="text" placeholder="Institut" autocomplete="off"
+          oninput="centreAc(this,'modal-ac')"
+          onkeydown="centreAcKey(event,'modal-ac')"
+          onblur="setTimeout(()=>hideCentreAc('modal-ac'),150)">
+        <div id="modal-ac" class="centre-ac"></div>
+      </div>
     </div>
     <div class="centre-row">
       <label class="centre-lbl" for="curs-inp">Curs acadèmic</label>
@@ -3369,6 +3388,61 @@ async function generateInformes() {
   const a   = document.createElement('a');
   a.href = url; a.download = currentCompetencyId + '_informes_cb4eso.docx'; a.click();
   URL.revokeObjectURL(url);
+}
+
+// ── Centre autocomplete ──
+const CENTRE_SUGGESTIONS = ['Institut Miquel Tarradell'];
+
+function centreAc(inp, acId) {
+  updateCentreFromWizard();
+  const val = inp.value;
+  const ac  = document.getElementById(acId);
+  const matches = CENTRE_SUGGESTIONS.filter(s =>
+    val.length >= 2 && s.toLowerCase().includes(val.toLowerCase())
+  );
+  if (!matches.length) { ac.classList.remove('show'); ac.innerHTML = ''; return; }
+  ac.innerHTML = matches.map((s, i) =>
+    `<div class="centre-ac-item" data-val="${s}" onmousedown="pickCentreAc(event,'${acId}')">${s}</div>`
+  ).join('');
+  ac.classList.add('show');
+}
+
+function pickCentreAc(e, acId) {
+  e.preventDefault();
+  const val = e.currentTarget.dataset.val;
+  // Find the associated input
+  const ac  = document.getElementById(acId);
+  const inp = ac.previousElementSibling;
+  inp.value = val;
+  hideCentreAc(acId);
+  updateCentreFromWizard();
+}
+
+function hideCentreAc(acId) {
+  const ac = document.getElementById(acId);
+  ac.classList.remove('show');
+}
+
+function centreAcKey(e, acId) {
+  const ac    = document.getElementById(acId);
+  const items = ac.querySelectorAll('.centre-ac-item');
+  if (!items.length) return;
+  const active = ac.querySelector('.centre-ac-item.active');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const next = active ? active.nextElementSibling : items[0];
+    if (active) active.classList.remove('active');
+    if (next) next.classList.add('active');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prev = active ? active.previousElementSibling : items[items.length - 1];
+    if (active) active.classList.remove('active');
+    if (prev) prev.classList.add('active');
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (active) { e.preventDefault(); active.dispatchEvent(new MouseEvent('mousedown')); }
+  } else if (e.key === 'Escape') {
+    hideCentreAc(acId);
+  }
 }
 
 // ── Toast ──
