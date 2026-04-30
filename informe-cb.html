@@ -1500,6 +1500,7 @@ function editNameInline() {
     const val = inp.value.trim();
     stuNames[key] = val;
     el.textContent = val || key;
+    markUnsaved();
   };
   inp.addEventListener('blur',    commit);
   inp.addEventListener('keydown', e => {
@@ -1532,6 +1533,7 @@ function confirmStudent() {
   stuOrder.push(key);
   curIdx = stuOrder.length - 1;
   qIdx   = 0;
+  markUnsaved();
   closeModal(); render(); syncPdfToCurrent();
 }
 
@@ -1746,8 +1748,8 @@ function goBack() {
   hideCompletePrompt();
   const code = stuOrder[curIdx];
   if (qIdx >= Q) { qIdx = Q - 1; render(); return; }
-  if (qIdx > 0) { qIdx--; stuMap[code][qIdx] = null; }
-  else if (curIdx > 0) { curIdx--; qIdx = Q - 1; stuMap[stuOrder[curIdx]][qIdx] = null; }
+  if (qIdx > 0) { qIdx--; stuMap[code][qIdx] = null; markUnsaved(); }
+  else if (curIdx > 0) { curIdx--; qIdx = Q - 1; stuMap[stuOrder[curIdx]][qIdx] = null; markUnsaved(); }
   render();
 }
 
@@ -1794,6 +1796,7 @@ document.addEventListener('keydown', e => {
   if (val !== undefined && curIdx >= 0) {
     e.preventDefault();
     stuMap[stuOrder[curIdx]][qIdx] = val;
+    markUnsaved();
     if (qIdx < Q - 1) {
       qIdx++;
     } else {
@@ -1904,6 +1907,7 @@ async function exportRespostes() {
   const a    = document.createElement('a');
   a.href = url; a.download = currentCompetencyId + '_respostes_cb4eso.xlsx'; a.click();
   URL.revokeObjectURL(url);
+  markSaved();
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -3345,6 +3349,18 @@ function toggleFaq(btn) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !document.getElementById('faq-overlay').classList.contains('off')) {
     e.preventDefault(); closeFaq();
+  }
+});
+
+// ── Avís de pèrdua de dades en tancar la finestra ───────────────────────
+let unsavedChanges = false;
+function markUnsaved() { unsavedChanges = true; }
+function markSaved()   { unsavedChanges = false; }
+
+window.addEventListener('beforeunload', e => {
+  if (unsavedChanges) {
+    e.preventDefault();
+    e.returnValue = '';
   }
 });
 
