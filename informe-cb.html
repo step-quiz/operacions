@@ -2076,10 +2076,25 @@ async function importRespostes(input) {
 
     // ── Validar competència ──────────────────────────────────────────
     if (importCompId && importCompId !== currentCompetencyId) {
+      // Validar que la competència del fitxer existeix
+      if (!COMPETENCIES[importCompId]) {
+        alert(`⚠ La competència "${importCompId}" del fitxer no és coneguda.\nNo es carregaran les dades.`);
+        return;
+      }
+      const targetLabel = COMPETENCIES[importCompId].label;
+      const currentLabel = COMPETENCIES[currentCompetencyId]?.label || currentCompetencyId;
       if (!confirm(
-        `⚠ Aquest fitxer és per a la competència "${importCompId}", però ara teniu "${currentCompetencyId}" activa.\n` +
-        `Canvieu la competència al menú d'inici o continueu igualment?`
+        `Aquest fitxer és per a la competència «${targetLabel}», ` +
+        `però ara teniu «${currentLabel}» activa.\n\n` +
+        `Voleu canviar a «${targetLabel}» i carregar les dades?`
       )) return;
+      applyCompetency(importCompId);
+      // Si la clau era de la competència anterior, ja no és aplicable
+      if (answerKey) {
+        answerKey = null;
+        document.getElementById('key-badge').style.display = 'none';
+        document.getElementById('btn-correct').disabled = true;
+      }
     }
 
     const Q   = getQ();
@@ -2332,15 +2347,39 @@ function loadKeyTxt(input) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const Q    = getQ();
       const data = {};
       for (const line of e.target.result.split(/\r?\n/)) {
         const m = line.match(/^([A-Z_]+)=(.*)$/);
         if (m) data[m[1]] = m[2];
       }
       if (data.COMPETENCIA && data.COMPETENCIA !== currentCompetencyId) {
-        if (!confirm(`⚠ Aquest arxiu és per a la competència "${data.COMPETENCIA}", però ara teniu "${currentCompetencyId}" activa.\nVoleu continuar igualment?`)) return;
+        // Validar que la competència del fitxer existeix
+        if (!COMPETENCIES[data.COMPETENCIA]) {
+          alert(`⚠ La competència "${data.COMPETENCIA}" del fitxer no és coneguda.\nNo es carregarà la clau.`);
+          return;
+        }
+        const targetLabel = COMPETENCIES[data.COMPETENCIA].label;
+        const currentLabel = COMPETENCIES[currentCompetencyId]?.label || currentCompetencyId;
+        const extraWarn = stuOrder.length > 0
+          ? `\n\n⚠ Si continueu, es perdran els ${stuOrder.length} alumne${stuOrder.length !== 1 ? 's' : ''} introduïts (les respostes són d'una competència diferent).`
+          : '';
+        if (!confirm(
+          `Aquest arxiu és per a la competència «${targetLabel}», ` +
+          `però ara teniu «${currentLabel}» activa.\n\n` +
+          `Voleu canviar a «${targetLabel}» i carregar la clau?` +
+          extraWarn
+        )) return;
+        // Canviem la competència i, si calia, netegem les respostes dels alumnes
+        if (stuOrder.length > 0) {
+          stuMap = {}; stuNames = {}; stuOrder = [];
+          curIdx = -1; qIdx = 0;
+          hideCompletePrompt();
+        }
+        applyCompetency(data.COMPETENCIA);
+        // Reconstrueix la graella de l'editor (si és obert) perquè el nou Q hi quadri
+        if (keyEditorOpen) buildKeyGrid();
       }
+      const Q = getQ();   // recalcular després d'un possible applyCompetency
       const src = data.RESPOSTES || '';
       if (!src) { alert('Format de fitxer no reconegut.'); return; }
 
@@ -3281,7 +3320,7 @@ async function generateInformes() {
   const CIEN_DC_MAP = [
     'DC1','DC2','DC2','DC2','DC2','DC3','DC2','DC2','DC2','DC2',  //  0-9  (Act.1 Q1-Q4.4)
     'DC2','DC1','DC4',                                             // 10-12 (Q5,Q6,Q7)
-    'DC1','DC4','DC1','DC1','DC4','DC3','DC4','DC3','DC3',        // 13-22 (Act.2 Q8-Q17)
+    'DC1','DC4','DC1','DC1','DC4','DC3','DC4','DC3','DC3','DC1',  // 13-22 (Act.2 Q8-Q17)
     'DC3','DC3','DC3','DC3',                                       // 23-26 (Q18.1-18.4)
     'DC2','DC2','DC2','DC1',                                       // 27-30 (Act.3 Q19-Q22)
     'DC4','DC4','DC4','DC4',                                       // 31-34 (Q23.1-23.4)
@@ -3298,19 +3337,6 @@ async function generateInformes() {
   const CIEN_DC_ORDER = ['DC1','DC2','DC3','DC4'];
 
   function computeCienDcScores(answers) {
-    const sc = {};
-    CIEN_DC_ORDER.forEach(c => { sc[c] = { correct: 0, total: 0 }; });
-    CIEN_DC_MAP.forEach((code, i) => {
-      if (i >= answers.length) return;
-      sc[code].total++;
-      const ans = answers[i];
-      if (ans && ans !== '_' && ans !== '?' && lastResults && lastResults[0] && ansKey && ansKey[i] && ans === ansKey[i])
-        sc[code].correct++;
-    });
-    return sc;
-  }
-
-  function computeCienDcScoresFromAnswers(answers) {
     const sc = {};
     CIEN_DC_ORDER.forEach(c => { sc[c] = { correct: 0, total: 0 }; });
     CIEN_DC_MAP.forEach((code, i) => {
@@ -3376,7 +3402,7 @@ async function generateInformes() {
   }
 
   function buildCienPage(r, grade, pct) {
-    const dcScores  = computeCienDcScoresFromAnswers(r.answers);
+    const dcScores  = computeCienDcScores(r.answers);
     const hasNaDc   = CIEN_DC_ORDER.some(code => {
       const sc = dcScores[code];
       return sc.total > 0 && getGrade(Math.round(sc.correct / sc.total * 100)).code === 'NA';
