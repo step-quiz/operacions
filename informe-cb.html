@@ -444,6 +444,48 @@ td.blnk { color: var(--muted); text-align: center; }
 .startup-go:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
 .startup-go:not(:disabled):hover { background: var(--acc-hi); }
 
+/* ── FAQ modal ── */
+.faq-box {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px 28px 20px; display: flex; flex-direction: column; gap: 16px;
+  width: min(720px, 94vw); max-height: 80vh;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+.faq-list { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
+.faq-item { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.faq-q {
+  width: 100%; font-family: inherit; font-size: .72rem; font-weight: 700;
+  color: var(--text); background: var(--f-bg); border: none;
+  padding: 12px 16px; text-align: left; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  transition: background .12s, color .12s;
+}
+.faq-q:hover { background: #dce8f5; color: var(--accent); }
+.faq-q.open  { background: var(--accent); color: #fff; }
+.faq-chevron { font-size: .65rem; flex-shrink: 0; transition: transform .2s; }
+.faq-q.open .faq-chevron { transform: rotate(180deg); }
+.faq-a {
+  display: none; padding: 12px 16px;
+  font-size: .68rem; color: var(--text); line-height: 1.7;
+  border-top: 1px solid var(--border); background: var(--panel);
+}
+.faq-a.open { display: block; }
+.faq-a code {
+  background: var(--f-bg); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1px 5px; font-family: inherit; font-size: .66rem;
+}
+.faq-footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 10px; }
+
+/* ── Centre / Curs modal ── */
+.centre-box {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  padding: 22px 28px 20px; display: flex; flex-direction: column; gap: 14px;
+  width: min(420px, 94vw); box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+.centre-row { display: flex; flex-direction: column; gap: 5px; }
+.centre-lbl { font-size: .58rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.centre-footer { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 10px; }
+
 /* ── Àmbit sections in grid ── */
 .sect { display: flex; flex-direction: column; gap: 3px; min-height: 0; flex: 1; }
 .sect-hdr {
@@ -514,8 +556,11 @@ td.blnk { color: var(--muted); text-align: center; }
     <div class="dropdown" id="dd-cfg">
       <button class="dd-trigger" onclick="toggleDropdown('dd-cfg')">Configuració ▾</button>
       <div class="dd-menu">
+        <button class="dd-item" onclick="closeDropdowns();openFaq()">❓&nbsp; Preguntes freqüents</button>
+        <div class="dd-sep"></div>
         <button class="dd-item" id="btn-pdf-toggle" onclick="closeDropdowns();togglePdfPane()">🔍&nbsp; Activar el visualitzador PDF</button>
         <button class="dd-item" onclick="closeDropdowns();openSettings()">⚙️&nbsp; Configurar tecles personalitzades</button>
+        <button class="dd-item" onclick="closeDropdowns();openCentreModal()">🏫&nbsp; Introduir centre i any</button>
         <div class="dd-sep"></div>
         <button class="dd-item danger" onclick="closeDropdowns();clearAllData()">✕&nbsp; Esborrar-ho tot</button>
       </div>
@@ -653,6 +698,99 @@ td.blnk { color: var(--muted); text-align: center; }
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn" onclick="skipPdf()">Sense PDF</button>
       <button class="btn pri" onclick="document.getElementById('pdf-file').click()">📄 Carregar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ MODAL -->
+<div class="overlay off" id="faq-overlay" onclick="if(event.target===this)closeFaq()">
+  <div class="faq-box">
+    <div class="cfg-title">❓ Preguntes freqüents</div>
+    <div class="faq-list" id="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Com introdueixo les respostes dels alumnes?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Les respostes s'introdueixen manualment. Per exemple, si prems la tecla <code>1</code>, es selecciona la resposta «A»; amb la tecla <code>2</code>, la resposta «B», etc. El cursor avança automàticament.<br>
+          Si un alumne ha deixat una resposta en blanc de manera intencional, o bé té una resposta invàlida perquè ha seleccionat més d'una resposta possible, has de prémer la tecla <code>0</code>.<br>
+          Pots navegar entre preguntes amb les fletxes del teclat i clicar directament a qualsevol cel·la de la graella.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Puc desar la feina i continuar-la més tard?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Sí. Ves al menú <strong>Accions → Desar les dades introduïdes</strong>: es baixarà un full de càlcul <code>.xlsx</code> amb totes les respostes.<br>
+          La propera vegada que facis servir aquesta eina, selecciona la mateixa competència i carrega el mateix fitxer des de: <strong>Accions → Carregar dades</strong>.<br>
+          Tots els alumnes i les seves respostes es restauraran exactament com estaven.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Com funcionen els nivells d'assoliment (NA / AS / AN / AE)?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Els nivells es calculen a partir del percentatge d'encerts sobre el total de preguntes:<br>
+          &nbsp;<br>
+          • <strong>NA – Baix</strong>: menys del 50 %<br>
+          • <strong>AS – Mitjà-baix</strong>: del 50 % al 66,6 %<br>
+          • <strong>AN – Mitjà-alt</strong>: del 66,7 % al 83,3 %<br>
+          • <strong>AE – Alt</strong>: del 83,4 % al 100 %
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Alguns alumnes apareixen com «alum_1», «alum_2»… Això és normal? Puc posar-los nom?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Quan crees un registre nou i deixes el nom en blanc, s'assigna automàticament el codi <code>alum_x</code>.<br>
+          Per actualitzar el nom, clica sobre <code>alum_x</code>, escriu el nom nou i prem la tecla <code>Retorn</code> per confirmar.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Cal introduir la clau de respostes correctes cada vegada i per cada grup-classe?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          No és necessari. S'ha d'introduir manualment la primera vegada. És important que, quan confirmem la clau i la desem, diguem que sí volem baixar-la en un fitxer <code>.txt</code>.<br>
+          Podem compartir aquest fitxer amb la resta del professorat.<br>
+          Quan hem d'introduir dades d'un altre grup-classe, podem carregar directament la clau des d'aquest fitxer.
+        </div>
+      </div>
+
+    </div>
+    <div class="faq-footer">
+      <button class="btn pri" onclick="closeFaq()">Tancar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CENTRE / CURS MODAL -->
+<div class="overlay off" id="centre-overlay" onclick="if(event.target===this)closeCentreModal()">
+  <div class="centre-box">
+    <div class="cfg-title">🏫 Centre i any acadèmic</div>
+    <div class="centre-row">
+      <label class="centre-lbl" for="centre-inp">Nom del centre</label>
+      <input class="name-input" id="centre-inp" type="text" placeholder="Institut" autocomplete="off">
+    </div>
+    <div class="centre-row">
+      <label class="centre-lbl" for="curs-inp">Curs acadèmic</label>
+      <input class="name-input" id="curs-inp" type="text" placeholder="2025-2026" autocomplete="off" style="width:160px">
+    </div>
+    <div class="centre-footer">
+      <button class="btn" onclick="closeCentreModal()">Cancel·lar</button>
+      <button class="btn pri" onclick="saveCentreModal()">✓ Desar</button>
     </div>
   </div>
 </div>
@@ -894,6 +1032,62 @@ let ambits = (function() {
 function saveAmbitsCfg() {
   localStorage.setItem('cb4-ambits', JSON.stringify(ambits));
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// CENTRE I CURS
+// ═══════════════════════════════════════════════════════════════════════
+function getDefaultCurs() {
+  const now = new Date();
+  const m = now.getMonth() + 1; // 1-12
+  const y = now.getFullYear();
+  if (m >= 9)  return `${y}-${y+1}`;
+  if (m <= 6)  return `${y-1}-${y}`;
+  return `${y}-${y+1}`; // juliol/agost: curs vinent
+}
+
+let centreCfg = (function() {
+  try {
+    const s = localStorage.getItem('cb4-centre');
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return { centre: 'Institut', curs: getDefaultCurs() };
+})();
+
+let pendingAfterCentre = false;
+
+function saveCentreCfg() {
+  localStorage.setItem('cb4-centre', JSON.stringify(centreCfg));
+}
+
+function openCentreModal() {
+  document.getElementById('centre-inp').value = centreCfg.centre;
+  document.getElementById('curs-inp').value   = centreCfg.curs;
+  document.getElementById('centre-overlay').classList.remove('off');
+  setTimeout(() => document.getElementById('centre-inp').focus(), 40);
+}
+
+function closeCentreModal() {
+  document.getElementById('centre-overlay').classList.add('off');
+}
+
+function saveCentreModal() {
+  const centre = document.getElementById('centre-inp').value.trim() || 'Institut';
+  const curs   = document.getElementById('curs-inp').value.trim()   || getDefaultCurs();
+  centreCfg = { centre, curs };
+  saveCentreCfg();
+  closeCentreModal();
+  if (pendingAfterCentre) {
+    pendingAfterCentre = false;
+    generateInformes();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  const open = !document.getElementById('centre-overlay').classList.contains('off');
+  if (!open) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeCentreModal(); }
+  if (e.key === 'Enter')  { e.preventDefault(); saveCentreModal(); }
+});
 
 function getQ() {
   if (currentCompetencyId === 'cat') return CAT_ITEMS.length;
@@ -1695,8 +1889,8 @@ async function exportRespostes() {
   wsMeta.addRow(['Q', Q]);
   wsMeta.addRow(['LABELS', Array.from({length:Q}, (_,i) => getItemLabel(i)).join(',')]);
   wsMeta.addRow(['TYPES',  Array.from({length:Q}, (_,i) => getItemType(i)).join(',')]);
-
-  // ── Full principal ───────────────────────────────────────────────────
+  wsMeta.addRow(['CENTRE', centreCfg.centre]);
+  wsMeta.addRow(['CURS',   centreCfg.curs]);
   const ws = wb.addWorksheet('Respostes');
   ws.columns = [
     { width: 24 },
@@ -1791,6 +1985,7 @@ async function importRespostes(input) {
     // ── Llegir metadades ─────────────────────────────────────────────
     const wsMeta = wb2.getWorksheet('_meta');
     let importCompId = null, importLabels = null, importTypes = null;
+    let importCentre = null, importCurs = null;
     if (wsMeta) {
       wsMeta.eachRow(row => {
         const k = String(row.getCell(1).value || '');
@@ -1798,7 +1993,16 @@ async function importRespostes(input) {
         if (k === 'COMPETENCIA') importCompId = v;
         if (k === 'LABELS')      importLabels = v.split(',');
         if (k === 'TYPES')       importTypes  = v.split(',');
+        if (k === 'CENTRE')      importCentre = v;
+        if (k === 'CURS')        importCurs   = v;
       });
+    }
+    if (importCentre || importCurs) {
+      centreCfg = {
+        centre: importCentre || centreCfg.centre,
+        curs:   importCurs   || centreCfg.curs,
+      };
+      saveCentreCfg();
     }
 
     // ── Validar competència ──────────────────────────────────────────
@@ -2351,16 +2555,25 @@ async function generateInformes() {
     return;
   }
 
+  // ── Comprovar si el centre és el valor per defecte ───────────────────
+  if (centreCfg.centre === 'Institut') {
+    if (confirm('⚠ Encara no has introduït les dades del centre.\n\nVols introduir el nom del centre i el curs acadèmic abans de generar els informes?')) {
+      pendingAfterCentre = true;
+      openCentreModal();
+      return;
+    }
+  }
+
   const Q      = getQ();
   const { rows, key: ansKey } = lastResults;
   const ranges = getAmbitRanges();
 
   // ── Helpers ─────────────────────────────────────────────────────────
   function getGrade(pct) {
-    if (pct < 50) return { code: 'NA', full: 'Baix',       color: 'C0392B' };
-    if (pct < 70) return { code: 'AS', full: 'Mitjà-baix', color: 'D4820A' };
-    if (pct < 90) return { code: 'AN', full: 'Mitjà-alt',  color: '1A5276' };
-    return         { code: 'AE', full: 'Alt',              color: '1E8449' };
+    if (pct < 50)    return { code: 'NA', full: 'Baix',       color: 'C0392B' };
+    if (pct < 66.67) return { code: 'AS', full: 'Mitj\u00e0-baix', color: 'D4820A' };
+    if (pct < 83.34) return { code: 'AN', full: 'Mitj\u00e0-alt',  color: '1A5276' };
+    return            { code: 'AE', full: 'Alt',              color: '1E8449' };
   }
 
   function esc(s) {
@@ -2657,13 +2870,100 @@ async function generateInformes() {
     </w:tbl>`;
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // LLENGUA CATALANA — Processos cognitius
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Mapa índex pregunta (0-43) → codi procés cognitiu
+  // Font: taula 2.1 del document de referència CB4 Llengua Catalana
+  const CAT_PROCESS_MAP = [
+    'LOI','RID','III','LOI','III','RID','RID','III','RVC','RVC',  // 0-9   Q1-Q10  (CO)
+    'RID','III','LOI','RID','RID','RID','RID','III','RID','III',  // 10-19 Q11-Q20 (CE1)
+    'III','LOI','RID','RVC','RVC','RID','III','RID','LOI','RID',  // 20-29 Q21-Q27.1 (CE1+CE2)
+    'RID','RID','RID','III','III','LOI','LOI','III','RID','RID',  // 30-39 Q27.2-Q34 (CE2)
+    'RVC','RVC','RVC','III'                                        // 40-43 Q35-Q38 (CE2)
+  ];
+
+  const CAT_PROCESS_INFO = {
+    LOI: { label: 'Localitzar i obtenir informaci\u00f3',                color: 'B03020' },
+    RID: { label: 'Realitzar infer\u00e8ncies directes',                 color: '1A4F8A' },
+    III: { label: 'Integrar i interpretar idees i informacions',         color: '2A7A3A' },
+    RVC: { label: 'Reflexionar i valorar continguts i informacions',     color: '7A20B0' },
+  };
+  const CAT_PROCESS_ORDER = ['LOI','RID','III','RVC'];
+
+  function computeCatProcessScores(answers) {
+    const sc = {};
+    CAT_PROCESS_ORDER.forEach(c => { sc[c] = { correct: 0, total: 0 }; });
+    CAT_PROCESS_MAP.forEach((code, i) => {
+      if (i >= answers.length) return;
+      sc[code].total++;
+      const ans = answers[i];
+      if (ans && ans !== '_' && ans !== '?' && ansKey && ansKey[i] && ans === ansKey[i])
+        sc[code].correct++;
+    });
+    return sc;
+  }
+
+  function synthesisCat(code) {
+    return {
+      NA: "L\u2019alumne/a no assoleix la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
+      AS: "L\u2019alumne/a assoleix amb domini suficient la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
+      AN: "L\u2019alumne/a assoleix amb bon domini la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
+      AE: "L\u2019alumne/a assoleix amb molt bon domini la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
+    }[code] || '';
+  }
+
+  function wCatProcessTable(processScores) {
+    const W1 = 4400, W2 = 1900, W3 = 2726; // total = 9026 DXA
+    const tblBrd = `<w:tblBorders>
+        <w:top    w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:left   w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:bottom w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:right  w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:insideH w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+        <w:insideV w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+      </w:tblBorders>`;
+    const headerRow = `<w:tr>
+      ${wCell({ text:'Proc\u00e9s cognitiu', bold:true, size:22, color:'FFFFFF', fill:'B03020', width:W1 })}
+      ${wCell({ text:'Puntuaci\u00f3',        bold:true, size:22, color:'FFFFFF', fill:'B03020', width:W2, align:'center' })}
+      ${wCell({ text:'Nivell',               bold:true, size:22, color:'FFFFFF', fill:'B03020', width:W3, align:'center' })}
+    </w:tr>`;
+    const dataRows = CAT_PROCESS_ORDER.map((code, j) => {
+      const info = CAT_PROCESS_INFO[code];
+      const sc   = processScores[code];
+      const pct  = sc.total > 0 ? Math.round(sc.correct / sc.total * 100) : 0;
+      const g    = getGrade(pct);
+      const bg   = j % 2 === 0 ? 'FFFFFF' : 'F5F2F8';
+      const lvl  = g.code === 'NA' ? `${g.full}*` : g.full;
+      return `<w:tr>
+        ${wCell({ text: info.label,                             size:22, color:'1a1a1a',                         fill:bg, width:W1 })}
+        ${wCell({ text: `${sc.correct}/${sc.total} (${pct}%)`, size:22, color:'444444',                         fill:bg, width:W2, align:'center' })}
+        ${wCell({ text: lvl,                                    size:22, color: g.code==='NA' ? 'C0392B':'111111', fill:bg, width:W3, align:'center', bold:true })}
+      </w:tr>`;
+    }).join('');
+    return `<w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="9026" w:type="dxa"/>
+        ${tblBrd}
+        <w:tblLook w:val="0000"/>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="${W1}"/>
+        <w:gridCol w:w="${W2}"/>
+        <w:gridCol w:w="${W3}"/>
+      </w:tblGrid>
+      ${headerRow}${dataRows}
+    </w:tbl>`;
+  }
+
   // ── Vertical percentage chart with orange dot ─────────────────────────
   function wPercentChart(pct) {
     const grade = getGrade(pct);
     const ZONES = [
-      { code: 'AE', label: 'Nivell alt',        min: 90, max: 100 },
-      { code: 'AN', label: 'Nivell mitj\u00e0-alt',  min: 70, max: 89  },
-      { code: 'AS', label: 'Nivell mitj\u00e0-baix', min: 50, max: 69  },
+      { code: 'AE', label: 'Nivell alt',        min: 83, max: 100 },
+      { code: 'AN', label: 'Nivell mitj\u00e0-alt',  min: 67, max: 82  },
+      { code: 'AS', label: 'Nivell mitj\u00e0-baix', min: 50, max: 66  },
       { code: 'NA', label: 'Nivell baix',       min: 0,  max: 49  },
     ];
 
@@ -2776,9 +3076,9 @@ async function generateInformes() {
   function buildMatPage(r, grade, pct) {
     return [
       // A1: Capçalera taronja amb curs
-      wPara({ text: 'Avaluaci\u00f3 de Compet\u00e8ncies B\u00e0siques  \u00b7  2025-26',
+      wPara({ text: `Avaluació de Competències Bàsiques  ·  ${centreCfg.curs}`,
               bold: true, size: 38, fill: 'E87722', color: 'FFFFFF', before: 100, after: 0 }),
-      wPara({ text: '4t d\u2019ESO  \u00b7  Institut Miquel Tarradell',
+      wPara({ text: `4t d’ESO  ·  ${centreCfg.centre}`,
               bold: false, size: 20, fill: 'E87722', color: 'FFFFFF', before: 0, after: 0 }),
 
       // A2+A3: destinatari i codi de centre
@@ -2823,6 +3123,37 @@ async function generateInformes() {
     ].join('\n');
   }
 
+  function buildCatPage(r, grade, pct) {
+    const processScores = computeCatProcessScores(r.answers);
+    const hasNaProcess  = CAT_PROCESS_ORDER.some(code => {
+      const sc = processScores[code];
+      return sc.total > 0 && getGrade(Math.round(sc.correct / sc.total * 100)).code === 'NA';
+    });
+    return [
+      wPara({ text: `Avaluació de Competències Bàsiques  ·  ${centreCfg.curs}`,
+              bold: true, size: 38, fill: 'E87722', color: 'FFFFFF', before: 100, after: 0 }),
+      wPara({ text: `4t d’ESO  ·  ${centreCfg.centre}`,
+              bold: false, size: 20, fill: 'E87722', color: 'FFFFFF', before: 0, after: 0 }),
+      wPara({ text: `Informe per a la fam\u00edlia de l\u2019alumne/a: ${r.name}`,
+              size: 20, color: 'FFFFFF', fill: 'E87722', before: 0, after: 120 }),
+      wPara({ text: 'Benvolguda fam\u00edlia,', bold: true, size: 22, color: '111111', before: 280, after: 80 }),
+      wPara({ text: 'Els presentem els resultats que el seu fill/a ha obtingut de les proves de compet\u00e8ncia b\u00e0sica de 4t d\u2019ESO. Aquests resultats s\u2019incorporaran al conjunt d\u2019informaci\u00f3 de l\u2019alumne/a i es tindran en compte en l\u2019avaluaci\u00f3 final, tot i que no seran determinants per a l\u2019obtenci\u00f3 del t\u00edtol de graduat en educaci\u00f3 secund\u00e0ria obligat\u00f2ria.',
+              size: 22, color: '333333', before: 0, after: 280 }),
+      wPara({ text: `Alumne/a: ${r.name}`, bold: true, size: 32, color: '111111', before: 0, after: 480 }),
+      wPara({ text: 'COMPET\u00c8NCIA LLENGUA CATALANA',
+              bold: true, size: 21, fill: 'B03020', color: 'FFFFFF', before: 80, after: 80 }),
+      wPara({ text: synthesisCat(grade.code), size: 26, color: '333333',
+              align: 'left', before: 160, after: 240 }),
+      wPercentChart(pct),
+      wPara({ text: '', before: 240, after: 0 }),
+      wCatProcessTable(processScores),
+      hasNaProcess
+        ? wPara({ text: '* No s\u2019assoleix el proc\u00e9s cognitiu i cal refor\u00e7ar-lo.',
+                  size: 18, color: 'C0392B', italic: true, before: 120, after: 0 })
+        : '',
+    ].join('\n');
+  }
+
   function buildSimplePage(r, grade, pct) {
     return [
       wPara({ text: r.name, bold: true, size: 52, color: '1a1a1a',
@@ -2845,7 +3176,9 @@ async function generateInformes() {
 
     body += currentCompetencyId === 'mat'
       ? buildMatPage(r, grade, pct)
-      : buildSimplePage(r, grade, pct);
+      : currentCompetencyId === 'cat'
+        ? buildCatPage(r, grade, pct)
+        : buildSimplePage(r, grade, pct);
 
     if (i < rows.length - 1)
       body += `<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
@@ -2899,6 +3232,26 @@ async function generateInformes() {
   a.href = url; a.download = currentCompetencyId + '_informes_cb4eso.docx'; a.click();
   URL.revokeObjectURL(url);
 }
+
+// ── FAQ ──
+function openFaq()  { document.getElementById('faq-overlay').classList.remove('off'); }
+function closeFaq() { document.getElementById('faq-overlay').classList.add('off'); }
+function toggleFaq(btn) {
+  const answer  = btn.nextElementSibling;
+  const isOpen  = btn.classList.contains('open');
+  // Tanca tots
+  document.querySelectorAll('.faq-q').forEach(b => {
+    b.classList.remove('open');
+    b.nextElementSibling.classList.remove('open');
+  });
+  // Obre el clicat si estava tancat
+  if (!isOpen) { btn.classList.add('open'); answer.classList.add('open'); }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !document.getElementById('faq-overlay').classList.contains('off')) {
+    e.preventDefault(); closeFaq();
+  }
+});
 
 // ── Dropdown logic ──
 function toggleDropdown(id) {
