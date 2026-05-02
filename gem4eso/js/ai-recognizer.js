@@ -383,33 +383,110 @@ async function _callGemini(apiKey, model, base64, prompt) {
 
   if (!resp.ok) {
     let msg = `HTTP ${resp.status}`;
+    let errBody = null;
     try {
-      const e = await resp.json();
-      msg = e.error?.message || msg;
+      errBody = await resp.json();
+      msg = errBody.error?.message || msg;
     } catch (_) {}
+    console.error('[Gemini DEBUG] HTTP error:', resp.status, errBody);
     throw new Error(msg);
   }
 
   const data = await resp.json();
-  // Estructura Gemini: data.candidates[0].content.parts[0].text
+
+  // ═══════════════ DEBUG ═══════════════════════════════════════════════
+  // Afegit per diagnosticar el cas "0/32 respostes detectades".
+  // Si tot va bé, podem treure aquests logs més endavant.
+  console.group(`[Gemini DEBUG] Resposta completa rebuda`);
+  console.log('Resposta sencera (data):', data);
+  console.log('promptFeedback:', data.promptFeedback);
+  console.log('candidates:', data.candidates);
+  if (data.candidates?.[0]) {
+    console.log('finishReason:', data.candidates[0].finishReason);
+    console.log('safetyRatings:', data.candidates[0].safetyRatings);
+    console.log('content.parts:', data.candidates[0].content?.parts);
+  }
+  console.log('usageMetadata:', data.usageMetadata);
+  console.groupEnd();
+  // ═══════════════ /DEBUG ══════════════════════════════════════════════
+
   const candidate = data.candidates?.[0];
-  if (!candidate) throw new Error('Gemini no ha retornat cap candidat (potser el contingut s\'ha bloquejat per polítiques).');
+  if (!candidate) {
+    const blockReason = data.promptFeedback?.blockReason;
+    if (blockReason) {
+      throw new Error(`Gemini ha bloquejat el prompt (raó: ${blockReason}). Mira la consola per detalls.`);
+    }
+    throw new Error('Gemini no ha retornat cap candidat. Mira la consola.');
+  }
+
+  // Casos finishReason que volem reportar específicament
+  const fr = candidate.finishReason;
+  if (fr === 'SAFETY') {
+    throw new Error(`Gemini ha refusat per polítiques de seguretat. Ratings: ${JSON.stringify(candidate.safetyRatings)}`);
+  }
+  if (fr === 'MAX_TOKENS') {
+    throw new Error('Gemini ha retallat la resposta (MAX_TOKENS). Cal augmentar maxOutputTokens.');
+  }
+  if (fr === 'RECITATION') {
+    throw new Error('Gemini ha refusat per "RECITATION" (similitud amb material protegit).');
+  }
+
   const txt = candidate.content?.parts?.find(p => p.text)?.text;
-  if (!txt) throw new Error('Gemini ha retornat una resposta sense text.');
+  if (!txt) {
+    console.error('[Gemini DEBUG] Resposta sense text. Candidat sencer:', candidate);
+    throw new Error(`Gemini ha retornat una resposta sense text (finishReason=${fr}).`);
+  }
+
+  // ═══════════════ DEBUG ═══════════════════════════════════════════════
+  console.group('[Gemini DEBUG] Text crus rebut (abans de parsejar)');
+  console.log('Longitud:', txt.length, 'caràcters');
+  console.log('Primers 1000 chars:', txt.slice(0, 1000));
+  console.log('Últims 200 chars:', txt.slice(-200));
+  console.groupEnd();
+  // ═══════════════ /DEBUG ══════════════════════════════════════════════
+
   return txt;
 }
 
 // ─── Validació de la resposta de Claude ──────────────────────────────
 
 function _validarResposta(data, items) {
+  // ═══════════════ DEBUG ═══════════════════════════════════════════════
+  console.group('[AI DEBUG] _validarResposta — JSON parsejat rebut');
+  console.log('Objecte sencer:', data);
+  console.log('id_alumne:', data?.id_alumne);
+  console.log('respostes (objecte):', data?.respostes);
+  console.log('Tipus de respostes:', typeof data?.respostes, Array.isArray(data?.respostes) ? '(és Array!)' : '');
+  if (data?.respostes && typeof data.respostes === 'object') {
+    const keys = Object.keys(data.respostes);
+    console.log('Claus a respostes:', keys);
+    console.log('Primeres 5 entrades:', keys.slice(0, 5).map(k => `${k}=${JSON.stringify(data.respostes[k])}`).join(', '));
+  }
+  console.log('comentari:', data?.comentari);
+  console.groupEnd();
+  // ═══════════════ /DEBUG ══════════════════════════════════════════════
+
   const raw = (data.respostes && typeof data.respostes === 'object') ? data.respostes : {};
   const respostes = {};
+  let countValid = 0;
+  let countMissing = 0;
   items.forEach((_, i) => {
     const qid = `Q${String(i + 1).padStart(2, '0')}`;
-    let v = String(raw[qid] ?? '?').trim();
+    const rawVal = raw[qid];
+    let v = String(rawVal ?? '?').trim();
     if (v === '') v = '?';
     respostes[qid] = v;
+    if (v === '?') countMissing++; else countValid++;
   });
+
+  // ═══════════════ DEBUG ═══════════════════════════════════════════════
+  console.log(`[AI DEBUG] _validarResposta resum: ${countValid} amb valor, ${countMissing} amb '?' (no trobades a la resposta)`);
+  if (countMissing > 0) {
+    const missing = items.map((_, i) => `Q${String(i + 1).padStart(2, '0')}`).filter(q => respostes[q] === '?');
+    console.log('Q ids no trobades:', missing.slice(0, 10).join(', ') + (missing.length > 10 ? '...' : ''));
+  }
+  // ═══════════════ /DEBUG ══════════════════════════════════════════════
+
   return {
     id_alumne: String(data.id_alumne ?? '').trim(),
     respostes,
