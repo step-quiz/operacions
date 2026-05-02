@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ca" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corrector CompBàsiques 4t ESO</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css">
+<link rel="stylesheet" href="styles/animations.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/components.css">
+</head><body>
+
+<!-- HEADER -->
+<div class="hdr">
+
+  <!-- LEFT: dropdowns -->
+  <div class="hdr-left">
+    <div class="dropdown" id="dd-accions">
+      <button class="dd-trigger" id="dd-accions-trigger">Accions ▾</button>
+      <div class="dd-menu">
+        <button class="dd-item" id="dd-key-editor">🔑&nbsp; Introduir la clau</button>
+        <button class="dd-item" id="btn-correct" disabled>📊&nbsp; Corregir i elaborar informes</button>
+        <div class="dd-sep"></div>
+        <button class="dd-item" id="dd-ai-recognizer">🤖&nbsp; Reconeixement automàtic de respostes</button>
+        <div class="dd-sep"></div>
+        <button class="dd-item" id="dd-import-xlsx">📂&nbsp; Carregar dades</button>
+        <button class="dd-item" id="dd-export-xlsx">💾&nbsp; Desar les dades introduïdes</button>
+      </div>
+    </div>
+    <div class="dropdown" id="dd-cfg">
+      <button class="dd-trigger" id="dd-cfg-trigger">Configuració ▾</button>
+      <div class="dd-menu">
+        <button class="dd-item" id="dd-faq">❓&nbsp; Preguntes freqüents</button>
+        <div class="dd-sep"></div>
+        <button class="dd-item" id="btn-pdf-toggle">🔍&nbsp; Activar el visualitzador PDF</button>
+        <button class="dd-item" id="dd-settings">⚙️&nbsp; Configurar tecles personalitzades</button>
+        <button class="dd-item" id="dd-centre">🏫&nbsp; Introduir centre i any</button>
+        <div class="dd-sep"></div>
+        <button class="dd-item danger" id="dd-clear-data">✕&nbsp; Esborrar respostes introduïdes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: student nav (absolutely centred) -->
+  <div class="hdr-center">
+    <button class="btn-hdr" id="btn-prev-stu" title="Alumne anterior">←</button>
+    <div class="hdr-name" id="hdr-name" title="Clica per editar el nom"></div>
+    <button class="btn-hdr" id="btn-next-stu" title="Alumne següent / alumne nou">→</button>
+    <button id="btn-empty-cta" style="display:none;font-family:inherit;font-size:.68rem;font-weight:600;color:var(--accent);background:transparent;border:1.5px dashed var(--accent);border-radius:7px;padding:6px 14px;cursor:pointer;letter-spacing:.02em;transition:background .12s,color .12s">
+      ＋ Clica aquí per introduir les respostes del primer full
+    </button>
+  </div>
+
+  <!-- RIGHT: badges + code -->
+  <div class="hdr-right">
+    <span class="key-loaded" id="key-badge" style="display:none"></span>
+    <span class="done-b" id="done-b" style="display:none">✓ complet</span>
+    <div class="stu-code" id="stu-code">—</div>
+  </div>
+
+</div>
+
+<input type="file" id="key-txt-file" accept=".txt" style="display:none">
+<input type="file" id="pdf-file"        accept=".pdf" style="display:none">
+<input type="file" id="ai-rec-pdf-file" accept=".pdf" style="display:none">
+<input type="file" id="import-xlsx-file" accept=".xlsx" style="display:none">
+
+<div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+
+<div class="main">
+  <div class="grid-wrapper" id="grid-wrapper">
+    <div class="ambit-bar" id="ambit-bar"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="pdf-pane" id="pdf-pane">
+    <div class="pdf-bar">
+      <span class="pdf-bar-page" id="pdf-bar-page">—</span>
+      <span class="pdf-bar-name" id="pdf-bar-name"></span>
+      <button class="pdf-zoom-btn" id="btn-pdf-zoom-out" title="Reduir">−</button>
+      <span class="pdf-zoom-lbl" id="pdf-zoom-lbl">100%</span>
+      <button class="pdf-zoom-btn" id="btn-pdf-zoom-in" title="Ampliar">+</button>
+    </div>
+    <div class="pdf-canvas-wrap"><canvas id="pdf-canvas"></canvas></div>
+  </div>
+</div>
+
+
+
+<!-- STARTUP WIZARD -->
+<div class="overlay off" id="comp-overlay">
+  <div class="startup-box">
+    <div class="startup-hdr">
+      <div class="startup-title">Corrector de proves de competència</div>
+      <div class="startup-sub">Escolliu, en cada cas, una opció</div>
+    </div>
+    <div class="startup-cols">
+
+      <!-- COL 1: Competència -->
+      <div class="startup-col">
+        <div class="startup-col-hdr">1 · Competència</div>
+        <button class="sopt" data-col="comp" data-val="cat">
+          <span class="sopt-icon">📖</span>
+          <span class="sopt-body">
+            <span class="sopt-label">Llengua catalana</span>
+          </span>
+        </button>
+        <button class="sopt" data-col="comp" data-val="mat">
+          <span class="sopt-icon">🔢</span>
+          <span class="sopt-body">
+            <span class="sopt-label">Matemàtiques</span>
+          </span>
+        </button>
+        <button class="sopt" data-col="comp" data-val="ct">
+          <span class="sopt-icon">🔬</span>
+          <span class="sopt-body">
+            <span class="sopt-label">Científico-tecnològica</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="startup-divider"></div>
+
+      <!-- COL 2: Clau de respostes -->
+      <div class="startup-col">
+        <div class="startup-col-hdr">2 · Clau de respostes</div>
+        <button class="sopt" data-col="key" data-val="now">
+          <span class="sopt-icon">🔑</span>
+          <span class="sopt-body">
+            <span class="sopt-label">Introduir ara</span>
+          </span>
+        </button>
+        <button class="sopt" data-col="key" data-val="later">
+          <span class="sopt-icon">⏭</span>
+          <span class="sopt-body">
+            <span class="sopt-label">Introduir més endavant</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="startup-divider"></div>
+
+      <!-- COL 3: PDF -->
+      <div class="startup-col">
+        <div class="startup-col-hdr">3 · Centre i any acadèmic</div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 2px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Nom del centre</label>
+          <div style="position:relative">
+            <input id="sw-centre" class="name-input" type="text" placeholder="Institut"
+              autocomplete="off"
+              style="width:100%;box-sizing:border-box"
+             
+             
+             >
+            <div id="sw-ac" class="centre-ac"></div>
+          </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Curs acadèmic</label>
+            <input id="sw-curs" class="name-input" type="text" placeholder="2025-2026"
+              style="width:160px;box-sizing:border-box"
+             
+             >
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="startup-ftr">
+      <button class="startup-go" id="startup-go" disabled>Començar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- AVÍS: les dades NO es desen automàticament -->
+<div class="overlay off" id="warning-overlay">
+  <div class="warning-box">
+    <div class="warning-icon">⚠️</div>
+    <div class="warning-title">Atenció important</div>
+    <div class="warning-body">
+      Les respostes que s'introdueixen <strong>NO es desen automàticament</strong>.<br>
+      <br>
+      No funciona com el Drive ni com un núvol.<br>
+      <br>
+      Per tant, cal desar expressament les dades<br>
+      des del menú <span class="menu-ref">Accions</span>&nbsp;→&nbsp;<span class="menu-ref">Desar les dades introduïdes</span>
+    </div>
+    <button class="warning-btn-ok" id="btn-accept-warning">✓ Acceptar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- FAQ MODAL -->
+<div class="overlay off" id="faq-overlay" data-backdrop-close="self">
+  <div class="faq-box">
+    <div class="cfg-title">❓ Preguntes freqüents</div>
+    <div class="faq-list" id="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">
+          Com introdueixo les respostes dels alumnes?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Les respostes s'introdueixen manualment. Per exemple, si prems la tecla <code>1</code>, es selecciona la resposta «A»; amb la tecla <code>2</code>, la resposta «B», etc. El cursor avança automàticament.<br>
+          Si un alumne ha deixat una resposta en blanc de manera intencional, o bé té una resposta invàlida perquè ha seleccionat més d'una resposta possible, has de prémer la tecla <code>0</code>.<br>
+          Pots navegar entre preguntes amb les fletxes del teclat i clicar directament a qualsevol cel·la de la graella.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">
+          Puc desar la feina i continuar-la més tard?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Sí. Ves al menú <strong>Accions → Desar les dades introduïdes</strong>: es baixarà un full de càlcul <code>.xlsx</code> amb totes les respostes.<br>
+          La propera vegada que facis servir aquesta eina, selecciona la mateixa competència i carrega el mateix fitxer des de: <strong>Accions → Carregar dades</strong>.<br>
+          Tots els alumnes i les seves respostes es restauraran exactament com estaven.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">
+          Com funcionen els nivells d'assoliment (NA / AS / AN / AE)?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Els nivells es calculen a partir del percentatge d'encerts sobre el total de preguntes:<br>
+          &nbsp;<br>
+          • <strong>NA – Baix</strong>: menys del 50 %<br>
+          • <strong>AS – Mitjà-baix</strong>: del 50 % al 66,6 %<br>
+          • <strong>AN – Mitjà-alt</strong>: del 66,7 % al 83,3 %<br>
+          • <strong>AE – Alt</strong>: del 83,4 % al 100 %
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">
+          Alguns alumnes apareixen com «alum_1», «alum_2»… Això és normal? Puc posar-los nom?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          Quan crees un registre nou i deixes el nom en blanc, s'assigna automàticament el codi <code>alum_x</code>.<br>
+          Per actualitzar el nom, clica sobre <code>alum_x</code>, escriu el nom nou i prem la tecla <code>Retorn</code> per confirmar.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">
+          Cal introduir la clau de respostes correctes cada vegada i per cada grup-classe?
+          <span class="faq-chevron">▼</span>
+        </button>
+        <div class="faq-a">
+          No és necessari. S'ha d'introduir manualment la primera vegada. És important que, quan confirmem la clau i la desem, diguem que sí volem baixar-la en un fitxer <code>.txt</code>.<br>
+          Podem compartir aquest fitxer amb la resta del professorat.<br>
+          Quan hem d'introduir dades d'un altre grup-classe, podem carregar directament la clau des d'aquest fitxer.
+        </div>
+      </div>
+
+    </div>
+    <div class="faq-footer">
+      <button class="btn pri" id="btn-close-faq">Tancar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CENTRE / CURS MODAL -->
+<div class="overlay off" id="centre-overlay" data-backdrop-close="self">
+  <div class="centre-box">
+    <div class="cfg-title">🏫 Centre i any acadèmic</div>
+    <div class="centre-row">
+      <label class="centre-lbl" for="centre-inp">Nom del centre</label>
+      <div style="position:relative">
+        <input class="name-input" id="centre-inp" type="text" placeholder="Institut" autocomplete="off"
+         
+         
+         >
+        <div id="modal-ac" class="centre-ac"></div>
+      </div>
+    </div>
+    <div class="centre-row">
+      <label class="centre-lbl" for="curs-inp">Curs acadèmic</label>
+      <input class="name-input" id="curs-inp" type="text" placeholder="2025-2026" autocomplete="off" style="width:160px">
+    </div>
+    <div class="centre-footer">
+      <button class="btn" id="btn-cancel-centre">Cancel·lar</button>
+      <button class="btn pri" id="btn-save-centre">✓ Desar</button>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT MODAL -->
+<div class="overlay off" id="stu-overlay">
+  <div class="modal" style="min-width:280px">
+    <div class="m-title">Nou alumne</div>
+    <div id="m-prev" style="display:none"></div>
+    <input class="name-input" id="d-name" type="text" placeholder="Nom i cognoms (opcional)" autocomplete="off" style="width:240px">
+    <div style="font-size:.73rem;color:var(--muted);text-align:center;line-height:1.6">
+      Si es deixa en blanc s'assignarà<br>
+      el nom <strong id="auto-name-preview">alum_1</strong>
+    </div>
+    <div id="load-hint" style="display:none;font-size:.72rem;color:#1a4f8a;background:#e8f0f8;border:1px solid #90b4d8;border-radius:7px;padding:9px 13px;text-align:center;line-height:1.7;max-width:260px">
+      💡 Si es volen carregar dades introduïdes prèviament, cal prémer la tecla <kbd>Esc</kbd> i anar al menú <strong>Accions → Carregar dades</strong>
+    </div>
+    <button class="btn pri" id="btn-confirm-student">Confirmar →</button>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay off" id="cfg-overlay" data-backdrop-close="cfg-overlay">
+  <div class="cfg-box">
+    <div class="cfg-title">⌨️ Configuració de tecles</div>
+    <div class="cfg-table" id="cfg-table"></div>
+    <div class="cfg-conflict-msg" id="cfg-conflict-msg"></div>
+    <div class="cfg-footer">
+      <button class="btn" id="btn-reset-keys">↺ Carregar els valors per defecte</button>
+      <button class="btn pri" id="btn-save-cfg" disabled>✓ Desar la nova configuració</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- KEY EDITOR OVERLAY -->
+<div class="overlay off" id="key-overlay" style="align-items:stretch;padding:10px" data-backdrop-close="key-overlay">
+  <div class="key-editor-box">
+    <div class="key-editor-hdr">
+      <div class="key-editor-title">🔑 Clau de respostes</div>
+      <div class="key-editor-btns">
+        <button class="btn" id="btn-load-key-txt">📂 Carregar una clau des d'un arxiu</button>
+        <button class="btn pri" id="btn-save-key" disabled>💾 Desar la clau</button>
+      </div>
+    </div>
+    <div class="key-grid-wrap">
+      <div style="display:none"><div id="key-prog"></div><span id="key-filled"></span></div>
+      <div class="ambit-bar" id="key-ambit-bar"></div>
+      <div class="grid" id="key-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CORRECT MODAL -->
+<div class="overlay off" id="correct-overlay" data-backdrop-close="self">
+  <div class="correct-box">
+    <div class="m-title">📊 Corregir proves</div>
+    <div style="font-size:.6rem;color:var(--muted);text-align:center;line-height:1.6;max-width:280px">
+      Criteris de correcció:<br>
+      <strong>+1</strong> resposta correcta &nbsp;·&nbsp; <strong>0</strong> resposta errònia o en blanc
+    </div>
+    <div style="font-size:.58rem;color:var(--text);text-align:center;line-height:1.5" id="correct-info">—</div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn" id="btn-close-correct">Cancel·lar</button>
+      <button class="btn pri" id="btn-do-correct" disabled>Corregir →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS MODAL -->
+<div class="overlay off" id="results-overlay" data-backdrop-close="self">
+  <div class="res-box">
+    <div class="res-header">
+      <div class="res-title" id="res-title">Resultats</div>
+
+    </div>
+    <div class="res-table-wrap"><table id="res-table"></table></div>
+    <div class="res-footer">
+      <button class="btn" id="btn-dl-results-xlsx">⬇ Desar els resultats</button>
+      <button class="btn" id="btn-gen-informes">📄 Generar els informes</button>
+      <button class="btn pri" id="btn-close-results">Tancar</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETION PROMPT -->
+<div class="done-prompt off" id="done-prompt">
+  <div class="done-box">
+    <div class="done-check">✓</div>
+    <div class="done-msg">Alumne complet!</div>
+    <div class="done-cta">Prem qualsevol tecla per al <strong>següent</strong><br>o bé <strong>ESC</strong> per continuar editant</div>
+  </div>
+</div>
+
+<script type="module" src="js/init.js"></script>
+
+<!-- ═══ MODAL: Reconeixement automàtic de respostes ═══ -->
+<div class="overlay off" id="ai-rec-overlay" data-backdrop-close="self">
+  <div class="modal" style="min-width:340px;max-width:520px;width:90vw">
+
+    <div style="font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">
+      🤖 Reconeixement automàtic de respostes
+    </div>
+
+    <!-- Competència -->
+    <label style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:4px">
+      Competència de la prova
+    </label>
+    <select id="ai-rec-competency"
+      style="width:100%;margin-bottom:14px;padding:6px 8px;font-size:.72rem;
+             border:1.5px solid var(--border);border-radius:6px;background:var(--surface);
+             color:var(--text);font-family:var(--font-mono)">
+      <option value="mat">Matemàtiques (32 ítems, abcd)</option>
+      <option value="cat">Llengua catalana (44 ítems, abcd + V/F)</option>
+      <option value="ct">Científico-tecnològica (40 ítems, abcd/abcde/bin)</option>
+    </select>
+
+    <!-- Model i resolució -->
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <div style="flex:1">
+        <label style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:4px">
+          Model
+        </label>
+        <select id="ai-rec-model"
+          style="width:100%;padding:6px 8px;font-size:.7rem;
+                 border:1.5px solid var(--border);border-radius:6px;background:var(--surface);
+                 color:var(--text);cursor:pointer">
+        </select>
+      </div>
+      <div style="flex:1">
+        <label style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:4px">
+          Resolució
+        </label>
+        <select id="ai-rec-scale"
+          style="width:100%;padding:6px 8px;font-size:.7rem;
+                 border:1.5px solid var(--border);border-radius:6px;background:var(--surface);
+                 color:var(--text);cursor:pointer">
+        </select>
+      </div>
+    </div>
+
+    <!-- API Key -->
+    <label style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:4px">
+      API Key d'Anthropic
+    </label>
+    <div style="display:flex;gap:6px;margin-bottom:6px">
+      <input id="ai-rec-apikey" type="password" class="name-input"
+        placeholder="sk-ant-api03-..."
+        autocomplete="off"
+        style="flex:1;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.04em">
+      <button id="ai-rec-toggle-key"
+        style="padding:4px 10px;font-size:.7rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--muted)"
+        title="Mostrar / amagar">👁</button>
+    </div>
+    <div style="font-size:.6rem;color:var(--muted);margin-bottom:16px">
+      La clau no es desa en cap lloc. Només s'usa durant aquesta sessió.
+    </div>
+
+    <!-- Barra de progrés -->
+    <div style="background:var(--border);border-radius:6px;height:6px;overflow:hidden;margin-bottom:8px">
+      <div id="ai-rec-bar" style="height:100%;width:0%;background:var(--accent);transition:width .3s ease;border-radius:6px"></div>
+    </div>
+
+    <!-- Estat -->
+    <div id="ai-rec-status"
+      style="font-size:.62rem;color:var(--muted);min-height:1.4em;margin-bottom:8px"></div>
+
+    <!-- Log de resultats -->
+    <div id="ai-rec-log"
+      style="font-size:.62rem;line-height:1.6;max-height:180px;overflow-y:auto;
+             background:var(--surface);border:1px solid var(--border);border-radius:7px;
+             padding:8px 10px;margin-bottom:16px;display:none">
+    </div>
+
+    <!-- Botons -->
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="ai-rec-btn-close" class="dd-item danger"
+        style="padding:7px 16px;font-size:.68rem"
+        onclick="document.getElementById('ai-rec-overlay').classList.add('off')">
+        Tancar
+      </button>
+      <button id="ai-rec-btn-start"
+        style="padding:7px 18px;font-size:.68rem;font-weight:700;
+               background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer">
+        📄 Seleccionar PDF i iniciar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+</body></html>
