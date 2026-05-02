@@ -1,100 +1,108 @@
 <!DOCTYPE html>
 <html lang="ca" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Corrector CompBàsiques 4t ESO</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css">
-<link rel="stylesheet" href="styles/animations.css">
-<link rel="stylesheet" href="styles/layout.css">
-<link rel="stylesheet" href="styles/components.css">
-</head><body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrector CompBàsiques 4t ESO - Gemini Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
 
 <div class="hdr">
-  <div class="hdr-left">
-    <div class="dropdown" id="dd-accions">
-      <button class="dd-trigger" id="dd-accions-trigger">Accions ▼</button>
-      <div class="dd-menu">
-        <button class="dd-item" id="btn-open-ai-rec">✨ Reconeixement IA (Gemini)</button>
-        <button class="dd-item" id="btn-export-xlsx">Exportar a XLSX</button>
-        <button class="dd-item" id="btn-import-xlsx">Importar de XLSX</button>
-        <div class="dd-sep"></div>
-        <button class="dd-item danger" id="btn-clear-data">Esborrar-ho tot</button>
-      </div>
+    <div class="hdr-left">
+        <div class="dropdown" id="dd-accions">
+            <button class="dd-trigger" id="dd-accions-trigger">Accions ▼</button>
+            <div class="dd-menu">
+                <button class="dd-item" id="btn-open-ai-rec">✨ Reconeixement IA (Gemini)</button>
+                <button class="dd-item" id="btn-export-xlsx">Exportar a XLSX</button>
+                <button class="dd-item" id="btn-import-xlsx">Importar de XLSX</button>
+                <div class="dd-sep"></div>
+                <button class="dd-item danger" id="btn-clear-data">Esborrar-ho tot</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="hdr-center">
-    <div class="stu-code" id="stu-code">—</div>
-    <div class="hdr-title">CompBàsiques 4t ESO</div>
-  </div>
+    <div class="hdr-center">
+        <div class="stu-code" id="stu-code">—</div>
+        <div class="hdr-title">CompBàsiques 4t ESO</div>
+    </div>
 
-  <div class="hdr-right">
-    <button class="btn-hdr" id="btn-cfg-open">Teclat</button>
-    <button class="btn-hdr" id="btn-faq-open">?</button>
-  </div>
+    <div class="hdr-right">
+        <button class="btn-hdr" id="btn-cfg-open">Teclat</button>
+        <button class="btn-hdr" id="btn-faq-open">?</button>
+    </div>
 </div>
 
 <div class="main-wrapper">
-  <div class="main-content">
-    <div class="nav">
-      <button class="btn-nav" id="btn-prev-stu">◀</button>
-      <div class="nav-st"><span id="cur-stu-idx">0</span> / <span id="tot-stu">0</span></div>
-      <button class="btn-nav" id="btn-next-stu">▶</button>
-      <div class="nav-q" id="hdr-name">Benvingut/da</div>
+    <div class="main-content">
+        <div class="nav">
+            <button class="btn-nav" id="btn-prev-stu">◀</button>
+            <div class="nav-st"><span id="cur-stu-idx">0</span> / <span id="tot-stu">0</span></div>
+            <button class="btn-nav" id="btn-next-stu">▶</button>
+            <div class="nav-q" id="hdr-name">Benvingut/da</div>
+        </div>
+        <div id="grid" class="grid-container"></div>
+        <div class="kbd-ref" id="kbd-ref"></div>
     </div>
 
-    <div id="grid" class="grid-container"></div>
-
-    <div class="kbd-ref" id="kbd-ref"></div>
-  </div>
-
-  <div id="pdf-pane" class="pdf-pane">
-    <div class="pdf-bar">
-      <span id="pdf-bar-page">Pàgina 0 / 0</span>
-      <div class="spacer"></div>
-      <button class="btn-pdf" id="btn-zoom-out">−</button>
-      <button class="btn-pdf" id="btn-zoom-in">+</button>
+    <div id="pdf-pane" class="pdf-pane">
+        <div class="pdf-bar">
+            <span id="pdf-bar-page">Pàgina 0 / 0</span>
+            <div class="spacer"></div>
+            <button class="btn-pdf" id="btn-zoom-out">−</button>
+            <button class="btn-pdf" id="btn-zoom-in">+</button>
+        </div>
+        <div id="pdf-canvas-container"></div>
     </div>
-    <div id="pdf-canvas-container"></div>
-  </div>
 </div>
 
 <div id="ai-rec-overlay" class="overlay off">
-  <div class="modal-box" style="max-width:500px">
-    <div class="modal-hdr">
-      <div class="modal-title">Reconeixement amb IA (Google Gemini)</div>
+    <div class="modal-box" style="max-width:500px">
+        <div class="modal-hdr"><div class="modal-title">Reconeixement amb Google Gemini</div></div>
+        <div style="padding:16px; display:flex; flex-direction:column; gap:12px">
+            <label class="f-label">API Key de Google Gemini</label>
+            <input type="password" id="ai-rec-key" class="f-input" placeholder="AIzaSy...">
+            <label class="f-label">Fitxer PDF amb fulls de respostes</label>
+            <input type="file" id="ai-rec-file" accept="application/pdf">
+            <div class="ai-info">Usa el model Gemini 1.5 Flash per a una correcció ràpida i gratuïta.</div>
+            <div class="progress-container"><div id="ai-rec-bar" class="progress-fill"></div></div>
+            <div id="ai-rec-status" class="status-text">Llest per començar.</div>
+        </div>
+        <div class="modal-footer">
+            <button id="ai-rec-btn-close" class="btn-sec">Tancar</button>
+            <button id="ai-rec-btn-go" class="btn-pri">Executar IA</button>
+        </div>
     </div>
-    
-    <div style="padding:16px; display:flex; flex-direction:column; gap:12px">
-      <label class="f-label">Google Gemini API Key</label>
-      <input type="password" id="ai-rec-key" class="f-input" placeholder="AIzaSy...">
-      
-      <label class="f-label">Fitxer PDF amb els fulls de respostes</label>
-      <input type="file" id="ai-rec-file" accept="application/pdf">
-      
-      <div class="ai-info">
-        Aquesta funció envia cada pàgina del PDF a Gemini per transcriure les respostes automàticament.
-      </div>
+</div>
 
-      <div class="progress-container">
-        <div id="ai-rec-bar" class="progress-fill"></div>
-      </div>
-      <div id="ai-rec-status" class="status-text"></div>
-      <div id="ai-rec-log" class="log-box" style="display:none"></div>
+<div id="cfg-overlay" class="overlay off">
+    <div class="modal-box">
+        <div class="modal-hdr"><div class="modal-title">Configuració de Teclat</div></div>
+        <div id="cfg-content" style="padding:16px"></div>
+        <div class="modal-footer"><button id="btn-cfg-close" class="btn-pri">Fet</button></div>
     </div>
+</div>
 
-    <div class="modal-footer">
-      <button id="ai-rec-btn-close" class="btn-sec">Tancar</button>
-      <button id="ai-rec-btn-go" class="btn-pri">Començar reconeixement</button>
+<div id="faq-overlay" class="overlay off">
+    <div class="modal-box" style="max-width:400px">
+        <div class="modal-hdr"><div class="modal-title">Ajuda</div></div>
+        <div style="padding:16px; font-size:0.85rem; line-height:1.4">
+            <p>Fes servir el teclat per introduir respostes ràpidament.</p>
+            <p>El botó <b>Gemini</b> processa PDFs automàticament.</p>
+        </div>
+        <div class="modal-footer"><button id="btn-faq-close" class="btn-pri">Tancar</button></div>
     </div>
-  </div>
 </div>
 
 <script type="module" src="js/init.js"></script>
-</body></html>
+</body>
+</html>
