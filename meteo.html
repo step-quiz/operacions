@@ -99,6 +99,38 @@ canvas#c{position:fixed;left:264px;top:0;right:0;bottom:0;z-index:1;display:bloc
 .hs-r1{color:#c0c0c0;text-shadow:0 0 6px #c0c0c0}
 .hs-r2{color:#cd7f32;text-shadow:0 0 6px #cd7f32}
 
+/* ── Trade offer modal ── */
+#trade-ov{
+  position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:rgba(2,4,8,.78);backdrop-filter:blur(2px);
+}
+#trade-ov.hidden{display:none}
+#trade-box{
+  border:1px solid rgba(255,215,0,.55);border-radius:10px;
+  background:rgba(5,10,20,.97);padding:36px 44px;
+  text-align:center;max-width:340px;
+  box-shadow:0 0 40px rgba(255,215,0,.22),0 0 80px rgba(255,215,0,.08);
+  animation:tradeIn .22s ease-out;
+}
+@keyframes tradeIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+#trade-icon{font-size:48px;margin-bottom:10px}
+#trade-title{font-family:'Share Tech Mono',monospace;font-size:14px;
+  color:#ffd700;text-shadow:0 0 10px #ffd700;letter-spacing:2px;margin-bottom:16px}
+#trade-msg{font-family:'Share Tech Mono',monospace;font-size:16px;
+  color:#fff;line-height:1.6;margin-bottom:24px}
+#trade-msg span.hl{color:#ffd700;text-shadow:0 0 8px #ffd700}
+#trade-msg span.hl2{color:#ff4455;text-shadow:0 0 8px #ff4455}
+.trade-btn{
+  display:inline-block;font-family:'Share Tech Mono',monospace;font-size:14px;
+  padding:10px 22px;border-radius:6px;cursor:pointer;border:1px solid;
+  transition:all .15s;margin:0 6px;
+}
+#trade-ok{color:#00ff88;border-color:rgba(0,255,136,.5);background:rgba(0,255,136,.1);}
+#trade-ok:hover{background:rgba(0,255,136,.25);box-shadow:0 0 14px rgba(0,255,136,.5);}
+#trade-cancel{color:#60a5fa;border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.07);}
+#trade-cancel:hover{background:rgba(96,165,250,.18);box-shadow:0 0 14px rgba(96,165,250,.35);}
+
 </style>
 </head>
 <body>
@@ -148,6 +180,24 @@ canvas#c{position:fixed;left:264px;top:0;right:0;bottom:0;z-index:1;display:bloc
   <div class="hs-title">🏆 MILLORS PUNTUACIONS</div>
   <div class="hs-tbl" id="hs-tbl"></div>
   <button class="menu-btn" onclick="closeHsDom()" style="margin-top:22px;text-align:center">← TORNAR</button>
+</div>
+
+<!-- Trade offer modal -->
+<div id="trade-ov" class="hidden">
+  <div id="trade-box">
+    <div id="trade-icon">🎁❤️</div>
+    <div id="trade-title">⏸ OFERTA ESPECIAL</div>
+    <div id="trade-msg">
+      Tens molts extres acumulats!<br>
+      Vols canviar <span class="hl">8 extres</span><br>
+      per <span class="hl2">1 cor de vida</span>?
+    </div>
+    <button class="trade-btn" id="trade-ok"     onclick="acceptTrade()">✔ Acceptar</button>
+    <button class="trade-btn" id="trade-cancel"  onclick="cancelTrade()">✘ Cancel·lar</button>
+    <div style="margin-top:16px;border-top:1px solid rgba(255,215,0,.15);padding-top:14px">
+      <button class="trade-btn" id="trade-always" onclick="acceptTradeAlways()" style="width:100%;color:#ffd700;border-color:rgba(255,215,0,.4);background:rgba(255,215,0,.07);font-size:12px;">⚡ Vull fer sempre aquest tracte</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -579,7 +629,7 @@ const G={
   warpTimer:0,warpDuration:120,
   paused:false,active:false,
   shieldTimer:0,slowTimer:0,
-  lastPuThreshold:0,
+  lastPuThreshold:0,nextTradeAt:10,autoTrade:false,
   flash:{r:0,g:0,b:0,a:0,frames:0,maxFrames:1},
   roundTimer:0,   // frames remaining (600 = 10s)
   wrongHits:0,    // errors acumulats a la ronda actual (→ cadena a 4)
@@ -964,7 +1014,7 @@ function checkCollisions(){
   if(ship.invincible>0||G.shieldTimer>0||ship.dead)return;
   const targets=G.bossActive&&boss?[boss]:asteroids;
   for(const a of targets){
-    if(dist(ship.x,ship.y,a.x,a.y)<a.radius-4){shipHit();return;}
+    if(dist(ship.x,ship.y,a.x,a.y)<a.radius*.85+11){shipHit();return;}
   }
 }
 
@@ -989,15 +1039,18 @@ function handleAsteroidHit(a,hx,hy){
       G.lastPuThreshold+=150;G.powerups.shield++;G.powerups.slow++;
       floatText(W/2,H*.35,'+POWER-UP!','#00ffcc');playSound('powerup');
     }
+    checkTradeOffer();
     // Bonus goodie every 3 consecutive correct answers
     if(G.combo>0&&G.combo%3===0){
       G.powerups.shield++;G.powerups.slow++;
       floatText(W/2,H*.28,'🎁 COMBO GOODIE!','#00ffcc');playSound('powerup');
+      checkTradeOffer();
     }
     // Speed bonus: answered within 10 seconds
     if(G.roundTimer>0){
       G.powerups.shield++;G.powerups.slow++;
       floatText(W/2,H*.22,'⚡ RÀPID! +GOODIE','#ffd700');
+      checkTradeOffer();
     }
     playSound(pairBonus?'pair':'correct');
     // Rich explosion: sparks + debris + glow
@@ -1414,7 +1467,7 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Space'){e.preventDefault();fireLaser();}
   if((e.code==='KeyS'||e.code==='KeyQ')&&G.phase==='playing')useShield();
   if((e.code==='KeyF'||e.code==='KeyP')&&G.phase==='playing')useSlow();
-  if(e.code==='Escape'&&G.phase==='playing'){G.paused=!G.paused;}
+  if(e.code==='Escape'&&G.phase==='playing'&&document.getElementById('trade-ov').classList.contains('hidden')){G.paused=!G.paused;}
 });
 document.addEventListener('keyup',e=>{keys[e.code]=false;});
 
@@ -1558,11 +1611,12 @@ function startGame(speed){
     pairsConfig:makePairs(),pairPending:null,currentTopic:null,
     powerups:{shield:1,slow:1},bossActive:false,
     warpTimer:0,paused:false,active:true,
-    shieldTimer:0,slowTimer:0,lastPuThreshold:0,roundTimer:600,
+    shieldTimer:0,slowTimer:0,lastPuThreshold:0,nextTradeAt:10,autoTrade:false,roundTimer:600,
     flash:{r:0,g:0,b:0,a:0,frames:0,maxFrames:1},wrongHits:0,
   });
   asteroids=[];lasers=[];particles=[];floatTexts=[];boss=null;bwActive=false;
   document.getElementById('menu-ov').classList.add('hidden');
+  document.getElementById('trade-ov').classList.add('hidden');
   document.getElementById('left-panel').classList.add('active');
   document.getElementById('crt').style.background='';
   initShip();updateHUD();renderPairsStrip();
@@ -1573,7 +1627,48 @@ function startGame(speed){
 // ═══════════════════════════════════════════════════════
 // PAUSE OVERLAY (canvas)
 // ═══════════════════════════════════════════════════════
+// ── Trade offer (goodies > threshold) ──────────────────
+function totalGoodies(){return G.powerups.shield+G.powerups.slow;}
+function checkTradeOffer(){
+  if(totalGoodies()>=G.nextTradeAt){
+    if(G.autoTrade){
+      // Tracte automàtic sense pausa
+      G.powerups.shield=Math.max(0,G.powerups.shield-4);
+      G.powerups.slow  =Math.max(0,G.powerups.slow  -4);
+      G.lives++;
+      updateHUD();updatePUbtns();
+      floatText(W/2,H*.4,'❤️ +1 COR!','#ff4455');
+      playSound('powerup');
+      G.nextTradeAt=totalGoodies()+8;
+    } else {
+      G.paused=true;
+      document.getElementById('trade-ov').classList.remove('hidden');
+    }
+  }
+}
+function acceptTrade(){
+  G.powerups.shield=Math.max(0,G.powerups.shield-4);
+  G.powerups.slow  =Math.max(0,G.powerups.slow  -4);
+  G.lives++;
+  updateHUD();updatePUbtns();
+  floatText(W/2,H*.4,'❤️ +1 COR!','#ff4455');
+  playSound('powerup');
+  G.nextTradeAt=totalGoodies()+8;
+  document.getElementById('trade-ov').classList.add('hidden');
+  G.paused=false;
+}
+function acceptTradeAlways(){
+  G.autoTrade=true;
+  acceptTrade();
+}
+function cancelTrade(){
+  G.nextTradeAt=totalGoodies()+8;
+  document.getElementById('trade-ov').classList.add('hidden');
+  G.paused=false;
+}
+
 function drawPaused(){
+  if(!document.getElementById('trade-ov').classList.contains('hidden'))return;
   ctx.save();
   ctx.fillStyle='rgba(2,4,8,.6)';ctx.fillRect(0,0,W,H);
   ctx.fillStyle='#60a5fa';ctx.shadowBlur=24;ctx.shadowColor='#60a5fa';
