@@ -4,14 +4,13 @@
    No cal tocar index.html.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── EXERCICIS EXCLOSOS ─────────────────────────────────────────────
-   IDs dels exercicis que no han d'aparèixer a la llista.
+/* ── EXERCICIS OPTATIUS ─────────────────────────────────────────────
+   IDs dels exercicis que no cal estudiar obligatòriament aquest curs.
+   Apareixen a la llista amb la marca "optatiu" però no desapareixen.
    L'ID és el nom base del fitxer sense el sufix -e/-p/-s.pdf        */
-const EXCLOSOS = new Set([
+const OPTATIUS = new Set([
   // 'alg-23j-q2',
   // 'ana-24j-q1',
-   'alg-24i-q2'
-   'alg-23s-q1'
 ]);
 
 /* ── VÍDEOS ─────────────────────────────────────────────────────────
@@ -24,5 +23,4 @@ const EXCLOSOS = new Set([
 const VIDEOS = {
   // 'alg-23j-q2': 'XXXXXXXXXXX',
   // 'ana-24j-q1': 'YYYYYYYYYYY',
-   'ana-24j-q1': 'bW5Cz1lC4TA'
 };
