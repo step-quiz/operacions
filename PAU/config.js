@@ -11,6 +11,7 @@
 const OPTATIUS = new Set([
   // 'alg-23j-q2',
   // 'ana-24j-q1',
+   'alg-24i-q2'
 ]);
 
 /* ── VÍDEOS ─────────────────────────────────────────────────────────
@@ -23,4 +24,5 @@ const OPTATIUS = new Set([
 const VIDEOS = {
   // 'alg-23j-q2': 'XXXXXXXXXXX',
   // 'ana-24j-q1': 'YYYYYYYYYYY',
+   'ana-24j-q1':'bW5Cz1lC4TA'
 };
