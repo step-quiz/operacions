@@ -11,7 +11,8 @@
 const OPTATIUS = new Set([
   // 'alg-23j-q2',
   // 'ana-24j-q1',
-   'alg-24i-q2'
+   'alg-24i-q2',
+   'alg-23s-q1'
 ]);
 
 /* ── VÍDEOS ─────────────────────────────────────────────────────────
@@ -26,5 +27,6 @@ const VIDEOS = {
   // 'ana-24j-q1': 'YYYYYYYYYYY',
    'ana-24j-q1':'bW5Cz1lC4TA',
    'ana-24s-q1':'lB4Q0zkDgiA',
-   'ana-24j-q3':'z8l7bqoaAZs'
+   'ana-24j-q3':'z8l7bqoaAZs',
+   'pro-24j-q4':'cBUZsq_4bWM'
 };
