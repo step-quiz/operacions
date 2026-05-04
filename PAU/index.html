@@ -346,30 +346,11 @@ footer span{font-size:.83rem;color:#333;font-family:'Source Code Pro',monospace;
   </span>
 </footer>
 
+<script src="config.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
-   CONFIGURACIÓ — EXERCICIS EXCLOSOS DEL REPÀS
-   Afegeix o treu IDs per adaptar-ho a cada convocatòria.
-   L'ID és el nom base del fitxer sense el sufix -e/-p/-s.pdf
+   Lògica principal — la configuració ve de config.js
    ═══════════════════════════════════════════════════════════════════ */
-const EXCLOSOS = new Set([
-  // Exemple: 'alg-23j-q2',
-]);
-/* ═══════════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════════
-   VÍDEOS — Exercicis amb vídeo explicatiu incorporat (YouTube)
-   Afegeix l'ID de l'exercici com a clau i l'ID del vídeo de YouTube
-   com a valor. Només apareixerà la pestanya "Vídeo" per als exercicis
-   que tinguin entrada aquí.
-   Format de l'ID de YouTube: la part final de l'URL
-     https://www.youtube.com/watch?v=XXXXXXXXXXX  →  'XXXXXXXXXXX'
-   ═══════════════════════════════════════════════════════════════════ */
-const VIDEOS = {
-  // 'alg-23j-q2':  'XXXXXXXXXXX',
-  // 'ana-24j-q1':  'YYYYYYYYYYY',
-};
-/* ═══════════════════════════════════════════════════════════════════ */
 
 const CAT_COLOR = {algebra:'#c95252',geometria:'#0d9488',analisi:'#7c5cbf',probabilitat:'#c47d30'};
 const CAT_NAME  = {algebra:'Àlgebra',geometria:'Geometria afí i mètrica',analisi:'Anàlisi / Càlcul',probabilitat:'Probabilitat'};

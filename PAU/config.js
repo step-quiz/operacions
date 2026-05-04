@@ -1,0 +1,25 @@
+/* ═══════════════════════════════════════════════════════════════════
+   config.js — Configuració editorial del repàs PAU
+   Edita aquest fitxer per gestionar vídeos i exercicis exclosos.
+   No cal tocar index.html.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── EXERCICIS EXCLOSOS ─────────────────────────────────────────────
+   IDs dels exercicis que no han d'aparèixer a la llista.
+   L'ID és el nom base del fitxer sense el sufix -e/-p/-s.pdf        */
+const EXCLOSOS = new Set([
+  // 'alg-23j-q2',
+  // 'ana-24j-q1',
+]);
+
+/* ── VÍDEOS ─────────────────────────────────────────────────────────
+   Exercicis amb vídeo explicatiu de YouTube.
+   Clau  → ID de l'exercici (igual que a EXCLOSOS)
+   Valor → ID del vídeo YouTube (la part ?v=XXXXX de l'URL)
+
+   Exemple: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+            → 'alg-23j-q2': 'dQw4w9WgXcQ'                          */
+const VIDEOS = {
+  // 'alg-23j-q2': 'XXXXXXXXXXX',
+  // 'ana-24j-q1': 'YYYYYYYYYYY',
+};
