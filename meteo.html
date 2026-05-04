@@ -1531,6 +1531,7 @@ const fireTouches=new Set();
 
 // ── Layout constants (set/updated in drawMobileHUD) ─────
 const mobileLayout={hudH:90, splitX:0, puShieldRect:null, puSlowRect:null};
+let tapHintFrames=0; // counts down from 120 (2s) when game starts
 
 function _onRect(t,r){return r&&t.clientX>=r.x&&t.clientX<=r.x+r.w&&t.clientY>=r.y&&t.clientY<=r.y+r.h;}
 
@@ -1739,35 +1740,40 @@ function drawMobileHUD(){
 
   // ── Centre: topic + question ─────────────────────────
   if(q){
-    // Topic label
+    // Topic label — small, coloured, no shadow
     ctx.textAlign='center';ctx.shadowBlur=0;
     ctx.font=`${topicSize}px 'Share Tech Mono',monospace`;
-    ctx.fillStyle=color;
+    ctx.fillStyle=color;ctx.globalAlpha=.85;
     ctx.fillText(G.currentTopic,W/2,8);
-    // Question — big, readable, glow
-    ctx.font=`bold ${qSize}px 'Share Tech Mono',monospace`;
+    ctx.globalAlpha=1;
+    // Question — clean white, NO glow, system-fallback font for crisp rendering
+    ctx.font=`bold ${qSize}px -apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif`;
     ctx.fillStyle='#ffffff';
-    ctx.shadowBlur=10;ctx.shadowColor='rgba(255,255,255,.55)';
-    ctx.fillText(q.q,W/2,hudH*0.40);
+    ctx.shadowBlur=0; // zero glow — crisp on all screens
+    ctx.fillText(q.q,W/2,hudH*0.42);
   }
 
-  // ── Fire zone: subtle right-side visual ─────────────
+  // ── Fire zone: subtle right-side tint + dashed divider ──
   const fzTop=hudH+1;
-  ctx.globalAlpha=.045;
+  ctx.globalAlpha=.03;
   ctx.fillStyle='#00ff88';
   ctx.fillRect(SPLIT,fzTop,W-SPLIT,H-fzTop);
-  // Dashed vertical divider
-  ctx.globalAlpha=.18;
+  ctx.globalAlpha=.14;
   ctx.strokeStyle='rgba(0,255,136,.4)';ctx.lineWidth=1;
-  ctx.setLineDash([5,7]);ctx.lineDashOffset=0;
+  ctx.setLineDash([5,8]);
   ctx.beginPath();ctx.moveTo(SPLIT,fzTop);ctx.lineTo(SPLIT,H);ctx.stroke();
   ctx.setLineDash([]);
-  // ⚡ fire icon in centre of right zone
-  ctx.globalAlpha=.22;
-  ctx.fillStyle='#00ff88';ctx.shadowBlur=0;
-  ctx.font=`bold ${Math.round(W*0.042)}px 'Share Tech Mono',monospace`;
-  ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText('⚡ TAP',SPLIT+(W-SPLIT)/2,H*0.62);
+
+  // ⚡ TAP hint — only visible for first 2s, then fades out
+  if(tapHintFrames>0){
+    tapHintFrames--;
+    const alpha=Math.min(1,tapHintFrames/20)*0.30; // fade out in last 20 frames
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle='#00ff88';ctx.shadowBlur=0;
+    ctx.font=`bold ${Math.round(W*0.042)}px 'Share Tech Mono',monospace`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('⚡ TAP',SPLIT+(W-SPLIT)/2,H*0.62);
+  }
 
   // ── Power-up buttons (top of right zone, stacked) ────
   const puW=Math.min(96,Math.round((W-SPLIT)*0.88));
@@ -1885,6 +1891,7 @@ function startGame(speed){
   initShip();updateHUD();renderPairsStrip();
   newRound();
   getAudioCtx(); // unlock audio
+  if(IS_MOBILE)tapHintFrames=120; // show TAP hint for 2s
 }
 
 // ═══════════════════════════════════════════════════════
