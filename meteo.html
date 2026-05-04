@@ -99,6 +99,11 @@ canvas#c{position:fixed;left:264px;top:0;right:0;bottom:0;z-index:1;display:bloc
 .hs-r1{color:#c0c0c0;text-shadow:0 0 6px #c0c0c0}
 .hs-r2{color:#cd7f32;text-shadow:0 0 6px #cd7f32}
 
+/* ── Mobile: full-screen canvas, no side panel ── */
+body.mobile canvas#c{left:0!important}
+body.mobile #crt{left:0!important}
+body.mobile #left-panel{display:none!important}
+
 /* ── Trade offer modal ── */
 #trade-ov{
   position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
@@ -583,7 +588,11 @@ function playSound(name){
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 let W,H;
-const PANEL_W=264;
+const IS_MOBILE=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+const PANEL_W=IS_MOBILE?0:264;
+if(IS_MOBILE){
+  document.body.classList.add('mobile');
+}
 function resize(){canvas.width=W=window.innerWidth-PANEL_W;canvas.height=H=window.innerHeight;}
 window.addEventListener('resize',resize);resize();
 
@@ -653,8 +662,8 @@ function makeVerts(radius){
     return{r,a:ba+(Math.random()-.5)*(Math.PI/N)};
   });
 }
-const AST_R={large:53,medium:31,small:17};
-const AST_FS={large:18,medium:14,small:11};
+const AST_R={large:64,medium:37,small:20};
+const AST_FS={large:20,medium:15,small:12};
 
 function asteroidSpeed(size){
   const base={large:.6,medium:1.0,small:1.5};
@@ -1193,8 +1202,8 @@ function drawTimerBar(){
     const segY=y0+(SEGS-1-i)*(segH+gap); // top=10th seg, bottom=1st
     const lit=i<segsLeft;
     if(lit){
-      ctx.fillStyle='rgba(0,220,60,0.75)';
-      ctx.shadowBlur=6;ctx.shadowColor='rgb(0,220,60)';
+      ctx.fillStyle='rgba(0,220,60,0.08)';
+      ctx.shadowBlur=0;ctx.shadowColor='rgb(0,220,60)';
     }else{
       ctx.fillStyle='rgba(255,255,255,0.06)';
       ctx.shadowBlur=0;
@@ -1473,9 +1482,15 @@ document.addEventListener('keyup',e=>{keys[e.code]=false;});
 
 function processInput(){
   if(!G.active||ship.dead||G.paused)return;
-  if(keys['ArrowLeft']||keys['KeyA'])ship.angle-=.06;
-  if(keys['ArrowRight']||keys['KeyD'])ship.angle+=.06;
-  ship.thrusting=!!(keys['ArrowUp']||keys['KeyW']);
+  if(IS_MOBILE){
+    // Gesture rotation: continuous while dragging horizontally
+    if(gest.rotating)ship.angle+=gest.rotDir*.065;
+    ship.thrusting=false; // thrust is a burst on touchend, not continuous
+  }else{
+    if(keys['ArrowLeft']||keys['KeyA'])ship.angle-=.06;
+    if(keys['ArrowRight']||keys['KeyD'])ship.angle+=.06;
+    ship.thrusting=!!(keys['ArrowUp']||keys['KeyW']);
+  }
   if(ship.thrusting){
     ship.vx+=Math.sin(ship.angle)*.18;
     ship.vy-=Math.cos(ship.angle)*.18;
@@ -1486,9 +1501,24 @@ function processInput(){
 }
 
 // ═══════════════════════════════════════════════════════
-// TOUCH CONTROLS
+// TOUCH CONTROLS  –  gesture-based (mobile) or buttons (desktop)
 // ═══════════════════════════════════════════════════════
 const TOUCH_HAS=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+
+// ── Gesture state (mobile) ──────────────────────────────
+const gest={
+  active:false,startX:0,startY:0,lastX:0,startTime:0,
+  rotating:false,rotDir:0,holding:false,
+  lastTapTime:0,lastTapX:0,lastTapY:0,
+  // powerup hit-test rects (set in drawMobileHUD)
+  shieldRect:null,slowRect:null,
+};
+
+function _gestReset(){
+  gest.active=false;gest.rotating=false;gest.rotDir=0;gest.holding=false;
+}
+
+// ── OLD button zone (desktop) ───────────────────────────
 function touchZone(tx,ty){
   const cx=tx-PANEL_W;
   const bh=80,margin=16,btnW=70;
@@ -1499,42 +1529,222 @@ function touchZone(tx,ty){
   if(cx>W-margin-btnW)return 'fire';
   return null;
 }
-canvas.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  if(G.phase==='nameentry'){
-    // Simple tap cycles char up
+
+// ── Shared: advance screens on tap ─────────────────────
+function _advanceScreen(){
+  if(G.phase==='gameover'||G.phase==='hiscore'){
+    if(goBlinkInt){clearInterval(goBlinkInt);goBlinkInt=null;}
+    showMenu();
+  }
+}
+
+if(IS_MOBILE){
+  // ── GESTURE controls ────────────────────────────────
+  canvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    getAudioCtx();
+    if(G.phase==='gameover'||G.phase==='hiscore'){_advanceScreen();return;}
+
+    const t=e.changedTouches[0];
+    const now=performance.now();
+
+    // Check powerup tap on mobile HUD buttons
+    if(gest.shieldRect){
+      const r=gest.shieldRect;
+      if(t.clientY>=r.y&&t.clientY<=r.y+r.h&&t.clientX>=r.x&&t.clientX<=r.x+r.w){
+        useShield();return;
+      }
+    }
+    if(gest.slowRect){
+      const r=gest.slowRect;
+      if(t.clientY>=r.y&&t.clientY<=r.y+r.h&&t.clientX>=r.x&&t.clientX<=r.x+r.w){
+        useSlow();return;
+      }
+    }
+
+    if(G.phase==='nameentry'){
+      // tap left half = prev char pos, right half = next char pos, bottom = confirm
+      if(t.clientY>H*.75){neInput(' ');}
+      else if(t.clientX<W/3){G.nePos=(G.nePos+2)%3;playSound('name_sel');}
+      else if(t.clientX>W*2/3){G.nePos=(G.nePos+1)%3;playSound('name_sel');}
+      else{const ci=NE_CHARS.indexOf(G.neChars[G.nePos]);G.neChars[G.nePos]=NE_CHARS[(ci+1)%NE_CHARS.length];playSound('name_sel');}
+      return;
+    }
+
+    gest.active=true;
+    gest.startX=t.clientX;gest.startY=t.clientY;
+    gest.lastX=t.clientX;
+    gest.startTime=now;
+    gest.rotating=false;gest.rotDir=0;gest.holding=true;
+  },{passive:false});
+
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(!gest.active)return;
+    const t=e.changedTouches[0];
+    const totalDx=t.clientX-gest.startX;
+    // Start rotating once dragged > 12px horizontally
+    if(Math.abs(totalDx)>12){
+      gest.rotating=true;
+      gest.holding=false; // dragging = not a hold/tap
+      gest.rotDir=totalDx>0?1:-1;
+    }
+    gest.lastX=t.clientX;
+  },{passive:false});
+
+  canvas.addEventListener('touchend',e=>{
+    e.preventDefault();
+    const t=e.changedTouches[0];
+    const now=performance.now();
+    const dx=Math.abs(t.clientX-gest.startX);
+    const dy=Math.abs(t.clientY-gest.startY);
+    const dt=now-gest.startTime;
+
+    const isStationary=dx<15&&dy<20;
+    if(isStationary&&G.phase==='playing'){
+      if(dt<220){
+        // Quick tap → fire laser
+        fireLaser();
+      }else{
+        // Hold → thrust burst
+        ship.vx+=Math.sin(ship.angle)*3.0;
+        ship.vy-=Math.cos(ship.angle)*3.0;
+      }
+    }
+    _gestReset();
+  },{passive:false});
+
+}else{
+  // ── BUTTON controls (desktop/non-touch) ─────────────
+  const TOUCH_HAS_BTNS=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  canvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(G.phase==='nameentry'){
+      for(const t of e.changedTouches){
+        const z=touchZone(t.clientX,t.clientY);
+        if(z==='left'){G.nePos=(G.nePos+2)%3;playSound('name_sel');}
+        else if(z==='right'){G.nePos=(G.nePos+1)%3;playSound('name_sel');}
+        else if(z==='thrust'){const ci=NE_CHARS.indexOf(G.neChars[G.nePos]);G.neChars[G.nePos]=NE_CHARS[(ci+1)%NE_CHARS.length];playSound('name_sel');}
+        else if(z==='fire'){neInput(' ');}
+      }
+      return;
+    }
+    if(G.phase==='gameover'||G.phase==='hiscore'){_advanceScreen();return;}
     for(const t of e.changedTouches){
       const z=touchZone(t.clientX,t.clientY);
-      if(z==='left'){G.nePos=(G.nePos+2)%3;playSound('name_sel');}
-      else if(z==='right'){G.nePos=(G.nePos+1)%3;playSound('name_sel');}
-      else if(z==='thrust'){const ci=NE_CHARS.indexOf(G.neChars[G.nePos]);G.neChars[G.nePos]=NE_CHARS[(ci+1)%NE_CHARS.length];playSound('name_sel');}
-      else if(z==='fire'){neInput(' ');}
+      if(z==='left')keys['ArrowLeft']=true;
+      else if(z==='right')keys['ArrowRight']=true;
+      else if(z==='thrust')keys['ArrowUp']=true;
+      else if(z==='fire')fireLaser();
     }
-    return;
+  },{passive:false});
+  canvas.addEventListener('touchend',e=>{
+    e.preventDefault();
+    keys['ArrowLeft']=keys['ArrowRight']=keys['ArrowUp']=false;
+    for(const t of e.targetTouches){
+      const z=touchZone(t.clientX,t.clientY);
+      if(z==='left')keys['ArrowLeft']=true;
+      else if(z==='right')keys['ArrowRight']=true;
+      else if(z==='thrust')keys['ArrowUp']=true;
+    }
+  },{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();},{passive:false});
+}
+
+// ── processInput: apply gesture state on mobile ─────────
+// (called from main game loop)
+// Rotation injection is handled inside processInput() below
+
+// ── Mobile HUD canvas overlay ──────────────────────────
+function drawMobileHUD(){
+  if(!IS_MOBILE||!G.active)return;
+  if(G.phase!=='playing'&&G.phase!=='warp'&&G.phase!=='bosswarning')return;
+  const q=G.currentQ;
+  ctx.save();
+
+  // ── Top bar background ──
+  const barH=52;
+  ctx.fillStyle='rgba(2,4,8,.72)';
+  ctx.fillRect(0,0,W,barH);
+
+  // Lives
+  const livesStr='❤️'.repeat(Math.max(0,G.lives))+'🖤'.repeat(Math.max(0,3-G.lives));
+  ctx.font=`15px 'Share Tech Mono',monospace`;
+  ctx.textBaseline='middle';ctx.textAlign='left';
+  ctx.fillStyle='#ff4455';ctx.shadowBlur=6;ctx.shadowColor='#ff4455';
+  ctx.fillText(livesStr,10,14);
+
+  // Level
+  ctx.font=`11px 'Share Tech Mono',monospace`;
+  ctx.fillStyle='#445566';ctx.shadowBlur=0;
+  ctx.fillText(`NVL ${G.level}`,12,34);
+
+  // Score
+  ctx.font=`14px 'Share Tech Mono',monospace`;
+  ctx.textAlign='right';
+  ctx.fillStyle='#00ff88';ctx.shadowBlur=6;ctx.shadowColor='#00ff88';
+  ctx.fillText(`★ ${G.score.toLocaleString()}`,W-10,14);
+
+  // Combo
+  if(G.combo>=3){
+    ctx.font=`11px 'Share Tech Mono',monospace`;
+    ctx.fillStyle='#ff8800';ctx.shadowBlur=8;ctx.shadowColor='#ff8800';
+    ctx.fillText(`🔥 COMBO ${G.combo}×`,W-10,33);
   }
-  if(G.phase==='gameover'||G.phase==='hiscore'){if(goBlinkInt){clearInterval(goBlinkInt);goBlinkInt=null;}showMenu();return;}
-  for(const t of e.changedTouches){
-    const z=touchZone(t.clientX,t.clientY);
-    if(z==='left')keys['ArrowLeft']=true;
-    else if(z==='right')keys['ArrowRight']=true;
-    else if(z==='thrust')keys['ArrowUp']=true;
-    else if(z==='fire')fireLaser();
+
+  // Progress bar (thin strip under top bar)
+  const pct=G.correct/GOAL;
+  ctx.fillStyle='rgba(0,255,136,.15)';ctx.fillRect(0,barH,W,3);
+  ctx.fillStyle='#00ff88';ctx.shadowBlur=4;ctx.shadowColor='#00ff88';
+  ctx.fillRect(0,barH,W*pct,3);
+
+  // Question topic + text
+  if(q){
+    const color=TOPIC_COLOR[G.currentTopic]||'#00ff88';
+    ctx.textAlign='center';ctx.shadowBlur=0;
+    ctx.font=`10px 'Share Tech Mono',monospace`;
+    ctx.fillStyle=color;
+    ctx.fillText(G.currentTopic,W/2,13);
+    ctx.font=`bold 17px 'Share Tech Mono',monospace`;
+    ctx.fillStyle='#fff';ctx.shadowBlur=4;ctx.shadowColor='#fff';
+    ctx.fillText(q.q,W/2,34);
   }
-},{passive:false});
-canvas.addEventListener('touchend',e=>{
-  e.preventDefault();
-  // Reset all movement keys; will re-set from remaining touches
-  keys['ArrowLeft']=keys['ArrowRight']=keys['ArrowUp']=false;
-  for(const t of e.targetTouches){
-    const z=touchZone(t.clientX,t.clientY);
-    if(z==='left')keys['ArrowLeft']=true;
-    else if(z==='right')keys['ArrowRight']=true;
-    else if(z==='thrust')keys['ArrowUp']=true;
-  }
-},{passive:false});
-canvas.addEventListener('touchmove',e=>{e.preventDefault();},{passive:false});
+
+  // ── Power-up buttons (bottom right) ──────────────────
+  const bW=68,bH=44,bMargin=8,bY=H-bH-bMargin;
+  // Shield
+  const shX=W-bW*2-bMargin*2,shY=bY;
+  gest.shieldRect={x:shX,y:shY,w:bW,h:bH};
+  const shActive=G.shieldTimer>0,shDis=G.powerups.shield<=0&&!shActive;
+  ctx.globalAlpha=shDis?.28:.7;
+  ctx.fillStyle=shActive?'rgba(0,255,136,.3)':'rgba(0,255,136,.1)';
+  ctx.strokeStyle='#00ff88';ctx.lineWidth=1.5;
+  ctx.shadowBlur=shActive?10:0;ctx.shadowColor='#00ff88';
+  ctx.beginPath();ctx.roundRect(shX,shY,bW,bH,8);ctx.fill();ctx.stroke();
+  ctx.globalAlpha=shDis?.28:.9;ctx.shadowBlur=0;
+  ctx.fillStyle='#00ff88';ctx.font=`14px 'Share Tech Mono',monospace`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(`🛡️×${G.powerups.shield}`,shX+bW/2,shY+bH/2);
+
+  // Slow
+  const slX=W-bW-bMargin,slY=bY;
+  gest.slowRect={x:slX,y:slY,w:bW,h:bH};
+  const slActive=G.slowTimer>0,slDis=G.powerups.slow<=0&&!slActive;
+  ctx.globalAlpha=slDis?.28:.7;
+  ctx.fillStyle=slActive?'rgba(0,255,136,.3)':'rgba(0,255,136,.1)';
+  ctx.strokeStyle='#00ff88';ctx.lineWidth=1.5;
+  ctx.shadowBlur=slActive?10:0;ctx.shadowColor='#00ff88';
+  ctx.beginPath();ctx.roundRect(slX,slY,bW,bH,8);ctx.fill();ctx.stroke();
+  ctx.globalAlpha=slDis?.28:.9;ctx.shadowBlur=0;
+  ctx.fillStyle='#00ff88';ctx.font=`14px 'Share Tech Mono',monospace`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(`🐌×${G.powerups.slow}`,slX+bW/2,slY+bH/2);
+
+  ctx.globalAlpha=1;ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore();
+}
 
 function drawTouchControls(){
+  if(IS_MOBILE){drawMobileHUD();return;}
   if(!TOUCH_HAS)return;
   const bh=80,margin=16,btnW=70,btnH=56,by=H-margin-btnH;
   ctx.save();ctx.globalAlpha=.35;
@@ -1594,13 +1804,34 @@ function drawAttract(){
   ctx.globalAlpha=1;ctx.restore();
 }
 
+// Mobile gesture hint (shown briefly at start)
+let mobileHintFrames=0;
+function drawMobileHint(){
+  if(!IS_MOBILE||mobileHintFrames<=0)return;
+  const a=Math.min(1,mobileHintFrames/30)*Math.min(1,(mobileHintFrames-1)/30);
+  ctx.save();ctx.globalAlpha=a*.85;
+  const bW=Math.min(W-40,320),bH=76,bX=(W-bW)/2,bY=H*.55;
+  ctx.fillStyle='rgba(2,4,8,.88)';
+  ctx.strokeStyle='rgba(0,255,136,.35)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(bX,bY,bW,bH,10);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#00ff88';ctx.font=`12px 'Share Tech Mono',monospace`;
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('⟵ ARROSSEGA per girar  ARROSSEGA ⟶',W/2,bY+12);
+  ctx.fillStyle='#aaa';
+  ctx.fillText('TAP ràpid = dispara  ·  TAP mantingut = propulsió',W/2,bY+34);
+  ctx.fillStyle='#445566';ctx.font=`10px 'Share Tech Mono',monospace`;
+  ctx.fillText('🛡️ i 🐌 : botons a baix-dreta',W/2,bY+58);
+  ctx.restore();
+  mobileHintFrames--;
+}
+
 // ═══════════════════════════════════════════════════════
 // MENU & START
 // ═══════════════════════════════════════════════════════
 function showMenu(){
   G.phase='menu';G.active=false;
   document.getElementById('menu-ov').classList.remove('hidden');
-  document.getElementById('left-panel').classList.remove('active');
+  if(!IS_MOBILE)document.getElementById('left-panel').classList.remove('active');
   if(goBlinkInt){clearInterval(goBlinkInt);goBlinkInt=null;}
   initAttract();
 }
@@ -1617,11 +1848,12 @@ function startGame(speed){
   asteroids=[];lasers=[];particles=[];floatTexts=[];boss=null;bwActive=false;
   document.getElementById('menu-ov').classList.add('hidden');
   document.getElementById('trade-ov').classList.add('hidden');
-  document.getElementById('left-panel').classList.add('active');
+  if(!IS_MOBILE)document.getElementById('left-panel').classList.add('active');
   document.getElementById('crt').style.background='';
   initShip();updateHUD();renderPairsStrip();
   newRound();
   getAudioCtx(); // unlock audio
+  if(IS_MOBILE)mobileHintFrames=220; // ~3.6s hint
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1728,7 +1960,7 @@ function gameLoop(){
     // Draw world frozen
     for(const a of asteroids)drawAsteroid(a);
     if(boss)drawBoss();
-    drawLasers();drawShip();drawParticles();drawFloatTexts();drawTouchControls();
+    drawLasers();drawShip();drawParticles();drawFloatTexts();drawTouchControls();drawMobileHint();
     drawPaused();return;
   }
 
@@ -1767,13 +1999,14 @@ function gameLoop(){
   drawFloatTexts();
   drawTimerBar();
   drawTouchControls();
+  drawMobileHint();
   drawFlash();
 }
 
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-showMenu();
+startGame(1);
 gameLoop();
 </script>
 </body>
