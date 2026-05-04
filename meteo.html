@@ -1483,9 +1483,14 @@ document.addEventListener('keyup',e=>{keys[e.code]=false;});
 function processInput(){
   if(!G.active||ship.dead||G.paused)return;
   if(IS_MOBILE){
-    // Gesture rotation: continuous while dragging horizontally
-    if(gest.rotating)ship.angle+=gest.rotDir*.065;
-    ship.thrusting=false; // thrust is a burst on touchend, not continuous
+    // Gesture rotation: starts lazy, ramps up after ~40 frames of continuous drag
+    if(gest.rotating){
+      gest.rotFrames++;
+      // Fast burst at start (easy first ~15°), settles, then gently climbs
+      const speed=0.028+0.027*Math.exp(-gest.rotFrames/6)+0.022*Math.min(1,gest.rotFrames/60);
+      ship.angle+=gest.rotDir*speed;
+    }
+    ship.thrusting=false;
   }else{
     if(keys['ArrowLeft']||keys['KeyA'])ship.angle-=.06;
     if(keys['ArrowRight']||keys['KeyD'])ship.angle+=.06;
@@ -1510,12 +1515,14 @@ const gest={
   active:false,startX:0,startY:0,lastX:0,startTime:0,
   rotating:false,rotDir:0,holding:false,
   lastTapTime:0,lastTapX:0,lastTapY:0,
+  rotFrames:0,
+  pendingFire:null,
   // powerup hit-test rects (set in drawMobileHUD)
   shieldRect:null,slowRect:null,
 };
 
 function _gestReset(){
-  gest.active=false;gest.rotating=false;gest.rotDir=0;gest.holding=false;
+  gest.active=false;gest.rotating=false;gest.rotDir=0;gest.holding=false;gest.rotFrames=0;
 }
 
 // ── OLD button zone (desktop) ───────────────────────────
@@ -1603,8 +1610,21 @@ if(IS_MOBILE){
     const isStationary=dx<15&&dy<20;
     if(isStationary&&G.phase==='playing'){
       if(dt<220){
-        // Quick tap → fire laser
-        fireLaser();
+        const sinceLastTap=now-gest.lastTapTime;
+        if(sinceLastTap<320&&sinceLastTap>0){
+          // Double-tap → thrust burst, cancel the pending fire from first tap
+          if(gest.pendingFire){clearTimeout(gest.pendingFire);gest.pendingFire=null;}
+          ship.vx+=Math.sin(ship.angle)*3.0;
+          ship.vy-=Math.cos(ship.angle)*3.0;
+          gest.lastTapTime=0;
+        }else{
+          // First tap → schedule fire after double-tap window
+          gest.lastTapTime=now;
+          gest.pendingFire=setTimeout(()=>{
+            if(G.phase==='playing')fireLaser();
+            gest.pendingFire=null;
+          },320);
+        }
       }else{
         // Hold → thrust burst
         ship.vx+=Math.sin(ship.angle)*3.0;
@@ -1818,7 +1838,7 @@ function drawMobileHint(){
   ctx.textAlign='center';ctx.textBaseline='top';
   ctx.fillText('⟵ ARROSSEGA per girar  ARROSSEGA ⟶',W/2,bY+12);
   ctx.fillStyle='#aaa';
-  ctx.fillText('TAP ràpid = dispara  ·  TAP mantingut = propulsió',W/2,bY+34);
+  ctx.fillText('TAP = dispara  ·  TAP×2 o MANTINGUT = propulsió',W/2,bY+34);
   ctx.fillStyle='#445566';ctx.font=`10px 'Share Tech Mono',monospace`;
   ctx.fillText('🛡️ i 🐌 : botons a baix-dreta',W/2,bY+58);
   ctx.restore();
@@ -1853,7 +1873,7 @@ function startGame(speed){
   initShip();updateHUD();renderPairsStrip();
   newRound();
   getAudioCtx(); // unlock audio
-  if(IS_MOBILE)mobileHintFrames=220; // ~3.6s hint
+  if(IS_MOBILE)mobileHintFrames=0; // hint disabled
 }
 
 // ═══════════════════════════════════════════════════════
