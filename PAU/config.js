@@ -25,5 +25,6 @@ const VIDEOS = {
   // 'alg-23j-q2': 'XXXXXXXXXXX',
   // 'ana-24j-q1': 'YYYYYYYYYYY',
    'ana-24j-q1':'bW5Cz1lC4TA',
-   'ana-24s-q1':'lB4Q0zkDgiA'
+   'ana-24s-q1':'lB4Q0zkDgiA',
+   'ana-24j-q3':'z8l7bqoaAZs'
 };
