@@ -359,6 +359,12 @@ function escapeHtml(unsafe) {
     return String(unsafe).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
+// Converteix \frac{num}{den} → num/den per a la visualització en text pla (informe)
+function plainFrac(str) {
+    if (!str) return '';
+    return String(str).replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2');
+}
+
 function recordAnswerToHistory(question, answer, isCorrect) {
     sessionHistory.push({ question, answer, isCorrect });
 }
@@ -392,10 +398,10 @@ function showHistorySummary() {
 
     // [FIX m8] Reescrit amb classes CSS de shared.css (responsive, mantenible)
     const liOk  = encerts.length
-        ? encerts.map(e => `<li class="history-item history-item--ok"><div class="history-q"><strong>P:</strong> <span class="history-mono">${escapeHtml(e.question)}</span></div><div class="history-a--ok"><strong>R:</strong> <span class="history-mono">${escapeHtml(e.answer)}</span></div></li>`).join('')
+        ? encerts.map(e => `<li class="history-item history-item--ok"><div class="history-q"><strong>P:</strong> <span class="history-mono">${escapeHtml(e.question)}</span></div><div class="history-a--ok"><strong>R:</strong> <span class="history-mono">${escapeHtml(plainFrac(e.answer))}</span></div></li>`).join('')
         : '<li class="history-empty">Cap encert en aquesta partida.</li>';
     const liBad = errades.length
-        ? errades.map(e => `<li class="history-item history-item--bad"><div class="history-q"><strong>P:</strong> <span class="history-mono">${escapeHtml(e.question)}</span></div><div class="history-a--bad"><strong>R:</strong> <span class="history-mono">${escapeHtml(e.answer)}</span></div></li>`).join('')
+        ? errades.map(e => `<li class="history-item history-item--bad"><div class="history-q"><strong>P:</strong> <span class="history-mono">${escapeHtml(e.question)}</span></div><div class="history-a--bad"><strong>R:</strong> <span class="history-mono">${escapeHtml(plainFrac(e.answer))}</span></div></li>`).join('')
         : '<li class="history-empty">Cap errada! Partida perfecta 🎉</li>';
 
     sc.innerHTML = `<div class="history-summary">
