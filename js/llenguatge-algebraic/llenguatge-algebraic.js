@@ -69,6 +69,34 @@ function updateHeader() {
     if (attemptsLeft < 5) els.attemptsDisplay.classList.add('danger');
 }
 
+// ── RENDERITZAR EXPRESSIÓ MATEMÀTICA ─────────────────────────────────────────
+// Renderitza les fraccions \frac{num}{den} amb KaTeX i deixa la resta com text.
+function renderExpr(str) {
+    const parts = [];
+    const pattern = /\\frac\{([^}]*)\}\{([^}]*)\}/g;
+    let lastIndex = 0;
+    let match;
+    while ((match = pattern.exec(str)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push(escapeHtml(str.slice(lastIndex, match.index)));
+        }
+        parts.push(katex.renderToString(
+            `\\frac{${match[1]}}{${match[2]}}`,
+            { throwOnError: false, displayMode: false }
+        ));
+        lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < str.length) {
+        parts.push(escapeHtml(str.slice(lastIndex)));
+    }
+    return parts.join('');
+}
+
+// Longitud visual aproximada (ignora els comandos LaTeX \frac{}{})
+function visualLength(str) {
+    return str.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2').length;
+}
+
 // ── RENDERITZAR PREGUNTA ─────────────────────────────────────────────────────
 function renderQuestion() {
     els.questionContext.innerText = currentQuestion.context;
@@ -79,7 +107,7 @@ function renderQuestion() {
     shuffle(allOptions);
 
     // Decidir si cal layout vertical (expressions llargues)
-    const maxLen = Math.max(...allOptions.map(o => o.length));
+    const maxLen = Math.max(...allOptions.map(o => visualLength(o)));
     els.optionsGrid.className = 'options-grid' + (maxLen > 12 ? ' vertical' : '');
 
     // Crear botons
@@ -87,7 +115,8 @@ function renderQuestion() {
     allOptions.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'btn-option';
-        btn.textContent = opt;
+        btn.innerHTML = renderExpr(opt);
+        btn.dataset.value = opt;                       // valor raw per comparar
         btn.setAttribute('aria-label', `Opció: ${opt}`);
         btn.addEventListener('click', () => checkAnswer(btn, opt));
         els.optionsGrid.appendChild(btn);
@@ -160,7 +189,7 @@ function penalize(btn) {
 function revealCorrectAnswer() {
     const buttons = els.optionsGrid.querySelectorAll('.btn-option');
     buttons.forEach(btn => {
-        if (btn.textContent === currentQuestion.answer) {
+        if (btn.dataset.value === currentQuestion.answer) {
             btn.classList.remove('disabled');
             btn.classList.add('reveal-correct');
         } else {

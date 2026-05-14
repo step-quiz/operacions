@@ -37,11 +37,11 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Edat', text: `La meva germana té el doble d'anys que jo. Si jo tinc ${V} anys, quants té ella?`,
-            answer: `2x`, distractors: [`x + 2`, `x − 2`, `x / 2`] };
+            answer: `2x`, distractors: [`x + 2`, `x − 2`, `\\frac{x}{2}`] };
     });
     pool.push(() => {
         return { context: 'Edat', text: `El meu avi té el triple d'anys que el meu pare. Si el meu pare té ${V} anys, quants anys té l'avi?`,
-            answer: `3x`, distractors: [`x + 3`, `x³`, `x / 3`] };
+            answer: `3x`, distractors: [`x + 3`, `x³`, `\\frac{x}{3}`] };
     });
     pool.push(() => {
         const n = randInt(5, 15);
@@ -55,7 +55,7 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Edat', text: `El meu germà petit té la meitat d'anys que jo. Si jo tinc ${V} anys, quants anys té ell?`,
-            answer: `x / 2`, distractors: [`2x`, `x − 2`, `x + 2`] };
+            answer: `\\frac{x}{2}`, distractors: [`2x`, `x − 2`, `x + 2`] };
     });
     pool.push(() => {
         const n = randInt(3, 8);
@@ -90,11 +90,11 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Nombres', text: `La meitat d'un nombre ${V}.`,
-            answer: `x / 2`, distractors: [`2x`, `x − 2`, `x · 2`] };
+            answer: `\\frac{x}{2}`, distractors: [`2x`, `x − 2`, `x · 2`] };
     });
     pool.push(() => {
         return { context: 'Nombres', text: `La tercera part d'un nombre ${V}.`,
-            answer: `x / 3`, distractors: [`3x`, `x − 3`, `x + 3`] };
+            answer: `\\frac{x}{3}`, distractors: [`3x`, `x − 3`, `x + 3`] };
     });
     pool.push(() => {
         return { context: 'Nombres', text: `El quadrat d'un nombre ${V}.`,
@@ -112,16 +112,16 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(2, 6);
         return { context: 'Nombres', text: `El producte d'un nombre ${V} per ${n}.`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x / ${n}`, `x − ${n}`] };
+            answer: `${n}x`, distractors: [`x + ${n}`, `\\frac{x}{${n}}`, `x − ${n}`] };
     });
     pool.push(() => {
         const n = randInt(4, 8);
         return { context: 'Nombres', text: `La quarta part d'un nombre ${V}.`,
-            answer: `x / 4`, distractors: [`4x`, `x − 4`, `x + 4`] };
+            answer: `\\frac{x}{4}`, distractors: [`4x`, `x − 4`, `x + 4`] };
     });
     pool.push(() => {
         return { context: 'Nombres', text: `Un nombre ${V} augmentat en la seva meitat.`,
-            answer: `x + x / 2`, distractors: [`x / 2`, `2x`, `x · x / 2`] };
+            answer: `x + \\frac{x}{2}`, distractors: [`\\frac{x}{2}`, `2x`, `x · \\frac{x}{2}`] };
     });
     pool.push(() => {
         const n = randInt(2, 7);
@@ -138,7 +138,7 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Consecutius', text: `Si un nombre és ${V}, quin és el nombre anterior?`,
-            answer: `x − 1`, distractors: [`x + 1`, `x / 1`, `−x`] };
+            answer: `x − 1`, distractors: [`x + 1`, `\\frac{x}{1}`, `−x`] };
     });
     pool.push(() => {
         return { context: 'Consecutius', text: `Si un nombre ${V} és parell, quin és el següent nombre parell?`,
@@ -175,22 +175,22 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(2, 5);
         return { context: 'Diners', text: `Compro ${n} llibretes que costen ${V} euros cadascuna. Quant pago en total?`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x / ${n}`, `x − ${n}`] };
+            answer: `${n}x`, distractors: [`x + ${n}`, `\\frac{x}{${n}}`, `x − ${n}`] };
     });
     pool.push(() => {
         const n = randInt(3, 6);
         return { context: 'Diners', text: `Repartim ${V} euros entre ${n} amics a parts iguals. Quant rep cadascú?`,
-            answer: `x / ${n}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
+            answer: `\\frac{x}{${n}}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
     });
     pool.push(() => {
         const n = randInt(2, 5);
         return { context: 'Diners', text: `Un gelat costa ${V} euros. Quant costen ${n} gelats?`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x − ${n}`, `x / ${n}`] };
+            answer: `${n}x`, distractors: [`x + ${n}`, `x − ${n}`, `\\frac{x}{${n}}`] };
     });
     pool.push(() => {
         const n = randInt(1, 5);
         return { context: 'Diners', text: `Una samarreta costa ${V} euros i li fan un descompte de ${n} €. Quin és el preu final?`,
-            answer: `x − ${n}`, distractors: [`x + ${n}`, `${n}x`, `x / ${n}`] };
+            answer: `x − ${n}`, distractors: [`x + ${n}`, `${n}x`, `\\frac{x}{${n}}`] };
     });
     pool.push(() => {
         const n = randInt(5, 15);
@@ -229,12 +229,12 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Geometria', text: `El perímetre d'un triangle equilàter de costat ${V}.`,
-            answer: `3x`, distractors: [`x + 3`, `x³`, `x / 3`] };
+            answer: `3x`, distractors: [`x + 3`, `x³`, `\\frac{x}{3}`] };
     });
     pool.push(() => {
         const n = randInt(2, 6);
         return { context: 'Geometria', text: `L'àrea d'un triangle de base ${V} i altura ${n}.`,
-            answer: `${n}x / 2`, distractors: [`${n}x`, `x + ${n}`, `2x + ${n}`] };
+            answer: `\\frac{${n}x}{2}`, distractors: [`${n}x`, `x + ${n}`, `2x + ${n}`] };
     });
     pool.push(() => {
         const n = randInt(1, 5);
@@ -258,7 +258,7 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Escola', text: `A l'escola hi ha ${V} alumnes repartits en 2 grups iguals. Quants alumnes té cada grup?`,
-            answer: `x / 2`, distractors: [`2x`, `x − 2`, `x + 2`] };
+            answer: `\\frac{x}{2}`, distractors: [`2x`, `x − 2`, `x + 2`] };
     });
     pool.push(() => {
         const n = randInt(3, 6);
@@ -268,7 +268,7 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(2, 5);
         return { context: 'Escola', text: `Cada alumne porta ${n} llapis. Si hi ha ${V} alumnes, quants llapis hi ha en total?`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x / ${n}`, `x − ${n}`] };
+            answer: `${n}x`, distractors: [`x + ${n}`, `\\frac{x}{${n}}`, `x − ${n}`] };
     });
     pool.push(() => {
         const n = randInt(10, 30);
@@ -278,7 +278,7 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(2, 4);
         return { context: 'Escola', text: `Tinc ${V} pàgines per llegir i cada dia en llegeixo ${n}. Quantes pàgines em falten després d'un dia?`,
-            answer: `x − ${n}`, distractors: [`x + ${n}`, `${n}x`, `x / ${n}`] };
+            answer: `x − ${n}`, distractors: [`x + ${n}`, `${n}x`, `\\frac{x}{${n}}`] };
     });
 
 
@@ -288,7 +288,7 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(3, 7);
         return { context: 'Esport', text: `Cada dia camino ${V} km. Quants km camino en ${n} dies?`,
-            answer: `${n}x`, distractors: [`x + ${n}`, `x / ${n}`, `x − ${n}`] };
+            answer: `${n}x`, distractors: [`x + ${n}`, `\\frac{x}{${n}}`, `x − ${n}`] };
     });
     pool.push(() => {
         const n = randInt(2, 5);
@@ -307,7 +307,7 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(2, 6);
         return { context: 'Menjar', text: `Tinc ${V} galetes i les reparteixo entre ${n} amics. Quantes en toca a cadascú?`,
-            answer: `x / ${n}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
+            answer: `\\frac{x}{${n}}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
     });
     pool.push(() => {
         const n = randInt(3, 6);
@@ -335,7 +335,7 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Tecnologia', text: `Fa dos mesos tenia ${V} subscriptors i ara tinc el triple. Quants subscriptors tinc ara?`,
-            answer: `3x`, distractors: [`x + 3`, `x³`, `x / 3`] };
+            answer: `3x`, distractors: [`x + 3`, `x³`, `\\frac{x}{3}`] };
     });
     pool.push(() => {
         const n = randInt(10, 30);
@@ -349,7 +349,7 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(2, 5);
         return { context: 'Tecnologia', text: `Un vídeo dura ${V} minuts. Si el veig a velocitat ×${n}, quant de temps dura?`,
-            answer: `x / ${n}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
+            answer: `\\frac{x}{${n}}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
     });
 
     // =========================================================================
@@ -357,11 +357,11 @@ window.QuestionBank = (() => {
     // =========================================================================
     pool.push(() => {
         return { context: 'Nombres', text: `L'oposat d'un nombre ${V}.`,
-            answer: `−x`, distractors: [`1/x`, `x`, `|x|`] };
+            answer: `−x`, distractors: [`\\frac{1}{x}`, `x`, `|x|`] };
     });
     pool.push(() => {
         return { context: 'Nombres', text: `L'invers d'un nombre ${V}.`,
-            answer: `1 / x`, distractors: [`−x`, `x`, `x²`] };
+            answer: `\\frac{1}{x}`, distractors: [`−x`, `x`, `x²`] };
     });
     pool.push(() => {
         const a = randInt(2, 4);
@@ -381,12 +381,12 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         return { context: 'Nombres', text: `El doble d'un nombre ${V}, menys la seva meitat.`,
-            answer: `2x − x / 2`, distractors: [`x / 2`, `2x + x / 2`, `x`] };
+            answer: `2x − \\frac{x}{2}`, distractors: [`\\frac{x}{2}`, `2x + \\frac{x}{2}`, `x`] };
     });
     pool.push(() => {
         const n = randInt(2, 6);
         return { context: 'Nombres', text: `La meitat de la suma d'un nombre ${V} i ${n}.`,
-            answer: `(x + ${n}) / 2`, distractors: [`x / 2 + ${n}`, `x + ${n} / 2`, `2x + ${n}`] };
+            answer: `\\frac{x + ${n}}{2}`, distractors: [`\\frac{x}{2} + ${n}`, `x + \\frac{${n}}{2}`, `2x + ${n}`] };
     });
     pool.push(() => {
         const n = randInt(2, 5);
