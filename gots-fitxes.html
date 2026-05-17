@@ -208,11 +208,57 @@
             #equation-display { font-size: 1.35em; }
             #step-instruction { font-size: 0.98em; }
             #answer-input { width: 76px; height: 46px; font-size: 1.4em; }
+            .level-btn { min-width: 38px; height: 34px; padding: 0 10px; font-size: 0.95em; }
         }
         @media (max-width: 380px) {
             #equation-display { font-size: 1.15em; letter-spacing: 0.5px; }
             #scene-svg-container { padding: 10px 4px 4px; }
+            .level-switcher { gap: 6px; padding: 10px 8px 2px; }
         }
+
+        /* ---- SELECTOR DE NIVELL ---- */
+        .level-switcher {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px 6px;
+            flex-wrap: wrap;
+        }
+        .level-switcher-label {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.95em;
+            margin-right: 4px;
+        }
+        .level-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 42px;
+            height: 38px;
+            padding: 0 14px;
+            background: #fff;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1em;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, transform 0.1s;
+            font-family: inherit;
+        }
+        @media (hover: hover) {
+            .level-btn:hover { background: var(--primary-light); }
+        }
+        .level-btn:active { transform: scale(0.95); }
+        .level-btn.active {
+            background: var(--primary);
+            color: #fff;
+            cursor: default;
+        }
+        .level-btn.active:hover { background: var(--primary); }
     </style>
     <link rel="stylesheet" href="css/chromebook.css">
 </head>
@@ -228,6 +274,15 @@
 <div class="subtitle">Equacions amb material manipulatiu</div>
 
 <div class="panel" id="main-panel">
+
+    <!-- Selector de nivell (4 botons; el del nivell actiu queda destacat) -->
+    <nav class="level-switcher" id="level-switcher" aria-label="Selector de nivell">
+        <span class="level-switcher-label">Nivell:</span>
+        <a class="level-btn" data-level="1" href="?nivell=1">1</a>
+        <a class="level-btn" data-level="2" href="?nivell=2">2</a>
+        <a class="level-btn" data-level="3" href="?nivell=3">3</a>
+        <a class="level-btn" data-level="4" href="?nivell=4">4</a>
+    </nav>
 
     <div id="game-screen" style="display:none;">
         <div class="header-info">
@@ -292,13 +347,32 @@ let phases          = [];     // descripció dels passos de la pregunta actual
 let currentPhase    = 0;      // índex dins de `phases`
 let isPenalizing    = false;
 
-// ---- Llegim el nivell de la URL (sobreescriu currentDifficulty per admetre 4) ----
+// ---- Llegim el nivell de la URL (per defecte 2; admetem 1..4) ----
 (function readLevel() {
     const raw = new URLSearchParams(window.location.search).get('nivell');
     const n   = parseInt(raw, 10);
-    currentLevel = (Number.isFinite(n) && n >= 1 && n <= 4) ? n : 1;
+    currentLevel = (Number.isFinite(n) && n >= 1 && n <= 4) ? n : 2;
     // game-core llegeix també currentDifficulty per al codi v2; el clamp ja és 0-3.
     currentDifficulty = Math.min(currentLevel, 3);
+})();
+
+// ---- Construeix els enllaços dels botons de nivell preservant la resta
+// de paràmetres de la URL (totaloperations, totalsessions, etc.), i marca
+// com a "active" el botó del nivell actual. Clicar el botó k és equivalent
+// a fer la crida HTML amb ?nivell=k (recàrrega completa de la pàgina). ----
+(function setupLevelSwitcher() {
+    document.querySelectorAll('#level-switcher .level-btn').forEach(btn => {
+        const lvl = parseInt(btn.dataset.level, 10);
+        const params = new URLSearchParams(window.location.search);
+        params.set('nivell', String(lvl));
+        btn.href = '?' + params.toString();
+        if (lvl === currentLevel) {
+            btn.classList.add('active');
+            btn.setAttribute('aria-current', 'page');
+            // Evitem la recàrrega innecessària si l'usuari clica el nivell actual.
+            btn.addEventListener('click', e => e.preventDefault());
+        }
+    });
 })();
 
 // ============================================================
