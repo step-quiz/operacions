@@ -106,6 +106,25 @@
         }
 
         /* ---- EQUACIÓ EN TEXT ---- */
+        #equation-prev {
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.36em;    /* ~80% de #equation-display */
+            font-weight: bold;
+            color: #94a3b8;       /* gris suau */
+            padding: 6px 14px 0;
+            min-height: 1.3em;
+            transition: opacity 0.25s;
+            letter-spacing: 1px;
+            word-break: break-word;
+        }
+        #equation-prev:empty { display: none; }
+        #equation-prev.eq-updating { opacity: 0; }
+        /* La 'x' dins el parèntesi gris també hereta el color (gris). */
+        #equation-prev .eq-bracket,
+        #equation-prev .eq-var,
+        #equation-prev .eq-sign { color: inherit; }
+
         #equation-display {
             text-align: center;
             font-family: 'Courier New', Courier, monospace;
@@ -122,6 +141,8 @@
         #equation-display .eq-var      { color: var(--primary-dark); }
         #equation-display .eq-sign     { color: var(--primary); padding: 0 6px; }
         #equation-display .eq-bracket  { color: var(--accent); }
+        /* Dins del parèntesis, la 'x' també ha de ser taronja (hereta el color del parent). */
+        #equation-display .eq-bracket .eq-var { color: inherit; }
         #equation-display.eq-solved    { color: var(--success); }
         #equation-display.eq-solved .eq-sign { color: var(--success); }
 
@@ -211,12 +232,14 @@
         /* ---- RESPONSIU ---- */
         @media (max-width: 540px) {
             #equation-display { font-size: 1.35em; }
+            #equation-prev    { font-size: 1.08em; }
             #step-instruction { font-size: 0.98em; }
             #answer-input { width: 76px; height: 46px; font-size: 1.4em; }
             .level-btn { min-width: 38px; height: 34px; padding: 0 10px; font-size: 0.95em; }
         }
         @media (max-width: 380px) {
             #equation-display { font-size: 1.15em; letter-spacing: 0.5px; }
+            #equation-prev    { font-size: 0.92em; letter-spacing: 0.5px; }
             #scene-svg-container { padding: 10px 4px 4px; }
             .level-switcher { gap: 6px; padding: 10px 8px 2px; }
         }
@@ -303,6 +326,7 @@
 
         <div id="scene-caption" aria-live="polite"></div>
 
+        <div id="equation-prev" aria-hidden="true"></div>
         <div id="equation-display"></div>
 
         <div id="step-instruction"></div>
@@ -340,6 +364,7 @@ const els = {
     attemptsDisplay:  document.getElementById('attempts-display'),
     scene:            document.getElementById('scene-svg-container'),
     caption:          document.getElementById('scene-caption'),
+    equationPrev:     document.getElementById('equation-prev'),
     equation:         document.getElementById('equation-display'),
     stepInstr:        document.getElementById('step-instruction'),
     answerInput:      document.getElementById('answer-input'),
@@ -470,22 +495,40 @@ function determinePhases(eq) {
     const totalCups  = eq.p * eq.c + eq.a;
     const totalChips = eq.p * eq.d + eq.b;
     const rhsAfter   = eq.total - totalChips;
+    // Helper: tria singular/plural i, opcionalment, omet l'element quan n === 0.
+    const ng = (n) => `${n} ${n === 1 ? 'got' : 'gots'}`;
+    const nf = (n) => `${n} ${n === 1 ? 'fitxa' : 'fitxes'}`;
+    // Construïm la frase "Observa: ..." amb cura — sense "0 got(s)" ni "fitxa(es)".
+    const insidePlates = `${ng(eq.c)} i ${nf(eq.d)}`;
+    let outside;
+    if (eq.a > 0 && eq.b > 0)      outside = `, més ${ng(eq.a)} i ${nf(eq.b)} fora dels plats`;
+    else if (eq.a > 0)             outside = `, més ${ng(eq.a)} fora dels plats`;
+    else if (eq.b > 0)             outside = `, més ${nf(eq.b)} fora dels plats`;
+    else                           outside = '';
+    const observeText = `Observa: ${eq.p} plats amb ${insidePlates} cada un${outside}. Tot suma ${eq.total} fitxes. Quan ho entenguis, continua.`;
+    // Construcció robusta de les pistes (singular/plural i omissió de 0).
+    const cupsHint = (eq.a > 0)
+        ? `${eq.p} plats × ${ng(eq.c)} + ${ng(eq.a)} fora`
+        : `${eq.p} plats × ${ng(eq.c)}`;
+    const chipsHint = (eq.b > 0)
+        ? `${eq.p} plats × ${nf(eq.d)} + ${nf(eq.b)} fora`
+        : `${eq.p} plats × ${nf(eq.d)}`;
     return [
         {
             kind:        'observe',
-            instruction: `Observa: ${eq.p} plats amb ${eq.c} got(s) i ${eq.d} fitxa(es) cada un, més ${eq.a} got(s) i ${eq.b} fitxa(es) fora dels plats. Tot suma ${eq.total} fitxes. Quan ho entenguis, continua.`
+            instruction: observeText
         },
         {
             kind:        'input',
             instruction: `Expandeix els plats. Quants gots hi ha ara a la taula en total?`,
             expected:    totalCups,
-            hint:        `${eq.p} plats × ${eq.c} got + ${eq.a} got fora.`
+            hint:        `${cupsHint}.`
         },
         {
             kind:        'input',
             instruction: `I quantes fitxes soltes hi ha ara en total?`,
             expected:    totalChips,
-            hint:        `${eq.p} plats × ${eq.d} fitxes + ${eq.b} fitxes fora.`
+            hint:        `${chipsHint}.`
         },
         {
             kind:        'input',
@@ -849,13 +892,33 @@ function buildEquationHTML(eq, phaseIdx) {
 
 function renderEquationText(eq, phaseIdx) {
     els.equation.classList.add('eq-updating');
+    els.equationPrev.classList.add('eq-updating');
     setTimeout(() => {
         els.equation.innerHTML = buildEquationHTML(eq, phaseIdx);
+        // L'equació "prèvia" mostra l'estat anterior DIFERENT, en gris.
+        const prevHTML = prevEquationHTML(eq, phaseIdx);
+        els.equationPrev.innerHTML = prevHTML || '';
         // marquem com a resolt si és l'última fase
         const isFinal = (phaseIdx === phases.length - 1);
         els.equation.classList.toggle('eq-solved', isFinal && lastWasCorrect);
         els.equation.classList.remove('eq-updating');
+        els.equationPrev.classList.remove('eq-updating');
     }, 200);
+}
+
+// Retorna l'HTML de l'equació anterior "distinta" (en gris, més petita), o null si no n'hi ha.
+// Per L4, ph1 i ph2 mostren la mateixa equació expandida; el pas a ph2 manté la prèvia (= original).
+function prevEquationHTML(eq, phaseIdx) {
+    if (phaseIdx <= 0) return null;
+    let prevIdx;
+    if (eq.level === 4) {
+        // Mapa de fase actual → fase amb l'equació anterior DIFERENT
+        const map = { 1: 0, 2: 0, 3: 1, 4: 3 };
+        prevIdx = (phaseIdx in map) ? map[phaseIdx] : (phaseIdx - 1);
+    } else {
+        prevIdx = phaseIdx - 1;
+    }
+    return buildEquationHTML(eq, prevIdx);
 }
 
 function formatEquationString(eq) {
