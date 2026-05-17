@@ -64,6 +64,7 @@ const EXERCISE_CODES = {
     'estadistica':        'ED',
     'mitjana':            'MJ',
     'estadistica-inversa':'EI',
+    'gots-fitxes':        'GC',
     // Batxillerat
     'complexos':                 'CX',
     'derivades':                 'DV',
