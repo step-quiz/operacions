@@ -311,7 +311,7 @@
             <input type="text" id="answer-input"
                    inputmode="numeric" autocomplete="off"
                    aria-label="Resposta numèrica" maxlength="3">
-            <button id="btn-check" type="button" onclick="checkCurrentCell()">Comprova</button>
+            <button id="btn-check" type="button" onclick="checkCurrentCell()">Respon</button>
             <button id="btn-continue" type="button" style="display:none;" onclick="continueObservation()">Continua →</button>
         </div>
 
@@ -438,13 +438,19 @@ function determinePhases(eq) {
         return [
             {
                 kind:        'input',
-                instruction: `Retira ${eq.b} fitxes soltes de cada costat. Quantes fitxes queden a la dreta?`,
-                expected:    eq.c - eq.b,
-                hint:        `${eq.c} fitxes a la dreta menys ${eq.b} fitxes que retires.`
+                instruction: `Quantes fitxes vols treure de la taula?`,
+                expected:    eq.b,
+                hint:        `Mira les fitxes soltes: n'hi ha ${eq.b} a la taula amb gots. Treu el mateix nombre de cada costat.`
             },
             {
                 kind:        'input',
-                instruction: `Ara aixeca cada got: ${eq.a} gots = ${eq.c - eq.b} fitxes. Quantes hi havia a dins de cada got?`,
+                instruction: `Quantes fitxes queden, en total, a la taula?`,
+                expected:    eq.c - eq.b,
+                hint:        `Hi havia ${eq.c} fitxes a l'altre costat i n'hem retirat ${eq.b}.`
+            },
+            {
+                kind:        'input',
+                instruction: `${eq.a} gots = ${eq.c - eq.b} fitxes. Quantes fitxes hi havia a dins de cada got?`,
                 expected:    eq.x,
                 hint:        `Reparteix ${eq.c - eq.b} fitxes entre ${eq.a} gots.`
             }
@@ -454,13 +460,19 @@ function determinePhases(eq) {
         return [
             {
                 kind:        'input',
-                instruction: `Treu ${eq.c} gots i ${eq.b} fitxes d'ambdós costats. Quantes fitxes queden a la dreta?`,
-                expected:    eq.d - eq.b,
-                hint:        `A la dreta hi havia ${eq.d} fitxes; en retires ${eq.b}.`
+                instruction: `Quantes fitxes vols treure de la taula?`,
+                expected:    eq.b,
+                hint:        `Mira les fitxes soltes del costat amb menys gots: n'hi ha ${eq.b}. Treu el mateix nombre de cada costat.`
             },
             {
                 kind:        'input',
-                instruction: `Ara: ${eq.a - eq.c} gots = ${eq.d - eq.b} fitxes. Quantes fitxes hi havia a cada got?`,
+                instruction: `Quantes fitxes queden, en total, a la taula?`,
+                expected:    eq.d - eq.b,
+                hint:        `A l'altre costat hi havia ${eq.d} fitxes; en retires ${eq.b}. (Aprofitem per emparellar i treure ${eq.c} gots de cada costat.)`
+            },
+            {
+                kind:        'input',
+                instruction: `${eq.a - eq.c} gots = ${eq.d - eq.b} fitxes. Quantes fitxes hi havia a cada got?`,
                 expected:    eq.x,
                 hint:        `Reparteix ${eq.d - eq.b} fitxes entre ${eq.a - eq.c} gots.`
             }
@@ -489,13 +501,19 @@ function determinePhases(eq) {
         },
         {
             kind:        'input',
-            instruction: `Retira ${totalChips} fitxes d'ambdós costats. Quantes fitxes queden a la dreta?`,
+            instruction: `Quantes fitxes vols treure de la taula?`,
+            expected:    totalChips,
+            hint:        `Les ${totalChips} fitxes soltes: n'has de treure les mateixes de cada costat.`
+        },
+        {
+            kind:        'input',
+            instruction: `Quantes fitxes queden, en total, a la taula?`,
             expected:    rhsAfter,
             hint:        `${eq.total} − ${totalChips}.`
         },
         {
             kind:        'input',
-            instruction: `Ara: ${totalCups} gots = ${rhsAfter} fitxes. Quantes fitxes hi havia a cada got?`,
+            instruction: `${totalCups} gots = ${rhsAfter} fitxes. Quantes fitxes hi havia a cada got?`,
             expected:    eq.x,
             hint:        `Reparteix ${rhsAfter} fitxes entre ${totalCups} gots.`
         }
@@ -683,24 +701,30 @@ function renderSceneL4(eq) {
 // Després de cada pas, indica què hi ha "a l'altre costat" amb una frase.
 function getSceneCaption(eq, phaseIdx) {
     if (eq.level === 1) {
-        return `A l'altre costat hi ha ${eq.total} fitxes en total.`;
+        return `Tenim ${eq.total} fitxes en total, però algunes estan sota els gots.`;
     }
     if (eq.level === 2) {
-        if (phaseIdx === 0) return `A l'altre costat hi ha ${eq.c} fitxes en total.`;
-        return `A l'altre costat queden ${eq.c - eq.b} fitxes.`;
+        // ph0: estat inicial → c fitxes en total (algunes sota els gots).
+        // ph1, ph2: després de retirar b → c-b fitxes en total (encara algunes sota els gots).
+        if (phaseIdx === 0) return `Tenim ${eq.c} fitxes en total, però algunes estan sota els gots.`;
+        return `Tenim ${eq.c - eq.b} fitxes en total, però algunes estan sota els gots.`;
     }
     if (eq.level === 3) {
+        // ph0: hi ha gots i fitxes als dos costats.
+        // ph1, ph2: després d'emparellar gots i retirar fitxes → d-b fitxes visibles a la dreta.
         if (phaseIdx === 0) {
             const gotStr = (eq.c === 1) ? 'got' : 'gots';
-            return `A l'altre costat hi ha ${eq.c} ${gotStr} i ${eq.d} fitxes.`;
+            return `A l'altre costat hi ha ${eq.c} ${gotStr} i ${eq.d} fitxes; algunes estan sota els gots.`;
         }
-        return `A l'altre costat queden ${eq.d - eq.b} fitxes.`;
+        return `A l'altre costat queden ${eq.d - eq.b} fitxes (i encara hi ha fitxes sota els gots d'aquest costat).`;
     }
     // level 4
     const totalChips = eq.p * eq.d + eq.b;
     const rhsAfter   = eq.total - totalChips;
-    if (phaseIdx <= 2) return `A l'altre costat hi ha ${eq.total} fitxes en total.`;
-    return `A l'altre costat queden ${rhsAfter} fitxes.`;
+    // ph0..ph3: encara tenim el total original a la vista.
+    // ph4, ph5: després de retirar fitxes → rhsAfter fitxes en total (algunes sota els gots).
+    if (phaseIdx <= 3) return `Tenim ${eq.total} fitxes en total, però algunes estan sota els gots.`;
+    return `Tenim ${rhsAfter} fitxes en total, però algunes estan sota els gots.`;
 }
 
 function renderSceneCaption(eq, phaseIdx) {
@@ -725,11 +749,11 @@ function animateSceneToPhase(phaseIdx) {
 
     if (eq.level === 2) {
         if (phaseIdx === 1) {
-            // Fade fitxes soltes d'ambdós costats
+            // ph0→ph1: el jugador acaba de respondre "treu b fitxes" → animem la retirada
             els.scene.querySelectorAll('.chip-group[data-side="left"], .chip-group[data-side="right"]')
                 .forEach(g => g.classList.add('chip-removed'));
-        } else if (phaseIdx === 2) {
-            // Aixeca els gots + revela fitxes a dins
+        } else if (phaseIdx === 3) {
+            // ph2→final: aixequem els gots i revelem les fitxes amagades
             els.scene.querySelectorAll('.cup-group[data-side="left"]').forEach(g => g.classList.add('cup-lifted'));
             els.scene.querySelectorAll('.chip-inside').forEach(c => c.classList.add('chip-revealed'));
         }
@@ -738,21 +762,17 @@ function animateSceneToPhase(phaseIdx) {
 
     if (eq.level === 3) {
         if (phaseIdx === 1) {
-            // Treure c gots i b fitxes de cada costat
-            // → fade dels c primers gots de la part esquerra, tots els gots de la dreta,
-            //   i fitxes d'ambdós costats
+            // ph0→ph1: retirem b fitxes i emparellem c gots de cada costat
             const leftCups = els.scene.querySelectorAll('.cup-group[data-side="left"]');
             for (let i = 0; i < eq.c && i < leftCups.length; i++) leftCups[i].classList.add('chip-removed');
             els.scene.querySelectorAll('.cup-group[data-side="right"]').forEach(g => g.classList.add('chip-removed'));
             els.scene.querySelectorAll('.chip-group[data-side="left"], .chip-group[data-side="right"]')
                 .forEach(g => g.classList.add('chip-removed'));
-            // També amaga les fitxes "interiors" dels gots dreta i dels gots removuts esquerra
             els.scene.querySelectorAll('.chip-group[data-side="right-inside"]').forEach(g => g.classList.add('chip-removed'));
-        } else if (phaseIdx === 2) {
-            // Aixeca els gots restants de l'esquerra i revela fitxes
+        } else if (phaseIdx === 3) {
+            // ph2→final: aixequem els gots esquerra restants i revelem fitxes
             const leftCups = els.scene.querySelectorAll('.cup-group[data-side="left"]');
             for (let i = eq.c; i < leftCups.length; i++) leftCups[i].classList.add('cup-lifted');
-            // Mostra fitxes interiors dels gots esquerra que NO van ser eliminats
             els.scene.querySelectorAll('.chip-group[data-side="left-inside"]').forEach(g => {
                 const [cupIdx] = g.dataset.idx.split('-').map(Number);
                 if (cupIdx >= eq.c) {
@@ -767,12 +787,12 @@ function animateSceneToPhase(phaseIdx) {
         if (phaseIdx === 1) {
             // Expandeix els plats: les vores dels plats s'esvaeixen
             els.scene.querySelectorAll('.plate-ellipse').forEach(p => p.classList.add('plate-fading'));
-        } else if (phaseIdx === 3) {
-            // Retira fitxes soltes d'ambdós costats
+        } else if (phaseIdx === 4) {
+            // ph3→ph4: retira totes les fitxes soltes (i les de dintre dels plats expandits)
             els.scene.querySelectorAll('.chip-group[data-side="right"], .chip-group[data-side="outside"], .chip-group[data-side^="plate"]')
                 .forEach(g => g.classList.add('chip-removed'));
-        } else if (phaseIdx === 4) {
-            // Aixeca tots els gots + revela fitxes
+        } else if (phaseIdx === 6) {
+            // ph5→final: aixequem tots els gots i revelem les fitxes
             els.scene.querySelectorAll('.cup-group').forEach(g => g.classList.add('cup-lifted'));
             els.scene.querySelectorAll('.chip-inside').forEach(c => c.classList.add('chip-revealed'));
         }
@@ -796,13 +816,15 @@ function buildEquationHTML(eq, phaseIdx) {
         return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
     }
     if (eq.level === 2) {
+        // ph0: equació original. ph1, ph2: després de restar b a cada banda.
         if (phaseIdx === 0) return `${fmtCoef(eq.a, true)} + ${eq.b} <span class="eq-sign">=</span> ${eq.c}`;
-        if (phaseIdx === 1) return `${fmtCoef(eq.a, true)} <span class="eq-sign">=</span> ${eq.c - eq.b}`;
+        if (phaseIdx === 1 || phaseIdx === 2) return `${fmtCoef(eq.a, true)} <span class="eq-sign">=</span> ${eq.c - eq.b}`;
         return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
     }
     if (eq.level === 3) {
+        // ph0: equació original. ph1, ph2: després de restar c·x i b a cada banda.
         if (phaseIdx === 0) return `${fmtCoef(eq.a, true)} + ${eq.b} <span class="eq-sign">=</span> ${fmtCoef(eq.c, true)} + ${eq.d}`;
-        if (phaseIdx === 1) return `${fmtCoef(eq.a - eq.c, true)} <span class="eq-sign">=</span> ${eq.d - eq.b}`;
+        if (phaseIdx === 1 || phaseIdx === 2) return `${fmtCoef(eq.a - eq.c, true)} <span class="eq-sign">=</span> ${eq.d - eq.b}`;
         return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
     }
     // level 4
@@ -825,9 +847,11 @@ function buildEquationHTML(eq, phaseIdx) {
         return parts.join(' + ') + ` <span class="eq-sign">=</span> ${eq.total}`;
     }
     if (phaseIdx === 3) {
+        // Forma combinada, abans de la sostracció
         return `${fmtCoef(totalCups, true)} + ${totalChips} <span class="eq-sign">=</span> ${eq.total}`;
     }
-    if (phaseIdx === 4) {
+    if (phaseIdx === 4 || phaseIdx === 5) {
+        // Després de retirar fitxes
         return `${fmtCoef(totalCups, true)} <span class="eq-sign">=</span> ${rhsAfter}`;
     }
     return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
