@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva: equacions amb gots i fitxes — Step Quiz">
+    <link rel="icon" href="icon.png">
+    <title>Gots i Fitxes — Equacions</title>
+
+    <!-- 1. Configuració per defecte específica d'aquest joc -->
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    5,
+            defaultIntents:       3,   /* 3 intents per pregunta (compartits entre passos) */
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <!-- 2. Fitxers compartits (ordre important: utils → config) -->
+    <script src="js/fixed-sessions.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+
+    <!-- 3. Estils compartits -->
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ---- Paleta de color: càlida (ambre/terracota), pròpia del material manipulatiu ---- */
+        :root {
+            --bg-color:      #fefce8;   /* groc càlid */
+            --primary:       #b45309;   /* amber-700 */
+            --primary-light: #fef3c7;
+            --primary-hover: #92400e;
+            --primary-dark:  #451a03;
+            --accent:        #d97706;   /* taronja accent per parèntesis nivell 4 */
+        }
+
+        /* ---- Overrides específics de la capçalera ---- */
+        h1 { color: var(--primary-dark); }
+        .header-info { background-color: #fff7ed; }
+        .level-text  { color: var(--primary-dark); }
+        .score-text  { color: var(--primary); }
+
+        /* ---- ZONA ESCENA (SVG dels gots i fitxes) ---- */
+        #scene-svg-container {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 18px 10px 6px;
+            overflow-x: auto;
+        }
+        #scene-svg-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Estils dels elements SVG */
+        .cup-body {
+            fill: var(--primary);
+            stroke: var(--primary-dark);
+            stroke-width: 2;
+        }
+        .cup-rim {
+            fill: var(--primary-dark);
+        }
+        .chip-circle {
+            fill: #dc2626;
+            stroke: #7f1d1d;
+            stroke-width: 1.5;
+        }
+        .chip-inside {
+            fill: #dc2626;
+            stroke: #7f1d1d;
+            stroke-width: 1;
+            opacity: 0;
+        }
+        .table-line {
+            stroke: #78350f;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+        .equals-sign {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 38px;
+            font-weight: bold;
+            fill: var(--primary-dark);
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        .plate-ellipse {
+            fill: #fff7ed;
+            stroke: var(--accent);
+            stroke-width: 2.5;
+            filter: drop-shadow(0 2px 3px rgba(120, 53, 15, 0.18));
+        }
+
+        /* Transicions */
+        .cup-group, .chip-group, .plate-group {
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+        .chip-removed { opacity: 0 !important; }
+        .cup-lifted   { transform: translateY(-26px); }
+        .chip-inside.chip-revealed {
+            opacity: 1;
+            animation: chipFadeIn 0.4s ease both;
+        }
+        .plate-fading { opacity: 0 !important; transition: opacity 0.6s ease; }
+
+        @keyframes chipFadeIn {
+            from { opacity: 0; transform: scale(0.4); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* ---- EQUACIÓ EN TEXT ---- */
+        #equation-display {
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.7em;
+            font-weight: bold;
+            color: var(--text-main);
+            padding: 6px 14px 4px;
+            min-height: 1.6em;
+            transition: opacity 0.25s, transform 0.25s;
+            letter-spacing: 1px;
+            word-break: break-word;
+        }
+        #equation-display.eq-updating { opacity: 0; transform: translateY(-6px); }
+        #equation-display .eq-var      { color: var(--primary-dark); }
+        #equation-display .eq-sign     { color: var(--primary); padding: 0 6px; }
+        #equation-display .eq-bracket  { color: var(--accent); }
+        #equation-display.eq-solved    { color: var(--success); }
+        #equation-display.eq-solved .eq-sign { color: var(--success); }
+
+        /* ---- INSTRUCCIÓ DEL PAS ---- */
+        #step-instruction {
+            text-align: center;
+            font-size: 1.05em;
+            font-weight: 600;
+            color: #334155;
+            padding: 6px 18px 12px;
+            min-height: 2.6em;
+            line-height: 1.35;
+        }
+
+        /* ---- ZONA DE RESPOSTA ---- */
+        #answer-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            padding: 0 20px 12px;
+            flex-wrap: wrap;
+        }
+        #answer-input {
+            width: 86px;
+            height: 50px;
+            font-size: 1.6em;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            text-align: center;
+            border: 3px solid var(--primary);
+            border-radius: 8px;
+            outline: none;
+            color: var(--primary-dark);
+            background: #fff;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        #answer-input:focus { border-color: var(--primary-dark); }
+        #answer-input.shake { animation: inputShake 0.3s; }
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            25%      { transform: translateX(-6px); }
+            75%      { transform: translateX(6px); }
+        }
+        #btn-check, #btn-continue {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 22px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            min-height: 48px;
+        }
+        @media (hover: hover) {
+            #btn-check:hover, #btn-continue:hover { background: var(--primary-hover); }
+        }
+        #btn-check:active, #btn-continue:active { transform: scale(0.96); }
+
+        /* ---- FEEDBACK ---- */
+        #feedback-area {
+            min-height: 1.6em;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.98em;
+            padding: 0 20px 14px;
+            color: var(--danger);
+            line-height: 1.3;
+        }
+        #feedback-area.success { color: var(--success); font-size: 1.4em; }
+
+        /* ---- RESPONSIU ---- */
+        @media (max-width: 540px) {
+            #equation-display { font-size: 1.35em; }
+            #step-instruction { font-size: 0.98em; }
+            #answer-input { width: 76px; height: 46px; font-size: 1.4em; }
+        }
+        @media (max-width: 380px) {
+            #equation-display { font-size: 1.15em; letter-spacing: 0.5px; }
+            #scene-svg-container { padding: 10px 4px 4px; }
+        }
+    </style>
+    <link rel="stylesheet" href="css/chromebook.css">
+</head>
+<body>
+
+<!-- Capçalera amb icona home -->
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Gots i Fitxes</h1>
+</div>
+<div class="subtitle">Equacions amb material manipulatiu</div>
+
+<div class="panel" id="main-panel">
+
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Pregunta 1 de 5</div>
+            </div>
+            <div class="score-text"      id="score-display">Punts: 0</div>
+            <div class="attempts-counter" id="attempts-display">Intents: 3</div>
+        </div>
+
+        <div id="scene-svg-container" aria-label="Escena amb gots i fitxes" role="img"></div>
+
+        <div id="equation-display"></div>
+
+        <div id="step-instruction"></div>
+
+        <div id="answer-area">
+            <input type="text" id="answer-input"
+                   inputmode="numeric" autocomplete="off"
+                   aria-label="Resposta numèrica" maxlength="3">
+            <button id="btn-check" type="button" onclick="checkCurrentCell()">Comprova</button>
+            <button id="btn-continue" type="button" style="display:none;" onclick="continueObservation()">Continua →</button>
+        </div>
+
+        <div id="feedback-area" aria-live="polite"></div>
+    </div>
+
+</div>
+
+<!-- 4. game-core DESPRÉS del DOM -->
+<script src="js/game-core.js"></script>
+
+<script>
+// ============================================================
+// CODI ESPECÍFIC DE "GOTS I FITXES"
+// (no redeclarem: attemptsLeft, currentSession, currentOperation,
+//                 sessionScore, isTransitioning, currentDifficulty)
+// ============================================================
+
+// ---- Cache DOM ----
+const els = {
+    body:             document.body,
+    gameScreen:       document.getElementById('game-screen'),
+    sessionDisplay:   document.getElementById('session-display'),
+    lvlDisplay:       document.getElementById('lvl-display'),
+    scoreDisplay:     document.getElementById('score-display'),
+    attemptsDisplay:  document.getElementById('attempts-display'),
+    scene:            document.getElementById('scene-svg-container'),
+    equation:         document.getElementById('equation-display'),
+    stepInstr:        document.getElementById('step-instruction'),
+    answerInput:      document.getElementById('answer-input'),
+    btnCheck:         document.getElementById('btn-check'),
+    btnContinue:      document.getElementById('btn-continue'),
+    feedback:         document.getElementById('feedback-area')
+};
+
+// ---- Estat específic del joc ----
+let currentEquation = null;   // { level, ... }
+let currentLevel    = 1;      // 1..4
+let phases          = [];     // descripció dels passos de la pregunta actual
+let currentPhase    = 0;      // índex dins de `phases`
+let isPenalizing    = false;
+
+// ---- Llegim el nivell de la URL (sobreescriu currentDifficulty per admetre 4) ----
+(function readLevel() {
+    const raw = new URLSearchParams(window.location.search).get('nivell');
+    const n   = parseInt(raw, 10);
+    currentLevel = (Number.isFinite(n) && n >= 1 && n <= 4) ? n : 1;
+    // game-core llegeix també currentDifficulty per al codi v2; el clamp ja és 0-3.
+    currentDifficulty = Math.min(currentLevel, 3);
+})();
+
+// ============================================================
+// 1. GENERACIÓ D'EQUACIONS
+// ============================================================
+function generateEquation(level) {
+    if (level === 1) {
+        const a = randInt(2, 4);
+        const x = randInt(1, 9);
+        return { level: 1, a, x, total: a * x };
+    }
+    if (level === 2) {
+        const a = randInt(2, 4);
+        const x = randInt(1, 9);
+        const b = randInt(1, 6);
+        return { level: 2, a, b, x, c: a * x + b };
+    }
+    if (level === 3) {
+        // ax + b = cx + d amb a > c, x ∈ [1,5], b ∈ [1,4]
+        // → b = extra,  d = (a-c)*x + extra. Garanteix integer x i b ≠ d.
+        const a = randInt(3, 5);
+        const c = randInt(1, a - 1);
+        const x = randInt(1, 5);
+        const b = randInt(1, 4);
+        const d = (a - c) * x + b;
+        return { level: 3, a, b, c, d, x };
+    }
+    // level === 4: p(cx + d) + ax + b = total
+    let p, cpp, dpp, aOut, bOut, x, total;
+    do {
+        p    = randInt(2, 3);
+        cpp  = randInt(1, 2);   // cups per plate (capat a 2 per limitar el total visual)
+        dpp  = randInt(1, 4);   // chips per plate
+        aOut = randInt(0, 2);   // cups outside plates
+        bOut = randInt(1, 6);   // chips outside plates
+        x    = randInt(1, 4);   // x capat a 4 per mantenir total raonable
+    } while (p * cpp + aOut < 2);   // guard: almenys 2 gots en total
+    total = p * (cpp * x + dpp) + aOut * x + bOut;
+    return { level: 4, p, c: cpp, d: dpp, a: aOut, b: bOut, x, total };
+}
+
+// ============================================================
+// 2. PHASE MACHINE (passos de cada pregunta)
+// ============================================================
+function determinePhases(eq) {
+    if (eq.level === 1) {
+        return [{
+            kind:        'input',
+            instruction: `Quantes fitxes hi havia dins de cada got?`,
+            expected:    eq.x,
+            hint:        `Pensa: ${eq.a} gots = ${eq.total} fitxes en total. Quantes a cada got?`
+        }];
+    }
+    if (eq.level === 2) {
+        return [
+            {
+                kind:        'input',
+                instruction: `Retira ${eq.b} fitxes soltes de cada costat. Quantes fitxes queden a la dreta?`,
+                expected:    eq.c - eq.b,
+                hint:        `${eq.c} fitxes a la dreta menys ${eq.b} fitxes que retires.`
+            },
+            {
+                kind:        'input',
+                instruction: `Ara aixeca cada got: ${eq.a} gots = ${eq.c - eq.b} fitxes. Quantes hi havia a dins de cada got?`,
+                expected:    eq.x,
+                hint:        `Reparteix ${eq.c - eq.b} fitxes entre ${eq.a} gots.`
+            }
+        ];
+    }
+    if (eq.level === 3) {
+        return [
+            {
+                kind:        'input',
+                instruction: `Treu ${eq.c} gots i ${eq.b} fitxes d'ambdós costats. Quantes fitxes queden a la dreta?`,
+                expected:    eq.d - eq.b,
+                hint:        `A la dreta hi havia ${eq.d} fitxes; en retires ${eq.b}.`
+            },
+            {
+                kind:        'input',
+                instruction: `Ara: ${eq.a - eq.c} gots = ${eq.d - eq.b} fitxes. Quantes fitxes hi havia a cada got?`,
+                expected:    eq.x,
+                hint:        `Reparteix ${eq.d - eq.b} fitxes entre ${eq.a - eq.c} gots.`
+            }
+        ];
+    }
+    // level 4
+    const totalCups  = eq.p * eq.c + eq.a;
+    const totalChips = eq.p * eq.d + eq.b;
+    const rhsAfter   = eq.total - totalChips;
+    return [
+        {
+            kind:        'observe',
+            instruction: `Observa: ${eq.p} plats amb ${eq.c} got(s) i ${eq.d} fitxa(es) cada un, més ${eq.a} got(s) i ${eq.b} fitxa(es) fora dels plats. Tot suma ${eq.total} fitxes. Quan ho entenguis, continua.`
+        },
+        {
+            kind:        'input',
+            instruction: `Expandeix els plats. Quants gots hi ha ara a la taula en total?`,
+            expected:    totalCups,
+            hint:        `${eq.p} plats × ${eq.c} got + ${eq.a} got fora.`
+        },
+        {
+            kind:        'input',
+            instruction: `I quantes fitxes soltes hi ha ara en total?`,
+            expected:    totalChips,
+            hint:        `${eq.p} plats × ${eq.d} fitxes + ${eq.b} fitxes fora.`
+        },
+        {
+            kind:        'input',
+            instruction: `Retira ${totalChips} fitxes d'ambdós costats. Quantes fitxes queden a la dreta?`,
+            expected:    rhsAfter,
+            hint:        `${eq.total} − ${totalChips}.`
+        },
+        {
+            kind:        'input',
+            instruction: `Ara: ${totalCups} gots = ${rhsAfter} fitxes. Quantes fitxes hi havia a cada got?`,
+            expected:    eq.x,
+            hint:        `Reparteix ${rhsAfter} fitxes entre ${totalCups} gots.`
+        }
+    ];
+}
+
+// ============================================================
+// 3. RENDERITZADOR DE L'ESCENA SVG
+// ============================================================
+// Constants de layout
+const CUP_W = 50, CUP_H = 40;      // amplada/alçada del got
+const CHIP_R = 9;                  // radi de la fitxa
+const TABLE_Y = 105;               // línia de la taula (per a levels 1-3)
+
+// ---- helpers de SVG ----
+function svgCup(x, y, idx, side) {
+    // got cap per avall: trapezoid més ample a dalt
+    const wTop = CUP_W, wBot = CUP_W - 14;
+    const dx = (wTop - wBot) / 2;
+    const pts = [
+        `${x},${y}`,
+        `${x + wTop},${y}`,
+        `${x + wTop - dx},${y + CUP_H}`,
+        `${x + dx},${y + CUP_H}`
+    ].join(' ');
+    // fitxes "amagades" sota el got (apareixeran en aixecar-lo)
+    return `<g class="cup-group" data-side="${side}" data-idx="${idx}" style="transform-box:fill-box;transform-origin:center;">
+        <polygon class="cup-body" points="${pts}"/>
+        <rect class="cup-rim" x="${x + dx - 1}" y="${y + CUP_H - 3}" width="${wBot + 2}" height="4" rx="1.5"/>
+    </g>`;
+}
+
+function svgChip(cx, cy, idx, side, hidden) {
+    const cls = hidden ? 'chip-circle chip-inside' : 'chip-circle';
+    return `<g class="chip-group" data-side="${side}" data-idx="${idx}">
+        <circle class="${cls}" cx="${cx}" cy="${cy}" r="${CHIP_R}"/>
+    </g>`;
+}
+
+function chipLayout(count, xStart, xEnd, baseY) {
+    // distribueix `count` fitxes en files si calen, dins de [xStart, xEnd], baseline = baseY
+    const positions = [];
+    if (count === 0) return positions;
+    const usableW = xEnd - xStart;
+    const minSpacing = 2 * CHIP_R + 3;
+    const perRow = Math.max(1, Math.min(count, Math.floor(usableW / minSpacing)));
+    const rows = Math.ceil(count / perRow);
+    for (let r = 0; r < rows; r++) {
+        const itemsInRow = (r === rows - 1) ? (count - (rows - 1) * perRow) : perRow;
+        const rowW = (itemsInRow - 1) * minSpacing;
+        const startX = xStart + (usableW - rowW) / 2;
+        const y = baseY - r * (2 * CHIP_R + 2);
+        for (let k = 0; k < itemsInRow; k++) {
+            positions.push({ cx: startX + k * minSpacing, cy: y });
+        }
+    }
+    return positions;
+}
+
+// distribució de gots en una zona (rang x)
+function cupLayout(count, xStart, xEnd, cupY) {
+    const positions = [];
+    if (count === 0) return positions;
+    const totalCupsW = count * CUP_W + (count - 1) * 6;
+    const startX = xStart + ((xEnd - xStart) - totalCupsW) / 2;
+    for (let i = 0; i < count; i++) {
+        positions.push({ x: startX + i * (CUP_W + 6), y: cupY });
+    }
+    return positions;
+}
+
+function renderScene(eq) {
+    if (eq.level === 4) return renderSceneL4(eq);
+    return renderSceneL123(eq);
+}
+
+function renderSceneL123(eq) {
+    let leftCups, leftChips, rightCups, rightChips;
+    if (eq.level === 1) {
+        leftCups = eq.a;     leftChips = 0;
+        rightCups = 0;       rightChips = eq.total;
+    } else if (eq.level === 2) {
+        leftCups = eq.a;     leftChips = eq.b;
+        rightCups = 0;       rightChips = eq.c;
+    } else { // 3
+        leftCups = eq.a;     leftChips = eq.b;
+        rightCups = eq.c;    rightChips = eq.d;
+    }
+
+    const VB_W = 500, VB_H = 130;
+    const LEFT_X1 = 10,  LEFT_X2  = 235;
+    const RIGHT_X1 = 265, RIGHT_X2 = 490;
+    const cupY = TABLE_Y - CUP_H;
+    const chipBaseY = TABLE_Y - CHIP_R - 2;
+
+    // Posicions de gots: dividim la zona en sub-zones per gots i per fitxes
+    // Si hi ha cups + chips a un costat, els gots van a l'esquerra de la zona i les fitxes a la dreta
+    function placeSide(cups, chips, x1, x2) {
+        const parts = [];
+        if (cups > 0 && chips > 0) {
+            const split = x1 + (x2 - x1) * 0.5;
+            const cupPos = cupLayout(cups, x1 + 5, split - 5, cupY);
+            const chipPos = chipLayout(chips, split + 5, x2 - 5, chipBaseY);
+            return { cupPos, chipPos };
+        } else if (cups > 0) {
+            return { cupPos: cupLayout(cups, x1, x2, cupY), chipPos: [] };
+        } else {
+            return { cupPos: [], chipPos: chipLayout(chips, x1, x2, chipBaseY) };
+        }
+    }
+
+    const left  = placeSide(leftCups,  leftChips,  LEFT_X1,  LEFT_X2);
+    const right = placeSide(rightCups, rightChips, RIGHT_X1, RIGHT_X2);
+
+    let svg = `<svg viewBox="0 0 ${VB_W} ${VB_H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">`;
+    // Línia de la taula
+    svg += `<line class="table-line" x1="5" y1="${TABLE_Y}" x2="${VB_W - 5}" y2="${TABLE_Y}"/>`;
+    // Signe igual
+    svg += `<text class="equals-sign" x="${VB_W / 2}" y="${TABLE_Y - 25}">=</text>`;
+
+    // gots esquerra (amb x fitxes "amagades" cadascun, per a l'animació final)
+    left.cupPos.forEach((p, i) => {
+        svg += svgCup(p.x, p.y, i, 'left');
+        // x fitxes amagades sota el got, en una petita fila
+        const insidePositions = chipLayout(eq.x, p.x - 3, p.x + CUP_W + 3, TABLE_Y - 4);
+        insidePositions.forEach((q, j) => {
+            svg += `<g class="chip-group chip-inside-group" data-side="left-inside" data-idx="${i}-${j}">
+                <circle class="chip-inside" cx="${q.cx}" cy="${q.cy}" r="${CHIP_R - 1}"/>
+            </g>`;
+        });
+    });
+    // fitxes soltes esquerra
+    left.chipPos.forEach((p, i) => { svg += svgChip(p.cx, p.cy, i, 'left'); });
+
+    // gots dreta (només level 3)
+    right.cupPos.forEach((p, i) => {
+        svg += svgCup(p.x, p.y, i, 'right');
+        const insidePositions = chipLayout(eq.x, p.x - 3, p.x + CUP_W + 3, TABLE_Y - 4);
+        insidePositions.forEach((q, j) => {
+            svg += `<g class="chip-group chip-inside-group" data-side="right-inside" data-idx="${i}-${j}">
+                <circle class="chip-inside" cx="${q.cx}" cy="${q.cy}" r="${CHIP_R - 1}"/>
+            </g>`;
+        });
+    });
+    // fitxes dreta
+    right.chipPos.forEach((p, i) => { svg += svgChip(p.cx, p.cy, i, 'right'); });
+
+    svg += `</svg>`;
+    els.scene.innerHTML = svg;
+}
+
+function renderSceneL4(eq) {
+    const VB_W = 720, VB_H = 200;
+    const PLATE_TABLE_Y = 150;
+    const cupY = PLATE_TABLE_Y - CUP_H;
+    const chipBaseY = PLATE_TABLE_Y - CHIP_R - 2;
+    const equalsX = VB_W * 0.74;
+
+    // Plats a l'esquerra: divideix [10, equalsX - 20] equitativament en eq.p+1 zones
+    // (eq.p zones per plats + 1 zona per als "fora del plat")
+    const leftEnd = equalsX - 30;
+    const zoneCount = eq.p + (eq.a + eq.b > 0 ? 1 : 0);
+    const zoneW = (leftEnd - 15) / Math.max(zoneCount, 1);
+
+    let svg = `<svg viewBox="0 0 ${VB_W} ${VB_H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">`;
+    svg += `<line class="table-line" x1="5" y1="${PLATE_TABLE_Y}" x2="${VB_W - 5}" y2="${PLATE_TABLE_Y}"/>`;
+    svg += `<text class="equals-sign" x="${equalsX}" y="${PLATE_TABLE_Y - 35}">=</text>`;
+
+    // Plats
+    for (let i = 0; i < eq.p; i++) {
+        const zx1 = 15 + i * zoneW;
+        const zx2 = zx1 + zoneW - 8;
+        const cx = (zx1 + zx2) / 2;
+        const cy = PLATE_TABLE_Y - 4;
+        const rx = (zx2 - zx1) / 2;
+        const ry = 14;
+        svg += `<g class="plate-group" data-plate="${i}">
+            <ellipse class="plate-ellipse" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>
+        </g>`;
+        // dins el plat: gots a l'esquerra, fitxes a la dreta
+        const innerX1 = zx1 + 6, innerX2 = zx2 - 6;
+        const split = innerX1 + (innerX2 - innerX1) * (eq.c > 0 && eq.d > 0 ? 0.55 : 1);
+        const cupPos = cupLayout(eq.c, innerX1, split, cupY);
+        const chipPos = chipLayout(eq.d, split, innerX2, chipBaseY);
+        cupPos.forEach((p, j) => { svg += svgCup(p.x, p.y, `p${i}c${j}`, `plate${i}`); });
+        chipPos.forEach((p, j) => { svg += svgChip(p.cx, p.cy, `p${i}h${j}`, `plate${i}`); });
+    }
+
+    // Fora dels plats
+    if (eq.a + eq.b > 0) {
+        const zx1 = 15 + eq.p * zoneW;
+        const zx2 = leftEnd;
+        const split = zx1 + (zx2 - zx1) * (eq.a > 0 && eq.b > 0 ? 0.45 : 1);
+        const cupPos = cupLayout(eq.a, zx1, split, cupY);
+        const chipPos = chipLayout(eq.b, split, zx2, chipBaseY);
+        cupPos.forEach((p, j) => { svg += svgCup(p.x, p.y, `o${j}`, 'outside'); });
+        chipPos.forEach((p, j) => { svg += svgChip(p.cx, p.cy, `o${j}`, 'outside'); });
+    }
+
+    // Dreta: total fitxes
+    const rightX1 = equalsX + 30, rightX2 = VB_W - 10;
+    const rightChips = chipLayout(eq.total, rightX1, rightX2, chipBaseY);
+    rightChips.forEach((p, i) => { svg += svgChip(p.cx, p.cy, i, 'right'); });
+
+    svg += `</svg>`;
+    els.scene.innerHTML = svg;
+}
+
+// ============================================================
+// 4. ANIMACIONS ENTRE PASSOS
+// ============================================================
+function animateSceneToPhase(phaseIdx) {
+    const eq = currentEquation;
+    if (!eq) return;
+
+    if (eq.level === 1) {
+        // Una sola fase, no hi ha transició
+        return;
+    }
+
+    if (eq.level === 2) {
+        if (phaseIdx === 1) {
+            // Fade fitxes soltes d'ambdós costats
+            els.scene.querySelectorAll('.chip-group[data-side="left"], .chip-group[data-side="right"]')
+                .forEach(g => g.classList.add('chip-removed'));
+        } else if (phaseIdx === 2) {
+            // Aixeca els gots + revela fitxes a dins
+            els.scene.querySelectorAll('.cup-group[data-side="left"]').forEach(g => g.classList.add('cup-lifted'));
+            els.scene.querySelectorAll('.chip-inside').forEach(c => c.classList.add('chip-revealed'));
+        }
+        return;
+    }
+
+    if (eq.level === 3) {
+        if (phaseIdx === 1) {
+            // Treure c gots i b fitxes de cada costat
+            // → fade dels c primers gots de la part esquerra, tots els gots de la dreta,
+            //   i fitxes d'ambdós costats
+            const leftCups = els.scene.querySelectorAll('.cup-group[data-side="left"]');
+            for (let i = 0; i < eq.c && i < leftCups.length; i++) leftCups[i].classList.add('chip-removed');
+            els.scene.querySelectorAll('.cup-group[data-side="right"]').forEach(g => g.classList.add('chip-removed'));
+            els.scene.querySelectorAll('.chip-group[data-side="left"], .chip-group[data-side="right"]')
+                .forEach(g => g.classList.add('chip-removed'));
+            // També amaga les fitxes "interiors" dels gots dreta i dels gots removuts esquerra
+            els.scene.querySelectorAll('.chip-group[data-side="right-inside"]').forEach(g => g.classList.add('chip-removed'));
+        } else if (phaseIdx === 2) {
+            // Aixeca els gots restants de l'esquerra i revela fitxes
+            const leftCups = els.scene.querySelectorAll('.cup-group[data-side="left"]');
+            for (let i = eq.c; i < leftCups.length; i++) leftCups[i].classList.add('cup-lifted');
+            // Mostra fitxes interiors dels gots esquerra que NO van ser eliminats
+            els.scene.querySelectorAll('.chip-group[data-side="left-inside"]').forEach(g => {
+                const [cupIdx] = g.dataset.idx.split('-').map(Number);
+                if (cupIdx >= eq.c) {
+                    g.querySelectorAll('.chip-inside').forEach(c => c.classList.add('chip-revealed'));
+                }
+            });
+        }
+        return;
+    }
+
+    if (eq.level === 4) {
+        if (phaseIdx === 1) {
+            // Expandeix els plats: les vores dels plats s'esvaeixen
+            els.scene.querySelectorAll('.plate-ellipse').forEach(p => p.classList.add('plate-fading'));
+        } else if (phaseIdx === 3) {
+            // Retira fitxes soltes d'ambdós costats
+            els.scene.querySelectorAll('.chip-group[data-side="right"], .chip-group[data-side="outside"], .chip-group[data-side^="plate"]')
+                .forEach(g => g.classList.add('chip-removed'));
+        } else if (phaseIdx === 4) {
+            // Aixeca tots els gots + revela fitxes
+            els.scene.querySelectorAll('.cup-group').forEach(g => g.classList.add('cup-lifted'));
+            els.scene.querySelectorAll('.chip-inside').forEach(c => c.classList.add('chip-revealed'));
+        }
+        return;
+    }
+}
+
+// ============================================================
+// 5. RENDERITZAT DE L'EQUACIÓ EN TEXT
+// ============================================================
+function fmtCoef(n, withSpan) {
+    const inner = withSpan ? '<span class="eq-var">x</span>' : 'x';
+    if (n === 1)  return inner;
+    if (n === -1) return '−' + inner;
+    return `${n}${inner}`;
+}
+
+function buildEquationHTML(eq, phaseIdx) {
+    if (eq.level === 1) {
+        if (phaseIdx === 0) return `${fmtCoef(eq.a, true)} <span class="eq-sign">=</span> ${eq.total}`;
+        return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
+    }
+    if (eq.level === 2) {
+        if (phaseIdx === 0) return `${fmtCoef(eq.a, true)} + ${eq.b} <span class="eq-sign">=</span> ${eq.c}`;
+        if (phaseIdx === 1) return `${fmtCoef(eq.a, true)} <span class="eq-sign">=</span> ${eq.c - eq.b}`;
+        return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
+    }
+    if (eq.level === 3) {
+        if (phaseIdx === 0) return `${fmtCoef(eq.a, true)} + ${eq.b} <span class="eq-sign">=</span> ${fmtCoef(eq.c, true)} + ${eq.d}`;
+        if (phaseIdx === 1) return `${fmtCoef(eq.a - eq.c, true)} <span class="eq-sign">=</span> ${eq.d - eq.b}`;
+        return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
+    }
+    // level 4
+    const totalCups  = eq.p * eq.c + eq.a;
+    const totalChips = eq.p * eq.d + eq.b;
+    const rhsAfter   = eq.total - totalChips;
+    if (phaseIdx === 0) {
+        const outer = (eq.a > 0 || eq.b > 0)
+            ? ` + ${eq.a > 0 ? fmtCoef(eq.a, true) + (eq.b > 0 ? ' + ' + eq.b : '') : eq.b}`
+            : '';
+        return `${eq.p}<span class="eq-bracket">(${fmtCoef(eq.c, true)} + ${eq.d})</span>${outer} <span class="eq-sign">=</span> ${eq.total}`;
+    }
+    if (phaseIdx === 1 || phaseIdx === 2) {
+        // Forma expandida: p·c·x + p·d + a·x + b = total
+        let parts = [];
+        parts.push(fmtCoef(eq.p * eq.c, true));
+        parts.push(String(eq.p * eq.d));
+        if (eq.a > 0) parts.push(fmtCoef(eq.a, true));
+        if (eq.b > 0) parts.push(String(eq.b));
+        return parts.join(' + ') + ` <span class="eq-sign">=</span> ${eq.total}`;
+    }
+    if (phaseIdx === 3) {
+        return `${fmtCoef(totalCups, true)} + ${totalChips} <span class="eq-sign">=</span> ${eq.total}`;
+    }
+    if (phaseIdx === 4) {
+        return `${fmtCoef(totalCups, true)} <span class="eq-sign">=</span> ${rhsAfter}`;
+    }
+    return `<span class="eq-var">x</span> <span class="eq-sign">=</span> ${eq.x}`;
+}
+
+function renderEquationText(eq, phaseIdx) {
+    els.equation.classList.add('eq-updating');
+    setTimeout(() => {
+        els.equation.innerHTML = buildEquationHTML(eq, phaseIdx);
+        // marquem com a resolt si és l'última fase
+        const isFinal = (phaseIdx === phases.length - 1);
+        els.equation.classList.toggle('eq-solved', isFinal && lastWasCorrect);
+        els.equation.classList.remove('eq-updating');
+    }, 200);
+}
+
+function formatEquationString(eq) {
+    if (eq.level === 1) return `${eq.a}x = ${eq.total}`;
+    if (eq.level === 2) return `${eq.a}x + ${eq.b} = ${eq.c}`;
+    if (eq.level === 3) return `${eq.a}x + ${eq.b} = ${eq.c}x + ${eq.d}`;
+    const outer = (eq.a > 0 ? ` + ${eq.a}x` : '') + (eq.b > 0 ? ` + ${eq.b}` : '');
+    return `${eq.p}(${eq.c}x + ${eq.d})${outer} = ${eq.total}`;
+}
+
+// ============================================================
+// 6. GAME FLOW
+// ============================================================
+let lastWasCorrect = false;
+
+function updateHeader() {
+    els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText      = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.attemptsDisplay.className = 'attempts-counter';
+    if (attemptsLeft <= 1) els.attemptsDisplay.classList.add('danger');
+}
+
+function buildLevel() {
+    attemptsLeft    = MAX_INTENTS;
+    isTransitioning = false;
+    lastWasCorrect  = false;
+
+    currentEquation = generateEquation(currentLevel);
+    phases          = determinePhases(currentEquation);
+    currentPhase    = 0;
+
+    renderScene(currentEquation);
+    renderEquationText(currentEquation, currentPhase);
+    showCurrentPhase();
+    updateHeader();
+}
+
+function showCurrentPhase() {
+    const phase = phases[currentPhase];
+    els.stepInstr.innerText  = phase.instruction;
+    els.feedback.innerHTML   = '';
+    els.feedback.className   = '';
+    els.answerInput.value    = '';
+
+    if (phase.kind === 'observe') {
+        els.answerInput.style.display = 'none';
+        els.btnCheck.style.display    = 'none';
+        els.btnContinue.style.display = 'inline-block';
+        hideCustomKeyboard();
+    } else {
+        els.answerInput.style.display = '';
+        els.btnCheck.style.display    = '';
+        els.btnContinue.style.display = 'none';
+        if (isTouchDevice()) {
+            showCustomKeyboard(els.answerInput);
+        } else {
+            els.answerInput.focus();
+        }
+    }
+}
+
+function continueObservation() {
+    if (isTransitioning) return;
+    if (phases[currentPhase].kind !== 'observe') return;
+    advancePhase();
+}
+
+function checkCurrentCell() {
+    if (isTransitioning || isPenalizing) return;
+    const phase = phases[currentPhase];
+    if (!phase || phase.kind !== 'input') return;
+
+    const raw = els.answerInput.value.trim();
+    if (raw === '') return;
+    const val = parseStrictInt(raw);
+
+    if (isNaN(val) || val !== phase.expected) {
+        recordAnswerToHistory(
+            `Pas ${currentPhase + 1} de "${formatEquationString(currentEquation)}"`,
+            raw, false
+        );
+        shakeInput();
+        showFeedback('❌ ' + phase.hint, 'fail');
+        penalize();
+        if (isTouchDevice()) {
+            kbMarkForOverwrite(els.answerInput);
+        } else {
+            els.answerInput.value = '';
+            els.answerInput.focus();
+        }
+        return;
+    }
+
+    // Correcte
+    recordAnswerToHistory(
+        `Pas ${currentPhase + 1} de "${formatEquationString(currentEquation)}"`,
+        raw, true
+    );
+    showFeedback('✓', 'success');
+    advancePhase();
+}
+
+function advancePhase() {
+    isTransitioning = true;
+    hideCustomKeyboard();
+
+    const isLast = (currentPhase + 1 >= phases.length);
+
+    if (isLast) {
+        lastWasCorrect = true;
+        renderEquationText(currentEquation, currentPhase);
+        animateSceneToPhase(currentPhase + 1);   // animació final (aixecar gots, etc.)
+        setTimeout(() => finishQuestion(true), 1200);
+        return;
+    }
+
+    // Animació visual de transició a la fase següent
+    setTimeout(() => {
+        currentPhase++;
+        animateSceneToPhase(currentPhase);
+        renderEquationText(currentEquation, currentPhase);
+        setTimeout(() => {
+            isTransitioning = false;
+            showCurrentPhase();
+            updateHeader();
+        }, 700);
+    }, 400);
+}
+
+function penalize() {
+    if (isPenalizing) return;
+    isPenalizing = true;
+    els.attemptsDisplay.classList.add('blink-warning');
+    setTimeout(() => {
+        els.attemptsDisplay.classList.remove('blink-warning');
+        attemptsLeft--;
+        updateHeader();
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;
+            // mostra resposta correcta i acaba
+            const phase = phases[currentPhase];
+            if (phase && phase.kind === 'input') {
+                showFeedback(`La resposta correcta era ${phase.expected}.`, 'fail');
+            }
+            setTimeout(() => finishQuestion(false), 1800);
+        }
+        isPenalizing = false;
+    }, 700);
+}
+
+function finishQuestion(success) {
+    const attemptCode = success ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4;
+    recordResult(attemptCode);
+
+    hideCustomKeyboard();
+    sessionScore += success ? 1 : 0;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+
+    const levelPoints = success ? Math.max(0, 10 - (MAX_INTENTS - attemptsLeft)) : 0;
+    const waitTime = typeof showMiniOverlay === 'function'
+        ? showMiniOverlay(success ? levelPoints : 0, {
+            successColor: 'var(--primary-dark)',
+            pointsColor:  'var(--success)'
+          })
+        : 1500;
+
+    setTimeout(() => {
+        if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
+        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+            endSession();
+        } else {
+            currentOperation++;
+            buildLevel();
+        }
+    }, waitTime);
+}
+
+// ============================================================
+// 7. HELPERS UI
+// ============================================================
+function shakeInput() {
+    els.answerInput.classList.remove('shake');
+    void els.answerInput.offsetWidth;   // force reflow
+    els.answerInput.classList.add('shake');
+}
+
+function showFeedback(text, type) {
+    els.feedback.innerHTML = text;
+    els.feedback.className = (type === 'success') ? 'success' : '';
+}
+
+// Estil opcional per el "blink-warning" del comptador d'intents
+(function injectBlinkStyle() {
+    const css = `
+        .attempts-counter.blink-warning { animation: blinkAttempts 0.7s ease-in-out; }
+        @keyframes blinkAttempts {
+            0%, 100% { background-color: var(--primary-light); }
+            50%      { background-color: #facc15; }
+        }
+    `;
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+})();
+
+// ---- Teclat físic (Enter) ----
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (els.gameScreen.style.display === 'none') return;
+    e.preventDefault();
+    const phase = phases[currentPhase];
+    if (!phase || isTransitioning) return;
+    if (phase.kind === 'observe') {
+        continueObservation();
+    } else {
+        checkCurrentCell();
+    }
+});
+
+// ============================================================
+// 8. ARRENCADA
+// ============================================================
+injectSharedHTML();
+validateConfig();
+initCustomKeyboard({ allowNegative: false, allowZero: true });
+startGame();
+</script>
+</body>
+</html>
