@@ -200,7 +200,7 @@
             25%      { transform: translateX(-6px); }
             75%      { transform: translateX(6px); }
         }
-        #btn-check, #btn-continue {
+        #btn-check, #btn-continue, #btn-next {
             background: var(--primary);
             color: #fff;
             border: none;
@@ -213,9 +213,9 @@
             min-height: 48px;
         }
         @media (hover: hover) {
-            #btn-check:hover, #btn-continue:hover { background: var(--primary-hover); }
+            #btn-check:hover, #btn-continue:hover, #btn-next:hover { background: var(--primary-hover); }
         }
-        #btn-check:active, #btn-continue:active { transform: scale(0.96); }
+        #btn-check:active, #btn-continue:active, #btn-next:active { transform: scale(0.96); }
 
         /* ---- FEEDBACK ---- */
         #feedback-area {
@@ -337,6 +337,7 @@
                    aria-label="Resposta numèrica" maxlength="3">
             <button id="btn-check" type="button" onclick="checkCurrentCell()">Respon</button>
             <button id="btn-continue" type="button" style="display:none;" onclick="continueObservation()">Continua →</button>
+            <button id="btn-next" type="button" style="display:none;" onclick="continueToNext()">Equació següent →</button>
         </div>
 
         <div id="feedback-area" aria-live="polite"></div>
@@ -370,6 +371,7 @@ const els = {
     answerInput:      document.getElementById('answer-input'),
     btnCheck:         document.getElementById('btn-check'),
     btnContinue:      document.getElementById('btn-continue'),
+    btnNext:          document.getElementById('btn-next'),
     feedback:         document.getElementById('feedback-area')
 };
 
@@ -379,6 +381,9 @@ let currentLevel    = 1;      // 1..4
 let phases          = [];     // descripció dels passos de la pregunta actual
 let currentPhase    = 0;      // índex dins de `phases`
 let isPenalizing    = false;
+let awaitingNext    = false;  // esperant que l'usuari cliqui "Equació següent"
+let lastQuestionSuccess = false;
+let lastQuestionPoints  = 0;
 
 // ---- Llegim el nivell de la URL (per defecte 2; admetem 1..4) ----
 (function readLevel() {
@@ -898,8 +903,9 @@ function renderEquationText(eq, phaseIdx) {
         // L'equació "prèvia" mostra l'estat anterior DIFERENT, en gris.
         const prevHTML = prevEquationHTML(eq, phaseIdx);
         els.equationPrev.innerHTML = prevHTML || '';
-        // marquem com a resolt si és l'última fase
-        const isFinal = (phaseIdx === phases.length - 1);
+        // Marquem com a resolt quan l'índex passa de l'última fase d'entrada
+        // (és a dir, quan ja mostrem la forma "x = ans" després de respondre).
+        const isFinal = (phaseIdx >= phases.length);
         els.equation.classList.toggle('eq-solved', isFinal && lastWasCorrect);
         els.equation.classList.remove('eq-updating');
         els.equationPrev.classList.remove('eq-updating');
@@ -910,6 +916,9 @@ function renderEquationText(eq, phaseIdx) {
 // Per L4, ph1 i ph2 mostren la mateixa equació expandida; el pas a ph2 manté la prèvia (= original).
 function prevEquationHTML(eq, phaseIdx) {
     if (phaseIdx <= 0) return null;
+    // Estat post-final: phaseIdx === phases.length → mostrem "x = ans".
+    // La prèvia és l'última equació "no resolta" (phases.length - 1).
+    if (phaseIdx >= phases.length) return buildEquationHTML(eq, phases.length - 1);
     let prevIdx;
     if (eq.level === 4) {
         // Mapa de fase actual → fase amb l'equació anterior DIFERENT
@@ -965,6 +974,7 @@ function showCurrentPhase() {
     els.feedback.innerHTML   = '';
     els.feedback.className   = '';
     els.answerInput.value    = '';
+    els.btnNext.style.display = 'none';
 
     if (phase.kind === 'observe') {
         els.answerInput.style.display = 'none';
@@ -1031,8 +1041,10 @@ function advancePhase() {
     const isLast = (currentPhase + 1 >= phases.length);
 
     if (isLast) {
+        // Última fase d'entrada superada → mostrem "x = ans" i acabem.
         lastWasCorrect = true;
-        renderEquationText(currentEquation, currentPhase);
+        const solvedIdx = phases.length;   // índex "post-final" → render "x = ans"
+        renderEquationText(currentEquation, solvedIdx);
         renderSceneCaption(currentEquation, currentPhase);
         animateSceneToPhase(currentPhase + 1);   // animació final (aixecar gots, etc.)
         setTimeout(() => finishQuestion(true), 1200);
@@ -1051,6 +1063,15 @@ function advancePhase() {
             updateHeader();
         }, 700);
     }, 400);
+}
+
+// L'usuari ha decidit passar a la pregunta següent (o, si és la darrera de la
+// darrera sessió, a la pantalla final amb el codi).
+function continueToNext() {
+    if (!awaitingNext) return;
+    awaitingNext = false;
+    els.btnNext.style.display = 'none';
+    proceedAfterQuestion();
 }
 
 function penalize() {
@@ -1081,10 +1102,34 @@ function finishQuestion(success) {
     hideCustomKeyboard();
     sessionScore += success ? 1 : 0;
     els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    lastQuestionPoints  = success ? Math.max(0, 10 - (MAX_INTENTS - attemptsLeft)) : 0;
+    lastQuestionSuccess = success;
 
-    const levelPoints = success ? Math.max(0, 10 - (MAX_INTENTS - attemptsLeft)) : 0;
+    // Cas especial: si era la darrera pregunta de la darrera sessió, anem
+    // directament a la pantalla final (no té sentit demanar "Equació següent").
+    const isLastOfAll = (currentOperation + 1 >= TOTAL_OPERATIONS)
+                     && (currentSession + 1 >= TOTAL_SESSIONS);
+    if (isLastOfAll) {
+        proceedAfterQuestion();
+        return;
+    }
+
+    // Mostrem el botó "Equació següent →" i amaguem la resta de controls.
+    awaitingNext = true;
+    els.answerInput.style.display = 'none';
+    els.btnCheck.style.display    = 'none';
+    els.btnContinue.style.display = 'none';
+    els.btnNext.style.display     = 'inline-block';
+    // El feedback ja conté el ✓ o el missatge d'error final; el deixem.
+}
+
+// Es crida quan l'usuari clica "Equació següent" — o automàticament quan és
+// la pregunta finalíssima de tot l'exercici.
+function proceedAfterQuestion() {
+    const success = lastQuestionSuccess;
+    const points  = lastQuestionPoints;
     const waitTime = typeof showMiniOverlay === 'function'
-        ? showMiniOverlay(success ? levelPoints : 0, {
+        ? showMiniOverlay(success ? points : 0, {
             successColor: 'var(--primary-dark)',
             pointsColor:  'var(--success)'
           })
@@ -1134,6 +1179,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     if (els.gameScreen.style.display === 'none') return;
     e.preventDefault();
+    if (awaitingNext) { continueToNext(); return; }
     const phase = phases[currentPhase];
     if (!phase || isTransitioning) return;
     if (phase.kind === 'observe') {
