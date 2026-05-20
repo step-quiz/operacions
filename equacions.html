@@ -284,6 +284,12 @@
     //   Nivell 3: nivell 1 + nivell 2 + parèntesis
     //             (ex: a(x+b) + c·x + d = e(x+f) + g·x + h)
     //   Sense ?nivell= → comportament legacy (progressió per opIndex)
+    //
+    // FLAGS:
+    //   ?lefttoright=1 → mai surten formes amb x només a la dreta
+    //                    (es bloquegen "b=ax" i "c=ax+b" del nivell 1).
+    //                    Només afecta nivell 1; nivells 2/3 ja tenen x als
+    //                    dos costats i el legacy mai els genera.
     // ============================================================
 
     // Cache DOM específic d'aquest joc
@@ -325,6 +331,15 @@
     const xT = (c) => ({ k: 'x', c });
     const nT = (v) => ({ k: 'n', v });
     const pT = (outer, inner) => ({ k: 'p', c: outer, n: inner });
+
+    // Flag opcional: ?lefttoright=1 → mai generem formes amb x només a la dreta
+    const leftToRightOnly = (() => {
+        try {
+            return new URLSearchParams(window.location.search).get('lefttoright') === '1';
+        } catch (e) {
+            return false;
+        }
+    })();
     
     // ---- GENERACIÓ ALEATÒRIA D'EQUACIONS ----
     //
@@ -359,7 +374,10 @@
     // -------- Generadors per nivell --------
 
     function genN1() {
-        const form = pickOne(['A', 'B', 'C', 'D']);
+        // Si està actiu ?lefttoright=1, només permetem les formes A (ax=b)
+        // i C (ax+b=c) — bloquegem B (b=ax) i D (c=ax+b).
+        const forms = leftToRightOnly ? ['A', 'C'] : ['A', 'B', 'C', 'D'];
+        const form = pickOne(forms);
         let lA, lB, rD, xSol;
         for (let safety = 0; safety < 60; safety++) {
             xSol = randIntNonZero(-9, 9);
