@@ -343,8 +343,8 @@ window.VocabFigures = (() => {
             etiquetes: [
                 { id: 'piramide'        , text: 'piràmide'        , px: 220, py: 180, lx: 110, ly:  26  },
                 { id: 'vertex'          , text: 'vèrtex'          , px: 250, py:  48, lx: 336, ly:  30  },
-                { id: 'aresta_lateral'  , text: 'aresta lateral'  , px: 203, py: 180, lx:  72, ly: 103  },
-                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 312, py: 166, lx: 403, ly:  95  },
+                { id: 'aresta_lateral'  , text: 'aresta'  , px: 203, py: 180, lx:  72, ly: 103  },
+                { id: 'cara_lateral'    , text: 'cara'    , px: 312, py: 166, lx: 403, ly:  95  },
                 { id: 'base'            , text: 'base'            , px: 230, py: 276, lx:  96, ly: 319  },
                 { id: 'altura'          , text: 'altura'          , px: 250, py: 208, lx: 431, ly: 262  }
             ]
@@ -369,7 +369,7 @@ window.VocabFigures = (() => {
             etiquetes: [
                 { id: 'cilindre'        , text: 'cilindre'        , px: 170, py: 200, lx: 101, ly:  28  },
                 { id: 'base'            , text: 'base'            , px: 224, py: 276, lx:  90, ly: 314  },
-                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 179, py: 159, lx:  99, ly: 138  },
+                { id: 'cara_lateral'    , text: 'cara'    , px: 179, py: 159, lx:  99, ly: 138  },
                 { id: 'alcada'          , text: 'alçada'          , px: 415, py: 182, lx: 379, ly: 321  },
                 { id: 'radi'            , text: 'radi'            , px: 320, py:  90, lx: 325, ly:  29  }
             ]
@@ -605,7 +605,7 @@ window.VocabFigures = (() => {
                 { id: 'prisma_triangular', text: 'prisma triangular', px: 300, py: 200, lx: 110, ly:  26  },
                 { id: 'vertex'          , text: 'vèrtex'          , px: 310, py:  80, lx: 329, ly:  39  },
                 { id: 'aresta'          , text: 'aresta'          , px: 287, py: 135, lx:  81, ly:  95  },
-                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 232, py: 175, lx: 106, ly: 227  },
+                { id: 'cara_lateral'    , text: 'cara'    , px: 232, py: 175, lx: 106, ly: 227  },
                 { id: 'base'            , text: 'base'            , px: 297, py: 274, lx: 329, ly: 319  },
                 { id: 'altura'          , text: 'altura'          , px: 310, py: 180, lx: 430, ly:  80  }
             ]
@@ -672,7 +672,7 @@ window.VocabFigures = (() => {
                 { id: 'prisma_pentagonal', text: 'prisma pentagonal', px: 260, py: 200, lx: 110, ly:  26  },
                 { id: 'vertex'          , text: 'vèrtex'          , px:  99, py: 241, lx:  64, ly: 140  },
                 { id: 'aresta'          , text: 'aresta'          , px: 146, py: 214, lx:  70, ly: 316  },
-                { id: 'cara_lateral'    , text: 'cara lateral'    , px: 380, py: 169, lx: 432, ly:  33  },
+                { id: 'cara_lateral'    , text: 'cara'    , px: 380, py: 169, lx: 432, ly:  33  },
                 { id: 'base'            , text: 'base'            , px: 236, py: 249, lx: 297, ly: 321  },
                 { id: 'altura'          , text: 'altura'          , px: 250, py: 165, lx: 444, ly: 296  }
             ]
