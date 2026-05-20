@@ -224,8 +224,8 @@
       "etiquetes": [
         { "id": "piramide",       "text": "piràmide",       "px": 250, "py": 175, "lx": 250, "ly": 20  },
         { "id": "vertex",         "text": "vèrtex",         "px": 250, "py": 60,  "lx": 148, "ly": 42  },
-        { "id": "aresta_lateral", "text": "aresta lateral", "px": 180, "py": 168, "lx": 65,  "ly": 138 },
-        { "id": "cara_lateral",   "text": "cara lateral",   "px": 290, "py": 195, "lx": 408, "ly": 168 },
+        { "id": "aresta_lateral", "text": "aresta", "px": 180, "py": 168, "lx": 65,  "ly": 138 },
+        { "id": "cara_lateral",   "text": "cara",   "px": 290, "py": 195, "lx": 408, "ly": 168 },
         { "id": "base",           "text": "base",           "px": 250, "py": 248, "lx": 408, "ly": 252 },
         { "id": "altura",         "text": "altura",         "px": 250, "py": 154, "lx": 340, "ly": 200 }
       ]
@@ -240,7 +240,7 @@
       "etiquetes": [
         { "id": "cilindre",     "text": "cilindre",     "px": 250, "py": 180, "lx": 250, "ly": 18  },
         { "id": "base",         "text": "base",         "px": 250, "py": 270, "lx": 105, "ly": 315 },
-        { "id": "cara_lateral", "text": "cara lateral", "px": 110, "py": 180, "lx": 42,  "ly": 155 },
+        { "id": "cara_lateral", "text": "cara", "px": 110, "py": 180, "lx": 42,  "ly": 155 },
         { "id": "alcada",       "text": "alçada",       "px": 415, "py": 180, "lx": 460, "ly": 168 },
         { "id": "radi",         "text": "radi",         "px": 320, "py": 90,  "lx": 355, "ly": 58  },
         { "id": "eix",          "text": "eix",          "px": 250, "py": 180, "lx": 162, "ly": 175 }
@@ -289,8 +289,8 @@
     "cercles_i_circumferencies":  ["circumferència", "cercle", "radi", "diàmetre", "corda", "centre", "cercle màxim"],
     "angles":                     ["angle", "vèrtex", "raig", "arc"],
     "rectes_i_segments":          ["segment", "recta", "extrem", "punt mig", "longitud"],
-    "cossos_geometrics_arestes":  ["cub", "ortoedre", "piràmide", "vèrtex", "aresta", "cara", "amplada", "alçada", "aresta lateral", "cara lateral", "base"],
-    "cossos_geometrics_revolucio":["cilindre", "con", "esfera", "base", "cara lateral", "alçada", "radi", "eix", "generatriu", "centre", "cercle màxim", "vèrtex"]
+    "cossos_geometrics_arestes":  ["cub", "ortoedre", "piràmide", "vèrtex", "aresta", "cara", "amplada", "alçada", "aresta", "cara", "base"],
+    "cossos_geometrics_revolucio":["cilindre", "con", "esfera", "base", "cara", "alçada", "radi", "eix", "generatriu", "centre", "cercle màxim", "vèrtex"]
   },
 
   "figures_pendents_afegir": [
