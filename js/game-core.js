@@ -189,7 +189,7 @@ function startNextSession() {
 function calculaNotaSobre10() {
     if (!sessionScores.length) return 0;
     if (MAX_ENLLOC_MITJANA === 1) {
-        return Number((Math.max(...sessionScores) / TOTAL_OPERATIONS).toFixed(1));
+        return Number((Math.max(...sessionScores) / TOTAL_OPERATIONS * 10).toFixed(1));
     } else {
         return Number((sessionScores.reduce((a,s) => a+s, 0) / (TOTAL_SESSIONS * TOTAL_OPERATIONS)).toFixed(1));
     }
@@ -198,7 +198,7 @@ function calculaNotaSobre10() {
 function renderFinalSummary() {
     let html = '';
     for (let i = 0; i < sessionScores.length; i++) {
-        html += `<div class="session-line"><span>Sessio ${i+1}</span><span>${(sessionScores[i]/TOTAL_OPERATIONS).toFixed(1).replace('.',',')}</span></div>`;
+        html += `<div class="session-line"><span>Sessio ${i+1}</span><span>${(sessionScores[i]/TOTAL_OPERATIONS*10).toFixed(1).replace('.',',')}</span></div>`;
     }
     const nota10 = calculaNotaSobre10().toFixed(1).replace('.',',');
     const textFinal = MAX_ENLLOC_MITJANA === 1 ? 'La sessio amb nota mes alta obte:' : 'La nota mitjana es:';
