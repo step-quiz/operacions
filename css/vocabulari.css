@@ -855,6 +855,10 @@ h1 {
     #game-area.layout-a #word-pool {
         flex-direction: row;
         flex-wrap: nowrap;
+        /* FIX: justify-content:center heretada del base causa que el contingut
+           es desborda simètricament i scrollLeft no pot arribar a l'extrem
+           esquerre → el primer chip queda fora de la zona de scroll. */
+        justify-content: flex-start;
         overflow-x: auto;
         overflow-y: visible;
         -webkit-overflow-scrolling: touch;
