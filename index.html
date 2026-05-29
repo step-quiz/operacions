@@ -113,9 +113,12 @@
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
     .main-wrapper { display: flex; gap: 30px; justify-content: center; width: 100%; max-width: 1000px; align-items: stretch; }
-    .quiz-panel { width: var(--panel-w); max-width: 100%; padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-heavy); display: flex; flex-direction: column; }
-    #panel-eso  { background-color: var(--eso-bg);  opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
-    #panel-batx { background-color: var(--batx-bg); opacity: 0; animation: fade-in 0.24s ease-out 1.80s forwards; }
+    .quiz-panel { width: var(--panel-w); max-width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .sub-panel { padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-heavy); display: flex; flex-direction: column; }
+    #panel-eso  { opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
+    #panel-batx { opacity: 0; animation: fade-in 0.24s ease-out 1.80s forwards; }
+    #panel-eso  .sub-panel { background-color: var(--eso-bg); }
+    #panel-batx .sub-panel { background-color: var(--batx-bg); }
 
     h2 { margin: 0 0 10px 5px; font-size: 22px; font-weight: 800; }
 
@@ -172,8 +175,7 @@
     .cd-separator { height: 1px; background: #94a3b8; margin: 4px 6px; }
 
     /* Link block */
-    .link-block { margin-top: auto; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); padding-inline: 5px; }
-    #panel-batx .link-block { margin-top: 16px; }
+    .link-block { margin-top: 8px; padding-inline: 5px; }
     .panel-spacer { display: none; }
 
     @media (max-width: 1050px) {
@@ -207,7 +209,6 @@
       .mobile-nav { display: flex; }
       .quiz-panel { display: none; }
       .quiz-panel.active { display: flex; flex: 0 0 auto; animation: fade-in 0.3s ease-out forwards; animation-delay: 0s !important; justify-content: flex-start; }
-      #panel-eso.active .link-block, #panel-batx.active .link-block { margin-top: 16px; }
     }
 
     @media (max-width: 480px) {
@@ -303,53 +304,61 @@
 
   <div class="main-wrapper">
     <div id="panel-eso" class="quiz-panel active">
-      <h2>ESO</h2>
-      <div class="row">
-        <label>Activitat</label>
-        <div class="cd-wrap" id="cd-eso">
-          <div class="cd-trigger"><span class="cd-label"></span><svg class="cd-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg></div>
-          <div class="cd-list"></div>
+      <div class="sub-panel sub-panel-activity">
+        <h2>ESO</h2>
+        <div class="row">
+          <label>Activitat</label>
+          <div class="cd-wrap" id="cd-eso">
+            <div class="cd-trigger"><span class="cd-label"></span><svg class="cd-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg></div>
+            <div class="cd-list"></div>
+          </div>
         </div>
       </div>
-      <div class="row" id="row-diff-eso" style="display:none"><label for="d-eso">Dificultat</label><select id="d-eso"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
-      <div class="row" id="row-fixed-eso" style="display:none"><label for="fix-eso">Sessió fixa</label><select id="fix-eso"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
-      <div class="row" id="row-dim-eso" style="display:none"><label for="dim-eso">Dimensió</label><select id="dim-eso"><option value="">Totes</option><option value="2">2: figures al pla</option><option value="3">3: cossos a l'espai</option></select></div>
-      <div class="row" id="row-nivell-eso" style="display:none"><label for="nivell-eso">Nivell</label><select id="nivell-eso"><option value="a">Fàcil (arrossegar)</option><option value="b">Difícil (escriure)</option></select></div>
-      <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
-      <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
-      <div class="row"><label for="i-eso">Errors màx.</label><select id="i-eso"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
-      <div class="row"><label for="m-eso">Criteri</label><select id="m-eso"><option value="1">Nota màxima</option><option value="0">Nota mitjana</option></select></div>
-      <div class="link-block">
-        <div class="btn-row">
-          <button id="c-eso" class="copy-btn">Copia</button>
-          <button id="h-eso" class="help-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda</button>
-          <button id="p-eso" class="open-btn">Obre</button>
+      <div class="sub-panel sub-panel-params">
+        <div class="row" id="row-diff-eso" style="display:none"><label for="d-eso">Dificultat</label><select id="d-eso"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
+        <div class="row" id="row-fixed-eso" style="display:none"><label for="fix-eso">Sessió fixa</label><select id="fix-eso"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
+        <div class="row" id="row-dim-eso" style="display:none"><label for="dim-eso">Dimensió</label><select id="dim-eso"><option value="">Totes</option><option value="2">2: figures al pla</option><option value="3">3: cossos a l'espai</option></select></div>
+        <div class="row" id="row-nivell-eso" style="display:none"><label for="nivell-eso">Nivell</label><select id="nivell-eso"><option value="a">Fàcil (arrossegar)</option><option value="b">Difícil (escriure)</option></select></div>
+        <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+        <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+        <div class="row"><label for="i-eso">Errors màx.</label><select id="i-eso"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+        <div class="row"><label for="m-eso">Criteri</label><select id="m-eso"><option value="1">Nota màxima</option><option value="0">Nota mitjana</option></select></div>
+        <div class="link-block">
+          <div class="btn-row">
+            <button id="c-eso" class="copy-btn">Copia</button>
+            <button id="h-eso" class="help-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda</button>
+            <button id="p-eso" class="open-btn">Obre</button>
+          </div>
+          <div id="st-eso" class="copy-status"></div>
+          <div class="link-label">Enllaç:</div>
+          <div id="l-eso" class="link-output" tabindex="0"></div>
         </div>
-        <div id="st-eso" class="copy-status"></div>
-        <div class="link-label">Enllaç:</div>
-        <div id="l-eso" class="link-output" tabindex="0"></div>
       </div>
     </div>
 
     <div id="panel-batx" class="quiz-panel">
-      <h2>Batxillerat</h2>
-      <div class="row">
-        <label>Activitat</label>
-        <div class="cd-wrap" id="cd-batx">
-          <div class="cd-trigger"><span class="cd-label"></span><svg class="cd-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg></div>
-          <div class="cd-list"></div>
+      <div class="sub-panel sub-panel-activity">
+        <h2>Batxillerat</h2>
+        <div class="row">
+          <label>Activitat</label>
+          <div class="cd-wrap" id="cd-batx">
+            <div class="cd-trigger"><span class="cd-label"></span><svg class="cd-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg></div>
+            <div class="cd-list"></div>
+          </div>
         </div>
+        <div class="row" id="row-fixed-batx" style="display:none"><label for="fix-batx">Sessió fixa</label><select id="fix-batx"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
       </div>
-      <div class="row" id="row-fixed-batx" style="display:none"><label for="fix-batx">Sessió fixa</label><select id="fix-batx"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
-      <div class="link-block">
-        <div class="btn-row">
-          <button id="c-batx" class="copy-btn">Copia</button>
-          <button id="h-batx" class="help-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda</button>
-          <button id="p-batx" class="open-btn">Obre</button>
+      <div class="sub-panel sub-panel-params">
+        <div class="link-block" style="margin-top:0">
+          <div class="btn-row">
+            <button id="c-batx" class="copy-btn">Copia</button>
+            <button id="h-batx" class="help-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YT" class="yt-icon">Ajuda</button>
+            <button id="p-batx" class="open-btn">Obre</button>
+          </div>
+          <div id="st-batx" class="copy-status"></div>
+          <div class="link-label">Enllaç:</div>
+          <div id="l-batx" class="link-output" tabindex="0"></div>
         </div>
-        <div id="st-batx" class="copy-status"></div>
-        <div class="link-label">Enllaç:</div>
-        <div id="l-batx" class="link-output" tabindex="0"></div>
       </div>
     </div>
   </div>
@@ -562,13 +571,14 @@
       });
     });
 
-    // Shake d'atenció inicial
+    // Obre els desplegables d'activitat per defecte
     window.addEventListener('load', () => {
       setTimeout(() => {
-        const triggers = document.querySelectorAll('.cd-trigger');
-        triggers.forEach(t => t.classList.add('select-atencio-shake'));
-        setTimeout(() => triggers.forEach(t => t.classList.remove('select-atencio-shake')), 1250);
-      }, 2220);
+        document.querySelectorAll('.cd-wrap').forEach(wrap => {
+          wrap.querySelector('.cd-list').style.maxHeight = '320px';
+          wrap.classList.add('open');
+        });
+      }, 1600);
     });
   </script>
 
