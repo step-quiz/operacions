@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Decàleg per a la PAU de Matemàtiques</title>
+  <style>
+    /* ── Design tokens (heretats del projecte) ──────────────────────── */
+    :root {
+      --bg:          #f5f3fa;
+      --surface:     #ffffff;
+      --text:        #1d1d1f;
+      --text-2:      #6e6e73;
+      --text-3:      #a6a0b8;
+      --lila:        #7c6cb5;   /* lila accent (números, vinyetes, filets) */
+      --lila-deep:   #5f5193;   /* lila fosc per a text i números */
+      --lila-tint:   #efeafb;   /* fons suau de les rodones */
+      --lila-soft:   #e7e0f7;   /* fons del hover (lila més suau) */
+      --divider:     rgba(60,40,110,.10);
+      --radius-sm:   12px;
+      --radius:      18px;
+      --radius-lg:   22px;
+      --sh:          0 2px 8px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --sh-md:       0 6px 24px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
+      --sh-lg:       0 16px 48px rgba(0,0,0,.10), 0 4px 12px rgba(0,0,0,.06);
+      --ease:        cubic-bezier(.4,0,.2,1);
+      --spring:      cubic-bezier(.34,1.56,.64,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue',
+                   'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    button { font: inherit; touch-action: manipulation; }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(20px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── Page shell ─────────────────────────────────────────────────── */
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 20px 120px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 56px 16px 30px;
+      animation: fade-up .6s var(--spring) both;
+    }
+    .kicker {
+      font-size: 12px; font-weight: 600;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+    .title {
+      font-size: clamp(26px, 4.4vw, 40px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.08;
+      color: var(--text);
+    }
+    .subtitle {
+      margin-top: 14px;
+      font-size: clamp(14px, 1.6vw, 17px);
+      color: var(--text-2);
+      letter-spacing: -.01em;
+    }
+
+    /* ── Graella 2×5 ────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-top: 8px;
+    }
+    @media (max-width: 880px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 560px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .cell {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      min-height: 132px;
+      text-align: left;
+      background: var(--surface);
+      border: 3px solid transparent;
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      cursor: pointer;
+      box-shadow: var(--sh);
+      animation: fade-up .45s var(--spring) both;
+      transition: background .2s var(--ease), border-color .2s var(--ease), box-shadow .25s var(--ease);
+    }
+    @media (hover: hover) {
+      .cell:hover {
+        background: var(--lila-soft);
+        border-color: #000;
+        box-shadow: none;
+      }
+      .cell:hover .cell-chev { opacity: 1; transform: translateX(0); color: var(--lila-deep); }
+    }
+    .cell:focus-visible {
+      background: var(--lila-soft);
+      border-color: #000;
+      box-shadow: none;
+      outline: none;
+    }
+    .cell:focus-visible .cell-chev { opacity: 1; transform: translateX(0); color: var(--lila-deep); }
+
+    .cell-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--lila-tint);
+      color: var(--lila-deep);
+      font-size: 17px; font-weight: 700;
+      letter-spacing: -.02em;
+      flex-shrink: 0;
+    }
+    .cell-title {
+      font-size: 15px; font-weight: 600;
+      letter-spacing: -.015em;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .cell-chev {
+      position: absolute;
+      right: 15px; bottom: 14px;
+      font-size: 17px;
+      color: var(--text-3);
+      opacity: 0;
+      transform: translateX(-3px);
+      transition: opacity .2s var(--ease), transform .2s var(--ease), color .2s var(--ease);
+    }
+
+    /* ── Modal ──────────────────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.28);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s var(--ease);
+      z-index: 200;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+
+    .dialog {
+      position: relative;
+      width: 100%;
+      max-width: 560px;
+      max-height: 86vh;
+      display: flex; flex-direction: column;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--sh-lg);
+      overflow: hidden;
+      transform: translateY(16px) scale(.97);
+      transition: transform .35s var(--spring);
+    }
+    .overlay.show .dialog { transform: translateY(0) scale(1); }
+    .dialog::before {
+      content: "";
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--lila);
+    }
+
+    .dialog-head {
+      display: flex; align-items: center; gap: 14px;
+      padding: 26px 26px 16px;
+    }
+    .dialog-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: var(--lila-tint);
+      color: var(--lila-deep);
+      font-size: 21px; font-weight: 700;
+      letter-spacing: -.02em;
+      flex-shrink: 0;
+    }
+    .dialog-title {
+      font-size: 19px; font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .close-btn {
+      position: absolute; top: 16px; right: 16px;
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border: none; border-radius: 50%;
+      background: rgba(0,0,0,.06);
+      color: var(--text-2);
+      font-size: 17px;
+      cursor: pointer;
+      transition: background .18s var(--ease), color .18s var(--ease);
+    }
+    @media (hover: hover) {
+      .close-btn:hover { background: rgba(0,0,0,.10); color: var(--text); }
+    }
+
+    .dialog-body {
+      padding: 4px 26px 24px;
+      overflow-y: auto;
+    }
+    .dialog-body p {
+      font-size: 16.5px;
+      line-height: 1.62;
+      color: #3a3a3c;
+      letter-spacing: -.005em;
+    }
+    .dialog-body p + p,
+    .dialog-body p + ul { margin-top: 10px; }
+    .dialog-body ul { list-style: none; }
+    .dialog-body li {
+      position: relative;
+      padding-left: 22px;
+      font-size: 16.5px;
+      line-height: 1.55;
+      color: #3a3a3c;
+      letter-spacing: -.005em;
+    }
+    .dialog-body li + li { margin-top: 9px; }
+    .dialog-body li::before {
+      content: "";
+      position: absolute; left: 4px; top: .62em;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--lila);
+    }
+
+    .dialog-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px;
+      padding: 13px 20px;
+      border-top: 1px solid var(--divider);
+      background: var(--surface);
+    }
+    .nav-btn {
+      display: flex; align-items: center; gap: 6px;
+      border: none; border-radius: 980px;
+      padding: 8px 15px;
+      background: rgba(0,0,0,.06);
+      color: var(--text-2);
+      font-size: 13px; font-weight: 600;
+      letter-spacing: -.01em;
+      cursor: pointer;
+      transition: background .18s var(--ease), color .18s var(--ease);
+    }
+    @media (hover: hover) {
+      .nav-btn:hover { background: rgba(0,0,0,.10); color: var(--text); }
+    }
+    .dialog-count {
+      font-size: 12px; font-weight: 600;
+      letter-spacing: .02em;
+      color: var(--text-3);
+    }
+
+    footer {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: rgba(245,245,247,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--divider);
+      padding: 8px 20px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; font-size: .72em; color: var(--text-2);
+      flex-wrap: wrap; text-align: center;
+      z-index: 100;
+    }
+    footer a { color: var(--text-2); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div class="kicker">Decàleg · PAU de Matemàtiques</div>
+      <h1 class="title">10 consells per al dia de l'examen</h1>
+      <p class="subtitle">Toca cada punt per veure'n l'explicació.</p>
+    </header>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+    <div class="dialog" id="dialog">
+      <button class="close-btn" id="close-btn" aria-label="Tanca">✕</button>
+      <div class="dialog-head">
+        <span class="dialog-num" id="dlg-num"></span>
+        <h2 class="dialog-title" id="dlg-title"></h2>
+      </div>
+      <div class="dialog-body" id="dlg-body"></div>
+      <div class="dialog-foot">
+        <button class="nav-btn" id="prev-btn">‹ Anterior</button>
+        <span class="dialog-count" id="dlg-count"></span>
+        <button class="nav-btn" id="next-btn">Següent ›</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 DAVID ARSO CIVIL. Ús educatiu lliure. Prohibida la comercialització i la modificació
+    (<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>).
+  </footer>
+
+  <script>
+    /* Text dels punts EXACTAMENT com l'ha escrit l'autor.
+       (S'injecta amb textContent, per tant els símbols com "<" es mostren literals.) */
+    const PUNTS = [
+      { n: 1, c: '#0071e3', titol: 'Justifiqueu i interpreteu',
+        text: `Cada vegada que calculeu alguna cosa, heu de dir per què ho esteu calculant, què volem obtenir i interpretar el resultat. Per exemple, quan derivem una funció, de vegades és: "trobem el pendent de la recta tangent en x=2" i d'altres vegades és: "resoldrem f'(x)=0 per trobar punts crítics de f(x)".` },
+
+      { n: 2, c: '#30b0c7', titol: "Trieu l'ordre",
+        text: `No cal fer l'examen en ordre de preguntes: comenceu pels apartats on teniu expectativa que ens sortiran prou bé.` },
+
+      { n: 3, c: '#34c759', titol: 'No abandoneu mai',
+        text: `No us desanimeu MAI! Si manteniu l'energia, ja estareu avançant tot l'alumnat que llença la tovallola.` },
+
+      { n: 4, c: '#ff9f0a', titol: 'No esborreu res',
+        text: `Si heu acabat un apartat i creieu que l'heu fet tot malament, no ho esborreu!, més val deixar-lo tal qual. A més, si deixeu escrit el plantejament , encara que no hi hagi cap càlcul, obtindreu punts.` },
+
+      { n: 5, c: '#ff3b30', titol: 'Vigileu els càlculs',
+        text: `Hi ha errors de càlcul que després fan que tot sigui molt complicat o incomplet, per exemple, afirmar que x²=9 només té una solució o equivocar-se al resoldre -x-8=-3` },
+
+      { n: 6, c: '#bf5af2', titol: 'Escriviu clar',
+        text: `Procureu redactar de manera llegible i destacar les solucions i respostes: això ajuda que la persona correctora no "posi la lupa de mirar detalls".` },
+
+      { n: 7, c: '#5e5ce6', titol: 'Compteu quantes coses et pregunten',
+        text: `Una pregunta, de vegades, conté dues coses diferents a fer. Per exemple: "Demostreu que la funció té un màxim relatiu i trobeu aquest valor". Hi ha alumnes que troben justificadament el màxim relatiu i responen "x=3, ja que f'(3)=0 i f''(3)<0, però de fet obliden que hi havia una altra part, que era simplement calcular f(3).` },
+
+      { n: 8, c: '#ff375f', titol: 'Responeu de manera coherent amb la pregunta',
+        text: `Quan responem un apartat hem de llegir un altre cop la pregunta per assegurar que siguem coherents. Per exemple, si et diuen "trobeu el punt de tall amb l'eix d'abscisses" no podem respondre "x=4", sinó "P=(4, 0)"` },
+
+      { n: 9, c: '#ff9500', titol: 'Prepareu el material',
+        text: `Material: TRES bolígrafs que funcionin, un llapis, una goma, una calculadora. Recordeu que tot s'ha de lliurar fet amb bolígraf.` },
+
+      { n: 10, c: '#00c7be', titol: 'Repartiu el teu temps',
+        intro: `Porteu un rellotge (que NO sigui smartwatch). No cal mirar-lo cada minut, però suggereixo repartir així el temps, aproximadament:`,
+        items: [
+          `5 minuts: llegir totes les preguntes i marcar quins apartats són més segurs d'obtenir puntuació, i començar per aquests.`,
+          `60 minuts per respondre les tres primeres preguntes`,
+          `5 minuts per pensar bé si ens convé fer opció 4a) o bé opció 4b)`,
+          `15 minuts per fer l'opció escollida de la pregunta 4`,
+          `5 minuts per repassar que no hem deixat res en blanc que podríem dir alguna cosa`
+        ] }
+    ];
+
+    const grid    = document.getElementById('grid');
+    const overlay = document.getElementById('overlay');
+    const dlgNum  = document.getElementById('dlg-num');
+    const dlgTitle= document.getElementById('dlg-title');
+    const dlgBody = document.getElementById('dlg-body');
+    const dlgCount= document.getElementById('dlg-count');
+    let current   = -1;
+    let lastFocus = null;
+
+    /* Construeix la graella */
+    PUNTS.forEach((p, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      btn.style.animationDelay = (i * 0.04) + 's';
+      btn.setAttribute('aria-label', 'Punt ' + p.n + ': ' + p.titol);
+
+      const num = document.createElement('span');
+      num.className = 'cell-num';
+      num.textContent = p.n;
+
+      const title = document.createElement('span');
+      title.className = 'cell-title';
+      title.textContent = p.titol;
+
+      const chev = document.createElement('span');
+      chev.className = 'cell-chev';
+      chev.textContent = '›';
+
+      btn.append(num, title, chev);
+      btn.addEventListener('click', () => open(i));
+      grid.appendChild(btn);
+    });
+
+    /* Obre el modal amb el punt i */
+    function open(i) {
+      current = i;
+      const p = PUNTS[i];
+      if (!overlay.classList.contains('show')) lastFocus = document.activeElement;
+
+      dlgNum.textContent = p.n;
+      dlgTitle.textContent = p.titol;
+      dlgCount.textContent = 'Punt ' + p.n + ' de ' + PUNTS.length;
+
+      dlgBody.innerHTML = '';
+      if (p.items) {
+        const intro = document.createElement('p');
+        intro.textContent = p.intro;
+        const ul = document.createElement('ul');
+        p.items.forEach(it => {
+          const li = document.createElement('li');
+          li.textContent = it;        // textContent => text literal i exacte
+          ul.appendChild(li);
+        });
+        dlgBody.append(intro, ul);
+      } else {
+        const para = document.createElement('p');
+        para.textContent = p.text;     // textContent => text literal i exacte
+        dlgBody.appendChild(para);
+      }
+      dlgBody.scrollTop = 0;
+
+      overlay.classList.add('show');
+      document.getElementById('close-btn').focus();
+    }
+
+    function close() {
+      overlay.classList.remove('show');
+      current = -1;
+      if (lastFocus) lastFocus.focus();
+    }
+
+    const wrapIndex = n => (n + PUNTS.length) % PUNTS.length;
+    document.getElementById('prev-btn').addEventListener('click', () => open(wrapIndex(current - 1)));
+    document.getElementById('next-btn').addEventListener('click', () => open(wrapIndex(current + 1)));
+    document.getElementById('close-btn').addEventListener('click', close);
+
+    /* Clic fora del diàleg -> tanca */
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+    /* Tecles: Esc tanca; fletxes naveguen; 1-9 i 0 obren un punt */
+    document.addEventListener('keydown', e => {
+      const isOpen = overlay.classList.contains('show');
+      if (e.key === 'Escape' && isOpen) { close(); return; }
+      if (isOpen) {
+        if (e.key === 'ArrowRight') { open(wrapIndex(current + 1)); e.preventDefault(); }
+        else if (e.key === 'ArrowLeft') { open(wrapIndex(current - 1)); e.preventDefault(); }
+      } else if (/^[0-9]$/.test(e.key)) {
+        const idx = e.key === '0' ? 9 : parseInt(e.key, 10) - 1;
+        if (idx < PUNTS.length) open(idx);
+      }
+    });
+  </script>
+</body>
+</html>
