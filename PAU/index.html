@@ -295,22 +295,22 @@ footer span{font-size:.83rem;color:#333;font-family:'Source Code Pro',monospace;
   <p style="font-size:.84rem;color:var(--muted);margin:4px 0 4px;">Selecciona la categoria que vols treballar:</p>
   <div class="cat-grid">
     <div class="cat-card" data-cat="algebra"      onclick="showCat('algebra')">
-      <div class="num">13 exercicis · 2023–2025</div>
+      <div class="num">…</div>
       <h2>Àlgebra</h2>
       <p>Matrius, sistemes lineals amb paràmetre</p>
     </div>
     <div class="cat-card" data-cat="geometria"    onclick="showCat('geometria')">
-      <div class="num">8 exercicis · 2023–2025</div>
+      <div class="num">…</div>
       <h2>Geometria afí i mètrica</h2>
       <p>Rectes i plans, distàncies, perpendiculars</p>
     </div>
     <div class="cat-card" data-cat="analisi"      onclick="showCat('analisi')">
-      <div class="num">25 exercicis · 2023–2025</div>
+      <div class="num">…</div>
       <h2>Anàlisi / Càlcul</h2>
       <p>Funcions, Bolzano, tangents, integrals, optimització</p>
     </div>
     <div class="cat-card" data-cat="probabilitat" onclick="showCat('probabilitat')">
-      <div class="num">19 exercicis · 2017–2025</div>
+      <div class="num">…</div>
       <h2>Probabilitat</h2>
       <p>Probabilitat total, Bayes, binomial B(n,p)</p>
     </div>
@@ -698,9 +698,11 @@ setTimeout(() => {
   if (icon) icon.classList.add('blink-shake');
 }, 5000);
 
-/* Actualitza el recompte i el rang d'anys de les targetes de categoria
-   a partir d'EXERS[cat], filtrant EXCLOSOS. El rang es recalcula sol
-   en afegir o treure exercicis de qualsevol any. */
+/* Comptadors automàtics de les targetes de categoria.
+   El recompte i el rang d'anys es calculen a partir d'EXERS[cat], que és
+   l'única font de veritat: només cal afegir o treure entrades als arrays
+   i el número i el rang d'anys del menú s'actualitzen sols. El text de
+   les .num al HTML és només un marcador («…») que aquest codi reemplaça. */
 document.querySelectorAll('.cat-card').forEach(card => {
   const cat = card.dataset.cat;
   if (!cat || !EXERS[cat]) return;
