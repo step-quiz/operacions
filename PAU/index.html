@@ -295,17 +295,17 @@ footer span{font-size:.83rem;color:#333;font-family:'Source Code Pro',monospace;
   <p style="font-size:.84rem;color:var(--muted);margin:4px 0 4px;">Selecciona la categoria que vols treballar:</p>
   <div class="cat-grid">
     <div class="cat-card" data-cat="algebra"      onclick="showCat('algebra')">
-      <div class="num">11 exercicis · 2023–2025</div>
+      <div class="num">13 exercicis · 2023–2025</div>
       <h2>Àlgebra</h2>
       <p>Matrius, sistemes lineals amb paràmetre</p>
     </div>
     <div class="cat-card" data-cat="geometria"    onclick="showCat('geometria')">
-      <div class="num">7 exercicis · 2023–2025</div>
+      <div class="num">8 exercicis · 2023–2025</div>
       <h2>Geometria afí i mètrica</h2>
       <p>Rectes i plans, distàncies, perpendiculars</p>
     </div>
     <div class="cat-card" data-cat="analisi"      onclick="showCat('analisi')">
-      <div class="num">22 exercicis · 2023–2025</div>
+      <div class="num">25 exercicis · 2023–2025</div>
       <h2>Anàlisi / Càlcul</h2>
       <p>Funcions, Bolzano, tangents, integrals, optimització</p>
     </div>
@@ -371,6 +371,8 @@ const EXERS = {
 algebra: [
   {id:'alg-23j-q2',   any:'2023', conv:'Juny',        ref:'q2',   titol:'Producte de matrius A·B i propietat idempotent'},
   {id:'alg-23j-q4',   any:'2023', conv:'Juny',        ref:'q4',   titol:'Sistema lineal amb paràmetre λ'},
+  {id:'alg-23j2-q2',  any:'2023', conv:'Juny (Sèrie 5)', ref:'q2', titol:'Sistema lineal amb paràmetre k'},
+  {id:'alg-23j2-q5',  any:'2023', conv:'Juny (Sèrie 5)', ref:'q5', titol:'Família de matrius 2×2 amb a, b ∈ ℝ'},
   {id:'alg-23s-q1',   any:'2023', conv:'Setembre',    ref:'q1',   titol:'Matriu inversa via (A−2I)²=3I'},
   {id:'alg-23s-q3',   any:'2023', conv:'Setembre',    ref:'q3',   titol:'Sistema lineal amb paràmetre m'},
   {id:'alg-24i-q2',   any:'2024', conv:'Juny (inc.)', ref:'q2',   titol:'Matriu invertible i equació matricial PX+Q=2R'},
@@ -384,6 +386,7 @@ algebra: [
 
 geometria: [
   {id:'geo-23j-q6',   any:'2023', conv:'Juny',        ref:'q6',   titol:'Plans perpendiculars i punt més proper a una recta'},
+  {id:'geo-23j2-q3',  any:'2023', conv:'Juny (Sèrie 5)', ref:'q3', titol:'Posició relativa de rectes a l\'espai segons m i distància'},
   {id:'geo-23s-q5',   any:'2023', conv:'Setembre',    ref:'q5',   titol:'Perpendicular comuna de dues rectes i distància'},
   {id:'geo-24i-q6',   any:'2024', conv:'Juny (inc.)', ref:'q6',   titol:'Posició relativa de rectes i perpendicular comuna'},
   {id:'geo-24j-q6',   any:'2024', conv:'Juny',        ref:'q6',   titol:'Pla mediador i triangle isòsceles'},
@@ -396,6 +399,9 @@ analisi: [
   {id:'ana-23j-q1',   any:'2023', conv:'Juny',        ref:'q1',   titol:'Polinomi cúbic determinat per condicions sobre f, f\', f\'\''},
   {id:'ana-23j-q3',   any:'2023', conv:'Juny',        ref:'q3',   titol:'Funció f\'(x) per trams i recta tangent a f\''},
   {id:'ana-23j-q5',   any:'2023', conv:'Juny',        ref:'q5',   titol:'Optimització: jardí rectangular adossat a un mur'},
+  {id:'ana-23j2-q1',  any:'2023', conv:'Juny (Sèrie 5)', ref:'q1', titol:'Àrea de la regió delimitada per f(x)=−x²+x+6 i g(x)=−9x+3x²'},
+  {id:'ana-23j2-q4',  any:'2023', conv:'Juny (Sèrie 5)', ref:'q4', titol:'Optimització: torre de comunicacions i cost del cablejat'},
+  {id:'ana-23j2-q6',  any:'2023', conv:'Juny (Sèrie 5)', ref:'q6', titol:'Funció racional: paràmetres a, b per extrem relatiu'},
   {id:'ana-23s-q2',   any:'2023', conv:'Setembre',    ref:'q2',   titol:'f(x)=1/x: tangent i triangle d\'àrea constant'},
   {id:'ana-23s-q4',   any:'2023', conv:'Setembre',    ref:'q4',   titol:'Bolzano i àrea entre f(x) i h(x)'},
   {id:'ana-23s-q6',   any:'2023', conv:'Setembre',    ref:'q6',   titol:'Optimització: trapezi isòsceles d\'àrea màxima'},

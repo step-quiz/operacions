@@ -1,0 +1,24 @@
+ACTUALITZACIÓ — Sèrie 5 de 2023 (juny) afegida — COMPLETA
+==========================================================
+
+L'arxiu d'enunciats oficial pau_mate23jl.pdf contenia DUES sèries:
+  · Sèrie 1  → ja era al projecte amb el sufix 23j
+  · Sèrie 5  → ara afegida amb el sufix 23j2 (6 exercicis, COMPLETS)
+
+Exercicis afegits (els 3 fitxers -e/-p/-s cadascun):
+  ana-23j2-q1  Àrea entre f(x)=-x²+x+6 i g(x)=3x²-9x; recta tangent i gràfica
+  alg-23j2-q2  Sistema lineal amb paràmetre k (discussió i resolució k=0, k=1)
+  geo-23j2-q3  Rectes paral·leles a l'espai segons m; distància = √2
+  ana-23j2-q4  Optimització: torre de comunicacions i cost del cablejat
+  alg-23j2-q5  Inversa 2×2 i família de matrius amb A²=I
+  ana-23j2-q6  Funció racional (ax²+x+b)/(x²+1): paràmetres i extrems
+
+Origen dels fitxers:
+  -e  → retallat de l'enunciat oficial pau_mate23jl.pdf (pàg. 17–32)
+  -s  → retallat del PDF oficial de criteris d'avaluació de la Sèrie 5
+  -p  → "Pistes i ajudes" redactades de nou en el mateix estil i format
+        LaTeX que la resta del projecte (pista orientativa, no la solució)
+
+Canvis a index.html:
+  · 6 entrades noves al manifest (àlgebra, geometria i anàlisi)
+  · Comptadors del menú: Àlgebra 11→13, Geometria 7→8, Anàlisi 22→25
