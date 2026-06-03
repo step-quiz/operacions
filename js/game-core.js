@@ -186,19 +186,26 @@ function startNextSession() {
 }
 
 // ── NOTA FINAL ───────────────────────────────────────────────────────────────
+// Cada pregunta val com a màxim MAX_PUNTS_PREGUNTA punts (totes les activitats
+// usen levelPoints/pts = Math.max(0, 10 - ...), és a dir un màxim de 10).
+// La puntuació màxima d'una sessió és, doncs, TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA.
+const MAX_PUNTS_PREGUNTA = 10;
 function calculaNotaSobre10() {
     if (!sessionScores.length) return 0;
+    const maxSessio = TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA;  // punts màxims d'1 sessió
     if (MAX_ENLLOC_MITJANA === 1) {
-        return Number((Math.max(...sessionScores) / TOTAL_OPERATIONS * 10).toFixed(1));
+        // Nota = millor sessió, normalitzada sobre 10
+        return Number((Math.max(...sessionScores) / maxSessio * 10).toFixed(1));
     } else {
-        return Number((sessionScores.reduce((a,s) => a+s, 0) / (TOTAL_SESSIONS * TOTAL_OPERATIONS)).toFixed(1));
+        // Nota = mitjana de totes les sessions, normalitzada sobre 10
+        return Number((sessionScores.reduce((a,s) => a+s, 0) / (TOTAL_SESSIONS * maxSessio) * 10).toFixed(1));
     }
 }
 
 function renderFinalSummary() {
     let html = '';
     for (let i = 0; i < sessionScores.length; i++) {
-        html += `<div class="session-line"><span>Sessio ${i+1}</span><span>${(sessionScores[i]/TOTAL_OPERATIONS*10).toFixed(1).replace('.',',')}</span></div>`;
+        html += `<div class="session-line"><span>Sessio ${i+1}</span><span>${(sessionScores[i]/(TOTAL_OPERATIONS*MAX_PUNTS_PREGUNTA)*10).toFixed(1).replace('.',',')}</span></div>`;
     }
     const nota10 = calculaNotaSobre10().toFixed(1).replace('.',',');
     const textFinal = MAX_ENLLOC_MITJANA === 1 ? 'La sessio amb nota mes alta obte:' : 'La nota mitjana es:';
