@@ -179,6 +179,31 @@ header h1{font-size:.92rem;font-weight:700;line-height:1.3;}
 .ex-item.is-optatiu{opacity:.55;}
 .ex-item.is-optatiu:hover{opacity:1;}
 
+/* ── BOTÓ "MARCAR COM A FET" ────────────────────────────────────────────── */
+.done-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:'Libre Baskerville',serif;font-size:.84rem;
+  padding:9px 18px;border-radius:6px;cursor:pointer;
+  border:3px solid transparent;
+  transition:background .18s,color .18s,border-color .18s;
+  margin-bottom:16px;
+}
+.done-btn.not-done{background:#94a3b8;color:#fff;}
+.done-btn.is-done{background:#22c55e;color:#fff;font-weight:700;}
+.done-btn:hover{border-color:#000;}
+
+/* Marca "Fet" a la llista d'exercicis */
+.ex-fet-tag{
+  font-family:'Source Code Pro',monospace;font-size:.58rem;font-weight:700;
+  letter-spacing:.04em;
+  color:#fff;background:#22c55e;
+  border-radius:3px;padding:2px 7px;flex-shrink:0;
+}
+.ex-item.is-fet{
+  background:color-mix(in srgb,#22c55e 8%,var(--surface));
+  border-color:color-mix(in srgb,#22c55e 35%,var(--border));
+}
+
 /* ── DETAIL ─────────────────────────────────────────────────────────────────── */
 .det-header{margin-bottom:16px;}
 .det-header h2{font-size:.98rem;font-weight:700;line-height:1.4;}
@@ -331,6 +356,7 @@ footer span{font-size:.83rem;color:#333;font-family:'Source Code Pro',monospace;
     <h2 id="det-title"></h2>
     <div class="det-meta" id="det-meta"></div>
   </div>
+  <button class="done-btn not-done" id="done-btn" onclick="toggleDone()">Marcar com a fet</button>
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('e',this)">📄 Enunciat</button>
     <button class="tab-btn"        onclick="showTab('p',this)">💡 Pistes</button>
@@ -605,9 +631,11 @@ function showCat(cat) {
 
     exs.forEach(ex => {
       const isOptatiu = OPTATIUS.has(ex.id);
+      const isFet     = getDoneSet().has(ex.id);
       const li = document.createElement('li');
-      li.className = 'ex-item' + (isOptatiu ? ' is-optatiu' : '');
-      li.dataset.cat = cat;
+      li.className = 'ex-item' + (isOptatiu ? ' is-optatiu' : '') + (isFet ? ' is-fet' : '');
+      li.dataset.cat  = cat;
+      li.dataset.exId = ex.id;
       li.innerHTML = `
         <span class="ex-badge" style="background:${color}">${ex.conv}</span>
         <div class="ex-info">
@@ -615,6 +643,7 @@ function showCat(cat) {
           <div class="ex-sub">${ex.id}</div>
         </div>
         ${isOptatiu ? '<span class="ex-optatiu-tag">optatiu</span>' : ''}
+        ${isFet     ? '<span class="ex-fet-tag">✓ Fet</span>'       : ''}
         <span class="ex-arrow">→</span>`;
       li.onclick = () => showExercise(ex);
       ul.appendChild(li);
@@ -662,8 +691,9 @@ function showExercise(ex) {
   document.getElementById('tc-e').classList.add('active');
   // Inicia el visor PDF de la pestanya activa (enunciat)
   if (IS_MOBILE) initPdfViewer(`pdfjs-${ex.id}-e`, `data/${ex.id}-e.pdf`);
-  // Guarda l'id de l'exercici actiu per a showTab
+  // Guarda l'id de l'exercici actiu per a showTab i done-btn
   document.getElementById('v-detail').dataset.exId = ex.id;
+  updateDoneBtn(ex.id);
 }
 
 function goBack(to) {
@@ -690,6 +720,50 @@ function show(id) {
 
 function setBreadcrumb(txt) {
   document.getElementById('breadcrumb').textContent = txt;
+}
+
+/* ── MARCAR COM A FET (localStorage) ────────────────────────────────────── */
+function getDoneSet() {
+  try {
+    const raw = localStorage.getItem('pau-done');
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch { return new Set(); }
+}
+
+function saveDoneSet(set) {
+  try { localStorage.setItem('pau-done', JSON.stringify([...set])); } catch {}
+}
+
+function updateDoneBtn(exId) {
+  const done = getDoneSet().has(exId);
+  const btn  = document.getElementById('done-btn');
+  if (!btn) return;
+  btn.className   = 'done-btn ' + (done ? 'is-done' : 'not-done');
+  btn.textContent = done ? '✓ Fet' : 'Marcar com a fet';
+}
+
+function toggleDone() {
+  const exId = document.getElementById('v-detail').dataset.exId;
+  if (!exId) return;
+  const set = getDoneSet();
+  if (set.has(exId)) { set.delete(exId); } else { set.add(exId); }
+  saveDoneSet(set);
+  updateDoneBtn(exId);
+  // Actualitza el badge a l'element de la llista (sense reconstruir-la)
+  const li = document.querySelector(`.ex-item[data-ex-id="${exId}"]`);
+  if (!li) return;
+  const isDone = set.has(exId);
+  li.classList.toggle('is-fet', isDone);
+  const existing = li.querySelector('.ex-fet-tag');
+  const arrow    = li.querySelector('.ex-arrow');
+  if (isDone && !existing) {
+    const tag = document.createElement('span');
+    tag.className   = 'ex-fet-tag';
+    tag.textContent = '✓ Fet';
+    li.insertBefore(tag, arrow);
+  } else if (!isDone && existing) {
+    existing.remove();
+  }
 }
 
 /* Blink-and-shake de la icona Step Quiz als 5 segons */
