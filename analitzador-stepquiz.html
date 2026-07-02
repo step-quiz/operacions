@@ -678,10 +678,18 @@ function handleFile(f){
     const r=new FileReader();
     r.onload=e=>{
       try{
-        const wb=XLSX.read(e.target.result,{type:'array'});
+        // cellDates:true → les dates es llegeixen com a objectes Date reals, no com a
+        // text formatat regionalment (que podria ser 7/2/2026 = ambigu mes/dia).
+        const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
         const ws=wb.Sheets[wb.SheetNames[0]];
-        // Convertim a TSV perquè parseCSV el llegeix igual que un Sheets enganxat
-        const tsv=XLSX.utils.sheet_to_csv(ws,{FS:'\t'});
+        // Passem a matriu de files; les dates surten com a Date, la resta com a text.
+        const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,blankrows:false,defval:''});
+        const pad=n=>String(n).padStart(2,'0');
+        const isoDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        const tsv=aoa.map(row=>row.map(cell=>{
+          if(cell instanceof Date && !isNaN(cell)) return isoDate(cell);
+          return cell==null?'':String(cell).replace(/[\t\r\n]/g,' ');
+        }).join('\t')).join('\n');
         loadData(tsv);
       }catch(err){console.error(err);showLoadError('No s\'ha pogut llegir l\'arxiu Excel. Comprova que no estigui malmès o desa\'l com a CSV.');}
     };
