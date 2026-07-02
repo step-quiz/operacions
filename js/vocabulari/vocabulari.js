@@ -115,6 +115,7 @@
     let _punts        = 0;
     let _puntsTotal   = [];
     let _historial    = [];
+    let _resultats    = [];   // [v2] resultat per figura: 1/2/3/4 (com game-core.js)
     let _sessio       = 0;
     let _op           = 0;
     let _isPenalizing = false;
@@ -232,6 +233,7 @@
         _sessio     = 0;
         _puntsTotal = [];
         _historial  = [];
+        _resultats  = [];   // [v2] netegem els resultats per figura
         _startSession();
     }
 
@@ -285,6 +287,16 @@
 
     function _finishLevel(exhausted = false) {
         _isTransiting = true;
+
+        // [v2] Registrem el resultat d'aquesta figura amb la mateixa escala que
+        //   game-core.js: 1=sense errors · 2=1 error · 3=2+ errors · 4=fallada.
+        //   Els intents gastats són MAX_INTENTS - _intents.
+        if (exhausted) {
+            _resultats.push(4);
+        } else {
+            const errors = MAX_INTENTS - _intents;
+            _resultats.push(Math.min(errors + 1, 3));
+        }
 
         // [CANVI 2] Puntuació nova:
         //   - Figura completada → sempre +10 punts (bonus per completar)
@@ -1073,36 +1085,46 @@
     }
 
     // =========================================================================
-    // COPIAR CODI (antifrau per al professor)
+    // COPIAR CODI (antifrau per al professor) — FORMAT v2
+    //   Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRR…(30)  · idèntic a game-core.js
     // =========================================================================
     async function _copiarCodi() {
-        let randomStr = '';
+        // Salt aleatori (3 lletres minúscules)
+        let salt = '';
         const caracters = 'abcdefghijklmnopqrstuvwxyz';
         for (let i = 0; i < 3; i++) {
-            randomStr += caracters.charAt(Math.floor(Math.random() * caracters.length));
+            salt += caracters.charAt(Math.floor(Math.random() * caracters.length));
         }
 
+        // Data i hora
         const ara    = new Date();
         const dia    = String(ara.getDate()).padStart(2, '0');
         const mes    = String(ara.getMonth() + 1).padStart(2, '0');
         const hora   = String(ara.getHours()).padStart(2, '0');
         const minuts = String(ara.getMinutes()).padStart(2, '0');
 
-        const dateStr = dia + mes;
-        const timeStr = hora + minuts;
+        // Exercici, dificultat, sessions, preguntes
+        const exCode    = 'VO';                                   // vocabulari
+        const dif       = '0';                                    // sense nivells de dificultat
+        const sessions  = String(Math.min(TOTAL_SESS, 5));
+        const questions = String(Math.min(TOTAL_OPS, 10)).padStart(2, '0');
 
-        const notaSobre10     = _calculaNotaSobre10();
-        const notaFormatada   = notaSobre10.toFixed(2).padStart(5, '0').replace('.', ',');
-        const notaSencera     = Math.round(notaSobre10 * 100);
-        const valorAscii      = randomStr.charCodeAt(0);
-        const sumaControl     = notaSencera + parseInt(dia, 10) + parseInt(mes, 10)
-                              + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
-        const lletresControl  = 'TRWAGMYFPDXBNJZSQVHLCKE';
-        const lletraAssignada = lletresControl.charAt(sumaControl % 23);
-        const nomFitxer       = window.location.pathname.split('/').pop().replace('.html', '');
+        // Nota (NNN = nota × 10, 000-100)
+        const notaSobre10 = _calculaNotaSobre10();
+        const notaInt     = Math.round(notaSobre10 * 10);
+        const notaStr     = String(notaInt).padStart(3, '0');
 
-        const output = `${lletraAssignada}${randomStr}-${dateStr}-${timeStr}-${notaFormatada}-${nomFitxer}`;
-        console.log('Codi generat per al professor:', output);
+        // Resultats per figura (30 chars). 1=sense errors · 2=1 error · 3=2+ · 4=fallada
+        const resultsStr = _resultats.slice(0, 30).map(String).join('').padEnd(30, '0');
+
+        // Checksum (idèntic a game-core.js: fa servir la nota × 10)
+        const valorAscii  = salt.charCodeAt(0);
+        const sumaControl = notaInt + parseInt(dia, 10) + parseInt(mes, 10)
+                          + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
+        const lletra      = 'TRWAGMYFPDXBNJZSQVHLCKE'.charAt(sumaControl % 23);
+
+        const output = `${lletra}${salt}-${dia}${mes}-${hora}${minuts}-${exCode}-${dif}-${sessions}-${questions}-${notaStr}-${resultsStr}`;
+        console.log('Codi v2 generat per al professor:', output, '(', output.length, 'chars)');
 
         // Intentar copiar al portapapers; fallback visual si falla
         try {
