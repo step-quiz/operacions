@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StepQuiz — Analitzador de resultats</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
   --bg:       #f8fafc;
@@ -183,12 +184,85 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
   white-space:nowrap; display:none; box-shadow:0 2px 8px rgba(0,0,0,.25); }
 ::-webkit-scrollbar { width:4px; height:4px; }
 ::-webkit-scrollbar-thumb { background:var(--border-h); border-radius:2px; }
+
+/* ── AJUDA (botó fix + modal) ─────────────────────────────────── */
+.help-fab { position:fixed; right:18px; bottom:18px; z-index:400; width:44px; height:44px; border-radius:50%;
+  background:var(--accent); color:#fff; border:none; font-size:20px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 14px rgba(37,99,235,.35); display:flex; align-items:center; justify-content:center;
+  transition:transform .15s, box-shadow .15s; }
+.help-fab:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(37,99,235,.45); }
+.help-fab:focus-visible { outline:3px solid rgba(37,99,235,.4); outline-offset:2px; }
+
+.help-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:600; overflow-y:auto; padding:24px 16px; }
+.help-overlay.open { display:block; }
+.help-modal { background:var(--surface); border-radius:10px; max-width:720px; margin:0 auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.help-header { background:#1e293b; color:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; border-radius:10px 10px 0 0; }
+.help-header h2 { font-size:15px; font-weight:700; }
+.help-body { padding:20px 22px 26px; font-size:13.5px; line-height:1.55; }
+.help-step { display:flex; gap:12px; margin-bottom:16px; }
+.help-num { flex-shrink:0; width:26px; height:26px; border-radius:50%; background:var(--accent); color:#fff;
+  font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.help-step h3 { font-size:13.5px; font-weight:700; margin-bottom:2px; }
+.help-step p { color:#475569; font-size:12.75px; }
+.help-body code { font-family:monospace; background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:1px 5px; font-size:11.5px; color:#475569; word-break:break-all; }
+.help-sub { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:20px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+.help-key { display:flex; flex-wrap:wrap; gap:8px 16px; }
+.help-key div { font-size:12.25px; color:#475569; }
+.help-key b { color:var(--text); font-family:monospace; }
+.help-tip { background:#eff6ff; border:1px solid #dbeafe; border-radius:7px; padding:10px 13px; font-size:12.5px; color:#1e40af; margin-top:14px; }
+
+/* ── ANATOMIA DEL CODI ─────────────────────────────────────────── */
+.code-anatomy { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 14px 10px; margin-bottom:12px; }
+.code-string { font-family:monospace; font-size:15px; font-weight:700; text-align:center; letter-spacing:.5px; word-break:break-all; line-height:1.9; margin-bottom:4px; }
+.code-string .seg { padding:2px 4px; border-radius:4px; color:#fff; }
+.code-string .dash { color:var(--muted); font-weight:400; padding:0 1px; }
+.cs-l  { background:#64748b; } .cs-s  { background:#94a3b8; }
+.cs-dt { background:#0ea5e9; } .cs-tm { background:#06b6d4; }
+.cs-ee { background:#7c3aed; } .cs-d  { background:#a855f7; }
+.cs-ss { background:#ec4899; } .cs-qq { background:#f43f5e; }
+.cs-nn { background:#059669; } .cs-rr { background:#d97706; }
+.code-caption { font-size:11px; color:var(--muted); text-align:center; margin-top:2px; }
+.anat-list { list-style:none; margin-top:12px; display:flex; flex-direction:column; gap:9px; }
+.anat-list li { display:flex; gap:10px; align-items:flex-start; font-size:12.75px; }
+.anat-chip { flex-shrink:0; font-family:monospace; font-size:11px; font-weight:700; color:#fff; padding:3px 8px; border-radius:5px; min-width:52px; text-align:center; line-height:1.4; }
+.anat-list .t b { color:var(--text); }
+.anat-list .t span { color:#475569; }
+.anat-example { font-family:monospace; font-size:11px; color:#64748b; background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:1px 5px; margin-left:4px; }
+
+/* ── MODE UN SOL CODI ──────────────────────────────────────────── */
+.mode-tabs { display:flex; gap:0; max-width:460px; width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:3px; }
+.mode-tab { flex:1; padding:7px 10px; border:none; background:transparent; border-radius:6px; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; transition:.15s; }
+.mode-tab.active { background:var(--surface); color:var(--accent); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.mode-tab:hover:not(.active) { color:var(--text); }
+.mode-panel { display:none; flex-direction:column; align-items:center; gap:16px; width:100%; }
+.mode-panel.active { display:flex; }
+.single-input { width:100%; max-width:460px; background:var(--surface); border:1.5px solid var(--border); border-radius:8px; color:var(--text); padding:12px 14px; font-size:13px; font-family:monospace; outline:none; text-align:center; letter-spacing:.4px; }
+.single-input:focus { border-color:var(--accent); }
+.single-input.bad { border-color:var(--danger); box-shadow:0 0 0 2px rgba(220,38,38,.15); }
+
+.single-result { display:none; width:100%; max-width:560px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:0; overflow:hidden; text-align:left; }
+.single-result.show { display:block; }
+.sr-head { padding:13px 16px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:700; color:#fff; }
+.sr-head.ok { background:var(--ok); }
+.sr-head.bad { background:var(--danger); }
+.sr-head .sr-badge { margin-left:auto; font-size:11px; font-weight:600; background:rgba(255,255,255,.22); padding:2px 8px; border-radius:20px; letter-spacing:.3px; }
+.sr-body { padding:15px 16px; }
+.sr-grid { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px; }
+.sr-item { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:7px 11px; display:flex; flex-direction:column; }
+.sr-item .k { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:3px; }
+.sr-item .v { font-size:13.5px; font-weight:700; font-family:monospace; }
+.sr-sess { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
+.sr-sess-lbl { font-size:11px; color:var(--muted); width:56px; flex-shrink:0; }
+.sr-err { font-size:12.5px; color:var(--danger); font-weight:600; padding:2px 0; }
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>Step<span>Quiz</span> — Analitzador</h1>
+  <div class="header-right" style="margin-left:auto;">
+    <button class="btn btn-ghost" onclick="openHelp()" title="Com s'utilitza">? Ajuda</button>
+  </div>
   <div class="header-right" id="hdr-right" style="display:none">
     <button class="btn btn-ghost" onclick="resetView()">← Nou</button>
     <button class="btn btn-cb-base" id="btn-cb" onclick="openCB()">📊 Veure resum CB</button>
@@ -197,14 +271,32 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 </div>
 
 <div class="upload-zone" id="upload-zone">
-  <div class="dropzone" id="dropzone">
-    <div class="dropzone-icon" onclick="document.getElementById('fi').click()" style="cursor:pointer;" title="Obre un arxiu CSV">📂</div>
-    <button class="btn btn-primary" onclick="document.getElementById('fi').click()">Obre un arxiu CSV</button>
-    <input type="file" id="fi" accept=".csv,.txt" style="display:none" onchange="handleFile(this.files[0])">
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-sheet" onclick="switchMode('sheet')">📊 Full sencer</button>
+    <button class="mode-tab" id="tab-single" onclick="switchMode('single')">🔑 Un sol codi</button>
   </div>
-  <div class="sep">o enganxa el contingut directament</div>
-  <textarea class="paste-area" id="paste-area" placeholder="Enganxa aquí el contingut del full de càlcul (Ctrl+A, Ctrl+C des de Sheets)…"></textarea>
-  <button class="btn btn-primary" onclick="handlePaste()">Analitzar</button>
+
+  <!-- MODE FULL SENCER (CSV / XLSX / enganxat) -->
+  <div class="mode-panel active" id="panel-sheet">
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-icon" onclick="document.getElementById('fi').click()" style="cursor:pointer;" title="Obre un arxiu">📂</div>
+      <h2>Obre un arxiu</h2>
+      <p>CSV o Excel (.xlsx) descarregat del Google Form</p>
+      <button class="btn btn-primary" onclick="document.getElementById('fi').click()">Selecciona un arxiu</button>
+      <input type="file" id="fi" accept=".csv,.txt,.xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+    </div>
+    <div class="sep">o enganxa el contingut directament</div>
+    <textarea class="paste-area" id="paste-area" placeholder="Enganxa aquí el contingut del full de càlcul (Ctrl+A, Ctrl+C des de Sheets)…"></textarea>
+    <button class="btn btn-primary" onclick="handlePaste()">Analitzar</button>
+  </div>
+
+  <!-- MODE UN SOL CODI -->
+  <div class="mode-panel" id="panel-single">
+    <p style="font-size:13px;color:var(--muted);text-align:center;max-width:460px;">Enganxa el codi que t'ha donat un alumne per veure'l descodificat a l'instant.</p>
+    <input class="single-input" id="single-input" placeholder="Ex: Rab3-1206-0930-EN-1-3-10-075-111211…" oninput="onSingleInput()" onkeydown="if(event.key==='Enter')analyzeSingle()">
+    <button class="btn btn-primary" onclick="analyzeSingle()">Descodifica el codi</button>
+    <div class="single-result" id="single-result"></div>
+  </div>
 </div>
 
 <div class="main" id="main-view">
@@ -497,6 +589,9 @@ function resetView(){
   document.getElementById('main-view').classList.remove('visible');
   document.getElementById('hdr-right').style.display='none';
   document.getElementById('paste-area').value='';
+  const si=document.getElementById('single-input');if(si)si.value='';
+  const sr=document.getElementById('single-result');if(sr)sr.classList.remove('show');
+  switchMode('sheet');
   allRows=[];filtRows=[];expIdx=null;}
 
 function exportSummary(){
@@ -504,8 +599,112 @@ function exportSummary(){
   filtRows.forEach(r=>{const p=r.parsed;ls.push([r.student,p.exercise||'',p.note!==null?p.note.toFixed(2):'',p.difficulty??'',p.sessions??'',p.questions??'',r.status,r.gap!==null?r.gap:'','"'+r.raw.rawCode.replace(/"/g,'""')+'"'].join(','));});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ls.join('\n')],{type:'text/csv;charset=utf-8;'}));a.download='stepquiz-resum.csv';a.click();}
 
-function handleFile(f){if(!f)return;const r=new FileReader();r.onload=e=>loadData(e.target.result);r.readAsText(f,'UTF-8');}
-function handlePaste(){const t=document.getElementById('paste-area').value.trim();if(!t){alert('Enganxa el CSV primer.');return;}loadData(t);}
+function handleFile(f){
+  if(!f)return;
+  const name=(f.name||'').toLowerCase();
+  const isXlsx=name.endsWith('.xlsx')||name.endsWith('.xls')||name.endsWith('.xlsm');
+  if(isXlsx){
+    if(typeof XLSX==='undefined'){alert('No s\'ha pogut carregar el lector d\'Excel (cal connexió a Internet el primer cop). Descarrega el full com a CSV i torna-ho a provar.');return;}
+    const r=new FileReader();
+    r.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        // Convertim a TSV perquè parseCSV el llegeix igual que un Sheets enganxat
+        const tsv=XLSX.utils.sheet_to_csv(ws,{FS:'\t'});
+        loadData(tsv);
+      }catch(err){console.error(err);alert('No s\'ha pogut llegir l\'arxiu Excel.');}
+    };
+    r.readAsArrayBuffer(f);
+    return;
+  }
+  const r=new FileReader();r.onload=e=>loadData(e.target.result);r.readAsText(f,'UTF-8');
+}
+function handlePaste(){const t=document.getElementById('paste-area').value.trim();if(!t){alert('Enganxa el full de resultats primer.');return;}loadData(t);}
+
+// ─── MODES D'ENTRADA ────────────────────────────────────────────────────────
+function switchMode(mode){
+  const sheet=mode==='sheet';
+  document.getElementById('tab-sheet').classList.toggle('active',sheet);
+  document.getElementById('tab-single').classList.toggle('active',!sheet);
+  document.getElementById('panel-sheet').classList.toggle('active',sheet);
+  document.getElementById('panel-single').classList.toggle('active',!sheet);
+  if(!sheet)setTimeout(()=>document.getElementById('single-input').focus(),30);
+}
+
+function onSingleInput(){
+  const inp=document.getElementById('single-input');
+  inp.classList.remove('bad');
+  // Amaga el resultat mentre s'edita perquè no confongui
+  const box=document.getElementById('single-result');
+  if(box.classList.contains('show')&&!inp.value.trim())box.classList.remove('show');
+}
+
+function analyzeSingle(){
+  const inp=document.getElementById('single-input');
+  const raw=inp.value.trim();
+  const box=document.getElementById('single-result');
+  if(!raw){inp.classList.add('bad');inp.focus();return;}
+  const p=parseCode(raw);
+  if(p.format==='unknown'||p.format==='empty'){
+    inp.classList.add('bad');
+    box.className='single-result show';
+    box.innerHTML=`<div class="sr-head bad">❌ Codi no reconegut<span class="sr-badge">?</span></div>
+      <div class="sr-body"><div class="sr-err">Aquest text no té el format d'un codi StepQuiz. Comprova que l'hagis copiat sencer.</div></div>`;
+    return;
+  }
+  inp.classList.remove('bad');
+  box.className='single-result show';
+  box.innerHTML=renderSingle(raw,p);
+}
+
+function renderSingle(raw,p){
+  const ok=p.checksumOk;
+  const fmtLabel={'v2':'Format v2','v1':'Format v1','v1-cb':'Format v1 · CB'}[p.format]||p.format;
+  const hd=p.resultsArray&&p.resultsArray.some(v=>v>0);
+  const items=[
+    {k:'Validació',v:ok?'✅ Correcta':'❌ Checksum KO'},
+    {k:'Exercici',v:p.exercise||p.exerciseCode||'—'},
+    {k:'Nota',v:p.note!==null&&!isNaN(p.note)?p.note.toFixed(2).replace('.',','):'—'},
+    {k:'Data',v:p.day?`${String(p.day).padStart(2,'0')}/${String(p.month).padStart(2,'0')}`:'—'},
+    {k:'Hora',v:p.hour===null?'—':`${String(p.hour).padStart(2,'0')}:${String(p.minute).padStart(2,'0')}`},
+  ];
+  if(p.format==='v2'&&p.exerciseCode!=='CB'){
+    items.push({k:'Dificultat',v:p.difficulty===0?'—':`Nivell ${p.difficulty}`});
+    items.push({k:'Sessions',v:String(p.sessions)});
+    items.push({k:'Preguntes',v:String(p.questions)});
+  }
+  if(p.cbNivell) items.push({k:'Curs',v:p.cbNivell});
+  if(p.cbAny)    items.push({k:'Convocatòria',v:'CB '+p.cbAny});
+  if(p.cbMode)   items.push({k:'Mode',v:p.cbMode});
+
+  const ss=p.sessions||1,qq=p.questions||30;
+  let sessHtml='';
+  if(hd){
+    for(let s=0;s<ss;s++){
+      const sl=p.resultsArray.slice(s*qq,(s+1)*qq).filter(v=>v!==0);
+      if(!sl.length)continue;
+      sessHtml+=`<div class="sr-sess"><span class="sr-sess-lbl">${ss>1?'Sessió '+(s+1):'Preguntes'}</span>
+        <div style="display:flex;gap:3px;flex-wrap:wrap">${sl.map(v=>`<div class="rdlg" style="background:var(--r${v})">${['','1','2','3','✗'][v]||''}</div>`).join('')}</div></div>`;
+    }
+  }
+
+  return `<div class="sr-head ${ok?'ok':'bad'}">${ok?'✅ Codi vàlid':'❌ Codi invàlid'}<span class="sr-badge">${fmtLabel}</span></div>
+    <div class="sr-body">
+      <div class="sr-grid">${items.map(i=>`<div class="sr-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('')}</div>
+      ${!ok?`<div class="sr-err" style="margin-bottom:10px">⚠️ El checksum no quadra: el codi pot haver estat modificat o mal copiat.</div>`:''}
+      ${hd?`${sessHtml}<div class="legend" style="margin-top:8px">
+          <div class="li"><div class="ld" style="background:var(--r1)"></div>1r intent</div>
+          <div class="li"><div class="ld" style="background:var(--r2)"></div>2n intent</div>
+          <div class="li"><div class="ld" style="background:var(--r3)"></div>3r+ intents</div>
+          <div class="li"><div class="ld" style="background:var(--r4)"></div>Fallit</div>
+        </div>`:'<div style="color:var(--muted);font-size:12px">Aquest format no desa el detall pregunta a pregunta.</div>'}
+    </div>`;
+}
+
+// ─── AJUDA ──────────────────────────────────────────────────────────────────
+function openHelp(){document.getElementById('help-overlay').classList.add('open');document.body.style.overflow='hidden';}
+function closeHelp(){document.getElementById('help-overlay').classList.remove('open');if(!document.getElementById('cb-overlay').classList.contains('open'))document.body.style.overflow='';}
 
 const dz=document.getElementById('dropzone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
@@ -723,7 +922,7 @@ function closeCB() {
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCB(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCB(); closeHelp(); } });
 
 </script>
 
@@ -741,5 +940,83 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCB(); }
   </div>
 </div>
 <div class="cb-tooltip" id="cb-tooltip"></div>
+
+<!-- BOTÓ D'AJUDA FLOTANT -->
+<button class="help-fab" onclick="openHelp()" title="Com s'utilitza" aria-label="Ajuda">?</button>
+
+<!-- MODAL D'AJUDA -->
+<div class="help-overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+  <div class="help-modal">
+    <div class="help-header">
+      <h2>Com funciona l'analitzador</h2>
+      <button class="cb-close" onclick="closeHelp()" aria-label="Tanca">✕</button>
+    </div>
+    <div class="help-body">
+      <p style="color:#475569;margin-bottom:18px;">Aquesta eina descodifica els codis que generen els alumnes en acabar una activitat StepQuiz. Tot el càlcul es fa al teu navegador: cap dada surt d'aquí.</p>
+
+      <div class="help-step">
+        <div class="help-num">1</div>
+        <div><h3>L'alumne fa l'activitat</h3><p>En acabar, l'app li dóna un <b>codi</b> (p. ex. <code>Rab3-1206-0930-EN-1-3-10-075-1112…</code>) que porta xifrats la data, l'hora, l'exercici, la nota i el resultat pregunta a pregunta.</p></div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">2</div>
+        <div><h3>L'envia pel Google Form</h3><p>L'alumne enganxa el codi (i el seu correu) al formulari. Cada resposta queda desada al full de respostes del formulari.</p></div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">3</div>
+        <div><h3>Baixes les respostes</h3><p>Des del full de Google Sheets: <b>Fitxer → Baixa → CSV</b> (o <b>.xlsx</b>). També pots seleccionar-ho tot al full (Ctrl+A, Ctrl+C) i enganxar-ho directament.</p></div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">4</div>
+        <div><h3>L'analitzes aquí</h3><p>A la pestanya <b>Full sencer</b>, obre l'arxiu o enganxa'l. Filtra per alumne, dia, exercici o estat, i obre cada fila per veure el detall.</p></div>
+      </div>
+
+      <p class="help-sub">Què hi ha dins del codi</p>
+      <p style="color:#475569;font-size:12.75px;margin-bottom:12px;">El codi sembla una cadena aleatòria, però cada tros porta una dada. Aquest és l'aspecte d'un codi complet, amb cada peça d'un color:</p>
+      <div class="code-anatomy">
+        <div class="code-string">
+          <span class="seg cs-l">R</span><span class="seg cs-s">ab3</span><span class="dash">-</span><span class="seg cs-dt">1206</span><span class="dash">-</span><span class="seg cs-tm">0930</span><span class="dash">-</span><span class="seg cs-ee">EN</span><span class="dash">-</span><span class="seg cs-d">1</span><span class="dash">-</span><span class="seg cs-ss">3</span><span class="dash">-</span><span class="seg cs-qq">10</span><span class="dash">-</span><span class="seg cs-nn">075</span><span class="dash">-</span><span class="seg cs-rr">1112…</span>
+        </div>
+        <div class="code-caption">Un codi real de l'exemple: enters, fet el 12 de juny a les 9:30, nota 7,5</div>
+        <ul class="anat-list">
+          <li><span class="anat-chip cs-l">R</span><div class="t"><b>Lletra de control.</b> <span>És la peça antifrau. Es calcula a partir de totes les altres dades; si l'alumne canvia qualsevol xifra del codi, aquesta lletra deixa de quadrar i l'analitzador el marca com a</span> <b>❌ invàlid</b>. <span>Funciona com la lletra del DNI.</span></div></li>
+          <li><span class="anat-chip cs-s">ab3</span><div class="t"><b>Salt.</b> <span>Tres caràcters aleatoris que fan que dos codis idèntics surtin diferents. A les Competències Bàsiques, aquí s'hi amaguen a més el curs i l'any de la convocatòria.</span></div></li>
+          <li><span class="anat-chip cs-dt">1206</span><div class="t"><b>Data.</b> <span>Dia i mes en què es va fer l'activitat</span> <span class="anat-example">1206 = 12 de juny</span></div></li>
+          <li><span class="anat-chip cs-tm">0930</span><div class="t"><b>Hora.</b> <span>Hora i minuts en què es va acabar</span> <span class="anat-example">0930 = 09:30</span><span>. Comparada amb l'hora d'enviament al formulari dóna la columna Δt.</span></div></li>
+          <li><span class="anat-chip cs-ee">EN</span><div class="t"><b>Exercici.</b> <span>Dues lletres que identifiquen l'activitat</span> <span class="anat-example">EN = enters · EQ = equacions · CB = compet. bàsiques</span></div></li>
+          <li><span class="anat-chip cs-d">1</span><div class="t"><b>Dificultat.</b> <span>Nivell triat</span> <span class="anat-example">0 = sense nivells · 1–3 = nivell</span></div></li>
+          <li><span class="anat-chip cs-ss">3</span><div class="t"><b>Sessions.</b> <span>Quantes rondes ha completat (1–5).</span></div></li>
+          <li><span class="anat-chip cs-qq">10</span><div class="t"><b>Preguntes.</b> <span>Preguntes per sessió</span> <span class="anat-example">10</span></div></li>
+          <li><span class="anat-chip cs-nn">075</span><div class="t"><b>Nota.</b> <span>La nota sobre 10, multiplicada per 10</span> <span class="anat-example">075 = 7,5 · 100 = 10</span></div></li>
+          <li><span class="anat-chip cs-rr">1112…</span><div class="t"><b>Resultats.</b> <span>Una xifra per cada pregunta, en ordre, que diu com se n'ha sortit: </span><b style="color:var(--r1)">1</b> <span>al 1r intent, </span><b style="color:var(--r2)">2</b> <span>al 2n, </span><b style="color:var(--r3)">3</b> <span>al 3r o més, </span><b style="color:var(--r4)">4</b> <span>fallada. Aquest tros és el que pinta els quadrets de colors.</span></div></li>
+        </ul>
+      </div>
+
+      <p class="help-sub">Dos modes d'entrada</p>
+      <div class="help-key">
+        <div><b>📊 Full sencer</b> — un CSV/XLSX o full enganxat amb moltes respostes.</div>
+        <div><b>🔑 Un sol codi</b> — enganxa un únic codi d'un alumne i el veus descodificat a l'instant, sense cap arxiu.</div>
+      </div>
+
+      <p class="help-sub">Què vol dir cada columna</p>
+      <div class="help-key">
+        <div><b>✅ / ⚠️ / ❌</b> — Estat: vàlid · sospitós (molt de temps entre acabar i enviar) · codi invàlid (checksum incorrecte).</div>
+        <div><b>Δt</b> — Minuts entre l'hora de l'activitat i la de l'enviament al formulari.</div>
+        <div><b>Nota</b> — Sobre 10, treta directament del codi.</div>
+        <div><b>Resultats</b> — Un quadret per pregunta.</div>
+      </div>
+
+      <p class="help-sub">Colors dels resultats</p>
+      <div class="help-key">
+        <div><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--r1);vertical-align:middle;margin-right:5px;"></span><b>1</b> encert al 1r intent</div>
+        <div><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--r2);vertical-align:middle;margin-right:5px;"></span><b>2</b> al 2n intent</div>
+        <div><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--r3);vertical-align:middle;margin-right:5px;"></span><b>3</b> al 3r o més</div>
+        <div><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--r4);vertical-align:middle;margin-right:5px;"></span><b>✗</b> fallada</div>
+      </div>
+
+      <div class="help-tip">💡 <b>Resum CB:</b> si filtres per un dia i tens respostes de Competències Bàsiques, el botó <b>📊 Veure resum CB</b> et munta la matriu alumnes × preguntes i marca les preguntes que han costat més.</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
