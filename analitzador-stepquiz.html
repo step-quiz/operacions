@@ -87,6 +87,10 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 col.c-dia      { width:48px; }
 col.c-hora     { width:44px; }
 col.c-alumne   { width:84px; }
+col.c-classe   { width:74px; }
+body.no-classe .c-classe,
+body.no-classe .th-classe,
+body.no-classe .td-classe { display:none; }
 col.c-exercici { width:93px; }
 col.c-nota     { width:52px; }
 col.c-dif      { width:36px; }
@@ -311,6 +315,8 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     <div class="stat-pills" id="stat-pills"></div>
   </div>
   <div class="filterbar">
+    <span class="fl th-classe" id="fl-classe">Classe</span>
+    <select class="fi th-classe" id="f-cls" onchange="applyFilters()" style="width:110px"><option value="">Totes</option></select>
     <span class="fl">Alumne</span>
     <select class="fi" id="f-stu" onchange="applyFilters()" style="width:150px"><option value="">Tots</option></select>
     <span class="fl">Dia</span>
@@ -329,13 +335,13 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     <table>
       <colgroup>
         <col class="c-estat"><col class="c-dia"><col class="c-hora"><col class="c-alumne">
-        <col class="c-expand"><col class="c-nota"><col class="c-exercici"><col class="c-dif">
+        <col class="c-classe"><col class="c-expand"><col class="c-nota"><col class="c-exercici"><col class="c-dif">
         <col class="c-sess"><col class="c-preg"><col class="c-gap">
         <col class="c-results">
       </colgroup>
       <thead><tr>
         <th></th><th>Dia</th><th>Hora</th><th>Alumne</th>
-        <th></th><th>Nota</th>
+        <th class="th-classe">Classe</th><th></th><th>Nota</th>
         <th>Exercici</th><th title="Dificultat">Dif.</th>
         <th title="Sessions">Sess.</th><th title="Preguntes">Preg.</th>
         <th title="Minuts entre codi i enviament">Δt</th>
@@ -377,6 +383,8 @@ function parseCSV(txt){
   let ci=h.findIndex(s=>s.includes('codi')||s.includes('stepquiz')||s.includes('code'));
   let ei=h.findIndex(s=>s.includes('electr')||s.includes('email')||s.includes('correu'));
   let ti=h.findIndex(s=>s.includes('temps')||s.includes('timestamp')||s.includes('data'));
+  // Columna de classe/curs (opcional): "Selecciona la classe", "Curs", "Grup"…
+  let cli=h.findIndex(s=>s.includes('classe')||s.includes('curs')||s.includes('grup')||s.includes('nivell'));
   const headerFound = ci>=0;   // hem trobat una columna de codi pel nom?
   if(ci<0||ei<0||ti<0){const f=csvLine(ls[1],sep);
     if(ci<0)ci=f.findIndex(v=>/^[A-Z][a-z][a-z0-9]{2}-\d{4}/.test(v));
@@ -385,7 +393,8 @@ function parseCSV(txt){
   const h2i=h.findIndex(s=>s==='hora2');
   const rows=ls.slice(1).filter(l=>l.trim()).map(l=>{const c=csvLine(l,sep);return{
     timestamp:ti>=0?(c[ti]||'').trim():'',email:ei>=0?(c[ei]||'').trim():'',
-    rawCode:ci>=0?(c[ci]||'').trim():'',hora2:h2i>=0?(c[h2i]||'').trim():''};});
+    rawCode:ci>=0?(c[ci]||'').trim():'',hora2:h2i>=0?(c[h2i]||'').trim():'',
+    classe:cli>=0?(c[cli]||'').trim():''};});
   rows._headerFound=headerFound;   // marca per a la validació de contingut
   return rows;
 }
@@ -426,7 +435,15 @@ function parseCode(raw){
     results:'',resultsArray:[],error:'Format desconegut'};}
 
 function stu(email){return(!email||!email.includes('@'))?email||'—':email.split('@')[0];}
-function xdate(ts){const m=ts.match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?`${m[3]}-${m[2]}-${m[1]}`:''}
+function xdate(ts){
+  // Format Sheets/CSV: DD/MM/YYYY
+  let m=ts.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m)return `${m[3]}-${m[2]}-${m[1]}`;
+  // Format ISO que produeix l'exportació d'Excel via SheetJS: YYYY-MM-DD
+  m=ts.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+  return '';
+}
 function xtime(ts){const m=ts.match(/(\d{1,2}):(\d{2}):\d{2}/);return m?`${String(+m[1]).padStart(2,'0')}:${m[2]}`:''}
 function ctime(p){return p.hour===null?null:`${String(p.hour).padStart(2,'0')}:${String(p.minute).padStart(2,'0')}`}
 function gap(t1,t2){const f=s=>{const m=s&&s.match(/^(\d{1,2}):(\d{2})$/);return m?+m[1]*60+ +m[2]:null};const a=f(t1),b=f(t2);return(a!==null&&b!==null)?b-a:null;}
@@ -436,7 +453,7 @@ function processRows(csv){
     const p=parseCode(r.rawCode),st=stu(r.email),ds=xdate(r.timestamp),st2=xtime(r.timestamp),ct=ctime(p),g=gap(ct,st2);
     const status=p.valid?((g!==null&&g>GAP)?'warn':'ok'):'invalid';
     const dd=ds?ds.slice(8)+'/'+ds.slice(5,7):'—';
-    return{idx:i,raw:r,parsed:p,student:st,dateStr:ds,dayDisplay:dd,sendTime:st2,codeTime:ct,gap:g,status};});}
+    return{idx:i,raw:r,parsed:p,student:st,classe:r.classe||'',dateStr:ds,dayDisplay:dd,sendTime:st2,codeTime:ct,gap:g,status};});}
 
 function dots(arr,sm=true){
   if(!arr||!arr.some(v=>v>0))return'<span class="mu">—</span>';
@@ -459,6 +476,7 @@ function renderRow(row){
     <td class="tm">${row.dayDisplay}</td>
     <td class="tm">${row.sendTime||'<span class="mu">—</span>'}</td>
     <td title="${row.student}">${row.student}</td>
+    <td class="td-classe tm">${row.classe?row.classe:'<span class="mu">—</span>'}</td>
     <td><button class="exp-btn ${open?'open':''}" onclick="event.stopPropagation();toggleDet(${row.idx})">${open?'▲':'▼'}</button></td>
     <td>${rnote(p.note)}</td>
     <td title="${p.exercise||''}">${p.exercise||'—'}</td>
@@ -478,6 +496,7 @@ function renderDet(row){
     {k:'Hora enviament',v:row.sendTime||'—'},
     {k:'Validació',v:p.checksumOk?'✅ OK':'❌ KO'},
     {k:'Nota',v:p.note!==null?p.note.toFixed(2).replace('.',','):'—'}];
+  if(row.classe) items.push({k:'Classe',v:row.classe});
   items.push({k:'Activitat',v:p.exercise||p.exerciseCode||'—'});
   if(p.cbNivell) items.push({k:'Curs',v:p.cbNivell});
   if(p.cbAny)    items.push({k:'Convocatòria',v:'CB ' + p.cbAny});
@@ -510,7 +529,7 @@ function renderDet(row){
       </div>`;
     }
   }
-  return`<tr class="det-row" id="detail-${row.idx}"><td colspan="12"><div class="det-panel">
+  return`<tr class="det-row" id="detail-${row.idx}"><td colspan="13"><div class="det-panel">
     <button class="collapse-btn" onclick="toggleDet(${row.idx})" title="Col·lapsar">▲</button>
     <div class="det-code">${row.raw.rawCode}</div>
     <div class="det-grid">${items.map(i=>`<div class="det-item"><div class="dk">${i.k}</div><div class="dv">${i.v}</div></div>`).join('')}</div>
@@ -552,14 +571,22 @@ function populateStu(rows){
   const stus=[...new Set(rows.map(r=>r.student).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   document.getElementById('f-stu').innerHTML='<option value="">Tots</option>'+stus.map(s=>`<option value="${s}">${s}</option>`).join('');}
 
+function populateClasses(rows){
+  const cls=[...new Set(rows.map(r=>r.classe).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  document.getElementById('f-cls').innerHTML='<option value="">Totes</option>'+cls.map(c=>`<option value="${c}">${c}</option>`).join('');
+  // Amaga tot el que és de classe si cap fila en porta
+  document.body.classList.toggle('no-classe', cls.length===0);}
+
 function applyFilters(){
   const st=document.getElementById('f-stu').value.trim();
+  const cls=document.getElementById('f-cls').value;
   const ex=document.getElementById('f-ex').value;
   const sta=document.getElementById('f-sta').value;
   const dt=document.getElementById('f-date').value;
   expIdx=null;
   filtRows=allRows.filter(r=>{
     if(st&&r.student!==st)return false;
+    if(cls&&r.classe!==cls)return false;
     if(ex&&r.parsed.exercise!==ex)return false;
     if(sta&&r.status!==sta)return false;
     if(dt&&r.dateStr!==dt)return false;
@@ -567,7 +594,7 @@ function applyFilters(){
   renderTable(filtRows);renderStats(filtRows);checkCBButton();}
 
 function clearFilters(){
-  ['f-stu','f-ex','f-sta'].forEach(id=>document.getElementById(id).value='');
+  ['f-stu','f-cls','f-ex','f-sta'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-date').value='';
   applyFilters();}
 
@@ -613,7 +640,7 @@ function loadData(txt){
   document.getElementById('upload-zone').style.display='none';
   document.getElementById('main-view').classList.add('visible');
   document.getElementById('hdr-right').style.display='flex';
-  populateEx(allRows);populateStu(allRows);renderStats(allRows);renderTable(allRows);
+  populateEx(allRows);populateStu(allRows);populateClasses(allRows);renderStats(allRows);renderTable(allRows);
   const btnCb=document.getElementById('btn-cb');if(btnCb)btnCb._wasReady=false;}
 
 function resetView(){
@@ -628,8 +655,9 @@ function resetView(){
   allRows=[];filtRows=[];expIdx=null;}
 
 function exportSummary(){
-  const ls=['Alumne,Exercici,Nota,Dificultat,Sessions,Preguntes,Estat,Gap(min),Codi'];
-  filtRows.forEach(r=>{const p=r.parsed;ls.push([r.student,p.exercise||'',p.note!==null?p.note.toFixed(2):'',p.difficulty??'',p.sessions??'',p.questions??'',r.status,r.gap!==null?r.gap:'','"'+r.raw.rawCode.replace(/"/g,'""')+'"'].join(','));});
+  const hasCls=allRows.some(r=>r.classe);
+  const ls=[(hasCls?'Alumne,Classe,':'Alumne,')+'Exercici,Nota,Dificultat,Sessions,Preguntes,Estat,Gap(min),Codi'];
+  filtRows.forEach(r=>{const p=r.parsed;const base=hasCls?[r.student,r.classe||'']:[r.student];ls.push([...base,p.exercise||'',p.note!==null?p.note.toFixed(2):'',p.difficulty??'',p.sessions??'',p.questions??'',r.status,r.gap!==null?r.gap:'','"'+r.raw.rawCode.replace(/"/g,'""')+'"'].join(','));});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ls.join('\n')],{type:'text/csv;charset=utf-8;'}));a.download='stepquiz-resum.csv';a.click();}
 
 function handleFile(f){
@@ -882,7 +910,7 @@ function openCB() {
     const arr = row.parsed.resultsArray;
     const nota = row.parsed.note !== null ? row.parsed.note.toFixed(2).replace('.',',') : '—';
     summaryHtml += `<tr>
-      <td class="cb-stu-cell" data-tip="${row.student}" onmouseenter="showTip(event,this)" onmouseleave="hideTip()">${row.student.slice(0,4)}</td>
+      <td class="cb-stu-cell" data-tip="${row.student}${row.classe?' · '+row.classe:''}" onmouseenter="showTip(event,this)" onmouseleave="hideTip()">${row.student.slice(0,4)}</td>
       <td class="cb-nota-cell">${nota}</td>
       ${activeQs.map(q => {
         const v = arr[q] || 0;
@@ -1052,6 +1080,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCB();
       <p class="help-sub">Què vol dir cada columna</p>
       <div class="help-key">
         <div><b>✅ / ⚠️ / ❌</b> — Estat: vàlid · sospitós (molt de temps entre acabar i enviar) · codi invàlid (checksum incorrecte).</div>
+        <div><b>Classe</b> — El grup de l'alumne, si el formulari el demana. Si no hi és, la columna no apareix. Pots filtrar-hi.</div>
         <div><b>Δt</b> — Minuts entre l'hora de l'activitat i la de l'enviament al formulari.</div>
         <div><b>Nota</b> — Sobre 10, treta directament del codi.</div>
         <div><b>Resultats</b> — Un quadret per pregunta.</div>
