@@ -21,12 +21,18 @@
   --r1:#10b981; --r2:#84cc16; --r3:#f59e0b; --r4:#ef4444; --r0:#e2e8f0;
 }
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; font-size:13.5px; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; font-size:13.5px; zoom:1.10; }
 
-.header { background:var(--surface); border-bottom:1px solid var(--border); padding:10px 20px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100; }
-.header h1 { font-size:14px; font-weight:700; }
+.header { background:var(--surface); border-bottom:1px solid var(--border); padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:10px; position:sticky; top:0; z-index:100; }
+.header h1 { font-size:18.2px; font-weight:700; text-align:center; }
 .header h1 span { color:var(--text); }
 .header-right { display:flex; gap:8px; }
+.header-help { position:absolute; right:20px; top:50%; transform:translateY(-50%); display:flex; align-items:center; }
+.help-icon { width:34px; height:34px; border-radius:50%; background:var(--accent); color:#fff; border:none;
+  font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(37,99,235,.3); transition:transform .15s, box-shadow .15s; flex-shrink:0; }
+.help-icon:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,.4); }
+.help-icon:focus-visible { outline:3px solid rgba(37,99,235,.4); outline-offset:2px; }
 
 .btn { padding:5px 12px; border-radius:5px; border:none; font-size:12.5px; font-weight:600; cursor:pointer; transition:.15s; }
 .btn-primary { background:#cbd5e1; color:var(--text); }
@@ -45,6 +51,8 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 .sep::before,.sep::after { content:''; flex:1; border-top:1px solid var(--border); }
 .paste-area { width:100%; max-width:460px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px; font-size:12px; font-family:monospace; min-height:76px; resize:vertical; outline:none; }
 .paste-area:focus { border-color:var(--accent); }
+.load-error { max-width:460px; width:100%; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c;
+  border-radius:8px; padding:11px 14px; font-size:13px; line-height:1.5; text-align:left; }
 
 /* MAIN */
 .main { display:none; flex-direction:column; height:calc(100vh - 48px); }
@@ -185,14 +193,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 ::-webkit-scrollbar { width:4px; height:4px; }
 ::-webkit-scrollbar-thumb { background:var(--border-h); border-radius:2px; }
 
-/* ── AJUDA (botó fix + modal) ─────────────────────────────────── */
-.help-fab { position:fixed; right:18px; bottom:18px; z-index:400; width:44px; height:44px; border-radius:50%;
-  background:var(--accent); color:#fff; border:none; font-size:20px; font-weight:700; cursor:pointer;
-  box-shadow:0 4px 14px rgba(37,99,235,.35); display:flex; align-items:center; justify-content:center;
-  transition:transform .15s, box-shadow .15s; }
-.help-fab:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(37,99,235,.45); }
-.help-fab:focus-visible { outline:3px solid rgba(37,99,235,.4); outline-offset:2px; }
-
+/* ── AJUDA (modal) ─────────────────────────────────── */
 .help-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:600; overflow-y:auto; padding:24px 16px; }
 .help-overlay.open { display:block; }
 .help-modal { background:var(--surface); border-radius:10px; max-width:720px; margin:0 auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
@@ -259,14 +260,14 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 <body>
 
 <div class="header">
-  <h1>Step<span>Quiz</span> — Analitzador</h1>
-  <div class="header-right" style="margin-left:auto;">
-    <button class="btn btn-ghost" onclick="openHelp()" title="Com s'utilitza">? Ajuda</button>
-  </div>
-  <div class="header-right" id="hdr-right" style="display:none">
-    <button class="btn btn-ghost" onclick="resetView()">← Nou</button>
-    <button class="btn btn-cb-base" id="btn-cb" onclick="openCB()">📊 Veure resum CB</button>
-    <button class="btn btn-ghost" onclick="exportSummary()">⬇ Exportar</button>
+  <h1>Analitzador de codis enviats per alumnat</h1>
+  <div class="header-help">
+    <div class="header-right" id="hdr-right" style="display:none;margin-right:8px;">
+      <button class="btn btn-ghost" onclick="resetView()">← Nou</button>
+      <button class="btn btn-cb-base" id="btn-cb" onclick="openCB()">📊 Veure resum CB</button>
+      <button class="btn btn-ghost" onclick="exportSummary()">⬇ Exportar</button>
+    </div>
+    <button class="help-icon" onclick="openHelp()" title="Com s'utilitza" aria-label="Ajuda">?</button>
   </div>
 </div>
 
@@ -276,6 +277,8 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     <button class="mode-tab" id="tab-single" onclick="switchMode('single')">🔑 Un sol codi</button>
   </div>
 
+  <div class="load-error" id="load-error" style="display:none"></div>
+
   <!-- MODE FULL SENCER (CSV / XLSX / enganxat) -->
   <div class="mode-panel active" id="panel-sheet">
     <div class="dropzone" id="dropzone">
@@ -283,7 +286,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
       <h2>Obre un arxiu</h2>
       <p>CSV o Excel (.xlsx) descarregat del Google Form</p>
       <button class="btn btn-primary" onclick="document.getElementById('fi').click()">Selecciona un arxiu</button>
-      <input type="file" id="fi" accept=".csv,.txt,.xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+      <input type="file" id="fi" accept=".csv,.txt,.tsv,.xlsx,.xls,.xlsm" style="display:none" onchange="handleFile(this.files[0]); this.value='';">
     </div>
     <div class="sep">o enganxa el contingut directament</div>
     <textarea class="paste-area" id="paste-area" placeholder="Enganxa aquí el contingut del full de càlcul (Ctrl+A, Ctrl+C des de Sheets)…"></textarea>
@@ -374,14 +377,17 @@ function parseCSV(txt){
   let ci=h.findIndex(s=>s.includes('codi')||s.includes('stepquiz')||s.includes('code'));
   let ei=h.findIndex(s=>s.includes('electr')||s.includes('email')||s.includes('correu'));
   let ti=h.findIndex(s=>s.includes('temps')||s.includes('timestamp')||s.includes('data'));
+  const headerFound = ci>=0;   // hem trobat una columna de codi pel nom?
   if(ci<0||ei<0||ti<0){const f=csvLine(ls[1],sep);
     if(ci<0)ci=f.findIndex(v=>/^[A-Z][a-z][a-z0-9]{2}-\d{4}/.test(v));
     if(ei<0)ei=f.findIndex(v=>v.includes('@'));
     if(ti<0)ti=f.findIndex(v=>/\d{2}\/\d{2}\/\d{4}/.test(v));}
   const h2i=h.findIndex(s=>s==='hora2');
-  return ls.slice(1).filter(l=>l.trim()).map(l=>{const c=csvLine(l,sep);return{
+  const rows=ls.slice(1).filter(l=>l.trim()).map(l=>{const c=csvLine(l,sep);return{
     timestamp:ti>=0?(c[ti]||'').trim():'',email:ei>=0?(c[ei]||'').trim():'',
     rawCode:ci>=0?(c[ci]||'').trim():'',hora2:h2i>=0?(c[h2i]||'').trim():''};});
+  rows._headerFound=headerFound;   // marca per a la validació de contingut
+  return rows;
 }
 function chk(ltr,salt,dd,mm,hh,mn,ni){
   return LC.charAt((ni+dd+mm+hh+mn+salt.charCodeAt(0))%23)===ltr;
@@ -569,9 +575,41 @@ function toggleDet(i){
   expIdx=(expIdx===i)?null:i;renderTable(filtRows);
   if(expIdx!==null)setTimeout(()=>{const el=document.getElementById(`detail-${i}`);if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
 
+function showLoadError(msg){
+  const box=document.getElementById('load-error');
+  if(box){box.textContent=msg;box.style.display='block';
+    clearTimeout(showLoadError._t);
+    showLoadError._t=setTimeout(()=>{box.style.display='none';},8000);}
+}
+
+function looksLikeStepQuizData(csv){
+  // Vàlid si: (a) hi havia una columna de codi identificada per la capçalera, o
+  //           (b) alguna fila conté un codi que parseja a un format real (v2 / v1-cb).
+  if(csv._headerFound)return true;
+  return csv.some(r=>{
+    const f=parseCode(r.rawCode).format;
+    return f==='v2'||f==='v1-cb';
+  });
+}
+
 function loadData(txt){
-  const csv=parseCSV(txt);if(!csv||!csv.length){alert('No s\'han pogut llegir dades.');return;}
+  const csv=parseCSV(txt);
+  if(!csv||!csv.length){
+    showLoadError('No s\'han trobat dades. Comprova que sigui el full de respostes del formulari (CSV o Excel), amb una fila de capçalera i una fila per alumne.');
+    return;
+  }
+  if(!looksLikeStepQuizData(csv)){
+    showLoadError('Aquest arxiu no sembla un full de resultats de StepQuiz. Cap columna conté codis vàlids. Si has pujat un PDF o un altre document, descarrega el full de respostes del Google Form com a CSV o Excel i torna-ho a provar.');
+    return;
+  }
   allRows=processRows(csv);filtRows=[...allRows];expIdx=null;
+  // Segona barrera: si res no ha parsejat a un format conegut, no mostrem la taula
+  if(!allRows.some(r=>r.parsed.format==='v2'||r.parsed.format==='v1-cb')){
+    allRows=[];filtRows=[];
+    showLoadError('S\'han llegit files, però cap conté un codi StepQuiz reconeixible. Revisa que hagis triat la columna correcta i que els codis siguin del format actual.');
+    return;
+  }
+  document.getElementById('load-error').style.display='none';
   document.getElementById('upload-zone').style.display='none';
   document.getElementById('main-view').classList.add('visible');
   document.getElementById('hdr-right').style.display='flex';
@@ -586,6 +624,7 @@ function resetView(){
   const si=document.getElementById('single-input');if(si)si.value='';
   const sr=document.getElementById('single-result');if(sr)sr.classList.remove('show');
   switchMode('sheet');
+  const le=document.getElementById('load-error');if(le)le.style.display='none';
   allRows=[];filtRows=[];expIdx=null;}
 
 function exportSummary(){
@@ -597,8 +636,17 @@ function handleFile(f){
   if(!f)return;
   const name=(f.name||'').toLowerCase();
   const isXlsx=name.endsWith('.xlsx')||name.endsWith('.xls')||name.endsWith('.xlsm');
+  const isText=name.endsWith('.csv')||name.endsWith('.txt')||name.endsWith('.tsv');
+
+  // Barrera 1: rebutgem tipus que sabem que NO són fulls de resultats
+  const badExt=['.pdf','.doc','.docx','.ppt','.pptx','.png','.jpg','.jpeg','.gif','.zip','.json','.html'];
+  if(badExt.some(ext=>name.endsWith(ext))){
+    showLoadError('«'+f.name+'» no és un full de resultats. Cal un CSV o un Excel (.xlsx) descarregat del Google Form. Si tens un PDF o una imatge, no serveixen: ves al full de respostes del formulari i tria Fitxer → Baixa → CSV.');
+    return;
+  }
+
   if(isXlsx){
-    if(typeof XLSX==='undefined'){alert('No s\'ha pogut carregar el lector d\'Excel (cal connexió a Internet el primer cop). Descarrega el full com a CSV i torna-ho a provar.');return;}
+    if(typeof XLSX==='undefined'){showLoadError('No s\'ha pogut carregar el lector d\'Excel (cal connexió a Internet el primer cop). Descarrega el full com a CSV i torna-ho a provar.');return;}
     const r=new FileReader();
     r.onload=e=>{
       try{
@@ -607,14 +655,26 @@ function handleFile(f){
         // Convertim a TSV perquè parseCSV el llegeix igual que un Sheets enganxat
         const tsv=XLSX.utils.sheet_to_csv(ws,{FS:'\t'});
         loadData(tsv);
-      }catch(err){console.error(err);alert('No s\'ha pogut llegir l\'arxiu Excel.');}
+      }catch(err){console.error(err);showLoadError('No s\'ha pogut llegir l\'arxiu Excel. Comprova que no estigui malmès o desa\'l com a CSV.');}
     };
     r.readAsArrayBuffer(f);
     return;
   }
-  const r=new FileReader();r.onload=e=>loadData(e.target.result);r.readAsText(f,'UTF-8');
+
+  // Barrera 2: per a la resta, llegim com a text però comprovem que no sigui binari
+  // (p. ex. un PDF reanomenat .csv comença amb la signatura "%PDF-").
+  const r=new FileReader();
+  r.onload=e=>{
+    const txt=e.target.result||'';
+    if(txt.slice(0,5)==='%PDF-'||/[\x00-\x08\x0E-\x1F]/.test(txt.slice(0,1000))){
+      showLoadError('Aquest arxiu sembla un PDF o un fitxer binari, no un full de text. Descarrega el full de respostes del Google Form com a CSV o Excel.');
+      return;
+    }
+    loadData(txt);
+  };
+  r.readAsText(f,'UTF-8');
 }
-function handlePaste(){const t=document.getElementById('paste-area').value.trim();if(!t){alert('Enganxa el full de resultats primer.');return;}loadData(t);}
+function handlePaste(){const t=document.getElementById('paste-area').value.trim();if(!t){showLoadError('Enganxa primer el contingut del full de respostes.');return;}loadData(t);}
 
 // ─── MODES D'ENTRADA ────────────────────────────────────────────────────────
 function switchMode(mode){
@@ -934,9 +994,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCB();
   </div>
 </div>
 <div class="cb-tooltip" id="cb-tooltip"></div>
-
-<!-- BOTÓ D'AJUDA FLOTANT -->
-<button class="help-fab" onclick="openHelp()" title="Com s'utilitza" aria-label="Ajuda">?</button>
 
 <!-- MODAL D'AJUDA -->
 <div class="help-overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
