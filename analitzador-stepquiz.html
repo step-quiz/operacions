@@ -23,11 +23,12 @@
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; font-size:13.5px; zoom:1.10; }
 
-.header { background:var(--surface); border-bottom:1px solid var(--border); padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:10px; position:sticky; top:0; z-index:100; }
-.header h1 { font-size:18.2px; font-weight:700; text-align:center; }
+.header { background:var(--surface); border-bottom:1px solid var(--border); padding:12px 20px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:100; }
+.header h1 { font-size:18.2px; font-weight:700; text-align:center; flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .header h1 span { color:var(--text); }
 .header-right { display:flex; gap:8px; }
-.header-help { position:absolute; right:20px; top:50%; transform:translateY(-50%); display:flex; align-items:center; }
+.header-help { display:flex; align-items:center; flex:0 0 auto; }
+.header-tabs { display:flex; align-items:center; flex:0 0 auto; }
 .help-icon { width:34px; height:34px; border-radius:50%; background:var(--accent); color:#fff; border:none;
   font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
   box-shadow:0 2px 8px rgba(37,99,235,.3); transition:transform .15s, box-shadow .15s; flex-shrink:0; }
@@ -103,8 +104,9 @@ table.gradebook { border-collapse:separate; border-spacing:0; font-size:12.5px; 
 table.gradebook th, table.gradebook td { border-bottom:1px solid var(--border); border-right:1px solid var(--border); padding:6px 9px; text-align:center; white-space:nowrap; }
 table.gradebook thead th { position:sticky; top:0; background:var(--surface2); font-weight:700; color:var(--muted); z-index:3; font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
 table.gradebook .gb-stu { position:sticky; left:0; background:var(--surface); text-align:left; font-weight:600; z-index:2; border-right:2px solid var(--border-h); width:130px; min-width:130px; max-width:130px; overflow:hidden; text-overflow:ellipsis; }
-table.gradebook thead .gb-stu { z-index:4; }
+table.gradebook thead .gb-stu { z-index:4; background:var(--surface2); }
 table.gradebook .gb-cls { position:sticky; background:var(--surface); text-align:left; color:var(--muted); font-size:11px; z-index:2; border-right:2px solid var(--border-h); }
+table.gradebook thead .gb-cls { top:0; z-index:4; background:var(--surface2); }
 table.gradebook thead .gb-avg, table.gradebook td.gb-avg { background:#f1f5f9; font-weight:700; border-left:2px solid var(--border-h); }
 table.gradebook tbody tr:hover td { background:#f8fafc; }
 table.gradebook tbody tr:hover .gb-stu { background:#f1f5f9; }
@@ -296,13 +298,17 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 <body>
 
 <div class="header">
+  <div class="header-tabs" id="header-tabs" style="display:none;">
+    <div class="view-toggle" id="view-toggle">
+      <button id="vt-list" class="active" onclick="setView('list')">Enviaments</button>
+      <button id="vt-book" onclick="setView('book')">Llibreta</button>
+    </div>
+  </div>
   <h1>Analitzador de codis enviats per alumnat</h1>
   <div class="header-help">
     <div class="header-right" id="hdr-right" style="display:none;margin-right:8px;">
       <button class="btn btn-ghost" onclick="resetView()">← Nou</button>
-      <button class="btn btn-cb-base" id="btn-cb" onclick="openCB()">📊 Veure resum CB</button>
       <button class="btn btn-ghost" onclick="exportGradebookXLSX()" title="Descarrega la llibreta de notes (matriu alumne × activitat) en Excel">⬇ Excel notes</button>
-      <button class="btn btn-ghost" onclick="exportSummary()" title="Descarrega la llista d'enviaments en CSV">⬇ CSV</button>
     </div>
     <button class="help-icon" onclick="openHelp()" title="Com s'utilitza" aria-label="Ajuda">?</button>
   </div>
@@ -340,18 +346,9 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 </div>
 
 <div class="main" id="main-view">
-  <div class="topbar">
-    <div class="ex-wrap">
-      <label for="f-ex">Exercici</label>
-      <select class="ex-select" id="f-ex" onchange="applyFilters()"><option value="">Tots</option></select>
-    </div>
-    <div class="view-toggle" id="view-toggle">
-      <button id="vt-list" class="active" onclick="setView('list')">Enviaments</button>
-      <button id="vt-book" onclick="setView('book')">Llibreta</button>
-    </div>
-    <div class="stat-pills" id="stat-pills"></div>
-  </div>
   <div class="filterbar">
+    <span class="fl">Exercici</span>
+    <select class="fi" id="f-ex" onchange="applyFilters()" style="width:150px"><option value="">Tots</option></select>
     <span class="fl th-classe" id="fl-classe">Classe</span>
     <select class="fi th-classe" id="f-cls" onchange="applyFilters()" style="width:110px"><option value="">Totes</option></select>
     <span class="fl">Alumne</span>
@@ -592,10 +589,12 @@ function renderDet(row){
   </div></td></tr>`;}
 
 function renderStats(rows){
+  const el=document.getElementById('stat-pills');
+  if(!el)return;   // la barra d'estadístiques s'ha retirat de la UI
   const tot=rows.length,ok=rows.filter(r=>r.status==='ok').length,wn=rows.filter(r=>r.status==='warn').length,inv=rows.filter(r=>r.status==='invalid').length;
   const ns=rows.filter(r=>r.parsed.note!==null&&!isNaN(r.parsed.note)&&r.status!=='invalid').map(r=>r.parsed.note);
   const avg=ns.length?(ns.reduce((a,b)=>a+b,0)/ns.length).toFixed(2).replace('.',','):'—';
-  document.getElementById('stat-pills').innerHTML=
+  el.innerHTML=
     `<div class="sp"><strong>${tot}</strong> entrades</div>
      <div class="sp-sep"></div>
      <div class="sp">✅ <strong class="ok">${ok}</strong></div>
@@ -718,8 +717,7 @@ function renderGradebook(rows){
   const hasCls=gb.students.some(s=>s.classe);
   document.getElementById('count').textContent=`${gb.students.length} alumne${gb.students.length!==1?'s':''} · ${gb.activities.length} activitat${gb.activities.length!==1?'s':''}`;
 
-  let h=`<div class="gb-info">Nota de l'últim enviament vàlid de cada alumne per activitat. Passa el cursor per veure quants n'ha fet. <b>Vermell</b> &lt;5 · <b>Groc</b> 5–7 · <b>Verd</b> ≥7.</div>`;
-  h+='<table class="gradebook"><thead><tr>';
+  let h='<table class="gradebook"><thead><tr>';
   h+='<th class="gb-stu" style="left:0">Alumne</th>';
   const clsLeft = 130; // ha de coincidir amb l'amplada de .gb-stu
   if(hasCls)h+=`<th class="gb-cls" style="left:${clsLeft}px">Classe</th>`;
@@ -819,6 +817,7 @@ function loadData(txt){
   document.getElementById('upload-zone').style.display='none';
   document.getElementById('main-view').classList.add('visible');
   document.getElementById('hdr-right').style.display='flex';
+  document.getElementById('header-tabs').style.display='flex';
   filtRows=[...allRows];
   sortKey=null;sortDir=1;setView('list');
   populateEx(allRows);populateStu(allRows);populateClasses(allRows);renderStats(allRows);
@@ -828,6 +827,7 @@ function resetView(){
   document.getElementById('upload-zone').style.display='flex';
   document.getElementById('main-view').classList.remove('visible');
   document.getElementById('hdr-right').style.display='none';
+  document.getElementById('header-tabs').style.display='none';
   document.getElementById('paste-area').value='';
   const si=document.getElementById('single-input');if(si)si.value='';
   const sr=document.getElementById('single-result');if(sr)sr.classList.remove('show');
