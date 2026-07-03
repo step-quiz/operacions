@@ -29,18 +29,18 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 .header h1 span { color:var(--text); }
 .header-right { display:flex; gap:8px; }
 .header-help { display:flex; align-items:center; flex:0 0 auto; }
-.header-tabs { display:flex; align-items:center; flex:0 0 auto; }
+.header-tabs { display:flex; align-items:center; gap:8px; flex:0 0 auto; }
 .help-icon { width:34px; height:34px; border-radius:50%; background:var(--accent); color:#fff; border:none;
   font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
   box-shadow:0 2px 8px rgba(37,99,235,.3); transition:transform .15s, box-shadow .15s; flex-shrink:0; }
 .help-icon:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,.4); }
 .help-icon:focus-visible { outline:3px solid rgba(37,99,235,.4); outline-offset:2px; }
 
-.btn { padding:5px 12px; border-radius:5px; border:none; font-size:12.5px; font-weight:600; cursor:pointer; transition:.15s; }
+.btn { padding:5px 12px; border-radius:5px; border:1px solid transparent; font-size:12.5px; font-weight:600; cursor:pointer; transition:.15s; }
 .btn-primary { background:#cbd5e1; color:var(--text); }
-.btn-primary:hover { background:#94a3b8; color:#fff; }
+.btn-primary:hover { background:var(--accent); color:#fff; border-color:var(--accent); transform:translateY(-1px); box-shadow:0 3px 8px rgba(37,99,235,.28); }
 .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
-.btn-ghost:hover { color:var(--text); background:var(--surface2); }
+.btn-ghost:hover { color:var(--accent); background:#eff6ff; border-color:var(--accent); border-width:1.5px; transform:translateY(-1px); box-shadow:0 2px 6px rgba(37,99,235,.20); }
 
 /* UPLOAD */
 .upload-zone { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 48px); gap:22px; padding:32px; font-size:22.75px; }
@@ -77,8 +77,9 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 
 /* FILTER BAR */
 .filterbar { background:var(--bg); border-bottom:1px solid var(--border); padding:6px 18px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-.fi { background:var(--surface); border:1px solid var(--border); border-radius:5px; color:var(--text); padding:4px 8px; font-size:12.5px; outline:none; }
-.fi:focus { border-color:var(--accent); }
+.fi { background:var(--surface); border:1.5px solid var(--border); border-radius:5px; color:var(--text); padding:4px 8px; font-size:12.5px; outline:none; cursor:pointer; transition:.15s; }
+.fi:hover { border-color:var(--accent); background:#eff6ff; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+.fi:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.18); }
 .fi::placeholder { color:var(--muted); }
 .fl { color:var(--muted); font-size:11.5px; white-space:nowrap; }
 .count { margin-left:auto; font-size:11.5px; color:var(--muted); }
@@ -90,18 +91,18 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 .view-toggle { display:flex; gap:0; background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:2px; }
 .view-toggle button { border:none; background:transparent; padding:5px 13px; font-size:12.5px; font-weight:600; color:var(--muted); border-radius:5px; cursor:pointer; transition:.15s; }
 .view-toggle button.active { background:var(--surface); color:var(--accent); box-shadow:0 1px 2px rgba(0,0,0,.08); }
-.view-toggle button:hover:not(.active) { color:var(--text); }
+.view-toggle button:hover:not(.active) { color:var(--accent); background:#e0ebff; }
 
 /* ── Capçaleres ordenables ────────────────────────────────── */
 th.sortable { cursor:pointer; user-select:none; white-space:nowrap; }
-th.sortable:hover { color:var(--accent); }
+th.sortable:hover { color:var(--accent); background:#e0ebff; }
 th.sortable .arr { opacity:.35; font-size:10px; margin-left:2px; }
 th.sortable.sorted .arr { opacity:1; color:var(--accent); }
 
 /* ── Vista llibreta ───────────────────────────────────────── */
 .gb-wrap { flex:1; overflow:auto; padding:0; }
 .gb-wrap.hidden, .table-wrap.hidden { display:none; }
-table.gradebook { border-collapse:separate; border-spacing:0; font-size:12.5px; min-width:100%; }
+table.gradebook { border-collapse:separate; border-spacing:0; font-size:11.25px; min-width:100%; }
 table.gradebook th, table.gradebook td { border-bottom:1px solid var(--border); border-right:1px solid var(--border); padding:6px 9px; text-align:center; white-space:nowrap; }
 table.gradebook thead th { position:sticky; top:0; background:var(--surface2); font-weight:700; color:var(--muted); z-index:3; font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
 table.gradebook .gb-stu { position:sticky; left:0; background:var(--surface); text-align:left; font-weight:600; z-index:2; border-right:2px solid var(--border-h); width:130px; min-width:130px; max-width:130px; overflow:hidden; text-overflow:ellipsis; }
@@ -141,7 +142,7 @@ tbody tr { border-bottom:1px solid var(--border); transition:background .08s; cu
 tbody tr:nth-child(even) { background:#f1f5f9; }
 tbody tr:hover { background:#e2e8f0; }
 tbody tr.row-exp { background:#e2e8f0; }
-tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:16.2px; }
+tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14.6px; }
 .tm { font-family:monospace; font-size:15px; }
 .mu { color:var(--muted); }
 
@@ -170,7 +171,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 .ld { width:9px; height:9px; border-radius:1px; }
 
 .exp-btn { background:none; border:none; color:var(--accent); cursor:pointer; font-size:13.8px; padding:2px 4px; border-radius:3px; }
-.exp-btn:hover { opacity:.75; }
+.exp-btn:hover { background:#e0ebff; color:var(--accent); }
 .exp-btn.open { color:var(--danger); }
 
 .btn-cb-base { background:#e2e8f0; color:var(--text); border:1px solid var(--border-h); border-radius:5px; padding:5px 12px; font-size:12.5px; font-weight:600; cursor:pointer; transition:background .15s; }
@@ -304,12 +305,12 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
       <button id="vt-list" class="active" onclick="setView('list')">Enviaments</button>
       <button id="vt-book" onclick="setView('book')">Llibreta</button>
     </div>
+    <button class="btn btn-ghost" onclick="exportGradebookXLSX()" title="Descarrega la llibreta de notes (matriu alumne × activitat) en Excel">⬇ Excel notes</button>
   </div>
   <h1>Analitzador de codis enviats per alumnat</h1>
   <div class="header-help">
     <div class="header-right" id="hdr-right" style="display:none;margin-right:8px;">
       <button class="btn btn-ghost" onclick="resetView()">← Nou</button>
-      <button class="btn btn-ghost" onclick="exportGradebookXLSX()" title="Descarrega la llibreta de notes (matriu alumne × activitat) en Excel">⬇ Excel notes</button>
     </div>
     <button class="help-icon" onclick="openHelp()" title="Com s'utilitza" aria-label="Ajuda">?</button>
   </div>
