@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StepQuiz — Analitzador de resultats</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
 <style>
 :root {
   --bg:       #f8fafc;
@@ -747,31 +748,44 @@ function renderGradebook(rows){
   wrap.innerHTML=h;
 }
 
-// ── Exportació XLSX: matriu alumne × activitat ────────────────
-function exportGradebookXLSX(){
-  if(typeof XLSX==='undefined'){showLoadError('No s\'ha pogut carregar el generador d\'Excel (cal connexió a Internet). Torna-ho a provar.');return;}
+// ── Exportació XLSX: matriu alumne × activitat (amb estils, via ExcelJS) ──────
+async function exportGradebookXLSX(){
+  if(typeof ExcelJS==='undefined'){showLoadError('No s\'ha pogut carregar el generador d\'Excel (cal connexió a Internet el primer cop). Torna-ho a provar.');return;}
   const gb=buildGradebook(filtRows);
   if(!gb.students.length){showLoadError('No hi ha notes vàlides per exportar amb els filtres actuals.');return;}
   const hasCls=gb.students.some(s=>s.classe);
   // Format de data llegible DD/MM/AAAA a partir de l'ISO YYYY-MM-DD
   const fmtDate=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return `${d}/${m}/${y}`;};
-  const header=['Alumne',...(hasCls?['Classe']:[]),'Data',...gb.activities,'Mitjana'];
-  const aoa=[header];
+  const header=['Alumne',...(hasCls?['Classe']:[]),'Data',...gb.activities];   // sense "Mitjana"
+
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Notes');
+  ws.addRow(header);
   gb.students.forEach(s=>{
     const row=[s.name,...(hasCls?[s.classe||'']:[]),fmtDate(s.lastDate)];
-    gb.activities.forEach(a=>row.push(s.notes[a]?Number(s.notes[a].note.toFixed(2)):''));
-    row.push(s.avg!=null?Number(s.avg.toFixed(2)):'');
-    aoa.push(row);
+    // Les notes s'afegeixen com a NOMBRE (o null si no n'hi ha), no com a text
+    gb.activities.forEach(a=>row.push(s.notes[a]?Number(s.notes[a].note.toFixed(2)):null));
+    ws.addRow(row);
   });
-  const ws=XLSX.utils.aoa_to_sheet(aoa);
+
   // Amplada de columnes
-  ws['!cols']=header.map((hh,i)=>({wch:i===0?22:(hh==='Classe'?10:(hh==='Data'?12:Math.max(10,hh.length+2)))}));
-  // Congela la fila de capçalera i la columna d'alumnes
-  ws['!freeze']={xSplit:1,ySplit:1};
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Notes');
+  ws.columns=header.map((hh,i)=>({width:i===0?22:(hh==='Classe'?10:(hh==='Data'?13:Math.max(11,hh.length+2)))}));
+
+  // Capçalera: negreta + centrada
+  ws.getRow(1).eachCell(c=>{c.font={bold:true};c.alignment={horizontal:'center',vertical:'middle'};});
+  // Totes les dades (files 2 endavant): alineades a l'esquerra, mantenint el tipus nombre
+  for(let r=2;r<=ws.rowCount;r++){
+    ws.getRow(r).eachCell({includeEmpty:true},c=>{c.alignment={horizontal:'left'};});
+  }
+  // Congela capçalera + columna d'alumnes
+  ws.views=[{state:'frozen',xSplit:1,ySplit:1}];
+
+  const buf=await wb.xlsx.writeBuffer();
   const today=new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb,`stepquiz-llibreta-${today}.xlsx`);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download=`stepquiz-llibreta-${today}.xlsx`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
 function clearFilters(){
