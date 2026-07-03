@@ -687,8 +687,10 @@ function buildGradebook(rows){
   const map={};   // clau: nom d'alumne
   valid.forEach(r=>{
     const key=r.student||'—';
-    if(!map[key])map[key]={name:key,classe:r.classe||'',notes:{}};
+    if(!map[key])map[key]={name:key,classe:r.classe||'',notes:{},lastDate:''};
     if(r.classe&&!map[key].classe)map[key].classe=r.classe;
+    // Data d'enviament més recent de l'alumne (ISO YYYY-MM-DD)
+    if(r.dateStr&&r.dateStr>map[key].lastDate)map[key].lastDate=r.dateStr;
     const act=r.parsed.exercise||'—';
     const cell=map[key].notes[act]||(map[key].notes[act]={note:null,count:0,_t:''});
     cell.count++;
@@ -751,17 +753,19 @@ function exportGradebookXLSX(){
   const gb=buildGradebook(filtRows);
   if(!gb.students.length){showLoadError('No hi ha notes vàlides per exportar amb els filtres actuals.');return;}
   const hasCls=gb.students.some(s=>s.classe);
-  const header=['Alumne',...(hasCls?['Classe']:[]),...gb.activities,'Mitjana'];
+  // Format de data llegible DD/MM/AAAA a partir de l'ISO YYYY-MM-DD
+  const fmtDate=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return `${d}/${m}/${y}`;};
+  const header=['Alumne',...(hasCls?['Classe']:[]),'Data',...gb.activities,'Mitjana'];
   const aoa=[header];
   gb.students.forEach(s=>{
-    const row=[s.name,...(hasCls?[s.classe||'']:[])];
+    const row=[s.name,...(hasCls?[s.classe||'']:[]),fmtDate(s.lastDate)];
     gb.activities.forEach(a=>row.push(s.notes[a]?Number(s.notes[a].note.toFixed(2)):''));
     row.push(s.avg!=null?Number(s.avg.toFixed(2)):'');
     aoa.push(row);
   });
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   // Amplada de columnes
-  ws['!cols']=header.map((hh,i)=>({wch:i===0?22:(hh==='Classe'?10:Math.max(10,hh.length+2))}));
+  ws['!cols']=header.map((hh,i)=>({wch:i===0?22:(hh==='Classe'?10:(hh==='Data'?12:Math.max(10,hh.length+2)))}));
   // Congela la fila de capçalera i la columna d'alumnes
   ws['!freeze']={xSplit:1,ySplit:1};
   const wb=XLSX.utils.book_new();
