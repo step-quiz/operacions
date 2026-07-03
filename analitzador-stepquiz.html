@@ -83,6 +83,38 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 
 /* TABLE */
 .table-wrap { flex:1; overflow:auto; }
+
+/* ── Commutador de vista (Enviaments / Llibreta) ──────────── */
+.view-toggle { display:flex; gap:0; background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:2px; }
+.view-toggle button { border:none; background:transparent; padding:5px 13px; font-size:12.5px; font-weight:600; color:var(--muted); border-radius:5px; cursor:pointer; transition:.15s; }
+.view-toggle button.active { background:var(--surface); color:var(--accent); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.view-toggle button:hover:not(.active) { color:var(--text); }
+
+/* ── Capçaleres ordenables ────────────────────────────────── */
+th.sortable { cursor:pointer; user-select:none; white-space:nowrap; }
+th.sortable:hover { color:var(--accent); }
+th.sortable .arr { opacity:.35; font-size:10px; margin-left:2px; }
+th.sortable.sorted .arr { opacity:1; color:var(--accent); }
+
+/* ── Vista llibreta ───────────────────────────────────────── */
+.gb-wrap { flex:1; overflow:auto; padding:0; }
+.gb-wrap.hidden, .table-wrap.hidden { display:none; }
+table.gradebook { border-collapse:separate; border-spacing:0; font-size:12.5px; min-width:100%; }
+table.gradebook th, table.gradebook td { border-bottom:1px solid var(--border); border-right:1px solid var(--border); padding:6px 9px; text-align:center; white-space:nowrap; }
+table.gradebook thead th { position:sticky; top:0; background:var(--surface2); font-weight:700; color:var(--muted); z-index:3; font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
+table.gradebook .gb-stu { position:sticky; left:0; background:var(--surface); text-align:left; font-weight:600; z-index:2; border-right:2px solid var(--border-h); width:130px; min-width:130px; max-width:130px; overflow:hidden; text-overflow:ellipsis; }
+table.gradebook thead .gb-stu { z-index:4; }
+table.gradebook .gb-cls { position:sticky; background:var(--surface); text-align:left; color:var(--muted); font-size:11px; z-index:2; border-right:2px solid var(--border-h); }
+table.gradebook thead .gb-avg, table.gradebook td.gb-avg { background:#f1f5f9; font-weight:700; border-left:2px solid var(--border-h); }
+table.gradebook tbody tr:hover td { background:#f8fafc; }
+table.gradebook tbody tr:hover .gb-stu { background:#f1f5f9; }
+.gb-note { display:inline-block; min-width:34px; padding:2px 6px; border-radius:4px; font-weight:700; font-family:monospace; }
+.gb-note.n-lo { background:#fee2e2; color:#b91c1c; }       /* < 5 */
+.gb-note.n-mid { background:#fef3c7; color:#92400e; }      /* 5–7 */
+.gb-note.n-hi { background:#dcfce7; color:#15803d; }       /* ≥ 7 */
+.gb-empty-cell { color:#cbd5e1; }
+.gb-count { font-size:10px; color:var(--muted); font-weight:400; }
+.gb-info { padding:9px 14px; font-size:12px; color:var(--muted); border-bottom:1px solid var(--border); background:var(--surface2); }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 col.c-dia      { width:48px; }
 col.c-hora     { width:44px; }
@@ -269,7 +301,8 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     <div class="header-right" id="hdr-right" style="display:none;margin-right:8px;">
       <button class="btn btn-ghost" onclick="resetView()">← Nou</button>
       <button class="btn btn-cb-base" id="btn-cb" onclick="openCB()">📊 Veure resum CB</button>
-      <button class="btn btn-ghost" onclick="exportSummary()">⬇ Exportar</button>
+      <button class="btn btn-ghost" onclick="exportGradebookXLSX()" title="Descarrega la llibreta de notes (matriu alumne × activitat) en Excel">⬇ Excel notes</button>
+      <button class="btn btn-ghost" onclick="exportSummary()" title="Descarrega la llista d'enviaments en CSV">⬇ CSV</button>
     </div>
     <button class="help-icon" onclick="openHelp()" title="Com s'utilitza" aria-label="Ajuda">?</button>
   </div>
@@ -312,6 +345,10 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
       <label for="f-ex">Exercici</label>
       <select class="ex-select" id="f-ex" onchange="applyFilters()"><option value="">Tots</option></select>
     </div>
+    <div class="view-toggle" id="view-toggle">
+      <button id="vt-list" class="active" onclick="setView('list')">Enviaments</button>
+      <button id="vt-book" onclick="setView('book')">Llibreta</button>
+    </div>
     <div class="stat-pills" id="stat-pills"></div>
   </div>
   <div class="filterbar">
@@ -331,7 +368,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     <button class="btn btn-ghost" style="font-size:12px;padding:4px 9px;" onclick="clearFilters()">Netejar</button>
     <span class="count" id="count"></span>
   </div>
-  <div class="table-wrap">
+  <div class="table-wrap" id="table-wrap-el">
     <table>
       <colgroup>
         <col class="c-estat"><col class="c-dia"><col class="c-hora"><col class="c-alumne">
@@ -340,9 +377,15 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
         <col class="c-results">
       </colgroup>
       <thead><tr>
-        <th></th><th>Dia</th><th>Hora</th><th>Alumne</th>
-        <th class="th-classe">Classe</th><th></th><th>Nota</th>
-        <th>Exercici</th><th title="Dificultat">Dif.</th>
+        <th></th>
+        <th class="sortable" data-sort="dia" onclick="sortBy('dia')">Dia<span class="arr">↕</span></th>
+        <th>Hora</th>
+        <th class="sortable" data-sort="alumne" onclick="sortBy('alumne')">Alumne<span class="arr">↕</span></th>
+        <th class="th-classe sortable" data-sort="classe" onclick="sortBy('classe')">Classe<span class="arr">↕</span></th>
+        <th></th>
+        <th class="sortable" data-sort="nota" onclick="sortBy('nota')">Nota<span class="arr">↕</span></th>
+        <th class="sortable" data-sort="exercici" onclick="sortBy('exercici')">Exercici<span class="arr">↕</span></th>
+        <th title="Dificultat">Dif.</th>
         <th title="Sessions">Sess.</th><th title="Preguntes">Preg.</th>
         <th title="Minuts entre codi i enviament">Δt</th>
         <th>Resultats</th>
@@ -351,6 +394,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     </table>
     <div class="empty-state" id="empty" style="display:none">🔍 Cap resultat amb els filtres actuals</div>
   </div>
+  <div class="gb-wrap hidden" id="gb-wrap"></div>
 </div>
 
 <script>
@@ -368,6 +412,8 @@ const EX = {
 };
 const LC='TRWAGMYFPDXBNJZSQVHLCKE', GAP=15;
 let allRows=[], filtRows=[], expIdx=null;
+let currentView='list';           // 'list' | 'book'
+let sortKey=null, sortDir=1;      // ordenació de la vista Enviaments
 
 function csvLine(l,sep){
   const r=[];let c='',q=false;
@@ -436,12 +482,13 @@ function parseCode(raw){
 
 function stu(email){return(!email||!email.includes('@'))?email||'—':email.split('@')[0];}
 function xdate(ts){
-  // Format Sheets/CSV: DD/MM/YYYY
-  let m=ts.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-  if(m)return `${m[3]}-${m[2]}-${m[1]}`;
-  // Format ISO que produeix l'exportació d'Excel via SheetJS: YYYY-MM-DD
-  m=ts.match(/(\d{4})-(\d{2})-(\d{2})/);
+  ts=String(ts);
+  // Format ISO (Excel via SheetJS, ja normalitzat): YYYY-MM-DD
+  let m=ts.match(/(\d{4})-(\d{2})-(\d{2})/);
   if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+  // Format Sheets/CSV europeu: D/M/YYYY o DD/MM/YYYY
+  m=ts.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
   return '';
 }
 function xtime(ts){const m=ts.match(/(\d{1,2}):(\d{2}):\d{2}/);return m?`${String(+m[1]).padStart(2,'0')}:${m[2]}`:''}
@@ -591,7 +638,139 @@ function applyFilters(){
     if(sta&&r.status!==sta)return false;
     if(dt&&r.dateStr!==dt)return false;
     return true;});
-  renderTable(filtRows);renderStats(filtRows);checkCBButton();}
+  refreshView();
+  renderStats(filtRows);checkCBButton();}
+
+function refreshView(){
+  if(currentView==='book'){renderGradebook(filtRows);}
+  else{renderTable(sortRows(filtRows));}
+}
+
+// ── Ordenació de la vista Enviaments ──────────────────────────
+function sortRows(rows){
+  if(!sortKey)return rows;
+  const r=[...rows];
+  const val={
+    dia:x=>x.dateStr||'',
+    alumne:x=>x.student||'',
+    classe:x=>x.classe||'',
+    nota:x=>x.parsed.note==null?-1:x.parsed.note,
+    exercici:x=>x.parsed.exercise||''
+  }[sortKey];
+  r.sort((a,b)=>{const va=val(a),vb=val(b);
+    if(typeof va==='number')return (va-vb)*sortDir;
+    return String(va).localeCompare(String(vb),undefined,{numeric:true})*sortDir;});
+  return r;
+}
+function sortBy(key){
+  if(sortKey===key)sortDir=-sortDir; else{sortKey=key;sortDir=1;}
+  // marca visual a la capçalera
+  document.querySelectorAll('th.sortable').forEach(th=>{
+    const on=th.dataset.sort===sortKey;th.classList.toggle('sorted',on);
+    const a=th.querySelector('.arr');if(a)a.textContent=on?(sortDir>0?'↑':'↓'):'↕';});
+  renderTable(sortRows(filtRows));}
+
+// ── Commutador de vista ───────────────────────────────────────
+function setView(v){
+  currentView=v;
+  document.getElementById('vt-list').classList.toggle('active',v==='list');
+  document.getElementById('vt-book').classList.toggle('active',v==='book');
+  document.getElementById('table-wrap-el').classList.toggle('hidden',v!=='list');
+  document.getElementById('gb-wrap').classList.toggle('hidden',v!=='book');
+  refreshView();}
+
+// ── Model de dades de la llibreta ─────────────────────────────
+// Retorna { students:[{name,classe,notes:{activitat:{note,count}},avg}], activities:[...] }
+// Per a cada alumne+activitat es guarda la nota de l'ÚLTIM enviament vàlid.
+function buildGradebook(rows){
+  const valid=rows.filter(r=>r.status!=='invalid'&&r.parsed.note!=null&&!isNaN(r.parsed.note));
+  const acts=[...new Set(valid.map(r=>r.parsed.exercise).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const map={};   // clau: nom d'alumne
+  valid.forEach(r=>{
+    const key=r.student||'—';
+    if(!map[key])map[key]={name:key,classe:r.classe||'',notes:{}};
+    if(r.classe&&!map[key].classe)map[key].classe=r.classe;
+    const act=r.parsed.exercise||'—';
+    const cell=map[key].notes[act]||(map[key].notes[act]={note:null,count:0,_t:''});
+    cell.count++;
+    // Ens quedem amb l'últim enviament (marca de temps més recent disponible)
+    const t=(r.dateStr||'')+' '+(r.sendTime||'');
+    if(cell.note===null||t>=cell._t){cell.note=r.parsed.note;cell._t=t;}
+  });
+  const students=Object.values(map).map(s=>{
+    const vals=acts.map(a=>s.notes[a]?s.notes[a].note:null).filter(v=>v!=null);
+    s.avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+    return s;
+  }).sort((a,b)=>{
+    // ordena per classe i després per alumne
+    const c=(a.classe||'').localeCompare(b.classe||'',undefined,{numeric:true});
+    return c!==0?c:a.name.localeCompare(b.name);
+  });
+  return {students,activities:acts};
+}
+
+function noteClass(n){return n<5?'n-lo':(n<7?'n-mid':'n-hi');}
+
+function renderGradebook(rows){
+  const gb=buildGradebook(rows);
+  const wrap=document.getElementById('gb-wrap');
+  if(!gb.students.length){wrap.innerHTML='<div class="empty-state">🔍 Cap nota vàlida amb els filtres actuals</div>';return;}
+  const hasCls=gb.students.some(s=>s.classe);
+  document.getElementById('count').textContent=`${gb.students.length} alumne${gb.students.length!==1?'s':''} · ${gb.activities.length} activitat${gb.activities.length!==1?'s':''}`;
+
+  let h=`<div class="gb-info">Nota de l'últim enviament vàlid de cada alumne per activitat. Passa el cursor per veure quants n'ha fet. <b>Vermell</b> &lt;5 · <b>Groc</b> 5–7 · <b>Verd</b> ≥7.</div>`;
+  h+='<table class="gradebook"><thead><tr>';
+  h+='<th class="gb-stu" style="left:0">Alumne</th>';
+  const clsLeft = 130; // ha de coincidir amb l'amplada de .gb-stu
+  if(hasCls)h+=`<th class="gb-cls" style="left:${clsLeft}px">Classe</th>`;
+  gb.activities.forEach(a=>h+=`<th title="${a}">${a}</th>`);
+  h+='<th class="gb-avg">Mitjana</th></tr></thead><tbody>';
+
+  gb.students.forEach(s=>{
+    h+='<tr>';
+    h+=`<td class="gb-stu" style="left:0" title="${s.name}">${s.name}</td>`;
+    if(hasCls)h+=`<td class="gb-cls" style="left:${clsLeft}px">${s.classe||'—'}</td>`;
+    gb.activities.forEach(a=>{
+      const c=s.notes[a];
+      if(!c){h+='<td><span class="gb-empty-cell">·</span></td>';}
+      else{
+        const nStr=c.note.toFixed(1).replace('.',',');
+        const cnt=c.count>1?`<span class="gb-count"> (${c.count})</span>`:'';
+        h+=`<td title="${a}: ${c.count} enviament${c.count!==1?'s':''}"><span class="gb-note ${noteClass(c.note)}">${nStr}</span>${cnt}</td>`;
+      }
+    });
+    const avgStr=s.avg!=null?s.avg.toFixed(2).replace('.',','):'—';
+    h+=`<td class="gb-avg">${s.avg!=null?`<span class="gb-note ${noteClass(s.avg)}">${avgStr}</span>`:'—'}</td>`;
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  wrap.innerHTML=h;
+}
+
+// ── Exportació XLSX: matriu alumne × activitat ────────────────
+function exportGradebookXLSX(){
+  if(typeof XLSX==='undefined'){showLoadError('No s\'ha pogut carregar el generador d\'Excel (cal connexió a Internet). Torna-ho a provar.');return;}
+  const gb=buildGradebook(filtRows);
+  if(!gb.students.length){showLoadError('No hi ha notes vàlides per exportar amb els filtres actuals.');return;}
+  const hasCls=gb.students.some(s=>s.classe);
+  const header=['Alumne',...(hasCls?['Classe']:[]),...gb.activities,'Mitjana'];
+  const aoa=[header];
+  gb.students.forEach(s=>{
+    const row=[s.name,...(hasCls?[s.classe||'']:[])];
+    gb.activities.forEach(a=>row.push(s.notes[a]?Number(s.notes[a].note.toFixed(2)):''));
+    row.push(s.avg!=null?Number(s.avg.toFixed(2)):'');
+    aoa.push(row);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  // Amplada de columnes
+  ws['!cols']=header.map((hh,i)=>({wch:i===0?22:(hh==='Classe'?10:Math.max(10,hh.length+2))}));
+  // Congela la fila de capçalera i la columna d'alumnes
+  ws['!freeze']={xSplit:1,ySplit:1};
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Notes');
+  const today=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb,`stepquiz-llibreta-${today}.xlsx`);
+}
 
 function clearFilters(){
   ['f-stu','f-cls','f-ex','f-sta'].forEach(id=>document.getElementById(id).value='');
@@ -599,7 +778,7 @@ function clearFilters(){
   applyFilters();}
 
 function toggleDet(i){
-  expIdx=(expIdx===i)?null:i;renderTable(filtRows);
+  expIdx=(expIdx===i)?null:i;renderTable(sortRows(filtRows));
   if(expIdx!==null)setTimeout(()=>{const el=document.getElementById(`detail-${i}`);if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
 
 function showLoadError(msg){
@@ -640,7 +819,9 @@ function loadData(txt){
   document.getElementById('upload-zone').style.display='none';
   document.getElementById('main-view').classList.add('visible');
   document.getElementById('hdr-right').style.display='flex';
-  populateEx(allRows);populateStu(allRows);populateClasses(allRows);renderStats(allRows);renderTable(allRows);
+  filtRows=[...allRows];
+  sortKey=null;sortDir=1;setView('list');
+  populateEx(allRows);populateStu(allRows);populateClasses(allRows);renderStats(allRows);
   const btnCb=document.getElementById('btn-cb');if(btnCb)btnCb._wasReady=false;}
 
 function resetView(){
@@ -652,6 +833,7 @@ function resetView(){
   const sr=document.getElementById('single-result');if(sr)sr.classList.remove('show');
   switchMode('sheet');
   const le=document.getElementById('load-error');if(le)le.style.display='none';
+  currentView='list';sortKey=null;sortDir=1;
   allRows=[];filtRows=[];expIdx=null;}
 
 function exportSummary(){
