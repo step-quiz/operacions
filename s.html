@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unitat 1 — Nombres reals · fitxa adaptada</title>
+<!--
+  Fitxa adaptada · 4t ESO Aplicades · Unitat 1
+  Alumne amb DIL: nivell d'expressió matemàtica de 3r de primària.
+
+  CRITERIS DE DISSENY
+  1. El dibuix explica, les paraules només etiqueten. Cap paràgraf a les
+     pàgines de l'alumne.
+  2. IMPRESSIÓ EN BLANC I NEGRE. No hi ha ni un sol color a tot el document.
+     Les diferències es fan amb nivells de gris, gruix de línia i tipus de
+     traç (continu, discontinu). Res no depèn del color per entendre's.
+  3. Cos de 14 pt cap amunt i molta aire.
+  4. A CADA exercici, el primer apartat ja està resolt en lletra manuscrita,
+     perquè vegi el model abans de començar.
+
+  LA LLETRA MANUSCRITA
+  S'usa la pila de fonts de --manuscrita, que resol a una lletra lligada a la
+  majoria d'ordinadors (Segoe Script i Ink Free a Windows, Bradley Hand i
+  Snell Roundhand a Mac) i, si no n'hi ha cap, a la genèrica `cursive`.
+  Si vols una lletra lligada concreta i igual a tot arreu, desa el fitxer
+  .woff2 al costat d'aquest HTML i descomenta el bloc @font-face de sota,
+  posant-hi el nom del fitxer.
+
+  Imprimir: Ctrl+P, A4, i desactiva «Gràfics de fons» NO —cal deixar-lo
+  activat perquè es vegin les trames de gris.
+  Si no vols donar el solucionari, no imprimeixis l'última pàgina.
+-->
+<style>
+/* @font-face{ font-family:"LligadaEscola"; src:url("lligada.woff2") format("woff2"); font-display:swap; } */
+
+:root{
+  --tinta:#000; --gris-1:#333; --gris-2:#5E5E5E; --gris-3:#8A8A8A;
+  --vora:#8A8A8A; --vora-suau:#BFBFBF;
+  --fons-1:#F2F2F2; --fons-2:#E4E4E4; --fons-3:#D4D4D4; --fons-4:#C4C4C4;
+  --manuscrit:#3A3A3A;
+  --manuscrita:"LligadaEscola","Segoe Script","Ink Free","Bradley Hand",
+               "Snell Roundhand","Chalkboard SE","Comic Sans MS",cursive;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#E9E9E9;color:var(--tinta);
+  font-family:system-ui,-apple-system,"Segoe UI",Verdana,sans-serif;
+  font-size:14pt;line-height:1.65;letter-spacing:.005em}
+.full{background:#fff;max-width:21cm;margin:0 auto 1rem;padding:1.6cm 1.6cm 1.8cm;
+  min-height:29.7cm;display:flex;flex-direction:column}
+
+h1{font-size:25pt;font-weight:800;margin:0;line-height:1.12;letter-spacing:-.02em}
+h2{font-size:19pt;font-weight:800;margin:0 0 1rem;line-height:1.2}
+.nom{font-size:13pt;color:var(--gris-2);margin:1.1rem 0 0}
+.nom span{display:inline-block;border-bottom:2px solid var(--vora-suau);min-width:11cm}
+.pag{margin-top:auto;padding-top:.9rem;font-size:10.5pt;color:var(--gris-3);
+  border-top:1px solid var(--vora-suau)}
+
+/* --- lletra manuscrita: model resolt --- */
+.ms{font-family:var(--manuscrita);color:var(--manuscrit);font-size:1.14em;line-height:1.3}
+.resolt{background:var(--fons-1)}
+.et-resolt{font-family:var(--manuscrita);color:var(--manuscrit);font-size:12pt;
+  display:inline-block;transform:rotate(-1.5deg)}
+.encerclat{display:inline-block;border:2.5px solid var(--manuscrit);border-radius:50%;
+  padding:.15rem 1.1rem;transform:rotate(-3deg)}
+
+/* --- consignes --- */
+.tasca{display:flex;gap:.85rem;align-items:flex-start;margin:0 0 .6rem}
+.tasca .n{flex:0 0 2.4rem;height:2.4rem;border:3px solid var(--tinta);border-radius:9px;
+  font-size:18pt;font-weight:800;display:flex;align-items:center;justify-content:center}
+.tasca .q{font-size:15.5pt;font-weight:700;line-height:1.3;padding-top:.15rem}
+.exercici{margin:0 0 2.1rem;break-inside:avoid}
+.apartat{font-weight:800;font-size:14pt;margin-right:.4rem}
+
+.ico{width:2rem;height:2rem;flex:0 0 auto;vertical-align:-.5rem}
+.ico.gran{width:3rem;height:3rem}
+
+/* --- taules --- */
+table{border-collapse:collapse;width:100%;margin:.5rem 0}
+th,td{border:2px solid var(--vora);padding:.5rem .6rem;text-align:center;font-size:15pt}
+th{background:var(--fons-2);font-size:11.5pt;font-weight:700;color:var(--gris-1);letter-spacing:.02em}
+td.omplir{height:1.55cm;background:#fff}
+td.dada{font-weight:700;background:var(--fons-1)}
+td.ms{font-size:15pt}
+
+.caixes{display:flex;gap:.9rem;flex-wrap:wrap;margin:.6rem 0}
+.caixa-buida{flex:1;min-width:4.6cm}
+.caixa-buida .et{font-size:11.5pt;color:var(--gris-2);margin-bottom:.15rem}
+.caixa-buida .q{height:1.9cm;border:2px solid var(--vora);border-radius:9px}
+
+/* --- opcions per marcar --- */
+.tria{display:flex;gap:.8rem;flex-wrap:wrap;margin:.6rem 0}
+.tria label{flex:1;min-width:4.2cm;border:2px solid var(--vora);border-radius:11px;
+  padding:.55rem;text-align:center;font-size:18pt;font-weight:700;display:block}
+.quadret{display:inline-block;width:1.4rem;height:1.4rem;border:2.5px solid var(--tinta);
+  border-radius:5px;vertical-align:-.3rem;margin-right:.45rem;position:relative}
+
+.encercla{display:flex;gap:1rem;flex-wrap:wrap;margin:.5rem 0 0;align-items:center}
+.encercla span.n{border:2px solid var(--vora-suau);border-radius:999px;padding:.35rem 1.2rem;
+  font-size:19pt;font-weight:700}
+
+/* --- blocs destacats, diferenciats per traç i no per color --- */
+.avis{border-radius:11px;padding:.9rem 1.1rem;margin:1.1rem 0;font-size:14pt;
+  background:var(--fons-1);border:2px solid var(--vora)}
+.avis.puntejat{border-style:dashed;background:#fff}
+.avis.gruixut{border-width:3px;border-color:var(--tinta)}
+
+/* --- frases model --- */
+.frase{font-size:16.5pt;line-height:2.3;margin:.6rem 0}
+.frase u{text-decoration:none;border-bottom:2.5px solid var(--tinta);padding:0 2rem;
+  display:inline-block}
+
+svg{display:block;width:100%;height:auto}
+.centrat{max-width:15cm;margin:0 auto}
+.parella{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap}
+.parella>*{flex:1;min-width:7.6cm}
+.targetes{display:flex;gap:.9rem;margin-top:1.6rem;text-align:center}
+.targetes>div{flex:1;border:2px solid var(--vora);border-radius:13px;padding:.9rem .4rem}
+.targetes .et{font-size:11.5pt;color:var(--gris-2)}
+.targetes .val{font-size:24pt;font-weight:800;margin-top:.25rem}
+
+.situacio{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;
+  border:2px solid var(--vora-suau);border-radius:12px;padding:.8rem .9rem;margin:.7rem 0}
+.situacio .txt{flex:1;min-width:6cm;font-size:13pt;line-height:1.4}
+.situacio .val{font-size:17pt;font-weight:800;white-space:nowrap}
+
+/* --- solucionari: per a l'adult, aquí sí que hi ha text --- */
+.sol{font-size:11.5pt;line-height:1.55}
+.sol h3{font-size:13.5pt;margin:1.1rem 0 .25rem}
+.sol table th,.sol table td{font-size:11.5pt;padding:.32rem .5rem;text-align:left}
+.sol td.omplir{height:auto}
+.sol ul{margin:.35rem 0;padding-left:1.2rem}
+
+@media print{
+  body{background:#fff}
+  .full{margin:0;max-width:none;padding:1.3cm 1.4cm;min-height:0;page-break-after:always}
+  .full:last-child{page-break-after:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- icones, totes de traç negre -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-calc" viewBox="0 0 48 48">
+    <rect x="7" y="3" width="34" height="42" rx="6" fill="#000"/>
+    <rect x="12" y="8" width="24" height="12" rx="3" fill="#E4E4E4"/>
+    <g fill="#B0B0B0"><circle cx="16" cy="27" r="3"/><circle cx="24" cy="27" r="3"/><circle cx="32" cy="27" r="3"/>
+    <circle cx="16" cy="36" r="3"/><circle cx="24" cy="36" r="3"/><circle cx="32" cy="36" r="3"/></g>
+  </symbol>
+  <symbol id="i-parla" viewBox="0 0 48 48">
+    <path d="M6 9a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H21l-10 9V33h-1a4 4 0 0 1-4-4z"
+      fill="#F2F2F2" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-compra" viewBox="0 0 48 48">
+    <path d="M17 15V11a7 7 0 0 1 14 0v4" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+    <path d="M9 15h30l-3 28H12z" fill="#F2F2F2" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-talla" viewBox="0 0 48 48">
+    <rect x="4" y="18" width="30" height="10" fill="#F2F2F2" stroke="#000" stroke-width="3"/>
+    <path d="M4 28l4 5 4-5 4 5 4-5 4 5 4-5 4 5 2-5" fill="none" stroke="#000" stroke-width="3"
+      stroke-linejoin="round"/>
+    <rect x="34" y="16" width="10" height="14" rx="3" fill="#000"/>
+  </symbol>
+  <symbol id="i-fletxa" viewBox="0 0 48 48">
+    <path d="M24 6v30m0 0l-11-11m11 11l11-11" fill="none" stroke="#5E5E5E" stroke-width="4"
+      stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+<!-- ==================== FULL 1 ==================== -->
+<div class="full">
+  <h1>Números que no s'acaben</h1>
+  <p class="nom">Nom: <span></span></p>
+
+  <div style="margin-top:1.5rem">
+    <svg viewBox="0 0 640 300" class="centrat" role="img" aria-label="Mapa dels conjunts de nombres">
+      <rect x="4" y="4" width="632" height="292" rx="18" fill="#fff" stroke="#000" stroke-width="3"/>
+      <text x="22" y="36" font-size="21" font-weight="800" fill="#000" font-family="system-ui">REALS</text>
+      <rect x="22" y="50" width="392" height="230" rx="16" fill="#F2F2F2" stroke="#000" stroke-width="2.5"/>
+      <text x="40" y="78" font-size="18" font-weight="700" fill="#000" font-family="system-ui">Racionals</text>
+      <rect x="40" y="92" width="266" height="172" rx="14" fill="#E4E4E4" stroke="#000" stroke-width="2.5"/>
+      <text x="58" y="120" font-size="18" font-weight="700" fill="#000" font-family="system-ui">Enters</text>
+      <rect x="58" y="134" width="150" height="112" rx="12" fill="#D0D0D0" stroke="#000" stroke-width="2.5"/>
+      <text x="76" y="162" font-size="18" font-weight="700" fill="#000" font-family="system-ui">Naturals</text>
+      <g font-size="21" fill="#000" font-family="system-ui">
+        <text x="76" y="196">0  1  2</text>
+        <text x="76" y="230">3  17</text>
+        <text x="224" y="196">−4</text>
+        <text x="224" y="230">−31</text>
+        <text x="322" y="162">1/2</text>
+        <text x="322" y="200">0,75</text>
+        <text x="322" y="238">2,333…</text>
+      </g>
+      <rect x="428" y="56" width="196" height="224" rx="14" fill="#fff" stroke="#000"
+        stroke-width="2.5" stroke-dasharray="9 6"/>
+      <text x="446" y="84" font-size="18" font-weight="700" fill="#000" font-family="system-ui">Irracionals</text>
+      <g font-size="21" fill="#000" font-family="system-ui">
+        <text x="446" y="134">√2</text><text x="446" y="182">π</text><text x="446" y="230">√5</text>
+      </g>
+      <g font-size="17" fill="#5E5E5E" font-family="system-ui">
+        <text x="496" y="134">1,4142…</text><text x="496" y="182">3,1415…</text><text x="496" y="230">2,2360…</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="avis gruixut" style="margin-top:1.8rem">
+    <div class="parella">
+      <svg viewBox="0 0 300 120" role="img" aria-label="La calculadora fa arrel de 2">
+        <rect x="4" y="4" width="292" height="112" rx="14" fill="#000"/>
+        <rect x="18" y="18" width="264" height="84" rx="8" fill="#E4E4E4"/>
+        <text x="266" y="52" text-anchor="end" font-size="23" fill="#5E5E5E" font-family="system-ui">√2</text>
+        <text x="266" y="88" text-anchor="end" font-size="28" font-weight="800" fill="#000" font-family="system-ui">1,4142135…</text>
+      </svg>
+      <svg viewBox="0 0 300 120" role="img" aria-label="La calculadora fa arrel de 9">
+        <rect x="4" y="4" width="292" height="112" rx="14" fill="#000"/>
+        <rect x="18" y="18" width="264" height="84" rx="8" fill="#E4E4E4"/>
+        <text x="266" y="52" text-anchor="end" font-size="23" fill="#5E5E5E" font-family="system-ui">√9</text>
+        <text x="266" y="88" text-anchor="end" font-size="28" font-weight="800" fill="#000" font-family="system-ui">3</text>
+      </svg>
+    </div>
+    <div class="parella" style="margin-top:.4rem;font-weight:700;text-align:center">
+      <span>els decimals no s'acaben mai</span><span>no té decimals</span>
+    </div>
+  </div>
+
+  <div class="pag">Unitat 1 · pàgina 1</div>
+</div>
+
+<!-- ==================== FULL 2 ==================== -->
+<div class="full">
+  <h2>On cau el número?</h2>
+
+  <svg viewBox="0 0 300 120" style="max-width:8.6cm;margin:0 auto" role="img" aria-label="La calculadora fa arrel de 7">
+    <rect x="4" y="4" width="292" height="112" rx="14" fill="#000"/>
+    <rect x="18" y="18" width="264" height="84" rx="8" fill="#E4E4E4"/>
+    <text x="266" y="52" text-anchor="end" font-size="23" fill="#5E5E5E" font-family="system-ui">√7</text>
+    <text x="266" y="88" text-anchor="end" font-size="28" font-weight="800" fill="#000" font-family="system-ui">2,6457513…</text>
+  </svg>
+
+  <svg class="ico gran" style="margin:.8rem auto"><use href="#i-fletxa"/></svg>
+
+  <svg viewBox="0 0 640 150" role="img" aria-label="Arrel de 7 marcada a la recta, entre 2 i 3">
+    <rect x="212" y="60" width="140" height="30" fill="#E4E4E4"/>
+    <line x1="30" y1="75" x2="610" y2="75" stroke="#000" stroke-width="3"/>
+    <g font-family="system-ui" font-size="20" fill="#5E5E5E" text-anchor="middle">
+      <line x1="72"  y1="60" x2="72"  y2="90" stroke="#000" stroke-width="3"/><text x="72"  y="122">1</text>
+      <line x1="212" y1="60" x2="212" y2="90" stroke="#000" stroke-width="3"/><text x="212" y="122">2</text>
+      <line x1="352" y1="60" x2="352" y2="90" stroke="#000" stroke-width="3"/><text x="352" y="122">3</text>
+      <line x1="492" y1="60" x2="492" y2="90" stroke="#000" stroke-width="3"/><text x="492" y="122">4</text>
+    </g>
+    <line x1="302" y1="26" x2="302" y2="90" stroke="#000" stroke-width="4"/>
+    <circle cx="302" cy="75" r="10" fill="#000"/>
+    <text x="302" y="19" text-anchor="middle" font-size="21" font-weight="800" fill="#000" font-family="system-ui">√7</text>
+  </svg>
+
+  <div class="avis" style="margin-top:1.5rem">
+    <p class="frase" style="margin:0">√7 és entre <b>2</b> i <b>3</b>.</p>
+  </div>
+
+  <div class="pag">Unitat 1 · pàgina 2</div>
+</div>
+
+<!-- ==================== FULL 3 ==================== -->
+<div class="full">
+  <h2>Quants decimals?</h2>
+
+  <svg viewBox="0 0 420 200" style="max-width:11.5cm;margin:0 auto" role="img"
+       aria-label="Taula quadrada d'1,2 metres i la seva diagonal">
+    <rect x="30" y="36" width="150" height="150" fill="#F2F2F2" stroke="#000" stroke-width="3"/>
+    <line x1="30" y1="186" x2="180" y2="36" stroke="#000" stroke-width="4"/>
+    <text x="105" y="26" text-anchor="middle" font-size="18" fill="#5E5E5E" font-family="system-ui">1,2 m</text>
+    <rect x="212" y="70" width="200" height="86" rx="12" fill="#000"/>
+    <rect x="224" y="82" width="176" height="62" rx="7" fill="#E4E4E4"/>
+    <text x="386" y="124" text-anchor="end" font-size="23" font-weight="800" fill="#000" font-family="system-ui">1,6970562…</text>
+  </svg>
+
+  <div class="targetes">
+    <div>
+      <svg class="ico gran" style="margin:0 auto"><use href="#i-parla"/></svg>
+      <div class="et">Ho dic</div><div class="val">1,7</div>
+    </div>
+    <div>
+      <svg class="ico gran" style="margin:0 auto"><use href="#i-compra"/></svg>
+      <div class="et">Ho compro</div><div class="val">1,70</div>
+    </div>
+    <div>
+      <svg class="ico gran" style="margin:0 auto"><use href="#i-talla"/></svg>
+      <div class="et">Ho tallo</div><div class="val">1,697</div>
+    </div>
+  </div>
+
+  <div class="avis gruixut" style="margin-top:1.8rem;text-align:center;font-size:17pt;font-weight:700">
+    Primer pensa per a què ho vols.
+  </div>
+
+  <div class="pag">Unitat 1 · pàgina 3</div>
+</div>
+
+<!-- ==================== FULL 4 ==================== -->
+<div class="full">
+  <div class="exercici">
+    <div class="tasca"><div class="n">1</div>
+      <div class="q">Escriu entre quins dos nombres sencers cau cada nombre.
+        <svg class="ico" style="margin-left:.4rem"><use href="#i-calc"/></svg></div></div>
+    <table>
+      <tr><th style="width:16%"></th><th style="width:16%">Número</th><th style="width:32%">Surt</th>
+          <th style="width:18%">Entre</th><th style="width:18%">i</th></tr>
+      <tr class="resolt"><td class="ms">a)</td><td class="dada" style="font-size:18pt">√7</td>
+          <td class="ms">2,6457513…</td><td class="ms">2</td><td class="ms">3</td></tr>
+      <tr><td><b>b)</b></td><td class="dada" style="font-size:18pt">√5</td><td class="omplir"></td><td class="omplir"></td><td class="omplir"></td></tr>
+      <tr><td><b>c)</b></td><td class="dada" style="font-size:18pt">√11</td><td class="omplir"></td><td class="omplir"></td><td class="omplir"></td></tr>
+      <tr><td><b>d)</b></td><td class="dada" style="font-size:18pt">π</td><td class="omplir"></td><td class="omplir"></td><td class="omplir"></td></tr>
+      <tr><td><b>e)</b></td><td class="dada" style="font-size:18pt">√30</td><td class="omplir"></td><td class="omplir"></td><td class="omplir"></td></tr>
+    </table>
+  </div>
+
+  <div class="exercici">
+    <div class="tasca"><div class="n">2</div>
+      <div class="q">Marca amb una creu on cau cada nombre a la recta.</div></div>
+
+    <p style="margin:.4rem 0 0"><span class="apartat">a)</span> <span class="et-resolt">√7 = 2,6457513…</span></p>
+    <svg viewBox="0 0 640 100" role="img" aria-label="Recta amb l'arrel de 7 ja marcada">
+      <line x1="40" y1="48" x2="600" y2="48" stroke="#000" stroke-width="3"/>
+      <g font-family="system-ui" font-size="19" fill="#5E5E5E" text-anchor="middle">
+        <line x1="40"  y1="36" x2="40"  y2="60" stroke="#000" stroke-width="3"/><text x="40"  y="86">0</text>
+        <line x1="133" y1="36" x2="133" y2="60" stroke="#000" stroke-width="3"/><text x="133" y="86">1</text>
+        <line x1="226" y1="36" x2="226" y2="60" stroke="#000" stroke-width="3"/><text x="226" y="86">2</text>
+        <line x1="319" y1="36" x2="319" y2="60" stroke="#000" stroke-width="3"/><text x="319" y="86">3</text>
+        <line x1="412" y1="36" x2="412" y2="60" stroke="#000" stroke-width="3"/><text x="412" y="86">4</text>
+        <line x1="505" y1="36" x2="505" y2="60" stroke="#000" stroke-width="3"/><text x="505" y="86">5</text>
+        <line x1="598" y1="36" x2="598" y2="60" stroke="#000" stroke-width="3"/><text x="598" y="86">6</text>
+      </g>
+      <g stroke="#3A3A3A" stroke-width="3.5" stroke-linecap="round">
+        <line x1="278" y1="36" x2="294" y2="59"/><line x1="295" y1="35" x2="277" y2="60"/>
+      </g>
+      <text x="286" y="26" text-anchor="middle" font-size="19" fill="#3A3A3A"
+        font-family="'Segoe Script','Ink Free','Bradley Hand',cursive">√7</text>
+    </svg>
+
+    <p style="margin:.9rem 0 0"><span class="apartat">b)</span> √5 = 2,2360679…</p>
+    <svg viewBox="0 0 640 100" role="img" aria-label="Recta numèrica buida del 0 al 6">
+      <line x1="40" y1="48" x2="600" y2="48" stroke="#000" stroke-width="3"/>
+      <g font-family="system-ui" font-size="19" fill="#5E5E5E" text-anchor="middle">
+        <line x1="40"  y1="36" x2="40"  y2="60" stroke="#000" stroke-width="3"/><text x="40"  y="86">0</text>
+        <line x1="133" y1="36" x2="133" y2="60" stroke="#000" stroke-width="3"/><text x="133" y="86">1</text>
+        <line x1="226" y1="36" x2="226" y2="60" stroke="#000" stroke-width="3"/><text x="226" y="86">2</text>
+        <line x1="319" y1="36" x2="319" y2="60" stroke="#000" stroke-width="3"/><text x="319" y="86">3</text>
+        <line x1="412" y1="36" x2="412" y2="60" stroke="#000" stroke-width="3"/><text x="412" y="86">4</text>
+        <line x1="505" y1="36" x2="505" y2="60" stroke="#000" stroke-width="3"/><text x="505" y="86">5</text>
+        <line x1="598" y1="36" x2="598" y2="60" stroke="#000" stroke-width="3"/><text x="598" y="86">6</text>
+      </g>
+    </svg>
+
+    <p style="margin:.9rem 0 0"><span class="apartat">c)</span> √30 = 5,4772255…</p>
+    <svg viewBox="0 0 640 100" role="img" aria-label="Recta numèrica buida del 0 al 6">
+      <line x1="40" y1="48" x2="600" y2="48" stroke="#000" stroke-width="3"/>
+      <g font-family="system-ui" font-size="19" fill="#5E5E5E" text-anchor="middle">
+        <line x1="40"  y1="36" x2="40"  y2="60" stroke="#000" stroke-width="3"/><text x="40"  y="86">0</text>
+        <line x1="133" y1="36" x2="133" y2="60" stroke="#000" stroke-width="3"/><text x="133" y="86">1</text>
+        <line x1="226" y1="36" x2="226" y2="60" stroke="#000" stroke-width="3"/><text x="226" y="86">2</text>
+        <line x1="319" y1="36" x2="319" y2="60" stroke="#000" stroke-width="3"/><text x="319" y="86">3</text>
+        <line x1="412" y1="36" x2="412" y2="60" stroke="#000" stroke-width="3"/><text x="412" y="86">4</text>
+        <line x1="505" y1="36" x2="505" y2="60" stroke="#000" stroke-width="3"/><text x="505" y="86">5</text>
+        <line x1="598" y1="36" x2="598" y2="60" stroke="#000" stroke-width="3"/><text x="598" y="86">6</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="pag">Unitat 1 · pàgina 4</div>
+</div>
+
+<!-- ==================== FULL 5 ==================== -->
+<div class="full">
+  <div class="exercici">
+    <div class="tasca"><div class="n">3</div>
+      <div class="q">Arrodoneix cada nombre amb els decimals que et demanen.
+        <svg class="ico" style="margin-left:.4rem"><use href="#i-calc"/></svg></div></div>
+    <table>
+      <tr><th style="width:12%"></th><th style="width:34%">Número</th>
+          <th style="width:18%">0 decimals</th><th style="width:18%">1 decimal</th><th style="width:18%">2 decimals</th></tr>
+      <tr class="resolt"><td class="ms">a)</td><td class="ms">2,6457513…</td>
+          <td class="ms">3</td><td class="ms">2,6</td><td class="ms">2,65</td></tr>
+      <tr><td><b>b)</b></td><td class="dada">1,6970562…</td><td class="omplir"></td><td class="omplir"></td><td class="omplir"></td></tr>
+      <tr><td><b>c)</b></td><td class="dada">4,2857142…</td><td class="omplir"></td><td class="omplir"></td><td class="omplir"></td></tr>
+      <tr><td><b>d)</b></td><td class="dada">3,1415926…</td><td class="omplir"></td><td class="omplir"></td><td class="omplir"></td></tr>
+    </table>
+  </div>
+
+  <div class="exercici">
+    <div class="tasca"><div class="n">4</div>
+      <div class="q">Encercla el nombre que té xifres decimals que s'acaben.
+        <svg class="ico" style="margin-left:.4rem"><use href="#i-calc"/></svg></div></div>
+
+    <div class="encercla" style="margin-top:.7rem">
+      <span class="apartat">a)</span>
+      <span class="n">√2</span><span class="n encerclat" style="border-width:2.5px">√9</span>
+      <span class="n">π</span><span class="n">√5</span>
+      <span class="et-resolt" style="margin-left:.4rem">√9 = 3</span>
+    </div>
+
+    <div class="encercla" style="margin-top:1.1rem">
+      <span class="apartat">b)</span>
+      <span class="n">√3</span><span class="n">√16</span><span class="n">√20</span><span class="n">√7</span>
+    </div>
+
+    <div class="encercla" style="margin-top:1.1rem">
+      <span class="apartat">c)</span>
+      <span class="n">√8</span><span class="n">√10</span><span class="n">√25</span><span class="n">π</span>
+    </div>
+
+    <div class="encercla" style="margin-top:1.1rem">
+      <span class="apartat">d)</span>
+      <span class="n">√12</span><span class="n">√36</span><span class="n">√2</span><span class="n">√18</span>
+    </div>
+  </div>
+
+  <div class="pag">Unitat 1 · pàgina 5</div>
+</div>
+
+<!-- ==================== FULL 6 ==================== -->
+<div class="full">
+  <div class="exercici">
+    <div class="tasca"><div class="n">5</div>
+      <div class="q">Marca amb quants decimals ho escriuries en cada situació.</div></div>
+
+    <div class="situacio" style="background:var(--fons-1)">
+      <span class="apartat">a)</span>
+      <svg class="ico gran"><use href="#i-talla"/></svg>
+      <div class="txt">Has de tallar el parquet d'una habitació.</div>
+      <div class="val">4,28571… m</div>
+    </div>
+    <div class="tria">
+      <label><span class="quadret"></span>4 m</label>
+      <label><span class="quadret"></span>4,3 m</label>
+      <label style="border-width:3px;border-color:var(--tinta)">
+        <span class="quadret"><svg viewBox="0 0 24 24" style="position:absolute;left:-3px;top:-6px;width:26px;height:26px">
+          <path d="M4 13l5 6L21 3" fill="none" stroke="#3A3A3A" stroke-width="3.5"
+            stroke-linecap="round" stroke-linejoin="round"/></svg></span>4,29 m</label>
+    </div>
+
+    <div class="situacio" style="margin-top:1.4rem">
+      <span class="apartat">b)</span>
+      <svg class="ico gran"><use href="#i-parla"/></svg>
+      <div class="txt">Li dius a un amic quant fa la diagonal de la tele.</div>
+      <div class="val">1,0735455… m</div>
+    </div>
+    <div class="tria">
+      <label><span class="quadret"></span>1 m</label>
+      <label><span class="quadret"></span>1,1 m</label>
+      <label><span class="quadret"></span>1,07 m</label>
+    </div>
+
+    <div class="situacio" style="margin-top:1.4rem">
+      <span class="apartat">c)</span>
+      <svg class="ico gran"><use href="#i-compra"/></svg>
+      <div class="txt">Compres tela per tapar una taula. Es ven per centímetres.</div>
+      <div class="val">1,6970562… m</div>
+    </div>
+    <div class="tria">
+      <label><span class="quadret"></span>1,7 m</label>
+      <label><span class="quadret"></span>1,70 m</label>
+      <label><span class="quadret"></span>1,697 m</label>
+    </div>
+  </div>
+
+  <div class="pag">Unitat 1 · pàgina 6</div>
+</div>
+
+<!-- ==================== FULL 7 ==================== -->
+<div class="full">
+  <div class="exercici">
+    <div class="tasca"><div class="n">6</div>
+      <div class="q">Calcula quants diners de més pagues si arrodoneixes cap amunt.
+        <svg class="ico" style="margin-left:.4rem"><use href="#i-calc"/></svg></div></div>
+
+    <p style="margin:.2rem 0 .5rem;font-size:13pt;color:var(--gris-2)">
+      A la ferreteria, la corda val 2,35 € el metre.</p>
+
+    <table>
+      <tr><th style="width:10%"></th><th style="width:20%">Necessites</th><th style="width:22%">Costa</th>
+          <th style="width:16%">Compres</th><th style="width:16%">Pagues</th><th style="width:16%">De més</th></tr>
+      <tr class="resolt"><td class="ms">a)</td><td class="ms">3,7 m</td><td class="ms">8,70 €</td>
+          <td class="ms">4 m</td><td class="ms">9,40 €</td><td class="ms">0,70 €</td></tr>
+      <tr><td><b>b)</b></td><td class="dada">5,2 m</td><td class="omplir"></td>
+          <td class="dada">6 m</td><td class="omplir"></td><td class="omplir"></td></tr>
+      <tr><td><b>c)</b></td><td class="dada">2,4 m</td><td class="omplir"></td>
+          <td class="dada">3 m</td><td class="omplir"></td><td class="omplir"></td></tr>
+    </table>
+
+    <div class="avis puntejat" style="border-style:dashed;background:#fff;margin-top:1.2rem">
+      <span class="apartat">d)</span>
+      <svg class="ico" style="margin:0 .3rem"><use href="#i-parla"/></svg>
+      Explica per què de vegades val la pena comprar de més.
+    </div>
+  </div>
+
+  <div class="avis gruixut">
+    <p class="frase" style="margin:0">El número <u></u> és entre <u></u> i <u></u>.</p>
+    <p class="frase" style="margin:0">L'he escrit amb <u></u> decimals.</p>
+  </div>
+
+  <div class="pag">Unitat 1 · pàgina 7</div>
+</div>
+
+<!-- ==================== FULL 8: SOLUCIONARI ==================== -->
+<div class="full sol">
+  <h1 style="font-size:19pt">Solucionari</h1>
+  <p style="color:var(--gris-2);margin-top:.15rem">Unitat 1 · full per al professorat</p>
+
+  <h3>1. Entre quins dos nombres sencers cau</h3>
+  <table>
+    <tr><th></th><th>Número</th><th>Surt</th><th>Entre</th><th>i</th></tr>
+    <tr><td>a)</td><td>√7</td><td>2,6457513…</td><td>2</td><td>3</td></tr>
+    <tr><td>b)</td><td>√5</td><td>2,2360679…</td><td>2</td><td>3</td></tr>
+    <tr><td>c)</td><td>√11</td><td>3,3166247…</td><td>3</td><td>4</td></tr>
+    <tr><td>d)</td><td>π</td><td>3,1415926…</td><td>3</td><td>4</td></tr>
+    <tr><td>e)</td><td>√30</td><td>5,4772255…</td><td>5</td><td>6</td></tr>
+  </table>
+  <p><b>Error típic:</b> dir que √11 cau entre 10 i 12, confonent el nombre de dins de
+  l'arrel amb el resultat. Si passa, torneu a la pàgina 2 i repetiu-la amb √5.</p>
+
+  <h3>2. Marcar a la recta</h3>
+  <p>b) √5 = 2,236 → entre el 2 i el 3, just a l'esquerra del 2 i quart. Es dona per bo
+  qualsevol punt entre 2,1 i 2,4.<br>
+  c) √30 = 5,477 → entre el 5 i el 6, cap a la meitat. Es dona per bo entre 5,3 i 5,7.</p>
+
+  <h3>3. Arrodonir</h3>
+  <table>
+    <tr><th></th><th>Número</th><th>0 decimals</th><th>1 decimal</th><th>2 decimals</th></tr>
+    <tr><td>a)</td><td>2,6457513…</td><td>3</td><td>2,6</td><td>2,65</td></tr>
+    <tr><td>b)</td><td>1,6970562…</td><td>2</td><td>1,7</td><td>1,70</td></tr>
+    <tr><td>c)</td><td>4,2857142…</td><td>4</td><td>4,3</td><td>4,29</td></tr>
+    <tr><td>d)</td><td>3,1415926…</td><td>3</td><td>3,1</td><td>3,14</td></tr>
+  </table>
+  <p><b>Error típic:</b> tallar en comptes d'arrodonir (escriure 2 a l'apartat a, o 1,69 a
+  l'apartat b). Recordeu-li que 2,64 està més a prop del 3 que del 2.</p>
+  <p><b>Atenció a l'apartat b:</b> a 2 decimals és <b>1,70</b>, no <b>1,7</b>. El zero final
+  hi ha de ser perquè indica la precisió amb què s'ha mesurat. És exactament la idea de la
+  pàgina 3.</p>
+
+  <h3>4. El nombre amb decimals que s'acaben</h3>
+  <p>a) <b>√9 = 3</b> &nbsp;·&nbsp; b) <b>√16 = 4</b> &nbsp;·&nbsp; c) <b>√25 = 5</b>
+  &nbsp;·&nbsp; d) <b>√36 = 6</b></p>
+  <p>Tots quatre són arrels de quadrats perfectes. Si en falla més d'un, val la pena
+  treballar la llista de quadrats perfectes (1, 4, 9, 16, 25, 36, 49, 64…) abans de
+  continuar: és contingut de 1r ESO (<i>1eso-ud5-5</i>).</p>
+
+  <h3>5. Amb quants decimals</h3>
+  <table>
+    <tr><th></th><th>Situació</th><th>Resposta</th><th>Per què</th></tr>
+    <tr><td>a)</td><td>Tallar el parquet</td><td><b>4,29 m</b></td><td>Si talles, el centímetre compta.</td></tr>
+    <tr><td>b)</td><td>Dir-ho a un amic</td><td><b>1,1 m</b></td><td>De paraula no cal precisió.</td></tr>
+    <tr><td>c)</td><td>Comprar tela</td><td><b>1,70 m</b></td><td>Es ven per centímetres.</td></tr>
+  </table>
+  <p>Es valora <b>la tria i el que en digui de paraula</b>, no la xifra. A l'apartat b,
+  «1 m» també es dona per bo si ho justifica.</p>
+
+  <h3>6. La corda, a 2,35 € el metre</h3>
+  <table>
+    <tr><th></th><th>Necessites</th><th>Costa</th><th>Compres</th><th>Pagues</th><th>De més</th></tr>
+    <tr><td>a)</td><td>3,7 m</td><td>8,70 €</td><td>4 m</td><td>9,40 €</td><td>0,70 €</td></tr>
+    <tr><td>b)</td><td>5,2 m</td><td>12,22 €</td><td>6 m</td><td>14,10 €</td><td>1,88 €</td></tr>
+    <tr><td>c)</td><td>2,4 m</td><td>5,64 €</td><td>3 m</td><td>7,05 €</td><td>1,41 €</td></tr>
+  </table>
+  <p>A l'apartat a, 3,7 × 2,35 = 8,695, que arrodonit són 8,70 €. Si fa la resta sense
+  arrodonir li sortirà 0,705 €: totes dues respostes són bones.</p>
+  <p>d) Assolit si diu una idea com «si en compro just em pot faltar» o «val més que en
+  sobri». No cal que ho escrigui ni que ho digui amb precisió.</p>
+
+  <h3>Què mirar per avaluar</h3>
+  <ul>
+    <li>Exercicis 1, 2, 3 i 4 → criteri <b>5.1</b>, passar d'una representació a una altra.</li>
+    <li>Exercici 5 → criteri <b>1.1</b>, decidir en una situació real.</li>
+    <li>Exercici 6 → criteri <b>8.3</b>, veure les conseqüències del propi arrodoniment.</li>
+  </ul>
+  <p>L'objectiu de la fitxa <b>no és calcular bé</b>: és situar un nombre i decidir la
+  precisió. Els errors de càlcul no haurien de fer baixar la valoració.</p>
+</div>
+
+</body>
+</html>
