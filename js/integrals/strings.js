@@ -52,7 +52,7 @@ const Hints = {
 
     INT_DERIVATIVE:
         "Has aplicat la regla de la derivada en lloc de la integral. " +
-        "Derivar x^n dóna n·x^{n-1} (exponent baixa); integrar x^n dóna x^{n+1}/(n+1) (exponent puja). " +
+        "Derivar x^n dona n·x^{n-1} (exponent baixa); integrar x^n dona x^{n+1}/(n+1) (exponent puja). " +
         "Les dues operacions fan exactament el contrari: " +
         "si el resultat té exponent menor que l'original, s'ha derivat.",
 
@@ -68,7 +68,7 @@ const Hints = {
     EXP_FORGOT_COEF:
         "La integral de e^{kx} té un factor 1/k imprescindible: ∫e^{kx} dx = (1/k)·e^{kx}. " +
         "Pots verificar derivant el resultat: la derivada de (1/k)·e^{kx} és (1/k)·k·e^{kx} = e^{kx}. " +
-        "Sense el factor 1/k, la derivació del resultat dóna k·e^{kx} en lloc de e^{kx}.",
+        "Sense el factor 1/k, la derivació del resultat dona k·e^{kx} en lloc de e^{kx}.",
 
     EXP_WRONG_COEF:
         "El coeficient de la primitiva d'e^{kx} és 1/k (es divideix per k), no k² ni k^{-2}. " +
@@ -77,7 +77,7 @@ const Hints = {
 
     EXP_DERIVATIVE:
         "Has multiplicat per k (regla de la derivada) quan calia dividir per k (regla de la integral). " +
-        "Derivar e^{kx} dóna k·e^{kx}; integrar e^{kx} dóna (1/k)·e^{kx}. " +
+        "Derivar e^{kx} dona k·e^{kx}; integrar e^{kx} dona (1/k)·e^{kx}. " +
         "Derivar i integrar fan operacions inverses amb el factor k: " +
         "un multiplica i l'altre divideix.",
 

@@ -107,7 +107,7 @@ const COMP_REGISTRY = {
     getRanges: () => CAT_RANGES,
   },
   ct: {
-    label: 'Científico-tecnològica',
+    label: 'Cientificotecnològica',
     getItems:  () => CIEN_ITEMS,
     getRanges: () => CIEN_RANGES,
   },
@@ -240,7 +240,7 @@ export async function processAiPdf(input) {
     _setProgress(100);
 
     if (results.length === 0) {
-      _setStatus('Cap alumne processat. Comprova la API key i el PDF.');
+      _setStatus('Cap alumne processat. Comprova l\'API key i el PDF.');
       document.getElementById('ai-rec-btn-start').disabled = false;
       document.getElementById('ai-rec-btn-close').disabled = false;
       return;

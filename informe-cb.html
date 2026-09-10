@@ -673,7 +673,7 @@ td.blnk { color: var(--muted); text-align: center; }
         <button class="sopt" data-col="comp" data-val="ct" onclick="selectOpt(this)">
           <span class="sopt-icon">🔬</span>
           <span class="sopt-body">
-            <span class="sopt-label">Científico-tecnològica</span>
+            <span class="sopt-label">Cientificotecnològica</span>
           </span>
         </button>
       </div>
@@ -1069,7 +1069,7 @@ const COMPETENCIES = {
     ]
   },
   ct: {
-    label: 'Científico-tecnològica',
+    label: 'Cientificotecnològica',
     ambits: null  // uses CIEN_ITEMS / CIEN_RANGES directly
   },
 };
@@ -2856,7 +2856,7 @@ async function generateInformes() {
       NA: "L\u2019alumne/a no assoleix la compet\u00e8ncia matem\u00e0tica.",
       AS: "L\u2019alumne/a assoleix amb un domini suficient la compet\u00e8ncia matem\u00e0tica.",
       AN: "L\u2019alumne/a assoleix amb bon domini la compet\u00e8ncia matem\u00e0tica.",
-      AE: "L\u2019alumne/a assoleix amb molt bon domini de la compet\u00e8ncia matem\u00e0tica.",
+      AE: "L\u2019alumne/a assoleix amb molt bon domini la compet\u00e8ncia matem\u00e0tica.",
     }[code] || '';
   }
 
@@ -3065,10 +3065,10 @@ async function generateInformes() {
 
   function synthesisCat(code) {
     return {
-      NA: "L\u2019alumne/a no assoleix la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
-      AS: "L\u2019alumne/a assoleix amb domini suficient la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
-      AN: "L\u2019alumne/a assoleix amb bon domini la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
-      AE: "L\u2019alumne/a assoleix amb molt bon domini la compet\u00e8ncia en comunicaci\u00f3 lingu\u00edstica en llengua catalana.",
+      NA: "L\u2019alumne/a no assoleix la compet\u00e8ncia en comunicaci\u00f3 ling\u00fc\u00edstica en llengua catalana.",
+      AS: "L\u2019alumne/a assoleix amb domini suficient la compet\u00e8ncia en comunicaci\u00f3 ling\u00fc\u00edstica en llengua catalana.",
+      AN: "L\u2019alumne/a assoleix amb bon domini la compet\u00e8ncia en comunicaci\u00f3 ling\u00fc\u00edstica en llengua catalana.",
+      AE: "L\u2019alumne/a assoleix amb molt bon domini la compet\u00e8ncia en comunicaci\u00f3 ling\u00fc\u00edstica en llengua catalana.",
     }[code] || '';
   }
 
@@ -3351,10 +3351,10 @@ async function generateInformes() {
 
   function synthesisCien(code) {
     return {
-      NA: "L\u2019alumne/a no assoleix la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
-      AS: "L\u2019alumne/a assoleix amb domini suficient la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
-      AN: "L\u2019alumne/a assoleix amb bon domini la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
-      AE: "L\u2019alumne/a assoleix amb molt bon domini la compet\u00e8ncia cient\u00edfic-tecnol\u00f2gica.",
+      NA: "L\u2019alumne/a no assoleix la compet\u00e8ncia cientificotecnol\u00f2gica.",
+      AS: "L\u2019alumne/a assoleix amb domini suficient la compet\u00e8ncia cientificotecnol\u00f2gica.",
+      AN: "L\u2019alumne/a assoleix amb bon domini la compet\u00e8ncia cientificotecnol\u00f2gica.",
+      AE: "L\u2019alumne/a assoleix amb molt bon domini la compet\u00e8ncia cientificotecnol\u00f2gica.",
     }[code] || '';
   }
 
@@ -3418,7 +3418,7 @@ async function generateInformes() {
       wPara({ text: 'Els presentem els resultats que el seu fill/a ha obtingut de les proves de compet\u00e8ncia b\u00e0sica de 4t d\u2019ESO. Aquests resultats s\u2019incorporaran al conjunt d\u2019informaci\u00f3 de l\u2019alumne/a i es tindran en compte en l\u2019avaluaci\u00f3 final, tot i que no seran determinants per a l\u2019obtenci\u00f3 del t\u00edtol de graduat en educaci\u00f3 secund\u00e0ria obligat\u00f2ria.',
               size: 22, color: '333333', before: 0, after: 280 }),
       wPara({ text: `Alumne/a: ${r.name}`, bold: true, size: 32, color: '111111', before: 0, after: 480 }),
-      wPara({ text: 'COMPET\u00c8NCIA CIENT\u00cdFICO-TECNOL\u00d2GICA',
+      wPara({ text: 'COMPET\u00c8NCIA CIENTIFICOTECNOL\u00d2GICA',
               bold: true, size: 21, fill: '7A3090', color: 'FFFFFF', before: 80, after: 80 }),
       wPara({ text: synthesisCien(grade.code), size: 26, color: '333333',
               align: 'left', before: 160, after: 240 }),

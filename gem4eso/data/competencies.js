@@ -36,7 +36,7 @@ export const COMPETENCIES = {
   },
   ct: {
     kind:      'items-based',
-    label:     'Científico-tecnològica',
+    label:     'Cientificotecnològica',
     layout:    [[0, 1], [2]],
     getItems:  () => CIEN_ITEMS,
     getRanges: () => CIEN_RANGES,

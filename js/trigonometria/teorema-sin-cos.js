@@ -722,7 +722,7 @@ function buildHints(p) {
             badge: '1r 🏆', badgeClass: 'badge-best', best: true,
             icon: '📐', name: 'Teorema del cosinus',
             formula: p.step2hint,
-            reason: 'Coneixes els 3 costats: despeça directament l\'angle.',
+            reason: 'Coneixes els 3 costats: aïlla directament l\'angle.',
         });
         ranked.push({
             badge: '2n', badgeClass: 'badge-second', best: false,

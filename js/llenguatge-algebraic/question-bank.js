@@ -306,7 +306,7 @@ window.QuestionBank = (() => {
     });
     pool.push(() => {
         const n = randInt(2, 6);
-        return { context: 'Menjar', text: `Tinc ${V} galetes i les reparteixo entre ${n} amics. Quantes en toca a cadascú?`,
+        return { context: 'Menjar', text: `Tinc ${V} galetes i les reparteixo entre ${n} amics. Quantes en toquen a cadascú?`,
             answer: `\\frac{x}{${n}}`, distractors: [`${n}x`, `x − ${n}`, `x + ${n}`] };
     });
     pool.push(() => {

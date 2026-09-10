@@ -121,7 +121,7 @@ function validateConfig() {
     if (!isPosInt(MAX_INTENTS))               errors.push('MAX_INTENTS ha de ser un enter positiu.');
     if (![0,1].includes(MAX_ENLLOC_MITJANA))  errors.push('MAX_ENLLOC_MITJANA ha de ser 0 o 1.');
     if (errors.length) {
-        const msg = 'Configuracio invalida:\n- ' + errors.join('\n- ');
+        const msg = 'Configuració invàlida:\n- ' + errors.join('\n- ');
         console.error(msg); alert(msg); throw new Error(msg);
     }
 }
@@ -159,7 +159,7 @@ function endSession() {
     } else {
         showScreen('session-end-screen');
         const titleEl = document.getElementById('session-end-title');
-        if (titleEl) titleEl.innerText = `Sessio ${currentSession + 1} completada`;
+        if (titleEl) titleEl.innerText = `Sessió ${currentSession + 1} completada`;
         const btnEl = document.getElementById('btn-next-session');
         if (btnEl) {
             // [FIX M7] Text temporal durant l'espera d'1s
@@ -205,10 +205,10 @@ function calculaNotaSobre10() {
 function renderFinalSummary() {
     let html = '';
     for (let i = 0; i < sessionScores.length; i++) {
-        html += `<div class="session-line"><span>Sessio ${i+1}</span><span>${(sessionScores[i]/(TOTAL_OPERATIONS*MAX_PUNTS_PREGUNTA)*10).toFixed(1).replace('.',',')}</span></div>`;
+        html += `<div class="session-line"><span>Sessió ${i+1}</span><span>${(sessionScores[i]/(TOTAL_OPERATIONS*MAX_PUNTS_PREGUNTA)*10).toFixed(1).replace('.',',')}</span></div>`;
     }
     const nota10 = calculaNotaSobre10().toFixed(1).replace('.',',');
-    const textFinal = MAX_ENLLOC_MITJANA === 1 ? 'La sessio amb nota mes alta obte:' : 'La nota mitjana es:';
+    const textFinal = MAX_ENLLOC_MITJANA === 1 ? 'La sessió amb nota més alta obté:' : 'La nota mitjana és:';
     html += `<div style="margin-top:20px;text-align:left;"><div style="font-size:0.95em;color:var(--text-muted);margin-bottom:5px;">${textFinal}</div><div style="font-size:1.5em;font-weight:bold;color:var(--success);font-family:monospace;">${nota10} / 10</div></div>`;
     const summaryEl = document.getElementById('final-summary');
     if (summaryEl) summaryEl.innerHTML = html;
@@ -231,7 +231,7 @@ function showMiniOverlay(levelPoints, options = {}) {
     const overlay   = document.getElementById('mini-victory-overlay');
     let waitTime;
     if (levelPoints > 0) {
-        if (vicText)   { vicText.innerText   = 'Molt be!';             vicText.style.color   = successColor; }
+        if (vicText)   { vicText.innerText   = 'Molt bé!';             vicText.style.color   = successColor; }
         if (vicIcon)   { vicIcon.innerText   = '⭐'; }
         if (vicPoints) { vicPoints.innerText = `+${levelPoints} punts`; vicPoints.style.color = pointsColor; }
         waitTime = 1500;
@@ -260,7 +260,7 @@ function injectSharedHTML() {
     const overlay = document.createElement('div');
     overlay.id = 'mini-victory-overlay';
     overlay.setAttribute('aria-hidden','true');
-    overlay.innerHTML = `<div class="vic-message-row"><div class="mini-vic-text" id="mini-vic-text">Molt be!</div><div class="star-icon" id="mini-vic-icon">⭐</div></div><div class="mini-vic-points" id="mini-vic-points">+10 punts</div>`;
+    overlay.innerHTML = `<div class="vic-message-row"><div class="mini-vic-text" id="mini-vic-text">Molt bé!</div><div class="star-icon" id="mini-vic-icon">⭐</div></div><div class="mini-vic-points" id="mini-vic-points">+10 punts</div>`;
     gameScreen.appendChild(overlay);
 
     // 2. Teclat numeric
@@ -272,7 +272,7 @@ function injectSharedHTML() {
     // 3. Fi de sessio
     const sessionEnd = document.createElement('div');
     sessionEnd.id = 'session-end-screen';
-    sessionEnd.innerHTML = `<div class="trophy-icon">👍</div><h2 id="session-end-title">Sessio completada</h2><button class="btn-green" id="btn-next-session" onclick="startNextSession()">Comencar sessio seguent</button>`;
+    sessionEnd.innerHTML = `<div class="trophy-icon">👍</div><h2 id="session-end-title">Sessió completada</h2><button class="btn-green" id="btn-next-session" onclick="startNextSession()">Començar sessió següent</button>`;
     panel.appendChild(sessionEnd);
 
     // 4. Pantalla final
