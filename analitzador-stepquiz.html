@@ -183,6 +183,43 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
   20%,40%,60%,80% { transform:translateX(4px); background:#fde68a; }
 }
 .f-date-alert { border-color:#dc2626 !important; box-shadow:0 0 0 2px rgba(220,38,38,.25) !important; }
+/* SELECTOR D'INTERVAL DE DATES */
+.dr-wrap { position:relative; display:inline-block; }
+.dr-trigger { width:auto; min-width:132px; text-align:left; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-family:inherit; }
+.dr-trigger .dr-ico { font-size:12px; opacity:.7; }
+.dr-trigger.empty .dr-txt { color:var(--muted); }
+.dr-trigger.active { border-color:var(--accent); background:#eff6ff; color:#1e40af; font-weight:600; }
+.dr-pop { display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:300; background:var(--surface); border:1px solid var(--border-h); border-radius:10px; box-shadow:0 12px 32px rgba(15,23,42,.18); padding:12px 14px 10px; }
+.dr-pop.open { display:block; }
+.dr-months { display:flex; gap:22px; }
+.dr-month { width:224px; }
+.dr-mhead { display:flex; align-items:center; justify-content:space-between; height:28px; margin-bottom:4px; }
+.dr-mtitle { font-weight:700; font-size:13px; text-transform:capitalize; flex:1; text-align:center; }
+.dr-nav { background:none; border:none; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:15px; color:var(--text); }
+.dr-nav:hover { background:#eff6ff; color:var(--accent); }
+.dr-nav.ghost { visibility:hidden; }
+.dr-grid { display:grid; grid-template-columns:repeat(7,32px); row-gap:2px; }
+.dr-wd { font-size:10px; color:var(--muted); font-weight:600; text-align:center; height:20px; line-height:20px; }
+.dr-day { position:relative; height:32px; border:none; background:none; font-size:12.5px; cursor:pointer; color:var(--text); font-family:inherit; }
+.dr-day span { display:flex; align-items:center; justify-content:center; width:30px; height:30px; margin:1px; border-radius:50%; }
+.dr-day:hover span { background:#dbeafe; }
+.dr-day.today span { box-shadow:inset 0 0 0 1px var(--border-h); }
+.dr-day.has-data span { font-weight:700; }
+.dr-day.has-data::after { content:''; position:absolute; bottom:3px; left:50%; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:var(--accent); }
+.dr-day.in-range { background:#dbeafe; }
+.dr-day.edge-start { background:linear-gradient(90deg,transparent 50%,#dbeafe 50%); }
+.dr-day.edge-end { background:linear-gradient(90deg,#dbeafe 50%,transparent 50%); }
+.dr-day.edge-start.edge-end { background:none; }
+.dr-day.edge-start span,.dr-day.edge-end span { background:var(--accent); color:#fff; }
+.dr-day.edge-start.has-data::after,.dr-day.edge-end.has-data::after { background:#fff; }
+.dr-day.blank { cursor:default; pointer-events:none; }
+.dr-foot { display:flex; align-items:center; gap:8px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
+.dr-hint { flex:1; font-size:11.5px; color:var(--muted); }
+.dr-hint b { color:var(--text); }
+.dr-presets { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }
+.dr-preset { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:2px 9px; font-size:11px; cursor:pointer; color:var(--text); font-family:inherit; }
+.dr-preset:hover { border-color:var(--accent); color:var(--accent); background:#eff6ff; }
+.cb-dup-note { background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:6px; padding:7px 10px; font-size:11.5px; margin-bottom:14px; }
 .empty-state { text-align:center; padding:50px 20px; color:var(--muted); font-size:13px; }
 
 
@@ -355,8 +392,21 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     <select class="fi th-classe" id="f-cls" onchange="applyFilters()" style="width:110px"><option value="">Totes</option></select>
     <span class="fl">Alumne</span>
     <select class="fi" id="f-stu" onchange="applyFilters()" style="width:150px"><option value="">Tots</option></select>
-    <span class="fl">Dia</span>
-    <input class="fi" id="f-date" type="date" onchange="applyFilters()" style="width:132px">
+    <span class="fl">Dies</span>
+    <span class="dr-wrap" id="dr-wrap">
+      <button type="button" class="fi dr-trigger empty" id="f-date" onclick="toggleDatePicker()" aria-haspopup="dialog" aria-expanded="false">
+        <span class="dr-ico">📅</span><span class="dr-txt" id="dr-txt">Tots els dies</span>
+      </button>
+      <div class="dr-pop" id="dr-pop" role="dialog" aria-label="Tria un dia o un interval de dies">
+        <div class="dr-presets" id="dr-presets"></div>
+        <div class="dr-months" id="dr-months"></div>
+        <div class="dr-foot">
+          <span class="dr-hint" id="dr-hint"></span>
+          <button type="button" class="btn btn-ghost" style="font-size:12px;padding:4px 9px;" onclick="clearDateRange()">Esborrar</button>
+          <button type="button" class="btn btn-primary" style="font-size:12px;padding:4px 12px;" onclick="closeDatePicker()">Fet</button>
+        </div>
+      </div>
+    </span>
     <span class="fl">Estat</span>
     <select class="fi" id="f-sta" onchange="applyFilters()" style="width:115px">
       <option value="">Tots</option>
@@ -365,7 +415,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
       <option value="invalid">❌ Invàlid</option>
     </select>
     <button class="btn btn-ghost" style="font-size:12px;padding:4px 9px;" onclick="clearFilters()">Netejar</button>
-    <button class="btn-cb-base" id="btn-cb" onclick="openCB()" disabled style="opacity:.45;cursor:not-allowed" title="Filtra per un dia amb respostes de Competències Bàsiques">📊 Veure resum CB</button>
+    <button class="btn-cb-base" id="btn-cb" onclick="openCB()" disabled style="opacity:.45;cursor:not-allowed" title="Filtra per un dia o un interval de dies amb respostes de Competències Bàsiques">📊 Veure resum CB</button>
     <span class="count" id="count"></span>
   </div>
   <div class="table-wrap" id="table-wrap-el">
@@ -608,7 +658,7 @@ function renderStats(rows){
 
 function renderTable(rows){
   const tb=document.getElementById('tbody'),em=document.getElementById('empty');
-  document.getElementById('count').textContent=`${rows.length} entrada${rows.length!==1?'es':''}`;
+  document.getElementById('count').textContent=`${rows.length} ${rows.length!==1?'entrades':'entrada'}`;
   if(!rows.length){tb.innerHTML='';em.style.display='block';return;}
   em.style.display='none';tb.innerHTML=rows.map(renderRow).join('');}
 
@@ -631,14 +681,13 @@ function applyFilters(){
   const cls=document.getElementById('f-cls').value;
   const ex=document.getElementById('f-ex').value;
   const sta=document.getElementById('f-sta').value;
-  const dt=document.getElementById('f-date').value;
   expIdx=null;
   filtRows=allRows.filter(r=>{
     if(st&&r.student!==st)return false;
     if(cls&&r.classe!==cls)return false;
     if(ex&&r.parsed.exercise!==ex)return false;
     if(sta&&r.status!==sta)return false;
-    if(dt&&r.dateStr!==dt)return false;
+    if(!inDateRange(r.dateStr))return false;
     return true;});
   refreshView();
   renderStats(filtRows);checkCBButton();}
@@ -792,7 +841,7 @@ async function exportGradebookXLSX(){
 
 function clearFilters(){
   ['f-stu','f-cls','f-ex','f-sta'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-date').value='';
+  dateFrom='';dateTo='';drPicking=false;updateDateTrigger();
   applyFilters();}
 
 function toggleDet(i){
@@ -839,6 +888,7 @@ function loadData(txt){
   document.getElementById('hdr-right').style.display='flex';
   document.getElementById('header-tabs').style.display='flex';
   filtRows=[...allRows];
+  dateFrom='';dateTo='';drPicking=false;drAnchor=null;updateDateTrigger();
   sortKey=null;sortDir=1;setView('list');
   populateEx(allRows);populateStu(allRows);populateClasses(allRows);renderStats(allRows);
   const btnCb=document.getElementById('btn-cb');if(btnCb)btnCb._wasReady=false;
@@ -1009,10 +1059,157 @@ document.addEventListener('paste',e=>{
   const t=(e.clipboardData||window.clipboardData).getData('text');
   if(t&&t.includes('\n'))document.getElementById('paste-area').value=t;});
 
+// ─── SELECTOR D'INTERVAL DE DATES ──────────────────────────────────────────
+// Funciona com el calendari d'una web de vols: 1r clic = dia d'inici (ja filtra
+// per aquell dia sol); 2n clic = dia final (filtra l'interval i tanca).
+let dateFrom = '', dateTo = '';   // 'YYYY-MM-DD'; buits = tots els dies
+let drPicking = false;            // true = esperant el dia final
+let drHover = '';                 // previsualització de l'interval en passar el ratolí
+let drAnchor = null;              // {y,m} del primer mes visible
+const DR_MONTHS = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+const DR_WD = ['dl','dt','dc','dj','dv','ds','dg'];
+
+function ymd(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function fmtDMY(s){if(!s)return '';const [y,m,d]=s.split('-');return `${d}/${m}/${y}`;}
+function inDateRange(ds){
+  if(!dateFrom)return true;
+  return !!ds && ds>=dateFrom && ds<=(dateTo||dateFrom);
+}
+function dateRangeLabel(){
+  if(!dateFrom)return '';
+  if(!dateTo||dateTo===dateFrom)return fmtDMY(dateFrom);
+  return `${fmtDMY(dateFrom)} – ${fmtDMY(dateTo)}`;
+}
+function updateDateTrigger(){
+  const btn=document.getElementById('f-date'),txt=document.getElementById('dr-txt');
+  if(!btn)return;
+  if(!dateFrom){txt.textContent='Tots els dies';btn.classList.add('empty');btn.classList.remove('active');}
+  else{txt.textContent=dateRangeLabel();btn.classList.remove('empty');btn.classList.add('active');}
+}
+function setDateRange(from,to){
+  if(to&&to<from)[from,to]=[to,from];
+  dateFrom=from||'';dateTo=from?(to||from):'';
+  updateDateTrigger();applyFilters();
+}
+function clearDateRange(){drPicking=false;drHover='';setDateRange('','');renderDatePicker();}
+
+function openDatePicker(){
+  const pop=document.getElementById('dr-pop');
+  if(!drAnchor){
+    // Obre al mes de la selecció; si no n'hi ha, al mes de la dada més recent
+    let base=dateFrom;
+    if(!base){const ds=allRows.map(r=>r.dateStr).filter(Boolean).sort();base=ds[ds.length-1]||'';}
+    const dt=base?new Date(+base.slice(0,4),+base.slice(5,7)-1,1):new Date();
+    // El mes de referència queda a la dreta si no hi ha selecció (dades recents)
+    if(!dateFrom)dt.setMonth(dt.getMonth()-1);
+    drAnchor={y:dt.getFullYear(),m:dt.getMonth()};
+  }
+  drPicking=false;drHover='';
+  renderDatePicker();
+  pop.classList.add('open');
+  document.getElementById('f-date').setAttribute('aria-expanded','true');
+}
+function closeDatePicker(){
+  const pop=document.getElementById('dr-pop');if(!pop||!pop.classList.contains('open'))return;
+  pop.classList.remove('open');drPicking=false;drHover='';drAnchor=null;
+  document.getElementById('f-date').setAttribute('aria-expanded','false');
+}
+function toggleDatePicker(){
+  document.getElementById('dr-pop').classList.contains('open')?closeDatePicker():openDatePicker();
+}
+function drShift(n){const d=new Date(drAnchor.y,drAnchor.m+n,1);drAnchor={y:d.getFullYear(),m:d.getMonth()};renderDatePicker();}
+
+function drPick(ds){
+  if(!drPicking){                 // 1r clic: dia d'inici
+    drPicking=true;drHover='';
+    setDateRange(ds,ds);
+  }else{                          // 2n clic: dia final
+    drPicking=false;drHover='';
+    setDateRange(dateFrom,ds);
+    closeDatePicker();return;
+  }
+  renderDatePicker();
+}
+function drPreset(kind){
+  const dates=[...new Set(allRows.map(r=>r.dateStr).filter(Boolean))].sort();
+  const today=new Date();const t=ymd(today.getFullYear(),today.getMonth(),today.getDate());
+  const addDays=(s,n)=>{const d=new Date(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10)+n);return ymd(d.getFullYear(),d.getMonth(),d.getDate());};
+  if(kind==='today')setDateRange(t,t);
+  else if(kind==='last')      {const l=dates[dates.length-1];if(l)setDateRange(l,l);}
+  else if(kind==='week'){      // setmana (dl–dg) de la dada més recent
+    const l=dates[dates.length-1];if(!l)return;
+    const d=new Date(+l.slice(0,4),+l.slice(5,7)-1,+l.slice(8,10));const off=(d.getDay()+6)%7;
+    const mon=addDays(l,-off);setDateRange(mon,addDays(mon,6));}
+  closeDatePicker();
+}
+
+function renderDatePicker(){
+  const withData=new Set(allRows.map(r=>r.dateStr).filter(Boolean));
+  const now=new Date();const todayS=ymd(now.getFullYear(),now.getMonth(),now.getDate());
+  // Extrems visuals (amb previsualització mentre s'escull el dia final)
+  let a=dateFrom,b=dateTo;
+  if(drPicking&&drHover){a=dateFrom;b=drHover;if(b<a)[a,b]=[b,a];}
+  const monthHtml=(y,m,idx)=>{
+    const first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),lead=(first.getDay()+6)%7;
+    let h=`<div class="dr-month"><div class="dr-mhead">
+      <button type="button" class="dr-nav${idx===0?'':' ghost'}" onclick="drShift(-1)" aria-label="Mes anterior">‹</button>
+      <div class="dr-mtitle">${DR_MONTHS[m]} ${y}</div>
+      <button type="button" class="dr-nav${idx===1?'':' ghost'}" onclick="drShift(1)" aria-label="Mes següent">›</button>
+    </div><div class="dr-grid">${DR_WD.map(w=>`<div class="dr-wd">${w}</div>`).join('')}`;
+    for(let i=0;i<lead;i++)h+=`<div class="dr-day blank"></div>`;
+    for(let d=1;d<=days;d++){
+      const ds=ymd(y,m,d),c=['dr-day'];
+      if(withData.has(ds))c.push('has-data');
+      if(ds===todayS)c.push('today');
+      if(a&&ds===a)c.push('edge-start');
+      if(a&&ds===(b||a))c.push('edge-end');
+      if(a&&b&&ds>a&&ds<b)c.push('in-range');
+      h+=`<button type="button" class="${c.join(' ')}" data-d="${ds}" onclick="drPick('${ds}')" onmouseenter="drHoverDay('${ds}')" title="${withData.has(ds)?'Hi ha enviaments':''}"><span>${d}</span></button>`;
+    }
+    return h+'</div></div>';
+  };
+  const n=new Date(drAnchor.y,drAnchor.m+1,1);
+  document.getElementById('dr-months').innerHTML=monthHtml(drAnchor.y,drAnchor.m,0)+monthHtml(n.getFullYear(),n.getMonth(),1);
+  document.getElementById('dr-presets').innerHTML=
+    `<button type="button" class="dr-preset" onclick="drPreset('last')">Darrer dia amb dades</button>`+
+    `<button type="button" class="dr-preset" onclick="drPreset('week')">Setmana de la darrera dada</button>`+
+    `<button type="button" class="dr-preset" onclick="drPreset('today')">Avui</button>`;
+  const hint=document.getElementById('dr-hint');
+  if(drPicking)hint.innerHTML=`Inici: <b>${fmtDMY(dateFrom)}</b> · tria el dia final, o prem <b>Fet</b> per a un sol dia`;
+  else if(dateFrom)hint.innerHTML=`Seleccionat: <b>${dateRangeLabel()}</b>`;
+  else hint.innerHTML=`Tria el dia d'inici · els dies amb <b style="color:var(--accent)">•</b> tenen enviaments`;
+}
+function drHoverDay(ds){
+  if(!drPicking||drHover===ds)return;
+  drHover=ds;
+  // Actualitza només les classes (sense redibuixar) per no perdre el hover
+  let a=dateFrom,b=ds;if(b<a)[a,b]=[b,a];
+  document.querySelectorAll('#dr-months .dr-day[data-d]').forEach(el=>{
+    const d=el.dataset.d;
+    el.classList.toggle('edge-start',d===a);
+    el.classList.toggle('edge-end',d===b);
+    el.classList.toggle('in-range',d>a&&d<b);
+  });
+}
+// Tanca en clicar fora
+document.addEventListener('mousedown',e=>{
+  const w=document.getElementById('dr-wrap');
+  if(w&&!w.contains(e.target))closeDatePicker();
+});
+
+// Avís si un mateix alumne apareix més d'un cop dins l'interval
+function dupNoteHtml(rows){
+  const cnt={};rows.forEach(r=>{cnt[r.student]=(cnt[r.student]||0)+1;});
+  const dups=Object.entries(cnt).filter(([,n])=>n>1);
+  if(!dups.length)return '';
+  const list=dups.map(([s,n])=>`${s} (${n})`).join(', ');
+  return `<div class="cb-dup-note">⚠️ Hi ha alumnes amb més d'un enviament en aquest període: <b>${list}</b>. Tots compten a les estadístiques per pregunta. Pots filtrar per alumne o per estat si vols excloure'n algun.</div>`;
+}
+
 // ─── CB RESUM ───────────────────────────────────────────────────────────────
 
 function checkCBButton() {
-  const dt = document.getElementById('f-date').value;
+  const dt = dateFrom;
   const cbRows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
   const ready = dt !== '' && cbRows.length >= 2;
   const btn = document.getElementById('btn-cb');
@@ -1031,7 +1228,7 @@ function checkCBButton() {
 }
 
 function openCB() {
-  const dt = document.getElementById('f-date').value;
+  const dt = dateFrom;
   const cbRows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
 
   // Auto-correct filters if not ready
@@ -1043,9 +1240,10 @@ function openCB() {
       exSel.value = 'competencies-basiques';
       applyFilters();
     }
-    // Highlight date field
+    // Highlight date field i obre el calendari
     dateFi.classList.add('f-date-alert');
     dateFi.focus();
+    if (dt === '') openDatePicker();
     setTimeout(() => dateFi.classList.remove('f-date-alert'), 3000);
     return;
   }
@@ -1069,9 +1267,9 @@ function openCB() {
 
   const activeQs = qStats.map((s,i) => s ? i : -1).filter(i => i >= 0);
 
-  // Format date display
-  const [y,m,d] = dt.split('-');
-  const dateLabel = `${d}/${m}/${y}`;
+  // Format date display (un dia o un interval)
+  const dateLabel = dateRangeLabel();
+  const multiDay = dateFrom !== dateTo;
 
   // Decodifica nivell, any i mode del primer codi CB (per al títol)
   const firstRow = cbRows[0];
@@ -1086,6 +1284,7 @@ function openCB() {
     <div class="cb-li"><div class="cb-ld" style="background:var(--r3)"></div>3r+ intents</div>
     <div class="cb-li"><div class="cb-ld" style="background:var(--r4)"></div>Fallit</div>
   </div>
+  ${dupNoteHtml(cbRows)}
   <p class="cb-section-title">Resum per pregunta — ${cbRows.length} alumnes · ${dateLabel}${cbNivellLabel}${cbAnyLabel}${cbModeLabel}</p>
   <div class="cb-summary-grid">`;
 
@@ -1121,7 +1320,7 @@ function openCB() {
     const arr = row.parsed.resultsArray;
     const nota = row.parsed.note !== null ? row.parsed.note.toFixed(2).replace('.',',') : '—';
     summaryHtml += `<tr>
-      <td class="cb-stu-cell" data-tip="${row.student}${row.classe?' · '+row.classe:''}" onmouseenter="showTip(event,this)" onmouseleave="hideTip()">${row.student.slice(0,4)}</td>
+      <td class="cb-stu-cell" data-tip="${row.student}${row.classe?' · '+row.classe:''}${multiDay&&row.dateStr?' · '+fmtDMY(row.dateStr):''}" onmouseenter="showTip(event,this)" onmouseleave="hideTip()">${row.student.slice(0,4)}</td>
       <td class="cb-nota-cell">${nota}</td>
       ${activeQs.map(q => {
         const v = arr[q] || 0;
@@ -1140,13 +1339,12 @@ function openCB() {
 
 
 function exportCBtxt() {
-  const dt = document.getElementById('f-date').value;
+  const dt = dateFrom;
   const cbRows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
   if (!cbRows.length || !dt) return;
 
   const N = 30;
-  const [y,m,d] = dt.split('-');
-  const dateLabel = `${d}/${m}/${y}`;
+  const dateLabel = dateRangeLabel();
 
   const qStats = Array.from({length:N}, (_,q) => {
     const vals = cbRows.map(r => r.parsed.resultsArray[q] || 0).filter(v => v > 0);
@@ -1190,7 +1388,7 @@ function exportCBtxt() {
   const blob = new Blob([lines.join('\n')], {type:'text/plain;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `resum-cb-${dt}.txt`;
+  a.download = dateFrom === dateTo ? `resum-cb-${dateFrom}.txt` : `resum-cb-${dateFrom}_a_${dateTo}.txt`;
   a.click();
 }
 
@@ -1215,7 +1413,7 @@ function closeCB() {
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCB(); closeHelp(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDatePicker(); closeCB(); closeHelp(); } });
 
 </script>
 
@@ -1305,7 +1503,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCB();
         <div><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--r4);vertical-align:middle;margin-right:5px;"></span><b>✗</b> fallada</div>
       </div>
 
-      <div class="help-tip">💡 <b>Resum CB:</b> si filtres per un dia i tens respostes de Competències Bàsiques, el botó <b>📊 Veure resum CB</b> et munta la matriu alumnes × preguntes i marca les preguntes que han costat més.</div>
+      <div class="help-tip">💡 <b>Resum CB:</b> si filtres per un dia (o un interval de dies) i tens respostes de Competències Bàsiques, el botó <b>📊 Veure resum CB</b> et munta la matriu alumnes × preguntes i marca les preguntes que han costat més.</div>
     </div>
   </div>
 </div>
