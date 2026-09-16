@@ -365,6 +365,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
       <option value="invalid">❌ Invàlid</option>
     </select>
     <button class="btn btn-ghost" style="font-size:12px;padding:4px 9px;" onclick="clearFilters()">Netejar</button>
+    <button class="btn-cb-base" id="btn-cb" onclick="openCB()" disabled style="opacity:.45;cursor:not-allowed" title="Filtra per un dia amb respostes de Competències Bàsiques">📊 Veure resum CB</button>
     <span class="count" id="count"></span>
   </div>
   <div class="table-wrap" id="table-wrap-el">
@@ -840,7 +841,8 @@ function loadData(txt){
   filtRows=[...allRows];
   sortKey=null;sortDir=1;setView('list');
   populateEx(allRows);populateStu(allRows);populateClasses(allRows);renderStats(allRows);
-  const btnCb=document.getElementById('btn-cb');if(btnCb)btnCb._wasReady=false;}
+  const btnCb=document.getElementById('btn-cb');if(btnCb)btnCb._wasReady=false;
+  checkCBButton();}
 
 function resetView(){
   document.getElementById('upload-zone').style.display='flex';
