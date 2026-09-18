@@ -497,10 +497,14 @@ function parseCSV(txt){
 function chk(ltr,salt,dd,mm,hh,mn,ni){
   return LC.charAt((ni+dd+mm+hh+mn+salt.charCodeAt(0))%23)===ltr;
 }
+// Llargada màxima del camp de resultats del format v2: una posició per pregunta.
+// Els codis de 30 continuen sent vàlids, perquè la regla accepta el rang 30-40.
+const MAX_RES = 40;
+
 function parseCode(raw){
   if(!raw||!raw.trim())return{format:'empty',valid:false,error:'Buit'};
   const code=raw.trim(),p=code.split('-');
-  if(p.length===9&&/^[A-Z][a-z][a-z0-9]{2}$/.test(p[0])&&/^\d{4}$/.test(p[1])&&/^\d{4}$/.test(p[2])&&/^[A-Z0-9]{2}$/.test(p[3])&&/^[0-3]$/.test(p[4])&&/^[1-5]$/.test(p[5])&&/^\d{2}$/.test(p[6])&&/^\d{3}$/.test(p[7])&&/^[01234]{30}$/.test(p[8])){
+  if(p.length===9&&/^[A-Z][a-z][a-z0-9]{2}$/.test(p[0])&&/^\d{4}$/.test(p[1])&&/^\d{4}$/.test(p[2])&&/^[A-Z0-9]{2}$/.test(p[3])&&/^[0-3]$/.test(p[4])&&/^[1-5]$/.test(p[5])&&/^\d{2}$/.test(p[6])&&/^\d{3}$/.test(p[7])&&/^[01234]{30,40}$/.test(p[8])){
     const ltr=p[0][0],salt=p[0].slice(1),dd=+p[1].slice(0,2),mm=+p[1].slice(2,4),hh=+p[2].slice(0,2),mn=+p[2].slice(2,4);
     const ni=+p[7],ok=chk(ltr,salt,dd,mm,hh,mn,ni);
     const result={format:'v2',valid:ok,checksumOk:ok,exercise:EX[p[3]]||p[3],exerciseCode:p[3],
@@ -526,6 +530,13 @@ function parseCode(raw){
       cbNivell,cbAny,
       note:nota,difficulty:0,sessions:null,questions:null,day:dd,month:mm,hour:hh,minute:mn,
       results:res,resultsArray:res.split('').map(Number),error:ok?null:'Checksum invàlid'};}
+  // Format bo però massa resultats: val la pena dir-ho, perquè si no l'usuari
+  // veu «Format desconegut» i no sap on mirar.
+  if(p.length===9&&/^[01234]{41,}$/.test(p[8]))
+    return{format:'unknown',valid:false,checksumOk:false,exercise:'?',exerciseCode:'',note:null,
+      difficulty:0,sessions:null,questions:null,day:null,month:null,hour:null,minute:null,
+      results:'',resultsArray:[],
+      error:`El codi porta ${p[8].length} resultats i el màxim admès és ${MAX_RES}`};
   return{format:'unknown',valid:false,checksumOk:false,exercise:'?',exerciseCode:'',note:null,
     difficulty:0,sessions:null,questions:null,day:null,month:null,hour:null,minute:null,
     results:'',resultsArray:[],error:'Format desconegut'};}
@@ -555,8 +566,8 @@ function processRows(csv){
 function dots(arr,sm=true){
   if(!arr||!arr.some(v=>v>0))return'<span class="mu">—</span>';
   const cl=['rd0','rd1','rd2','rd3','rd4'];
-  if(sm)return'<div class="rdots">'+arr.slice(0,30).map(v=>`<div class="rd ${cl[v]}"></div>`).join('')+'</div>';
-  return arr.slice(0,30).map(v=>`<div class="rdlg" style="background:var(--r${v})">${['','1','2','3','✗'][v]||''}</div>`).join('');}
+  if(sm)return'<div class="rdots">'+arr.slice(0,MAX_RES).map(v=>`<div class="rd ${cl[v]}"></div>`).join('')+'</div>';
+  return arr.slice(0,MAX_RES).map(v=>`<div class="rdlg" style="background:var(--r${v})">${['','1','2','3','✗'][v]||''}</div>`).join('');}
 
 function rnote(n){if(n===null||isNaN(n))return'<span class="mu">—</span>';return`<span class="tm" style="font-weight:700;color:var(--text);">${n.toFixed(1).replace('.',',')}</span>`;}
 function rstatus(s,e){if(s==='ok')return`<span title="Checksum correcte">✅</span>`;if(s==='warn')return`<span title="Gap > ${GAP} min" style="cursor:help">⚠️</span>`;return`<span title="${e||''}" style="cursor:help">❌</span>`;}
@@ -1249,7 +1260,7 @@ function openCB() {
   }
   if (!cbRows.length) return;
 
-  const N = 30;
+  const N = MAX_RES;
   const labels = ['','1','2','3','✗'];
   const colors = ['var(--r0)','var(--r1)','var(--r2)','var(--r3)','var(--r4)'];
 
@@ -1343,7 +1354,7 @@ function exportCBtxt() {
   const cbRows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
   if (!cbRows.length || !dt) return;
 
-  const N = 30;
+  const N = MAX_RES;
   const dateLabel = dateRangeLabel();
 
   const qStats = Array.from({length:N}, (_,q) => {
