@@ -1404,6 +1404,118 @@ function exportCBtxt() {
 }
 
 
+// ── Exportació Excel del resum CB ───────────────────────────────────────────
+// Reprodueix el full que es feia a mà: 1 / X per pregunta i alumne, la nota,
+// els percentatges per pregunta i la llista de preguntes per treballar.
+const CB_XL_LLINDAR = 50;   // % d'errors a partir del qual una pregunta és "per treballar"
+const CB_XL_COLORS  = { 1:'FFB7E1CD', X:'FFF4C7C3', 2:'FFFFF2CC', 3:'FFFCE5CD' };  // verd, vermell, groc, taronja
+const CB_XL_NOTA_BAIXA = 'FFC53929';                                                // nota < 5 en vermell
+
+function xlCol(n){ let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+
+async function exportCBxlsx() {
+  if (typeof ExcelJS === 'undefined') { alert("No s'ha pogut carregar el generador d'Excel (cal connexió a Internet). Torna-ho a provar."); return; }
+  // Mateixos alumnes que el resum CB, en l'ordre del full de respostes
+  const rows = filtRows.filter(r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v=>v>0));
+  if (!rows.length || !dateFrom) return;
+  try {
+    // Preguntes de cada alumne: les que diu el codi (com a màxim les 40 que hi caben)
+    const nPreg = r => {
+      if (r.parsed.questions) return Math.min(r.parsed.questions, MAX_RES);
+      const a = r.parsed.resultsArray; let n = a.length; while (n > 0 && !a[n-1]) n--; return n;
+    };
+    const res = (r, q) => q < nPreg(r) ? (r.parsed.resultsArray[q] || 0) : 0;
+    const aXL = v => v === 4 ? 'X' : (v >= 1 && v <= 3 ? v : null);   // 1 encert · 4 fallada → X · 0 → buit
+    const N = Math.max(...rows.map(nPreg));
+
+    // Disposició idèntica al full fet a mà: capçalera a la fila 2, alumnes des de B3
+    const F1 = 3, FN = F1 + rows.length - 1;
+    const CA = 2, CP1 = 3, CPN = CP1 + N - 1, CR = CPN + 1;
+    const FONT = { name:'Arial', size:10 };
+    const ESQ = { horizontal:'left', vertical:'middle' }, MIG = { horizontal:'center', vertical:'middle' };
+
+    const [ , mf, df] = dateFrom.split('-'), [ , mt, dt] = (dateTo || dateFrom).split('-');
+    const wb = new ExcelJS.Workbook();
+    wb.calcProperties.fullCalcOnLoad = true;
+    const ws = wb.addWorksheet(dateFrom === dateTo ? df+mf : `${df}${mf}-${dt}${mt}`);
+    const put = (r, c, value, align) => { const cell = ws.getCell(r, c); cell.value = value; cell.font = FONT; if (align) cell.alignment = align; return cell; };
+
+    // Capçalera
+    const fr = rows[0].parsed;
+    const etiqueta = [fr.cbNivell, fr.cbAny ? 'CB '+fr.cbAny : '', fr.cbMode].filter(Boolean).join(' · ') || 'Alumne';
+    put(2, CA, etiqueta, ESQ);
+    for (let q = 1; q <= N; q++) put(2, CP1+q-1, 'Pregunta '+q, ESQ);
+    put(2, CR, 'Resultat', ESQ);
+    ws.getRow(2).height = 22.5;
+
+    // Una fila per alumne: 1 / X i la nota (encerts / preguntes × 10)
+    rows.forEach((r, i) => {
+      const f = F1 + i, nq = nPreg(r);
+      put(f, CA, r.raw.email || r.student, { vertical:'middle' });
+      let uns = 0;
+      for (let q = 0; q < N; q++) { const v = aXL(res(r, q)); if (v === 1) uns++; put(f, CP1+q, v, MIG); }
+      const nota = r.parsed.questions > MAX_RES
+        ? r.parsed.note   // el codi no hi cap sencer: la nota del codi
+        : { formula:`COUNTIF(${xlCol(CP1)}${f}:${xlCol(CPN)}${f},1)/${nq}*10`, result: uns/nq*10 };
+      put(f, CR, nota, MIG);
+      ws.getRow(f).height = 22.5;
+    });
+
+    // Total: percentatge de cada resposta per pregunta
+    const presents = [1, 2, 3, 'X'].filter(v => v === 1 || v === 'X' || rows.some(r => [...Array(N).keys()].some(q => aXL(res(r, q)) === v)));
+    const FT = FN + 1;
+    put(FT, 1, 'Total:');
+    presents.forEach((v, k) => {
+      const f = FT + 1 + k;
+      put(f, CA, v, { horizontal:'center' });
+      for (let q = 0; q < N; q++) {
+        const L = xlCol(CP1+q), col = rows.map(r => aXL(res(r, q))).filter(x => x !== null);
+        if (!col.length) continue;
+        const crit = v === 'X' ? '"X"' : v;
+        const cell = put(f, CP1+q, { formula:`COUNTIF(${L}$${F1}:${L}$${FN},${crit})/COUNTA(${L}$${F1}:${L}$${FN})`, result: col.filter(x => x === v).length / col.length }, { horizontal:'center' });
+        cell.numFmt = '0%';
+      }
+    });
+
+    // Preguntes per treballar: les que fallen el CB_XL_LLINDAR % o més (mateixa fila i columnes que al full fet a mà)
+    const FL = FT + presents.length + 6;
+    put(FL, 1, 'Preguntes per treballar:');
+    const perTreballar = [];
+    for (let q = 0; q < N; q++) {
+      const col = rows.map(r => res(r, q)).filter(v => v > 0);
+      const errors = col.filter(v => v !== 1).length;
+      if (col.length && errors*100 >= CB_XL_LLINDAR*col.length) perTreballar.push(q+1);
+    }
+    // Una cada 8 columnes (com al full fet a mà) si caben dins l'amplada de la taula; si no, seguides
+    const pas = CA + 8*(perTreballar.length - 1) <= CR ? 8 : 1;
+    if (perTreballar.length) perTreballar.forEach((q, k) => put(FL, CA + pas*k, `Pregunta ${q}:`));
+    else put(FL, CA, 'Cap');
+
+    // Colors (format condicional, com al full fet a mà)
+    const fill = argb => ({ fill:{ type:'pattern', pattern:'solid', bgColor:{ argb } } });
+    ws.addConditionalFormatting({ ref:`${xlCol(CP1)}${F1}:${xlCol(CPN)}${FN}`,
+      rules: presents.map(v => ({ type:'cellIs', operator:'equal', formulae:[v === 'X' ? '"X"' : String(v)], style: fill(CB_XL_COLORS[v]) })) });
+    ws.addConditionalFormatting({ ref:`${xlCol(CR)}${F1}:${xlCol(CR)}${FN}`,
+      rules: [{ type:'cellIs', operator:'lessThan', formulae:['5'], style:{ font:{ color:{ argb: CB_XL_NOTA_BAIXA } } } }] });
+
+    // Amplades: que es llegeixin sencers els correus i "Preguntes per treballar:"
+    ws.getColumn(1).width = 21;
+    ws.getColumn(CA).width = Math.min(45, Math.max(14, ...rows.map(r => (r.raw.email || r.student).length + 2), etiqueta.length + 2));
+    for (let c = CP1; c <= CR; c++) ws.getColumn(c).width = 12.63;
+
+    const buf = await wb.xlsx.writeBuffer();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    a.download = dateFrom === dateTo ? `resum-cb-${dateFrom}.xlsx` : `resum-cb-${dateFrom}_a_${dateTo}.xlsx`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  } catch (e) {
+    console.error(e);
+    alert("No s'ha pogut generar l'Excel: " + e.message);
+  }
+}
+
+
 function showTip(e, el) {
   const tip = document.getElementById('cb-tooltip');
   tip.textContent = el.dataset.tip;
@@ -1434,6 +1546,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDateP
     <div class="cb-modal-header">
       <div style="display:flex;align-items:center;gap:16px;">
         <button onclick="exportCBtxt()" style="background:#fff;color:#2563eb;border:2px solid #2563eb;border-radius:6px;padding:8px 18px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;">⬇ Exportar .txt</button>
+        <button id="btn-cb-xlsx" onclick="exportCBxlsx()" title="Baixa un Excel amb 1 / X per alumne i pregunta, la nota, els percentatges i les preguntes per treballar" style="background:#fff;color:#16a34a;border:2px solid #16a34a;border-radius:6px;padding:8px 18px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;">⬇ Exportar Excel</button>
         <h2 id="cb-modal-title">Resum CB</h2>
       </div>
       <button class="cb-close" onclick="closeCB()">✕</button>
@@ -1514,7 +1627,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDateP
         <div><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--r4);vertical-align:middle;margin-right:5px;"></span><b>✗</b> fallada</div>
       </div>
 
-      <div class="help-tip">💡 <b>Resum CB:</b> si filtres per un dia (o un interval de dies) i tens respostes de Competències Bàsiques, el botó <b>📊 Veure resum CB</b> et munta la matriu alumnes × preguntes i marca les preguntes que han costat més.</div>
+      <div class="help-tip">💡 <b>Resum CB:</b> si filtres per un dia (o un interval de dies) i tens respostes de Competències Bàsiques, el botó <b>📊 Veure resum CB</b> et munta la matriu alumnes × preguntes i marca les preguntes que han costat més. Amb <b>⬇ Exportar Excel</b> la baixes com a full de càlcul: 1 / X per alumne i pregunta, la nota, el % per pregunta i les preguntes per treballar (les que falla el 50 % o més).</div>
     </div>
   </div>
 </div>
