@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Prioritat d'operacions (Step Quiz)">
+    <link rel="icon" href="icon.png">
+    <title>Prioritat d'Operacions</title>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    8,
+            defaultIntents:       4,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+    <script src="js/fixed-sessions.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <style>
+        /* ---- Variables de color específiques (paleta violeta, com vocabulari.html) ---- */
+        :root {
+            --bg-color:      #fafaf7;
+            --primary:       #7c3aed;
+            --primary-light: #ede9fe;
+            --primary-hover: #6d28d9;
+            --primary-dark:  #4c1d95;
+            --accent:        #0369a1;
+            --accent-light:  #e0f2fe;
+        }
+
+        /* ---- Overrides de shared.css ---- */
+        h1 { color: var(--primary-dark); }
+        .header-info { background-color: #f5f3ff; }
+        .level-text  { font-size: 1.1em; color: var(--primary-dark); }
+        .score-text  { color: var(--primary); }
+        .btn-submit  { background-color: var(--primary-dark); }
+        @media (hover: hover) { .btn-submit:hover { background-color: var(--primary-hover); } }
+
+        /* ══════════════════════════════════════════════
+           EXPRESSIÓ MATEMÀTICA
+        ══════════════════════════════════════════════ */
+        .expression-box {
+            padding: 34px 20px 22px 20px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 1.7em;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            min-height: 100px;
+            line-height: 1.5;
+        }
+
+        .tok-num, .tok-paren {
+            padding: 6px 4px;
+            transition: all 0.3s;
+            color: #1e293b;
+        }
+        .tok-num.resolved { color: var(--primary-hover); }
+        .tok-num.tok-highlight, .tok-paren.tok-highlight { background-color: var(--primary-light); border-radius: 6px; }
+
+        .tok-op {
+            padding: 6px 10px;
+            color: #334155;
+        }
+        .tok-op.tok-highlight {
+            background-color: var(--accent-light);
+            border-radius: 6px;
+            color: var(--accent);
+        }
+
+        .tok-pow { position: relative; padding: 6px 6px; color: #1e293b; }
+        .tok-pow.tok-highlight { background-color: var(--primary-light); border-radius: 6px; }
+        .tok-pow sup {
+            font-size: 0.62em;
+            position: relative;
+            top: -0.85em;
+            margin-left: 1px;
+        }
+
+        .step-instruction {
+            padding: 0 20px 16px 20px;
+            text-align: center;
+            color: #475569;
+            font-weight: 600;
+            font-size: 1.05em;
+            min-height: 1.4em;
+        }
+        .step-instruction .sub-expr {
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--primary-dark);
+            background: var(--primary-light);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        /* ══════════════════════════════════════════════
+           ZONA DE JOC: pool de xips + zona de resposta
+           (mateix patró visual/tàctil que vocabulari.html)
+        ══════════════════════════════════════════════ */
+        #answer-zone-wrap {
+            padding: 8px 20px 26px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .drop-zone {
+            min-width: 130px;
+            min-height: 64px;
+            border: 3px dashed var(--border-heavy);
+            border-radius: 12px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            padding: 6px 18px;
+        }
+        .drop-zone .dz-placeholder { font-size: 0.55em; font-family: 'Segoe UI', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .drop-zone.dz-over    { background: var(--primary-light); border-color: var(--primary); border-style: solid; }
+        .drop-zone.dz-correct { background: #d1fae5; border-color: var(--success); border-style: solid; color: #065f46; }
+        .drop-zone.dz-wrong   { background: #fee2e2; border-color: var(--danger); border-style: solid; color: #991b1b; animation: shake 0.3s; }
+
+        #chip-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+            max-width: 620px;
+        }
+
+        .num-chip {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 12px 22px;
+            min-height: 48px;
+            min-width: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.3em;
+            font-weight: 700;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s, background 0.15s;
+        }
+        .num-chip:active   { cursor: grabbing; }
+        .num-chip.dragging { opacity: 0.35; }
+        .num-chip.used      { opacity: 0.2; pointer-events: none; }
+        .num-chip.chip-selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary-dark);
+            transform: scale(1.08);
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+        }
+        @media (hover: hover) {
+            .num-chip:not(.used):not(.dragging):hover {
+                background: #e2e8f0;
+                border-color: #94a3b8;
+                color: #1e293b;
+            }
+        }
+
+        /* Chip fantasma pel drag tàctil (idèntic patró a vocabulari.html) */
+        #drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            background: var(--primary);
+            color: white;
+            border-radius: 14px;
+            padding: 10px 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+            display: none;
+            white-space: nowrap;
+        }
+
+        .hint-text {
+            text-align: center;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            padding: 0 20px 4px 20px;
+        }
+
+        /* ---- Animació intents ---- */
+        .attempts-counter.blink-error { animation: blink-violet 0.25s step-end infinite; border-color: #a855f7; }
+        @keyframes blink-violet {
+            0%, 100% { background-color: #f3e8ff; color: #6b21a8; }
+            50%      { background-color: white; color: var(--text-muted); }
+        }
+
+        /* ---- Responsiu ---- */
+        @media (max-width: 480px) {
+            .expression-box { font-size: 1.25em; padding: 22px 8px 16px 8px; gap: 4px; min-height: 70px; }
+            .step-instruction { font-size: 0.95em; padding: 0 12px 12px 12px; }
+            .drop-zone { min-width: 100px; min-height: 54px; font-size: 1.25em; padding: 5px 12px; }
+            .num-chip { padding: 9px 16px; font-size: 1.1em; min-height: 44px; }
+        }
+        @media (max-width: 350px) {
+            .expression-box { font-size: 1.05em; }
+        }
+    </style>
+<link rel="stylesheet" href="css/chromebook.css">
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Prioritat d'Operacions</h1>
+</div>
+
+<div class="panel" id="main-panel">
+
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text"   id="lvl-display">Operació 1 de 8</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 4</div>
+        </div>
+
+        <div class="expression-box" id="expression-box" role="group" aria-label="Expressió matemàtica"></div>
+        <div class="step-instruction" id="step-instruction" aria-live="polite"></div>
+
+        <div id="answer-zone-wrap">
+            <div class="drop-zone" id="drop-zone" aria-label="Zona per arrossegar el resultat">
+                <span class="dz-placeholder" id="dz-placeholder">Arrossega aquí</span>
+            </div>
+            <div id="chip-pool" role="group" aria-label="Possibles resultats"></div>
+        </div>
+
+        <div class="hint-text" id="hint-text"></div>
+    </div>
+</div>
+
+<!-- Ghost per al drag & drop tàctil (mateix patró que vocabulari.html) -->
+<div id="drag-ghost"></div>
+
+<script src="js/game-core.js"></script>
+
+<script>
+    // ============================================================
+    // DOM
+    // ============================================================
+    const els = {
+        body:            document.body,
+        gameScreen:      document.getElementById('game-screen'),
+        sessionDisplay:  document.getElementById('session-display'),
+        lvlDisplay:      document.getElementById('lvl-display'),
+        scoreDisplay:    document.getElementById('score-display'),
+        attemptsDisplay: document.getElementById('attempts-display'),
+        expressionBox:   document.getElementById('expression-box'),
+        stepInstruction: document.getElementById('step-instruction'),
+        dropZone:        document.getElementById('drop-zone'),
+        dzPlaceholder:   document.getElementById('dz-placeholder'),
+        chipPool:        document.getElementById('chip-pool'),
+        hintText:        document.getElementById('hint-text'),
+        dragGhost:       document.getElementById('drag-ghost'),
+    };
+
+    let isPenalizing   = false;
+    let tokens         = [];   // array de treball: {type:'num'|'pow'|'op'|'paren-open'|'paren-close', ...}
+    let currentStep    = null; // { kind:'pow'|'op', index, parenRange? }
+    let expectedAnswer = null;
+    let _selectedChip  = null;
+    let _touchChip     = null;
+
+    // ============================================================
+    // GENERACIÓ D'ARBRES (garanteix enters positius a cada node)
+    // ============================================================
+    function leaf(maxVal, allowPow) {
+        if (allowPow && Math.random() < 0.35) {
+            const base = randInt(2, 5), exp = pick([2, 3]);
+            return { type: 'pow', base, exp, val: Math.pow(base, exp) };
+        }
+        return { type: 'num', val: randInt(2, maxVal) };
+    }
+
+    function mkOp(op, left, right) {
+        let val;
+        if (op === '+') val = left.val + right.val;
+        else if (op === '-') val = left.val - right.val;
+        else if (op === '·') val = left.val * right.val;
+        else val = left.val / right.val;
+        return { type: 'op', op, left, right, val };
+    }
+
+    // Resta garantint que no doni negatiu
+    function mkSub(left, right) {
+        if (left.val < right.val) { const tmp = left; left = right; right = tmp; }
+        return mkOp('-', left, right);
+    }
+
+    // Divisió exacta garantida: b · q : b
+    function mkDiv(divisor, quocient) {
+        const right = { type: 'num', val: divisor };
+        const left  = { type: 'num', val: divisor * quocient };
+        return mkOp(':', left, right);
+    }
+
+    // Nivells de dificultat creixent (0..7), triats segons currentOperation
+    function buildTree(level) {
+        switch (level) {
+            case 0: // a + b
+                return mkOp('+', leaf(15, false), leaf(15, false));
+            case 1: // a - b  (sense negatius)
+                return mkSub(leaf(15, false), leaf(15, false));
+            case 2: // terme: a·b  o  a:b
+                return Math.random() < 0.5
+                    ? mkOp('·', leaf(9, false), leaf(9, false))
+                    : mkDiv(randInt(2, 9), randInt(2, 9));
+            case 3: { // terme +/- num
+                const term = buildTree(2);
+                const num  = leaf(12, false);
+                if (Math.random() < 0.65) {
+                    return Math.random() < 0.5 ? mkOp('+', term, num) : mkOp('+', num, term);
+                }
+                return Math.random() < 0.5 ? mkSub(term, num) : mkSub(num, term);
+            }
+            case 4: { // potència +/- num
+                const pw  = { type: 'pow', base: randInt(2, 5), exp: pick([2, 3]), val: 0 };
+                pw.val = Math.pow(pw.base, pw.exp);
+                const num = leaf(15, false);
+                return Math.random() < 0.5 ? mkOp('+', pw, num) : mkSub(pw, num);
+            }
+            case 5: { // terme +/- terme  (dues multiplicacions/divisions combinades)
+                const t1 = buildTree(2), t2 = buildTree(2);
+                return Math.random() < 0.5 ? mkOp('+', t1, t2) : mkSub(t1, t2);
+            }
+            case 6: { // (a +/- b) · c    parèntesi simple
+                const l = leaf(9, false), r = leaf(9, false);
+                const inner = Math.random() < 0.5 ? mkOp('+', l, r) : mkSub(l, r);
+                const paren = { type: 'paren', child: inner, val: inner.val };
+                const c = leaf(9, false);
+                return Math.random() < 0.5 ? mkOp('·', paren, c) : mkOp('·', c, paren);
+            }
+            case 7: { // (a +/- b) · c - d^2    parèntesi + potència + terme combinats
+                const l = leaf(9, false), r = leaf(9, false);
+                const inner = Math.random() < 0.5 ? mkOp('+', l, r) : mkSub(l, r);
+                const paren = { type: 'paren', child: inner, val: inner.val };
+                const c = leaf(6, false);
+                const term = mkOp('·', paren, c);
+                const pw = { type: 'pow', base: randInt(2, 4), exp: pick([2, 3]), val: 0 };
+                pw.val = Math.pow(pw.base, pw.exp);
+                return mkSub(term, pw);
+            }
+        }
+    }
+
+    // Aplana l'arbre a un array de tokens de treball
+    function flattenToWork(node, out) {
+        if (node.type === 'num') {
+            out.push({ type: 'num', val: node.val });
+        } else if (node.type === 'pow') {
+            out.push({ type: 'pow', base: node.base, exp: node.exp, val: node.val });
+        } else if (node.type === 'paren') {
+            out.push({ type: 'paren-open' });
+            flattenToWork(node.child, out);
+            out.push({ type: 'paren-close' });
+        } else if (node.type === 'op') {
+            flattenToWork(node.left, out);
+            out.push({ type: 'op', val: node.op });
+            flattenToWork(node.right, out);
+        }
+    }
+
+    // ============================================================
+    // MOTOR DE RESOLUCIÓ PAS A PAS (prioritat d'operacions)
+    // ============================================================
+    function findInnermostParenRange(toks) {
+        let openIdx = -1;
+        for (let i = 0; i < toks.length; i++) {
+            if (toks[i].type === 'paren-open') openIdx = i;
+            if (toks[i].type === 'paren-close' && openIdx !== -1) return [openIdx, i];
+        }
+        return null;
+    }
+
+    function getOpPriority(op) { return (op === '·' || op === ':') ? 2 : 1; }
+
+    function findOpInRange(toks, start, end) {
+        const ops = [];
+        for (let i = start; i <= end; i++) if (toks[i].type === 'op') ops.push(i);
+        if (ops.length === 0) return -1;
+        for (const idx of ops) if (getOpPriority(toks[idx].val) === 2) return idx;
+        return ops[0];
+    }
+
+    function nextStep(toks) {
+        const powIdx = toks.findIndex(t => t.type === 'pow');
+        if (powIdx !== -1) return { kind: 'pow', index: powIdx };
+
+        const range = findInnermostParenRange(toks);
+        if (range) {
+            const opIdx = findOpInRange(toks, range[0] + 1, range[1] - 1);
+            if (opIdx !== -1) return { kind: 'op', index: opIdx };
+            return null;
+        }
+
+        const opIdx = findOpInRange(toks, 0, toks.length - 1);
+        if (opIdx !== -1) return { kind: 'op', index: opIdx };
+        return null;
+    }
+
+    function computeStepAnswer(toks, step) {
+        if (step.kind === 'pow') return toks[step.index].val;
+        const i = step.index;
+        const a = toks[i - 1].val, op = toks[i].val, b = toks[i + 1].val;
+        if (op === '+') return a + b;
+        if (op === '-') return a - b;
+        if (op === '·') return a * b;
+        return a / b;
+    }
+
+    function stepSubExprText(toks, step) {
+        if (step.kind === 'pow') {
+            const p = toks[step.index];
+            return `${p.base}^${p.exp}`;
+        }
+        const i = step.index;
+        return `${toks[i - 1].val} ${toks[i].val} ${toks[i + 1].val}`;
+    }
+
+    function applyStep(toks, step) {
+        const t = [...toks];
+        if (step.kind === 'pow') {
+            t.splice(step.index, 1, { type: 'num', val: t[step.index].val, resolved: true });
+            return t;
+        }
+        const i = step.index;
+        const r = computeStepAnswer(toks, step);
+        t.splice(i - 1, 3, { type: 'num', val: r, resolved: true });
+        const newIdx = i - 1;
+        if (t[newIdx - 1] && t[newIdx - 1].type === 'paren-open' &&
+            t[newIdx + 1] && t[newIdx + 1].type === 'paren-close') {
+            t.splice(newIdx + 1, 1);
+            t.splice(newIdx - 1, 1);
+        }
+        return t;
+    }
+
+    // ============================================================
+    // DISTRACTORS (opcions incorrectes plausibles)
+    // ============================================================
+    function buildDistractors(correct, toks, step) {
+        const opts = new Set();
+        opts.add(correct);
+
+        if (step.kind === 'op') {
+            const i = step.index;
+            const a = toks[i - 1].val, op = toks[i].val, b = toks[i + 1].val;
+            // Error típic 1: aplicar l'operació equivocada (típic error de prioritat)
+            if (op === '·') opts.add(a + b);
+            if (op === '+') opts.add(a * b);
+            if (op === '-') opts.add(a + b);
+            if (op === ':' && b !== 0) opts.add(a - b);
+            // Error típic 2: invertir l'ordre en una resta/divisió
+            if (op === '-') opts.add(Math.abs(b - a));
+            if (op === ':' && a !== 0 && Number.isInteger(b / a)) opts.add(b / a);
+        } else {
+            // potència: error típic = multiplicar base*exponent en lloc d'elevar
+            const p = toks[step.index];
+            opts.add(p.base * p.exp);
+            if (p.exp === 2) opts.add(p.base * 2);
+            if (p.exp === 3) opts.add(p.base * p.base * 2);
+        }
+
+        // Petites variacions ±1/±2 per omplir si cal
+        let guard = 0;
+        while (opts.size < 4 && guard++ < 20) {
+            const delta = pick([-2, -1, 1, 2]);
+            const candidate = correct + delta;
+            if (candidate >= 0 && candidate !== correct) opts.add(candidate);
+        }
+
+        const arr = shuffle([...opts]).filter(v => v !== null && v !== undefined);
+        return arr.slice(0, 4);
+    }
+
+    // ============================================================
+    // RENDERITZAT DE L'EXPRESSIÓ
+    // ============================================================
+    function formatToken(tok) {
+        if (tok.type === 'num') return String(tok.val);
+        if (tok.type === 'op') return tok.val;
+        if (tok.type === 'paren-open') return '(';
+        if (tok.type === 'paren-close') return ')';
+        return '';
+    }
+
+    function renderExpression() {
+        els.expressionBox.innerHTML = '';
+        const hStart = currentStep && currentStep.kind === 'op' ? currentStep.index - 1 : null;
+        const hEnd   = currentStep && currentStep.kind === 'op' ? currentStep.index + 1 : null;
+        const hPow   = currentStep && currentStep.kind === 'pow' ? currentStep.index : null;
+
+        tokens.forEach((tok, idx) => {
+            const el = document.createElement('span');
+            const isHi = (hPow !== null && idx === hPow) ||
+                         (hStart !== null && idx >= hStart && idx <= hEnd);
+
+            if (tok.type === 'pow') {
+                el.className = 'tok-pow' + (isHi ? ' tok-highlight' : '');
+                el.innerHTML = `${tok.base}<sup>${tok.exp}</sup>`;
+            } else if (tok.type === 'op') {
+                el.className = 'tok-op' + (isHi ? ' tok-highlight' : '');
+                el.textContent = tok.val;
+            } else if (tok.type === 'paren-open' || tok.type === 'paren-close') {
+                el.className = 'tok-paren' + (isHi ? ' tok-highlight' : '');
+                el.textContent = formatToken(tok);
+            } else {
+                el.className = 'tok-num' + (tok.resolved ? ' resolved' : '') + (isHi ? ' tok-highlight' : '');
+                el.textContent = tok.val;
+            }
+            els.expressionBox.appendChild(el);
+        });
+    }
+
+    // ============================================================
+    // PREPARACIÓ D'UN PAS (mostra instrucció + pool de xips)
+    // ============================================================
+    function setupStep() {
+        currentStep = nextStep(tokens);
+
+        if (!currentStep) {
+            // Expressió resolta del tot
+            finalizeOperation();
+            return;
+        }
+
+        renderExpression();
+
+        const subText = stepSubExprText(tokens, currentStep);
+        if (currentStep.kind === 'pow') {
+            els.stepInstruction.innerHTML = `Segons la prioritat, primer cal resoldre la potència: <span class="sub-expr">${subText}</span>`;
+        } else {
+            els.stepInstruction.innerHTML = `Quin és el resultat de <span class="sub-expr">${subText}</span> ?`;
+        }
+
+        expectedAnswer = computeStepAnswer(tokens, currentStep);
+        const options = buildDistractors(expectedAnswer, tokens, currentStep);
+
+        els.dropZone.className = 'drop-zone';
+        els.dropZone.innerHTML = '<span class="dz-placeholder" id="dz-placeholder">Arrossega aquí</span>';
+        _selectedChip = null;
+
+        renderChipPool(options);
+
+        const isMob = isTouchDevice();
+        els.hintText.textContent = isMob
+            ? "Toca la resposta correcta i després toca la casella (o arrossega-la)."
+            : "Arrossega la resposta correcta fins a la casella.";
+    }
+
+    function renderChipPool(options) {
+        els.chipPool.innerHTML = '';
+        options.forEach(val => {
+            const chip = document.createElement('div');
+            chip.className = 'num-chip';
+            chip.textContent = val;
+            chip.dataset.val = val;
+
+            chip.addEventListener('click', () => _selectChip(chip));
+
+            chip.draggable = true;
+            chip.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', String(val));
+                setTimeout(() => chip.classList.add('dragging'), 0);
+            });
+            chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+            chip.addEventListener('touchstart', _onTouchStart, { passive: false });
+
+            els.chipPool.appendChild(chip);
+        });
+    }
+
+    // ---- Selecció per tap (mòbil / accessibilitat) ----
+    function _selectChip(chip) {
+        if (isTransitioning || isPenalizing) return;
+        if (chip.classList.contains('used')) return;
+
+        if (_selectedChip === chip) {
+            chip.classList.remove('chip-selected');
+            _selectedChip = null;
+            return;
+        }
+        if (_selectedChip) _selectedChip.classList.remove('chip-selected');
+        _selectedChip = chip;
+        chip.classList.add('chip-selected');
+    }
+
+    // ---- Drop zone: esdeveniments HTML5 (desktop) ----
+    els.dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        els.dropZone.classList.add('dz-over');
+    });
+    els.dropZone.addEventListener('dragleave', () => {
+        els.dropZone.classList.remove('dz-over');
+    });
+    els.dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        els.dropZone.classList.remove('dz-over');
+        const val = Number(e.dataTransfer.getData('text/plain'));
+        handleAnswer(val);
+    });
+    // Tap-to-place: si hi ha un chip seleccionat i es toca la zona
+    els.dropZone.addEventListener('pointerup', () => {
+        if (!_selectedChip || isTransitioning || isPenalizing) return;
+        const val = Number(_selectedChip.dataset.val);
+        _selectedChip.classList.remove('chip-selected');
+        _selectedChip = null;
+        handleAnswer(val);
+    });
+
+    // ---- Drag tàctil (mateix patró que vocabulari.html) ----
+    function _onTouchStart(e) {
+        if (isTransitioning) return;
+        e.preventDefault();
+        _touchChip = e.currentTarget;
+        const touch = e.touches[0];
+        els.dragGhost.textContent   = _touchChip.dataset.val;
+        els.dragGhost.style.display = 'block';
+        _moveGhost(touch.clientX, touch.clientY);
+        document.addEventListener('touchmove',   _onTouchMove,   { passive: false });
+        document.addEventListener('touchend',    _onTouchEnd,    { passive: false });
+        document.addEventListener('touchcancel', _onTouchCancel, { passive: false });
+    }
+    function _onTouchMove(e) {
+        e.preventDefault();
+        _moveGhost(e.touches[0].clientX, e.touches[0].clientY);
+    }
+    function _moveGhost(cx, cy) {
+        els.dragGhost.style.left = (cx - els.dragGhost.offsetWidth / 2) + 'px';
+        els.dragGhost.style.top  = (cy - 20) + 'px';
+    }
+    function _onTouchEnd(e) {
+        els.dragGhost.style.display = 'none';
+        _removeTouchListeners();
+        if (!_touchChip) return;
+        const touch = e.changedTouches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const dz = el ? el.closest('#drop-zone') : null;
+        if (dz) handleAnswer(Number(_touchChip.dataset.val));
+        _touchChip = null;
+    }
+    function _onTouchCancel() {
+        els.dragGhost.style.display = 'none';
+        _touchChip = null;
+        _removeTouchListeners();
+    }
+    function _removeTouchListeners() {
+        document.removeEventListener('touchmove',   _onTouchMove);
+        document.removeEventListener('touchend',    _onTouchEnd);
+        document.removeEventListener('touchcancel', _onTouchCancel);
+    }
+
+    // ============================================================
+    // COMPROVACIÓ DE LA RESPOSTA
+    // ============================================================
+    function handleAnswer(val) {
+        if (isTransitioning || isPenalizing || currentStep === null) return;
+
+        const chips = [...els.chipPool.querySelectorAll('.num-chip')];
+
+        if (val === expectedAnswer) {
+            els.dropZone.classList.add('dz-correct');
+            els.dropZone.innerHTML = String(val);
+            const chip = chips.find(c => Number(c.dataset.val) === val);
+            if (chip) chip.classList.add('used');
+
+            const subText = stepSubExprText(tokens, currentStep);
+            recordAnswerToHistory(`Pas: ${subText}`, String(val), true);
+
+            setTimeout(() => {
+                tokens = applyStep(tokens, currentStep);
+                setupStep();
+            }, 700);
+        } else {
+            els.dropZone.classList.add('dz-wrong');
+            setTimeout(() => els.dropZone.classList.remove('dz-wrong'), 400);
+            const subText = stepSubExprText(tokens, currentStep);
+            recordAnswerToHistory(`Pas: ${subText}`, String(val), false);
+            penalize();
+        }
+    }
+
+    // ============================================================
+    // PENALITZACIÓ
+    // ============================================================
+    function penalize() {
+        if (isPenalizing || isTransitioning) return;
+        isPenalizing = true;
+        els.attemptsDisplay.classList.add('blink-error');
+        setTimeout(() => {
+            els.attemptsDisplay.classList.remove('blink-error');
+            attemptsLeft--;
+            isPenalizing = false;
+            updateHeader();
+            if (attemptsLeft <= 0) {
+                isTransitioning = true;
+                finishOperation(0);
+            }
+        }, 800);
+    }
+
+    // ============================================================
+    // FI D'OPERACIÓ / NIVELL
+    // ============================================================
+    function finalizeOperation() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        const fails       = MAX_INTENTS - attemptsLeft;
+        const levelPoints = Math.max(0, 10 - (fails * 2));
+        sessionScore     += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+        els.stepInstruction.innerHTML = `Resultat final: <span class="sub-expr">${tokens[0].val}</span> ✅`;
+        finishOperation(levelPoints);
+    }
+
+    function finishOperation(levelPoints) {
+        recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
+        hideCustomKeyboard();
+        const waitTime = showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
+        setTimeout(() => {
+            hideMiniOverlay();
+            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                endSession();
+            } else {
+                currentOperation++;
+                buildLevel();
+            }
+        }, waitTime);
+    }
+
+    // ============================================================
+    // CONSTRUCCIÓ DE NIVELL
+    // ============================================================
+    const MAX_LEVEL = 7; // nivells 0..7 (dificultat creixent)
+
+    function buildLevel() {
+        attemptsLeft    = MAX_INTENTS;
+        isTransitioning = false;
+        isPenalizing    = false;
+        _selectedChip   = null;
+
+        // La dificultat avança amb currentOperation, sense superar MAX_LEVEL
+        const level = Math.min(currentOperation, MAX_LEVEL);
+
+        let tree;
+        // Evitem per accident una expressió amb un sol node (impossible amb els nivells actuals,
+        // però ho deixem com a salvaguarda per a futures ampliacions).
+        do {
+            tree = buildTree(level);
+        } while (typeof tree.val !== 'number' || !Number.isFinite(tree.val));
+
+        tokens = [];
+        flattenToWork(tree, tokens);
+
+        els.body.style.backgroundColor = bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+
+        updateHeader();
+        setupStep();
+    }
+
+    function updateHeader() {
+        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText      = `Operació ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 3 ? ' danger' : '');
+    }
+
+    // ============================================================
+    // ARRENCADA
+    // ============================================================
+    injectSharedHTML();
+    validateConfig();
+    startGame();
+</script>
+</body>
+</html>
