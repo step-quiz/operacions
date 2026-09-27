@@ -234,6 +234,53 @@
             padding: 0 4px;
         }
 
+        /* ---- Marques del diagnòstic sobre l'expressió ---- */
+        .expression-box .hl-red, .expression-box .hl-green {
+            border-radius: 8px;
+            padding: 0 8px;
+            border: 3px solid;
+        }
+        .expression-box .hl-red   { border-color: var(--danger);  background: #fee2e2; color: #991b1b; }
+        .expression-box .hl-green { border-color: var(--success); background: #d1fae5; color: #065f46; }
+        .fb-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px 16px;
+            margin-top: 8px;
+            font-size: 0.92em;
+            color: #334155;
+            font-weight: 600;
+        }
+        .fb-legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .lg-box { width: 16px; height: 16px; border-radius: 4px; border: 3px solid; display: inline-block; flex-shrink: 0; }
+        .lg-red   { border-color: var(--danger);  background: #fee2e2; }
+        .lg-green { border-color: var(--success); background: #d1fae5; }
+
+        /* ---- Botó "Següent" ---- */
+        .btn-next {
+            display: block;
+            margin: 14px auto 2px auto;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 13px 34px;
+            min-height: 48px;
+            font-size: 1.05em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            touch-action: manipulation;
+            box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3);
+            animation: fadeIn 0.3s;
+        }
+        .btn-next:focus-visible { outline: 3px solid var(--primary-dark); outline-offset: 2px; }
+        .btn-next:active        { transform: scale(0.96); }
+        .btn-next:disabled      { opacity: 0.6; cursor: default; }
+        @media (hover: hover) { .btn-next:hover:not(:disabled) { background-color: var(--primary-hover); } }
+
         .hint-text {
             text-align: center;
             font-size: 0.85em;
@@ -257,6 +304,7 @@
             .num-chip         { padding: 9px 16px; font-size: 1.15em; min-height: 44px; }
             .solution-box     { width: calc(100% - 24px); padding: 10px 12px; }
             .sol-line         { font-size: 1.05em; gap: 4px; }
+            .expression-box .hl-red, .expression-box .hl-green { padding: 0 5px; border-width: 2px; }
         }
         @media (max-width: 350px) {
             .expression-box { font-size: 1.2em; }
@@ -331,21 +379,24 @@
     const MAX_RESULT     = 200;   // resultat correcte màxim (càlcul mental a 1r ESO)
     const MAX_DISTRACTOR = 999;
 
-    function evaluate(toks, cfg) {
+    // Converteix l'expressió a notació polonesa inversa segons les regles de cfg.
+    // Cada element recorda la posició (idx) del token original, per poder
+    // reconstruir després quina operació s'ha fet i en quin ordre.
+    function toRPN(toks, cfg) {
         const prec = cfg.prec || PREC_OK;
         const stream = [];
-        for (const t of toks) {
+        toks.forEach((t, i) => {
             if (t.k === 'pow') {
-                if (cfg.pow === 'mult')         stream.push(N(t.b * t.e));
-                else if (cfg.pow === 'postfix') { stream.push(N(t.b)); stream.push({ k: 'post', e: t.e }); }
-                else                            stream.push(N(Math.pow(t.b, t.e)));
+                if (cfg.pow === 'mult')         stream.push({ k: 'num', v: t.b * t.e, idx: i });
+                else if (cfg.pow === 'postfix') { stream.push({ k: 'num', v: t.b, idx: i }); stream.push({ k: 'post', e: t.e, idx: i }); }
+                else                            stream.push({ k: 'num', v: Math.pow(t.b, t.e), idx: i });
             } else if (t.k === 'lp' || t.k === 'rp') {
-                if (cfg.parens !== false) stream.push(t);
+                if (cfg.parens !== false) stream.push({ k: t.k, idx: i });
             } else {
-                stream.push(t);
+                stream.push(Object.assign({ idx: i }, t));
             }
-        }
-        // Shunting-yard → notació polonesa inversa
+        });
+        // Shunting-yard
         const out = [], st = [];
         for (const t of stream) {
             if (t.k === 'num') out.push(t);
@@ -373,6 +424,12 @@
             if (t.k === 'lp') return null;
             out.push(t);
         }
+        return out;
+    }
+
+    function evaluate(toks, cfg) {
+        const out = toRPN(toks, cfg);
+        if (!out) return null;
         // Avaluació amb control de validesa a cada pas
         const vs = [];
         for (const t of out) {
@@ -435,6 +492,76 @@
             chosen.push({ v, id: 'calc' });
         }
         return chosen;
+    }
+
+    // ------------------------------------------------------------
+    // DIAGNÒSTIC GRÀFIC DE L'ERROR
+    // Es reconstrueix l'arbre d'operacions que ha fet l'alumne (segons l'error
+    // que correspon a la resposta triada) i es compara amb l'arbre correcte.
+    // La primera operació de l'alumne que no agrupa els mateixos nombres que
+    // a l'arbre correcte és la que "ha fet massa aviat" (vermell); les que
+    // calia fer abans són les que, a l'arbre correcte, s'emporten algun dels
+    // seus operands (verd).
+    // ------------------------------------------------------------
+    function parseTree(toks, cfg) {
+        const out = toRPN(toks, cfg);
+        if (!out) return null;
+        const stack = [], order = [];
+        for (const t of out) {
+            if (t.k === 'num') { stack.push({ leaf: true, key: 'L' + t.idx, idx: t.idx }); continue; }
+            const kids = t.k === 'post' ? [stack.pop()] : (() => { const b = stack.pop(), a = stack.pop(); return [a, b]; })();
+            const node = { post: t.k === 'post', idx: t.idx, key: t.k === 'post' ? 'L' + t.idx : t.idx, kids };
+            stack.push(node);
+            order.push(node);
+        }
+        return stack.length === 1 ? { root: stack[0], order } : null;
+    }
+
+    function leavesOf(node) {
+        if (node.leaf) return [node.key];
+        return node.kids.flatMap(leavesOf);
+    }
+
+    function diagnose(toks, id) {
+        const m = MISCONCEPTIONS.find(x => x.id === id);
+        if (!m) return null;
+        const res = { red: new Set(), green: new Set(), powRed: -1 };
+
+        // Error de potència (3² = 3·2): es marca la potència
+        if (m.cfg.pow === 'mult') {
+            res.powRed = toks.findIndex(t => t.k === 'pow');
+            if (res.powRed >= 0) res.red.add(res.powRed);
+        }
+
+        const ct = parseTree(toks, {});
+        const st = parseTree(toks, m.cfg);
+        if (!ct || !st) return res.red.size ? res : null;
+
+        // Arbre correcte: pare de cada node i nombres que agrupa cada operació
+        const parent = new Map(), spanC = new Map();
+        (function walk(n) {
+            if (n.leaf) return;
+            spanC.set(n.idx, leavesOf(n).sort().join(','));
+            for (const k of n.kids) { parent.set(k.key, n.idx); walk(k); }
+        })(ct.root);
+
+        for (const node of st.order) {
+            if (node.post) {
+                // L'exponent s'aplica a una operació sencera (2·3² → 6²)
+                const kid = node.kids[0];
+                if (!kid.leaf) { res.red.add(kid.idx); res.green.add(node.idx); break; }
+                continue;
+            }
+            if (spanC.get(node.idx) !== leavesOf(node).sort().join(',')) {
+                res.red.add(node.idx);
+                for (const kid of node.kids) {
+                    const p = parent.get(kid.key);
+                    if (p !== undefined && p !== node.idx) res.green.add(p);
+                }
+                break;
+            }
+        }
+        return res.red.size ? res : null;
     }
 
     // ------------------------------------------------------------
@@ -686,15 +813,32 @@
     // ============================================================
     // RENDERITZAT
     // ============================================================
-    function tokHtml(t) {
-        if (t.k === 'num') return `<span class="tok-num${t.fresh ? ' fresh' : ''}">${t.v}</span>`;
-        if (t.k === 'op')  return `<span class="tok-op">${OP_SHOW[t.v]}</span>`;
-        if (t.k === 'pow') return `<span class="tok-pow">${t.b}<sup>${t.e}</sup></span>`;
-        return `<span class="tok-paren">${t.k === 'lp' ? '(' : ')'}</span>`;
+    function tokHtml(t, extra) {
+        const x = extra ? ' ' + extra : '';
+        if (t.k === 'num') return `<span class="tok-num${t.fresh ? ' fresh' : ''}${x}">${t.v}</span>`;
+        if (t.k === 'op')  return `<span class="tok-op${x}">${OP_SHOW[t.v]}</span>`;
+        if (t.k === 'pow') return `<span class="tok-pow${x}">${t.b}<sup>${t.e}</sup></span>`;
+        return `<span class="tok-paren${x}">${t.k === 'lp' ? '(' : ')'}</span>`;
     }
 
-    function renderExpression() {
-        els.expressionBox.innerHTML = tokens.map(tokHtml).join('');
+    // diag (opcional): { red:Set, green:Set } amb les posicions a marcar
+    function renderExpression(diag) {
+        els.expressionBox.innerHTML = tokens.map((t, i) => {
+            let cls = '';
+            if (diag && diag.red.has(i))        cls = 'hl-red';
+            else if (diag && diag.green.has(i)) cls = 'hl-green';
+            return tokHtml(t, cls);
+        }).join('');
+    }
+
+    function legendHtml(diag) {
+        if (!diag) return '';
+        const items = [];
+        const orderRed = [...diag.red].some(i => i !== diag.powRed);
+        if (orderRed)              items.push('<span><i class="lg-box lg-red"></i>Aquesta operació l\'has feta massa aviat</span>');
+        if (diag.green.size)       items.push('<span><i class="lg-box lg-green"></i>Abans calia fer aquesta</span>');
+        if (diag.powRed >= 0)      items.push('<span><i class="lg-box lg-red"></i>Aquesta potència està mal calculada</span>');
+        return items.length ? `<div class="fb-legend">${items.join('')}</div>` : '';
     }
 
     function resetDropZone() {
@@ -886,13 +1030,18 @@
             els.dropZone.className = 'drop-zone dz-correct';
             els.dropZone.textContent = String(val);
             els.feedback.textContent = '';
+            renderExpression();
             recordAnswerToHistory(`${exprText} = ?`, String(val), true);
             finishOperation(true);
         } else {
             chip.classList.add('chip-wrong');
             els.dropZone.classList.add('dz-wrong');
             setTimeout(() => els.dropZone.classList.remove('dz-wrong'), 400);
-            els.feedback.textContent = `${val} no és correcte. ${feedbackFor(optionIds.get(val) || 'calc', tokens)}`;
+            const errId = optionIds.get(val) || 'calc';
+            const diag  = errId === 'calc' ? null : diagnose(tokens, errId);
+            renderExpression(diag);
+            els.feedback.innerHTML =
+                `<div>${val} no és correcte. ${feedbackFor(errId, tokens)}</div>` + legendHtml(diag);
             recordAnswerToHistory(`${exprText} = ?`, String(val), false);
             penalize();
         }
@@ -912,7 +1061,8 @@
     }
 
     // ============================================================
-    // FI DE L'EXERCICI: resolució pas a pas + overlay + següent
+    // FI DE L'EXERCICI: resolució pas a pas + overlay + botó "Següent"
+    // (sense temporitzador: l'alumne decideix quan ha entès la resolució)
     // ============================================================
     function finishOperation(ok) {
         if (isTransitioning) return;
@@ -928,26 +1078,46 @@
         els.chipPool.style.display = 'none';
         els.hintText.style.display = 'none';
         if (!ok) {
+            // Es mantenen les marques de l'últim error perquè l'alumne les compari amb la resolució
             els.dropZone.className   = 'drop-zone dz-reveal';
             els.dropZone.textContent = String(correctAnswer);
         }
         renderSolution(ok);
+        showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
 
-        // Temps de lectura de la resolució abans de l'overlay (més llarg si s'ha fallat)
-        const readTime = ok ? 1800 : 2800;
-        setTimeout(() => {
-            const waitTime = showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
-            setTimeout(() => {
-                hideMiniOverlay();
-                if (currentOperation + 1 >= TOTAL_OPERATIONS) {
-                    endSession();
-                } else {
-                    currentOperation++;
-                    buildLevel();
-                }
-            }, waitTime);
-        }, readTime);
+        const isLast = currentOperation + 1 >= TOTAL_OPERATIONS;
+        const btn = document.createElement('button');
+        btn.className   = 'btn-next';
+        btn.id          = 'btn-next';
+        btn.textContent = isLast ? 'Veure resultats' : 'Següent';
+        btn.addEventListener('click', goNext);
+        els.solutionBox.appendChild(btn);
+        if (isTouchDevice()) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        else btn.focus({ preventScroll: true });
     }
+
+    function goNext() {
+        const btn = document.getElementById('btn-next');
+        if (!btn || btn.disabled) return;
+        btn.disabled = true;
+        hideMiniOverlay();
+        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+            endSession();
+        } else {
+            currentOperation++;
+            buildLevel();
+        }
+    }
+
+    // Enter = "Següent" (escriptori)
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        const btn = document.getElementById('btn-next');
+        if (btn && !btn.disabled && els.gameScreen.style.display !== 'none') {
+            e.preventDefault();
+            goNext();
+        }
+    });
 
     // ============================================================
     // ARRENCADA
