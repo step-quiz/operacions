@@ -214,10 +214,15 @@
             color: var(--primary-dark);
             margin-bottom: 8px;
         }
+        .sol-lines {
+            width: fit-content;
+            max-width: 100%;
+            margin: 0 auto;
+        }
         .sol-line {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             gap: 6px;
             padding: 2px 0;
@@ -226,7 +231,8 @@
             font-weight: bold;
             color: #1e293b;
         }
-        .sol-eq { color: var(--text-muted); margin-right: 4px; }
+        .sol-eq     { color: var(--text-muted); margin-right: 4px; }
+        .sol-eq-end { color: var(--text-muted); margin-left: 4px; }
         .sol-line .tok-num.fresh {
             color: var(--primary);
             background: var(--primary-light);
@@ -549,7 +555,7 @@
             if (node.post) {
                 // L'exponent s'aplica a una operació sencera (2·3² → 6²)
                 const kid = node.kids[0];
-                if (!kid.leaf) { res.red.add(kid.idx); res.green.add(node.idx); break; }
+                if (!kid.leaf) { res.red.add(kid.idx); res.green.add(node.idx); res.powKid = kid; break; }
                 continue;
             }
             if (spanC.get(node.idx) !== leavesOf(node).sort().join(',')) {
@@ -740,31 +746,106 @@
         }).join(' ').replace(/\( /g, '(').replace(/ \)/g, ')');
     }
 
-    function feedbackFor(id, toks) {
+    // Ex.: "3² = 3·3 = 9, no 3·2 = 6."
+    function powHint(pw) {
+        return `${pw.b}${SUP[pw.e]} = ${Array(pw.e).fill(pw.b).join('·')} = ${Math.pow(pw.b, pw.e)}, no ${pw.b}·${pw.e} = ${pw.b * pw.e}.`;
+    }
+
+    const NOM_UNA = { '+': 'una suma', '-': 'una resta', '·': 'una multiplicació', ':': 'una divisió' };
+    const NOM_LA  = { '+': 'la suma',  '-': 'la resta',  '·': 'la multiplicació',  ':': 'la divisió' };
+    const NOM_LES = { '+': 'les sumes', '-': 'les restes', '·': 'les multiplicacions', ':': 'les divisions' };
+    const NOM_PL  = { '+': 'sumes', '-': 'restes', '·': 'multiplicacions', ':': 'divisions' };
+
+    function joinI(parts) {
+        return parts.length <= 1 ? (parts[0] || '') : parts.slice(0, -1).join(', ') + ' i ' + parts[parts.length - 1];
+    }
+
+    // Operadors marcats pel diagnòstic (sense la potència mal calculada)
+    function markedOps(toks, set, diag) {
+        return [...set].filter(i => i !== diag.powRed && toks[i] && toks[i].k === 'op').map(i => toks[i].v);
+    }
+
+    // "la multiplicació", "les multiplicacions", "la multiplicació i la divisió"...
+    function phraseLa(ops) {
+        const parts = [];
+        for (const op of ['·', ':', '+', '-']) {
+            const n = ops.filter(o => o === op).length;
+            if (n === 1) parts.push(NOM_LA[op]);
+            if (n > 1)   parts.push(NOM_LES[op]);
+        }
+        return joinI(parts);
+    }
+
+    // Tokens contigus que ocupa un node de l'arbre (amb els parèntesis equilibrats)
+    function nodeRange(toks, node) {
+        const idxs = [];
+        (function walk(n) { idxs.push(n.idx); if (!n.leaf) n.kids.forEach(walk); })(node);
+        let a = Math.min(...idxs), b = Math.max(...idxs);
+        const depth = (x, y) => toks.slice(x, y + 1).reduce((d, t) => d + (t.k === 'lp') - (t.k === 'rp'), 0);
+        while (a > 0 && depth(a, b) < 0) a--;
+        while (b < toks.length - 1 && depth(a, b) > 0) b++;
+        return [a, b];
+    }
+    const compact = txt => txt.replace(/ · /g, '·').replace(/ : /g, ':');
+
+    // "Has fet una resta abans que la multiplicació: és a l'inrevés!"
+    // (serveix per als errors "esquerra a dreta" i "sumes abans": per a l'alumne és el mateix)
+    function orderMsg(toks, diag) {
+        const red = diag ? markedOps(toks, diag.red, diag) : [];
+        const grn = diag ? markedOps(toks, diag.green, diag) : [];
+        if (red.length && grn.length && (red[0] === '+' || red[0] === '-'))
+            return `Has fet ${NOM_UNA[red[0]]} abans que ${phraseLa(grn)}: és a l'inrevés!`;
+        return "Has fet les sumes i restes abans que les multiplicacions i divisions: és a l'inrevés!";
+    }
+
+    function feedbackFor(id, toks, diag) {
+        if (diag === undefined && id !== 'calc') diag = diagnose(toks, id);
         const pw = toks.find(t => t.k === 'pow');
         switch (id) {
             case 'lr':
-                return "Has fet les operacions d'esquerra a dreta sense respectar la prioritat. Primer es fan les multiplicacions i divisions; després, les sumes i restes.";
             case 'addfirst':
-                return "Has fet les sumes i restes abans que les multiplicacions i divisions. És al revés!";
-            case 'rtl':
-                return "La multiplicació i la divisió tenen la mateixa prioritat (i la suma i la resta, també). Quan n'hi ha diverses seguides, es fan d'esquerra a dreta.";
+                return orderMsg(toks, diag);
+
+            case 'rtl': {
+                // "Atenció, si tens diverses sumes i restes seguides, es fan d'esquerra a dreta."
+                const ops = diag ? markedOps(toks, new Set([...diag.red, ...diag.green]), diag) : [];
+                const nivell = ops.some(o => o === '·' || o === ':') ? ['·', ':'] : ['+', '-'];
+                const noms = nivell.filter(o => ops.includes(o)).map(o => NOM_PL[o]);
+                return noms.length
+                    ? `Atenció, si tens diverses ${joinI(noms)} seguides, es fan d'esquerra a dreta.`
+                    : "Atenció, si tens diverses operacions del mateix tipus seguides, es fan d'esquerra a dreta.";
+            }
+
             case 'nopar':
-                return "Has ignorat els parèntesis. El que hi ha dins d'un parèntesi es calcula primer de tot.";
             case 'lrnopar':
-                return "Has ignorat els parèntesis i has calculat d'esquerra a dreta. Primer els parèntesis; després, multiplicacions i divisions; i finalment, sumes i restes.";
-            case 'powterm':
-                return pw
-                    ? `L'exponent només afecta el nombre que té just a sota: a ${pw.b}${SUP[pw.e]}, l'exponent afecta només el ${pw.b}, no tota la multiplicació.`
-                    : "L'exponent només afecta el nombre que té just a sota.";
+                return "No t'has fixat que hi ha un parèntesi. Has de calcular, en primer lloc, el que hi ha dins del parèntesi.";
+
+            case 'powterm': {
+                // "En l'operació 4·3², l'exponent afecta només la base (que val 3),
+                //  per tant has de calcular 3² en lloc de 12²."
+                if (diag && diag.powKid) {
+                    const [a, b] = nodeRange(toks, diag.powKid);
+                    const powIdx = [...diag.green].find(i => toks[i] && toks[i].k === 'pow');
+                    const p = toks[powIdx];
+                    if (p && powIdx >= a && powIdx <= b) {
+                        const sub = toks.slice(a, b + 1);
+                        const baseVal = evaluate(sub.map(t => t === p ? N(p.b) : t), {});
+                        if (baseVal !== null)
+                            return `En l'operació ${compact(toText(sub))}, l'exponent afecta només la base (que val ${p.b}), ` +
+                                   `per tant has de calcular ${p.b}${SUP[p.e]} en lloc de ${baseVal}${SUP[p.e]}.`;
+                    }
+                }
+                return pw ? `L'exponent afecta només la base: a ${pw.b}${SUP[pw.e]}, només el ${pw.b}.` : '';
+            }
+
             case 'powmult':
-                return pw
-                    ? `Una potència no és base × exponent: ${pw.b}${SUP[pw.e]} = ${Array(pw.e).fill(pw.b).join('·')} = ${Math.pow(pw.b, pw.e)}, no ${pw.b}·${pw.e} = ${pw.b * pw.e}.`
-                    : "Una potència no és base × exponent.";
+                return pw ? powHint(pw) : '';
+
             case 'lrpowmult':
-                return "Has calculat d'esquerra a dreta i, a més, una potència no és base × exponent.";
+                return orderMsg(toks, diag) + (pw ? ' A més, ' + powHint(pw) : '');
+
             default:
-                return "Aquest resultat no surt de fer les operacions en un ordre equivocat: revisa els càlculs pas a pas.";
+                return "Revisa els càlculs pas a pas.";
         }
     }
 // ===== ENGINE-END =====
@@ -794,7 +875,7 @@
     // ============================================================
     const PUNTS = [10, 5, 2, 1];   // punts segons el nombre de fallades abans d'encertar
 
-    let isPenalizing   = false;
+    let _finished      = false;   // l'exercici actual ja s'ha tancat
     let tokens         = [];
     let correctAnswer  = null;
     let optionIds      = new Map();   // valor → id de l'error (per al feedback)
@@ -873,11 +954,17 @@
     function renderSolution(ok) {
         const lines = solutionChain(tokens);
         const title = ok
-            ? '✅ Correcte! Així es resol:'
-            : `La resposta correcta és <strong>${correctAnswer}</strong>. Així es resol:`;
+            ? "✅ Correcte! Es resol d'aquesta manera:"
+            : `La resposta correcta és <strong>${correctAnswer}</strong>. Es resol d'aquesta manera:`;
+        // 29 − 4·5 + 7 =
+        // = 29 − 20 + 7
+        // = 9 + 7
+        // = 16
+        const first = `<div class="sol-line">${tokens.map(t => tokHtml(t)).join('')}<span class="sol-eq-end">=</span></div>`;
+        const rest  = lines.map(l => `<div class="sol-line"><span class="sol-eq">=</span>${l.map(t => tokHtml(t)).join('')}</div>`).join('');
         els.solutionBox.innerHTML =
             `<div class="solution-title">${title}</div>` +
-            lines.map(l => `<div class="sol-line"><span class="sol-eq">=</span>${l.map(tokHtml).join('')}</div>`).join('');
+            `<div class="sol-lines">${first}${rest}</div>`;
         els.solutionBox.style.display = 'block';
     }
 
@@ -887,7 +974,7 @@
     function buildLevel() {
         attemptsLeft    = MAX_INTENTS;
         isTransitioning = false;
-        isPenalizing    = false;
+        _finished       = false;
         _selectedChip   = null;
 
         const ex = generateExercise(levelFor(currentOperation));
@@ -928,7 +1015,7 @@
     // INTERACCIÓ: selecció per toc/clic
     // ============================================================
     function _selectChip(chip) {
-        if (isTransitioning || isPenalizing) return;
+        if (isTransitioning) return;
         if (chip.classList.contains('used') || chip.classList.contains('chip-wrong')) return;
         if (_selectedChip === chip) {
             chip.classList.remove('chip-selected');
@@ -954,7 +1041,7 @@
     });
     // Tocar/clicar la casella amb un xip seleccionat
     els.dropZone.addEventListener('pointerup', () => {
-        if (!_selectedChip || isTransitioning || isPenalizing) return;
+        if (!_selectedChip || isTransitioning) return;
         const val = Number(_selectedChip.dataset.val);
         _selectedChip.classList.remove('chip-selected');
         _selectedChip = null;
@@ -965,7 +1052,7 @@
     // Com que preventDefault() al touchstart anul·la el 'click' en mòbil,
     // un toc sense desplaçament es tracta aquí mateix com a selecció.
     function _onTouchStart(e) {
-        if (isTransitioning || isPenalizing) return;
+        if (isTransitioning) return;
         e.preventDefault();
         _touchChip   = e.currentTarget;
         const touch  = e.touches[0];
@@ -1019,7 +1106,7 @@
     // COMPROVACIÓ DE LA RESPOSTA
     // ============================================================
     function handleAnswer(val) {
-        if (isTransitioning || isPenalizing || correctAnswer === null) return;
+        if (isTransitioning || correctAnswer === null) return;
         const chip = [...els.chipPool.querySelectorAll('.num-chip')].find(c => Number(c.dataset.val) === val);
         if (!chip || chip.classList.contains('used') || chip.classList.contains('chip-wrong')) return;
 
@@ -1041,23 +1128,27 @@
             const diag  = errId === 'calc' ? null : diagnose(tokens, errId);
             renderExpression(diag);
             els.feedback.innerHTML =
-                `<div>${val} no és correcte. ${feedbackFor(errId, tokens)}</div>` + legendHtml(diag);
+                `<div>${val} no és correcte. ${feedbackFor(errId, tokens, diag)}</div>` + legendHtml(diag);
             recordAnswerToHistory(`${exprText} = ?`, String(val), false);
             penalize();
         }
     }
 
+    // L'intent es descompta a l'instant. El parpelleig del comptador és només
+    // visual: NO bloqueja l'entrada (abans, durant 0,8 s s'ignoraven els tocs,
+    // i si l'alumne tocava de seguida l'última opció, no passava res).
     function penalize() {
-        if (isPenalizing || isTransitioning) return;
-        isPenalizing = true;
-        els.attemptsDisplay.classList.add('blink-error');
-        setTimeout(() => {
-            els.attemptsDisplay.classList.remove('blink-error');
-            attemptsLeft--;
-            isPenalizing = false;
-            updateHeader();
-            if (attemptsLeft <= 0) finishOperation(false);
-        }, 800);
+        attemptsLeft--;
+        updateHeader();
+        const ad = els.attemptsDisplay;
+        ad.classList.remove('blink-error');
+        void ad.offsetWidth;                       // reinicia l'animació si ja estava activa
+        ad.classList.add('blink-error');
+        setTimeout(() => ad.classList.remove('blink-error'), 800);
+        if (attemptsLeft <= 0) {
+            isTransitioning = true;                // ja no s'accepten més respostes
+            setTimeout(() => finishOperation(false), 700);   // temps per veure l'error abans de la solució
+        }
     }
 
     // ============================================================
@@ -1065,7 +1156,8 @@
     // (sense temporitzador: l'alumne decideix quan ha entès la resolució)
     // ============================================================
     function finishOperation(ok) {
-        if (isTransitioning) return;
+        if (_finished) return;
+        _finished       = true;
         isTransitioning = true;
 
         const fails       = MAX_INTENTS - attemptsLeft;
