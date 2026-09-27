@@ -10,8 +10,8 @@
     <script>
         window.APP_CONFIG = {
             defaultSessions:      1,
-            defaultOperations:    8,
-            defaultIntents:       4,
+            defaultOperations:    10,
+            defaultIntents:       2,
             defaultEnllocMitjana: 1
         };
     </script>
@@ -28,8 +28,6 @@
             --primary-light: #ede9fe;
             --primary-hover: #6d28d9;
             --primary-dark:  #4c1d95;
-            --accent:        #0369a1;
-            --accent-light:  #e0f2fe;
         }
 
         /* ---- Overrides de shared.css ---- */
@@ -44,70 +42,59 @@
            EXPRESSIÓ MATEMÀTICA
         ══════════════════════════════════════════════ */
         .expression-box {
-            padding: 34px 20px 22px 20px;
-            text-align: center;
+            padding: 34px 20px 18px 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 6px;
-            font-size: 1.7em;
+            gap: 8px;
+            font-size: 1.9em;
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
             min-height: 100px;
             line-height: 1.5;
-        }
-
-        .tok-num, .tok-paren {
-            padding: 6px 4px;
-            transition: all 0.3s;
             color: #1e293b;
         }
-        .tok-num.resolved { color: var(--primary-hover); }
-        .tok-num.tok-highlight, .tok-paren.tok-highlight { background-color: var(--primary-light); border-radius: 6px; }
-
-        .tok-op {
-            padding: 6px 10px;
-            color: #334155;
-        }
-        .tok-op.tok-highlight {
-            background-color: var(--accent-light);
-            border-radius: 6px;
-            color: var(--accent);
-        }
-
-        .tok-pow { position: relative; padding: 6px 6px; color: #1e293b; }
-        .tok-pow.tok-highlight { background-color: var(--primary-light); border-radius: 6px; }
+        .tok-op    { color: #334155; padding: 0 2px; }
+        .tok-paren { color: #475569; }
         .tok-pow sup {
             font-size: 0.62em;
             position: relative;
-            top: -0.85em;
+            top: -0.15em;
             margin-left: 1px;
         }
 
         .step-instruction {
-            padding: 0 20px 16px 20px;
+            padding: 0 20px 14px 20px;
             text-align: center;
             color: #475569;
             font-weight: 600;
-            font-size: 1.05em;
-            min-height: 1.4em;
-        }
-        .step-instruction .sub-expr {
-            font-family: 'Courier New', Courier, monospace;
-            color: var(--primary-dark);
-            background: var(--primary-light);
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-weight: bold;
+            font-size: 1.1em;
         }
 
+        /* Missatge diagnòstic quan l'alumne s'equivoca */
+        .feedback {
+            margin: 0 auto 14px auto;
+            padding: 10px 16px;
+            max-width: 560px;
+            width: calc(100% - 40px);
+            text-align: center;
+            color: #991b1b;
+            background: var(--danger-light);
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.98em;
+            line-height: 1.4;
+            animation: fadeIn 0.3s;
+        }
+        .feedback:empty { display: none; }
+
         /* ══════════════════════════════════════════════
-           ZONA DE JOC: pool de xips + zona de resposta
-           (mateix patró visual/tàctil que vocabulari.html)
+           ZONA DE JOC: casella + xips (patró de vocabulari.html)
         ══════════════════════════════════════════════ */
         #answer-zone-wrap {
-            padding: 8px 20px 26px 20px;
+            padding: 8px 20px 22px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -124,16 +111,17 @@
             align-items: center;
             justify-content: center;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 1.5em;
+            font-size: 1.6em;
             font-weight: bold;
             color: var(--text-muted);
             transition: all 0.2s;
             padding: 6px 18px;
         }
-        .drop-zone .dz-placeholder { font-size: 0.55em; font-family: 'Segoe UI', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .drop-zone .dz-placeholder { font-size: 0.5em; font-family: 'Segoe UI', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .drop-zone.dz-over    { background: var(--primary-light); border-color: var(--primary); border-style: solid; }
         .drop-zone.dz-correct { background: #d1fae5; border-color: var(--success); border-style: solid; color: #065f46; }
         .drop-zone.dz-wrong   { background: #fee2e2; border-color: var(--danger); border-style: solid; color: #991b1b; animation: shake 0.3s; }
+        .drop-zone.dz-reveal  { background: #fef3c7; border-color: #f59e0b; border-style: solid; color: #92400e; }
 
         #chip-pool {
             display: flex;
@@ -159,12 +147,21 @@
             font-weight: 700;
             cursor: grab;
             user-select: none;
+            -webkit-user-select: none;
             touch-action: none;
             transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s, background 0.15s;
         }
         .num-chip:active   { cursor: grabbing; }
         .num-chip.dragging { opacity: 0.35; }
-        .num-chip.used      { opacity: 0.2; pointer-events: none; }
+        .num-chip.used     { opacity: 0.2; pointer-events: none; }
+        .num-chip.chip-wrong {
+            opacity: 0.45;
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+            text-decoration: line-through;
+            pointer-events: none;
+        }
         .num-chip.chip-selected {
             background: var(--primary);
             color: white;
@@ -173,14 +170,14 @@
             box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
         }
         @media (hover: hover) {
-            .num-chip:not(.used):not(.dragging):hover {
+            .num-chip:not(.used):not(.chip-wrong):not(.dragging):not(.chip-selected):hover {
                 background: #e2e8f0;
                 border-color: #94a3b8;
                 color: #1e293b;
             }
         }
 
-        /* Chip fantasma pel drag tàctil (idèntic patró a vocabulari.html) */
+        /* Xip fantasma pel drag tàctil (mateix patró que vocabulari.html) */
         #drag-ghost {
             position: fixed;
             pointer-events: none;
@@ -197,11 +194,51 @@
             white-space: nowrap;
         }
 
+        /* ══════════════════════════════════════════════
+           RESOLUCIÓ PAS A PAS (es mostra en acabar)
+        ══════════════════════════════════════════════ */
+        .solution-box {
+            display: none;
+            margin: 0 auto 20px auto;
+            padding: 12px 18px;
+            max-width: 560px;
+            width: calc(100% - 40px);
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            border-radius: 10px;
+            animation: fadeIn 0.3s;
+        }
+        .solution-title {
+            text-align: center;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+        .sol-line {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.25em;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .sol-eq { color: var(--text-muted); margin-right: 4px; }
+        .sol-line .tok-num.fresh {
+            color: var(--primary);
+            background: var(--primary-light);
+            border-radius: 5px;
+            padding: 0 4px;
+        }
+
         .hint-text {
             text-align: center;
             font-size: 0.85em;
             color: var(--text-muted);
-            padding: 0 20px 4px 20px;
+            padding: 0 20px 14px 20px;
         }
 
         /* ---- Animació intents ---- */
@@ -213,13 +250,16 @@
 
         /* ---- Responsiu ---- */
         @media (max-width: 480px) {
-            .expression-box { font-size: 1.25em; padding: 22px 8px 16px 8px; gap: 4px; min-height: 70px; }
-            .step-instruction { font-size: 0.95em; padding: 0 12px 12px 12px; }
-            .drop-zone { min-width: 100px; min-height: 54px; font-size: 1.25em; padding: 5px 12px; }
-            .num-chip { padding: 9px 16px; font-size: 1.1em; min-height: 44px; }
+            .expression-box   { font-size: 1.45em; padding: 22px 8px 14px 8px; gap: 5px; min-height: 70px; }
+            .step-instruction { font-size: 1em; padding: 0 12px 12px 12px; }
+            .feedback         { width: calc(100% - 24px); font-size: 0.92em; padding: 8px 12px; }
+            .drop-zone        { min-width: 100px; min-height: 54px; font-size: 1.3em; padding: 5px 12px; }
+            .num-chip         { padding: 9px 16px; font-size: 1.15em; min-height: 44px; }
+            .solution-box     { width: calc(100% - 24px); padding: 10px 12px; }
+            .sol-line         { font-size: 1.05em; gap: 4px; }
         }
         @media (max-width: 350px) {
-            .expression-box { font-size: 1.05em; }
+            .expression-box { font-size: 1.2em; }
         }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
@@ -239,22 +279,22 @@
         <div class="header-info">
             <div class="header-left">
                 <div class="session-text" id="session-display">Sessió 1 de 1</div>
-                <div class="level-text"   id="lvl-display">Operació 1 de 8</div>
+                <div class="level-text"   id="lvl-display">Operació 1 de 10</div>
             </div>
             <div class="score-text" id="score-display">Punts: 0</div>
-            <div id="attempts-display" class="attempts-counter">Intents: 4</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 2</div>
         </div>
 
         <div class="expression-box" id="expression-box" role="group" aria-label="Expressió matemàtica"></div>
-        <div class="step-instruction" id="step-instruction" aria-live="polite"></div>
+        <div class="step-instruction" id="step-instruction">Quant val aquesta expressió?</div>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
 
         <div id="answer-zone-wrap">
-            <div class="drop-zone" id="drop-zone" aria-label="Zona per arrossegar el resultat">
-                <span class="dz-placeholder" id="dz-placeholder">Arrossega aquí</span>
-            </div>
+            <div class="drop-zone" id="drop-zone" aria-label="Zona per deixar el resultat"></div>
             <div id="chip-pool" role="group" aria-label="Possibles resultats"></div>
         </div>
 
+        <div class="solution-box" id="solution-box" aria-live="polite"></div>
         <div class="hint-text" id="hint-text"></div>
     </div>
 </div>
@@ -265,6 +305,343 @@
 <script src="js/game-core.js"></script>
 
 <script>
+// ===== ENGINE-START =====
+    // ============================================================
+    // MOTOR MATEMÀTIC (pur, sense DOM)
+    // ------------------------------------------------------------
+    // Una expressió és un array de tokens:
+    //   {k:'num', v}   {k:'op', v:'+'|'-'|'·'|':'}   {k:'pow', b, e}   {k:'lp'}   {k:'rp'}
+    //
+    // evaluate(toks, cfg) avalua l'expressió amb unes regles configurables.
+    // Amb cfg = {} aplica les regles CORRECTES. Amb altres cfg simula els
+    // ERRORS TÍPICS dels alumnes (vegeu MISCONCEPTIONS). Retorna null si en
+    // algun moment surt un resultat negatiu, no enter o una divisió per zero.
+    // ============================================================
+    const N = v => ({ k: 'num', v });
+    const O = v => ({ k: 'op', v });
+    const P = (b, e) => ({ k: 'pow', b, e });
+    const L = () => ({ k: 'lp' });
+    const R = () => ({ k: 'rp' });
+
+    const PREC_OK   = { '+': 1, '-': 1, '·': 2, ':': 2 };   // regla correcta
+    const PREC_FLAT = { '+': 1, '-': 1, '·': 1, ':': 1 };   // tot igual → esquerra a dreta
+    const PREC_INV  = { '+': 2, '-': 2, '·': 1, ':': 1 };   // sumes/restes primer
+    const POST_PREC = 1.5;   // "l'exponent afecta tot el producte" (entre + i ·)
+
+    const MAX_RESULT     = 200;   // resultat correcte màxim (càlcul mental a 1r ESO)
+    const MAX_DISTRACTOR = 999;
+
+    function evaluate(toks, cfg) {
+        const prec = cfg.prec || PREC_OK;
+        const stream = [];
+        for (const t of toks) {
+            if (t.k === 'pow') {
+                if (cfg.pow === 'mult')         stream.push(N(t.b * t.e));
+                else if (cfg.pow === 'postfix') { stream.push(N(t.b)); stream.push({ k: 'post', e: t.e }); }
+                else                            stream.push(N(Math.pow(t.b, t.e)));
+            } else if (t.k === 'lp' || t.k === 'rp') {
+                if (cfg.parens !== false) stream.push(t);
+            } else {
+                stream.push(t);
+            }
+        }
+        // Shunting-yard → notació polonesa inversa
+        const out = [], st = [];
+        for (const t of stream) {
+            if (t.k === 'num') out.push(t);
+            else if (t.k === 'op') {
+                while (st.length) {
+                    const top = st[st.length - 1];
+                    if (top.k !== 'op') break;
+                    const pt = prec[top.v], pc = prec[t.v];
+                    if (pt > pc || (pt === pc && !cfg.rtl)) out.push(st.pop());
+                    else break;
+                }
+                st.push(t);
+            } else if (t.k === 'post') {
+                while (st.length && st[st.length - 1].k === 'op' && prec[st[st.length - 1].v] > POST_PREC) out.push(st.pop());
+                out.push(t);
+            } else if (t.k === 'lp') st.push(t);
+            else if (t.k === 'rp') {
+                while (st.length && st[st.length - 1].k !== 'lp') out.push(st.pop());
+                if (!st.length) return null;
+                st.pop();
+            }
+        }
+        while (st.length) {
+            const t = st.pop();
+            if (t.k === 'lp') return null;
+            out.push(t);
+        }
+        // Avaluació amb control de validesa a cada pas
+        const vs = [];
+        for (const t of out) {
+            if (t.k === 'num') { vs.push(t.v); continue; }
+            if (t.k === 'post') {
+                if (!vs.length) return null;
+                vs.push(Math.pow(vs.pop(), t.e));
+                continue;
+            }
+            if (vs.length < 2) return null;
+            const b = vs.pop(), a = vs.pop();
+            let r;
+            if (t.v === '+')      r = a + b;
+            else if (t.v === '-') r = a - b;
+            else if (t.v === '·') r = a * b;
+            else { if (b === 0) return null; r = a / b; }
+            if (!Number.isInteger(r) || r < 0) return null;
+            vs.push(r);
+        }
+        return vs.length === 1 ? vs[0] : null;
+    }
+
+    // Errors típics, per ordre de prioritat a l'hora de triar distractors
+    const MISCONCEPTIONS = [
+        { id: 'lr',        cfg: { prec: PREC_FLAT } },                  // tot d'esquerra a dreta
+        { id: 'addfirst',  cfg: { prec: PREC_INV } },                   // sumes/restes abans
+        { id: 'rtl',       cfg: { rtl: true } },                        // mateix nivell de dreta a esquerra
+        { id: 'nopar',     cfg: { parens: false } },                    // ignora parèntesis
+        { id: 'powterm',   cfg: { pow: 'postfix' } },                   // 2·3² = 6²
+        { id: 'powmult',   cfg: { pow: 'mult' } },                      // 3² = 3·2
+        { id: 'lrnopar',   cfg: { prec: PREC_FLAT, parens: false } },   // ignora parèntesis i esquerra a dreta
+        { id: 'lrpowmult', cfg: { prec: PREC_FLAT, pow: 'mult' } },     // esquerra a dreta + 3² = 3·2
+    ];
+
+    // Retorna Map(valor → id de l'error) amb els errors que donen un valor vàlid i diferent del correcte
+    function misconceptionMap(toks, correct) {
+        const map = new Map();
+        for (const m of MISCONCEPTIONS) {
+            const v = evaluate(toks, m.cfg);
+            if (v === null || v === correct || v > MAX_DISTRACTOR) continue;
+            if (!map.has(v)) map.set(v, m.id);
+        }
+        return map;
+    }
+
+    // 3 distractors: primer els que surten d'errors de prioritat; si no n'hi ha prou,
+    // valors propers (a la correcta i al primer distractor, per no delatar la resposta)
+    function buildDistractors(toks, correct) {
+        const chosen = [...misconceptionMap(toks, correct).entries()]
+            .slice(0, 3)
+            .map(([v, id]) => ({ v, id }));
+        const used   = new Set([correct, ...chosen.map(c => c.v)]);
+        const anchor = chosen.length ? chosen[0].v : correct;
+        const pool   = shuffle([correct + 1, correct - 1, correct + 2, correct - 2,
+                                correct + 10, correct - 10, anchor + 1, anchor - 1, anchor + 2]);
+        for (const v of pool) {
+            if (chosen.length >= 3) break;
+            if (v < 0 || used.has(v)) continue;
+            used.add(v);
+            chosen.push({ v, id: 'calc' });
+        }
+        return chosen;
+    }
+
+    // ------------------------------------------------------------
+    // GENERADORS PER NIVELL (0 = més fàcil ... 9 = més difícil)
+    // Cada variant retorna un array de tokens amb nombres aleatoris.
+    // Les expressions no vàlides (negatius, divisions no exactes) o que
+    // no permeten cap error de prioritat es descarten a generateExercise().
+    // ------------------------------------------------------------
+    const r = (a, b) => randInt(a, b);
+
+    const LEVELS = [
+        // 0 · Suma o resta amb un producte/quocient a la dreta        ex: 7 + 2·2
+        [
+            () => [N(r(2, 9)), O('+'), N(r(2, 6)), O('·'), N(r(2, 6))],
+            () => { const b = r(2, 5), c = r(2, 5); return [N(b * c + r(1, 9)), O('-'), N(b), O('·'), N(c)]; },
+            () => { const c = r(2, 5); return [N(c * r(1, 4)), O('+'), N(c * r(2, 6)), O(':'), N(c)]; },
+            () => { const c = r(2, 5), q = r(2, 5); return [N(c * r(q + 1, q + 5)), O('-'), N(c * q), O(':'), N(c)]; },
+        ],
+        // 1 · Dos productes o quocients                                ex: 8·7 − 24:3
+        [
+            () => [N(r(2, 9)), O('·'), N(r(2, 9)), O('+'), N(r(2, 9)), O('·'), N(r(2, 9))],
+            () => [N(r(2, 9)), O('·'), N(r(2, 9)), O('-'), N(r(2, 9)), O('·'), N(r(2, 9))],
+            () => { const d = r(2, 6); return [N(r(2, 9)), O('·'), N(r(2, 9)), O('+'), N(d * r(2, 9)), O(':'), N(d)]; },
+            () => { const d = r(2, 6); return [N(r(2, 9)), O('·'), N(r(2, 9)), O('-'), N(d * r(2, 9)), O(':'), N(d)]; },
+            () => { const b = r(2, 6); return [N(b * r(2, 9)), O(':'), N(b), O('+'), N(r(2, 9)), O('·'), N(r(2, 9))]; },
+        ],
+        // 2 · Sumes i restes amb un producte                           ex: 3 + 4 − 2·2
+        [
+            () => [N(r(2, 12)), O('+'), N(r(2, 12)), O('-'), N(r(2, 5)), O('·'), N(r(2, 5))],
+            () => [N(r(10, 25)), O('-'), N(r(2, 9)), O('+'), N(r(2, 5)), O('·'), N(r(2, 5))],
+            () => [N(r(12, 30)), O('-'), N(r(2, 5)), O('·'), N(r(2, 5)), O('+'), N(r(2, 9))],
+            () => [N(r(2, 9)), O('·'), N(r(2, 9)), O('-'), N(r(2, 9)), O('+'), N(r(2, 9))],
+        ],
+        // 3 · Operacions del mateix nivell seguides (esquerra a dreta)  ex: 24 : 4 · 2   ·   20 − 8 − 3
+        [
+            () => { const b = r(2, 5), c = r(2, 4), k = r(1, 3); return [N(b * c * k), O(':'), N(b), O('·'), N(c)]; },
+            () => { const c = r(2, 3), b = c * r(1, 3), k = r(1, 5); return [N(b * c * k), O(':'), N(b), O(':'), N(c)]; },
+            () => { const b = r(5, 12), c = r(2, b - 1); return [N(b + c + r(2, 12)), O('-'), N(b), O('-'), N(c)]; },
+            () => { const c = r(2, 5); return [N(r(2, 15)), O('+'), N(c * r(2, 6)), O(':'), N(c), O('·'), N(r(2, 4))]; },
+            () => { const b = r(2, 6); return [N(b * r(2, 6)), O(':'), N(b), O('·'), N(r(2, 5)), O('+'), N(r(2, 9))]; },
+        ],
+        // 4 · Potències                                                ex: 2·3²
+        [
+            () => [N(r(2, 5)), O('·'), P(r(3, 6), 2)],
+            () => [N(r(2, 4)), O('·'), P(r(2, 3), 3)],
+            () => [N(r(2, 9)), O('+'), P(r(2, 5), 2), O('·'), N(r(2, 4))],
+            () => [P(r(4, 9), 2), O('-'), N(r(2, 5)), O('·'), N(r(2, 5))],
+        ],
+        // 5 · Potències amb altres operacions                          ex: 5 + 2·3²
+        [
+            () => [N(r(2, 9)), O('+'), N(r(2, 4)), O('·'), P(r(2, 5), 2)],
+            () => [N(r(2, 5)), O('·'), P(r(2, 5), 2), O('-'), N(r(2, 9))],
+            () => [P(r(2, 6), 2), O('+'), N(r(2, 4)), O('·'), P(r(2, 4), 2)],
+            () => { const c = r(2, 5), b = c * r(1, 2); return [N(c * r(1, 4)), O('+'), P(b, 2), O(':'), N(c)]; },
+        ],
+        // 6 · Parèntesis                                               ex: 2·(3 + 4)
+        [
+            () => [N(r(2, 6)), O('·'), L(), N(r(2, 9)), O('+'), N(r(2, 9)), R()],
+            () => [N(r(2, 9)), O('+'), N(r(2, 5)), O('·'), L(), N(r(2, 6)), O('+'), N(r(2, 6)), R()],
+            () => [L(), N(r(2, 9)), O('+'), N(r(2, 9)), R(), O('·'), N(r(2, 5)), O('-'), N(r(2, 9))],
+            () => { const b = r(2, 5), c = r(2, 5), d = r(2, 4); return [N((b + c) * d + r(1, 15)), O('-'), L(), N(b), O('+'), N(c), R(), O('·'), N(d)]; },
+            () => [N(r(2, 6)), O('·'), L(), N(r(6, 12)), O('-'), N(r(2, 5)), R(), O('+'), N(r(2, 9))],
+        ],
+        // 7 · Parèntesis amb restes i divisions                        ex: 15 − (8 − 3)
+        [
+            () => { const b = r(6, 12), c = r(2, b - 2); return [N(b + c + r(0, 10)), O('-'), L(), N(b), O('-'), N(c), R()]; },
+            () => { const c = r(2, 5), b = c * r(1, 3); return [L(), N(b + c * r(2, 6)), O('-'), N(b), R(), O(':'), N(c), O('+'), N(r(2, 9))]; },
+            () => { const d = r(2, 5), s = d * r(2, 5), b = r(2, s - 2); return [N(d * r(1, 4)), O('+'), L(), N(b), O('+'), N(s - b), R(), O(':'), N(d)]; },
+            () => [N(r(2, 5)), O('·'), L(), N(r(2, 6)), O('+'), N(r(2, 6)), R(), O('-'), N(r(2, 5)), O('·'), N(r(2, 5))],
+        ],
+        // 8 · Parèntesis i potències                                   ex: 3·(2 + 4) − 2²
+        [
+            () => [N(r(2, 6)), O('·'), L(), N(r(2, 6)), O('+'), N(r(2, 6)), R(), O('-'), P(r(2, 5), 2)],
+            () => [L(), N(r(8, 15)), O('-'), N(r(2, 6)), R(), O('·'), N(r(2, 4)), O('+'), P(r(2, 5), 2)],
+            () => [P(r(5, 9), 2), O('-'), L(), N(r(2, 5)), O('+'), N(r(2, 5)), R(), O('·'), N(r(2, 4))],
+            () => [N(r(2, 9)), O('+'), P(r(2, 4), 2), O('·'), L(), N(r(5, 9)), O('-'), N(r(2, 4)), R()],
+        ],
+        // 9 · Tot combinat
+        [
+            () => [L(), N(r(2, 9)), O('+'), N(r(2, 9)), R(), O('·'), N(r(2, 5)), O('-'), N(r(2, 5)), O('·'), N(r(2, 5))],
+            () => { const e = r(2, 5), s = e * r(2, 5), c = r(2, s - 2); return [N(r(2, 4)), O('·'), P(r(2, 5), 2), O('-'), L(), N(c), O('+'), N(s - c), R(), O(':'), N(e)]; },
+            () => { const e = r(2, 5), b = e * r(1, 2), c = r(5, 12); return [N(r(2, 12)), O('+'), N(b), O('·'), L(), N(c), O('-'), N(r(2, c - 1)), R(), O(':'), N(e)]; },
+            () => [P(r(4, 9), 2), O('-'), N(r(2, 4)), O('·'), L(), N(r(5, 9)), O('-'), N(r(2, 4)), R(), O('+'), N(r(2, 9))],
+            () => { const c = r(2, 5), s = c * r(2, 5), a = r(2, s - 2); return [L(), N(a), O('+'), N(s - a), R(), O(':'), N(c), O('+'), N(r(2, 4)), O('·'), P(r(2, 3), 2)]; },
+        ],
+    ];
+
+    // Tria una variant del nivell i en genera nombres fins que l'expressió sigui vàlida
+    // i "discriminant" (almenys 1 error de prioritat, preferiblement 2 o més).
+    function generateExercise(level) {
+        const variants = LEVELS[Math.max(0, Math.min(level, LEVELS.length - 1))];
+        for (let v = 0; v < 6; v++) {
+            const gen = pick(variants);
+            let best = null;
+            for (let tries = 0; tries < 200; tries++) {
+                const toks = gen();
+                const val  = evaluate(toks, {});
+                if (val === null || val > MAX_RESULT) continue;
+                const nMis = misconceptionMap(toks, val).size;
+                if (nMis === 0) continue;
+                if (!best || nMis > best.nMis) best = { toks, val, nMis };
+                if (nMis >= 2) break;
+            }
+            if (best) return best;
+        }
+        // Salvaguarda: a + b·c sempre és vàlida i discriminant
+        const toks = [N(r(2, 9)), O('+'), N(r(2, 6)), O('·'), N(r(2, 6))];
+        return { toks, val: evaluate(toks, {}), nMis: 1 };
+    }
+
+    // ------------------------------------------------------------
+    // RESOLUCIÓ PAS A PAS (parèntesis → potències → · : → + −, esquerra a dreta)
+    // ------------------------------------------------------------
+    function innermostParen(toks) {
+        let o = -1;
+        for (let i = 0; i < toks.length; i++) {
+            if (toks[i].k === 'lp') o = i;
+            if (toks[i].k === 'rp' && o !== -1) return [o, i];
+        }
+        return null;
+    }
+
+    function nextStep(toks) {
+        const rg = innermostParen(toks);
+        const s = rg ? rg[0] + 1 : 0;
+        const e = rg ? rg[1] - 1 : toks.length - 1;
+        for (let i = s; i <= e; i++) if (toks[i].k === 'pow') return { kind: 'pow', i };
+        for (let i = s; i <= e; i++) if (toks[i].k === 'op' && (toks[i].v === '·' || toks[i].v === ':')) return { kind: 'op', i };
+        for (let i = s; i <= e; i++) if (toks[i].k === 'op') return { kind: 'op', i };
+        return null;
+    }
+
+    function applyStep(toks, st) {
+        const t = toks.map(x => Object.assign({}, x, { fresh: false }));
+        let idx;
+        if (st.kind === 'pow') {
+            t.splice(st.i, 1, { k: 'num', v: Math.pow(t[st.i].b, t[st.i].e), fresh: true });
+            idx = st.i;
+        } else {
+            const a = t[st.i - 1].v, op = t[st.i].v, b = t[st.i + 1].v;
+            const res = op === '+' ? a + b : op === '-' ? a - b : op === '·' ? a * b : a / b;
+            t.splice(st.i - 1, 3, { k: 'num', v: res, fresh: true });
+            idx = st.i - 1;
+        }
+        if (t[idx - 1] && t[idx - 1].k === 'lp' && t[idx + 1] && t[idx + 1].k === 'rp') {
+            t.splice(idx + 1, 1);
+            t.splice(idx - 1, 1);
+        }
+        return t;
+    }
+
+    function solutionChain(toks) {
+        const lines = [];
+        let cur = toks;
+        for (let guard = 0; guard < 30; guard++) {
+            const st = nextStep(cur);
+            if (!st) break;
+            cur = applyStep(cur, st);
+            lines.push(cur);
+        }
+        return lines;
+    }
+
+    // ------------------------------------------------------------
+    // TEXTOS
+    // ------------------------------------------------------------
+    const SUP     = { 2: '²', 3: '³' };
+    const OP_SHOW = { '+': '+', '-': '−', '·': '·', ':': ':' };
+
+    function toText(toks) {
+        return toks.map(t => {
+            if (t.k === 'num') return String(t.v);
+            if (t.k === 'op')  return OP_SHOW[t.v];
+            if (t.k === 'pow') return `${t.b}${SUP[t.e]}`;
+            return t.k === 'lp' ? '(' : ')';
+        }).join(' ').replace(/\( /g, '(').replace(/ \)/g, ')');
+    }
+
+    function feedbackFor(id, toks) {
+        const pw = toks.find(t => t.k === 'pow');
+        switch (id) {
+            case 'lr':
+                return "Has fet les operacions d'esquerra a dreta sense respectar la prioritat. Primer es fan les multiplicacions i divisions; després, les sumes i restes.";
+            case 'addfirst':
+                return "Has fet les sumes i restes abans que les multiplicacions i divisions. És al revés!";
+            case 'rtl':
+                return "La multiplicació i la divisió tenen la mateixa prioritat (i la suma i la resta, també). Quan n'hi ha diverses seguides, es fan d'esquerra a dreta.";
+            case 'nopar':
+                return "Has ignorat els parèntesis. El que hi ha dins d'un parèntesi es calcula primer de tot.";
+            case 'lrnopar':
+                return "Has ignorat els parèntesis i has calculat d'esquerra a dreta. Primer els parèntesis; després, multiplicacions i divisions; i finalment, sumes i restes.";
+            case 'powterm':
+                return pw
+                    ? `L'exponent només afecta el nombre que té just a sota: a ${pw.b}${SUP[pw.e]}, l'exponent afecta només el ${pw.b}, no tota la multiplicació.`
+                    : "L'exponent només afecta el nombre que té just a sota.";
+            case 'powmult':
+                return pw
+                    ? `Una potència no és base × exponent: ${pw.b}${SUP[pw.e]} = ${Array(pw.e).fill(pw.b).join('·')} = ${Math.pow(pw.b, pw.e)}, no ${pw.b}·${pw.e} = ${pw.b * pw.e}.`
+                    : "Una potència no és base × exponent.";
+            case 'lrpowmult':
+                return "Has calculat d'esquerra a dreta i, a més, una potència no és base × exponent.";
+            default:
+                return "Aquest resultat no surt de fer les operacions en un ordre equivocat: revisa els càlculs pas a pas.";
+        }
+    }
+// ===== ENGINE-END =====
+
     // ============================================================
     // DOM
     // ============================================================
@@ -277,314 +654,63 @@
         attemptsDisplay: document.getElementById('attempts-display'),
         expressionBox:   document.getElementById('expression-box'),
         stepInstruction: document.getElementById('step-instruction'),
+        feedback:        document.getElementById('feedback'),
         dropZone:        document.getElementById('drop-zone'),
-        dzPlaceholder:   document.getElementById('dz-placeholder'),
         chipPool:        document.getElementById('chip-pool'),
+        solutionBox:     document.getElementById('solution-box'),
         hintText:        document.getElementById('hint-text'),
         dragGhost:       document.getElementById('drag-ghost'),
     };
 
+    // ============================================================
+    // ESTAT DEL JOC
+    // ============================================================
+    const PUNTS = [10, 5, 2, 1];   // punts segons el nombre de fallades abans d'encertar
+
     let isPenalizing   = false;
-    let tokens         = [];   // array de treball: {type:'num'|'pow'|'op'|'paren-open'|'paren-close', ...}
-    let currentStep    = null; // { kind:'pow'|'op', index, parenRange? }
-    let expectedAnswer = null;
+    let tokens         = [];
+    let correctAnswer  = null;
+    let optionIds      = new Map();   // valor → id de l'error (per al feedback)
     let _selectedChip  = null;
     let _touchChip     = null;
+    let _touchStartX   = 0;
+    let _touchStartY   = 0;
 
-    // ============================================================
-    // GENERACIÓ D'ARBRES (garanteix enters positius a cada node)
-    // ============================================================
-    function leaf(maxVal, allowPow) {
-        if (allowPow && Math.random() < 0.35) {
-            const base = randInt(2, 5), exp = pick([2, 3]);
-            return { type: 'pow', base, exp, val: Math.pow(base, exp) };
-        }
-        return { type: 'num', val: randInt(2, maxVal) };
-    }
-
-    function mkOp(op, left, right) {
-        let val;
-        if (op === '+') val = left.val + right.val;
-        else if (op === '-') val = left.val - right.val;
-        else if (op === '·') val = left.val * right.val;
-        else val = left.val / right.val;
-        return { type: 'op', op, left, right, val };
-    }
-
-    // Resta garantint que no doni negatiu
-    function mkSub(left, right) {
-        if (left.val < right.val) { const tmp = left; left = right; right = tmp; }
-        return mkOp('-', left, right);
-    }
-
-    // Divisió exacta garantida: b · q : b
-    function mkDiv(divisor, quocient) {
-        const right = { type: 'num', val: divisor };
-        const left  = { type: 'num', val: divisor * quocient };
-        return mkOp(':', left, right);
-    }
-
-    // Nivells de dificultat creixent (0..7), triats segons currentOperation
-    function buildTree(level) {
-        switch (level) {
-            case 0: // a + b
-                return mkOp('+', leaf(15, false), leaf(15, false));
-            case 1: // a - b  (sense negatius)
-                return mkSub(leaf(15, false), leaf(15, false));
-            case 2: // terme: a·b  o  a:b
-                return Math.random() < 0.5
-                    ? mkOp('·', leaf(9, false), leaf(9, false))
-                    : mkDiv(randInt(2, 9), randInt(2, 9));
-            case 3: { // terme +/- num
-                const term = buildTree(2);
-                const num  = leaf(12, false);
-                if (Math.random() < 0.65) {
-                    return Math.random() < 0.5 ? mkOp('+', term, num) : mkOp('+', num, term);
-                }
-                return Math.random() < 0.5 ? mkSub(term, num) : mkSub(num, term);
-            }
-            case 4: { // potència +/- num
-                const pw  = { type: 'pow', base: randInt(2, 5), exp: pick([2, 3]), val: 0 };
-                pw.val = Math.pow(pw.base, pw.exp);
-                const num = leaf(15, false);
-                return Math.random() < 0.5 ? mkOp('+', pw, num) : mkSub(pw, num);
-            }
-            case 5: { // terme +/- terme  (dues multiplicacions/divisions combinades)
-                const t1 = buildTree(2), t2 = buildTree(2);
-                return Math.random() < 0.5 ? mkOp('+', t1, t2) : mkSub(t1, t2);
-            }
-            case 6: { // (a +/- b) · c    parèntesi simple
-                const l = leaf(9, false), r = leaf(9, false);
-                const inner = Math.random() < 0.5 ? mkOp('+', l, r) : mkSub(l, r);
-                const paren = { type: 'paren', child: inner, val: inner.val };
-                const c = leaf(9, false);
-                return Math.random() < 0.5 ? mkOp('·', paren, c) : mkOp('·', c, paren);
-            }
-            case 7: { // (a +/- b) · c - d^2    parèntesi + potència + terme combinats
-                const l = leaf(9, false), r = leaf(9, false);
-                const inner = Math.random() < 0.5 ? mkOp('+', l, r) : mkSub(l, r);
-                const paren = { type: 'paren', child: inner, val: inner.val };
-                const c = leaf(6, false);
-                const term = mkOp('·', paren, c);
-                const pw = { type: 'pow', base: randInt(2, 4), exp: pick([2, 3]), val: 0 };
-                pw.val = Math.pow(pw.base, pw.exp);
-                return mkSub(term, pw);
-            }
-        }
-    }
-
-    // Aplana l'arbre a un array de tokens de treball
-    function flattenToWork(node, out) {
-        if (node.type === 'num') {
-            out.push({ type: 'num', val: node.val });
-        } else if (node.type === 'pow') {
-            out.push({ type: 'pow', base: node.base, exp: node.exp, val: node.val });
-        } else if (node.type === 'paren') {
-            out.push({ type: 'paren-open' });
-            flattenToWork(node.child, out);
-            out.push({ type: 'paren-close' });
-        } else if (node.type === 'op') {
-            flattenToWork(node.left, out);
-            out.push({ type: 'op', val: node.op });
-            flattenToWork(node.right, out);
-        }
+    // El nivell es reparteix al llarg de la sessió: sigui quin sigui el nombre
+    // d'operacions, la primera és del nivell 0 i l'última del nivell 9.
+    function levelFor(opIndex) {
+        if (TOTAL_OPERATIONS <= 1) return 0;
+        return Math.round(opIndex * (LEVELS.length - 1) / (TOTAL_OPERATIONS - 1));
     }
 
     // ============================================================
-    // MOTOR DE RESOLUCIÓ PAS A PAS (prioritat d'operacions)
+    // RENDERITZAT
     // ============================================================
-    function findInnermostParenRange(toks) {
-        let openIdx = -1;
-        for (let i = 0; i < toks.length; i++) {
-            if (toks[i].type === 'paren-open') openIdx = i;
-            if (toks[i].type === 'paren-close' && openIdx !== -1) return [openIdx, i];
-        }
-        return null;
-    }
-
-    function getOpPriority(op) { return (op === '·' || op === ':') ? 2 : 1; }
-
-    function findOpInRange(toks, start, end) {
-        const ops = [];
-        for (let i = start; i <= end; i++) if (toks[i].type === 'op') ops.push(i);
-        if (ops.length === 0) return -1;
-        for (const idx of ops) if (getOpPriority(toks[idx].val) === 2) return idx;
-        return ops[0];
-    }
-
-    function nextStep(toks) {
-        const powIdx = toks.findIndex(t => t.type === 'pow');
-        if (powIdx !== -1) return { kind: 'pow', index: powIdx };
-
-        const range = findInnermostParenRange(toks);
-        if (range) {
-            const opIdx = findOpInRange(toks, range[0] + 1, range[1] - 1);
-            if (opIdx !== -1) return { kind: 'op', index: opIdx };
-            return null;
-        }
-
-        const opIdx = findOpInRange(toks, 0, toks.length - 1);
-        if (opIdx !== -1) return { kind: 'op', index: opIdx };
-        return null;
-    }
-
-    function computeStepAnswer(toks, step) {
-        if (step.kind === 'pow') return toks[step.index].val;
-        const i = step.index;
-        const a = toks[i - 1].val, op = toks[i].val, b = toks[i + 1].val;
-        if (op === '+') return a + b;
-        if (op === '-') return a - b;
-        if (op === '·') return a * b;
-        return a / b;
-    }
-
-    function stepSubExprText(toks, step) {
-        if (step.kind === 'pow') {
-            const p = toks[step.index];
-            return `${p.base}^${p.exp}`;
-        }
-        const i = step.index;
-        return `${toks[i - 1].val} ${toks[i].val} ${toks[i + 1].val}`;
-    }
-
-    function applyStep(toks, step) {
-        const t = [...toks];
-        if (step.kind === 'pow') {
-            t.splice(step.index, 1, { type: 'num', val: t[step.index].val, resolved: true });
-            return t;
-        }
-        const i = step.index;
-        const r = computeStepAnswer(toks, step);
-        t.splice(i - 1, 3, { type: 'num', val: r, resolved: true });
-        const newIdx = i - 1;
-        if (t[newIdx - 1] && t[newIdx - 1].type === 'paren-open' &&
-            t[newIdx + 1] && t[newIdx + 1].type === 'paren-close') {
-            t.splice(newIdx + 1, 1);
-            t.splice(newIdx - 1, 1);
-        }
-        return t;
-    }
-
-    // ============================================================
-    // DISTRACTORS (opcions incorrectes plausibles)
-    // ============================================================
-    function buildDistractors(correct, toks, step) {
-        const opts = new Set();
-        opts.add(correct);
-
-        if (step.kind === 'op') {
-            const i = step.index;
-            const a = toks[i - 1].val, op = toks[i].val, b = toks[i + 1].val;
-            // Error típic 1: aplicar l'operació equivocada (típic error de prioritat)
-            if (op === '·') opts.add(a + b);
-            if (op === '+') opts.add(a * b);
-            if (op === '-') opts.add(a + b);
-            if (op === ':' && b !== 0) opts.add(a - b);
-            // Error típic 2: invertir l'ordre en una resta/divisió
-            if (op === '-') opts.add(Math.abs(b - a));
-            if (op === ':' && a !== 0 && Number.isInteger(b / a)) opts.add(b / a);
-        } else {
-            // potència: error típic = multiplicar base*exponent en lloc d'elevar
-            const p = toks[step.index];
-            opts.add(p.base * p.exp);
-            if (p.exp === 2) opts.add(p.base * 2);
-            if (p.exp === 3) opts.add(p.base * p.base * 2);
-        }
-
-        // Petites variacions ±1/±2 per omplir si cal
-        let guard = 0;
-        while (opts.size < 4 && guard++ < 20) {
-            const delta = pick([-2, -1, 1, 2]);
-            const candidate = correct + delta;
-            if (candidate >= 0 && candidate !== correct) opts.add(candidate);
-        }
-
-        const arr = shuffle([...opts]).filter(v => v !== null && v !== undefined);
-        return arr.slice(0, 4);
-    }
-
-    // ============================================================
-    // RENDERITZAT DE L'EXPRESSIÓ
-    // ============================================================
-    function formatToken(tok) {
-        if (tok.type === 'num') return String(tok.val);
-        if (tok.type === 'op') return tok.val;
-        if (tok.type === 'paren-open') return '(';
-        if (tok.type === 'paren-close') return ')';
-        return '';
+    function tokHtml(t) {
+        if (t.k === 'num') return `<span class="tok-num${t.fresh ? ' fresh' : ''}">${t.v}</span>`;
+        if (t.k === 'op')  return `<span class="tok-op">${OP_SHOW[t.v]}</span>`;
+        if (t.k === 'pow') return `<span class="tok-pow">${t.b}<sup>${t.e}</sup></span>`;
+        return `<span class="tok-paren">${t.k === 'lp' ? '(' : ')'}</span>`;
     }
 
     function renderExpression() {
-        els.expressionBox.innerHTML = '';
-        const hStart = currentStep && currentStep.kind === 'op' ? currentStep.index - 1 : null;
-        const hEnd   = currentStep && currentStep.kind === 'op' ? currentStep.index + 1 : null;
-        const hPow   = currentStep && currentStep.kind === 'pow' ? currentStep.index : null;
-
-        tokens.forEach((tok, idx) => {
-            const el = document.createElement('span');
-            const isHi = (hPow !== null && idx === hPow) ||
-                         (hStart !== null && idx >= hStart && idx <= hEnd);
-
-            if (tok.type === 'pow') {
-                el.className = 'tok-pow' + (isHi ? ' tok-highlight' : '');
-                el.innerHTML = `${tok.base}<sup>${tok.exp}</sup>`;
-            } else if (tok.type === 'op') {
-                el.className = 'tok-op' + (isHi ? ' tok-highlight' : '');
-                el.textContent = tok.val;
-            } else if (tok.type === 'paren-open' || tok.type === 'paren-close') {
-                el.className = 'tok-paren' + (isHi ? ' tok-highlight' : '');
-                el.textContent = formatToken(tok);
-            } else {
-                el.className = 'tok-num' + (tok.resolved ? ' resolved' : '') + (isHi ? ' tok-highlight' : '');
-                el.textContent = tok.val;
-            }
-            els.expressionBox.appendChild(el);
-        });
+        els.expressionBox.innerHTML = tokens.map(tokHtml).join('');
     }
 
-    // ============================================================
-    // PREPARACIÓ D'UN PAS (mostra instrucció + pool de xips)
-    // ============================================================
-    function setupStep() {
-        currentStep = nextStep(tokens);
-
-        if (!currentStep) {
-            // Expressió resolta del tot
-            finalizeOperation();
-            return;
-        }
-
-        renderExpression();
-
-        const subText = stepSubExprText(tokens, currentStep);
-        if (currentStep.kind === 'pow') {
-            els.stepInstruction.innerHTML = `Segons la prioritat, primer cal resoldre la potència: <span class="sub-expr">${subText}</span>`;
-        } else {
-            els.stepInstruction.innerHTML = `Quin és el resultat de <span class="sub-expr">${subText}</span> ?`;
-        }
-
-        expectedAnswer = computeStepAnswer(tokens, currentStep);
-        const options = buildDistractors(expectedAnswer, tokens, currentStep);
-
+    function resetDropZone() {
         els.dropZone.className = 'drop-zone';
-        els.dropZone.innerHTML = '<span class="dz-placeholder" id="dz-placeholder">Arrossega aquí</span>';
-        _selectedChip = null;
-
-        renderChipPool(options);
-
-        const isMob = isTouchDevice();
-        els.hintText.textContent = isMob
-            ? "Toca la resposta correcta i després toca la casella (o arrossega-la)."
-            : "Arrossega la resposta correcta fins a la casella.";
+        els.dropZone.innerHTML = '<span class="dz-placeholder">Arrossega aquí</span>';
     }
 
-    function renderChipPool(options) {
+    function renderChipPool(values) {
         els.chipPool.innerHTML = '';
-        options.forEach(val => {
+        values.forEach(val => {
             const chip = document.createElement('div');
-            chip.className = 'num-chip';
+            chip.className   = 'num-chip';
             chip.textContent = val;
             chip.dataset.val = val;
+            chip.setAttribute('role', 'button');
+            chip.setAttribute('aria-label', `Resposta ${val}`);
 
             chip.addEventListener('click', () => _selectChip(chip));
 
@@ -600,11 +726,66 @@
         });
     }
 
-    // ---- Selecció per tap (mòbil / accessibilitat) ----
+    function renderSolution(ok) {
+        const lines = solutionChain(tokens);
+        const title = ok
+            ? '✅ Correcte! Així es resol:'
+            : `La resposta correcta és <strong>${correctAnswer}</strong>. Així es resol:`;
+        els.solutionBox.innerHTML =
+            `<div class="solution-title">${title}</div>` +
+            lines.map(l => `<div class="sol-line"><span class="sol-eq">=</span>${l.map(tokHtml).join('')}</div>`).join('');
+        els.solutionBox.style.display = 'block';
+    }
+
+    // ============================================================
+    // CONSTRUCCIÓ DE CADA EXERCICI
+    // ============================================================
+    function buildLevel() {
+        attemptsLeft    = MAX_INTENTS;
+        isTransitioning = false;
+        isPenalizing    = false;
+        _selectedChip   = null;
+
+        const ex = generateExercise(levelFor(currentOperation));
+        tokens        = ex.toks;
+        correctAnswer = ex.val;
+
+        const distractors = buildDistractors(tokens, correctAnswer);
+        optionIds = new Map(distractors.map(d => [d.v, d.id]));
+        const values = shuffle([correctAnswer, ...distractors.map(d => d.v)]);
+
+        els.body.style.backgroundColor = bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+
+        renderExpression();
+        els.stepInstruction.textContent = 'Quant val aquesta expressió?';
+        els.feedback.textContent        = '';
+        els.solutionBox.style.display   = 'none';
+        els.solutionBox.innerHTML       = '';
+        resetDropZone();
+        renderChipPool(values);
+        els.chipPool.style.display = 'flex';
+        els.hintText.style.display = 'block';
+        els.hintText.textContent = isTouchDevice()
+            ? 'Toca la resposta i després toca la casella (o arrossega-la).'
+            : 'Arrossega la resposta fins a la casella (o clica-la i després clica la casella).';
+
+        updateHeader();
+    }
+
+    function updateHeader() {
+        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+        els.lvlDisplay.innerText      = `Operació ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 2 ? ' danger' : '');
+    }
+
+    // ============================================================
+    // INTERACCIÓ: selecció per toc/clic
+    // ============================================================
     function _selectChip(chip) {
         if (isTransitioning || isPenalizing) return;
-        if (chip.classList.contains('used')) return;
-
+        if (chip.classList.contains('used') || chip.classList.contains('chip-wrong')) return;
         if (_selectedChip === chip) {
             chip.classList.remove('chip-selected');
             _selectedChip = null;
@@ -615,21 +796,19 @@
         chip.classList.add('chip-selected');
     }
 
-    // ---- Drop zone: esdeveniments HTML5 (desktop) ----
+    // ---- Casella: esdeveniments HTML5 (escriptori) ----
     els.dropZone.addEventListener('dragover', e => {
         e.preventDefault();
         els.dropZone.classList.add('dz-over');
     });
-    els.dropZone.addEventListener('dragleave', () => {
-        els.dropZone.classList.remove('dz-over');
-    });
+    els.dropZone.addEventListener('dragleave', () => els.dropZone.classList.remove('dz-over'));
     els.dropZone.addEventListener('drop', e => {
         e.preventDefault();
         els.dropZone.classList.remove('dz-over');
-        const val = Number(e.dataTransfer.getData('text/plain'));
-        handleAnswer(val);
+        const raw = e.dataTransfer.getData('text/plain');
+        if (raw !== '') handleAnswer(Number(raw));
     });
-    // Tap-to-place: si hi ha un chip seleccionat i es toca la zona
+    // Tocar/clicar la casella amb un xip seleccionat
     els.dropZone.addEventListener('pointerup', () => {
         if (!_selectedChip || isTransitioning || isPenalizing) return;
         const val = Number(_selectedChip.dataset.val);
@@ -639,35 +818,47 @@
     });
 
     // ---- Drag tàctil (mateix patró que vocabulari.html) ----
+    // Com que preventDefault() al touchstart anul·la el 'click' en mòbil,
+    // un toc sense desplaçament es tracta aquí mateix com a selecció.
     function _onTouchStart(e) {
-        if (isTransitioning) return;
+        if (isTransitioning || isPenalizing) return;
         e.preventDefault();
-        _touchChip = e.currentTarget;
-        const touch = e.touches[0];
-        els.dragGhost.textContent   = _touchChip.dataset.val;
-        els.dragGhost.style.display = 'block';
-        _moveGhost(touch.clientX, touch.clientY);
+        _touchChip   = e.currentTarget;
+        const touch  = e.touches[0];
+        _touchStartX = touch.clientX;
+        _touchStartY = touch.clientY;
+        els.dragGhost.textContent = _touchChip.dataset.val;
         document.addEventListener('touchmove',   _onTouchMove,   { passive: false });
         document.addEventListener('touchend',    _onTouchEnd,    { passive: false });
         document.addEventListener('touchcancel', _onTouchCancel, { passive: false });
     }
     function _onTouchMove(e) {
         e.preventDefault();
-        _moveGhost(e.touches[0].clientX, e.touches[0].clientY);
+        const t = e.touches[0];
+        if (els.dragGhost.style.display !== 'block' &&
+            Math.hypot(t.clientX - _touchStartX, t.clientY - _touchStartY) > 8) {
+            els.dragGhost.style.display = 'block';
+        }
+        if (els.dragGhost.style.display === 'block') _moveGhost(t.clientX, t.clientY);
     }
     function _moveGhost(cx, cy) {
         els.dragGhost.style.left = (cx - els.dragGhost.offsetWidth / 2) + 'px';
         els.dragGhost.style.top  = (cy - 20) + 'px';
     }
     function _onTouchEnd(e) {
+        const wasDragging = els.dragGhost.style.display === 'block';
         els.dragGhost.style.display = 'none';
         _removeTouchListeners();
-        if (!_touchChip) return;
+        const chip = _touchChip;
+        _touchChip = null;
+        if (!chip) return;
+        if (!wasDragging) { _selectChip(chip); return; }   // toc simple → selecciona
         const touch = e.changedTouches[0];
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        const dz = el ? el.closest('#drop-zone') : null;
-        if (dz) handleAnswer(Number(_touchChip.dataset.val));
-        _touchChip = null;
+        if (el && el.closest('#drop-zone')) {
+            if (_selectedChip) { _selectedChip.classList.remove('chip-selected'); _selectedChip = null; }
+            handleAnswer(Number(chip.dataset.val));
+        }
     }
     function _onTouchCancel() {
         els.dragGhost.style.display = 'none';
@@ -684,35 +875,29 @@
     // COMPROVACIÓ DE LA RESPOSTA
     // ============================================================
     function handleAnswer(val) {
-        if (isTransitioning || isPenalizing || currentStep === null) return;
+        if (isTransitioning || isPenalizing || correctAnswer === null) return;
+        const chip = [...els.chipPool.querySelectorAll('.num-chip')].find(c => Number(c.dataset.val) === val);
+        if (!chip || chip.classList.contains('used') || chip.classList.contains('chip-wrong')) return;
 
-        const chips = [...els.chipPool.querySelectorAll('.num-chip')];
+        const exprText = toText(tokens);
 
-        if (val === expectedAnswer) {
-            els.dropZone.classList.add('dz-correct');
-            els.dropZone.innerHTML = String(val);
-            const chip = chips.find(c => Number(c.dataset.val) === val);
-            if (chip) chip.classList.add('used');
-
-            const subText = stepSubExprText(tokens, currentStep);
-            recordAnswerToHistory(`Pas: ${subText}`, String(val), true);
-
-            setTimeout(() => {
-                tokens = applyStep(tokens, currentStep);
-                setupStep();
-            }, 700);
+        if (val === correctAnswer) {
+            chip.classList.add('used');
+            els.dropZone.className = 'drop-zone dz-correct';
+            els.dropZone.textContent = String(val);
+            els.feedback.textContent = '';
+            recordAnswerToHistory(`${exprText} = ?`, String(val), true);
+            finishOperation(true);
         } else {
+            chip.classList.add('chip-wrong');
             els.dropZone.classList.add('dz-wrong');
             setTimeout(() => els.dropZone.classList.remove('dz-wrong'), 400);
-            const subText = stepSubExprText(tokens, currentStep);
-            recordAnswerToHistory(`Pas: ${subText}`, String(val), false);
+            els.feedback.textContent = `${val} no és correcte. ${feedbackFor(optionIds.get(val) || 'calc', tokens)}`;
+            recordAnswerToHistory(`${exprText} = ?`, String(val), false);
             penalize();
         }
     }
 
-    // ============================================================
-    // PENALITZACIÓ
-    // ============================================================
     function penalize() {
         if (isPenalizing || isTransitioning) return;
         isPenalizing = true;
@@ -722,78 +907,46 @@
             attemptsLeft--;
             isPenalizing = false;
             updateHeader();
-            if (attemptsLeft <= 0) {
-                isTransitioning = true;
-                finishOperation(0);
-            }
+            if (attemptsLeft <= 0) finishOperation(false);
         }, 800);
     }
 
     // ============================================================
-    // FI D'OPERACIÓ / NIVELL
+    // FI DE L'EXERCICI: resolució pas a pas + overlay + següent
     // ============================================================
-    function finalizeOperation() {
+    function finishOperation(ok) {
         if (isTransitioning) return;
         isTransitioning = true;
+
         const fails       = MAX_INTENTS - attemptsLeft;
-        const levelPoints = Math.max(0, 10 - (fails * 2));
-        sessionScore     += levelPoints;
-        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
-        els.stepInstruction.innerHTML = `Resultat final: <span class="sub-expr">${tokens[0].val}</span> ✅`;
-        finishOperation(levelPoints);
-    }
-
-    function finishOperation(levelPoints) {
-        recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
-        hideCustomKeyboard();
-        const waitTime = showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
-        setTimeout(() => {
-            hideMiniOverlay();
-            if (currentOperation + 1 >= TOTAL_OPERATIONS) {
-                endSession();
-            } else {
-                currentOperation++;
-                buildLevel();
-            }
-        }, waitTime);
-    }
-
-    // ============================================================
-    // CONSTRUCCIÓ DE NIVELL
-    // ============================================================
-    const MAX_LEVEL = 7; // nivells 0..7 (dificultat creixent)
-
-    function buildLevel() {
-        attemptsLeft    = MAX_INTENTS;
-        isTransitioning = false;
-        isPenalizing    = false;
-        _selectedChip   = null;
-
-        // La dificultat avança amb currentOperation, sense superar MAX_LEVEL
-        const level = Math.min(currentOperation, MAX_LEVEL);
-
-        let tree;
-        // Evitem per accident una expressió amb un sol node (impossible amb els nivells actuals,
-        // però ho deixem com a salvaguarda per a futures ampliacions).
-        do {
-            tree = buildTree(level);
-        } while (typeof tree.val !== 'number' || !Number.isFinite(tree.val));
-
-        tokens = [];
-        flattenToWork(tree, tokens);
-
-        els.body.style.backgroundColor = bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
-
+        const levelPoints = ok ? PUNTS[Math.min(fails, PUNTS.length - 1)] : 0;
+        sessionScore += levelPoints;
+        recordResult(ok ? Math.min(fails + 1, 3) : 4);
         updateHeader();
-        setupStep();
-    }
 
-    function updateHeader() {
-        els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
-        els.lvlDisplay.innerText      = `Operació ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-        els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
-        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
-        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 3 ? ' danger' : '');
+        if (_selectedChip) { _selectedChip.classList.remove('chip-selected'); _selectedChip = null; }
+        els.chipPool.style.display = 'none';
+        els.hintText.style.display = 'none';
+        if (!ok) {
+            els.dropZone.className   = 'drop-zone dz-reveal';
+            els.dropZone.textContent = String(correctAnswer);
+        }
+        renderSolution(ok);
+
+        // Temps de lectura de la resolució abans de l'overlay (més llarg si s'ha fallat)
+        const readTime = ok ? 1800 : 2800;
+        setTimeout(() => {
+            const waitTime = showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
+            setTimeout(() => {
+                hideMiniOverlay();
+                if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+                    endSession();
+                } else {
+                    currentOperation++;
+                    buildLevel();
+                }
+            }, waitTime);
+        }, readTime);
     }
 
     // ============================================================
