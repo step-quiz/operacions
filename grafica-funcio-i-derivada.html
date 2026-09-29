@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Sessions fixes (?fixed=A/B/C): ha de ser el PRIMER script -->
+    <script src="js/fixed-sessions.js"></script>
 	<meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
 	<link rel="icon" href="icon.png">
     <title>La funció i la seva derivada</title>
@@ -565,6 +567,7 @@ if (difficultyLevel === 3) {
         }
 
         function buildLevel() {
+            window.FixedSessions?.seed(`q${currentOperation}`);   // sessions fixes
             isTransitioning = false;
             showLegend = false;
 

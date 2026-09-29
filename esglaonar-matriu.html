@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Sessions fixes (?fixed=A/B/C): ha de ser el PRIMER script -->
+    <script src="js/fixed-sessions.js"></script>
     <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
     <link rel="icon" href="icon.png">
     <title>Esglaonar matriu</title>
@@ -465,7 +467,7 @@
         document.getElementById('wrapperRight').style.display = "flex";
 
         if (isManualMode) renderManualInput();
-        else { generateSmartMatrix(); matrixHistory = [matrix.map(r=>[...r])]; renderStep(); }
+        else { window.FixedSessions?.next('c' + currentCols); generateSmartMatrix(); matrixHistory = [matrix.map(r=>[...r])]; renderStep(); }
     }
 
     function generateSmartMatrix() {

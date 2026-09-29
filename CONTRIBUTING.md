@@ -130,6 +130,11 @@ window.MathEngine = (() => {
 
 4. Afegir l'enllaç a `index.html`.
 
+5. **Sessions fixes** (`fixed: true` a `index.html`): `js/fixed-sessions.js` s'ha de carregar abans que cap altre script de `js/`.
+   - Si el joc fa servir `game-core.js` i genera cada pregunta dins `buildLevel()`, no cal fer res més: el motor torna a sembrar l'atzar a cada pregunta amb (sessió, número de pregunta).
+   - Si la pàgina té un flux propi, cal cridar `window.FixedSessions?.seed('etiqueta')` just abans de generar cada exercici (amb una etiqueta que depengui del número d'exercici, p. ex. `` `q${currentOperation}` ``), o bé `window.FixedSessions?.next('tipus')` si no hi ha comptador. **No** ho poseu dins d'una funció que es crida a si mateixa per descartar un exercici (entraria en bucle).
+   - `tests/check-repo.js` comprova aquestes dues coses.
+
 ### Opció B: Exercici inline (per a jocs simples)
 
 Tot el JS va dins `<script>` al final del HTML. Segueix igualment l'ordre utils → config → exercise-codes → game-core.
@@ -191,6 +196,7 @@ node tests/run-all.js
 |--------|--------------|
 | `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) |
 | `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…) |
+| `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 
 **GitHub ho fa sol:** el fitxer `.github/workflows/tests.yml` executa `node tests/run-all.js` cada cop que es puja alguna cosa a `main` i a cada pull request. El resultat surt com una ✓ verda o una ✗ vermella al costat del commit (pestanya **Actions** per veure'n el detall).

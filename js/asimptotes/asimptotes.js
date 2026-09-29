@@ -75,6 +75,7 @@ const els = {
 // BUILD LEVEL
 // ============================================================================
 function buildLevel() {
+    window.FixedSessions?.seed(`q${currentQ}`);   // sessions fixes: mateixa pregunta per a tothom
     isAnswered   = false;
     attemptsLeft = MAX_INTENTS;
 

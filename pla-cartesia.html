@@ -468,6 +468,8 @@
     }
 
     function buildExercise() {
+        // Sessions fixes: llavor pròpia per a cada exercici (secció, nivell, número)
+        window.FixedSessions?.seed(`${currentSection}-n${difficultyLevel}-q${currentOperation}`);
         if (currentSection === '3a') buildExerciseQuadrants();
         else if (currentSection === '3b') buildExerciseSitua();
     }

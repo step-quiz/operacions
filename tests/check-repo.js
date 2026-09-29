@@ -155,4 +155,32 @@ suite('4. Errors corregits que no han de tornar');
     ok('cap pàgina bloqueja el zoom (user-scalable=no / maximum-scale=1)', !zoomBad.length, zoomBad.join(', '));
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+suite('5. Sessions fixes (?fixed=A/B/C)');
+{
+    // Activitats que el generador d'enllaços ofereix amb "Sessió fixa"
+    const offered = [...read('index.html').matchAll(/\{\s*file:\s*'([^']+\.html)'[^}]*\bfixed:\s*true[^}]*\}/g)].map(m => m[1]);
+    ok(`index.html ofereix sessió fixa en ${offered.length} activitats`, offered.length > 0);
+
+    const notLoaded = [], notFirst = [], noHook = [];
+    for (const f of offered) {
+        const h = stripNoise(read(f));
+        const scripts = [...h.matchAll(/<script\b[^>]*>/gi)].map(m => m[0]);
+        if (!scripts.some(s => /src=["']js\/fixed-sessions\.js["']/.test(s))) { notLoaded.push(f); continue; }
+        // Ha d'anar abans de qualsevol altre script del projecte (js/…): utils, config, game-core…
+        const firstLocal = scripts.find(s => /src=["']js\//.test(s));
+        if (!/src=["']js\/fixed-sessions\.js["']/.test(firstLocal)) notFirst.push(f);
+        // Sense game-core.js, la pàgina ha de tornar a sembrar ella mateixa a cada exercici
+        if (!/src=["']js\/game-core\.js["']/.test(h)) {
+            const own = [h, ...[...h.matchAll(/src=["'](js\/[^"']+\.js)["']/g)].map(m => m[1]).filter(exists).map(read)].join('\n');
+            if (!/FixedSessions\??\.(seed|next|wrap)\(/.test(own)) noHook.push(f);
+        }
+    }
+    ok('totes les que l\'ofereixen carreguen js/fixed-sessions.js', !notLoaded.length, notLoaded.join(', '));
+    ok('fixed-sessions.js es carrega abans que cap altre script de js/', !notFirst.length, notFirst.join(', '));
+    ok('les pàgines sense game-core.js tornen a sembrar a cada exercici (FixedSessions.seed/next)', !noHook.length, noHook.join(', '));
+    ok('game-core.js embolcalla buildLevel en començar el joc',
+       /FixedSessions\.wrap\(\s*'buildLevel'/.test(read('js/game-core.js')));
+}
+
 finish('COMPROVACIONS DEL REPOSITORI');

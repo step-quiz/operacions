@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Sessions fixes (?fixed=A/B/C): ha de ser el PRIMER script -->
+    <script src="js/fixed-sessions.js"></script>
     <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
     <link rel="icon" href="icon.png">    
     <title>Equacions de rectes i plans a R³</title>
@@ -308,6 +310,7 @@
     }
 
 function initProblem() {
+    window.FixedSessions?.next('recta');   // sessions fixes: mateix exercici per a tothom
     // 1. Generació de vector i punt amb números nets
     const vx = randNonZero(-3, 3);
     const vy = randNonZero(-2, 2); 
@@ -657,6 +660,7 @@ window.onload = () => {
 };
 
 function initProblemPlans() {
+    window.FixedSessions?.next('pla');
     let A, B, C, D, px, py, pz;
     let valid = false;
 

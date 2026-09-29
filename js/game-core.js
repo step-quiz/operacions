@@ -95,6 +95,10 @@ function showScreen(id) {
 
 // ── INICI I FI DEL JOC ──────────────────────────────────────────────────────
 function startGame() {
+    // Sessions fixes (?fixed=A/B/C): cada crida a buildLevel() torna a sembrar
+    // l'atzar amb (sessió, pregunta). Així una pregunta no depèn del que l'alumne
+    // hagi fet a les anteriors i és la mateixa per a tothom (js/fixed-sessions.js).
+    if (window.FixedSessions) FixedSessions.wrap('buildLevel', () => `s${currentSession}-q${currentOperation}`);
     currentSession = 0;
     sessionScores  = [];
     sessionHistory = [];
