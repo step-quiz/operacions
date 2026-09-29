@@ -9,24 +9,18 @@ ARQUITECTURA:
 - Inclou disseny responsiu (Mobile First) i accessibilitat (@media hover, 
   focus-visible).
 - Conté els estils del teclat numèric customitzat i les pantalles finals.
-DEPENDÈNCIES: S'ha de carregar PRIMER a l'HTML, abans del CSS específic.
+DEPENDÈNCIES: css/tokens.css (colors comuns: text, vores, encert, error),
+  que s'ha de carregar ABANS. Aquest fitxer va abans del CSS específic.
 ============================================================================
 */
-/* ---- VARIABLES BASE (fallbacks si el joc no les defineix) ---- */
+/* ---- VARIABLES DE TEMA (fallbacks si el joc no les defineix) ----
+   Els colors comuns (--text-main, --danger, --success…) són a css/tokens.css. */
 :root {
     --bg-color:      #f8fafc;
-    --panel-bg:      #ffffff;
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;
     --primary:       #0369a1;
     --primary-light: #e0f2fe;
     --primary-hover: #2563eb;
     --primary-dark:  #0f172a;
-    --danger:        #ef4444;
-    --danger-light:  #fef2f2;
-    --success:       #10b981;
-    --border-color:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
 }
 
 /* ---- RESET BASE ---- */

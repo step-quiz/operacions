@@ -183,4 +183,36 @@ suite('5. Sessions fixes (?fixed=A/B/C)');
        /FixedSessions\.wrap\(\s*'buildLevel'/.test(read('js/game-core.js')));
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+suite('6. Colors comuns (css/tokens.css)');
+{
+    const tokensSrc = read('css/tokens.css');
+    const CANON = [...tokensSrc.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]);
+    ok(`css/tokens.css defineix ${CANON.length} colors comuns`, CANON.length >= 10);
+
+    // Cap altre fitxer de l'arrel ni de css/ els pot redefinir
+    const own = [...htmlFiles.filter(f => !f.includes(path.sep)), ...listFiles('css', ['.css'])].filter(f => f !== path.join('css', 'tokens.css'));
+    const redefined = [];
+    for (const f of own) {
+        const hit = CANON.find(t => new RegExp(`${t}\\s*:`).test(read(f)));
+        if (hit) redefined.push(`${f} (${hit})`);
+    }
+    ok('cap altre fitxer redefineix els colors comuns', !redefined.length, redefined.join(', '));
+
+    // Les pàgines que els fan servir han d'enllaçar tokens.css abans de cap altre CSS
+    const uses = s => CANON.some(t => s.includes(`var(${t})`) || s.includes(`var(${t},`));
+    const noLink = [], badOrder = [];
+    for (const f of htmlFiles.filter(f => !f.includes(path.sep))) {
+        const h = read(f);
+        const linked = [...h.matchAll(/href=["'](css\/[^"'?]+)/g)].map(m => m[1]).filter(exists);
+        if (!uses(h + linked.map(read).join('\n'))) continue;
+        const iTok = h.search(/href=["']css\/tokens\.css["']/);
+        if (iTok < 0) { noLink.push(f); continue; }
+        const iOther = [h.search(/href=["']css\/(?!tokens\.css)/), h.search(/<style[\s>]/)].filter(i => i >= 0);
+        if (iOther.some(i => i < iTok)) badOrder.push(f);
+    }
+    ok('les pàgines que fan servir els colors comuns enllacen css/tokens.css', !noLink.length, noLink.join(', '));
+    ok('css/tokens.css es carrega abans que cap altre estil', !badOrder.length, badOrder.join(', '));
+}
+
 finish('COMPROVACIONS DEL REPOSITORI');

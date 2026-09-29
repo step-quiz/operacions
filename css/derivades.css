@@ -23,13 +23,6 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     --primary-light: #f3e8ff;
     --primary-dark:  #6b21a8;
     --primary-hover: #7e22ce;
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;
-    --border-light:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
-    --success:       #10b981;
-    --danger:        #ef4444;
-    --danger-light:  #fee2e2;
 }
 
 /* ---- CONTENIDOR DE L'ENUNCIAT ---- */

@@ -17,13 +17,6 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     --primary-light: #e0f2fe;
     --primary-dark:  #0c4a6e;
     --primary-hover: #0284c7;
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;
-    --border-light:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
-    --success:       #10b981;
-    --danger:        #ef4444;
-    --danger-light:  #fee2e2;
 }
 
 /* ---- CONTENIDOR DE L'ENUNCIAT (text, no KaTeX) ---- */

@@ -21,18 +21,10 @@ RESPONSIVE STRATEGY:
 ══════════════════════════════════════════════ */
 :root {
     --bg-color:      #fafaf7;
-    --panel-bg:      #ffffff;
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;
     --primary:       #7c3aed;
     --primary-light: #ede9fe;
     --primary-hover: #6d28d9;
     --primary-dark:  #4c1d95;
-    --danger:        #ef4444;
-    --danger-light:  #fef2f2;
-    --success:       #10b981;
-    --border-color:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
     --radius:        8px;
 }
 
