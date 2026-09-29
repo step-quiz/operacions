@@ -16,11 +16,23 @@
  * - errorHistory[]: registre paral·lel d'errorType iniciat a la Fase 3,
  *   ara usat per construir el resum final d'errors conceptuals.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa distractor-lib i
- *   question-bank (que al seu torn importen math-engine i strings). Fa servir
- *   les globals de utils, config i game-core (scripts clàssics carregats abans).
+ *   question-bank (que al seu torn importen math-engine i strings), i la base
+ *   compartida: config.js, utils.js i game-core.js (estat de la partida a `state`).
  * ============================================================================
  */
 
+import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
+import { shuffle } from '../utils.js';
+import {
+    state,
+    endSession,
+    hideMiniOverlay,
+    injectSharedHTML,
+    recordAnswerToHistory,
+    showMiniOverlay,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 import { DistractorLib } from './distractor-lib.js';
 import { QuestionBank } from './question-bank.js';
 
@@ -46,11 +58,11 @@ const els = {
 // 1. Construeix un nou nivell
 // =========================================================================
 function buildLevel() {
-    isTransitioning = false;
-    attemptsLeft = MAX_INTENTS;
+    state.isTransitioning = false;
+    state.attemptsLeft = MAX_INTENTS;
 
-    els.lvlDisplay.innerText = `Funció ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.lvlDisplay.innerText = `Funció ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
     els.feedback.style.opacity = '0';
     els.feedback.innerHTML = '';
 
@@ -140,49 +152,49 @@ function renderFeedback(opt, showSolution = false) {
 // 3. Comprova la resposta seleccionada
 // =========================================================================
 function checkAnswer(opt, clickedBtn) {
-    if (isTransitioning) return;
+    if (state.isTransitioning) return;
 
     if (opt.isCorrect) {
-        isTransitioning = true;
+        state.isTransitioning = true;
         renderFeedback(opt);
 
         recordAnswerToHistory(challengeData.promptTex, opt.tex, true);
         errorHistory.push({
             question: challengeData.promptTex,
-            questionN: currentOperation,
+            questionN: state.currentOperation,
             errorType: null,
             isCorrect: true,
             meta: challengeData.meta,
         });
 
-        const fails = MAX_INTENTS - attemptsLeft;
+        const fails = MAX_INTENTS - state.attemptsLeft;
         const levelPoints = Math.max(0, 10 - fails * 2);
-        sessionScore += levelPoints;
-        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+        state.sessionScore += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
 
         Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
         _finishOp(levelPoints);
     } else {
-        attemptsLeft--;
-        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        state.attemptsLeft--;
+        els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
 
         if (clickedBtn) clickedBtn.classList.add('wrong');
 
         errorHistory.push({
             question: challengeData.promptTex,
-            questionN: currentOperation,
+            questionN: state.currentOperation,
             errorType: opt.errorType,
             isCorrect: false,
             meta: challengeData.meta,
         });
 
-        const isLastAttempt = attemptsLeft <= 0;
+        const isLastAttempt = state.attemptsLeft <= 0;
 
         // Mostra la solució correcta només quan s'esgoten els intents
         renderFeedback(opt, isLastAttempt);
 
         if (isLastAttempt) {
-            isTransitioning = true;
+            state.isTransitioning = true;
             recordAnswerToHistory(challengeData.promptTex, opt.tex, false);
             // Petit retard per deixar que l'alumne llegeixi la solució
             // abans que aparegui el mini-overlay de game-core.js
@@ -199,9 +211,9 @@ function _finishOp(levelPoints) {
 
     setTimeout(() => {
         hideMiniOverlay();
-        currentOperation++;
+        state.currentOperation++;
 
-        if (currentOperation >= TOTAL_OPERATIONS) {
+        if (state.currentOperation >= TOTAL_OPERATIONS) {
             showSessionSummary(); // resum pedagògic → crida endSession() intern
         } else {
             window.buildLevel();
@@ -259,7 +271,7 @@ function showSessionSummary() {
     let html = `
         <div class="summary-score">
             <span class="summary-score-label">Puntuació final</span>
-            <span class="summary-score-value">${sessionScore} / ${maxScore}</span>
+            <span class="summary-score-value">${state.sessionScore} / ${maxScore}</span>
         </div>
         <div class="summary-stats">
             <div class="summary-stat summary-stat--ok">

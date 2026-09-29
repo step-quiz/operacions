@@ -12,14 +12,13 @@
  *   estiguin ja fetes servir (ni tampoc "CB", reservat per al projecte cb).
  * - Els codis no s'han de canviar mai: l'analitzador els necessita per llegir
  *   els codis antics que els alumnes ja han enviat.
- * - Es defineix amb window.EXERCISE_CODES (i no amb const) a propòsit: si el
- *   navegador d'un alumne encara té a la memòria cau un game-core.js antic
- *   (que declarava `const EXERCISE_CODES`), les dues declaracions no xoquen.
- * DEPENDÈNCIES: Cap. S'ha de carregar ABANS de game-core.js.
+ * - Mòdul ES: game-core.js i l'analitzador l'importen
+ *     import { EXERCISE_CODES } from './exercise-codes.js';
+ * DEPENDÈNCIES: Cap.
  * ============================================================================
  */
 
-window.EXERCISE_CODES = {
+export const EXERCISE_CODES = {
     // ESO
     'enters': 'EN',
     'enters-ordenar': 'EO',
@@ -69,4 +68,4 @@ window.EXERCISE_CODES = {
 };
 
 // Lookup invers: codi 2 lletres -> nom exercici
-window.EXERCISE_NAMES = Object.fromEntries(Object.entries(EXERCISE_CODES).map(([nom, codi]) => [codi, nom]));
+export const EXERCISE_NAMES = Object.fromEntries(Object.entries(EXERCISE_CODES).map(([nom, codi]) => [codi, nom]));

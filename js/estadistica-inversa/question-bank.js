@@ -18,6 +18,7 @@
  * ============================================================================
  */
 
+import { pick, randInt } from '../utils.js';
 import { MathEngine } from './math-engine.js';
 
 export const QuestionBank = (() => {

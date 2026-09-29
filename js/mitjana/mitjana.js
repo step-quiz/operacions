@@ -12,6 +12,20 @@
  * ============================================================================
  */
 
+import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
+import {
+    state,
+    endSession,
+    hideMiniOverlay,
+    injectSharedHTML,
+    isTouchDevice,
+    recordAnswerToHistory,
+    recordResult,
+    showCustomKeyboard,
+    showMiniOverlay,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 import { MathEngine } from './math-engine.js';
 import { QuestionBank } from './question-bank.js';
 import { Strings } from './strings.js';
@@ -44,12 +58,12 @@ const els = {
 // 1. CONSTRUEIX UN NOU NIVELL
 // =========================================================================
 function buildLevel() {
-    isTransitioning = false;
-    attemptsLeft = MAX_INTENTS;
+    state.isTransitioning = false;
+    state.attemptsLeft = MAX_INTENTS;
     helpExpanded = false;
 
-    els.lvlDisplay.innerText = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.lvlDisplay.innerText = `Pregunta ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
     els.attemptsDisplay.classList.remove('danger');
     els.feedback.style.opacity = '0';
     els.feedback.innerHTML = '';
@@ -140,7 +154,7 @@ function renderInput() {
 // 4. COMPROVA LA RESPOSTA
 // =========================================================================
 function checkAnswer() {
-    if (isTransitioning) return;
+    if (state.isTransitioning) return;
 
     const inp = document.getElementById('answer-input');
     const val = ME.parseInput(inp.value);
@@ -154,14 +168,14 @@ function checkAnswer() {
 
     if (ME.approxEqual(val, correct, 0.04)) {
         // CORRECTE
-        isTransitioning = true;
+        state.isTransitioning = true;
         inp.classList.add('input-correct');
         inp.readOnly = true;
 
-        const fails = MAX_INTENTS - attemptsLeft;
+        const fails = MAX_INTENTS - state.attemptsLeft;
         const levelPoints = Math.max(0, 10 - fails * 2);
-        sessionScore += levelPoints;
-        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+        state.sessionScore += levelPoints;
+        els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
         recordResult(Math.min(fails + 1, 3));
         recordAnswerToHistory(
             challengeData.type === 'weighted' ? S.History.weighted : S.History.simple,
@@ -173,16 +187,16 @@ function checkAnswer() {
         _finishOp(levelPoints);
     } else {
         // INCORRECTE
-        attemptsLeft--;
-        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
-        if (attemptsLeft <= 1) els.attemptsDisplay.classList.add('danger');
+        state.attemptsLeft--;
+        els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
+        if (state.attemptsLeft <= 1) els.attemptsDisplay.classList.add('danger');
 
         inp.classList.add('input-wrong');
         setTimeout(() => inp.classList.remove('input-wrong'), 400);
 
-        if (attemptsLeft <= 0) {
+        if (state.attemptsLeft <= 0) {
             // Esgotats
-            isTransitioning = true;
+            state.isTransitioning = true;
             inp.readOnly = true;
             recordResult(4);
             recordAnswerToHistory(
@@ -237,8 +251,8 @@ function _finishOp(levelPoints) {
     const waitTime = showMiniOverlay(levelPoints);
     setTimeout(() => {
         hideMiniOverlay();
-        currentOperation++;
-        if (currentOperation >= TOTAL_OPERATIONS) {
+        state.currentOperation++;
+        if (state.currentOperation >= TOTAL_OPERATIONS) {
             endSession();
         } else {
             window.buildLevel();

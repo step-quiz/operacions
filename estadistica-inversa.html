@@ -18,7 +18,7 @@
 
     <!--
         ORDRE DE CÀRREGA
-        Capa compartida: utils → config → game-core
+        Capa compartida (js/*.js): el mòdul importa config, utils i game-core
         Capa específica: estadistica-inversa.js (mòdul ES) importa math-engine
           i question-bank
 
@@ -27,11 +27,6 @@
           2: dues condicions, 2 solucions
           3: tres condicions (mitjana + mediana + moda), 2 solucions
     -->
-    <script src="js/fixed-sessions.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/exercise-codes.js"></script>
-    <script src="js/game-core.js"></script>
     <script type="module" src="js/estadistica-inversa/estadistica-inversa.js"></script>
 
     <link rel="stylesheet" href="css/tokens.css">

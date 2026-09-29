@@ -11,10 +11,10 @@
  * poma = 1 unitat, llet = 1 L, ous = 6 unitats, formatge = aprox. 200 g, etc.
  *
  * Aquest fitxer és compartit entre diners.html i a-diners.html.
- * S'inclou com a <script> per compatibilitat amb el protocol file://.
+ * Mòdul ES: import { PRODUCTS_DINERS } from './products-diners.js';
  */
 
-/* global */ var PRODUCTS_DINERS = [
+export const PRODUCTS_DINERS = [
     { emoji: '🍞', nom: 'Pa', preu: [0.8, 2.5] },
     { emoji: '🥛', nom: 'Llet', preu: [0.85, 1.5] },
     { emoji: '🍎', nom: 'Poma', preu: [0.25, 0.8] },

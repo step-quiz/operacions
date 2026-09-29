@@ -12,19 +12,25 @@
  *   ?maxenllocmitjana=0|1  Nota: màxim sessió (1) o mitjana (0) (defecte: 1)
  *
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa cloud-engine.js i
- *   question-bank.js (que importa strings.js i distractor-lib.js).
- *   utils.js → config.js → game-core.js són scripts clàssics carregats abans.
- *
- * GLOBALS HERETATS DE game-core.js:
- *   attemptsLeft, currentOperation, sessionScore, sessionHistory,
- *   isTransitioning, showMiniOverlay, hideMiniOverlay, endSession,
- *   startGame, recordAnswerToHistory, injectSharedHTML, validateConfig
- *
- * GLOBALS HERETATS DE config.js:
- *   TOTAL_OPERATIONS, MAX_INTENTS, TOTAL_SESSIONS, MAX_ENLLOC_MITJANA
+ *   question-bank.js (que importa strings.js i distractor-lib.js), i la base
+ *   compartida: config.js i game-core.js (l'estat de la partida és a `state`:
+ *   state.attemptsLeft, state.currentOperation…).
  * ============================================================================
  */
 
+import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
+import {
+    state,
+    endSession,
+    hideMiniOverlay,
+    injectSharedHTML,
+    recordAnswerToHistory,
+    recordResult,
+    showHistorySummary,
+    showMiniOverlay,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 import { CloudEngine } from './cloud-engine.js';
 import { QuestionBank } from './question-bank.js';
 
@@ -197,7 +203,7 @@ function buildLevel() {
     els.gameScreen.style.display = 'flex';
 
     isAnswered = false;
-    attemptsLeft = MAX_INTENTS;
+    state.attemptsLeft = MAX_INTENTS;
 
     // Genera nou núvol i rang per a cada pregunta
     yRange = CloudEngine.chooseYRange(GAME_LEVEL);
@@ -205,9 +211,9 @@ function buildLevel() {
     challengeData = QuestionBank.generateChallenge(cloud, yRange, GAME_LEVEL);
 
     // Actualitza capçalera
-    els.qDisplay.textContent = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.textContent = `Punts: ${sessionScore}`;
-    els.attDisplay.textContent = `Intents: ${attemptsLeft}`;
+    els.qDisplay.textContent = `Pregunta ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.textContent = `Punts: ${state.sessionScore}`;
+    els.attDisplay.textContent = `Intents: ${state.attemptsLeft}`;
     els.attDisplay.classList.remove('danger');
 
     // Dibuixa el gràfic
@@ -241,24 +247,24 @@ function checkAnswer(opt, btn) {
 
     if (opt.isCorrect) {
         isAnswered = true;
-        const pts = attemptsLeft === MAX_INTENTS ? PTS_FIRST : PTS_SECOND;
-        sessionScore += pts;
+        const pts = state.attemptsLeft === MAX_INTENTS ? PTS_FIRST : PTS_SECOND;
+        state.sessionScore += pts;
 
         btn.classList.add('correct');
         _disableAllButtons();
         _showFeedback(opt.feedback, 'correct');
-        els.scoreDisplay.textContent = `Punts: ${sessionScore}`;
+        els.scoreDisplay.textContent = `Punts: ${state.sessionScore}`;
 
         recordAnswerToHistory(challengeData.prompt, opt.text, true);
         // [FIX m3] Formula estàndard: 1=1r intent, 2=2n, 3=3r o posterior
-        recordResult(Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
+        recordResult(Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3));
         _finishQuestion(pts);
     } else {
-        attemptsLeft--;
+        state.attemptsLeft--;
         btn.classList.add('wrong');
-        els.attDisplay.textContent = `Intents: ${attemptsLeft}`;
+        els.attDisplay.textContent = `Intents: ${state.attemptsLeft}`;
 
-        if (attemptsLeft <= 0) {
+        if (state.attemptsLeft <= 0) {
             isAnswered = true;
             recordAnswerToHistory(challengeData.prompt, '—', false);
 
@@ -292,8 +298,8 @@ function _finishQuestion(levelPoints) {
 }
 
 function _nextQuestion() {
-    currentOperation++;
-    if (currentOperation >= TOTAL_OPERATIONS) {
+    state.currentOperation++;
+    if (state.currentOperation >= TOTAL_OPERATIONS) {
         endSession(); // game-core gestiona sessions i pantalla final
     } else {
         window.buildLevel();

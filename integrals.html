@@ -21,8 +21,7 @@
 
     <!--
         ORDRE DE CÀRREGA
-        Capa compartida (intocable):
-          utils → config → game-core
+        Capa compartida (js/*.js): el mòdul importa config, utils i game-core
         Capa específica d'integrals (js/integrals/):
           integrals.js (mòdul ES) importa question-bank → distractor-lib →
           math-engine i strings
@@ -34,11 +33,6 @@
           ?families=int-power,int-exp-kx   → potències + exponencials
           (sense paràmetre → totes les famílies)
     -->
-    <script src="js/fixed-sessions.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/exercise-codes.js"></script>
-    <script src="js/game-core.js"></script>
     <script type="module" src="js/integrals/integrals.js"></script>
 
     <link rel="stylesheet" href="css/tokens.css">

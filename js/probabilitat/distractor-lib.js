@@ -14,6 +14,7 @@
  * ============================================================================
  */
 
+import { shuffle } from '../utils.js';
 import { MathEngine } from './math-engine.js';
 import { Strings } from './strings.js';
 

@@ -25,4 +25,8 @@ tools/lint/node_modules/.bin/prettier --check .                        # comprov
 
 ## Per què no es formaten els HTML
 
-Moltes activitats antigues encara porten tot el JavaScript i el CSS dins de l'HTML. Reformatar-los faria canvis enormes i difícils de revisar. Quan una activitat es passi a l'estructura modular (el seu JS a `js/<activitat>/`), el codi nou ja quedarà cobert.
+Tot el JavaScript ja és a `js/` (i queda cobert per Prettier i ESLint), però els HTML encara porten el CSS de cada activitat a dins. Reformatar-los faria canvis enormes i difícils de revisar sense guanyar gaire.
+
+## Des del Codespace
+
+El Codespace instal·la aquestes eines la primera vegada que s'obre, i `tools/desa.sh` les fa servir abans de publicar cada canvi (vegeu [`COM-TREBALLAR.md`](../../COM-TREBALLAR.md)).

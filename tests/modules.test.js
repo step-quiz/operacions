@@ -119,6 +119,22 @@ suite('utils.js › shuffle (Fisher-Yates)');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+suite('utils.js › gcd (màxim comú divisor)');
+{
+    const w = loadModule(['js/utils.js']);
+    const naive = (a, b) => {
+        a = Math.abs(a);
+        b = Math.abs(b);
+        if (!a && !b) return 0;
+        for (let d = Math.max(a, b); d > 0; d--) if (a % d === 0 && b % d === 0) return d;
+    };
+    const wrong = [];
+    for (let a = -30; a <= 30; a++)
+        for (let b = -30; b <= 30; b++) if (w.gcd(a, b) !== naive(a, b)) wrong.push(`${a},${b}`);
+    ok('coincideix amb el càlcul directe per a -30…30 (sempre ≥ 0)', !wrong.length, wrong.slice(0, 5).join(' '));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Derivades, integrals i probabilitat: el banc retorna la correcta la primera
 // i el controlador barreja amb shuffle() de utils.js.
 function withReset(w, fn) {

@@ -1,1 +1,3 @@
 node_modules/
+# Pegats en zip: es descomprimeixen al Codespace, però el .zip no es publica
+*.zip

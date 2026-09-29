@@ -10,20 +10,27 @@
  *   ?maxintents=N          Intents per pregunta (defecte: 4)
  *   ?maxenllocmitjana=0|1  Nota: màxim sessió (1) o mitjana (0) (defecte: 1)
  *
- * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa question-bank.js.
- *   utils.js → config.js → game-core.js són scripts clàssics carregats abans.
- *
- * GLOBALS HERETATS DE game-core.js:
- *   attemptsLeft, currentOperation, sessionScore, sessionHistory,
- *   isTransitioning, showMiniOverlay, hideMiniOverlay, endSession,
- *   startGame, recordAnswerToHistory, recordResult,
- *   injectSharedHTML, validateConfig, bgColors, shuffle
- *
- * GLOBALS HERETATS DE config.js:
- *   TOTAL_OPERATIONS, MAX_INTENTS, TOTAL_SESSIONS, MAX_ENLLOC_MITJANA
+ * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa question-bank.js i
+ *   la base compartida: config.js, utils.js i game-core.js (l'estat de la
+ *   partida és a `state`: state.attemptsLeft, state.currentOperation…).
  * ============================================================================
  */
 
+import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
+import { shuffle } from '../utils.js';
+import {
+    state,
+    bgColors,
+    endSession,
+    escapeHtml,
+    hideMiniOverlay,
+    injectSharedHTML,
+    recordAnswerToHistory,
+    recordResult,
+    showMiniOverlay,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 import { QuestionBank } from './question-bank.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -52,15 +59,15 @@ let usedQuestions = [];
 
 // ── BUILD LEVEL (cridat per game-core) ──────────────────────────────────────
 function buildLevel() {
-    attemptsLeft = MAX_INTENTS;
-    isTransitioning = false;
+    state.attemptsLeft = MAX_INTENTS;
+    state.isTransitioning = false;
     isPenalizing = false;
 
     const picked = QuestionBank.pick(usedQuestions);
     currentQuestion = picked.question;
     usedQuestions.push(picked.index);
 
-    const colorIndex = (currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length;
+    const colorIndex = (state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length;
     els.body.style.backgroundColor = bgColors[colorIndex];
 
     updateHeader();
@@ -69,12 +76,12 @@ function buildLevel() {
 
 // ── ACTUALITZAR CAPÇALERA ────────────────────────────────────────────────────
 function updateHeader() {
-    els.sessionDisplay.innerText = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
-    els.lvlDisplay.innerText = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
-    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.sessionDisplay.innerText = `Sessió ${state.currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText = `Pregunta ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
     els.attemptsDisplay.className = 'attempts-counter';
-    if (attemptsLeft < 5) els.attemptsDisplay.classList.add('danger');
+    if (state.attemptsLeft < 5) els.attemptsDisplay.classList.add('danger');
 }
 
 // ── RENDERITZAR EXPRESSIÓ MATEMÀTICA ─────────────────────────────────────────
@@ -132,7 +139,7 @@ function renderQuestion() {
 
 // ── COMPROVAR RESPOSTA ────────────────────────────────────────────────────────
 function checkAnswer(btn, selectedOption) {
-    if (isTransitioning || isPenalizing) return;
+    if (state.isTransitioning || isPenalizing) return;
 
     const stepQuestion = currentQuestion.text.replace(/<[^>]*>/g, '');
 
@@ -145,7 +152,7 @@ function checkAnswer(btn, selectedOption) {
             recordAnswerToHistory(stepQuestion, selectedOption, true);
         }
 
-        const fails = MAX_INTENTS - attemptsLeft;
+        const fails = MAX_INTENTS - state.attemptsLeft;
         const levelPoints = Math.max(0, 10 - fails);
 
         setTimeout(() => finishQuestion(levelPoints), 700);
@@ -163,13 +170,13 @@ function checkAnswer(btn, selectedOption) {
 
 // ── PENALITZACIÓ ─────────────────────────────────────────────────────────────
 function penalize(btn) {
-    if (isPenalizing || isTransitioning) return;
+    if (isPenalizing || state.isTransitioning) return;
     isPenalizing = true;
     els.attemptsDisplay.classList.add('blink-warning');
 
     setTimeout(() => {
         els.attemptsDisplay.classList.remove('blink-warning');
-        attemptsLeft--;
+        state.attemptsLeft--;
         updateHeader();
 
         // Treure feedback visual del botó incorrecte i desactivar-lo
@@ -180,9 +187,9 @@ function penalize(btn) {
         // Comptem quantes opcions actives queden
         const remaining = els.optionsGrid.querySelectorAll('.btn-option:not(.disabled)');
 
-        if (attemptsLeft <= 0 || remaining.length <= 1) {
+        if (state.attemptsLeft <= 0 || remaining.length <= 1) {
             // Intents esgotats O només queda 1 opció (trivial) → 0 punts
-            isTransitioning = true;
+            state.isTransitioning = true;
             revealCorrectAnswer();
             setTimeout(() => finishQuestion(0), 1500);
         }
@@ -206,17 +213,17 @@ function revealCorrectAnswer() {
 
 // ── DESACTIVAR TOTES LES OPCIONS ─────────────────────────────────────────────
 function disableAllOptions() {
-    isTransitioning = true;
+    state.isTransitioning = true;
     const buttons = els.optionsGrid.querySelectorAll('.btn-option');
     buttons.forEach(btn => btn.classList.add('disabled'));
 }
 
 // ── FINALITZAR PREGUNTA I AVANÇAR ────────────────────────────────────────────
 function finishQuestion(levelPoints) {
-    recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
+    recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
 
-    sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    state.sessionScore += levelPoints;
+    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
 
     const waitTime =
         typeof showMiniOverlay === 'function'
@@ -226,10 +233,10 @@ function finishQuestion(levelPoints) {
     setTimeout(() => {
         if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
 
-        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
             if (typeof endSession === 'function') endSession();
         } else {
-            currentOperation++;
+            state.currentOperation++;
             window.buildLevel();
         }
     }, waitTime);

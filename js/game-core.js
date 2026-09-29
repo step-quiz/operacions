@@ -30,8 +30,8 @@
  * ── COM REGISTRAR RESULTATS PER PREGUNTA ────────────────────────────────────
  *   Cridar recordResult(codi) en finalitzar cada pregunta:
  *
- *   // Resposta CORRECTA (attemptsLeft sense decrementar per aquest intent):
- *   recordResult(Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
+ *   // Resposta CORRECTA (state.attemptsLeft sense decrementar per aquest intent):
+ *   recordResult(Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3));
  *
  *   // Fallo definitiu:
  *   recordResult(4);
@@ -39,23 +39,30 @@
  * ── DIFICULTAT ──────────────────────────────────────────────────────────────
  *   Es llegeix automaticament del parametre URL ?nivell=N.
  *   Jocs sense nivells no han de fer res (D=0 per defecte).
+ *
+ * ── COM S'USA (mòdul ES) ────────────────────────────────────────────────────
+ *   import { state, startGame, recordResult } from '../game-core.js';
+ *   - L'estat de la partida és a `state` (state.attemptsLeft, state.sessionScore…).
+ *   - El joc ha d'exposar a window les funcions que aquest mòdul crida:
+ *       Object.assign(window, { buildLevel });            // obligatòria
+ *       Object.assign(window, { checkCurrentCell });      // si fa servir el teclat
+ *     i cridar sempre window.buildLevel() (les sessions fixes l'embolcallen).
  * ============================================================================
  */
 
-// ── TAULA DE CODIS D'EXERCICI ────────────────────────────────────────────────
-// EXERCISE_CODES i EXERCISE_NAMES es defineixen a js/exercise-codes.js (taula
-// única compartida amb analitzador-stepquiz.html), que es carrega abans d'aquest.
+import { TOTAL_SESSIONS, TOTAL_OPERATIONS, MAX_ENLLOC_MITJANA, MAX_INTENTS } from './config.js';
+import { EXERCISE_CODES } from './exercise-codes.js'; // taula única compartida amb l'analitzador
+import { FixedSessions } from './fixed-sessions.js';
 
 // ── NOMBRE MÀXIM DE RESULTATS AL CODI ────────────────────────────────────────
 // El generador d'enllaços permet fins a 5 sessions × 10 preguntes = 50.
-const MAX_RESULTS = 50;
+export const MAX_RESULTS = 50;
 
 // ── DIFICULTAT (llegida automaticament de l'URL) ─────────────────────────────
 const _urlNivell = new URLSearchParams(window.location.search).get('nivell');
-let currentDifficulty = _urlNivell ? Math.min(Math.max(parseInt(_urlNivell, 10) || 0, 0), 3) : 0;
 
 // ── PALETA DE FONS ───────────────────────────────────────────────────────────
-const bgColors = [
+export const bgColors = [
     '#f8fafc',
     '#eff6ff',
     '#f0fdf4',
@@ -69,17 +76,23 @@ const bgColors = [
 ];
 
 // ── ESTAT COMPARTIT DEL JOC ──────────────────────────────────────────────────
-let sessionHistory = [];
-let sessionResults = []; // codis per pregunta [1,2,3,4,…] (max 30)
-let currentSession = 0;
-let currentOperation = 0;
-let sessionScore = 0;
-let sessionScores = [];
-let attemptsLeft = 0;
-let isTransitioning = false;
+// Tot l'estat en un sol objecte perquè els jocs el puguin modificar
+// (state.attemptsLeft--, state.sessionScore += …): una variable importada d'un
+// altre mòdul es pot llegir però no reassignar.
+export const state = {
+    currentDifficulty: _urlNivell ? Math.min(Math.max(parseInt(_urlNivell, 10) || 0, 0), 3) : 0,
+    sessionHistory: [],
+    sessionResults: [], // codis per pregunta [1,2,3,4,…] (màxim MAX_RESULTS)
+    currentSession: 0,
+    currentOperation: 0,
+    sessionScore: 0,
+    sessionScores: [],
+    attemptsLeft: 0,
+    isTransitioning: false,
+};
 
 // ── VALIDACIO DE CONFIGURACIO ────────────────────────────────────────────────
-function validateConfig() {
+export function validateConfig() {
     const errors = [];
     const isPosInt = n => Number.isInteger(n) && n > 0;
     if (!isPosInt(TOTAL_SESSIONS)) errors.push('TOTAL_SESSIONS ha de ser un enter positiu.');
@@ -96,10 +109,10 @@ function validateConfig() {
 
 // ── GESTIO DE PANTALLES ──────────────────────────────────────────────────────
 let _allScreenIds = ['game-screen', 'session-end-screen', 'final-screen'];
-function registerScreens(ids) {
+export function registerScreens(ids) {
     _allScreenIds = ids;
 }
-function showScreen(id) {
+export function showScreen(id) {
     _allScreenIds.forEach(s => {
         const el = document.getElementById(s);
         if (el) el.style.display = 'none';
@@ -109,34 +122,34 @@ function showScreen(id) {
 }
 
 // ── INICI I FI DEL JOC ──────────────────────────────────────────────────────
-function startGame() {
+export function startGame() {
     // Sessions fixes (?fixed=A/B/C): cada crida a buildLevel() torna a sembrar
     // l'atzar amb (sessió, pregunta). Així una pregunta no depèn del que l'alumne
     // hagi fet a les anteriors i és la mateixa per a tothom (js/fixed-sessions.js).
-    if (window.FixedSessions) FixedSessions.wrap('buildLevel', () => `s${currentSession}-q${currentOperation}`);
-    currentSession = 0;
-    sessionScores = [];
-    sessionHistory = [];
-    sessionResults = [];
+    if (FixedSessions) FixedSessions.wrap('buildLevel', () => `s${state.currentSession}-q${state.currentOperation}`);
+    state.currentSession = 0;
+    state.sessionScores = [];
+    state.sessionHistory = [];
+    state.sessionResults = [];
     showScreen('game-screen');
     startSession();
 }
 
-function startSession() {
-    currentOperation = 0;
-    sessionScore = 0;
-    if (typeof buildLevel === 'function') buildLevel();
+export function startSession() {
+    state.currentOperation = 0;
+    state.sessionScore = 0;
+    if (typeof window.buildLevel === 'function') window.buildLevel();
 }
 
-function endSession() {
-    sessionScores.push(sessionScore);
-    if (currentSession + 1 >= TOTAL_SESSIONS) {
+export function endSession() {
+    state.sessionScores.push(state.sessionScore);
+    if (state.currentSession + 1 >= TOTAL_SESSIONS) {
         renderFinalSummary();
         showScreen('final-screen');
     } else {
         showScreen('session-end-screen');
         const titleEl = document.getElementById('session-end-title');
-        if (titleEl) titleEl.innerText = `Sessió ${currentSession + 1} completada`;
+        if (titleEl) titleEl.innerText = `Sessió ${state.currentSession + 1} completada`;
         const btnEl = document.getElementById('btn-next-session');
         if (btnEl) {
             // [FIX M7] Text temporal durant l'espera d'1s
@@ -148,7 +161,7 @@ function endSession() {
             btnEl.parentNode.insertBefore(waitMsg, btnEl.nextSibling);
             setTimeout(() => {
                 btnEl.style.display = 'inline-block';
-                isTransitioning = false;
+                state.isTransitioning = false;
                 const msg = document.getElementById('session-wait-msg');
                 if (msg) msg.remove();
             }, 1000);
@@ -156,8 +169,8 @@ function endSession() {
     }
 }
 
-function startNextSession() {
-    currentSession++;
+export function startNextSession() {
+    state.currentSession++;
     showScreen('game-screen');
     startSession();
 }
@@ -166,23 +179,25 @@ function startNextSession() {
 // Cada pregunta val com a màxim MAX_PUNTS_PREGUNTA punts (totes les activitats
 // usen levelPoints/pts = Math.max(0, 10 - ...), és a dir un màxim de 10).
 // La puntuació màxima d'una sessió és, doncs, TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA.
-const MAX_PUNTS_PREGUNTA = 10;
-function calculaNotaSobre10() {
-    if (!sessionScores.length) return 0;
+export const MAX_PUNTS_PREGUNTA = 10;
+export function calculaNotaSobre10() {
+    if (!state.sessionScores.length) return 0;
     const maxSessio = TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA; // punts màxims d'1 sessió
     if (MAX_ENLLOC_MITJANA === 1) {
         // Nota = millor sessió, normalitzada sobre 10
-        return Number(((Math.max(...sessionScores) / maxSessio) * 10).toFixed(1));
+        return Number(((Math.max(...state.sessionScores) / maxSessio) * 10).toFixed(1));
     } else {
         // Nota = mitjana de totes les sessions, normalitzada sobre 10
-        return Number(((sessionScores.reduce((a, s) => a + s, 0) / (TOTAL_SESSIONS * maxSessio)) * 10).toFixed(1));
+        return Number(
+            ((state.sessionScores.reduce((a, s) => a + s, 0) / (TOTAL_SESSIONS * maxSessio)) * 10).toFixed(1)
+        );
     }
 }
 
-function renderFinalSummary() {
+export function renderFinalSummary() {
     let html = '';
-    for (let i = 0; i < sessionScores.length; i++) {
-        html += `<div class="session-line"><span>Sessió ${i + 1}</span><span>${((sessionScores[i] / (TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA)) * 10).toFixed(1).replace('.', ',')}</span></div>`;
+    for (let i = 0; i < state.sessionScores.length; i++) {
+        html += `<div class="session-line"><span>Sessió ${i + 1}</span><span>${((state.sessionScores[i] / (TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA)) * 10).toFixed(1).replace('.', ',')}</span></div>`;
     }
     const nota10 = calculaNotaSobre10().toFixed(1).replace('.', ',');
     const textFinal = MAX_ENLLOC_MITJANA === 1 ? 'La sessió amb nota més alta obté:' : 'La nota mitjana és:';
@@ -192,14 +207,14 @@ function renderFinalSummary() {
 }
 
 // [FIX A3] Confirmació abans de recarregar
-function finalitzar() {
+export function finalitzar() {
     if (confirm("Segur que vols tornar a començar? Perdràs el codi si no l'has copiat.")) {
         window.location.reload();
     }
 }
 
 // ── MINI OVERLAY ─────────────────────────────────────────────────────────────
-function showMiniOverlay(levelPoints, options = {}) {
+export function showMiniOverlay(levelPoints, options = {}) {
     const successColor = options.successColor || '#047857';
     const pointsColor = options.pointsColor || '#059669';
     const vicText = document.getElementById('mini-vic-text');
@@ -241,7 +256,7 @@ function showMiniOverlay(levelPoints, options = {}) {
     return waitTime;
 }
 
-function hideMiniOverlay() {
+export function hideMiniOverlay() {
     const overlay = document.getElementById('mini-victory-overlay');
     if (overlay) {
         overlay.style.display = 'none';
@@ -250,7 +265,7 @@ function hideMiniOverlay() {
 }
 
 // ── INJECCIO HTML COMPARTIT ──────────────────────────────────────────────────
-function injectSharedHTML() {
+export function injectSharedHTML() {
     const gameScreen = document.getElementById('game-screen');
     const panel = document.querySelector('.panel');
     if (!gameScreen || !panel) return;
@@ -280,17 +295,17 @@ function injectSharedHTML() {
     finalScreen.style.display = 'none';
     finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     panel.appendChild(finalScreen);
-    if (window._fixedSessionActive) finalScreen.querySelector('#btn-copiar').style.display = 'none';
+    if (FixedSessions) finalScreen.querySelector('#btn-copiar').style.display = 'none';
 }
 
 // ── TECLAT NUMERIC CUSTOM ────────────────────────────────────────────────────
-function isTouchDevice() {
+export function isTouchDevice() {
     return window.matchMedia('(pointer: coarse) and (hover: none)').matches;
 }
 let _kbActiveInput = null;
 let _kbClearOnNext = false;
 
-function initCustomKeyboard(options = {}) {
+export function initCustomKeyboard(options = {}) {
     const allowNeg = options.allowNegative ?? false;
     const allowZero = options.allowZero ?? true;
     const grid = document.querySelector('#customKeyboard .kb-grid');
@@ -312,7 +327,7 @@ function initCustomKeyboard(options = {}) {
                     _kbActiveInput.classList.remove('kb-selected');
                 } else _kbActiveInput.value = _kbActiveInput.value.slice(0, -1);
             } else if (key === 'enter') {
-                if (typeof checkCurrentCell === 'function') checkCurrentCell();
+                if (typeof window.checkCurrentCell === 'function') window.checkCurrentCell();
             } else if (key === '-') {
                 if (_kbClearOnNext) {
                     _kbActiveInput.value = '-';
@@ -347,7 +362,9 @@ function initCustomKeyboard(options = {}) {
     }
 }
 
-function showCustomKeyboard(inp) {
+// Un input amb data-locked="true" (resposta ja encertada) no s'activa mai.
+export function showCustomKeyboard(inp) {
+    if (inp && inp.dataset.locked === 'true') return;
     if (_kbActiveInput) _kbActiveInput.classList.remove('kb-active-input');
     _kbActiveInput = inp;
     _kbClearOnNext = false;
@@ -358,6 +375,7 @@ function showCustomKeyboard(inp) {
         inp._kbDirectTapBound = true;
         inp.addEventListener('pointerdown', e => {
             if (!isTouchDevice()) return;
+            if (inp.dataset.locked === 'true') return;
             e.preventDefault();
             showCustomKeyboard(inp);
         });
@@ -370,26 +388,42 @@ function showCustomKeyboard(inp) {
     inp.focus();
 }
 
-function hideCustomKeyboard() {
+export function hideCustomKeyboard() {
     const kb = document.getElementById('customKeyboard');
     if (kb) kb.classList.remove('kb-visible');
     if (_kbActiveInput) {
         _kbActiveInput.classList.remove('kb-active-input');
-        _kbActiveInput.removeAttribute('readonly');
-        // [FIX C3] En tàctils, mantenim inputmode="none"
-        if (!isTouchDevice()) _kbActiveInput.removeAttribute('inputmode');
+        // Un input bloquejat (data-locked="true") es queda en només lectura
+        if (_kbActiveInput.dataset.locked !== 'true') {
+            _kbActiveInput.removeAttribute('readonly');
+            // [FIX C3] En tàctils, mantenim inputmode="none"
+            if (!isTouchDevice()) _kbActiveInput.removeAttribute('inputmode');
+        }
     }
     _kbActiveInput = null;
     _kbClearOnNext = false;
 }
 
-function kbMarkForOverwrite(inp) {
+/** Input on escriu ara el teclat numèric (null si no n'hi ha cap). */
+export function getKbActiveInput() {
+    return _kbActiveInput;
+}
+
+/** Si `inp` és l'input actiu del teclat, el deixa de ser (sense amagar el teclat). */
+export function kbReleaseInput(inp) {
+    if (_kbActiveInput === inp) {
+        inp.classList.remove('kb-active-input');
+        _kbActiveInput = null;
+    }
+}
+
+export function kbMarkForOverwrite(inp) {
     _kbClearOnNext = true;
     inp.classList.add('kb-selected');
 }
 
 // ── HISTORIAL (resum textual pantalla final) ─────────────────────────────────
-function escapeHtml(unsafe) {
+export function escapeHtml(unsafe) {
     if (unsafe == null) return '';
     return String(unsafe)
         .replace(/&/g, '&amp;')
@@ -400,13 +434,13 @@ function escapeHtml(unsafe) {
 }
 
 // Converteix \frac{num}{den} → num/den per a la visualització en text pla (informe)
-function plainFrac(str) {
+export function plainFrac(str) {
     if (!str) return '';
     return String(str).replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2');
 }
 
-function recordAnswerToHistory(question, answer, isCorrect) {
-    sessionHistory.push({ question, answer, isCorrect });
+export function recordAnswerToHistory(question, answer, isCorrect) {
+    state.sessionHistory.push({ question, answer, isCorrect });
 }
 
 // ── REGISTRE DE RESULTATS PER PREGUNTA (format v2) ───────────────────────────
@@ -415,16 +449,16 @@ function recordAnswerToHistory(question, answer, isCorrect) {
  * @param {number} attemptCode  1=1r intent ok  2=2n  3=3r o mes  4=fallit
  *
  * Us recomanat:
- *   // Correcta (attemptsLeft sense decrementar per aquest intent):
- *   recordResult(Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
+ *   // Correcta (state.attemptsLeft sense decrementar per aquest intent):
+ *   recordResult(Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3));
  *   // Fallada definitiva:
  *   recordResult(4);
  */
-function recordResult(attemptCode) {
-    if (sessionResults.length < MAX_RESULTS) sessionResults.push(attemptCode);
+export function recordResult(attemptCode) {
+    if (state.sessionResults.length < MAX_RESULTS) state.sessionResults.push(attemptCode);
 }
 
-function showHistorySummary() {
+export function showHistorySummary() {
     _allScreenIds.forEach(s => {
         const el = document.getElementById(s);
         if (el) el.style.display = 'none';
@@ -436,8 +470,8 @@ function showHistorySummary() {
         sc.className = 'panel-content';
         (document.querySelector('.panel') || document.body).appendChild(sc);
     }
-    const encerts = sessionHistory.filter(i => i.isCorrect);
-    const errades = sessionHistory.filter(i => !i.isCorrect);
+    const encerts = state.sessionHistory.filter(i => i.isCorrect);
+    const errades = state.sessionHistory.filter(i => !i.isCorrect);
 
     // [FIX m8] Reescrit amb classes CSS de shared.css (responsive, mantenible)
     const liOk = encerts.length
@@ -470,14 +504,20 @@ function showHistorySummary() {
     </div>`;
     // [FIX m9] El botó crida copiarResultats() que ja gestiona el feedback visual internament
     sc.style.display = 'block';
-    if (window._fixedSessionActive) {
+    if (FixedSessions) {
         const b = document.getElementById('btn-copiar-hist');
         if (b) b.style.display = 'none';
     }
 }
 
+// ── FUNCIONS CRIDADES DES DE L'HTML ─────────────────────────────────────────
+// Els botons que crea injectSharedHTML() i l'informe les criden amb onclick="…",
+// que només veu window. Un joc en pot substituir alguna després d'importar
+// aquest mòdul (p. ex. window.showHistorySummary = …).
+Object.assign(window, { startNextSession, showHistorySummary, copiarResultats, finalitzar });
+
 // ── GENERADOR DE CODI v2 ─────────────────────────────────────────────────────
-async function copiarResultats() {
+export async function copiarResultats() {
     // Salt
     let salt = '';
     const ch = 'abcdefghijklmnopqrstuvwxyz';
@@ -492,11 +532,10 @@ async function copiarResultats() {
 
     // Exercici
     const nomFitxer = window.location.pathname.split('/').pop().replace('.html', '');
-    // Si js/exercise-codes.js no s'ha carregat, el codi es genera igualment (amb 'XX')
-    const exCode = (typeof EXERCISE_CODES !== 'undefined' && EXERCISE_CODES[nomFitxer]) || 'XX';
+    const exCode = EXERCISE_CODES[nomFitxer] || 'XX'; // 'XX': pàgina sense codi a la taula
 
     // Dificultat, sessions, preguntes
-    const dif = String(Math.min(Math.max(currentDifficulty || 0, 0), 3));
+    const dif = String(Math.min(Math.max(state.currentDifficulty || 0, 0), 3));
     const sessions = String(Math.min(TOTAL_SESSIONS, 5));
     const questions = String(Math.min(TOTAL_OPERATIONS, 10)).padStart(2, '0');
 
@@ -506,7 +545,7 @@ async function copiarResultats() {
     const notaStr = String(notaInt).padStart(3, '0');
 
     // Resultats per pregunta (mínim 30 chars, màxim MAX_RESULTS)
-    const resultsStr = sessionResults.slice(0, MAX_RESULTS).map(String).join('').padEnd(30, '0');
+    const resultsStr = state.sessionResults.slice(0, MAX_RESULTS).map(String).join('').padEnd(30, '0');
 
     // Checksum
     const valorAscii = salt.charCodeAt(0);
