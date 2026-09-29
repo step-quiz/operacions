@@ -50,7 +50,7 @@ export async function loadPdfFile(input) {
   input.value = '';
   try {
     const buf = await file.arrayBuffer();
-    const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+    const doc = await pdfjsLib.getDocument({ data: buf, isEvalSupported: false }).promise;
     setPdfDoc(doc);
     setPdfTotalPages(doc.numPages);
     document.body.classList.add('has-pdf');

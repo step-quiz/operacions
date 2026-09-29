@@ -57,7 +57,7 @@ function _selectDistractors(pool, correctTex, count, fallbacks = []) {
     });
 
     // Cas degenerat: menys candidats que count → retorna tots barrejats
-    if (valid.length <= count) return valid.sort(() => Math.random() - 0.5);
+    if (valid.length <= count) return shuffle(valid);
 
     // 2. Agrupa per errorType i barreja dins cada grup
     const byType = {};
@@ -66,10 +66,10 @@ function _selectDistractors(pool, correctTex, count, fallbacks = []) {
         if (!byType[t]) byType[t] = [];
         byType[t].push(d);
     });
-    Object.values(byType).forEach(arr => arr.sort(() => Math.random() - 0.5));
+    Object.values(byType).forEach(arr => shuffle(arr));
 
     // 3. Ordena els tipus: NO_PRIMITIVE primer (anchor pedagògic), resta aleatòria
-    const types  = Object.keys(byType).sort(() => Math.random() - 0.5);
+    const types  = shuffle(Object.keys(byType));
     const npIdx  = types.indexOf('NO_PRIMITIVE');
     if (npIdx > 0) { types.splice(npIdx, 1); types.unshift('NO_PRIMITIVE'); }
 

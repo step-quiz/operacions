@@ -48,12 +48,6 @@ const SRC = __dirname;
 
 // Globals que necessiten els fitxers
 global.window = { location: { search: '' } };
-global.randIntNonZero = (min, max) => {
-    let v;
-    do { v = Math.floor(Math.random() * (max - min + 1)) + min; } while (v === 0);
-    return v;
-};
-global.pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 function loadFile(name) {
     try {
@@ -65,8 +59,15 @@ function loadFile(name) {
     }
 }
 
+// Mateix ordre de càrrega que derivades.html:
+// utils (randIntNonZero, pick, shuffle) → math-engine → strings → distractor-lib → question-bank
+loadFile('../utils.js');
+
 loadFile('math-engine.js');
 global.MathEngine = window.MathEngine;
+
+loadFile('strings.js');
+global.Strings = window.Strings;
 
 loadFile('distractor-lib.js');
 global.DistractorLib = window.DistractorLib;

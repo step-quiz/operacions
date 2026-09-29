@@ -17,9 +17,11 @@ const DEFAULT_TOTAL_OPERATIONS   = window.APP_CONFIG?.defaultOperations    ?? 3;
 const DEFAULT_MAX_INTENTS        = window.APP_CONFIG?.defaultIntents       ?? 4;
 const DEFAULT_MAX_ENLLOC_MITJANA = window.APP_CONFIG?.defaultEnllocMitjana ?? 1;
 
+// Els màxims de sessions i preguntes coincideixen amb el que pot representar
+// el codi de verificació v2 (S = 1-5, QQ = 01-10) i amb el que ofereix index.html.
 const LIMITS = {
-    totalsessions:    { min: 1, max: 20 },
-    totaloperations:  { min: 1, max: 30 },
+    totalsessions:    { min: 1, max:  5 },
+    totaloperations:  { min: 1, max: 10 },
     maxintents:       { min: 1, max: 10 },
     maxenllocmitjana: { min: 0, max:  1 }
 };

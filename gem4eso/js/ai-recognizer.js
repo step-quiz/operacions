@@ -208,7 +208,7 @@ export async function processAiPdf(input) {
 
   try {
     const buf    = await file.arrayBuffer();
-    const pdfDoc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    const pdfDoc = await window.pdfjsLib.getDocument({ data: buf, isEvalSupported: false }).promise;
     const total  = pdfDoc.numPages;
 
     _setStatus(`Carregant ${total} pàgina(es) (model: ${model})...`);

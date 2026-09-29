@@ -48,7 +48,7 @@ function buildLevel() {
 
     katex.render(challengeData.promptTex, els.fxDisplay, { throwOnError: false });
 
-    const allOptions = [...challengeData.options].sort(() => Math.random() - 0.5);
+    const allOptions = shuffle([...challengeData.options]);
 
     els.optionsContainer.innerHTML = '';
     allOptions.forEach((opt, i) => {
