@@ -82,4 +82,5 @@ El camp `pistes` conté 4 textos (un per opció A-D). La pista de la resposta co
 
 ## Llicència
 
-© 2026 David Arso Civil. Ús educatiu lliure. Prohibida la comercialització i la modificació ([CC BY-NC-ND 4.0](http://creativecommons.org/licenses/by-nc-nd/4.0/)).
+Material desenvolupat per **David Arso Civil** per al Departament de Matemàtiques de l'INS Miquel Tarradell.
+Contingut sota [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca), codi sota llicència [MIT](https://opensource.org/license/mit). Vegeu [`LLICENCIA.md`](../LLICENCIA.md).

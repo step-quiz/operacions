@@ -934,7 +934,8 @@ function _advance() {
     const overlay = document.getElementById('fade-overlay');
     overlay.style.pointerEvents = 'all';
     overlay.style.opacity       = '1';
-    setTimeout(() => { window.location.href = 'pentomino-area-perimetre.html'; }, 1200);
+    // En acabar, porta a l'activitat (conservant els paràmetres de l'URL, si n'hi ha)
+    setTimeout(() => { window.location.href = 'area-perimetre.html' + window.location.search; }, 1200);
     return;
   }
 

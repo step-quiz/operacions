@@ -5,18 +5,18 @@
  *
  * ── FORMAT DE CODI v2 ───────────────────────────────────────────────────────
  *
- *   Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR  (59 chars)
+ *   Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR  (59-79 chars)
  *
  *   L     1   Lletra de control antifrau
  *   sss   3   Salt aleatori (3 lletres minúscules)
  *   DDMM  4   Data
  *   HHMM  4   Hora i minuts
- *   EE    2   Codi d'exercici (taula EXERCISE_CODES)
+ *   EE    2   Codi d'exercici (taula EXERCISE_CODES de js/exercise-codes.js)
  *   D     1   Dificultat: 0=sense nivells, 1-3=nivell triat
  *   S     1   Sessions completades (1-5)
  *   QQ    2   Preguntes per sessió (01-10)
  *   NNN   3   Nota x10 arrodonida (000-100). Ex: 7,5 -> 075
- *   RRR  30   Resultats per pregunta:
+ *   RRR 30-50 Resultats per pregunta, sessió rere sessió (S × QQ, mínim 30):
  *               1=encertada al 1r intent
  *               2=encertada al 2n intent
  *               3=encertada al 3r intent o posterior
@@ -43,55 +43,12 @@
  */
 
 // ── TAULA DE CODIS D'EXERCICI ────────────────────────────────────────────────
-const EXERCISE_CODES = {
-    // ESO
-    'enters':             'EN',
-    'enters-ordenar':     'EO',
-    'fraccions':          'FR',
-    'equacions':          'EQ',
-    'sistemes-equacions': 'SE',
-    'mcd-mcm':            'MC',
-    'potencies':          'PT',
-    'factoritzar':        'FA',
-    'radicals':           'RA',
-    'recta-numerica':     'RN',
-    'area-perimetre':     'AP',
-    'pla-cartesia':       'PC',
-    'proporciodirecta':   'PR',
-    'decimals':             'DI',
-    'vocabulari':         'VO',
-    'probabilitat':       'PB',
-    'estadistica':        'ED',
-    'mitjana':            'MJ',
-    'estadistica-inversa':'EI',
-    'gots-fitxes':        'GC',
-    'prioritat':          'PO',
-    // Batxillerat
-    'complexos':                 'CX',
-    'derivades':                 'DV',
-    'integrals':                 'IT',
-    'asimptotes':                'AS',
-    'ruffini':                   'RU',
-    'grafica-i-funcio':          'GF',
-    'grafica-funcio-i-derivada': 'GD',
-    'rectes-plans':              'RP',
-    'esglaonar-matriu':          'EM',
-    'inversa-matriu':            'IM',
-    'raons-trigonometria':       'RT',
-    'teorema-sin-cos':           'TC',
-    // Adaptades (a/)
-    'a-enters':           'AE',
-    'a-decimals':         'AD',
-    'a-diners':           'AN',
-    'a-equacions':        'AQ',
-    'a-proporciodirecta': 'AO',
-    'llenguatge-algebraic': 'LA',
-};
+// EXERCISE_CODES i EXERCISE_NAMES es defineixen a js/exercise-codes.js (taula
+// única compartida amb analitzador-stepquiz.html), que es carrega abans d'aquest.
 
-// Lookup invers: codi 2 lletres -> nom exercici
-const EXERCISE_NAMES = Object.fromEntries(
-    Object.entries(EXERCISE_CODES).map(([nom, codi]) => [codi, nom])
-);
+// ── NOMBRE MÀXIM DE RESULTATS AL CODI ────────────────────────────────────────
+// El generador d'enllaços permet fins a 5 sessions × 10 preguntes = 50.
+const MAX_RESULTS = 50;
 
 // ── DIFICULTAT (llegida automaticament de l'URL) ─────────────────────────────
 const _urlNivell = new URLSearchParams(window.location.search).get('nivell');
@@ -390,7 +347,7 @@ function recordAnswerToHistory(question, answer, isCorrect) {
  *   recordResult(4);
  */
 function recordResult(attemptCode) {
-    if (sessionResults.length < 30) sessionResults.push(attemptCode);
+    if (sessionResults.length < MAX_RESULTS) sessionResults.push(attemptCode);
 }
 
 function showHistorySummary() {
@@ -445,7 +402,8 @@ async function copiarResultats() {
 
     // Exercici
     const nomFitxer = window.location.pathname.split('/').pop().replace('.html','');
-    const exCode    = EXERCISE_CODES[nomFitxer] ?? 'XX';
+    // Si js/exercise-codes.js no s'ha carregat, el codi es genera igualment (amb 'XX')
+    const exCode    = (typeof EXERCISE_CODES !== 'undefined' && EXERCISE_CODES[nomFitxer]) || 'XX';
 
     // Dificultat, sessions, preguntes
     const dif       = String(Math.min(Math.max(currentDifficulty || 0, 0), 3));
@@ -457,8 +415,8 @@ async function copiarResultats() {
     const notaInt     = Math.round(notaSobre10 * 10);
     const notaStr     = String(notaInt).padStart(3,'0');
 
-    // Resultats per pregunta (30 chars)
-    const resultsStr = sessionResults.slice(0,30).map(String).join('').padEnd(30,'0');
+    // Resultats per pregunta (mínim 30 chars, màxim MAX_RESULTS)
+    const resultsStr = sessionResults.slice(0,MAX_RESULTS).map(String).join('').padEnd(30,'0');
 
     // Checksum
     const valorAscii  = salt.charCodeAt(0);

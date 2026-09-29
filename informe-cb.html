@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Corrector CompBàsiques 4t ESO</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="vendor/xlsx-0.18.5/xlsx.full.min.js"></script>
+<script src="vendor/exceljs-4.3.0/exceljs.min.js"></script>
+<script src="vendor/pdfjs-3.11.174/pdf.min.js"></script>
+<script src="vendor/jszip-3.10.1/jszip.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1324,7 +1324,7 @@ function hideCompletePrompt() {
 // ═══════════════════════════════════════════════════════════════════════
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    'vendor/pdfjs-3.11.174/pdf.worker.min.js';
 }
 let pdfDoc = null, pdfTotalPages = 0, pdfCurrentPage = 0;
 let pdfRenderTask = null, pdfResizeTimer = null;
@@ -1354,7 +1354,7 @@ async function loadPdfFile(input) {
   input.value = '';
   try {
     const buf = await file.arrayBuffer();
-    const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+    const doc = await pdfjsLib.getDocument({ data: buf, isEvalSupported: false }).promise;
     pdfDoc = doc; pdfTotalPages = doc.numPages;
     document.body.classList.add('has-pdf');
     document.getElementById('pdf-bar-name').textContent = file.name;

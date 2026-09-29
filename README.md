@@ -1,94 +1,121 @@
 # Step Quiz: Matemàtiques Interactives
 
-Conjunt d'activitats interactives en format web per practicar operacions matemàtiques d'ESO i Batxillerat. Cada exercici inclou feedback pedagògic pas a pas, un sistema de puntuació per sessions i un codi de verificació que l'alumne lliura al professor.
+Conjunt d'activitats interactives en format web per practicar operacions matemàtiques d'ESO i Batxillerat. Cada exercici inclou feedback pedagògic pas a pas i un sistema de puntuació per sessions. Tots els d'ESO (menys el pla cartesià) i els de derivades i integrals donen, en acabar, un **codi de verificació** que l'alumne lliura al professor.
+
+Web: https://step-quiz.net
 
 ## Com funciona?
 
 No requereix instal·lació ni servidor. Són arxius totalment estàtics.
 
 1. Obre `index.html` al navegador — és el **generador d'enllaços** per al professorat.
-2. Tria l'exercici i configura sessions, operacions i intents.
+2. Tria l'exercici i configura sessions, preguntes i intents.
 3. Copia l'enllaç i comparteix-lo amb els alumnes.
-4. En acabar, l'alumne obté un **codi de verificació** (format v2, 59 caràcters) amb nota, data i checksum antifrau.
+4. En acabar, l'alumne obté un **codi de verificació** (format v2, 59–79 caràcters) amb nota, data i checksum antifrau.
+5. El professor carrega les respostes del formulari a `analitzador-stepquiz.html` per validar els codis i veure les notes.
 
 ## Exercicis disponibles
 
+La columna **Codi** és el camp `EE` del codi de verificació. La taula completa és a [`js/exercise-codes.js`](js/exercise-codes.js).
+
 ### ESO
 
-| Exercici | Codi | Fitxer |
-|----------|------|--------|
-| Enters (operacions) | EN | `enters.html` |
-| Enters (ordenar) | EO | `enters-ordenar.html` |
-| Fraccions | FR | `fraccions.html` |
-| Equacions de 1r grau | EQ | `equacions.html` |
-| Sistemes d'equacions | SE | `sistemes-equacions.html` |
-| MCD i MCM | MC | `mcd-mcm.html` |
-| Potències | PT | `potencies.html` |
-| Factoritzar | FA | `factoritzar.html` |
-| Radicals | RA | `radicals.html` |
-| Recta numèrica | RN | `recta-numerica.html` |
-| Àrea i perímetre | AP | `area-perimetre.html` |
-| Pla cartesià | PC | `pla-cartesia.html` |
-| Proporcionalitat directa | PR | `proporciodirecta.html` |
-| Decimals | DI | `decimals.html` |
-| Vocabulari geomètric | VO | `vocabulari.html` |
+| Exercici | Codi | Fitxer | Dona codi |
+|----------|------|--------|-----------|
+| Vocabulari de geometria | VO | `vocabulari.html` | sí |
+| Àrea i perímetre | AP | `area-perimetre.html` | sí |
+| Nombres enters | EN | `enters.html` | sí |
+| Ordenar nombres enters | EO | `enters-ordenar.html` | sí |
+| Recta numèrica | RN | `recta-numerica.html` | sí |
+| Potències | PT | `potencies.html` | sí |
+| Prioritat d'operacions | PO | `prioritat.html` | sí |
+| Descompondre en factors primers | FA | `factoritzar.html` | sí |
+| MCD i MCM | MC | `mcd-mcm.html` | sí |
+| Proporció directa | PR | `proporciodirecta.html` | sí |
+| Fraccions | FR | `fraccions.html` | sí |
+| Nombres decimals | DI | `decimals.html` | sí |
+| Llenguatge algebraic | LA | `llenguatge-algebraic.html` | sí |
+| Equacions de 1r grau | EQ | `equacions.html` | sí |
+| Gots i fitxes (equacions) | GC | `gots-fitxes.html` | sí |
+| Sistemes d'equacions | SE | `sistemes-equacions.html` | sí |
+| Simplificació de radicals | RA | `radicals.html` | sí |
+| Pla cartesià | PC | `pla-cartesia.html` | no |
+| Estudi estadístic | ED | `estadistica.html` | sí |
+| Mitjana aritmètica | MJ | `mitjana.html` | sí |
+| Paràmetres estadístics | EI | `estadistica-inversa.html` | sí |
+| Probabilitat | PB | `probabilitat.html` | sí |
+| Teorema de Pitàgores | TR | `triangle-rectangle.html` | sí |
+| Trigonometria: valors exactes | RT | `raons-trigonometria.html` | sí |
+| Teorema del sinus i del cosinus | TC | `teorema-sin-cos.html` | sí |
 
 ### Batxillerat
 
-| Exercici | Codi | Fitxer |
-|----------|------|--------|
-| Nombres complexos | CX | `complexos.html` |
-| Derivades | DV | `derivades.html` |
-| Integrals | IT | `integrals.html` |
-| Asímptotes | AS | `asimptotes.html` |
-| Ruffini | RU | `ruffini.html` |
-| Gràfica i funció | GF | `grafica-i-funcio.html` |
-| Gràfica, funció i derivada | GD | `grafica-funcio-i-derivada.html` |
-| Rectes i plans | RP | `rectes-plans.html` |
-| Esglaonar matriu | EM | `esglaonar-matriu.html` |
-| Inversa de matriu | IM | `inversa-matriu.html` |
+| Exercici | Codi | Fitxer | Dona codi |
+|----------|------|--------|-----------|
+| Equacions de rectes i plans | RP | `rectes-plans.html` | no |
+| Esglaonar una matriu | EM | `esglaonar-matriu.html` | no |
+| Inversa d'una matriu | IM | `inversa-matriu.html` | no |
+| Ruffini (arrels enteres) | RU | `ruffini.html` | no |
+| Nombres complexos | CX | `complexos.html` | no |
+| Càlcul de derivades | DV | `derivades.html` | sí |
+| Càlcul d'integrals | IT | `integrals.html` | sí |
+| Gràfica i funció | GF | `grafica-i-funcio.html` | no |
+| Asímptota i límit lateral | AS | `asimptotes.html` | no |
+| Comparar gràfiques de funció i de derivada | GD | `grafica-funcio-i-derivada.html` | no |
+| Descripció d'una gràfica | — | `descripcio-grafica.html` | no |
 
-### Adaptades (carpeta `a/`)
+Els codis de les activitats que ara no en donen es mantenen reservats perquè l'analitzador pugui llegir codis antics.
 
-Versions simplificades per a alumnes amb necessitats educatives especials.
+### Adaptades
+
+Les versions simplificades per a alumnes amb necessitats educatives especials són ara un projecte a part: https://a.step-quiz.net (repositori `step-quiz/a`). L'analitzador d'aquest projecte continua llegint els seus codis (`AE`, `AD`, `AN`, `AQ`, `AO`, `AR`).
 
 ## Arquitectura
 
 El projecte segueix dues arquitectures segons l'antiguitat de l'exercici:
 
-**Mòduls nous (derivades, integrals, recta numèrica, asímptotes):**
+**Mòduls nous** (derivades, integrals, probabilitat, estadística, recta numèrica, asímptotes…): cada exercici té la seva carpeta a `js/`.
 ```
 js/derivades/
 ├── math-engine.js      ← Capa matemàtica pura (sense DOM)
 ├── strings.js          ← Textos de feedback i pistes
 ├── distractor-lib.js   ← Generador de distractors pedagògics
 ├── question-bank.js    ← Famílies de preguntes
-└── derivades.js        ← Controlador DOM
+├── derivades.js        ← Controlador DOM
+└── run-tests.js        ← Tests (node js/derivades/run-tests.js)
 ```
 
-**Fitxers compartits (carregats per tots els exercicis):**
+**Fitxers compartits:**
 ```
 js/
+├── fixed-sessions.js   ← Sessions fixes (?fixed=A/B/C): tothom rep els mateixos exercicis
 ├── utils.js            ← Funcions pures: randInt, pick, shuffle, parseStrictInt
 ├── config.js           ← Lectura de paràmetres URL
+├── exercise-codes.js   ← Taula única de codis d'exercici (joc i analitzador)
 └── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat)
 css/
 └── shared.css          ← Estils globals, teclat numèric, pantalles finals
+vendor/                 ← Llibreries externes (KaTeX, PDF.js, SheetJS…), vegeu vendor/README.md
 ```
 
-**Mòduls antics (equacions, fraccions, etc.):** tot el JS va inline dins el HTML.
+**Mòduls antics** (equacions, fraccions, etc.): tot el JS va inline dins el HTML.
 
 ## Paràmetres URL
 
 | Paràmetre | Valors | Per defecte | Descripció |
 |-----------|--------|-------------|------------|
-| `totalsessions` | 1-20 | Definit per cada joc | Nombre de sessions |
-| `totaloperations` | 1-30 | Definit per cada joc | Operacions per sessió |
-| `maxintents` | 1-10 | Definit per cada joc | Intents per operació |
+| `totalsessions` | 1-5 | Definit per cada joc | Nombre de sessions |
+| `totaloperations` | 1-10 | Definit per cada joc | Preguntes per sessió |
+| `maxintents` | 1-10 | Definit per cada joc | Intents per pregunta |
 | `maxenllocmitjana` | 0-1 | Definit per cada joc | 0=nota mitjana, 1=nota màxima |
 | `nivell` | 1-3 | 0 | Dificultat (jocs amb nivells) |
-| `families` | ids separats per `,` | totes | Famílies actives (derivades/integrals) |
-| `debug` | 1 | desactivat | Mostra panel de depuració |
+| `fixed` | A, B, C | — | Sessió fixa: tots els alumnes reben els mateixos exercicis (sense codi) |
+| `families` | ids separats per `,` | totes | Famílies actives (derivades, integrals) |
+| `tipus` | `calcat`, `germans`, `nota`, `son`, `minuts`, `alcada`, `pes`, `pulsacions` | aleatori | Tipus de dades (estadística) |
+| `dim`, `modalitat` | 2/3 · a/b | — | Dimensió i nivell (vocabulari) |
+| `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
+
+Els màxims de sessions i preguntes (5 × 10) són els que pot representar el codi de verificació.
 
 Exemple: `derivades.html?totalsessions=2&totaloperations=8&families=chain-exp-int,power`
 
@@ -96,7 +123,7 @@ Exemple: `derivades.html?totalsessions=2&totaloperations=8&families=chain-exp-in
 
 - HTML5 / CSS3 purs (sense frameworks)
 - Vanilla JavaScript (ES6)
-- KaTeX (CDN) per a renderització LaTeX en derivades, integrals i sistemes
+- KaTeX (copiat a `vendor/`) per a les fórmules
 - Cap backend: tot s'executa al navegador
 
 ## Contribuir

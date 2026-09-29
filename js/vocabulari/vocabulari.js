@@ -76,8 +76,9 @@
     }
 
     const MODALITAT        = (_p.get('modalitat') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
-    const TOTAL_SESS       = _intParam('totalsessions',    1, 1, 20);
-    const TOTAL_OPS        = _intParam('totaloperations',  4, 1, 30);
+    // Màxims iguals que js/config.js: el codi v2 només representa S = 1-5 i QQ = 01-10
+    const TOTAL_SESS       = _intParam('totalsessions',    1, 1,  5);
+    const TOTAL_OPS        = _intParam('totaloperations',  4, 1, 10);
     const MAX_INTENTS      = _intParam('maxintents',       4, 1, 10);
     const MAX_ENLLOC_MITJ  = _intParam('maxenllocmitjana', 1, 0,  1);
 
@@ -1114,8 +1115,8 @@
         const notaInt     = Math.round(notaSobre10 * 10);
         const notaStr     = String(notaInt).padStart(3, '0');
 
-        // Resultats per figura (30 chars). 1=sense errors · 2=1 error · 3=2+ · 4=fallada
-        const resultsStr = _resultats.slice(0, 30).map(String).join('').padEnd(30, '0');
+        // Resultats per figura (mínim 30 chars, màxim 5 × 10 = 50). 1=sense errors · 2=1 error · 3=2+ · 4=fallada
+        const resultsStr = _resultats.slice(0, 50).map(String).join('').padEnd(30, '0');
 
         // Checksum (idèntic a game-core.js: fa servir la nota × 10)
         const valorAscii  = salt.charCodeAt(0);

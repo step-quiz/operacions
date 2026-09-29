@@ -346,6 +346,7 @@
 </div>
 
 <!-- 4. game-core DESPRÉS del DOM -->
+<script src="js/exercise-codes.js"></script>
 <script src="js/game-core.js"></script>
 
 <script>
@@ -1100,10 +1101,12 @@ function finishQuestion(success) {
     recordResult(attemptCode);
 
     hideCustomKeyboard();
-    sessionScore += success ? 1 : 0;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    // La nota de game-core.js compta 10 punts màxims per pregunta
+    // (MAX_PUNTS_PREGUNTA): cal sumar els mateixos punts que mostra l'overlay.
     lastQuestionPoints  = success ? Math.max(0, 10 - (MAX_INTENTS - attemptsLeft)) : 0;
     lastQuestionSuccess = success;
+    sessionScore += lastQuestionPoints;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
 
     // Cas especial: si era la darrera pregunta de la darrera sessió, anem
     // directament a la pantalla final (no té sentit demanar "Equació següent").

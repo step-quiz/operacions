@@ -65,7 +65,7 @@ function _selectDistractors(pool, correctTex, count, fallbacks) {
     });
 
     // Cas degenerat: menys candidats que count → retorna tots barrejats
-    if (valid.length <= count) return valid.sort(() => Math.random() - 0.5);
+    if (valid.length <= count) return shuffle(valid);
 
     // 2. Agrupa per errorType i barreja dins cada grup
     const byType = {};
@@ -74,7 +74,7 @@ function _selectDistractors(pool, correctTex, count, fallbacks) {
         if (!byType[t]) byType[t] = [];
         byType[t].push(d);
     });
-    Object.values(byType).forEach(arr => arr.sort(() => Math.random() - 0.5));
+    Object.values(byType).forEach(arr => shuffle(arr));
 
     // 3. Ordena els tipus amb prioritats pedagògiques fixes:
     //    [FIX PEDAGÒGIC] CHAIN_FORGOT / LOG_FORGOT_CHAIN representen l'error
@@ -82,7 +82,7 @@ function _selectDistractors(pool, correctTex, count, fallbacks) {
     //    SEMPRE que existeixi al pool (l'error més freqüent i didàctic).
     //    NO_DERIVATIVE és l'anchor fonamental ("no he derivat res").
     //    Ordre: NO_DERIVATIVE → CHAIN_FORGOT/LOG_FORGOT_CHAIN → resta aleatòria.
-    const types = Object.keys(byType).sort(() => Math.random() - 0.5);
+    const types = shuffle(Object.keys(byType));
 
     // Mou els tipus prioritaris al davant (en ordre invers d'inserció)
     const priorityOrder = ['CHAIN_FORGOT', 'LOG_FORGOT_CHAIN', 'NO_DERIVATIVE'];

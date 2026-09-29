@@ -10,8 +10,10 @@ operacions/
 │   ├── derivades.css           ← Estils específics de derivades
 │   └── ...
 ├── js/
+│   ├── fixed-sessions.js       ← Sessions fixes ?fixed=A/B/C (sempre el PRIMER script)
 │   ├── utils.js                ← Funcions pures: randInt, pick, shuffle, parseStrictInt
 │   ├── config.js               ← Lectura de paràmetres URL (sessions, intents, etc.)
+│   ├── exercise-codes.js       ← Taula única de codis d'exercici (joc + analitzador)
 │   ├── game-core.js            ← Motor de joc compartit (puntuació, pantalles, codi v2)
 │   ├── derivades/              ← Mòdul de derivades (patró recomanat)
 │   │   ├── math-engine.js      ← Capa matemàtica pura (sense DOM)
@@ -33,10 +35,12 @@ operacions/
 L'ordre és **crític** i no es pot alterar:
 
 ```
+0. fixed-sessions.js (opcional, però si hi és ha d'anar PRIMER)
 1. utils.js           (funcions pures, sense dependències)
 2. config.js          (depèn de utils.js per getIntParam)
-3. game-core.js       (depèn de config.js per les constants)
-4. math-engine.js     (depèn de utils.js per randIntNonZero, pick)
+2b. exercise-codes.js (taula EXERCISE_CODES, sense dependències)
+3. game-core.js       (depèn de config.js i exercise-codes.js)
+4. math-engine.js     (depèn de utils.js per randIntNonZero, pick, shuffle)
 5. strings.js         (sense dependències JS, només textos)
 6. distractor-lib.js  (depèn de math-engine.js i strings.js)
 7. question-bank.js   (depèn de math-engine.js i distractor-lib.js)
@@ -110,14 +114,16 @@ window.MathEngine = (() => {
            defaultEnllocMitjana: 1
        };
    </script>
+   <script src="js/fixed-sessions.js"></script>
    <script src="js/utils.js"></script>
    <script src="js/config.js"></script>
+   <script src="js/exercise-codes.js"></script>
    <script src="js/game-core.js"></script>
    <script src="js/nou-exercici/math-engine.js"></script>
    <!-- ... resta de scripts del mòdul ... -->
    ```
 
-3. Registrar el codi d'exercici a `EXERCISE_CODES` dins `game-core.js`:
+3. Registrar el codi d'exercici a `EXERCISE_CODES` dins `js/exercise-codes.js` (2 lletres que no estiguin fetes servir; `CB` està reservat). L'analitzador el reconeixerà automàticament:
    ```js
    'nou-exercici': 'NE',
    ```
@@ -126,14 +132,14 @@ window.MathEngine = (() => {
 
 ### Opció B: Exercici inline (per a jocs simples)
 
-Tot el JS va dins `<script>` al final del HTML. Segueix igualment l'ordre utils → config → game-core.
+Tot el JS va dins `<script>` al final del HTML. Segueix igualment l'ordre utils → config → exercise-codes → game-core.
 
 ## Format del codi de verificació v2
 
 El codi que l'alumne copia per al professor té aquest format:
 
 ```
-Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 ```
 
 | Camp | Llarg | Descripció |
@@ -142,12 +148,12 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 | sss | 3 | Salt aleatori (3 lletres minúscules) |
 | DDMM | 4 | Data (dia i mes) |
 | HHMM | 4 | Hora i minuts |
-| EE | 2 | Codi d'exercici (taula EXERCISE_CODES) |
+| EE | 2 | Codi d'exercici (taula EXERCISE_CODES de `js/exercise-codes.js`) |
 | D | 1 | Dificultat (0=sense nivells, 1-3) |
 | S | 1 | Sessions completades (1-5) |
 | QQ | 2 | Preguntes per sessió (01-10) |
 | NNN | 3 | Nota ×10 arrodonida (000-100) |
-| RRR…R | 30 | Resultats per pregunta (1=1r intent, 2=2n, 3=3r+, 4=fallada, 0=buit) |
+| RRR…R | 30-50 | Resultats per pregunta, sessió rere sessió (S × QQ posicions, mínim 30): 1=1r intent, 2=2n, 3=3r+, 4=fallada, 0=buit |
 
 **Checksum:** `suma = NNN + DD + MM + HH + mm + ASCII(salt[0])`, lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`
 
@@ -155,17 +161,26 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 | Paràmetre | Valors | Per defecte | Descripció |
 |-----------|--------|-------------|------------|
-| `totalsessions` | 1-20 | Definit per APP_CONFIG | Nombre de sessions |
-| `totaloperations` | 1-30 | Definit per APP_CONFIG | Operacions per sessió |
+| `totalsessions` | 1-5 | Definit per APP_CONFIG | Nombre de sessions |
+| `totaloperations` | 1-10 | Definit per APP_CONFIG | Operacions per sessió |
 | `maxintents` | 1-10 | Definit per APP_CONFIG | Intents per operació |
 | `maxenllocmitjana` | 0-1 | Definit per APP_CONFIG | 0=mitjana, 1=màxim |
 | `nivell` | 1-3 | 0 (sense nivell) | Dificultat del joc |
+| `fixed` | A, B, C | — | Sessió fixa: mateixos exercicis per a tothom (vegeu `js/fixed-sessions.js`) |
 | `families` | ids separats per comes | totes | Famílies actives (derivades/integrals) |
-| `debug` | 1 | desactivat | Mostra panel de depuració |
+| `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
+
+Els màxims de sessions (5) i preguntes (10) són els que pot representar el codi v2 (camps S i QQ).
 
 ## Tecnologies
 
 - HTML5 / CSS3 purs (sense frameworks)
 - Vanilla JavaScript (ES6)
-- KaTeX (CDN) per a renderització LaTeX (derivades, integrals, sistemes)
+- KaTeX per a renderització LaTeX, servit des de `vendor/katex-0.16.11/` (vegeu `vendor/README.md`)
 - Cap backend: tot és estàtic i s'executa al navegador
+
+## Tests
+
+```
+node js/derivades/run-tests.js
+```
