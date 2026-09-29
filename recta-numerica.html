@@ -103,15 +103,12 @@
 
 <!--
     ORDRE DE CÀRREGA:
-    utils → config → game-core → cloud-engine → strings → distractor-lib → question-bank → recta-numerica (defer)
+    utils → config → game-core (clàssics) → recta-numerica.js (mòdul ES,
+    importa cloud-engine, strings, distractor-lib i question-bank)
 -->
 <script src="js/exercise-codes.js"></script>
 <script src="js/game-core.js"></script>
-<script src="js/recta-numerica/cloud-engine.js"></script>
-<script src="js/recta-numerica/strings.js"></script>
-<script src="js/recta-numerica/distractor-lib.js"></script>
-<script src="js/recta-numerica/question-bank.js"></script>
-<script defer src="js/recta-numerica/recta-numerica.js"></script>
+<script type="module" src="js/recta-numerica/recta-numerica.js"></script>
 
 </body>
 </html>

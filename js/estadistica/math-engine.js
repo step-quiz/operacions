@@ -5,11 +5,11 @@
  * ROL: Motor matemàtic pur per a estadística descriptiva. Càlcul de
  *      freqüències, mitjana, mediana, moda. Suport per a dades discretes
  *      i dades agrupades per intervals.
- * DEPENDÈNCIES: Cap. S'ha de carregar PRIMER del mòdul.
+ * DEPENDÈNCIES: cap
  * ============================================================================
  */
 
-window.MathEngine = (() => {
+export const MathEngine = (() => {
     /**
      * Calcula la taula de freqüències per a dades discretes.
      * @param {number[]} data       Dades brutes

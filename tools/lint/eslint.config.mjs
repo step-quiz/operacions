@@ -35,30 +35,47 @@ const PROJECT_GLOBALS = {
         'hideCustomKeyboard', 'kbMarkForOverwrite', 'escapeHtml', 'plainFrac', 'recordAnswerToHistory',
         'recordResult', 'showHistorySummary', 'copiarResultats', 'bgColors', 'MAX_PUNTS_PREGUNTA', 'MAX_RESULTS',
     ]),
-    // Funcions que defineix cada joc i crida game-core.js
-    ...readonly(['buildLevel', 'checkCurrentCell']),
-    // Mòduls (window.X = (() => { … })()) i llibreries
-    ...readonly([
-        'MathEngine', 'Strings', 'DistractorLib', 'QuestionBank', 'QuestionBankA', 'StringsA', 'FunctionEngine',
-        'CloudEngine', 'SvgRenderer', 'VocabFigures', 'VocabEngine', 'FixedSessions', 'katex',
-    ]),
+    // js/fixed-sessions.js i llibreries
+    ...readonly(['FixedSessions', 'katex']),
 };
+
+// Funcions que defineix cada joc i crida game-core.js (jocs amb scripts clàssics)
+const GAME_HOOKS = readonly(['buildLevel', 'checkCurrentCell']);
+
+// Scripts clàssics: la base compartida (js/*.js) i els pocs fitxers que encara
+// fan servir jocs amb el JS dins de l'HTML (js/decimals/).
+const CLASSIC = ['js/*.js', 'js/decimals/**/*.js'];
 
 export default [
     { ignores: ['vendor/**', 'cb/**', 'app/**', 'gem4eso/**', 'tools/**'] },
     js.configs.recommended,
     {
-        files: ['js/**/*.js'],
+        files: CLASSIC,
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'script',
-            globals: { ...globals.browser, ...PROJECT_GLOBALS },
+            globals: { ...globals.browser, ...PROJECT_GLOBALS, ...GAME_HOOKS },
         },
         rules: {
             // Un fitxer pot definir una global que un altre fa servir (p. ex. buildLevel)
             'no-redeclare': ['error', { builtinGlobals: false }],
             // Les funcions de nivell superior es fan servir des d'altres fitxers o des de l'HTML
             'no-unused-vars': ['warn', { vars: 'local', args: 'none', caughtErrors: 'none' }],
+        },
+    },
+    {
+        // Mòduls ES de cada activitat (js/<activitat>/): els seus noms (MathEngine,
+        // QuestionBank…) NO són globals i s'han d'importar. Només poden fer servir
+        // les globals de la base compartida (utils, config, game-core…).
+        files: ['js/*/**/*.js'],
+        ignores: [...CLASSIC, 'js/derivades/run-tests.js'],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'module',
+            globals: { ...globals.browser, ...PROJECT_GLOBALS },
+        },
+        rules: {
+            'no-unused-vars': ['warn', { args: 'none', caughtErrors: 'none' }],
         },
     },
     {

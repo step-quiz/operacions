@@ -2,7 +2,7 @@
  * strings-asimptotes.js — font única de tots els textos i LaTeX visibles.
  * Totes les funcions que retornen math retornen strings LaTeX vàlids per KaTeX.
  */
-window.StringsA = (() => {
+export const StringsA = (() => {
     const INF = Infinity;
 
     // ---- LaTeX de valors ------------------------------------------------

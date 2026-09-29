@@ -6,7 +6,7 @@
  * DEPENDÈNCIES: cap
  * ============================================================================
  */
-window.Strings = (() => {
+export const Strings = (() => {
     /** Etiqueta de dia en català */
     function dayLabel(x) {
         if (x === 0) return 'avui';

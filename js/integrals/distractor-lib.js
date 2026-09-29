@@ -28,7 +28,10 @@
  * ============================================================================
  */
 
-window.DistractorLib = (() => {
+import { MathEngine } from './math-engine.js';
+import { Strings } from './strings.js';
+
+export const DistractorLib = (() => {
     // =========================================================================
     // ÀLIES LOCAL → Strings.Feedback (font única de tots els textos)
     // =========================================================================

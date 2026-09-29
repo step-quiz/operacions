@@ -18,7 +18,7 @@
  * ============================================================================
  */
 
-window.Strings = (() => {
+export const Strings = (() => {
     // ============================================================================
     // SECCIÓ 1 — HINTS
     // Apareixen al bloc groc expandible ("+ ajuda") i al resum final de sessió.

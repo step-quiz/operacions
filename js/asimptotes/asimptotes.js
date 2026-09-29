@@ -4,9 +4,12 @@
  *
  * URL params: ?nivell=1|2|3  ?preguntes=N
  *
- * Mòduls externs requerits (carregar abans):
- *   function-engine.js · strings-asimptotes.js · question-bank-asimptotes.js
+ * Mòdul ES (<script type="module">). Importa:
+ *   function-engine.js · question-bank-asimptotes.js
  */
+
+import { FunctionEngine } from './function-engine.js';
+import { QuestionBankA } from './question-bank-asimptotes.js';
 // [ROUND 1 — bloc TEXTS centralitzat amb tots els strings de la UI]
 const TEXTS = {
     title: 'Asímptotes i Límits Laterals',

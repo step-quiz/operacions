@@ -1,7 +1,4 @@
 'use strict';
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
 
 // ============================================================================
 // HARNESS
@@ -43,38 +40,30 @@ function eq(label, actual, expected) {
 }
 
 // ============================================================================
-// CÀRREGA DE MÒDULS (vm.runInThisContext → globals reals)
+// CÀRREGA DE MÒDULS (mòduls ES en un context aïllat, via tests/harness.js)
 // ============================================================================
-const SRC = __dirname;
+const { loadModule } = require('../../tests/harness');
 
-// Globals que necessiten els fitxers
-global.window = { location: { search: '' } };
-
-function loadFile(name) {
-    try {
-        const src = fs.readFileSync(path.join(SRC, name), 'utf8');
-        vm.runInThisContext(src, { filename: name });
-    } catch (e) {
-        console.error(`${C.red}ERROR carregant ${name}: ${e.message}${C.reset}`);
-        process.exit(1);
-    }
-}
-
-// Mateix ordre de càrrega que derivades.html:
+// Mateix ordre de dependències que derivades.js:
 // utils (randIntNonZero, pick, shuffle) → math-engine → strings → distractor-lib → question-bank
-loadFile('../utils.js');
-
-loadFile('math-engine.js');
-global.MathEngine = window.MathEngine;
-
-loadFile('strings.js');
-global.Strings = window.Strings;
-
-loadFile('distractor-lib.js');
-global.DistractorLib = window.DistractorLib;
-
-loadFile('question-bank.js');
-global.QuestionBank = window.QuestionBank;
+let w;
+try {
+    w = loadModule(
+        [
+            'js/utils.js',
+            'js/derivades/math-engine.js',
+            'js/derivades/strings.js',
+            'js/derivades/distractor-lib.js',
+            'js/derivades/question-bank.js',
+        ],
+        { seed: 12345 } // llavor fixa: el resultat és sempre el mateix
+    );
+} catch (e) {
+    console.error(`${C.red}ERROR carregant els mòduls: ${e.message}${C.reset}`);
+    process.exit(1);
+}
+global.window = w; // els tests d'URL canvien window.location.search del context
+const { MathEngine, DistractorLib, QuestionBank } = w;
 // Àlies de conveniència per als tests (evita QuestionBank.X per tot arreu)
 const FamilyRegistry = QuestionBank.FamilyRegistry;
 const activeFamilies = QuestionBank.activeFamilies;

@@ -12,7 +12,7 @@
  * DEPENDÈNCIES: cap
  * ============================================================================
  */
-window.CloudEngine = (() => {
+export const CloudEngine = (() => {
     function _randInt(a, b) {
         return Math.floor(Math.random() * (b - a + 1)) + a;
     }

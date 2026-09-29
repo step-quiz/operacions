@@ -2,7 +2,9 @@
  * question-bank-asimptotes.js — genera preguntes amb 4 opcions LaTeX.
  * Cada opció: { tex, isCorrect, feedback, errorType }
  */
-window.QuestionBankA = (() => {
+
+import { StringsA } from './strings-asimptotes.js';
+export const QuestionBankA = (() => {
     const S = StringsA;
     const INF = Infinity;
 

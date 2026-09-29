@@ -8,6 +8,10 @@
  *   3. Codis d'exercici (js/exercise-codes.js) coherents amb les pàgines.
  *   4. Guardes contra errors ja corregits que no han de tornar:
  *      barrejat esbiaixat, PDF.js sense isEvalSupported:false, zoom bloquejat.
+ *   5. Sessions fixes: les pàgines que les ofereixen carreguen fixed-sessions.js.
+ *   6. Colors comuns: tothom fa servir css/tokens.css.
+ *   7. Mòduls ES: els import existeixen, els onclick troben la seva funció,
+ *      i els controladors criden window.buildLevel().
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -266,6 +270,196 @@ suite('6. Colors comuns (css/tokens.css)');
     }
     ok('les pàgines que fan servir els colors comuns enllacen css/tokens.css', !noLink.length, noLink.join(', '));
     ok('css/tokens.css es carrega abans que cap altre estil', !badOrder.length, badOrder.join(', '));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+suite('7. Mòduls ES (import/export)');
+{
+    const isESM = src => /^\s*(import|export)\s/m.test(src);
+    const IMPORT_RE = /^\s*import\s+(?:\{([^}]*)\}\s+from\s+)?['"]([^'"]+)['"]/gm;
+    const exportsOf = src =>
+        new Set([
+            ...[...src.matchAll(/^\s*export\s+(?:const|let|var|function\*?|class)\s+([\w$]+)/gm)].map(m => m[1]),
+            ...[...src.matchAll(/^\s*export\s*\{([^}]*)\}/gm)].flatMap(m =>
+                m[1].split(',').map(s =>
+                    s
+                        .trim()
+                        .split(/\s+as\s+/)
+                        .pop()
+                )
+            ),
+        ]);
+
+    // Codi JS de cada pàgina: els <script> inline i els fitxers que carrega,
+    // seguint els import dels mòduls. type: 'classic' o 'module'.
+    const scriptsOf = f => {
+        const h = stripNoise(read(f)),
+            out = [],
+            seen = new Set();
+        const addFile = (file, type) => {
+            if (seen.has(file) || !exists(file)) return;
+            seen.add(file);
+            const src = read(file);
+            out.push({ name: file, src, type });
+            if (type === 'module') {
+                for (const m of src.matchAll(IMPORT_RE)) addFile(path.join(path.dirname(file), m[2]), 'module');
+            }
+        };
+        for (const m of h.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/gi)) {
+            const attrs = m[1] || '';
+            if (/application\/ld\+json/.test(attrs)) continue;
+            const type = /type\s*=\s*["']module/.test(attrs) ? 'module' : 'classic';
+            const src = attrs.match(/\bsrc\s*=\s*["']([^"'?#]+)/);
+            if (src) addFile(path.join(path.dirname(f), src[1]), type);
+            else if (m[2].trim()) {
+                out.push({ name: `${f} (inline)`, src: m[2], type });
+                if (type === 'module') {
+                    for (const i of m[2].matchAll(IMPORT_RE)) addFile(path.join(path.dirname(f), i[2]), 'module');
+                }
+            }
+        }
+        return out;
+    };
+
+    // 1) Cada import apunta a un fitxer que existeix (camí relatiu amb .js) i que exporta aquells noms
+    const importSources = [
+        ...jsFiles
+            .filter(f => f.startsWith('js' + path.sep))
+            .map(f => ({ name: f, src: read(f), dir: path.dirname(f) })),
+        ...htmlFiles.flatMap(f =>
+            scriptsOf(f)
+                .filter(s => s.name.endsWith('(inline)'))
+                .map(s => ({ ...s, dir: path.dirname(f) }))
+        ),
+    ];
+    const badImports = [];
+    let nImports = 0;
+    for (const { name, src, dir } of importSources) {
+        for (const m of src.matchAll(IMPORT_RE)) {
+            nImports++;
+            const [, names, spec] = m;
+            if (!/^\.\.?\//.test(spec) || !spec.endsWith('.js')) {
+                badImports.push(`${name}: '${spec}' (cal un camí relatiu acabat en .js)`);
+                continue;
+            }
+            const target = path.join(dir, spec);
+            if (!exists(target)) {
+                badImports.push(`${name}: '${spec}' no existeix`);
+                continue;
+            }
+            const exported = exportsOf(read(target));
+            for (const n of (names || '')
+                .split(',')
+                .map(s => s.trim().split(/\s+as\s+/)[0])
+                .filter(Boolean)) {
+                if (!exported.has(n)) badImports.push(`${name}: '${spec}' no exporta ${n}`);
+            }
+        }
+    }
+    ok(
+        `${nImports} import: el fitxer existeix i exporta el que s'hi demana`,
+        !badImports.length,
+        badImports.join('\n      → ')
+    );
+
+    // 2) Un fitxer amb import/export s'ha de carregar amb type="module" (si no, el navegador no l'executa)
+    const notModule = [];
+    for (const f of htmlFiles) {
+        for (const m of stripNoise(read(f)).matchAll(/<script(\s[^>]*)>/gi)) {
+            const src = m[1].match(/\bsrc\s*=\s*["']([^"'?#]+)/);
+            if (!src || /type\s*=\s*["']module/.test(m[1])) continue;
+            const file = path.join(path.dirname(f), src[1]);
+            if (exists(file) && isESM(read(file))) notModule.push(`${f} → ${src[1]}`);
+        }
+    }
+    ok('els mòduls ES es carreguen amb <script type="module">', !notModule.length, notModule.join(', '));
+
+    // 3) Les funcions cridades des dels onclick/onchange… han de ser globals. Dins d'un mòdul
+    //    NO ho són: cal exposar-les amb window.X = … o Object.assign(window, { … }).
+    const KEYWORDS = new Set(['if', 'for', 'while', 'switch', 'return', 'function', 'typeof', 'new', 'catch', 'void']);
+    const BROWSER = [
+        'alert',
+        'confirm',
+        'prompt',
+        'event',
+        'window',
+        'document',
+        'location',
+        'history',
+        'navigator',
+        'open',
+        'close',
+        'print',
+        'scrollTo',
+        'fetch',
+        'requestAnimationFrame',
+        'getComputedStyle',
+    ];
+    const handlerCalls = src => {
+        const calls = [];
+        for (const m of src.matchAll(
+            /\bon(?:click|change|input|keydown|keyup|keypress|submit|blur|focus)\s*=\s*\\?(["'])([\s\S]*?)\\?\1/g
+        )) {
+            for (const c of m[2].replace(/\$\{[^}]*\}/g, '0').matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(/g)) {
+                if (!KEYWORDS.has(c[1])) calls.push(c[1]);
+            }
+        }
+        return calls;
+    };
+    const unexposed = [];
+    let nHandlers = 0;
+    for (const f of htmlFiles) {
+        const scripts = scriptsOf(f);
+        const globalsHere = new Set([...Object.getOwnPropertyNames(globalThis), ...BROWSER]);
+        for (const { src, type } of scripts) {
+            if (type === 'classic') {
+                for (const m of src.matchAll(/\bfunction\s+([\w$]+)\s*\(/g)) globalsHere.add(m[1]);
+                for (const m of src.matchAll(/^\s*(?:const|let|var)\s+([\w$]+)\s*=/gm)) globalsHere.add(m[1]);
+            }
+            for (const m of src.matchAll(/\bwindow\.([\w$]+)\s*=/g)) globalsHere.add(m[1]);
+            for (const m of src.matchAll(/Object\.assign\(\s*window\s*,\s*\{([^}]*)\}/g)) {
+                m[1].split(',').forEach(s => globalsHere.add(s.trim().split(/\s*:/)[0]));
+            }
+        }
+        const texts = [{ name: f, src: stripNoise(read(f)).replace(/<script[\s\S]*?<\/script>/gi, '') }, ...scripts];
+        for (const { name, src } of texts) {
+            for (const fn of handlerCalls(src)) {
+                nHandlers++;
+                if (!globalsHere.has(fn)) unexposed.push(`${name}: ${fn}() (pàgina ${f})`);
+            }
+        }
+    }
+    ok(
+        `${nHandlers} crides des d'onclick/onchange… a funcions accessibles globalment`,
+        !unexposed.length,
+        [...new Set(unexposed)].join('\n      → ')
+    );
+
+    // 4) Els controladors que exposen buildLevel l'han de cridar com a window.buildLevel():
+    //    les sessions fixes (js/fixed-sessions.js) substitueixen window.buildLevel per una
+    //    versió que sembra cada pregunta, i una crida directa se la saltaria.
+    const esmFiles = jsFiles.filter(f => f.startsWith('js' + path.sep) && isESM(read(f)));
+    const bareCalls = [];
+    for (const f of esmFiles) {
+        const src = read(f);
+        if (!/Object\.assign\(\s*window\s*,\s*\{[^}]*\bbuildLevel\b/.test(src) && !/window\.buildLevel\s*=/.test(src)) {
+            continue;
+        }
+        src.split('\n').forEach((line, i) => {
+            if (/(?<![\w$.])buildLevel\s*\(/.test(line.replace(/\bfunction\s+buildLevel\s*\(/, ''))) {
+                bareCalls.push(`${f}:${i + 1}`);
+            }
+        });
+    }
+    ok('els mòduls criden window.buildLevel(), mai buildLevel() directament', !bareCalls.length, bareCalls.join(', '));
+
+    // 5) Els mòduls exporten els seus espais de noms; no els tornen a posar a window
+    const nsOnWindow = esmFiles.filter(f => /\bwindow\.[A-Z][\w$]*\s*=\s*\(/.test(read(f)));
+    ok(
+        `cap dels ${esmFiles.length} mòduls ES defineix espais de noms a window (window.X = (() => …))`,
+        !nsOnWindow.length,
+        nsOnWindow.join(', ')
+    );
 }
 
 finish('COMPROVACIONS DEL REPOSITORI');

@@ -3,11 +3,11 @@
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/estadistica/strings.js
  * ROL: Tots els textos de feedback i instruccions del mòdul d'estadística.
- * DEPENDÈNCIES: Cap. S'ha de carregar ABANS del controlador.
+ * DEPENDÈNCIES: cap
  * ============================================================================
  */
 
-window.Strings = (() => {
+export const Strings = (() => {
     const Phases = {
         selectInterval: '📊 Tria com vols agrupar les dades',
         marca: '📐 Calcula la marca de classe (punt mitjà) de cada interval',

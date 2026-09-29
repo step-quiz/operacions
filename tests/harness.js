@@ -11,6 +11,10 @@
  *   no xoquen entre si.
  * - Math.random es substitueix per un generador amb llavor (Mulberry32): els
  *   tests donen sempre el mateix resultat i, si fallen, l'error es pot repetir.
+ * - Els mòduls ES (js/<activitat>/) es carreguen al mateix context traduint
+ *   `import {X} from './x.js'` (x.js ja s'ha carregat abans a la llista) i
+ *   `export const X =` (queda també a window.X, per als tests). Que els imports
+ *   i exports quadrin ho comproven check-repo.js i ESLint.
  * ============================================================================
  */
 'use strict';
@@ -61,6 +65,16 @@ const MULBERRY32 = `function (seed) {
     };
 }`;
 
+/** Tradueix un mòdul ES a un script clàssic per al context aïllat dels tests. */
+function esmToScript(src, file) {
+    const out = src
+        .replace(/^import\s*\{[^}]*\}\s*from\s*['"][^'"]+['"];?[ \t]*$/gm, '')
+        .replace(/^export const (\w+)\s*=/gm, 'const $1 = window.$1 =');
+    if (/^\s*(import|export)\s/m.test(out)) throw new Error(`${file}: import/export que els tests no saben traduir`);
+    return '"use strict";\n' + out; // els mòduls sempre són estrictes
+}
+const isESM = src => /^\s*(import|export)\s/m.test(src);
+
 /**
  * Carrega fitxers del projecte (camins relatius a l'arrel) en un context nou.
  * @param {string[]} files   p. ex. ['js/utils.js', 'js/integrals/math-engine.js']
@@ -74,7 +88,8 @@ function loadModule(files, { search = '', seed = 12345 } = {}) {
     vm.createContext(ctx);
     vm.runInContext(`Math.random = (${MULBERRY32})(${seed});`, ctx);
     for (const f of files) {
-        vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
+        const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+        vm.runInContext(isESM(src) ? esmToScript(src, f) : src, ctx, { filename: f });
     }
     return ctx;
 }

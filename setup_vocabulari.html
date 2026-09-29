@@ -255,10 +255,9 @@
     </div>
 </div>
 
-<!-- LOAD FIGURES -->
-<script src="js/vocabulari/vocabulari-figures.js"></script>
+<script type="module">
+import { VocabFigures } from './js/vocabulari/vocabulari-figures.js';
 
-<script>
 (function () {
     'use strict';
 
@@ -606,14 +605,14 @@
  * FITXER: js/vocabulari/vocabulari-figures.js
  * ROL: Font de veritat única de totes les figures geomètriques.
  * ARQUITECTURA:
- * - Mòdul IIFE sense efectes secundaris ni dependències externes.
+ * - Mòdul ES (export const VocabFigures) sense efectes secundaris ni dependències.
  * - Cada figura té: id, nom, svg (markup SVG literal) i etiquetes[].
  * - Cada etiqueta té: id, text, px/py (punt de la figura), lx/ly (caixa).
  * - El viewBox SVG és sempre 500 × 340.
  * DEPENDÈNCIES: cap
  * ============================================================================
  */
-window.VocabFigures = (() => {
+export const VocabFigures = (() => {
 
     const FIGURES = [\n`;
 
@@ -623,6 +622,7 @@ window.VocabFigures = (() => {
             js += `        {\n`;
             js += `            id:  '${fig.id}',\n`;
             js += `            nom: '${fig.nom}',\n`;
+            if (fig.dim) js += `            dim: ${fig.dim},\n`;   // 2 = pla, 3 = espai (filtre ?dim=)
             js += `            svg: \`${fig.svg}\`,\n`;
             js += `            etiquetes: [\n`;
 

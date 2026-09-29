@@ -5,11 +5,11 @@
  * ROL: Motor matemàtic pur per a l'exercici invers d'estadística.
  *      Càlcul de mitjana, mediana i moda, i enumerador de solucions per
  *      garantir que els problemes generats sempre tenen resposta.
- * DEPENDÈNCIES: Cap. S'ha de carregar PRIMER del mòdul.
+ * DEPENDÈNCIES: cap
  * ============================================================================
  */
 
-window.MathEngine = (() => {
+export const MathEngine = (() => {
     // ── CÀLCULS BÀSICS ──────────────────────────────────────────────────
 
     function mean(arr) {

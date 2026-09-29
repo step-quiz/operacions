@@ -4,14 +4,14 @@
  * FITXER: js/vocabulari/vocabulari-figures.js
  * ROL: Font de veritat única de totes les figures geomètriques.
  * ARQUITECTURA:
- * - Mòdul IIFE sense efectes secundaris ni dependències externes.
+ * - Mòdul ES (exporta VocabFigures) sense efectes secundaris ni dependències externes.
  * - Cada figura té: id, nom, dim (2=pla | 3=espai), svg (markup SVG literal) i etiquetes[].
  * - Cada etiqueta té: id, text, px/py (punt de la figura), lx/ly (caixa).
  * - El viewBox SVG és sempre 500 × 340.
  * DEPENDÈNCIES: cap
  * ============================================================================
  */
-window.VocabFigures = (() => {
+export const VocabFigures = (() => {
     const FIGURES = [
         // 1. RECTANGLE
         {

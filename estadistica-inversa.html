@@ -19,7 +19,8 @@
     <!--
         ORDRE DE CÀRREGA
         Capa compartida: utils → config → game-core
-        Capa específica: math-engine → question-bank → estadistica-inversa (defer)
+        Capa específica: estadistica-inversa.js (mòdul ES) importa math-engine
+          i question-bank
 
         NIVELLS (paràmetre URL ?nivell=):
           1: una condició (mitjana O mediana O moda), 1 solució
@@ -31,9 +32,7 @@
     <script src="js/config.js"></script>
     <script src="js/exercise-codes.js"></script>
     <script src="js/game-core.js"></script>
-    <script src="js/estadistica-inversa/math-engine.js"></script>
-    <script src="js/estadistica-inversa/question-bank.js"></script>
-    <script defer src="js/estadistica-inversa/estadistica-inversa.js"></script>
+    <script type="module" src="js/estadistica-inversa/estadistica-inversa.js"></script>
 
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/shared.css?v=1">

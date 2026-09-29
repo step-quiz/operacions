@@ -14,7 +14,7 @@
  * DEPENDÈNCIES: utils.js (randInt, shuffle)
  * ============================================================================
  */
-window.QuestionBank = (() => {
+export const QuestionBank = (() => {
     const V = '<span class="var-highlight">x</span>';
     const pool = [];
 

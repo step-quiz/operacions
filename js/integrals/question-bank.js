@@ -5,7 +5,7 @@
  * ROL: Registre de famílies de preguntes i selector per URL.
  * ARQUITECTURA:
  * - Cada generador retorna: { promptTex, solutionTex, options[], meta{} }
- * - Encapsulat com a IIFE → window.QuestionBank.
+ * - Mòdul ES: exporta QuestionBank.
  * - API pública:
  *     generateChallenge()  → repte aleatori de la família activa
  *     FamilyRegistry       → mapa id → funció generadora
@@ -23,7 +23,10 @@
  * ============================================================================
  */
 
-window.QuestionBank = (() => {
+import { DistractorLib } from './distractor-lib.js';
+import { MathEngine } from './math-engine.js';
+
+export const QuestionBank = (() => {
     // =========================================================================
     // AUXILIAR INTERN: selector de distractors amb diversitat d'errorType
     // =========================================================================

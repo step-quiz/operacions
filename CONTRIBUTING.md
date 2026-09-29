@@ -15,12 +15,12 @@ operacions/
 │   ├── config.js               ← Lectura de paràmetres URL (sessions, intents, etc.)
 │   ├── exercise-codes.js       ← Taula única de codis d'exercici (joc + analitzador)
 │   ├── game-core.js            ← Motor de joc compartit (puntuació, pantalles, codi v2)
-│   ├── derivades/              ← Mòdul de derivades (patró recomanat)
+│   ├── derivades/              ← Mòdul de derivades (patró recomanat, mòduls ES)
 │   │   ├── math-engine.js      ← Capa matemàtica pura (sense DOM)
 │   │   ├── strings.js          ← Tots els textos i feedback
 │   │   ├── distractor-lib.js   ← Generador de distractors pedagògics
 │   │   ├── question-bank.js    ← Registre de famílies de preguntes
-│   │   └── derivades.js        ← Controlador DOM (únic fitxer que toca el DOM)
+│   │   └── derivades.js        ← Controlador DOM (l'únic que carrega l'HTML; importa la resta)
 │   ├── integrals/              ← Mateixa estructura que derivades/
 │   ├── recta-numerica/         ← Mateixa estructura
 │   ├── asimptotes/             ← Mateixa estructura (amb noms *-asimptotes.js)
@@ -32,7 +32,9 @@ operacions/
 
 ## Ordre de càrrega dels scripts
 
-L'ordre és **crític** i no es pot alterar:
+Hi ha dues capes:
+
+**1. La base compartida** (`js/*.js`): scripts clàssics que comparteixen variables globals. L'ordre és **crític**:
 
 ```
 0. fixed-sessions.js (opcional, però si hi és ha d'anar PRIMER)
@@ -40,12 +42,22 @@ L'ordre és **crític** i no es pot alterar:
 2. config.js          (depèn de utils.js per getIntParam)
 2b. exercise-codes.js (taula EXERCISE_CODES, sense dependències)
 3. game-core.js       (depèn de config.js i exercise-codes.js)
-4. math-engine.js     (depèn de utils.js per randIntNonZero, pick, shuffle)
-5. strings.js         (sense dependències JS, només textos)
-6. distractor-lib.js  (depèn de math-engine.js i strings.js)
-7. question-bank.js   (depèn de math-engine.js i distractor-lib.js)
-8. controlador.js     (depèn de tot l'anterior + game-core.js)
 ```
+
+**2. L'activitat** (`js/<activitat>/`): mòduls ES. La pàgina només carrega el controlador, i cada fitxer importa el que necessita:
+
+```html
+<script type="module" src="js/derivades/derivades.js"></script>
+```
+
+```
+derivades.js ── import ──▶ question-bank.js ── import ──▶ distractor-lib.js ──▶ math-engine.js
+                                                                            └─▶ strings.js
+```
+
+Aquí l'ordre ja no s'ha de vigilar: el navegador segueix els `import`. Un mòdul s'executa **després** que s'hagi llegit tot l'HTML i s'hagin executat els scripts clàssics, de manera que sempre troba `randInt`, `startGame`, etc.
+
+Els jocs inline (`equacions.html`, `fraccions.html`…) i `js/decimals/` continuen sent scripts clàssics.
 
 ## Convencions de codi
 
@@ -66,24 +78,44 @@ L'ordre és **crític** i no es pot alterar:
 ### Format i revisió automàtica
 
 - El format del codi de `js/`, `css/` i `tests/` el decideix **Prettier** (`.prettierrc.json`: 4 espais, cometes simples, línies de fins a 120 caràcters). No cal alinear res a mà.
-- **ESLint** busca errors al JavaScript de `js/` i `tests/`. Si un fitxer fa servir una variable global d'un altre fitxer, s'ha d'afegir a la llista `PROJECT_GLOBALS` de `tools/lint/eslint.config.mjs`.
+- **ESLint** busca errors al JavaScript de `js/` i `tests/`. Si un fitxer de la base compartida (`js/*.js`) defineix una variable global nova que fan servir els altres, s'ha d'afegir a la llista `PROJECT_GLOBALS` de `tools/lint/eslint.config.mjs`. Dins d'una activitat no s'hi afegeix res: s'importa.
 - Com executar-los i com funcionen a GitHub: [`tools/lint/README.md`](tools/lint/README.md).
 
-### Mòduls (patró IIFE)
+### Mòduls ES (`import` / `export`)
 
-Cada mòdul exposa un sol objecte al `window`:
+Cada fitxer d'una activitat exporta un sol objecte:
 
 ```js
-window.MathEngine = (() => {
+// js/derivades/math-engine.js
+export const MathEngine = (() => {
     // tot el codi privat
     function gcd(a, b) { ... }
-    
+
     // API pública
     return { gcd, formatK, ... };
 })();
 ```
 
-**Important:** Els namespaces `MathEngine`, `QuestionBank`, `DistractorLib` i `Strings` es reutilitzen entre mòduls (derivades, integrals, recta numèrica). Cada pàgina HTML carrega **només un conjunt**. No barregeu mai scripts de mòduls diferents en una mateixa pàgina.
+i qui el necessita l'importa, amb camí relatiu i acabat en `.js` (el navegador no n'endevina l'extensió):
+
+```js
+// js/derivades/distractor-lib.js
+import { MathEngine } from './math-engine.js';
+import { Strings } from './strings.js';
+```
+
+Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngine` d'integrals ja no poden trepitjar-se. Tres regles a recordar al controlador:
+
+1. **Funcions cridades des de fora del mòdul** (des de `game-core.js`, com `buildLevel` i `checkCurrentCell`, o des d'un `onclick="…"` de l'HTML): s'han d'exposar explícitament, just després dels `import`:
+   ```js
+   Object.assign(window, { buildLevel, selectStatInterval });
+   ```
+2. **Crides internes a `buildLevel`**: escriviu `window.buildLevel()`, no `buildLevel()`. Les sessions fixes (`?fixed=A`) substitueixen `window.buildLevel` per una versió que sembra l'atzar de cada pregunta; una crida directa se la saltaria i la pregunta ja no seria la mateixa per a tothom.
+3. **Codi d'inici** (`startGame()`, `initGame()`…): va al final del mòdul, no en un `<script>` inline de l'HTML (el mòdul encara no s'hauria executat).
+
+`tests/check-repo.js` comprova les tres coses i que cada `import` apunti a un fitxer que exporta aquell nom.
+
+**Per provar-ho localment** cal un servidor (`python3 -m http.server 8000` i obrir http://localhost:8000): obrint l'HTML amb doble clic (`file://`) el navegador bloqueja els mòduls.
 
 ### Capçalera de fitxer estàndard
 
@@ -125,9 +157,10 @@ window.MathEngine = (() => {
    <script src="js/config.js"></script>
    <script src="js/exercise-codes.js"></script>
    <script src="js/game-core.js"></script>
-   <script src="js/nou-exercici/math-engine.js"></script>
-   <!-- ... resta de scripts del mòdul ... -->
+   <!-- Només el controlador: ell importa math-engine, strings, question-bank… -->
+   <script type="module" src="js/nou-exercici/nou-exercici.js"></script>
    ```
+   Al controlador, recordeu `Object.assign(window, { buildLevel })` (vegeu [Mòduls ES](#mòduls-es-import--export)).
 
 3. Registrar el codi d'exercici a `EXERCISE_CODES` dins `js/exercise-codes.js` (2 lletres que no estiguin fetes servir; `CB` està reservat). L'analitzador el reconeixerà automàticament:
    ```js
@@ -186,7 +219,7 @@ Els màxims de sessions (5) i preguntes (10) són els que pot representar el cod
 ## Tecnologies
 
 - HTML5 / CSS3 purs (sense frameworks)
-- Vanilla JavaScript (ES6)
+- Vanilla JavaScript (ES2020): mòduls ES nadius, sense cap pas de compilació ni empaquetador
 - KaTeX per a renderització LaTeX, servit des de `vendor/katex-0.16.11/` (vegeu `vendor/README.md`)
 - Cap backend: tot és estàtic i s'executa al navegador
 
@@ -200,8 +233,9 @@ node tests/run-all.js
 
 | Fitxer | Què comprova |
 |--------|--------------|
-| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) |
+| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes · colors comuns · mòduls ES (cada `import` existeix, cada `onclick` troba la seva funció, `window.buildLevel()`) |
 | `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…) |
+| `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) cada mòdul ES i comprova que exporta el que ha d'exportar |
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 

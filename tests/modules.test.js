@@ -175,14 +175,70 @@ for (const nivell of [1, 2, 3]) {
         { search: `?nivell=${nivell}` }
     );
     const gen = withReset(w, () => w.QuestionBank.generateChallenge());
-    // Nivell 3 (taula condicionada): quan un distractor coincideix per casualitat amb la
-    // resposta correcta s'elimina i queden 3 (o 2) opcions. Pendent de decidir si s'hi
-    // afegeix un distractor de reserva; mentrestant no s'exigeix que en tingui 4.
     checkMultipleChoice(`probabilitat nivell ${nivell}`, gen, {
         n: 1500,
         solutionKey: 'solutionTex',
-        nOptions: nivell < 3 ? 4 : null,
+        nOptions: 4,
     });
+}
+
+suite('Probabilitat › distractors de reserva');
+{
+    const w = loadModule([
+        'js/utils.js',
+        'js/probabilitat/math-engine.js',
+        'js/probabilitat/strings.js',
+        'js/probabilitat/distractor-lib.js',
+    ]);
+    const d = (tex, errorType, reserva = false) => ({ tex, errorType, feedback: '', reserva });
+    const types = sel =>
+        sel
+            .map(x => x.errorType)
+            .sort()
+            .join(',');
+    const full = w.DistractorLib.selectDistractors(
+        [d('a', 'A'), d('b', 'B'), d('c', 'C'), d('r1', 'R1', true), d('r2', 'R2', true)],
+        'ok',
+        3
+    );
+    ok("amb prou distractors normals, no se'n fa servir cap de reserva", types(full) === 'A,B,C', types(full));
+    const one = w.DistractorLib.selectDistractors(
+        [d('a', 'A'), d('ok', 'B'), d('c', 'C'), d('r1', 'R1', true), d('r2', 'R2', true)],
+        'ok',
+        3
+    );
+    ok('si un coincideix amb la correcta, entra la primera reserva', types(one) === 'A,C,R1', types(one));
+    const two = w.DistractorLib.selectDistractors(
+        [d('a', 'A'), d('ok', 'B'), d('a', 'C'), d('r1', 'R1', true), d('r2', 'R2', true)],
+        'ok',
+        3
+    );
+    ok('si en falten dos, entren les dues reserves', types(two) === 'A,R1,R2', types(two));
+
+    // Taules de probabilitat condicionada: mai simètriques (P(A|B) = P(B|A) amagaria l'error «invertit»)
+    const q = loadModule(
+        [
+            'js/utils.js',
+            'js/probabilitat/math-engine.js',
+            'js/probabilitat/strings.js',
+            'js/probabilitat/distractor-lib.js',
+            'js/probabilitat/question-bank.js',
+        ],
+        { search: '?nivell=3' }
+    );
+    let tables = 0,
+        sym = 0,
+        noInverted = 0;
+    for (let i = 0; i < 3000; i++) {
+        if (i % 40 === 0) q.QuestionBank.resetSession();
+        const ch = q.QuestionBank.generateChallenge();
+        if (ch.meta.family !== 'conditional-table') continue;
+        tables++;
+        if (ch.meta.params.nA === ch.meta.params.nB) sym++;
+        if (!ch.options.some(o => o.errorType === 'INVERTED')) noInverted++;
+    }
+    ok(`cap taula simètrica (${tables} taules)`, tables > 500 && sym === 0, `${sym} simètriques`);
+    ok('totes les taules tenen el distractor «has invertit la condició»', noInverted === 0, `${noInverted} sense`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -16,6 +16,10 @@
  *   ?fixed=A|B|C         (gestionat per js/fixed-sessions.js)
  */
 
+import { FunctionEngine } from './function-engine.js';
+import { QuestionBank } from './question-bank.js';
+import { SvgRenderer } from './svg-renderer.js';
+
 (function () {
     'use strict';
 

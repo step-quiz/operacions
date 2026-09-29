@@ -10,8 +10,8 @@
  *   ?maxintents=N          Intents per pregunta (defecte: 4)
  *   ?maxenllocmitjana=0|1  Nota: màxim sessió (1) o mitjana (0) (defecte: 1)
  *
- * DEPENDÈNCIES (ordre de càrrega):
- *   utils.js → config.js → game-core.js → question-bank.js → (aquest, defer)
+ * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa question-bank.js.
+ *   utils.js → config.js → game-core.js són scripts clàssics carregats abans.
  *
  * GLOBALS HERETATS DE game-core.js:
  *   attemptsLeft, currentOperation, sessionScore, sessionHistory,
@@ -23,6 +23,14 @@
  *   TOTAL_OPERATIONS, MAX_INTENTS, TOTAL_SESSIONS, MAX_ENLLOC_MITJANA
  * ============================================================================
  */
+
+import { QuestionBank } from './question-bank.js';
+
+// Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
+// window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
+// Les crides internes fan servir window.buildLevel() perquè les sessions fixes
+// (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
+Object.assign(window, { buildLevel });
 
 // ── ELEMENTS DOM ────────────────────────────────────────────────────────────
 const els = {
@@ -222,7 +230,7 @@ function finishQuestion(levelPoints) {
             if (typeof endSession === 'function') endSession();
         } else {
             currentOperation++;
-            buildLevel();
+            window.buildLevel();
         }
     }, waitTime);
 }

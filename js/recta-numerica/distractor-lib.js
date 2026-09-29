@@ -17,7 +17,9 @@
  * DEPENDÈNCIES: strings.js
  * ============================================================================
  */
-window.DistractorLib = (() => {
+
+import { Strings } from './strings.js';
+export const DistractorLib = (() => {
     const S = Strings;
 
     // ---- UTILITATS PRIVADES --------------------------------------------------
