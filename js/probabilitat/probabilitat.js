@@ -285,6 +285,7 @@ function _errorTypeLabel(type) {
         INVERTED: 'Condició invertida',
         JOINT_NOT_COND: 'Conjunta en lloc de condicionada',
         MARGINAL_NOT_COND: 'Marginal en lloc de condicionada',
+        UNION_DENOM: 'Denominador: la unió en lloc de la condició',
     };
     return labels[type] || type;
 }

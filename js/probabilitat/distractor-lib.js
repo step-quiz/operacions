@@ -25,16 +25,24 @@ window.DistractorLib = (() => {
     /**
      * Selecciona `count` distractors únics (no repetits, no iguals a correctTex).
      * Prioritza diversitat d'errorType via round-robin.
+     * Els distractors marcats amb `reserva: true` només s'afegeixen si els altres
+     * no en donen prou de diferents (p. ex. quan un coincideix per casualitat amb
+     * la resposta correcta). Així la pregunta té sempre `count` distractors.
      */
     function selectDistractors(pool, correctTex, count) {
         const seen = new Set([correctTex]);
         const valid = [];
-        pool.forEach(d => {
+        const add = d => {
             if (d && d.tex && d.tex.trim() !== '' && !seen.has(d.tex)) {
                 seen.add(d.tex);
                 valid.push(d);
             }
-        });
+        };
+        pool.filter(d => d && !d.reserva).forEach(add);
+        for (const d of pool.filter(d => d && d.reserva)) {
+            if (valid.length >= count) break;
+            add(d);
+        }
         if (valid.length <= count) return shuffle([...valid]);
 
         // Round-robin per errorType
@@ -211,6 +219,19 @@ window.DistractorLib = (() => {
         pool.push({ tex: tex(ME.frac(nAB, N)), feedback: S.jointNotCond, errorType: 'JOINT_NOT_COND' });
         // MARGINAL_NOT_COND: P(A) marginal
         pool.push({ tex: tex(ME.frac(nCond, N)), feedback: S.marginalNotCond, errorType: 'MARGINAL_NOT_COND' });
+        // Reserves (només si algun dels anteriors coincideix amb la resposta correcta):
+        // COMPLEMENT: P(no A|B) = (nCond − nAB)/nCond en lloc de P(A|B).
+        //   Coincideix amb la correcta quan P(A|B) = 1/2; per això n'hi ha una segona.
+        pool.push({
+            tex: tex(ME.frac(nCond - nAB, nCond)),
+            feedback: S.complement,
+            errorType: 'COMPLEMENT',
+            reserva: true,
+        });
+        // UNION_DENOM: divideix per la unió A∪B (nCond + nOther − nAB) en lloc de nCond.
+        //   Mai coincideix amb la correcta: la unió sempre és més gran que el grup de la condició.
+        const nUnion = nCond + nOther - nAB;
+        pool.push({ tex: tex(ME.frac(nAB, nUnion)), feedback: S.unionDenom, errorType: 'UNION_DENOM', reserva: true });
         return pool;
     }
 

@@ -231,7 +231,12 @@ window.QuestionBank = (() => {
         // Generem una taula 2×2 coherent
         const nAB = randInt(4, 10); // aprova I fa esport
         const nAnotB = randInt(3, 10); // aprova I NO fa esport
-        const nnotAB = randInt(2, 8); // NO aprova I fa esport
+        // NO aprova I fa esport. Evitem taules simètriques (nA = nB): llavors P(A|B) = P(B|A)
+        // i el distractor "has invertit la condició" coincideix amb la resposta correcta.
+        let nnotAB;
+        do {
+            nnotAB = randInt(2, 8);
+        } while (nnotAB === nAnotB);
         const nnotAnotB = randInt(2, 8); // NO aprova I NO fa esport
 
         const nA = nAB + nAnotB; // total que aproven

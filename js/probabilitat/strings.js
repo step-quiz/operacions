@@ -37,6 +37,8 @@ window.Strings = (() => {
             "Has invertit la condició. P(A|B) no és el mateix que P(B|A). Fixa't bé en què se sap i què es demana.",
         jointNotCond:
             'Has calculat la probabilitat conjunta P(A∩B), però es demana la probabilitat condicionada P(A|B) = P(A∩B)/P(B).',
+        unionDenom:
+            'Has dividit per tots els que compleixen alguna de les dues condicions. En una probabilitat condicionada, el denominador és només el grup de la condició que ja se sap.',
         marginalNotCond:
             'Has ignorat la condició i has calculat la probabilitat marginal. Cal restringir-se al subgrup indicat.',
     };
@@ -69,6 +71,8 @@ window.Strings = (() => {
             'P(A|B) significa "probabilitat d\'A, sabent que B ha passat". El denominador és el nombre de casos on B és cert, no on A és cert.',
         JOINT_NOT_COND:
             'La probabilitat condicionada P(A|B) no és el mateix que la conjunta P(A∩B). Cal dividir: P(A|B) = P(A∩B) / P(B).',
+        UNION_DENOM:
+            'P(A|B) = P(A∩B) / P(B): el denominador és el nombre de casos on B és cert, no el de la unió A∪B (els que compleixen A o B).',
         MARGINAL_NOT_COND:
             'Quan ens diuen "sabent que...", hem de restringir-nos a aquest subgrup. No podem usar el total de tota la població.',
     };
