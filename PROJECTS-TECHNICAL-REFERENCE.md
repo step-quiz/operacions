@@ -74,7 +74,7 @@ Per-entry schema:
   - **In-browser DOCX generation from raw OOXML + JSZip** (`reports.js`): builds WordprocessingML XML by hand and zips it into a valid `.docx` (one document with per-student, per-skill breakdown tables), then triggers download — no heavy document library. More capable than `cangur`'s XLSX-only export (see `P14`).
   - **Competency registry with an items-vs-ambits discriminator** (`competencies.js`): one uniform API serves structurally different competencies; `grid.js` reads `layout` instead of hardcoding columns. A clean strategy-pattern data layer.
   - **Official competency grade bands** (`getGrade`): `NA`/`AS`/`AN`/`AE` (Baix / Mitjà-baix / Mitjà-alt / Alt), shared between the results table and the DOCX reports.
-  - **Disciplined single-file → module refactor** documented in `REFACTOR_GUIDE.md` with concrete, checkable invariants (CSS-rule-count parity, full import resolution, zero ES-module cycles, `node --check` on every file, every `getElementById`/event wired to a real `id`, all inline `on*=` handlers re-wired via `addEventListener`). Reusable as a refactor template for the other single-file legacy tools (e.g. the inline `operacions` exercises).
+  - **Disciplined single-file → module refactor** documented in `REFACTOR_GUIDE.md` with concrete, checkable invariants (CSS-rule-count parity, full import resolution, zero ES-module cycles, `node --check` on every file, every `getElementById`/event wired to a real `id`, all inline `on*=` handlers re-wired via `addEventListener`). Reusable as a refactor template for the other single-file legacy tools (the inline `operacions` exercises have since been moved to ES modules).
   - **In-memory-only API key** + the multi-provider OMR approach later forked into `cangur`.
 - **Relationship:** parent of `cangur` (`S10`); teacher-grading counterpart of `cb` (student-practice) on the CB-competencies theme; refactored form of `operacions/informe-cb.html`.
 - **Status:** Mature/working (Phase 2 of its refactor complete).
@@ -125,19 +125,19 @@ Per-entry schema:
 
 - **Purpose:** ~25 interactive math exercises (ESO + Batxillerat) with step-by-step feedback, session scoring, and a verification code. The largest project.
 - **Audience:** Teachers (link generator) + students.
-- **Stack:** Vanilla JS (ES6); KaTeX (CDN) for LaTeX.
+- **Stack:** Vanilla JS, native ES modules only (no build step, no shared globals); KaTeX (vendored) for LaTeX. Needs HTTP, not `file://` (`node tools/servidor.js`).
 - **Entry points:** `index.html` (link generator); ~40 per-exercise `*.html` files (`enters.html`, `fraccions.html`, `derivades.html`, `integrals.html`, `inversa-matriu.html`, …). `analitzador-stepquiz.html` (teacher analyzer).
-- **Key files (shared):** `js/utils.js` (pure helpers), `js/config.js` (URL params), `js/game-core.js` (session/scoring/code engine + numeric keyboard), `js/fixed-sessions.js`, `css/shared.css`.
+- **Key files (shared, ES modules):** `js/utils.js` (pure helpers), `js/config.js` (URL params), `js/game-core.js` (session/scoring/code engine + numeric keyboard; game state in an exported `state` object), `js/exercise-codes.js`, `js/fixed-sessions.js`, `css/shared.css`.
 - **Key files (new modular exercises, e.g. `js/derivades/`):** `math-engine.js`, `strings.js`, `distractor-lib.js`, `question-bank.js`, `<exercise>.js` (DOM controller). Also present for `integrals`, `recta-numerica`, `asimptotes`.
-- **Architecture:** **Two generations coexist.** *Old* exercises (equacions, fraccions, …) keep all JS inline in the HTML. *New* exercises use a clean layered split: a pure math engine with **no DOM dependency**, a strings module, a distractor library, and a thin DOM controller.
+- **Architecture:** Every page loads one ES-module entry (`js/<exercise>/<exercise>.js`) that imports the shared base; no JS left inline in the HTML (only `window.APP_CONFIG`). *Older* exercises (equacions, fraccions, …) are a single module each; *newer* ones use a layered split: a pure math engine with **no DOM dependency**, a strings module, a distractor library, and a thin DOM controller.
 - **Excellent features:**
   - **`DistractorLib` — misconception-tagged distractors.** Wrong answers are generated to correspond to *named* student errors (`CHAIN_FORGOT`, `SIN_COS_SWAP`, `QUOTIENT_SIGN`, `POWER_FORGOT_R`, `LOG_INVERTED`, …), each carrying its own targeted feedback string and a `scope` (`universal` / `family:exp` / `rule:product` …). Picking a wrong option tells the student *which* mistake they made. This is the highest-ceiling pedagogical idea in the ecosystem and it is currently siloed in 3–4 exercises (see `P06`).
   - **Pedagogically-tuned RNG** (`math-engine.js`): random coefficients are not uniform — small values are weighted higher, and *trivial* cases are excluded (e.g. `generateKExp()` drops `k=±1` for `e^{kx}` because the chain rule becomes invisible there). The randomness is designed for teaching, not for fairness.
-  - **`fixed-sessions.js` — deterministic shared sessions with zero backend.** `?fixed=A` (or `B`/`C`) makes **every** student opening the same link get the **exact same** exercises/numbers/options. Mechanism: replace `Math.random()` with a seeded **Mulberry32** PRNG, then inject URL params via `history.replaceState` **before** `config.js`/`game-core.js` read them. Must be the **first** `<script>` on the page. Elegant and reusable (see `P10`).
+  - **`fixed-sessions.js` — deterministic shared sessions with zero backend.** `?fixed=A` (or `B`/`C`) makes **every** student opening the same link get the **exact same** exercises/numbers/options. Mechanism: replace `Math.random()` with a seeded **Mulberry32** PRNG, then inject URL params via `history.replaceState` **before** `config.js`/`game-core.js` read them. Must run **first**: `config.js` imports it before anything else (checked by `tests/check-repo.js`). Elegant and reusable (see `P10`).
   - **Layered architecture** (`math-engine` has no platform/DOM deps) makes the math independently testable (`run-tests.js`).
 - **Code format (v2, 59 chars):** `Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRR...R(30)`. Checksum identical to `cb` and **also does not cover `R`**; analyzer has **no** cross-verification (see `P01`). The analyzer already decodes both `EE`-coded Step-Quiz codes **and** `CB` codes.
 - **Lineage note:** the `informe-cb.html` (+ `informe-cb-refactor.md`) shipped here is the original single-file CB grader that was later refactored into the standalone `comp4eso` project.
-- **Status:** Mature; active migration old-inline → new-modular.
+- **Status:** Mature. Old-inline → module migration done (all JS in `js/`); per-exercise helpers such as `penalize()` remain game-specific.
 - **Participates in:** S1, S4.
 
 ---
@@ -385,7 +385,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 
 ### `P06` — Spread misconception-tagged distractors
 - **Status:** PROPOSED · **Priority:** P2
-- **Source → Target:** `operacions/js/derivades/distractor-lib.js` (+ `strings.js` taxonomy) → **`cb`** and the **legacy inline `operacions` exercises** (equacions, fraccions, …).
+- **Source → Target:** `operacions/js/derivades/distractor-lib.js` (+ `strings.js` taxonomy) → **`cb`** and the **older `operacions` exercises** (equacions, fraccions, … — now single-file ES modules).
 - **Affected files:** the new exercises' pattern as template; `cb/preguntes.json` + `cb/core.js`; legacy `operacions/*.html`.
 - **Rationale:** highest pedagogical ceiling in the ecosystem, currently siloed in ~4 exercises. Wrong answers tied to *named* misconceptions (`CHAIN_FORGOT`, `SIN_COS_SWAP`, …) with targeted feedback turn "wrong, try again" into "you forgot the chain rule."
 - **Implementation:** for generative exercises, port the `{tex, feedback, errorType, scope}` distractor model + the strings taxonomy. For `cb` (static, image-based questions), a lighter adaptation: tag each existing per-option hint with an `errorType` so feedback is explained by misconception rather than position. Migrate legacy `operacions` exercises toward the new layered structure where feasible.

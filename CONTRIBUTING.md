@@ -1,5 +1,7 @@
 # Guia de contribució — Step Quiz Operacions
 
+> **Com fer i publicar canvis** (Codespace, missatges de commit, `tools/desa.sh`, desfer un canvi): [`COM-TREBALLAR.md`](COM-TREBALLAR.md). Aquesta guia explica com està fet el codi.
+
 ## Arquitectura del projecte
 
 ```
@@ -9,12 +11,12 @@ operacions/
 │   ├── shared.css              ← Estils globals (teclat, panells, animacions)
 │   ├── derivades.css           ← Estils específics de derivades
 │   └── ...
-├── js/
-│   ├── fixed-sessions.js       ← Sessions fixes ?fixed=A/B/C (sempre el PRIMER script)
-│   ├── utils.js                ← Funcions pures: randInt, pick, shuffle, parseStrictInt
+├── js/                         ← TOT el JavaScript, com a mòduls ES (cap JS dins dels HTML)
+│   ├── fixed-sessions.js       ← Sessions fixes ?fixed=A/B/C (s'executa abans que res)
+│   ├── utils.js                ← Funcions pures: randInt, pick, shuffle, gcd, parseStrictInt
 │   ├── config.js               ← Lectura de paràmetres URL (sessions, intents, etc.)
 │   ├── exercise-codes.js       ← Taula única de codis d'exercici (joc + analitzador)
-│   ├── game-core.js            ← Motor de joc compartit (puntuació, pantalles, codi v2)
+│   ├── game-core.js            ← Motor de joc compartit (estat, puntuació, pantalles, codi v2)
 │   ├── derivades/              ← Mòdul de derivades (patró recomanat, mòduls ES)
 │   │   ├── math-engine.js      ← Capa matemàtica pura (sense DOM)
 │   │   ├── strings.js          ← Tots els textos i feedback
@@ -24,40 +26,39 @@ operacions/
 │   ├── integrals/              ← Mateixa estructura que derivades/
 │   ├── recta-numerica/         ← Mateixa estructura
 │   ├── asimptotes/             ← Mateixa estructura (amb noms *-asimptotes.js)
+│   ├── equacions/equacions.js  ← Jocs més antics: tot el joc en un sol fitxer
+│   ├── analitzador-stepquiz/   ← L'analitzador de codis del professorat
 │   └── ...
-├── equacions.html              ← Joc inline (tot el JS dins <script>)
-├── fraccions.html              ← Joc inline
+├── equacions.html              ← Només HTML i CSS; carrega js/equacions/equacions.js
+├── tools/                      ← Eines per a qui programa (servidor de prova, desa.sh, lint)
 └── ...
 ```
 
 ## Ordre de càrrega dels scripts
 
-Hi ha dues capes:
-
-**1. La base compartida** (`js/*.js`): scripts clàssics que comparteixen variables globals. L'ordre és **crític**:
-
-```
-0. fixed-sessions.js (opcional, però si hi és ha d'anar PRIMER)
-1. utils.js           (funcions pures, sense dependències)
-2. config.js          (depèn de utils.js per getIntParam)
-2b. exercise-codes.js (taula EXERCISE_CODES, sense dependències)
-3. game-core.js       (depèn de config.js i exercise-codes.js)
-```
-
-**2. L'activitat** (`js/<activitat>/`): mòduls ES. La pàgina només carrega el controlador, i cada fitxer importa el que necessita:
+Tot el JavaScript de `js/` són **mòduls ES**. Cada pàgina carrega un sol fitxer, el del seu joc, i aquest importa el que necessita:
 
 ```html
+<script>
+    window.APP_CONFIG = { defaultSessions: 1, defaultOperations: 5, defaultIntents: 4, defaultEnllocMitjana: 1 };
+</script>
+…
 <script type="module" src="js/derivades/derivades.js"></script>
 ```
 
 ```
-derivades.js ── import ──▶ question-bank.js ── import ──▶ distractor-lib.js ──▶ math-engine.js
-                                                                            └─▶ strings.js
+derivades.js ─┬─▶ config.js ──▶ fixed-sessions.js   (sempre el primer que s'executa)
+              │              └─▶ utils.js
+              ├─▶ game-core.js ──▶ config.js, exercise-codes.js, fixed-sessions.js
+              └─▶ question-bank.js ──▶ distractor-lib.js ──▶ math-engine.js ──▶ utils.js
+                                                          └─▶ strings.js
 ```
 
-Aquí l'ordre ja no s'ha de vigilar: el navegador segueix els `import`. Un mòdul s'executa **després** que s'hagi llegit tot l'HTML i s'hagin executat els scripts clàssics, de manera que sempre troba `randInt`, `startGame`, etc.
+L'ordre ja no s'ha de vigilar a mà: el navegador executa cada fitxer **després** dels que importa. L'únic que ha d'anar primer de tot és `fixed-sessions.js` (canvia la URL i `Math.random`): `config.js` l'importa en primer lloc, i les pàgines sense `game-core.js` l'importen elles mateixes com a primer `import`. `tests/check-repo.js` ho comprova.
 
-Els jocs inline (`equacions.html`, `fraccions.html`…) i `js/decimals/` continuen sent scripts clàssics.
+`window.APP_CONFIG` és l'únic `<script>` que queda dins l'HTML: són dades, i s'ha de llegir abans que els mòduls (que s'executen en acabar de llegir la pàgina).
+
+Les llibreries de `vendor/` (KaTeX, xlsx…) es continuen carregant amb `<script src="vendor/…">` normal i són globals (`katex`).
 
 ## Convencions de codi
 
@@ -78,12 +79,22 @@ Els jocs inline (`equacions.html`, `fraccions.html`…) i `js/decimals/` continu
 ### Format i revisió automàtica
 
 - El format del codi de `js/`, `css/` i `tests/` el decideix **Prettier** (`.prettierrc.json`: 4 espais, cometes simples, línies de fins a 120 caràcters). No cal alinear res a mà.
-- **ESLint** busca errors al JavaScript de `js/` i `tests/`. Si un fitxer de la base compartida (`js/*.js`) defineix una variable global nova que fan servir els altres, s'ha d'afegir a la llista `PROJECT_GLOBALS` de `tools/lint/eslint.config.mjs`. Dins d'una activitat no s'hi afegeix res: s'importa.
+- **ESLint** busca errors al JavaScript de `js/` i `tests/`. Com que no hi ha variables globals compartides, un nom que no està declarat ni importat és un error (normalment, falta un `import`).
 - Com executar-los i com funcionen a GitHub: [`tools/lint/README.md`](tools/lint/README.md).
 
 ### Mòduls ES (`import` / `export`)
 
-Cada fitxer d'una activitat exporta un sol objecte:
+La base compartida exporta funcions i constants, i qui les necessita les importa:
+
+```js
+import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
+import { randInt, shuffle } from '../utils.js';
+import { state, startGame, recordResult, showMiniOverlay } from '../game-core.js';
+```
+
+**L'estat de la partida és a `state`**: `state.attemptsLeft`, `state.sessionScore`, `state.currentOperation`, `state.isTransitioning`… (i no `attemptsLeft` a seques). Un mòdul pot llegir una variable que n'importa, però no la pot reassignar; en canvi, sí que pot canviar les propietats d'un objecte importat (`state.attemptsLeft--`).
+
+Els fitxers de les activitats més noves exporten un sol objecte:
 
 ```js
 // js/derivades/math-engine.js
@@ -106,7 +117,7 @@ import { Strings } from './strings.js';
 
 Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngine` d'integrals ja no poden trepitjar-se. Tres regles a recordar al controlador:
 
-1. **Funcions cridades des de fora del mòdul** (des de `game-core.js`, com `buildLevel` i `checkCurrentCell`, o des d'un `onclick="…"` de l'HTML): s'han d'exposar explícitament, just després dels `import`:
+1. **Funcions cridades des de fora del mòdul** (des de `game-core.js`, com `buildLevel` i `checkCurrentCell`, o des d'un atribut `onclick="…"`, `onchange="…"`, `onmouseenter="…"`… de l'HTML, també del que es genera amb JS): s'han d'exposar explícitament, just després dels `import`:
    ```js
    Object.assign(window, { buildLevel, selectStatInterval });
    ```
@@ -115,7 +126,9 @@ Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngin
 
 `tests/check-repo.js` comprova les tres coses i que cada `import` apunti a un fitxer que exporta aquell nom.
 
-**Per provar-ho localment** cal un servidor (`python3 -m http.server 8000` i obrir http://localhost:8000): obrint l'HTML amb doble clic (`file://`) el navegador bloqueja els mòduls.
+**Teclat numèric de `game-core.js`**: un input amb `data-locked="true"` (resposta ja encertada) no s'activa ni perd el `readonly`. Per saber quin input fa servir el teclat, `getKbActiveInput()`; per deixar d'usar-ne un sense amagar el teclat, `kbReleaseInput(inp)`. No redefiniu les funcions del teclat dins d'un joc: afegiu l'opció a `game-core.js`.
+
+**Per provar-ho localment** cal un servidor: `node tools/servidor.js` i obrir http://localhost:8000 (al Codespace s'engega sol; vegeu [`COM-TREBALLAR.md`](COM-TREBALLAR.md)). Obrint l'HTML amb doble clic (`file://`) el navegador bloqueja els mòduls.
 
 ### Capçalera de fitxer estàndard
 
@@ -132,8 +145,6 @@ Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngin
 ```
 
 ## Com afegir un nou exercici
-
-### Opció A: Exercici modular (recomanat)
 
 1. Crear una carpeta `js/nou-exercici/` amb els fitxers:
    - `math-engine.js` — lògica matemàtica pura
@@ -152,15 +163,10 @@ Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngin
            defaultEnllocMitjana: 1
        };
    </script>
-   <script src="js/fixed-sessions.js"></script>
-   <script src="js/utils.js"></script>
-   <script src="js/config.js"></script>
-   <script src="js/exercise-codes.js"></script>
-   <script src="js/game-core.js"></script>
-   <!-- Només el controlador: ell importa math-engine, strings, question-bank… -->
+   <!-- Només el controlador: ell importa la base (config, utils, game-core) i math-engine, strings… -->
    <script type="module" src="js/nou-exercici/nou-exercici.js"></script>
    ```
-   Al controlador, recordeu `Object.assign(window, { buildLevel })` (vegeu [Mòduls ES](#mòduls-es-import--export)).
+   Al controlador, recordeu `Object.assign(window, { buildLevel })` (vegeu [Mòduls ES](#mòduls-es-import--export)). Per a un joc senzill, n'hi ha prou amb un sol fitxer `js/nou-exercici/nou-exercici.js`.
 
 3. Registrar el codi d'exercici a `EXERCISE_CODES` dins `js/exercise-codes.js` (2 lletres que no estiguin fetes servir; `CB` està reservat). L'analitzador el reconeixerà automàticament:
    ```js
@@ -169,14 +175,10 @@ Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngin
 
 4. Afegir l'enllaç a `index.html`.
 
-5. **Sessions fixes** (`fixed: true` a `index.html`): `js/fixed-sessions.js` s'ha de carregar abans que cap altre script de `js/`.
-   - Si el joc fa servir `game-core.js` i genera cada pregunta dins `buildLevel()`, no cal fer res més: el motor torna a sembrar l'atzar a cada pregunta amb (sessió, número de pregunta).
-   - Si la pàgina té un flux propi, cal cridar `window.FixedSessions?.seed('etiqueta')` just abans de generar cada exercici (amb una etiqueta que depengui del número d'exercici, p. ex. `` `q${currentOperation}` ``), o bé `window.FixedSessions?.next('tipus')` si no hi ha comptador. **No** ho poseu dins d'una funció que es crida a si mateixa per descartar un exercici (entraria en bucle).
-   - `tests/check-repo.js` comprova aquestes dues coses.
-
-### Opció B: Exercici inline (per a jocs simples)
-
-Tot el JS va dins `<script>` al final del HTML. Segueix igualment l'ordre utils → config → exercise-codes → game-core.
+5. **Sessions fixes** (`fixed: true` a `index.html`):
+   - Si el joc fa servir `game-core.js` i genera cada pregunta dins `buildLevel()` (cridada sempre com a `window.buildLevel()`), no cal fer res més: el motor torna a sembrar l'atzar a cada pregunta amb (sessió, número de pregunta).
+   - Si la pàgina té un flux propi, el controlador ha d'importar `FixedSessions` com a **primer** `import` (`import { FixedSessions } from '../fixed-sessions.js';`) i cridar `FixedSessions?.seed('etiqueta')` just abans de generar cada exercici (amb una etiqueta que depengui del número d'exercici, p. ex. `` `q${num}` ``), o bé `FixedSessions?.next('tipus')` si no hi ha comptador. **No** ho poseu dins d'una funció que es crida a si mateixa per descartar un exercici (entraria en bucle).
+   - `tests/check-repo.js` comprova aquestes coses.
 
 ## Format del codi de verificació v2
 
@@ -219,7 +221,7 @@ Els màxims de sessions (5) i preguntes (10) són els que pot representar el cod
 ## Tecnologies
 
 - HTML5 / CSS3 purs (sense frameworks)
-- Vanilla JavaScript (ES2020): mòduls ES nadius, sense cap pas de compilació ni empaquetador
+- Vanilla JavaScript (ES2020): mòduls ES nadius, sense cap pas de compilació ni empaquetador ni cap variable global compartida
 - KaTeX per a renderització LaTeX, servit des de `vendor/katex-0.16.11/` (vegeu `vendor/README.md`)
 - Cap backend: tot és estàtic i s'executa al navegador
 
@@ -233,9 +235,9 @@ node tests/run-all.js
 
 | Fitxer | Què comprova |
 |--------|--------------|
-| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes · colors comuns · mòduls ES (cada `import` existeix, cada `onclick` troba la seva funció, `window.buildLevel()`) |
+| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) |
 | `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…) |
-| `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) cada mòdul ES i comprova que exporta el que ha d'exportar |
+| `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) la base i cada mòdul de lògica, i comprova que exporten el que han d'exportar |
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 

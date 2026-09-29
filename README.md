@@ -8,13 +8,15 @@ Web: https://step-quiz.net
 
 No requereix instal·lació. Són arxius totalment estàtics, publicats a https://step-quiz.net.
 
-> **Per provar-ho al teu ordinador** cal obrir-ho a través d'un petit servidor local: algunes activitats fan servir mòduls de JavaScript (`<script type="module">`) i el navegador no els carrega si obres l'arxiu amb doble clic (`file://…`). Des de la carpeta del repositori:
+> **Per provar-ho al teu ordinador** cal obrir-ho a través d'un petit servidor local: les activitats fan servir mòduls de JavaScript (`<script type="module">`) i el navegador no els carrega si obres l'arxiu amb doble clic (`file://…`). Des de la carpeta del repositori:
 >
 > ```
-> python3 -m http.server 8000
+> node tools/servidor.js
 > ```
 >
-> i obre http://localhost:8000 al navegador (atura el servidor amb `Ctrl+C`). A GitHub Codespaces, en executar el mateix ordre surt un avís a baix a la dreta: clica **Open in Browser**.
+> i obre http://localhost:8000 al navegador (atura el servidor amb `Ctrl+C`; si no tens Node, `python3 -m http.server 8000` fa el mateix). Al **Codespace** el servidor s'engega sol: surt un avís a baix a la dreta i només cal clicar **Open in Browser**.
+>
+> **Per fer i publicar canvis** (Codespace, missatges que expliquin cada canvi, desfer-ne un): [`COM-TREBALLAR.md`](COM-TREBALLAR.md).
 
 1. Obre `index.html` al navegador — és el **generador d'enllaços** per al professorat.
 2. Tria l'exercici i configura sessions, preguntes i intents.
