@@ -12,6 +12,16 @@
  * ============================================================================
  */
 
+import { MathEngine } from './math-engine.js';
+import { QuestionBank } from './question-bank.js';
+import { Strings } from './strings.js';
+
+// Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
+// window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
+// Les crides internes fan servir window.buildLevel() perquè les sessions fixes
+// (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
+Object.assign(window, { buildLevel });
+
 let challengeData = null;
 let helpExpanded = false;
 
@@ -231,7 +241,7 @@ function _finishOp(levelPoints) {
         if (currentOperation >= TOTAL_OPERATIONS) {
             endSession();
         } else {
-            buildLevel();
+            window.buildLevel();
         }
     }, waitTime);
 }
@@ -260,6 +270,6 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
         const screen = document.getElementById('game-screen');
         if (screen) screen.style.display = 'block';
-        buildLevel();
+        window.buildLevel();
     }
 });

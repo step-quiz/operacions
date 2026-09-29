@@ -14,7 +14,10 @@
  * ============================================================================
  */
 
-window.DistractorLib = (() => {
+import { MathEngine } from './math-engine.js';
+import { Strings } from './strings.js';
+
+export const DistractorLib = (() => {
     const S = Strings.Feedback;
     const ME = MathEngine;
     const tex = ME.fracToTex;

@@ -14,7 +14,10 @@
  * ============================================================================
  */
 
-window.QuestionBank = (() => {
+import { MathEngine } from './math-engine.js';
+import { Strings } from './strings.js';
+
+export const QuestionBank = (() => {
     const ME = MathEngine;
     const S = Strings;
 

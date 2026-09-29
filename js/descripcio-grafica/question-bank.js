@@ -8,7 +8,7 @@
  * Notació d'intervals: Unicode pla (−∞, +∞, ∪) sense KaTeX als botons.
  */
 
-window.QuestionBank = (() => {
+export const QuestionBank = (() => {
     'use strict';
 
     const INF = Infinity;

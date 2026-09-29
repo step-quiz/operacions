@@ -13,6 +13,12 @@
  * ============================================================================
  */
 
+// Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
+// window només les que es criden des de fora: game-core.js (buildLevel, checkCurrentCell) i els onclick de l'HTML.
+// Les crides internes fan servir window.buildLevel() perquè les sessions fixes
+// (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
+Object.assign(window, { buildLevel, checkCurrentCell, selectRepte, checkStep });
+
 // ══════════════════════════════════════════════════════════
 // REFERÈNCIES DOM
 // ══════════════════════════════════════════════════════════
@@ -1662,7 +1668,7 @@ function finalizeProblem(forcedPoints) {
             endSession();
         } else {
             currentOperation++;
-            buildLevel();
+            window.buildLevel();
         }
     }, waitTime);
 }

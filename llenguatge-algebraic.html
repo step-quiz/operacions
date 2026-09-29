@@ -86,12 +86,12 @@
 
 <!--
     ORDRE DE CÀRREGA:
-    utils → config → game-core → question-bank → llenguatge-algebraic (defer)
+    utils → config → game-core (clàssics) → llenguatge-algebraic.js
+    (mòdul ES, importa question-bank)
 -->
 <script src="js/exercise-codes.js"></script>
 <script src="js/game-core.js"></script>
-<script src="js/llenguatge-algebraic/question-bank.js"></script>
-<script defer src="js/llenguatge-algebraic/llenguatge-algebraic.js"></script>
+<script type="module" src="js/llenguatge-algebraic/llenguatge-algebraic.js"></script>
 
 </body>
 </html>

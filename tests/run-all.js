@@ -16,6 +16,7 @@ const ROOT = path.resolve(__dirname, '..');
 const TESTS = [
     ['Comprovacions del repositori', 'tests/check-repo.js'],
     ['Tests dels mòduls', 'tests/modules.test.js'],
+    ['Tests dels mòduls ES', 'tests/esm.test.js'],
     ['Tests de les sessions fixes', 'tests/fixed-sessions.test.js'],
     ['Tests de derivades', 'js/derivades/run-tests.js'],
 ];

@@ -7,13 +7,13 @@
  * ARQUITECTURA:
  * - Capa matemàtica completament independent: no depèn de cap fitxer de la
  *   plataforma compartida (utils, config, game-core) ni del controlador DOM.
- * - Exposa window.MathEngine com a namespace explícit.
- * DEPENDÈNCIES: Requereix utils.js (randInt, pick). S'ha de carregar
- * DESPRÉS de utils.js i ABANS de distractor-lib.js.
+ * - Mòdul ES: exporta MathEngine com a espai de noms explícit.
+ * DEPENDÈNCIES: Fa servir randInt i pick de utils.js (globals, carregat a la
+ * pàgina com a script clàssic).
  * ============================================================================
  */
 
-window.MathEngine = (() => {
+export const MathEngine = (() => {
     // -------------------------------------------------------------------------
     // ARITMÈTICA DE FRACCIONS
     // -------------------------------------------------------------------------

@@ -14,11 +14,20 @@
  *   pedagògic al final de sessió.
  * - game-core.js és INTOCABLE: la resposta correcta i el resum s'injecten
  *   al feedback container propi, no al mini-overlay de game-core.js.
- * DEPENDÈNCIES: Fitxer final. Ordre requerit:
- *   utils → config → game-core → math-engine → strings → distractor-lib
- *   → question-bank → (aquest, defer)
+ * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa distractor-lib i
+ *   question-bank (que al seu torn importen math-engine i strings). Fa servir
+ *   les globals de utils, config i game-core (scripts clàssics carregats abans).
  * ============================================================================
  */
+
+import { DistractorLib } from './distractor-lib.js';
+import { QuestionBank } from './question-bank.js';
+
+// Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
+// window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
+// Les crides internes fan servir window.buildLevel() perquè les sessions fixes
+// (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
+Object.assign(window, { buildLevel });
 
 let errorHistory = [];
 let challengeData = null;
@@ -203,7 +212,7 @@ function _finishOp(levelPoints) {
         if (currentOperation >= TOTAL_OPERATIONS) {
             showSessionSummary();
         } else {
-            buildLevel();
+            window.buildLevel();
         }
     }, waitTime);
 }
@@ -341,6 +350,6 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
         const screen = document.getElementById('game-screen');
         if (screen) screen.style.display = 'block';
-        buildLevel();
+        window.buildLevel();
     }
 });

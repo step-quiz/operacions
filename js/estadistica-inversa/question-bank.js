@@ -18,7 +18,9 @@
  * ============================================================================
  */
 
-window.QuestionBank = (() => {
+import { MathEngine } from './math-engine.js';
+
+export const QuestionBank = (() => {
     const ME = MathEngine;
     const LO = 1,
         HI = 10; // rang de notes

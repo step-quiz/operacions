@@ -19,7 +19,10 @@
  * DEPENDÈNCIES: strings.js, distractor-lib.js
  * ============================================================================
  */
-window.QuestionBank = (() => {
+
+import { DistractorLib } from './distractor-lib.js';
+import { Strings } from './strings.js';
+export const QuestionBank = (() => {
     const S = Strings;
     const D = DistractorLib;
 

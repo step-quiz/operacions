@@ -2,7 +2,7 @@
  * function-engine.js — genera instàncies de funcions amb dades d'asímptotes.
  * NOTA: strings produeixen LaTeX vàlid (usa '-' estàndard, no '−' Unicode).
  */
-window.FunctionEngine = (() => {
+export const FunctionEngine = (() => {
     const INF = Infinity;
     function _randInt(a, b) {
         return Math.floor(Math.random() * (b - a + 1)) + a;

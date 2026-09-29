@@ -20,7 +20,11 @@
  * ============================================================================
  */
 
-window.QuestionBank = (() => {
+import { DistractorLib } from './distractor-lib.js';
+import { MathEngine } from './math-engine.js';
+import { Strings } from './strings.js';
+
+export const QuestionBank = (() => {
     const ME = MathEngine;
     const DL = DistractorLib;
     const tex = ME.fracToTex;

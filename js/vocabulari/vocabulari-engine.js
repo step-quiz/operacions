@@ -4,7 +4,7 @@
  * FITXER: js/vocabulari/vocabulari-engine.js
  * ROL: Lògica pura del joc, sense DOM ni estat extern.
  * ARQUITECTURA:
- * - Mòdul IIFE sense efectes secundaris.
+ * - Mòdul ES (exporta VocabEngine) sense efectes secundaris.
  * - shuffle():        barreja un array (Fisher-Yates).
  * - avaluaResposta(): compara la resposta de l'alumne amb la paraula correcta
  *   i retorna 'correct' | 'typo' | 'wrong'.
@@ -13,7 +13,7 @@
  * DEPENDÈNCIES: cap
  * ============================================================================
  */
-window.VocabEngine = (() => {
+export const VocabEngine = (() => {
     // =========================================================================
     // SHUFFLE (Fisher-Yates)
     // =========================================================================

@@ -10,6 +10,12 @@
  * ============================================================================
  */
 
+// Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
+// window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
+// Les crides internes fan servir window.buildLevel() perquè les sessions fixes
+// (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
+Object.assign(window, { buildLevel, toggleHelp });
+
 /* ================================================================
    PROBLEMES — dades pedagògiques
    Convenció de vèrtexs:
@@ -756,7 +762,7 @@ function _finishOp(points) {
             endSession();
         } else {
             currentOperation++;
-            buildLevel();
+            window.buildLevel();
         }
     }, waitTime);
 }
@@ -957,3 +963,7 @@ function initGame() {
     validateConfig();
     startGame();
 }
+
+// Arrencada (abans era un <script> inline a l'HTML, però un mòdul s'executa
+// quan la pàgina ja s'ha carregat i aquell script hauria anat abans)
+initGame();

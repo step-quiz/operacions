@@ -7,6 +7,9 @@
  * ============================================================================
  */
 
+import { VocabEngine } from './vocabulari-engine.js';
+import { VocabFigures } from './vocabulari-figures.js';
+
 (function () {
     'use strict';
 

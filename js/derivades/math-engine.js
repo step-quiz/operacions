@@ -6,16 +6,16 @@
  * ARQUITECTURA:
  * - Capa matemàtica completament independent: no depèn de cap fitxer de la
  *   plataforma compartida (utils, config, game-core) ni del controlador DOM.
- * - Exposa window.MathEngine com a namespace explícit i net.
+ * - Mòdul ES: exporta MathEngine com a espai de noms explícit i net.
  * - FASE 5: Afegit formatPowerTerm(coef, exp) per formatar coef·x^exp com
  *   a string LaTeX. Usat per distractor-lib.js i question-bank.js per a
  *   la nova família de la regla de la potència.
- * DEPENDÈNCIES: Requereix utils.js (randIntNonZero, pick). S'ha de carregar
- * DESPRÉS de utils.js i ABANS de distractor-lib.js.
+ * DEPENDÈNCIES: Fa servir randIntNonZero i pick de utils.js (globals, carregat
+ * a la pàgina com a script clàssic).
  * ============================================================================
  */
 
-window.MathEngine = (() => {
+export const MathEngine = (() => {
     // -------------------------------------------------------------------------
     // AUXILIAR: Màxim Comú Divisor
     // -------------------------------------------------------------------------

@@ -24,7 +24,8 @@
         Capa compartida (intocable):
           utils → config → game-core
         Capa específica d'integrals (js/integrals/):
-          math-engine → strings → distractor-lib → question-bank → integrals (defer)
+          integrals.js (mòdul ES) importa question-bank → distractor-lib →
+          math-engine i strings
 
         SELECTOR DE FAMÍLIES (URL):
           ?families=int-power              → sols potències bàsiques
@@ -38,11 +39,7 @@
     <script src="js/config.js"></script>
     <script src="js/exercise-codes.js"></script>
     <script src="js/game-core.js"></script>
-    <script src="js/integrals/math-engine.js"></script>
-    <script src="js/integrals/strings.js"></script>
-    <script src="js/integrals/distractor-lib.js"></script>
-    <script src="js/integrals/question-bank.js"></script>
-    <script defer src="js/integrals/integrals.js"></script>
+    <script type="module" src="js/integrals/integrals.js"></script>
 
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/shared.css?v=1">

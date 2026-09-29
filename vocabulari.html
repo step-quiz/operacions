@@ -89,11 +89,9 @@
 
 <!--
     ORDRE DE CÀRREGA:
-    vocabulari-figures → vocabulari-engine → vocabulari (defer)
+    vocabulari.js (mòdul ES) importa vocabulari-figures i vocabulari-engine
 -->
-<script src="js/vocabulari/vocabulari-figures.js"></script>
-<script src="js/vocabulari/vocabulari-engine.js"></script>
-<script defer src="js/vocabulari/vocabulari.js?v=1"></script>
+<script type="module" src="js/vocabulari/vocabulari.js"></script>
 
 </body>
 </html>

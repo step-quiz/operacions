@@ -12,7 +12,7 @@
  *   - Marcadors de punts clau:  ● vermell = zero,  ● taronja = extrem
  */
 
-window.SvgRenderer = (() => {
+export const SvgRenderer = (() => {
     'use strict';
 
     const W = 560,

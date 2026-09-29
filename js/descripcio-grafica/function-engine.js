@@ -20,7 +20,7 @@
  *   rational  → hasConcavity=false  (inflexió irracional)
  */
 
-window.FunctionEngine = (() => {
+export const FunctionEngine = (() => {
     'use strict';
 
     function _ri(a, b) {

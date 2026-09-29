@@ -3,11 +3,11 @@
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/mitjana/math-engine.js
  * ROL: Motor matemàtic pur per a mitjana aritmètica i ponderada.
- * DEPENDÈNCIES: Cap. S'ha de carregar PRIMER del mòdul.
+ * DEPENDÈNCIES: cap
  * ============================================================================
  */
 
-window.MathEngine = (() => {
+export const MathEngine = (() => {
     /** Mitjana aritmètica simple: suma / n */
     function mean(values) {
         const sum = values.reduce((s, v) => s + v, 0);

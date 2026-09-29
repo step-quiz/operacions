@@ -13,7 +13,9 @@
  * ============================================================================
  */
 
-window.QuestionBank = (() => {
+import { MathEngine } from './math-engine.js';
+
+export const QuestionBank = (() => {
     const ME = MathEngine;
     const N_MIN = 8;
     const N_MAX = 12;

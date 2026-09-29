@@ -15,9 +15,6 @@
     <script src="js/fixed-sessions.js"></script>
 
     <!-- Motor de funcions + banc de preguntes (per llegir la resposta correcta) -->
-    <script src="js/descripcio-grafica/function-engine.js"></script>
-    <script src="js/descripcio-grafica/question-bank.js"></script>
-    <script src="js/descripcio-grafica/svg-renderer.js"></script>
 
     <!-- Estils base (compartits amb l'activitat original) -->
     <link rel="stylesheet" href="css/tokens.css">
@@ -273,7 +270,11 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+import { FunctionEngine } from './js/descripcio-grafica/function-engine.js';
+import { QuestionBank } from './js/descripcio-grafica/question-bank.js';
+import { SvgRenderer } from './js/descripcio-grafica/svg-renderer.js';
+
 (function () {
     'use strict';
 

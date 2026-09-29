@@ -6,11 +6,11 @@
  * ARQUITECTURA:
  * - Font única de tots els literals: enunciats, contextos, feedback i ajuda.
  * - Permet centralitzar futures traduccions o modificacions pedagògiques.
- * DEPENDÈNCIES: Cap. S'ha de carregar ABANS de question-bank.js.
+ * DEPENDÈNCIES: cap
  * ============================================================================
  */
 
-window.Strings = (() => {
+export const Strings = (() => {
     // =========================================================================
     // CONTEXTOS — matèries i tipus d'avaluació
     // =========================================================================

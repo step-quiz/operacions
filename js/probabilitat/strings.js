@@ -6,11 +6,11 @@
  * ARQUITECTURA:
  * - Font única de tots els textos visibles per l'alumne.
  * - Permet centralitzar futures traduccions o modificacions pedagògiques.
- * DEPENDÈNCIES: Cap. S'ha de carregar ABANS de distractor-lib.js.
+ * DEPENDÈNCIES: cap
  * ============================================================================
  */
 
-window.Strings = (() => {
+export const Strings = (() => {
     const Feedback = {
         correct: 'Correcte!',
         singleCase:
