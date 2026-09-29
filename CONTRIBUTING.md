@@ -181,6 +181,18 @@ Els màxims de sessions (5) i preguntes (10) són els que pot representar el cod
 
 ## Tests
 
+Tots els tests s'executen amb una sola ordre (només cal tenir Node instal·lat; no s'instal·la res més):
+
 ```
-node js/derivades/run-tests.js
+node tests/run-all.js
 ```
+
+| Fitxer | Què comprova |
+|--------|--------------|
+| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) |
+| `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…) |
+| `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
+
+**GitHub ho fa sol:** el fitxer `.github/workflows/tests.yml` executa `node tests/run-all.js` cada cop que es puja alguna cosa a `main` i a cada pull request. El resultat surt com una ✓ verda o una ✗ vermella al costat del commit (pestanya **Actions** per veure'n el detall).
+
+Quan s'afegeix un mòdul nou de preguntes, cal afegir-lo a `tests/modules.test.js`.

@@ -119,6 +119,14 @@ Els màxims de sessions i preguntes (5 × 10) són els que pot representar el co
 
 Exemple: `derivades.html?totalsessions=2&totaloperations=8&families=chain-exp-int,power`
 
+## Tests
+
+```
+node tests/run-all.js
+```
+
+GitHub els executa automàticament a cada pujada a `main` i a cada pull request. Vegeu [CONTRIBUTING.md](CONTRIBUTING.md#tests).
+
 ## Tecnologies
 
 - HTML5 / CSS3 purs (sense frameworks)

@@ -1,0 +1,28 @@
+# Revisió automàtica: cada cop que es puja alguna cosa a GitHub (o s'obre una
+# pull request), GitHub executa tots els tests del projecte.
+#   ✓ verd  → tot correcte
+#   ✗ vermell → alguna cosa s'ha trencat (el detall és a la pestanya "Actions")
+# Els tests no necessiten instal·lar res: només Node. Es poden executar a mà amb
+#   node tests/run-all.js
+name: Tests
+
+on:
+  push:
+    branches: [main]      # el que es puja directament a main (p. ex. "Add files via upload")
+  pull_request:           # les pull requests, abans de fusionar-les
+  workflow_dispatch:      # botó "Run workflow" per executar-ho a mà
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Executa tots els tests
+        run: node tests/run-all.js
