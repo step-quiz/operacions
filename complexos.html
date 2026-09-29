@@ -6,22 +6,17 @@
     <title>Nombres Complexos</title>
     <script src="js/fixed-sessions.js"></script>
     <script src="js/utils.js"></script>
+    <link rel="stylesheet" href="css/tokens.css">
     <style>
         :root {
             --primary: #8b5cf6;
             --primary-dark: #7c3aed;
             --primary-light: #ede9fe;
-            --success: #16a34a;
-            --success-light: #dcfce7;
-            --danger: #dc2626;
-            --danger-light: #fef2f2;
-            --warning: #d97706;
             --gris: #64748b;
             --gris-fosc: #334155;
             --bg: #f8fafc;
             --card: #ffffff;
             --border: #e2e8f0;
-            --border-heavy: #cbd5e1;
             --t-anim-pop: 0.35s; --t-anim-shake: 0.80s;
             --t-anim-flash: 0.60s; --t-fade-out: 0.50s;
         }
@@ -508,7 +503,7 @@ function hideHint(key){
 // SUMA / RESTA
 // ════════════════════════════════════════════════════════════════════
 let srLocked={re:false,im:false};
-function generateSR(){[z1,z2]=generateTwoComplex();opSign=Math.random()<.5?'+':'−';if(opSign==='+'){expectedRe=z1.re+z2.re;expectedIm=z1.im+z2.im}else{expectedRe=z1.re-z2.re;expectedIm=z1.im-z2.im}}
+function generateSR(){window.FixedSessions?.next('SR');[z1,z2]=generateTwoComplex();opSign=Math.random()<.5?'+':'−';if(opSign==='+'){expectedRe=z1.re+z2.re;expectedIm=z1.im+z2.im}else{expectedRe=z1.re-z2.re;expectedIm=z1.im-z2.im}}
 function initSumaResta(){
     hideCustomKeyboard();generateSR();errorCount=0;finished=false;hintShown=false;srLocked={re:false,im:false};
     document.getElementById('errCntSR').textContent='0';
@@ -535,7 +530,7 @@ function checkSR(){
 // PRODUCTE
 // ════════════════════════════════════════════════════════════════════
 let prLocked={re:false,im:false};
-function generatePR(){[z1,z2]=generateTwoComplex();expectedRe=z1.re*z2.re-z1.im*z2.im;expectedIm=z1.re*z2.im+z1.im*z2.re}
+function generatePR(){window.FixedSessions?.next('PR');[z1,z2]=generateTwoComplex();expectedRe=z1.re*z2.re-z1.im*z2.im;expectedIm=z1.re*z2.im+z1.im*z2.re}
 function initProducte(){
     hideCustomKeyboard();generatePR();errorCount=0;finished=false;hintShown=false;prLocked={re:false,im:false};
     document.getElementById('errCntPR').textContent='0';
@@ -567,6 +562,7 @@ let dvLocked1={re:false,im:false,den:false};
 let dvStep2Groups=[];
 
 function generateDV(){
+    window.FixedSessions?.next('DV');   // sessions fixes: mateix exercici per a tothom
     // Per la divisió, z2 ha de tenir part imaginària ≠ 0
     // (perquè la multiplicació pel conjugat tingui sentit pedagògic)
     do{ [z1,z2]=generateTwoComplex() }while(z2.im===0);

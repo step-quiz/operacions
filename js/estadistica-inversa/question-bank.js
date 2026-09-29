@@ -19,9 +19,9 @@
  */
 
 window.QuestionBank = (() => {
-
     const ME = MathEngine;
-    const LO = 1, HI = 10;    // rang de notes
+    const LO = 1,
+        HI = 10; // rang de notes
 
     // =====================================================================
     // HELPERS
@@ -61,10 +61,12 @@ window.QuestionBank = (() => {
             const targetMean = pick([3, 4, 5, 5.5, 6, 6.5, 7, 7.5, 8]);
             const conds = { mean: targetMean };
             const sols = ME.findSolutions(k, LO, HI, conds, 5);
-            if (sols.length < 3) return null;  // volem que sigui fàcil
+            if (sols.length < 3) return null; // volem que sigui fàcil
 
             return {
-                k, conditions: conds, solutionsNeeded: 1,
+                k,
+                conditions: conds,
+                solutionsNeeded: 1,
                 condLabels: [`Mitjana = ${ME.fmtCondensed(targetMean)}`],
                 prompt: `Proposa <strong>${k} nombres enters</strong>, entre ${LO} i ${HI}, de manera que<br>la mitjana aritmètica valgui <strong>${ME.fmtCondensed(targetMean)}</strong>.`,
                 hint: `La mitjana, en el nostre cas, és la suma dels nombres dividida entre ${k}. Per tant, cal que la suma dels nombres sigui ${ME.fmtCondensed(targetMean * k)}.`,
@@ -81,12 +83,15 @@ window.QuestionBank = (() => {
             const sols = ME.findSolutions(k, LO, HI, conds, 5);
             if (sols.length < 5) return null;
 
-            const posText = k === 3
-                ? 'el segon valor (el del mig) un cop ordenats'
-                : 'el tercer valor (el del mig) un cop ordenats';
+            const posText =
+                k === 3
+                    ? 'el segon valor (el del mig) un cop ordenats'
+                    : 'el tercer valor (el del mig) un cop ordenats';
 
             return {
-                k, conditions: conds, solutionsNeeded: 1,
+                k,
+                conditions: conds,
+                solutionsNeeded: 1,
                 condLabels: [`Mediana = ${targetMedian}`],
                 prompt: `Proposa <strong>${k} nombres enters</strong>, entre ${LO} i ${HI}, de manera que la mediana valgui <strong>${targetMedian}</strong>.`,
                 hint: `La mediana és el valor central de les dades, un cop ordenades de petita a gran.`,
@@ -104,7 +109,9 @@ window.QuestionBank = (() => {
             if (sols.length < 5) return null;
 
             return {
-                k, conditions: conds, solutionsNeeded: 1,
+                k,
+                conditions: conds,
+                solutionsNeeded: 1,
                 condLabels: [`Moda = ${targetMode}`],
                 prompt: `Proposa <strong>${k} nombres enters</strong>, entre ${LO} i ${HI}, de manera que la moda valgui <strong>${targetMode}</strong>.`,
                 hint: `La moda és el valor que apareix més vegades. El valor ${targetMode} ha d'aparèixer almenys 2 cops, i cap altre valor pot aparèixer més vegades que ell.`,
@@ -121,7 +128,7 @@ window.QuestionBank = (() => {
         const type = pick(['mean_median', 'mean_mode', 'median_mode']);
 
         if (type === 'mean_median') return _genMeanMedian();
-        if (type === 'mean_mode')   return _genMeanMode();
+        if (type === 'mean_mode') return _genMeanMode();
         return _genMedianMode();
     }
 
@@ -129,7 +136,7 @@ window.QuestionBank = (() => {
         return _tryGenerate(() => {
             const k = pick([4, 5]);
             const seed = _randSet(k);
-            const targetMean   = Math.round(ME.mean(seed) * 2) / 2;  // arrodoneix a .5
+            const targetMean = Math.round(ME.mean(seed) * 2) / 2; // arrodoneix a .5
             const targetMedian = ME.median(seed);
             if (!Number.isInteger(targetMedian) && targetMedian % 0.5 !== 0) return null;
 
@@ -138,7 +145,9 @@ window.QuestionBank = (() => {
             if (sols.length < 2) return null;
 
             return {
-                k, conditions: conds, solutionsNeeded: 1,
+                k,
+                conditions: conds,
+                solutionsNeeded: 1,
                 condLabels: [`Mitjana = ${ME.fmtCondensed(targetMean)}`, `Mediana = ${ME.fmtCondensed(targetMedian)}`],
                 prompt: `Proposa <strong>${k} nombres enters</strong>, entre ${LO} i ${HI}, de manera que<br>la mitjana valgui <strong>${ME.fmtCondensed(targetMean)}</strong> i la mediana valgui <strong>${ME.fmtCondensed(targetMedian)}</strong>.`,
                 hint: `La suma dels ${k} nombres ha de ser ${ME.fmtCondensed(targetMean * k)}. A més, la mediana és el valor central de les dades, un cop ordenades de petita a gran.`,
@@ -165,7 +174,9 @@ window.QuestionBank = (() => {
             if (sols.length < 2) return null;
 
             return {
-                k, conditions: conds, solutionsNeeded: 1,
+                k,
+                conditions: conds,
+                solutionsNeeded: 1,
                 condLabels: [`Mitjana = ${ME.fmtCondensed(targetMean)}`, `Moda = ${targetMode}`],
                 prompt: `Proposa <strong>${k} nombres enters</strong>, entre ${LO} i ${HI}, de manera que<br>la mitjana valgui <strong>${ME.fmtCondensed(targetMean)}</strong> i la moda valgui <strong>${targetMode}</strong>.`,
                 hint: `La suma dels ${k} nombres ha de ser ${ME.fmtCondensed(targetMean * k)}. A més, la moda és el valor que apareix més vegades: el ${targetMode} ha d'aparèixer més que cap altre.`,
@@ -183,7 +194,7 @@ window.QuestionBank = (() => {
 
             const m = ME.mode(seed);
             if (!m || m.length !== 1) return null;
-            const targetMode   = m[0];
+            const targetMode = m[0];
             const targetMedian = ME.median(seed);
 
             const conds = { median: targetMedian, mode: targetMode };
@@ -191,7 +202,9 @@ window.QuestionBank = (() => {
             if (sols.length < 2) return null;
 
             return {
-                k, conditions: conds, solutionsNeeded: 1,
+                k,
+                conditions: conds,
+                solutionsNeeded: 1,
                 condLabels: [`Mediana = ${ME.fmtCondensed(targetMedian)}`, `Moda = ${targetMode}`],
                 prompt: `Proposa <strong>${k} nombres enters</strong>, entre ${LO} i ${HI}, de manera que la mediana valgui <strong>${ME.fmtCondensed(targetMedian)}</strong> i la moda valgui <strong>${targetMode}</strong>.`,
                 hint: `La mediana és el valor central de les dades, un cop ordenades de petita a gran. A més, el ${targetMode} ha d'aparèixer almenys 2 cops (més que cap altre valor).`,
@@ -216,16 +229,18 @@ window.QuestionBank = (() => {
 
             const m = ME.mode(seed);
             if (!m || m.length !== 1) return null;
-            const targetMode   = m[0];
+            const targetMode = m[0];
             const targetMedian = ME.median(seed);
-            const targetMean   = Math.round(ME.mean(seed) * 2) / 2;
+            const targetMean = Math.round(ME.mean(seed) * 2) / 2;
 
             const conds = { mean: targetMean, median: targetMedian, mode: targetMode };
             const sols = ME.findSolutions(k, LO, HI, conds, 3);
             if (sols.length < 2) return null;
 
             return {
-                k, conditions: conds, solutionsNeeded: 1,
+                k,
+                conditions: conds,
+                solutionsNeeded: 1,
                 condLabels: [
                     `Mitjana = ${ME.fmtCondensed(targetMean)}`,
                     `Mediana = ${ME.fmtCondensed(targetMedian)}`,
@@ -254,12 +269,12 @@ window.QuestionBank = (() => {
     //
     // Signatura de nivell 1: "mean:6", "median:5", "mode:4"
     // Signatura de nivells 2-3: clau JSON de les condicions, p.ex. '{"mean":6,"median":5}'
-    let _sessionSigs  = [];   // signatures de totes les preguntes d'aquesta sessió
-    let _lastType     = null; // tipus (mean / median / mode) de l'última pregunta (només nivell 1)
+    let _sessionSigs = []; // signatures de totes les preguntes d'aquesta sessió
+    let _lastType = null; // tipus (mean / median / mode) de l'última pregunta (només nivell 1)
 
     function resetSession() {
         _sessionSigs = [];
-        _lastType    = null;
+        _lastType = null;
     }
 
     // ── Selector de tipus per a nivell 1 amb distribució i anti-consecutiu ─
@@ -283,11 +298,9 @@ window.QuestionBank = (() => {
     const _ANTI_CONSEC_FACTOR = { mean: 0.375, median: 0.375, mode: 0.4444 };
 
     function _pickLevel1Type() {
-        const BASE = { mean: 0.40, median: 0.40, mode: 0.20 };
+        const BASE = { mean: 0.4, median: 0.4, mode: 0.2 };
         const types = ['mean', 'median', 'mode'];
-        const weights = types.map(t =>
-            t === _lastType ? BASE[t] * _ANTI_CONSEC_FACTOR[t] : BASE[t]
-        );
+        const weights = types.map(t => (t === _lastType ? BASE[t] * _ANTI_CONSEC_FACTOR[t] : BASE[t]));
         const total = weights.reduce((s, w) => s + w, 0);
         let r = Math.random() * total;
         for (let i = 0; i < types.length; i++) {
@@ -308,20 +321,20 @@ window.QuestionBank = (() => {
     // ── generateChallenge principal ──────────────────────────────────────
     function generateChallenge() {
         const raw = new URLSearchParams(window.location.search).get('nivell');
-        const lvl = (raw && levelGenerators[raw]) ? parseInt(raw) : 1;
+        const lvl = raw && levelGenerators[raw] ? parseInt(raw) : 1;
 
         const MAX_OUTER = 40; // intents per trobar un challenge no repetit
         let ch = null;
 
         for (let attempt = 0; attempt < MAX_OUTER; attempt++) {
-            let candidate = null;
+            let candidate;
 
             if (lvl === 1) {
                 // Tria el tipus amb distribució ponderada i anti-consecutiu
                 const type = _pickLevel1Type();
-                if      (type === 'mean')   candidate = _genMeanOnly();
+                if (type === 'mean') candidate = _genMeanOnly();
                 else if (type === 'median') candidate = _genMedianOnly();
-                else                        candidate = _genModeOnly();
+                else candidate = _genModeOnly();
 
                 if (!candidate) continue;
 
@@ -334,7 +347,6 @@ window.QuestionBank = (() => {
                 _lastType = type;
                 ch = candidate;
                 break;
-
             } else {
                 // Nivells 2-3: genera directament i comprova no-repetició
                 candidate = levelGenerators[lvl]();
@@ -363,5 +375,4 @@ window.QuestionBank = (() => {
     }
 
     return { generateChallenge, resetSession };
-
 })();

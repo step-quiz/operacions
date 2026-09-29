@@ -13,7 +13,9 @@ window.QuestionBank = (() => {
 
     const INF = Infinity;
 
-    function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function _pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
     function _shuffle(arr) {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -24,11 +26,13 @@ window.QuestionBank = (() => {
     }
 
     function _n(x) {
-        if (x ===  INF) return '+∞';
+        if (x === INF) return '+∞';
         if (x === -INF) return '−∞';
         return x < 0 ? `−${-x}` : `${x}`;
     }
-    function _iv(a, b) { return `(${_n(a)}, ${_n(b)})`; }
+    function _iv(a, b) {
+        return `(${_n(a)}, ${_n(b)})`;
+    }
 
     // ------------------------------------------------------------------ //
     //  TEXT DE MONOTONIA — agrupa intervals del mateix sentit amb ∪
@@ -37,9 +41,13 @@ window.QuestionBank = (() => {
     // ------------------------------------------------------------------ //
     function _monLabel(breaks, parts) {
         const pts = [-INF, ...breaks, INF];
-        const seen = [], groups = {};
+        const seen = [],
+            groups = {};
         parts.forEach((p, i) => {
-            if (!groups[p]) { groups[p] = []; seen.push(p); }
+            if (!groups[p]) {
+                groups[p] = [];
+                seen.push(p);
+            }
             groups[p].push(_iv(pts[i], pts[i + 1]));
         });
         const descs = seen.map(p => `${p} a ${groups[p].join(' ∪ ')}`);
@@ -54,7 +62,8 @@ window.QuestionBank = (() => {
         if (parts.every(p => p === 'positiu')) return 'f(x) > 0 a (−∞, +∞)';
         if (parts.every(p => p === 'negatiu')) return 'f(x) < 0 a (−∞, +∞)';
         const pts = [-INF, ...breaks, INF];
-        const pos = [], neg = [];
+        const pos = [],
+            neg = [];
         parts.forEach((p, i) => (p === 'positiu' ? pos : neg).push(_iv(pts[i], pts[i + 1])));
         return `f(x) > 0 a ${pos.join(' ∪ ')} i f(x) < 0 a ${neg.join(' ∪ ')}`;
     }
@@ -68,12 +77,18 @@ window.QuestionBank = (() => {
         if (parts.every(p => p === 'amunt')) return 'f(x) té concavitat positiva a (−∞, +∞)';
         if (parts.every(p => p === 'avall')) return 'f(x) té concavitat negativa a (−∞, +∞)';
         const pts = [-INF, ...breaks, INF];
-        const seen = [], groups = {};
+        const seen = [],
+            groups = {};
         parts.forEach((p, i) => {
-            if (!groups[p]) { groups[p] = []; seen.push(p); }
+            if (!groups[p]) {
+                groups[p] = [];
+                seen.push(p);
+            }
             groups[p].push(_iv(pts[i], pts[i + 1]));
         });
-        const descs = seen.map(p => `amb concavitat ${p === 'amunt' ? 'positiva' : 'negativa'} a ${groups[p].join(' ∪ ')}`);
+        const descs = seen.map(
+            p => `amb concavitat ${p === 'amunt' ? 'positiva' : 'negativa'} a ${groups[p].join(' ∪ ')}`
+        );
         if (descs.length === 1) return `f(x) és ${descs[0]}`;
         return `f(x) és ${descs.slice(0, -1).join(', ')} i ${descs[descs.length - 1]}`;
     }
@@ -83,14 +98,22 @@ window.QuestionBank = (() => {
     // ------------------------------------------------------------------ //
     function _genDistrs(correct, breaks, parts, otherBreaks, labelFn, fallbacks) {
         const FLIP = parts.map(p =>
-            p === 'creixent'  ? 'decreixent' :
-            p === 'decreixent'? 'creixent'   :
-            p === 'positiu'   ? 'negatiu'    :
-            p === 'negatiu'   ? 'positiu'    :
-            p === 'amunt'     ? 'avall'      : 'amunt'
+            p === 'creixent'
+                ? 'decreixent'
+                : p === 'decreixent'
+                  ? 'creixent'
+                  : p === 'positiu'
+                    ? 'negatiu'
+                    : p === 'negatiu'
+                      ? 'positiu'
+                      : p === 'amunt'
+                        ? 'avall'
+                        : 'amunt'
         );
         const pool = [];
-        const add  = d => { if (d !== correct && !pool.includes(d)) pool.push(d); };
+        const add = d => {
+            if (d !== correct && !pool.includes(d)) pool.push(d);
+        };
 
         add(labelFn(breaks, FLIP));
 
@@ -98,7 +121,15 @@ window.QuestionBank = (() => {
             ...otherBreaks,
             ...(breaks.length > 0 ? [breaks[0] - 1, breaks[0] + 1, breaks[0] + 2, breaks[0] - 2] : []),
             ...(breaks.length > 1 ? [breaks[1] - 1, breaks[1] + 1] : []),
-            0, 1, -1, 2, -2, 3, -3, 4, -4
+            0,
+            1,
+            -1,
+            2,
+            -2,
+            3,
+            -3,
+            4,
+            -4,
         ].filter(b => !breaks.includes(b));
 
         for (const ab of alts) {
@@ -127,54 +158,54 @@ window.QuestionBank = (() => {
     function generateSignQ(spec) {
         const { signBreaks, signParts, monBreaks } = spec;
         const correct = _signLabel(signBreaks, signParts);
-        const distrs  = _genDistrs(correct, signBreaks, signParts, monBreaks, _signLabel, [
+        const distrs = _genDistrs(correct, signBreaks, signParts, monBreaks, _signLabel, [
             'f(x) > 0 a (−∞, +∞)',
-            'f(x) < 0 a (−∞, +∞)'
+            'f(x) < 0 a (−∞, +∞)',
         ]);
         return {
-            type:    'Q_SIGN',
-            badge:   'Signe de f(x)',
-            label:   'Intervals on f(x) > 0 i on f(x) < 0:',
+            type: 'Q_SIGN',
+            badge: 'Signe de f(x)',
+            label: 'Intervals on f(x) > 0 i on f(x) < 0:',
             options: _shuffle([
-                { text: correct, isCorrect: true  },
-                ...distrs.map(t => ({ text: t, isCorrect: false }))
-            ])
+                { text: correct, isCorrect: true },
+                ...distrs.map(t => ({ text: t, isCorrect: false })),
+            ]),
         };
     }
 
     function generateMonoQ(spec) {
         const { monBreaks, monParts, signBreaks } = spec;
         const correct = _monLabel(monBreaks, monParts);
-        const distrs  = _genDistrs(correct, monBreaks, monParts, signBreaks, _monLabel, [
+        const distrs = _genDistrs(correct, monBreaks, monParts, signBreaks, _monLabel, [
             'f(x) és creixent a (−∞, +∞)',
-            'f(x) és decreixent a (−∞, +∞)'
+            'f(x) és decreixent a (−∞, +∞)',
         ]);
         return {
-            type:    'Q_MONO',
-            badge:   'Monotonia de f(x)',
-            label:   'Els intervals de monotonia de f(x) són aquests:',
+            type: 'Q_MONO',
+            badge: 'Monotonia de f(x)',
+            label: 'Els intervals de monotonia de f(x) són aquests:',
             options: _shuffle([
-                { text: correct, isCorrect: true  },
-                ...distrs.map(t => ({ text: t, isCorrect: false }))
-            ])
+                { text: correct, isCorrect: true },
+                ...distrs.map(t => ({ text: t, isCorrect: false })),
+            ]),
         };
     }
 
     function generateConcQ(spec) {
         const { concBreaks, concParts, monBreaks } = spec;
         const correct = _concLabel(concBreaks, concParts);
-        const distrs  = _genDistrs(correct, concBreaks, concParts, monBreaks, _concLabel, [
+        const distrs = _genDistrs(correct, concBreaks, concParts, monBreaks, _concLabel, [
             'f(x) té concavitat positiva a (−∞, +∞)',
-            'f(x) té concavitat negativa a (−∞, +∞)'
+            'f(x) té concavitat negativa a (−∞, +∞)',
         ]);
         return {
-            type:    'Q_CONC',
-            badge:   'Concavitat de f(x)',
-            label:   'Els intervals de concavitat de f(x) són aquests:',
+            type: 'Q_CONC',
+            badge: 'Concavitat de f(x)',
+            label: 'Els intervals de concavitat de f(x) són aquests:',
             options: _shuffle([
-                { text: correct, isCorrect: true  },
-                ...distrs.map(t => ({ text: t, isCorrect: false }))
-            ])
+                { text: correct, isCorrect: true },
+                ...distrs.map(t => ({ text: t, isCorrect: false })),
+            ]),
         };
     }
 

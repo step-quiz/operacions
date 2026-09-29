@@ -15,8 +15,9 @@ const { spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const TESTS = [
     ['Comprovacions del repositori', 'tests/check-repo.js'],
-    ['Tests dels mòduls',            'tests/modules.test.js'],
-    ['Tests de derivades',           'js/derivades/run-tests.js'],
+    ['Tests dels mòduls', 'tests/modules.test.js'],
+    ['Tests de les sessions fixes', 'tests/fixed-sessions.test.js'],
+    ['Tests de derivades', 'js/derivades/run-tests.js'],
 ];
 
 const results = TESTS.map(([name, file]) => {

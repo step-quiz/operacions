@@ -8,7 +8,6 @@
  */
 
 window.MathEngine = (() => {
-
     /** Mitjana aritmètica simple: suma / n */
     function mean(values) {
         const sum = values.reduce((s, v) => s + v, 0);
@@ -17,10 +16,11 @@ window.MathEngine = (() => {
 
     /** Mitjana aritmètica ponderada: Σ(vi * wi) / Σ(wi) */
     function weightedMean(values, weights) {
-        let sumVW = 0, sumW = 0;
+        let sumVW = 0,
+            sumW = 0;
         for (let i = 0; i < values.length; i++) {
             sumVW += values[i] * weights[i];
-            sumW  += weights[i];
+            sumW += weights[i];
         }
         return sumVW / sumW;
     }
@@ -53,5 +53,4 @@ window.MathEngine = (() => {
     }
 
     return { mean, weightedMean, parseInput, approxEqual, fmt };
-
 })();

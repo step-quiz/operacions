@@ -18,7 +18,6 @@
  */
 
 window.MathEngine = (() => {
-
     // -------------------------------------------------------------------------
     // AUXILIAR: Màxim Comú Divisor
     // -------------------------------------------------------------------------
@@ -41,7 +40,7 @@ window.MathEngine = (() => {
     function generateK() {
         const r = Math.random();
         if (r < 0.2) return -1;
-        if (r < 0.4) return  2;
+        if (r < 0.4) return 2;
         if (r < 0.6) return -2;
         return randIntNonZero(-6, 6);
     }
@@ -54,11 +53,13 @@ window.MathEngine = (() => {
      */
     function generateKIntExp() {
         const r = Math.random();
-        if (r < 0.25) return  2;
-        if (r < 0.50) return -2;
-        if (r < 0.75) return  3;
+        if (r < 0.25) return 2;
+        if (r < 0.5) return -2;
+        if (r < 0.75) return 3;
         let k;
-        do { k = randIntNonZero(-5, 5); } while (Math.abs(k) === 1);
+        do {
+            k = randIntNonZero(-5, 5);
+        } while (Math.abs(k) === 1);
         return k;
     }
 
@@ -75,12 +76,12 @@ window.MathEngine = (() => {
      */
     function formatPowerTerm(coef, exp) {
         if (exp === 0) {
-            if (coef ===  1) return '1';
+            if (coef === 1) return '1';
             if (coef === -1) return '-1';
             return String(coef);
         }
         const xp = exp === 1 ? 'x' : `x^{${exp}}`;
-        if (coef ===  1) return xp;
+        if (coef === 1) return xp;
         if (coef === -1) return `-${xp}`;
         return `${coef}${xp}`;
     }
@@ -92,7 +93,7 @@ window.MathEngine = (() => {
      *   k=3  → '3x'
      */
     function kxArg(k) {
-        if (k ===  1) return 'x';
+        if (k === 1) return 'x';
         if (k === -1) return '-x';
         return `${k}x`;
     }
@@ -115,9 +116,9 @@ window.MathEngine = (() => {
      */
     function formatIntResult(a, n) {
         const newExp = n + 1;
-        const g      = gcd(Math.abs(a), Math.abs(newExp));
-        const numC   = a / g;
-        const denC   = newExp / g;
+        const g = gcd(Math.abs(a), Math.abs(newExp));
+        const numC = a / g;
+        const denC = newExp / g;
 
         // Denominador sempre positiu
         const finalNum = numC * Math.sign(denC);
@@ -128,7 +129,7 @@ window.MathEngine = (() => {
         } else {
             // \frac{|finalNum|·x^{newExp}}{finalDen} amb signe separat
             const numTex = formatPowerTerm(Math.abs(finalNum), newExp);
-            const sign   = finalNum < 0 ? '-' : '';
+            const sign = finalNum < 0 ? '-' : '';
             return `${sign}\\frac{${numTex}}{${finalDen}}`;
         }
     }
@@ -142,10 +143,10 @@ window.MathEngine = (() => {
      */
     function formatExpPrimitive(k) {
         const argTex = kxArg(k);
-        const eTex   = `e^{${argTex}}`;
-        if (k ===  1) return eTex;
+        const eTex = `e^{${argTex}}`;
+        if (k === 1) return eTex;
         if (k === -1) return `-${eTex}`;
-        if (k  >  0)  return `\\frac{${eTex}}{${k}}`;
+        if (k > 0) return `\\frac{${eTex}}{${k}}`;
         return `-\\frac{${eTex}}{${Math.abs(k)}}`;
     }
 
@@ -156,14 +157,14 @@ window.MathEngine = (() => {
      */
     function fmtFraction(a, newExp, divisor) {
         if (divisor === 0) return '\\text{?}';
-        const g      = gcd(Math.abs(a), Math.abs(divisor));
-        const numC   = a / g;
-        const denC   = divisor / g;
-        const fNum   = numC * Math.sign(denC);
-        const fDen   = Math.abs(denC);
+        const g = gcd(Math.abs(a), Math.abs(divisor));
+        const numC = a / g;
+        const denC = divisor / g;
+        const fNum = numC * Math.sign(denC);
+        const fDen = Math.abs(denC);
         if (fDen === 1) return formatPowerTerm(fNum, newExp);
         const numTex = formatPowerTerm(Math.abs(fNum), newExp);
-        const sign   = fNum < 0 ? '-' : '';
+        const sign = fNum < 0 ? '-' : '';
         return `${sign}\\frac{${numTex}}{${fDen}}`;
     }
 
@@ -178,7 +179,6 @@ window.MathEngine = (() => {
         kxArg,
         formatIntResult,
         formatExpPrimitive,
-        fmtFraction
+        fmtFraction,
     };
-
 })();

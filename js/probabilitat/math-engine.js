@@ -14,7 +14,6 @@
  */
 
 window.MathEngine = (() => {
-
     // -------------------------------------------------------------------------
     // ARITMÈTICA DE FRACCIONS
     // -------------------------------------------------------------------------
@@ -23,7 +22,11 @@ window.MathEngine = (() => {
     function gcd(a, b) {
         a = Math.abs(a);
         b = Math.abs(b);
-        while (b) { const t = b; b = a % b; a = t; }
+        while (b) {
+            const t = b;
+            b = a % b;
+            a = t;
+        }
         return a;
     }
 
@@ -82,9 +85,13 @@ window.MathEngine = (() => {
     // API PÚBLICA
     // -------------------------------------------------------------------------
     return {
-        gcd, simplify, frac,
-        mulFrac, addFrac, subFrac,
-        fracEqual, fracToTex
+        gcd,
+        simplify,
+        frac,
+        mulFrac,
+        addFrac,
+        subFrac,
+        fracEqual,
+        fracToTex,
     };
-
 })();

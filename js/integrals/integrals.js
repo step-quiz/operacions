@@ -20,16 +20,16 @@
  * ============================================================================
  */
 
-let errorHistory  = [];
+let errorHistory = [];
 let challengeData = null;
 
 const els = {
-    fxDisplay:        document.getElementById('fx-display'),
+    fxDisplay: document.getElementById('fx-display'),
     optionsContainer: document.getElementById('options-container'),
-    feedback:         document.getElementById('missatge-feedback'),
-    scoreDisplay:     document.getElementById('score-display'),
-    lvlDisplay:       document.getElementById('lvl-display'),
-    attemptsDisplay:  document.getElementById('attempts-display')
+    feedback: document.getElementById('missatge-feedback'),
+    scoreDisplay: document.getElementById('score-display'),
+    lvlDisplay: document.getElementById('lvl-display'),
+    attemptsDisplay: document.getElementById('attempts-display'),
 };
 
 // =========================================================================
@@ -37,12 +37,12 @@ const els = {
 // =========================================================================
 function buildLevel() {
     isTransitioning = false;
-    attemptsLeft    = MAX_INTENTS;
+    attemptsLeft = MAX_INTENTS;
 
-    els.lvlDisplay.innerText      = `Integral ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.lvlDisplay.innerText = `Integral ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
-    els.feedback.style.opacity    = '0';
-    els.feedback.innerHTML        = '';
+    els.feedback.style.opacity = '0';
+    els.feedback.innerHTML = '';
 
     challengeData = QuestionBank.generateChallenge();
 
@@ -52,7 +52,7 @@ function buildLevel() {
 
     els.optionsContainer.innerHTML = '';
     allOptions.forEach((opt, i) => {
-        const btn  = document.createElement('button');
+        const btn = document.createElement('button');
         btn.className = 'btn-option';
         // Retard escalonat per a l'animació popIn
         btn.style.animationDelay = `${i * 60}ms`;
@@ -77,29 +77,29 @@ function renderFeedback(opt, showSolution = false) {
     const fc = els.feedback;
 
     if (opt.isCorrect) {
-        fc.innerHTML     = `<strong class="feedback-correct">${opt.feedback}</strong>`;
+        fc.innerHTML = `<strong class="feedback-correct">${opt.feedback}</strong>`;
         fc.style.opacity = '1';
         return;
     }
 
     // ── Nivell 1: feedback immediat
-    fc.innerHTML     = `<span class="feedback-wrong">${opt.feedback}</span>`;
+    fc.innerHTML = `<span class="feedback-wrong">${opt.feedback}</span>`;
     fc.style.opacity = '1';
 
     // ── Nivell 2: botó "+ ajuda" que desplega el hint (si existeix)
     const hint = DistractorLib.FeedbackHints[opt.errorType];
     if (hint) {
-        const toggleBtn       = document.createElement('button');
-        toggleBtn.className   = 'hint-toggle-btn';
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'hint-toggle-btn';
         toggleBtn.textContent = '+ ajuda';
 
-        const hintBox         = document.createElement('div');
-        hintBox.className     = 'hint-box';
-        hintBox.textContent   = hint;
+        const hintBox = document.createElement('div');
+        hintBox.className = 'hint-box';
+        hintBox.textContent = hint;
         hintBox.style.display = 'none';
 
         toggleBtn.addEventListener('click', () => {
-            const isHidden        = hintBox.style.display === 'none';
+            const isHidden = hintBox.style.display === 'none';
             hintBox.style.display = isHidden ? 'block' : 'none';
             toggleBtn.textContent = isHidden ? '− ajuda' : '+ ajuda';
         });
@@ -111,14 +111,14 @@ function renderFeedback(opt, showSolution = false) {
 
     // ── Nivell 3: primitiva correcta (quan s'esgoten els intents)
     if (showSolution && challengeData?.solutionTex) {
-        const solutionRow     = document.createElement('div');
+        const solutionRow = document.createElement('div');
         solutionRow.className = 'solution-reveal';
 
-        const label       = document.createElement('span');
-        label.className   = 'solution-label';
-        label.innerText   = 'La primitiva correcta era:';
+        const label = document.createElement('span');
+        label.className = 'solution-label';
+        label.innerText = 'La primitiva correcta era:';
 
-        const formula     = document.createElement('span');
+        const formula = document.createElement('span');
         formula.className = 'solution-formula';
         katex.render(challengeData.solutionTex, formula, { throwOnError: false });
 
@@ -140,21 +140,20 @@ function checkAnswer(opt, clickedBtn) {
 
         recordAnswerToHistory(challengeData.promptTex, opt.tex, true);
         errorHistory.push({
-            question:  challengeData.promptTex,
+            question: challengeData.promptTex,
             questionN: currentOperation,
             errorType: null,
             isCorrect: true,
-            meta:      challengeData.meta
+            meta: challengeData.meta,
         });
 
-        const fails       = MAX_INTENTS - attemptsLeft;
-        const levelPoints = Math.max(0, 10 - (fails * 2));
-        sessionScore     += levelPoints;
+        const fails = MAX_INTENTS - attemptsLeft;
+        const levelPoints = Math.max(0, 10 - fails * 2);
+        sessionScore += levelPoints;
         els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
 
-        Array.from(els.optionsContainer.children).forEach(b => b.style.pointerEvents = 'none');
+        Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
         _finishOp(levelPoints);
-
     } else {
         attemptsLeft--;
         els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
@@ -163,11 +162,11 @@ function checkAnswer(opt, clickedBtn) {
         if (clickedBtn) clickedBtn.classList.add('wrong');
 
         errorHistory.push({
-            question:  challengeData.promptTex,
+            question: challengeData.promptTex,
             questionN: currentOperation,
             errorType: opt.errorType,
             isCorrect: false,
-            meta:      challengeData.meta
+            meta: challengeData.meta,
         });
 
         const isLastAttempt = attemptsLeft <= 0;
@@ -226,26 +225,33 @@ function showSessionSummary() {
         byQuestion[e.questionN].push(e);
     });
 
-    let firstTry = 0, retried = 0, failed = 0;
+    let firstTry = 0,
+        retried = 0,
+        failed = 0;
     Object.values(byQuestion).forEach(entries => {
-        const hasCorrect = entries.some(e =>  e.isCorrect);
-        const hasError   = entries.some(e => !e.isCorrect);
-        if      (hasCorrect && !hasError) firstTry++;
-        else if (hasCorrect)              retried++;
-        else                              failed++;
+        const hasCorrect = entries.some(e => e.isCorrect);
+        const hasError = entries.some(e => !e.isCorrect);
+        if (hasCorrect && !hasError) firstTry++;
+        else if (hasCorrect) retried++;
+        else failed++;
     });
 
     // ── Freqüència d'errors conceptuals ──
     const errorCounts = {};
     errorHistory
         .filter(e => !e.isCorrect && e.errorType)
-        .forEach(e => { errorCounts[e.errorType] = (errorCounts[e.errorType] || 0) + 1; });
+        .forEach(e => {
+            errorCounts[e.errorType] = (errorCounts[e.errorType] || 0) + 1;
+        });
 
     const sortedErrors = Object.entries(errorCounts).sort((a, b) => b[1] - a[1]);
 
     // ── Construeix el DOM del resum ──
     const panel = document.getElementById('session-summary');
-    if (!panel) { endSession(); return; }
+    if (!panel) {
+        endSession();
+        return;
+    }
 
     const maxScore = TOTAL_OPERATIONS * 10;
     let html = `
@@ -272,7 +278,7 @@ function showSessionSummary() {
         html += `<div class="summary-errors-title">Errors conceptuals detectats</div>
                  <div class="summary-errors-list">`;
         sortedErrors.forEach(([type, count]) => {
-            const hint  = DistractorLib.FeedbackHints[type] || '';
+            const hint = DistractorLib.FeedbackHints[type] || '';
             const times = count === 1 ? '1 vegada' : `${count} vegades`;
             html += `
                 <div class="summary-error-item">
@@ -297,12 +303,11 @@ function showSessionSummary() {
     if (gameScreen) gameScreen.style.display = 'none';
     panel.style.display = 'block';
 
-    document.getElementById('summary-continue-btn')
-        .addEventListener('click', () => {
-            panel.style.display = 'none';
-            errorHistory = [];   // reset per a la sessió següent
-            endSession();
-        });
+    document.getElementById('summary-continue-btn').addEventListener('click', () => {
+        panel.style.display = 'none';
+        errorHistory = []; // reset per a la sessió següent
+        endSession();
+    });
 }
 
 /**
@@ -310,15 +315,15 @@ function showSessionSummary() {
  */
 function _errorTypeLabel(type) {
     const labels = {
-        INT_NO_DIVIDE:      'Divisió per (n+1) oblidada',
-        INT_WRONG_DIVISOR:  'Divisor incorrecte: n en lloc de (n+1)',
-        INT_WRONG_EXP:      'Exponent no incrementat',
-        INT_DERIVATIVE:     'S\'ha derivat en lloc d\'integrar',
-        INT_MULTIPLY:       'Multiplicació en lloc de divisió per (n+1)',
-        EXP_FORGOT_COEF:    'Factor 1/k oblidat a l\'exponencial',
-        EXP_DERIVATIVE:     'Regla de la derivada aplicada a l\'integral',
-        EXP_WRONG_COEF:     'Coeficient de l\'exponencial incorrecte',
-        NO_PRIMITIVE:       'Funció original no integrada',
+        INT_NO_DIVIDE: 'Divisió per (n+1) oblidada',
+        INT_WRONG_DIVISOR: 'Divisor incorrecte: n en lloc de (n+1)',
+        INT_WRONG_EXP: 'Exponent no incrementat',
+        INT_DERIVATIVE: "S'ha derivat en lloc d'integrar",
+        INT_MULTIPLY: 'Multiplicació en lloc de divisió per (n+1)',
+        EXP_FORGOT_COEF: "Factor 1/k oblidat a l'exponencial",
+        EXP_DERIVATIVE: "Regla de la derivada aplicada a l'integral",
+        EXP_WRONG_COEF: "Coeficient de l'exponencial incorrecte",
+        NO_PRIMITIVE: 'Funció original no integrada',
         INTEGRAL_CONFUSION: 'Confusió entre primitiva i derivada',
     };
     return labels[type] || type;
@@ -328,7 +333,7 @@ function _errorTypeLabel(type) {
 // 6. Arrencada automàtica
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    if (typeof validateConfig   === 'function') validateConfig();
+    if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
 
     if (typeof startGame === 'function') {

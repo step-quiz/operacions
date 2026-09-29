@@ -15,9 +15,8 @@
  */
 
 window.QuestionBank = (() => {
-
     const ME = MathEngine;
-    const S  = Strings;
+    const S = Strings;
 
     // =====================================================================
     // GENERADORS DE QUALIFICACIONS
@@ -49,24 +48,39 @@ window.QuestionBank = (() => {
 
     const _weightSets = {
         2: [
-            [60, 40], [70, 30], [80, 20], [50, 50],
+            [60, 40],
+            [70, 30],
+            [80, 20],
+            [50, 50],
         ],
         3: [
-            [30, 30, 40], [20, 30, 50], [25, 25, 50],
-            [20, 40, 40], [33, 33, 34], [10, 40, 50],
+            [30, 30, 40],
+            [20, 30, 50],
+            [25, 25, 50],
+            [20, 40, 40],
+            [33, 33, 34],
+            [10, 40, 50],
         ],
         4: [
-            [10, 20, 30, 40], [20, 20, 30, 30], [15, 25, 25, 35],
-            [10, 30, 30, 30], [25, 25, 25, 25], [10, 20, 20, 50],
+            [10, 20, 30, 40],
+            [20, 20, 30, 30],
+            [15, 25, 25, 35],
+            [10, 30, 30, 30],
+            [25, 25, 25, 25],
+            [10, 20, 20, 50],
         ],
         5: [
-            [10, 10, 20, 30, 30], [10, 15, 20, 25, 30],
-            [5, 15, 20, 30, 30],  [10, 10, 20, 20, 40],
+            [10, 10, 20, 30, 30],
+            [10, 15, 20, 25, 30],
+            [5, 15, 20, 30, 30],
+            [10, 10, 20, 20, 40],
             [20, 20, 20, 20, 20],
         ],
         6: [
-            [5, 10, 10, 20, 25, 30], [10, 10, 10, 20, 20, 30],
-            [5, 5, 15, 25, 25, 25],  [10, 10, 15, 15, 25, 25],
+            [5, 10, 10, 20, 25, 30],
+            [10, 10, 10, 20, 20, 30],
+            [5, 5, 15, 25, 25, 25],
+            [10, 10, 15, 15, 25, 25],
         ],
     };
 
@@ -95,13 +109,13 @@ window.QuestionBank = (() => {
     // =====================================================================
 
     function generateSimpleMean() {
-        const n       = randInt(2, 6);
-        const grades  = _generateGrades(n);
+        const n = randInt(2, 6);
+        const grades = _generateGrades(n);
         const correct = ME.mean(grades);
 
-        const subjs       = shuffle([...S.Subjects]);
+        const subjs = shuffle([...S.Subjects]);
         const subjectList = subjs.slice(0, n);
-        const evaluation  = pick(S.Evaluations);
+        const evaluation = pick(S.Evaluations);
 
         const rows = subjectList.map((s, i) => ({ label: s, value: grades[i] }));
 
@@ -129,26 +143,26 @@ window.QuestionBank = (() => {
     }
 
     function generateWeightedMean() {
-        const n       = randInt(2, 5);
-        const grades  = _generateGrades(n);
-        const wSet    = pick(_weightSets[n]);
+        const n = randInt(2, 5);
+        const grades = _generateGrades(n);
+        const wSet = pick(_weightSets[n]);
         const weights = shuffle([...wSet]);
         const correct = ME.weightedMean(grades, weights);
 
-        const parts   = _weightedContext(n, weights);
+        const parts = _weightedContext(n, weights);
         const subject = pick(S.Subjects);
 
         const rows = parts.map((p, i) => ({
-            label:  p.label.charAt(0).toUpperCase() + p.label.slice(1),
-            value:  grades[i],
+            label: p.label.charAt(0).toUpperCase() + p.label.slice(1),
+            value: grades[i],
             weight: p.w,
         }));
 
         // Ajuda pas a pas
         const products = grades.map((g, i) => `${ME.fmt(g, 2)} × ${weights[i]}`);
         const prodVals = grades.map((g, i) => g * weights[i]);
-        const sumProd  = prodVals.reduce((s, v) => s + v, 0);
-        const sumW     = weights.reduce((s, w) => s + w, 0);
+        const sumProd = prodVals.reduce((s, v) => s + v, 0);
+        const sumW = weights.reduce((s, w) => s + w, 0);
 
         const helpLines = [
             S.Help.weightedIntro,
@@ -178,8 +192,9 @@ window.QuestionBank = (() => {
         return Math.random() < 0.5 ? generateSimpleMean() : generateWeightedMean();
     }
 
-    function resetSession() { /* no-op */ }
+    function resetSession() {
+        /* no-op */
+    }
 
     return { generateChallenge, resetSession };
-
 })();

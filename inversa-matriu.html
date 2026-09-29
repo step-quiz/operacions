@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Sessions fixes (?fixed=A/B/C): ha de ser el PRIMER script -->
+    <script src="js/fixed-sessions.js"></script>
     <meta name="description" content="Activitat interactiva de matemàtiques — Inversa d'una matriu 3×3">
     <link rel="icon" href="icon.png">
     <title>Inversa d'una matriu 3×3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/tokens.css">
     <style>
         :root {
             --primary: #2563eb;
             --primary-light: #3b82f6;
             --primary-dark: #1d4ed8;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --warning: #d97706;
             --gris-fosc: #64748b;
             --gris-text: #334155;
             --bg: #f0f4ff;
@@ -584,6 +584,7 @@
             resetStepper();
         } else {
             manualInputActive = false;
+            window.FixedSessions?.next('m');   // sessions fixes: mateix exercici per a tothom
             generateMatrix();
             precompute();
             renderCurrentStep();

@@ -14,13 +14,14 @@
  * ============================================================================
  */
 'use strict';
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
-const vm   = require('vm');
+const vm = require('vm');
 
 const ROOT = path.resolve(__dirname, '..');
 
-let passed = 0, failed = 0;
+let passed = 0,
+    failed = 0;
 const failures = [];
 let currentSuite = '';
 
@@ -68,7 +69,7 @@ const MULBERRY32 = `function (seed) {
  */
 function loadModule(files, { search = '', seed = 12345 } = {}) {
     const ctx = { console, URLSearchParams };
-    ctx.window   = ctx;
+    ctx.window = ctx;
     ctx.location = { search, pathname: '/test.html' };
     vm.createContext(ctx);
     vm.runInContext(`Math.random = (${MULBERRY32})(${seed});`, ctx);
@@ -83,8 +84,9 @@ function listFiles(dir, exts, skip = ['.git', 'node_modules', 'vendor']) {
     const out = [];
     for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
         const rel = path.join(dir, e.name);
-        if (e.isDirectory()) { if (!skip.includes(e.name)) out.push(...listFiles(rel, exts, skip)); }
-        else if (exts.some(x => e.name.endsWith(x))) out.push(rel);
+        if (e.isDirectory()) {
+            if (!skip.includes(e.name)) out.push(...listFiles(rel, exts, skip));
+        } else if (exts.some(x => e.name.endsWith(x))) out.push(rel);
     }
     return out;
 }

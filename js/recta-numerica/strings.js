@@ -7,14 +7,13 @@
  * ============================================================================
  */
 window.Strings = (() => {
-
     /** Etiqueta de dia en català */
     function dayLabel(x) {
-        if (x ===  0) return 'avui';
+        if (x === 0) return 'avui';
         if (x === -1) return 'ahir';
         if (x === -2) return "abans-d'ahir";
-        if (x ===  1) return 'demà';
-        if (x ===  2) return 'demà-passat';
+        if (x === 1) return 'demà';
+        if (x === 2) return 'demà-passat';
         return x < 0 ? `fa ${Math.abs(x)} dies` : `d'aquí ${x} dies`;
     }
 
@@ -22,7 +21,7 @@ window.Strings = (() => {
     function tempLabel(y) {
         if (y === 0) return '0 graus';
         const abs = Math.abs(y);
-        const pl  = abs === 1 ? 'grau' : 'graus';
+        const pl = abs === 1 ? 'grau' : 'graus';
         return y > 0 ? `${abs} ${pl} sobre zero` : `${abs} ${pl} sota zero`;
     }
 
@@ -46,7 +45,7 @@ window.Strings = (() => {
      */
     function numLabel(y) {
         if (y === 0) return '0 ºC';
-        return y > 0 ? `${y} ºC` : `\u2212${Math.abs(y)} ºC`;   // −  (U+2212)
+        return y > 0 ? `${y} ºC` : `\u2212${Math.abs(y)} ºC`; // −  (U+2212)
     }
 
     /**
@@ -61,7 +60,7 @@ window.Strings = (() => {
     /** Verb de temps per a un dia concret */
     function verbTense(x) {
         // Present/passat → "era" (o "és" per a avui), futur → "serà"
-        if (x  <  0) return 'va ser';
+        if (x < 0) return 'va ser';
         if (x === 0) return 'és';
         return 'es preveu que sigui';
     }
@@ -88,15 +87,17 @@ window.Strings = (() => {
     // ---- FEEDBACKS ------------------------------------------------------
 
     const feedback = {
-        correct_generic:    '✓ Correcte!',
-        correct_q1:         (y)    => `✓ Correcte! Avui la temperatura és ${tempLabel(y)}.`,
-        correct_q2:         (x, y) => `✓ Correcte! ${capitalize(dayLabel(x))}, la temperatura ${verbTense(x)} de ${tempLabel(y)}.`,
-        correct_q3_zero:    (y)    => `✓ Correcte! Cap punt del gràfic té una temperatura de ${tempLabel(y)}.`,
-        correct_q3_some:    (n, y) => `✓ Correcte! Hi ha ${n === 1 ? '1 dia' : `${n} dies`} amb temperatura de ${tempLabel(y)}.`,
-        correct_q4:         '✓ Correcte! Has llegit bé el gràfic.',
-        wrong_q1q2:         'Busca el dia a l\'eix horitzontal, i llegeix el valor a l\'eix vertical.',
-        wrong_q3:           'Torna a comptar els punts.',
-        wrong_q4:           'Llegeix atentament el gràfic.',
+        correct_generic: '✓ Correcte!',
+        correct_q1: y => `✓ Correcte! Avui la temperatura és ${tempLabel(y)}.`,
+        correct_q2: (x, y) =>
+            `✓ Correcte! ${capitalize(dayLabel(x))}, la temperatura ${verbTense(x)} de ${tempLabel(y)}.`,
+        correct_q3_zero: y => `✓ Correcte! Cap punt del gràfic té una temperatura de ${tempLabel(y)}.`,
+        correct_q3_some: (n, y) =>
+            `✓ Correcte! Hi ha ${n === 1 ? '1 dia' : `${n} dies`} amb temperatura de ${tempLabel(y)}.`,
+        correct_q4: '✓ Correcte! Has llegit bé el gràfic.',
+        wrong_q1q2: "Busca el dia a l'eix horitzontal, i llegeix el valor a l'eix vertical.",
+        wrong_q3: 'Torna a comptar els punts.',
+        wrong_q4: 'Llegeix atentament el gràfic.',
     };
 
     function capitalize(s) {
@@ -104,9 +105,18 @@ window.Strings = (() => {
     }
 
     return {
-        dayLabel, tempLabel, changeLabel, signLabel,
-        numLabel, countLabel, verbTense, capitalize,
-        Q1_PROMPT, q2Prompt, q3Prompt, Q4_PROMPT,
-        feedback
+        dayLabel,
+        tempLabel,
+        changeLabel,
+        signLabel,
+        numLabel,
+        countLabel,
+        verbTense,
+        capitalize,
+        Q1_PROMPT,
+        q2Prompt,
+        q3Prompt,
+        Q4_PROMPT,
+        feedback,
     };
 })();

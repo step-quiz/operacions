@@ -13,21 +13,21 @@
  */
 
 let challengeData = null;
-let helpExpanded  = false;
+let helpExpanded = false;
 
 const ME = MathEngine;
-const S  = Strings;
+const S = Strings;
 
 const els = {
-    scoreDisplay:    document.getElementById('score-display'),
-    lvlDisplay:      document.getElementById('lvl-display'),
+    scoreDisplay: document.getElementById('score-display'),
+    lvlDisplay: document.getElementById('lvl-display'),
     attemptsDisplay: document.getElementById('attempts-display'),
-    enunciat:        document.getElementById('enunciat'),
-    inputZone:       document.getElementById('input-zone'),
-    feedback:        document.getElementById('missatge-feedback'),
-    helpPanel:       document.getElementById('help-panel'),
-    helpContent:     document.getElementById('help-content'),
-    btnHelp:         document.getElementById('btn-help'),
+    enunciat: document.getElementById('enunciat'),
+    inputZone: document.getElementById('input-zone'),
+    feedback: document.getElementById('missatge-feedback'),
+    helpPanel: document.getElementById('help-panel'),
+    helpContent: document.getElementById('help-content'),
+    btnHelp: document.getElementById('btn-help'),
 };
 
 // =========================================================================
@@ -35,17 +35,17 @@ const els = {
 // =========================================================================
 function buildLevel() {
     isTransitioning = false;
-    attemptsLeft    = MAX_INTENTS;
-    helpExpanded    = false;
+    attemptsLeft = MAX_INTENTS;
+    helpExpanded = false;
 
-    els.lvlDisplay.innerText      = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.lvlDisplay.innerText = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
     els.attemptsDisplay.classList.remove('danger');
-    els.feedback.style.opacity    = '0';
-    els.feedback.innerHTML        = '';
-    els.helpPanel.style.display   = 'none';
-    els.helpContent.innerHTML     = '';
-    els.btnHelp.textContent       = S.Btn.helpShow;
+    els.feedback.style.opacity = '0';
+    els.feedback.innerHTML = '';
+    els.helpPanel.style.display = 'none';
+    els.helpContent.innerHTML = '';
+    els.btnHelp.textContent = S.Btn.helpShow;
 
     challengeData = QuestionBank.generateChallenge();
     renderProblem(challengeData);
@@ -107,7 +107,10 @@ function renderInput() {
 
     btn.addEventListener('click', checkAnswer);
     inp.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); checkAnswer(); }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            checkAnswer();
+        }
     });
 
     // Teclat custom en mòbil
@@ -145,19 +148,19 @@ function checkAnswer() {
         inp.classList.add('input-correct');
         inp.readOnly = true;
 
-        const fails       = MAX_INTENTS - attemptsLeft;
-        const levelPoints = Math.max(0, 10 - (fails * 2));
-        sessionScore     += levelPoints;
+        const fails = MAX_INTENTS - attemptsLeft;
+        const levelPoints = Math.max(0, 10 - fails * 2);
+        sessionScore += levelPoints;
         els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
         recordResult(Math.min(fails + 1, 3));
         recordAnswerToHistory(
             challengeData.type === 'weighted' ? S.History.weighted : S.History.simple,
-            ME.fmt(val, 2), true
+            ME.fmt(val, 2),
+            true
         );
 
         showFeedback(S.Feedback.correct(ME.fmt(correct, 2)), 'ok');
         _finishOp(levelPoints);
-
     } else {
         // INCORRECTE
         attemptsLeft--;
@@ -174,7 +177,8 @@ function checkAnswer() {
             recordResult(4);
             recordAnswerToHistory(
                 challengeData.type === 'weighted' ? S.History.weighted : S.History.simple,
-                ME.fmt(val, 2), false
+                ME.fmt(val, 2),
+                false
             );
 
             // Mostra la solució i expandeix l'ajuda automàticament
@@ -183,7 +187,7 @@ function checkAnswer() {
             setTimeout(() => _finishOp(0), 4000);
         } else {
             // Encara té intents
-            let msg = '';
+            let msg;
             if (challengeData.type === 'weighted') {
                 msg = ME.approxEqual(val, ME.mean(challengeData.values), 0.04)
                     ? S.Feedback.wrongUsedSimple
@@ -202,7 +206,7 @@ function checkAnswer() {
 function toggleHelp() {
     if (helpExpanded) {
         els.helpPanel.style.display = 'none';
-        els.btnHelp.textContent     = S.Btn.helpShow;
+        els.btnHelp.textContent = S.Btn.helpShow;
         helpExpanded = false;
     } else {
         expandHelp();
@@ -211,7 +215,7 @@ function toggleHelp() {
 
 function expandHelp() {
     els.helpPanel.style.display = 'block';
-    els.btnHelp.textContent     = S.Btn.helpHide;
+    els.btnHelp.textContent = S.Btn.helpHide;
     helpExpanded = true;
     els.helpPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -237,8 +241,8 @@ function _finishOp(levelPoints) {
 // =========================================================================
 function showFeedback(msg, type) {
     const fc = els.feedback;
-    fc.innerHTML   = msg;
-    fc.className   = 'feedback-bar fb-' + type;
+    fc.innerHTML = msg;
+    fc.className = 'feedback-bar fb-' + type;
     fc.style.opacity = '1';
 }
 
@@ -246,7 +250,7 @@ function showFeedback(msg, type) {
 // 8. ARRENCADA
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    if (typeof validateConfig   === 'function') validateConfig();
+    if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
 
     els.btnHelp.addEventListener('click', toggleHelp);

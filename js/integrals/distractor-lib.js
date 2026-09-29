@@ -29,7 +29,6 @@
  */
 
 window.DistractorLib = (() => {
-
     // =========================================================================
     // ÀLIES LOCAL → Strings.Feedback (font única de tots els textos)
     // =========================================================================
@@ -38,15 +37,15 @@ window.DistractorLib = (() => {
     // =========================================================================
     // TAXONOMIA D'errorType
     // =========================================================================
-    const INT_NO_DIVIDE      = 'INT_NO_DIVIDE';
-    const INT_WRONG_DIVISOR  = 'INT_WRONG_DIVISOR';
-    const INT_WRONG_EXP      = 'INT_WRONG_EXP';
-    const INT_DERIVATIVE     = 'INT_DERIVATIVE';
-    const INT_MULTIPLY       = 'INT_MULTIPLY';
-    const EXP_FORGOT_COEF    = 'EXP_FORGOT_COEF';
-    const EXP_DERIVATIVE     = 'EXP_DERIVATIVE';
-    const EXP_WRONG_COEF     = 'EXP_WRONG_COEF';
-    const NO_PRIMITIVE       = 'NO_PRIMITIVE';
+    const INT_NO_DIVIDE = 'INT_NO_DIVIDE';
+    const INT_WRONG_DIVISOR = 'INT_WRONG_DIVISOR';
+    const INT_WRONG_EXP = 'INT_WRONG_EXP';
+    const INT_DERIVATIVE = 'INT_DERIVATIVE';
+    const INT_MULTIPLY = 'INT_MULTIPLY';
+    const EXP_FORGOT_COEF = 'EXP_FORGOT_COEF';
+    const EXP_DERIVATIVE = 'EXP_DERIVATIVE';
+    const EXP_WRONG_COEF = 'EXP_WRONG_COEF';
+    const NO_PRIMITIVE = 'NO_PRIMITIVE';
     const INTEGRAL_CONFUSION = 'INTEGRAL_CONFUSION';
 
     // =========================================================================
@@ -57,10 +56,10 @@ window.DistractorLib = (() => {
     // =========================================================================
     // ÀLIES LOCALS → MathEngine (font única, evita duplicació)
     // =========================================================================
-    const _fmt    = MathEngine.formatPowerTerm;
+    const _fmt = MathEngine.formatPowerTerm;
     const _fmtInt = MathEngine.formatIntResult;
-    const _fmtF   = MathEngine.fmtFraction;
-    const _kxArg  = MathEngine.kxArg;
+    const _fmtF = MathEngine.fmtFraction;
+    const _kxArg = MathEngine.kxArg;
 
     // =========================================================================
     // POOL: ∫a·x^n dx = [a/(n+1)]·x^{n+1}
@@ -75,7 +74,7 @@ window.DistractorLib = (() => {
      */
     function _buildPowerPool(a, n) {
         const correct = _fmtInt(a, n);
-        const pool    = [];
+        const pool = [];
 
         // ── INT_DERIVATIVE: ha derivat → a·n·x^{n-1}
         // L'error més clar: l'exponent ha baixat en lloc de pujar.
@@ -93,7 +92,12 @@ window.DistractorLib = (() => {
         if (n !== 0) {
             const wrongDivTex = _fmtF(a, n + 1, n);
             if (wrongDivTex !== correct && !pool.find(d => d.tex === wrongDivTex))
-                pool.push({ tex: wrongDivTex, feedback: S.power.wrong_divisor, errorType: INT_WRONG_DIVISOR, scope: 'rule:power' });
+                pool.push({
+                    tex: wrongDivTex,
+                    feedback: S.power.wrong_divisor,
+                    errorType: INT_WRONG_DIVISOR,
+                    scope: 'rule:power',
+                });
         }
 
         // ── INT_WRONG_EXP: divisor correcte (n+1) però exponent no incrementat → [a/(n+1)]·x^n
@@ -101,18 +105,33 @@ window.DistractorLib = (() => {
         if (n + 1 !== 0) {
             const wrongExpTex = _fmtF(a, n, n + 1);
             if (wrongExpTex !== correct && !pool.find(d => d.tex === wrongExpTex))
-                pool.push({ tex: wrongExpTex, feedback: S.power.wrong_exp, errorType: INT_WRONG_EXP, scope: 'rule:power' });
+                pool.push({
+                    tex: wrongExpTex,
+                    feedback: S.power.wrong_exp,
+                    errorType: INT_WRONG_EXP,
+                    scope: 'rule:power',
+                });
         }
 
         // ── NO_PRIMITIVE: funció original a·x^n sense integrar
         const originalTex = _fmt(a, n);
         if (!pool.find(d => d.tex === originalTex))
-            pool.push({ tex: originalTex, feedback: S.power.no_primitive, errorType: NO_PRIMITIVE, scope: 'universal' });
+            pool.push({
+                tex: originalTex,
+                feedback: S.power.no_primitive,
+                errorType: NO_PRIMITIVE,
+                scope: 'universal',
+            });
 
         // ── INT_MULTIPLY: ha multiplicat per (n+1) en lloc de dividir → a·(n+1)·x^{n+1}
         const multTex = _fmt(a * (n + 1), n + 1);
         if (multTex !== correct && !pool.find(d => d.tex === multTex))
-            pool.push({ tex: multTex, feedback: S.power.multiply_not_divide, errorType: INT_MULTIPLY, scope: 'rule:power' });
+            pool.push({
+                tex: multTex,
+                feedback: S.power.multiply_not_divide,
+                errorType: INT_MULTIPLY,
+                scope: 'rule:power',
+            });
 
         return pool;
     }
@@ -129,9 +148,9 @@ window.DistractorLib = (() => {
      */
     function _buildExpPool(k) {
         const argTex = _kxArg(k);
-        const eTex   = `e^{${argTex}}`;
+        const eTex = `e^{${argTex}}`;
         const correct = MathEngine.formatExpPrimitive(k);
-        const pool    = [];
+        const pool = [];
 
         // ── EXP_FORGOT_COEF: e^{kx} sense factor 1/k
         // L'error més freqüent: l'alumne pensa que la primitiva d'e^{kx} és e^{kx}.
@@ -142,7 +161,7 @@ window.DistractorLib = (() => {
         // Per k>0: 'k·e^{kx}'. Per k<0: '-|k|·e^{kx}'.
         let derivExpTex;
         if (k > 0) derivExpTex = `${k}${eTex}`;
-        else       derivExpTex = `-${Math.abs(k)}${eTex}`;
+        else derivExpTex = `-${Math.abs(k)}${eTex}`;
         if (derivExpTex !== correct && !pool.find(d => d.tex === derivExpTex))
             pool.push({ tex: derivExpTex, feedback: S.exp.derivative, errorType: EXP_DERIVATIVE, scope: 'family:exp' });
 
@@ -150,7 +169,12 @@ window.DistractorLib = (() => {
         const k2 = k * k;
         const wrongCoefTex = `\\frac{${eTex}}{${k2}}`;
         if (wrongCoefTex !== correct && !pool.find(d => d.tex === wrongCoefTex))
-            pool.push({ tex: wrongCoefTex, feedback: S.exp.double_int, errorType: EXP_WRONG_COEF, scope: 'family:exp' });
+            pool.push({
+                tex: wrongCoefTex,
+                feedback: S.exp.double_int,
+                errorType: EXP_WRONG_COEF,
+                scope: 'family:exp',
+            });
 
         // NOTA: e^{kx} apareix ja com a EXP_FORGOT_COEF (l'alumne ha obtingut la
         // funció original sense el factor 1/k). No afegim entrada NO_PRIMITIVE
@@ -162,7 +186,12 @@ window.DistractorLib = (() => {
         const kPlus1Arg = _kxArg(k + 1);
         const powerConfTex = `e^{${kPlus1Arg}}`;
         if (powerConfTex !== correct && !pool.find(d => d.tex === powerConfTex))
-            pool.push({ tex: powerConfTex, feedback: S.exp.power_rule, errorType: INTEGRAL_CONFUSION, scope: 'family:exp' });
+            pool.push({
+                tex: powerConfTex,
+                feedback: S.exp.power_rule,
+                errorType: INTEGRAL_CONFUSION,
+                scope: 'family:exp',
+            });
 
         return pool;
     }
@@ -187,5 +216,4 @@ window.DistractorLib = (() => {
     }
 
     return { buildPower, buildExp, FeedbackHints };
-
 })();

@@ -18,6 +18,7 @@
     <script src="js/fixed-sessions.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
@@ -468,6 +469,8 @@
     }
 
     function buildExercise() {
+        // Sessions fixes: llavor pròpia per a cada exercici (secció, nivell, número)
+        window.FixedSessions?.seed(`${currentSection}-n${difficultyLevel}-q${currentOperation}`);
         if (currentSection === '3a') buildExerciseQuadrants();
         else if (currentSection === '3b') buildExerciseSitua();
     }

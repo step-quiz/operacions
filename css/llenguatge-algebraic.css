@@ -10,19 +10,27 @@ DEPENDÈNCIES: Requereix css/shared.css carregat ABANS.
 
 /* ---- Variables de color específiques ---- */
 :root {
-    --bg-color:      #f5f3ff;
-    --primary:       #7c3aed;
+    --bg-color: #f5f3ff;
+    --primary: #7c3aed;
     --primary-light: #ede9fe;
     --primary-hover: #6d28d9;
-    --primary-dark:  #4c1d95;
-    --accent:        #f59e0b;
+    --primary-dark: #4c1d95;
+    --accent: #f59e0b;
 }
 
 /* ---- Overrides de color específics ---- */
-h1 { color: var(--primary-dark); }
-.header-info { background-color: #f5f3ff; }
-.level-text  { color: var(--primary-dark); }
-.score-text  { color: var(--primary); }
+h1 {
+    color: var(--primary-dark);
+}
+.header-info {
+    background-color: #f5f3ff;
+}
+.level-text {
+    color: var(--primary-dark);
+}
+.score-text {
+    color: var(--primary);
+}
 
 /* ---- ZONA DE PREGUNTA ---- */
 .question-box {
@@ -148,31 +156,67 @@ h1 { color: var(--primary-dark); }
 
 /* ---- RESPONSIU ---- */
 @media (max-width: 480px) {
-    .question-text  { font-size: 1.15em; }
-    .question-box   { padding: 20px 15px 15px; }
-    .options-panel  { padding: 8px 15px 25px; }
-    .options-grid   { gap: 10px; }
-    .btn-option     { font-size: 1.15em; padding: 15px 10px; }
+    .question-text {
+        font-size: 1.15em;
+    }
+    .question-box {
+        padding: 20px 15px 15px;
+    }
+    .options-panel {
+        padding: 8px 15px 25px;
+    }
+    .options-grid {
+        gap: 10px;
+    }
+    .btn-option {
+        font-size: 1.15em;
+        padding: 15px 10px;
+    }
 }
 
 @media (max-width: 350px) {
-    .question-text  { font-size: 1.05em; }
-    .btn-option     { font-size: 1em; padding: 12px 8px; }
-    .options-grid   { gap: 8px; }
+    .question-text {
+        font-size: 1.05em;
+    }
+    .btn-option {
+        font-size: 1em;
+        padding: 12px 8px;
+    }
+    .options-grid {
+        gap: 8px;
+    }
 }
 
 /* ---- ANIMACIONS ESPECÍFIQUES ---- */
 @keyframes correctPop {
-    0%   { transform: scale(1); }
-    50%  { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
-.attempts-counter.blink-warning { animation: blinkAttempts 1s ease-in-out; }
+.attempts-counter.blink-warning {
+    animation: blinkAttempts 1s ease-in-out;
+}
 @keyframes blinkAttempts {
-    0%   { background-color: #facc15; }
-    25%  { background-color: white; }
-    50%  { background-color: #facc15; }
-    75%  { background-color: white; }
-    100% { background-color: #facc15; }
+    0% {
+        background-color: #facc15;
+    }
+    25% {
+        background-color: white;
+    }
+    50% {
+        background-color: #facc15;
+    }
+    75% {
+        background-color: white;
+    }
+    100% {
+        background-color: #facc15;
+    }
 }

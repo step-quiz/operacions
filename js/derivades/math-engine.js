@@ -16,7 +16,6 @@
  */
 
 window.MathEngine = (() => {
-
     // -------------------------------------------------------------------------
     // AUXILIAR: Màxim Comú Divisor
     // -------------------------------------------------------------------------
@@ -39,7 +38,7 @@ window.MathEngine = (() => {
     function generateK() {
         const r = Math.random();
         if (r < 0.2) return -1;
-        if (r < 0.4) return  2;
+        if (r < 0.4) return 2;
         if (r < 0.6) return -2;
         return randIntNonZero(-6, 6);
     }
@@ -53,11 +52,13 @@ window.MathEngine = (() => {
      */
     function generateKExp() {
         const r = Math.random();
-        if (r < 0.25) return  2;
-        if (r < 0.50) return -2;
-        if (r < 0.75) return  3;
+        if (r < 0.25) return 2;
+        if (r < 0.5) return -2;
+        if (r < 0.75) return 3;
         let k;
-        do { k = randIntNonZero(-6, 6); } while (Math.abs(k) === 1);
+        do {
+            k = randIntNonZero(-6, 6);
+        } while (Math.abs(k) === 1);
         return k;
     }
 
@@ -66,9 +67,9 @@ window.MathEngine = (() => {
         const denoms = [2, 3, 4, 5];
         let q, p, common, finalDen;
         do {
-            q        = pick(denoms);
-            p        = randIntNonZero(-5, 5);
-            common   = gcd(p, q);
+            q = pick(denoms);
+            p = randIntNonZero(-5, 5);
+            common = gcd(p, q);
             finalDen = q / common;
         } while (finalDen === 1);
         return { num: p / common, den: finalDen };
@@ -85,8 +86,8 @@ window.MathEngine = (() => {
      * k=3  → "3"
      */
     function formatK(k) {
-        if (k ===  1) return "";
-        if (k === -1) return "-";
+        if (k === 1) return '';
+        if (k === -1) return '-';
         return k.toString();
     }
 
@@ -101,12 +102,12 @@ window.MathEngine = (() => {
      */
     function formatPowerTerm(coef, exp) {
         if (exp === 0) {
-            if (coef ===  1) return '1';
+            if (coef === 1) return '1';
             if (coef === -1) return '-1';
             return String(coef);
         }
         const xp = exp === 1 ? 'x' : `x^{${exp}}`;
-        if (coef ===  1) return xp;
+        if (coef === 1) return xp;
         if (coef === -1) return `-${xp}`;
         return `${coef}${xp}`;
     }
@@ -118,7 +119,7 @@ window.MathEngine = (() => {
 
     /** "ax+b" → p.ex. 'x', '-x', '2x', '2x+3', '-x-1' */
     function fmtLinear(a, b) {
-        const aPart = a ===  1 ? 'x' : a === -1 ? '-x' : `${a}x`;
+        const aPart = a === 1 ? 'x' : a === -1 ? '-x' : `${a}x`;
         if (b === 0) return aPart;
         return `${aPart}${b > 0 ? `+${b}` : b}`;
     }
@@ -127,9 +128,9 @@ window.MathEngine = (() => {
     function fmtPoly2(b, c) {
         let s = 'x^2';
         if (b !== 0) {
-            if      (b ===  1) s += '+x';
+            if (b === 1) s += '+x';
             else if (b === -1) s += '-x';
-            else               s += b > 0 ? `+${b}x` : `${b}x`;
+            else s += b > 0 ? `+${b}x` : `${b}x`;
         }
         if (c !== 0) s += c > 0 ? `+${c}` : `${c}`;
         return s;
@@ -137,22 +138,22 @@ window.MathEngine = (() => {
 
     /** Derivada de x²+bx+c → "2x+b" → p.ex. '2x', '2x+1', '2x-3' */
     function fmtPoly2Deriv(b) {
-        if (b === 0)  return '2x';
-        if (b === 1)  return '2x+1';
+        if (b === 0) return '2x';
+        if (b === 1) return '2x+1';
         if (b === -1) return '2x-1';
         return b > 0 ? `2x+${b}` : `2x${b}`;
     }
 
     /** Constant enter com a string LaTeX: 1→'1', -1→'-1', 3→'3' */
     function fmtConst(a) {
-        if (a ===  1) return '1';
+        if (a === 1) return '1';
         if (a === -1) return '-1';
         return String(a);
     }
 
     /** kx com a argument LaTeX: 1→'x', -1→'-x', 3→'3x' */
     function kxArg(k) {
-        if (k ===  1) return 'x';
+        if (k === 1) return 'x';
         if (k === -1) return '-x';
         return `${k}x`;
     }
@@ -160,7 +161,7 @@ window.MathEngine = (() => {
     /** k·fn(arg) com a LaTeX: 1→'\\fn(arg)', -1→'-\\fn(arg)', k→'k\\fn(arg)' */
     function trigTerm(k, fn, arg) {
         const fnArg = `\\${fn}(${arg})`;
-        if (k ===  1) return fnArg;
+        if (k === 1) return fnArg;
         if (k === -1) return `-${fnArg}`;
         return `${k}${fnArg}`;
     }
@@ -180,8 +181,14 @@ window.MathEngine = (() => {
         let depth = 0;
         for (let i = 0; i < tex.length; i++) {
             const c = tex[i];
-            if (c === '{') { depth++; continue; }
-            if (c === '}') { depth--; continue; }
+            if (c === '{') {
+                depth++;
+                continue;
+            }
+            if (c === '}') {
+                depth--;
+                continue;
+            }
             if (depth === 0) {
                 if (c === '+') return `(${tex})`;
                 if (c === '-' && i > 0) return `(${tex})`;
@@ -206,20 +213,17 @@ window.MathEngine = (() => {
     /** Construeix kVars complet a partir d'un K enter. */
     function buildKVars(k) {
         const kSimple = formatK(k);
-        const negK    = formatK(-k);
-        const kInvStr = k ===  1 ? ""
-                      : k === -1 ? "-"
-                      : k  <  0  ? `-\\frac{1}{${Math.abs(k)}}`
-                      :             `\\frac{1}{${k}}`;
-        const plusK   = k > 0 ? `+ ${k}` : `- ${Math.abs(k)}`;
+        const negK = formatK(-k);
+        const kInvStr = k === 1 ? '' : k === -1 ? '-' : k < 0 ? `-\\frac{1}{${Math.abs(k)}}` : `\\frac{1}{${k}}`;
+        const plusK = k > 0 ? `+ ${k}` : `- ${Math.abs(k)}`;
 
         return {
-            coef:    kSimple,
+            coef: kSimple,
             negCoef: negK,
-            kx:      kSimple === "" ? "x" : kSimple === "-" ? "-x" : `${kSimple}x`,
-            negKx:   negK    === "" ? "x" : negK    === "-" ? "-x" : `${negK}x`,
+            kx: kSimple === '' ? 'x' : kSimple === '-' ? '-x' : `${kSimple}x`,
+            negKx: negK === '' ? 'x' : negK === '-' ? '-x' : `${negK}x`,
             plusK,
-            kInv:    kInvStr
+            kInv: kInvStr,
         };
     }
 
@@ -230,16 +234,15 @@ window.MathEngine = (() => {
      *                                  Per defecte aleatori (compatibilitat enrere).
      */
     function buildFracKVars(frac, useInline) {
-        const p    = frac.num;
-        const q    = frac.den;
+        const p = frac.num;
+        const q = frac.den;
         const absP = Math.abs(p);
-        const sign = p < 0 ? "-" : "";
+        const sign = p < 0 ? '-' : '';
 
-        const kCoefStr    = p < 0 ? `-\\frac{${absP}}{${q}}` : `\\frac{${absP}}{${q}}`;
-        const negKCoefStr = p < 0 ?  `\\frac{${absP}}{${q}}` : `-\\frac{${absP}}{${q}}`;
-        const kInvStr     = absP === 1
-            ? (p < 0 ? `-${q}` : `${q}`)
-            : (p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`);
+        const kCoefStr = p < 0 ? `-\\frac{${absP}}{${q}}` : `\\frac{${absP}}{${q}}`;
+        const negKCoefStr = p < 0 ? `\\frac{${absP}}{${q}}` : `-\\frac{${absP}}{${q}}`;
+        const kInvStr =
+            absP === 1 ? (p < 0 ? `-${q}` : `${q}`) : p < 0 ? `-\\frac{${q}}{${absP}}` : `\\frac{${q}}{${absP}}`;
         const plusK = p > 0 ? `+ ${kCoefStr}` : kCoefStr;
 
         // useInline: true → "px/q", false → "\frac{p}{q}x"
@@ -247,21 +250,21 @@ window.MathEngine = (() => {
         const isManera2 = useInline !== undefined ? useInline : Math.random() < 0.5;
         let kxStr, negKxStr;
         if (isManera2) {
-            const pxStr = absP === 1 ? "x" : `${absP}x`;
-            kxStr    = `${sign}\\frac{${pxStr}}{${q}}`;
+            const pxStr = absP === 1 ? 'x' : `${absP}x`;
+            kxStr = `${sign}\\frac{${pxStr}}{${q}}`;
             negKxStr = p < 0 ? `\\frac{${pxStr}}{${q}}` : `-\\frac{${pxStr}}{${q}}`;
         } else {
-            kxStr    = `${kCoefStr}x`;
+            kxStr = `${kCoefStr}x`;
             negKxStr = `${negKCoefStr}x`;
         }
 
         return {
-            coef:    kCoefStr,
+            coef: kCoefStr,
             negCoef: negKCoefStr,
-            kx:      kxStr,
-            negKx:   negKxStr,
+            kx: kxStr,
+            negKx: negKxStr,
             plusK,
-            kInv:    kInvStr
+            kInv: kInvStr,
         };
     }
 
@@ -270,11 +273,20 @@ window.MathEngine = (() => {
     // -------------------------------------------------------------------------
     return {
         gcd,
-        generateK, generateKExp, generateFractionK,
-        formatK, formatPowerTerm,
-        fmtLinear, fmtPoly2, fmtPoly2Deriv, fmtConst,
-        kxArg, trigTerm, wrapIfNeeded, polyCoefTrig,
-        buildKVars, buildFracKVars
+        generateK,
+        generateKExp,
+        generateFractionK,
+        formatK,
+        formatPowerTerm,
+        fmtLinear,
+        fmtPoly2,
+        fmtPoly2Deriv,
+        fmtConst,
+        kxArg,
+        trigTerm,
+        wrapIfNeeded,
+        polyCoefTrig,
+        buildKVars,
+        buildFracKVars,
     };
-
 })();

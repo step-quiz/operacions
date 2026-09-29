@@ -19,35 +19,35 @@
 (function () {
     'use strict';
 
-    const _p           = new URLSearchParams(window.location.search);
-    let   currentLevel = Math.min(3, Math.max(1, parseInt(_p.get('nivell')    || '1', 10)));
-    const TOTAL_ROUNDS = Math.max(2,             parseInt(_p.get('preguntes') || '4', 10));
+    const _p = new URLSearchParams(window.location.search);
+    let currentLevel = Math.min(3, Math.max(1, parseInt(_p.get('nivell') || '1', 10)));
+    const TOTAL_ROUNDS = Math.max(2, parseInt(_p.get('preguntes') || '4', 10));
 
     // Ordre de les fases per funció
     const PHASES = ['SIGN', 'MONO', 'CONC'];
 
-    let currentRound    = 0;
+    let currentRound = 0;
     let currentPhaseIdx = 0;
-    let currentSpec     = null;
-    let showColoredGraphs = true;   // preferència de l'usuari
-    let _countdownTimer   = null;   // referència al setTimeout actiu
-    let _advanceFn        = null;   // funció de pas guardada per skipCountdown
-    let _countdownPaused  = false;  // estat de pausa (tecla espai)
-    let _countdownStartTs = 0;      // ms en què s'ha (re)iniciat el tram actual
-    let _countdownLeft    = 0;      // ms restants quan es pausa
+    let currentSpec = null;
+    let showColoredGraphs = true; // preferència de l'usuari
+    let _countdownTimer = null; // referència al setTimeout actiu
+    let _advanceFn = null; // funció de pas guardada per skipCountdown
+    let _countdownPaused = false; // estat de pausa (tecla espai)
+    let _countdownStartTs = 0; // ms en què s'ha (re)iniciat el tram actual
+    let _countdownLeft = 0; // ms restants quan es pausa
 
     const els = {
-        gameScreen:  document.getElementById('game-screen'),
-        summary:     document.getElementById('session-summary'),
-        fxDisplay:   document.getElementById('fx-display'),
-        options:     document.getElementById('options-container'),
-        feedback:    document.getElementById('missatge-feedback'),
-        lvlDisplay:  document.getElementById('lvl-display'),
-        badge:       document.getElementById('q-badge'),
-        label:       document.getElementById('q-label'),
-        graphCanvas:  document.getElementById('graph-canvas'),
-        graphLegend:  document.getElementById('graph-legend'),
-        graphFooter:  document.getElementById('graph-footer'),
+        gameScreen: document.getElementById('game-screen'),
+        summary: document.getElementById('session-summary'),
+        fxDisplay: document.getElementById('fx-display'),
+        options: document.getElementById('options-container'),
+        feedback: document.getElementById('missatge-feedback'),
+        lvlDisplay: document.getElementById('lvl-display'),
+        badge: document.getElementById('q-badge'),
+        label: document.getElementById('q-label'),
+        graphCanvas: document.getElementById('graph-canvas'),
+        graphLegend: document.getElementById('graph-legend'),
+        graphFooter: document.getElementById('graph-footer'),
         countdownBar: document.getElementById('countdown-bar'),
     };
 
@@ -55,8 +55,10 @@
     //  NOVA FUNCIÓ
     // ------------------------------------------------------------------ //
     function buildFunction() {
-        currentSpec      = FunctionEngine.generateFunction(currentLevel);
-        currentPhaseIdx  = 0;
+        // Sessions fixes: llavor pròpia per a cada funció (nivell, ronda)
+        window.FixedSessions?.seed(`n${currentLevel}-r${currentRound}`);
+        currentSpec = FunctionEngine.generateFunction(currentLevel);
+        currentPhaseIdx = 0;
         els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
         buildQuestion();
     }
@@ -65,20 +67,21 @@
     //  NOVA PREGUNTA
     // ------------------------------------------------------------------ //
     function buildQuestion() {
+        window.FixedSessions?.seed(`n${currentLevel}-r${currentRound}-p${currentPhaseIdx}`);
         // Restaura la gràfica negra (pot venir d'un estat acolorit)
         if (currentSpec) {
             els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
         }
-        _clearCountdown();   // amaga llegenda i barra si quedaven visibles
+        _clearCountdown(); // amaga llegenda i barra si quedaven visibles
         els.feedback.style.opacity = '0';
-        els.feedback.innerHTML     = '';
+        els.feedback.innerHTML = '';
         els.lvlDisplay.textContent = `Funció ${currentRound + 1} de ${TOTAL_ROUNDS}`;
 
         const phase = PHASES[currentPhaseIdx];
         let q;
-        if      (phase === 'SIGN') q = QuestionBank.generateSignQ(currentSpec);
+        if (phase === 'SIGN') q = QuestionBank.generateSignQ(currentSpec);
         else if (phase === 'MONO') q = QuestionBank.generateMonoQ(currentSpec);
-        else                       q = QuestionBank.generateConcQ(currentSpec);
+        else q = QuestionBank.generateConcQ(currentSpec);
 
         els.badge.textContent = q.badge;
         els.label.textContent = q.label;
@@ -104,7 +107,7 @@
         if (opt.isCorrect) {
             btn.classList.add('correct');
             _disableAll();
-            els.feedback.innerHTML     = '<span class="feedback-correct">✓ Correcte!</span>';
+            els.feedback.innerHTML = '<span class="feedback-correct">✓ Correcte!</span>';
             els.feedback.style.opacity = '1';
 
             const phase = PHASES[currentPhaseIdx];
@@ -127,19 +130,18 @@
                     const { svg, legend } = SvgRenderer.renderFuncSVGColored(currentSpec, phase);
                     els.graphCanvas.innerHTML = svg;
                     // Llegenda HTML sota el gràfic (mai tapa la corba)
-                    els.graphLegend.innerHTML = legend.map(e =>
-                        `<span class="legend-pill" style="--pill-color:${e.color}">${e.label}</span>`
-                    ).join('');
+                    els.graphLegend.innerHTML = legend
+                        .map(e => `<span class="legend-pill" style="--pill-color:${e.color}">${e.label}</span>`)
+                        .join('');
                     els.graphLegend.style.display = 'flex';
                     _startCountdown(5000, advance);
                 }, 400);
             } else {
                 setTimeout(advance, 1400);
             }
-
         } else {
             btn.classList.add('wrong');
-            els.feedback.innerHTML     = 'Revisa la gràfica i torna-ho a intentar.';
+            els.feedback.innerHTML = 'Revisa la gràfica i torna-ho a intentar.';
             els.feedback.style.opacity = '1';
         }
     }
@@ -149,14 +151,18 @@
     //  La tecla ESPAI pausa/reprèn (per si el docent vol explicar alguna cosa)
     // ------------------------------------------------------------------ //
     function _startCountdown(duration, callback) {
-        _advanceFn         = callback;
-        _countdownPaused   = false;
-        _countdownLeft     = duration;
-        _countdownStartTs  = Date.now();
+        _advanceFn = callback;
+        _countdownPaused = false;
+        _countdownLeft = duration;
+        _countdownStartTs = Date.now();
 
         // Treu el focus del botó de resposta perquè ESPAI no el reactivi
         if (document.activeElement && document.activeElement.blur) {
-            try { document.activeElement.blur(); } catch (e) { /* no-op */ }
+            try {
+                document.activeElement.blur();
+            } catch (e) {
+                /* no-op */
+            }
         }
 
         els.graphFooter.style.display = 'flex';
@@ -164,7 +170,7 @@
         bar.classList.remove('paused');
         bar.style.animation = 'none';
         bar.style.animationPlayState = '';
-        bar.offsetWidth;  // reflow
+        bar.offsetWidth; // reflow
         bar.style.animation = `drainBar ${duration}ms linear forwards`;
         _countdownTimer = setTimeout(callback, duration);
     }
@@ -173,7 +179,7 @@
         if (!_countdownTimer || _countdownPaused) return;
         clearTimeout(_countdownTimer);
         _countdownTimer = null;
-        _countdownLeft -= (Date.now() - _countdownStartTs);
+        _countdownLeft -= Date.now() - _countdownStartTs;
         if (_countdownLeft < 0) _countdownLeft = 0;
         els.countdownBar.style.animationPlayState = 'paused';
         els.countdownBar.classList.add('paused');
@@ -182,7 +188,7 @@
 
     function _resumeCountdown() {
         if (!_countdownPaused || !_advanceFn) return;
-        _countdownPaused  = false;
+        _countdownPaused = false;
         _countdownStartTs = Date.now();
         els.countdownBar.classList.remove('paused');
         els.countdownBar.style.animationPlayState = 'running';
@@ -190,11 +196,17 @@
     }
 
     function _clearCountdown() {
-        if (_countdownTimer) { clearTimeout(_countdownTimer); _countdownTimer = null; }
-        _advanceFn       = null;
+        if (_countdownTimer) {
+            clearTimeout(_countdownTimer);
+            _countdownTimer = null;
+        }
+        _advanceFn = null;
         _countdownPaused = false;
         if (els.graphFooter) els.graphFooter.style.display = 'none';
-        if (els.graphLegend) { els.graphLegend.style.display = 'none'; els.graphLegend.innerHTML = ''; }
+        if (els.graphLegend) {
+            els.graphLegend.style.display = 'none';
+            els.graphLegend.innerHTML = '';
+        }
         if (els.countdownBar) {
             els.countdownBar.style.animationPlayState = '';
             els.countdownBar.classList.remove('paused');
@@ -211,8 +223,9 @@
     }
 
     function _disableAll() {
-        els.options.querySelectorAll('.btn-option')
-            .forEach(b => { b.style.pointerEvents = 'none'; });
+        els.options.querySelectorAll('.btn-option').forEach(b => {
+            b.style.pointerEvents = 'none';
+        });
     }
 
     // ------------------------------------------------------------------ //
@@ -227,9 +240,11 @@
             <button class="summary-continue-btn" id="btn-restart">Torna a jugar</button>`;
         els.summary.style.display = 'flex';
         document.getElementById('btn-restart').addEventListener('click', () => {
-            currentRound = 0; currentPhaseIdx = 0; currentSpec = null;
+            currentRound = 0;
+            currentPhaseIdx = 0;
+            currentSpec = null;
             _clearCountdown();
-            els.summary.style.display    = 'none';
+            els.summary.style.display = 'none';
             els.gameScreen.style.display = 'flex';
             buildFunction();
         });
@@ -245,7 +260,11 @@
     };
 
     window.skipCountdown = function () {
-        if (_advanceFn) { const fn = _advanceFn; _clearCountdown(); fn(); }
+        if (_advanceFn) {
+            const fn = _advanceFn;
+            _clearCountdown();
+            fn();
+        }
     };
 
     // ------------------------------------------------------------------ //
@@ -257,7 +276,9 @@
             const b = document.getElementById(`lvl-btn-${i}`);
             if (b) b.className = 'lvl-btn' + (i === n ? ' active' : '');
         });
-        currentRound = 0; currentPhaseIdx = 0; currentSpec = null;
+        currentRound = 0;
+        currentPhaseIdx = 0;
+        currentSpec = null;
         _clearCountdown();
         buildFunction();
     };
@@ -265,7 +286,7 @@
     // ------------------------------------------------------------------ //
     //  TECLA ESPAI — pausa/reprèn el countdown si està actiu
     // ------------------------------------------------------------------ //
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
         if (e.code !== 'Space' && e.key !== ' ') return;
         const tg = e.target || {};
         const tn = (tg.tagName || '').toLowerCase();
@@ -274,7 +295,7 @@
         if (!_advanceFn) return;
         e.preventDefault();
         if (_countdownPaused) _resumeCountdown();
-        else                  _pauseCountdown();
+        else _pauseCountdown();
     });
 
     // ------------------------------------------------------------------ //
@@ -288,5 +309,4 @@
         els.gameScreen.style.display = 'flex';
         buildFunction();
     });
-
 })();

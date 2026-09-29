@@ -7,24 +7,25 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 ============================================================================
 */
 :root {
-    --bg-color:      #fef7ff;
-    --primary:       #9333ea;
+    --bg-color: #fef7ff;
+    --primary: #9333ea;
     --primary-light: #f3e8ff;
-    --primary-dark:  #6b21a8;
+    --primary-dark: #6b21a8;
     --primary-hover: #7e22ce;
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;
-    --border-light:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
-    --success:       #10b981;
-    --danger:        #ef4444;
-    --danger-light:  #fee2e2;
 }
 
-h1 { color: var(--primary-dark); }
-.header-info { background-color: #faf5ff; }
-.level-text  { color: var(--primary-dark); }
-.score-text  { color: var(--primary); }
+h1 {
+    color: var(--primary-dark);
+}
+.header-info {
+    background-color: #faf5ff;
+}
+.level-text {
+    color: var(--primary-dark);
+}
+.score-text {
+    color: var(--primary);
+}
 
 /* ── PROMPT ── */
 .prompt-box {
@@ -105,12 +106,15 @@ h1 { color: var(--primary-dark); }
     outline: none;
     color: var(--text-main);
     background: white;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        background 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 .num-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(147,51,234,0.15);
+    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.15);
 }
 .num-input.num-correct {
     border-color: var(--success) !important;
@@ -151,10 +155,12 @@ h1 { color: var(--primary-dark); }
     align-items: center;
     gap: 10px;
     padding: 6px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     flex-wrap: wrap;
 }
-.diag-row:last-child { border-bottom: none; }
+.diag-row:last-child {
+    border-bottom: none;
+}
 .diag-label {
     font-weight: 700;
     font-size: 0.95em;
@@ -172,9 +178,18 @@ h1 { color: var(--primary-dark); }
     color: var(--text-muted);
     margin-left: auto;
 }
-.diag-ok .diag-value { color: #047857; }
-.diag-err .diag-value { color: #b91c1c; }
-.diag-err { background: #fef2f2; border-radius: 6px; padding: 6px 8px; margin: 2px -8px; }
+.diag-ok .diag-value {
+    color: #047857;
+}
+.diag-err .diag-value {
+    color: #b91c1c;
+}
+.diag-err {
+    background: #fef2f2;
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin: 2px -8px;
+}
 
 /* ── FEEDBACK ── */
 .feedback-wrap {
@@ -191,9 +206,18 @@ h1 { color: var(--primary-dark); }
     transition: opacity 0.3s;
     text-align: center;
 }
-.fb-ok   { color: #047857; background: #d1fae5; }
-.fb-err  { color: #991b1b; background: #fee2e2; }
-.fb-warn { color: #92400e; background: #fef3c7; }
+.fb-ok {
+    color: #047857;
+    background: #d1fae5;
+}
+.fb-err {
+    color: #991b1b;
+    background: #fee2e2;
+}
+.fb-warn {
+    color: #92400e;
+    background: #fef3c7;
+}
 
 /* ── AJUDA ── */
 .help-bar {
@@ -214,7 +238,9 @@ h1 { color: var(--primary-dark); }
     cursor: pointer;
     touch-action: manipulation;
 }
-.btn-help:hover { background: #fde68a; }
+.btn-help:hover {
+    background: #fde68a;
+}
 
 .help-panel {
     display: none;
@@ -239,31 +265,84 @@ h1 { color: var(--primary-dark); }
     animation: nextShake 1.5s ease-in-out;
 }
 @keyframes nextShake {
-    0%   { transform: scale(1);    box-shadow: none; }
-    10%  { transform: translateX(-6px) scale(1.04); }
-    20%  { transform: translateX( 6px) scale(1.04); }
-    30%  { transform: translateX(-4px) scale(1.06); box-shadow: 0 0 18px rgba(5,150,105,0.7); }
-    40%  { transform: translateX( 4px) scale(1.06); box-shadow: 0 0 18px rgba(5,150,105,0.7); }
-    50%  { transform: translateX(0)    scale(1.08); box-shadow: 0 0 24px rgba(5,150,105,0.9); }
-    70%  { transform: scale(1.05); box-shadow: 0 0 16px rgba(5,150,105,0.6); }
-    100% { transform: scale(1);    box-shadow: 0 0 8px  rgba(5,150,105,0.3); }
+    0% {
+        transform: scale(1);
+        box-shadow: none;
+    }
+    10% {
+        transform: translateX(-6px) scale(1.04);
+    }
+    20% {
+        transform: translateX(6px) scale(1.04);
+    }
+    30% {
+        transform: translateX(-4px) scale(1.06);
+        box-shadow: 0 0 18px rgba(5, 150, 105, 0.7);
+    }
+    40% {
+        transform: translateX(4px) scale(1.06);
+        box-shadow: 0 0 18px rgba(5, 150, 105, 0.7);
+    }
+    50% {
+        transform: translateX(0) scale(1.08);
+        box-shadow: 0 0 24px rgba(5, 150, 105, 0.9);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 16px rgba(5, 150, 105, 0.6);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 8px rgba(5, 150, 105, 0.3);
+    }
 }
 
 /* ── ANIMACIONS ── */
 @keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25%      { transform: translateX(-5px); }
-    75%      { transform: translateX(5px); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
 }
 
 /* ── RESPONSIU ── */
 @media (max-width: 480px) {
-    .prompt-box, .cond-badges, .input-grid, .check-bar, .feedback-wrap, .help-bar, .progress-info { padding-left: 12px; padding-right: 12px; }
-    .num-input { width: 48px; height: 48px; font-size: 1.4em; }
-    .diag-label { min-width: 100px; font-size: 0.88em; }
-    .diagnostic-box { padding: 10px 12px; }
+    .prompt-box,
+    .cond-badges,
+    .input-grid,
+    .check-bar,
+    .feedback-wrap,
+    .help-bar,
+    .progress-info {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .num-input {
+        width: 48px;
+        height: 48px;
+        font-size: 1.4em;
+    }
+    .diag-label {
+        min-width: 100px;
+        font-size: 0.88em;
+    }
+    .diagnostic-box {
+        padding: 10px 12px;
+    }
 }

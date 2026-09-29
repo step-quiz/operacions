@@ -15,9 +15,8 @@
  */
 
 window.DistractorLib = (() => {
-
-    const S   = Strings.Feedback;
-    const ME  = MathEngine;
+    const S = Strings.Feedback;
+    const ME = MathEngine;
     const tex = ME.fracToTex;
 
     /** FeedbackHints per al resum pedagògic (derivades-compatible) */
@@ -28,7 +27,7 @@ window.DistractorLib = (() => {
      * Prioritza diversitat d'errorType via round-robin.
      */
     function selectDistractors(pool, correctTex, count) {
-        const seen  = new Set([correctTex]);
+        const seen = new Set([correctTex]);
         const valid = [];
         pool.forEach(d => {
             if (d && d.tex && d.tex.trim() !== '' && !seen.has(d.tex)) {
@@ -127,7 +126,11 @@ window.DistractorLib = (() => {
         pool.push({ tex: tex(ME.frac(2 * b, t)), feedback: S.addNotMult, errorType: 'ADD_NOT_MULT' });
         // WRONG_COUNT: off-by-one al numerador
         if (b + 1 <= t) {
-            pool.push({ tex: tex(ME.frac((b + 1) * (b + 1), t * t)), feedback: S.wrongCount, errorType: 'WRONG_COUNT' });
+            pool.push({
+                tex: tex(ME.frac((b + 1) * (b + 1), t * t)),
+                feedback: S.wrongCount,
+                errorType: 'WRONG_COUNT',
+            });
         }
         return pool;
     }
@@ -144,7 +147,11 @@ window.DistractorLib = (() => {
         // SINGLE_TRIAL: només una extracció
         pool.push({ tex: tex(ME.frac(b, t)), feedback: S.singleTrial, errorType: 'SINGLE_TRIAL' });
         // WRONG_DENOMINATOR: no redueix el denominador
-        pool.push({ tex: tex(ME.frac(b * (b - 1), t * t)), feedback: S.wrongDenominator, errorType: 'WRONG_DENOMINATOR' });
+        pool.push({
+            tex: tex(ME.frac(b * (b - 1), t * t)),
+            feedback: S.wrongDenominator,
+            errorType: 'WRONG_DENOMINATOR',
+        });
         // WRONG_NUMERATOR: no redueix el numerador
         pool.push({ tex: tex(ME.frac(b * b, t * (t - 1))), feedback: S.wrongNumerator, errorType: 'WRONG_NUMERATOR' });
         return pool;
@@ -160,9 +167,17 @@ window.DistractorLib = (() => {
         // SINGLE_TRIAL
         pool.push({ tex: tex(ME.frac(b, t)), feedback: S.singleTrial, errorType: 'SINGLE_TRIAL' });
         // WRONG_NUMERATOR: resta 1 del segon color (com si fos sense reposició del mateix)
-        pool.push({ tex: tex(ME.frac(b * (r - 1), t * (t - 1))), feedback: S.wrongNumerator, errorType: 'WRONG_NUMERATOR' });
+        pool.push({
+            tex: tex(ME.frac(b * (r - 1), t * (t - 1))),
+            feedback: S.wrongNumerator,
+            errorType: 'WRONG_NUMERATOR',
+        });
         // ADD_NOT_MULT: suma de probabilitats individuals
-        pool.push({ tex: tex(ME.addFrac(ME.frac(b, t), ME.frac(r, t))), feedback: S.addNotMult, errorType: 'ADD_NOT_MULT' });
+        pool.push({
+            tex: tex(ME.addFrac(ME.frac(b, t), ME.frac(r, t))),
+            feedback: S.addNotMult,
+            errorType: 'ADD_NOT_MULT',
+        });
         return pool;
     }
 
@@ -204,10 +219,13 @@ window.DistractorLib = (() => {
     // =========================================================================
     return {
         selectDistractors,
-        buildDieSingle, buildIndependent,
-        buildWithReplacement, buildWithoutReplacement, buildDiffColorNoRepl,
-        buildConditionalBalls, buildConditionalTable,
-        FeedbackHints
+        buildDieSingle,
+        buildIndependent,
+        buildWithReplacement,
+        buildWithoutReplacement,
+        buildDiffColorNoRepl,
+        buildConditionalBalls,
+        buildConditionalTable,
+        FeedbackHints,
     };
-
 })();

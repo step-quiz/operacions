@@ -14,7 +14,6 @@
  * ============================================================================
  */
 window.VocabEngine = (() => {
-
     // =========================================================================
     // SHUFFLE (Fisher-Yates)
     // =========================================================================
@@ -43,14 +42,16 @@ window.VocabEngine = (() => {
      * @returns {number}
      */
     function _levenshtein(a, b) {
-        const m = a.length, n = b.length;
+        const m = a.length,
+            n = b.length;
         const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
         for (let j = 0; j <= n; j++) dp[0][j] = j;
         for (let i = 1; i <= m; i++)
             for (let j = 1; j <= n; j++)
-                dp[i][j] = a[i - 1] === b[j - 1]
-                    ? dp[i - 1][j - 1]
-                    : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+                dp[i][j] =
+                    a[i - 1] === b[j - 1]
+                        ? dp[i - 1][j - 1]
+                        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
         return dp[m][n];
     }
 
@@ -113,7 +114,7 @@ window.VocabEngine = (() => {
      * @returns {{ verdict: string, typoKind?: string, html?: string }}
      */
     function avaluaResposta(input, target) {
-        const raw  = String(input).trim();
+        const raw = String(input).trim();
         const rawT = String(target).trim();
 
         // 1. Coincidència exacta
@@ -141,9 +142,7 @@ window.VocabEngine = (() => {
         if (tWords.length > 1) {
             const iWords = raw.split(/\s+/);
             if (iWords.length < tWords.length) {
-                const totsCoincideixen = iWords.every(w =>
-                    tWords.some(tw => _normalitza(w) === _normalitza(tw))
-                );
+                const totsCoincideixen = iWords.every(w => tWords.some(tw => _normalitza(w) === _normalitza(tw)));
                 if (totsCoincideixen) {
                     return { verdict: 'typo', typoKind: 'faltaParaula', html: _escHtml(raw) };
                 }
@@ -151,19 +150,19 @@ window.VocabEngine = (() => {
         }
 
         // 4. Distància Levenshtein sobre cadenes normalitzades
-        const dist      = _levenshtein(ni, nt);
+        const dist = _levenshtein(ni, nt);
         const threshold = nt.length <= 5 ? 1 : 2;
         if (dist > threshold) return { verdict: 'wrong' };
 
         // Classifica el tipus d'error tipogràfic
-        const ops        = _levenshteinAlign(ni, nt);
+        const ops = _levenshteinAlign(ni, nt);
         const hasMissing = ops.some(o => o.type === 'missing');
-        const hasSub     = ops.some(o => o.type === 'sub');
-        const hasExtra   = ops.some(o => o.type === 'extra');
+        const hasSub = ops.some(o => o.type === 'sub');
+        const hasExtra = ops.some(o => o.type === 'extra');
 
         // Esborrat pur (lletra que falta) vs substitució/lletra de més
-        const typoKind = (hasMissing && !hasSub && !hasExtra) ? 'faltaLletra' : 'lletra';
-        const html     = getTypoHighlight(raw, rawT);
+        const typoKind = hasMissing && !hasSub && !hasExtra ? 'faltaLletra' : 'lletra';
+        const html = getTypoHighlight(raw, rawT);
 
         return { verdict: 'typo', typoKind, html };
     }
@@ -191,8 +190,8 @@ window.VocabEngine = (() => {
             let produced = 0;
             for (const c of nfd) {
                 const code = c.charCodeAt(0);
-                if (code >= 0x0300 && code <= 0x036F) continue; // combining marks
-                if ('·- '.includes(c)) continue;                 // caràcters eliminats
+                if (code >= 0x0300 && code <= 0x036f) continue; // combining marks
+                if ('·- '.includes(c)) continue; // caràcters eliminats
                 produced++;
             }
             if (produced > 0) {
@@ -216,26 +215,31 @@ window.VocabEngine = (() => {
      * @returns {Array<{type:string, ai?:number, bi?:number, nearAi?:number}>}
      */
     function _levenshteinAlign(a, b) {
-        const m = a.length, n = b.length;
+        const m = a.length,
+            n = b.length;
         const dp = Array.from({ length: m + 1 }, (_, i) =>
-            Array.from({ length: n + 1 }, (_, j) => i === 0 ? j : (j === 0 ? i : 0))
+            Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
         );
         for (let i = 1; i <= m; i++)
             for (let j = 1; j <= n; j++)
-                dp[i][j] = a[i - 1] === b[j - 1]
-                    ? dp[i - 1][j - 1]
-                    : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+                dp[i][j] =
+                    a[i - 1] === b[j - 1]
+                        ? dp[i - 1][j - 1]
+                        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
 
         const ops = [];
-        let i = m, j = n;
+        let i = m,
+            j = n;
         while (i > 0 || j > 0) {
             if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
                 ops.unshift({ type: 'match', ai: i - 1, bi: j - 1 });
-                i--; j--;
+                i--;
+                j--;
             } else if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + 1) {
                 // Substitució: caràcter equivocat a l'input
                 ops.unshift({ type: 'sub', ai: i - 1, bi: j - 1 });
-                i--; j--;
+                i--;
+                j--;
             } else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
                 // Caràcter de més a l'input
                 ops.unshift({ type: 'extra', ai: i - 1 });
@@ -298,9 +302,7 @@ window.VocabEngine = (() => {
         let html = '';
         for (let k = 0; k < input.length; k++) {
             const ch = _escHtml(input[k]);
-            html += errorOrigPositions.has(k)
-                ? `<mark class="typo-err">${ch}</mark>`
-                : ch;
+            html += errorOrigPositions.has(k) ? `<mark class="typo-err">${ch}</mark>` : ch;
         }
         if (trailingGap) {
             html += '<mark class="typo-err typo-err--gap">_</mark>';
@@ -312,5 +314,4 @@ window.VocabEngine = (() => {
     // API PÚBLICA
     // =========================================================================
     return { shuffle, avaluaResposta, getTypoHighlight };
-
 })();

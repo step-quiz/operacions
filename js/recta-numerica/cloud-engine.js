@@ -13,7 +13,6 @@
  * ============================================================================
  */
 window.CloudEngine = (() => {
-
     function _randInt(a, b) {
         return Math.floor(Math.random() * (b - a + 1)) + a;
     }
@@ -46,13 +45,13 @@ window.CloudEngine = (() => {
         }
         if (level === 2) {
             // Nivell mitjà: 80% petit, 20% mitjà, 0% gran
-            if (r < 0.80) return { min: -6,  max:  6, majorStep:  1, minorStep: 1, type: 'small'  };
-            return               { min: -5,  max: 20, majorStep:  5, minorStep: 1, type: 'medium' };
+            if (r < 0.8) return { min: -6, max: 6, majorStep: 1, minorStep: 1, type: 'small' };
+            return { min: -5, max: 20, majorStep: 5, minorStep: 1, type: 'medium' };
         }
         // Nivell 3 (difícil): probabilitats originals
-        if (r < 0.80) return { min: -6,  max:  6, majorStep:  1, minorStep: 1, type: 'small'  };
-        if (r < 0.90) return { min: -5,  max: 20, majorStep:  5, minorStep: 1, type: 'medium' };
-        return               { min: -10, max: 40, majorStep: 10, minorStep: 5, type: 'large'  };
+        if (r < 0.8) return { min: -6, max: 6, majorStep: 1, minorStep: 1, type: 'small' };
+        if (r < 0.9) return { min: -5, max: 20, majorStep: 5, minorStep: 1, type: 'medium' };
+        return { min: -10, max: 40, majorStep: 10, minorStep: 5, type: 'large' };
     }
 
     /**
@@ -69,20 +68,18 @@ window.CloudEngine = (() => {
         const { min, max } = yRange;
         const span = max - min;
 
-        const count  = _randInt(4, 8);
+        const count = _randInt(4, 8);
         const otherX = _shuffle([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]).slice(0, count - 1);
-        const xs     = [0, ...otherX].sort((a, b) => a - b);
+        const xs = [0, ...otherX].sort((a, b) => a - b);
 
         // 60% cap salt, 30% un, 10% dos
-        const rj       = Math.random();
-        const numJumps = rj < 0.60 ? 0 : rj < 0.90 ? 1 : 2;
-        const jumpSet  = new Set(
-            _shuffle(Array.from({ length: xs.length - 1 }, (_, i) => i)).slice(0, numJumps)
-        );
+        const rj = Math.random();
+        const numJumps = rj < 0.6 ? 0 : rj < 0.9 ? 1 : 2;
+        const jumpSet = new Set(_shuffle(Array.from({ length: xs.length - 1 }, (_, i) => i)).slice(0, numJumps));
 
         const smoothMax = Math.max(1, Math.round(span / 8));
-        const jumpMin   = Math.max(2, Math.round(span / 4));
-        const jumpMax   = Math.max(4, Math.round(span / 2));
+        const jumpMin = Math.max(2, Math.round(span / 4));
+        const jumpMax = Math.max(4, Math.round(span / 2));
 
         const margin = Math.max(1, Math.round(span * 0.15));
         let y = _randInt(min + margin, max - margin);

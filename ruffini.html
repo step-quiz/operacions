@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Sessions fixes (?fixed=A/B/C): ha de ser el PRIMER script -->
+    <script src="js/fixed-sessions.js"></script>
     <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
     <link rel="icon" href="icon.png">
     <title>Regla de Ruffini</title>
+    <link rel="stylesheet" href="css/tokens.css">
     <style>
         :root {
             --primary: #8b5cf6;
             --primary-dark: #7c3aed;
             --primary-light: #ede9fe;
-            --success: #16a34a;
-            --success-light: #dcfce7;
-            --danger: #dc2626;
-            --warning: #d97706;
             --gris: #64748b;
             --gris-fosc: #334155;
             --bg: #f8fafc;
             --card: #ffffff;
             --border: #e2e8f0;
-            --border-heavy: #cbd5e1;
 
             /* ════ TEMPS CSS ════════════════════════════════════════════════
                Sincronitza amb les constants JS T_* al principi del <script>  */
@@ -744,7 +742,12 @@
     }
 
     // ─── INICIALITZAR ────────────────────────────────────────────────────────
-    function initApp() { generatePoly(); renderUI(); }
+    function initApp() {
+        // Sessions fixes: la llavor es posa aquí i no dins generatePoly(), que es crida
+        // a si mateixa quan descarta un polinomi (amb la mateixa llavor no acabaria mai).
+        window.FixedSessions?.next('g' + document.getElementById('degreeSelect').value + document.getElementById('monicSelect').value);
+        generatePoly(); renderUI();
+    }
 
     function renderUI() {
         document.getElementById('polyDisplay').innerHTML  = polyToHTML(poly);
