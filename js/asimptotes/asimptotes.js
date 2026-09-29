@@ -8,6 +8,7 @@
  *   function-engine.js · question-bank-asimptotes.js
  */
 
+import { FixedSessions } from '../fixed-sessions.js';
 import { FunctionEngine } from './function-engine.js';
 import { QuestionBankA } from './question-bank-asimptotes.js';
 // [ROUND 1 — bloc TEXTS centralitzat amb tots els strings de la UI]
@@ -79,7 +80,7 @@ const els = {
 // BUILD LEVEL
 // ============================================================================
 function buildLevel() {
-    window.FixedSessions?.seed(`q${currentQ}`); // sessions fixes: mateixa pregunta per a tothom
+    FixedSessions?.seed(`q${currentQ}`); // sessions fixes: mateixa pregunta per a tothom
     isAnswered = false;
     attemptsLeft = MAX_INTENTS;
 

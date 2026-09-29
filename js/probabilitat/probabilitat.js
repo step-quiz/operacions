@@ -12,11 +12,24 @@
  *   quan s'esgoten els intents.
  * - Resum pedagògic de sessió amb freqüència d'errors conceptuals.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa distractor-lib i
- *   question-bank (que al seu torn importen math-engine i strings). Fa servir
- *   les globals de utils, config i game-core (scripts clàssics carregats abans).
+ *   question-bank (que al seu torn importen math-engine i strings), i la base
+ *   compartida: config.js, utils.js i game-core.js (estat de la partida a `state`).
  * ============================================================================
  */
 
+import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
+import { shuffle } from '../utils.js';
+import {
+    state,
+    endSession,
+    hideMiniOverlay,
+    injectSharedHTML,
+    recordAnswerToHistory,
+    recordResult,
+    showMiniOverlay,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 import { DistractorLib } from './distractor-lib.js';
 import { QuestionBank } from './question-bank.js';
 
@@ -42,18 +55,18 @@ const els = {
 // 1. Construeix un nou nivell
 // =========================================================================
 function buildLevel() {
-    isTransitioning = false;
-    attemptsLeft = MAX_INTENTS;
+    state.isTransitioning = false;
+    state.attemptsLeft = MAX_INTENTS;
 
     // showScreen() posa display:block com a inline style; cal corregir-ho
     const _gs = document.getElementById('game-screen');
     if (_gs) _gs.style.display = 'grid';
 
     const _lvl = new URLSearchParams(window.location.search).get('nivell');
-    const _sessText = TOTAL_SESSIONS > 1 ? `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS} · ` : '';
+    const _sessText = TOTAL_SESSIONS > 1 ? `Sessió ${state.currentSession + 1} de ${TOTAL_SESSIONS} · ` : '';
     const _lvlText = _lvl ? ` · Nivell ${_lvl}` : '';
-    els.lvlDisplay.innerText = `${_sessText}Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}${_lvlText}`;
-    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.lvlDisplay.innerText = `${_sessText}Pregunta ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}${_lvlText}`;
+    els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
     els.feedback.style.opacity = '0';
     els.feedback.innerHTML = '';
 
@@ -138,47 +151,47 @@ function renderFeedback(opt, showSolution) {
 // 3. Comprova la resposta seleccionada
 // =========================================================================
 function checkAnswer(opt, clickedBtn) {
-    if (isTransitioning) return;
+    if (state.isTransitioning) return;
 
     if (opt.isCorrect) {
-        isTransitioning = true;
+        state.isTransitioning = true;
         renderFeedback(opt, false);
 
         recordAnswerToHistory(challengeData.promptText, opt.tex, true);
         errorHistory.push({
             question: challengeData.promptText,
-            questionN: currentOperation,
+            questionN: state.currentOperation,
             errorType: null,
             isCorrect: true,
             meta: challengeData.meta,
         });
 
-        const fails = MAX_INTENTS - attemptsLeft;
+        const fails = MAX_INTENTS - state.attemptsLeft;
         const levelPoints = Math.max(0, 10 - fails * 2);
-        sessionScore += levelPoints;
+        state.sessionScore += levelPoints;
         recordResult(Math.min(fails + 1, 3));
-        els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+        els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
 
         Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
         _finishOp(levelPoints);
     } else {
-        attemptsLeft--;
-        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        state.attemptsLeft--;
+        els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
         if (clickedBtn) clickedBtn.classList.add('wrong');
 
         errorHistory.push({
             question: challengeData.promptText,
-            questionN: currentOperation,
+            questionN: state.currentOperation,
             errorType: opt.errorType,
             isCorrect: false,
             meta: challengeData.meta,
         });
 
-        const isLastAttempt = attemptsLeft <= 0;
+        const isLastAttempt = state.attemptsLeft <= 0;
         renderFeedback(opt, isLastAttempt);
 
         if (isLastAttempt) {
-            isTransitioning = true;
+            state.isTransitioning = true;
             recordAnswerToHistory(challengeData.promptText, opt.tex, false);
             recordResult(4);
             setTimeout(() => _finishOp(0), 800);
@@ -193,8 +206,8 @@ function _finishOp(levelPoints) {
     const waitTime = showMiniOverlay(levelPoints);
     setTimeout(() => {
         hideMiniOverlay();
-        currentOperation++;
-        if (currentOperation >= TOTAL_OPERATIONS) {
+        state.currentOperation++;
+        if (state.currentOperation >= TOTAL_OPERATIONS) {
             showSessionSummary();
         } else {
             window.buildLevel();
@@ -242,7 +255,7 @@ function showSessionSummary() {
     let html = `
         <div class="summary-score">
             <span class="summary-score-label">Puntuació final</span>
-            <span class="summary-score-value">${sessionScore} / ${maxScore}</span>
+            <span class="summary-score-value">${state.sessionScore} / ${maxScore}</span>
         </div>
         <div class="summary-stats">
             <div class="summary-stat summary-stat--ok"><span class="summary-stat-num">${firstTry}</span><span class="summary-stat-desc">correctes a la primera</span></div>

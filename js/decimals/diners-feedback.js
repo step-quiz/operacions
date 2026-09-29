@@ -5,9 +5,9 @@
  *      al pas de "canvi" (i de "total" al nivell 3).
  *
  * Compartit entre diners.html i a-diners.html.
- * S'inclou com a <script> (compatible amb protocol file://).
+ * Mòdul ES: import { DinersFeedback } from './diners-feedback.js';
  *
- * API pública (window.DinersFeedback):
+ * API pública (DinersFeedback):
  *   detectChangeError(correct, userVal, price)
  *     → string: codi d'error (vegeu ERRORS més avall)
  *   getChangeMsg(errorCode, correct, userVal, price)
@@ -24,7 +24,7 @@
  * ─────────────────────────────────────────────────────────────
  */
 
-window.DinersFeedback = (() => {
+export const DinersFeedback = (() => {
     'use strict';
 
     // ─────────────────────────────────────────────────────────

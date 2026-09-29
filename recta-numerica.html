@@ -29,9 +29,6 @@
             defaultEnllocMitjana: 1
         };
     </script>
-    <script src="js/fixed-sessions.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/config.js"></script>
 
     <!-- Google Font: Barlow -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -103,11 +100,9 @@
 
 <!--
     ORDRE DE CÀRREGA:
-    utils → config → game-core (clàssics) → recta-numerica.js (mòdul ES,
-    importa cloud-engine, strings, distractor-lib i question-bank)
+    recta-numerica.js (mòdul ES) importa cloud-engine, question-bank (i aquest
+    strings i distractor-lib) i la base compartida (config, game-core)
 -->
-<script src="js/exercise-codes.js"></script>
-<script src="js/game-core.js"></script>
 <script type="module" src="js/recta-numerica/recta-numerica.js"></script>
 
 </body>

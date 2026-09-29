@@ -12,26 +12,13 @@
  *   formatIntResult(a, n)       → formata el resultat de ∫a·x^n dx
  *   formatExpPrimitive(k)       → formata el resultat de ∫e^{kx} dx
  *   kxArg(k)                    → formata kx com a argument LaTeX
- * DEPENDÈNCIES: Fa servir randIntNonZero i pick de utils.js (globals, carregat
- * a la pàgina com a script clàssic).
+ * DEPENDÈNCIES: Importa gcd i randIntNonZero de utils.js.
  * ============================================================================
  */
 
-export const MathEngine = (() => {
-    // -------------------------------------------------------------------------
-    // AUXILIAR: Màxim Comú Divisor
-    // -------------------------------------------------------------------------
-    function gcd(a, b) {
-        a = Math.abs(a);
-        b = Math.abs(b);
-        while (b) {
-            const temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
+import { gcd, randIntNonZero } from '../utils.js';
 
+export const MathEngine = (() => {
     // -------------------------------------------------------------------------
     // GENERADORS DE COEFICIENTS
     // -------------------------------------------------------------------------

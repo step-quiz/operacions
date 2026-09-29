@@ -16,6 +16,7 @@
  *   ?fixed=A|B|C         (gestionat per js/fixed-sessions.js)
  */
 
+import { FixedSessions } from '../fixed-sessions.js';
 import { FunctionEngine } from './function-engine.js';
 import { QuestionBank } from './question-bank.js';
 import { SvgRenderer } from './svg-renderer.js';
@@ -60,7 +61,7 @@ import { SvgRenderer } from './svg-renderer.js';
     // ------------------------------------------------------------------ //
     function buildFunction() {
         // Sessions fixes: llavor pròpia per a cada funció (nivell, ronda)
-        window.FixedSessions?.seed(`n${currentLevel}-r${currentRound}`);
+        FixedSessions?.seed(`n${currentLevel}-r${currentRound}`);
         currentSpec = FunctionEngine.generateFunction(currentLevel);
         currentPhaseIdx = 0;
         els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
@@ -71,7 +72,7 @@ import { SvgRenderer } from './svg-renderer.js';
     //  NOVA PREGUNTA
     // ------------------------------------------------------------------ //
     function buildQuestion() {
-        window.FixedSessions?.seed(`n${currentLevel}-r${currentRound}-p${currentPhaseIdx}`);
+        FixedSessions?.seed(`n${currentLevel}-r${currentRound}-p${currentPhaseIdx}`);
         // Restaura la gràfica negra (pot venir d'un estat acolorit)
         if (currentSpec) {
             els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);

@@ -7,11 +7,31 @@
  * - Conté els generadors de problemes (genRepte1/2/3), els constructors de
  *   passos guiats (buildStepsRepte1/2/3) i el flux de joc (buildLevel,
  *   checkStep, finalizeProblem, etc.).
- * - Depèn de KaTeX (global), utils.js, config.js i game-core.js, que han
- *   de carregar-se ABANS que aquest fitxer a l'HTML.
- * DEPENDÈNCIES: katex (CDN), utils.js, config.js, game-core.js.
+ * - Mòdul ES: importa config.js, utils.js i game-core.js. KaTeX és global (vendor/,
+ *   carregat amb <script> abans que aquest mòdul).
+ * DEPENDÈNCIES: katex (vendor/), config.js, utils.js, game-core.js.
  * ============================================================================
  */
+
+import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS, urlParams } from '../config.js';
+import { pick, randIntNonZero } from '../utils.js';
+import {
+    state,
+    endSession,
+    hideCustomKeyboard,
+    hideMiniOverlay,
+    initCustomKeyboard,
+    injectSharedHTML,
+    isTouchDevice,
+    kbMarkForOverwrite,
+    recordResult,
+    registerScreens,
+    showCustomKeyboard,
+    showMiniOverlay,
+    showScreen,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel, checkCurrentCell) i els onclick de l'HTML.
@@ -329,7 +349,7 @@ function buildBtnSelect(options, opts) {
                 });
                 pill.classList.add('selected');
                 selectedOption = opt.value;
-                if (!isTransitioning && !isPenalizing) checkStep();
+                if (!state.isTransitioning && !isPenalizing) checkStep();
             };
             wrap.appendChild(pill);
         });
@@ -1485,7 +1505,7 @@ function buildStepsRepte3(p) {
 // ══════════════════════════════════════════════════════════
 
 function showCurrentStep() {
-    isTransitioning = false; // Reset: l'alumne pot interactuar amb el nou pas
+    state.isTransitioning = false; // Reset: l'alumne pot interactuar amb el nou pas
     var step = currentSteps[currentStepIdx];
 
     // Feedback
@@ -1578,7 +1598,7 @@ function clearAndFocus() {
 }
 
 function checkStep() {
-    if (isTransitioning || isPenalizing) return;
+    if (state.isTransitioning || isPenalizing) return;
     var step = currentSteps[currentStepIdx];
 
     if (els.stepFeedback) {
@@ -1650,8 +1670,8 @@ function penalize() {
 
 function finalizeProblem(forcedPoints) {
     if (forcedPoints === undefined) forcedPoints = null;
-    recordResult(forcedPoints === 0 ? 4 : Math.min(MAX_INTENTS - attemptsLeft + 1, 3));
-    isTransitioning = true;
+    recordResult(forcedPoints === 0 ? 4 : Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3));
+    state.isTransitioning = true;
     hideCustomKeyboard();
     els.currentStep.classList.remove('active');
     els.resolutionPanel.style.display = 'none';
@@ -1659,15 +1679,15 @@ function finalizeProblem(forcedPoints) {
     var pts = forcedPoints !== null ? forcedPoints : stepPoints;
     if (pts === 0) showCorrectAnswer(currentProblem);
 
-    sessionScore += pts;
+    state.sessionScore += pts;
 
     var waitTime = showMiniOverlay(pts);
     setTimeout(function () {
         hideMiniOverlay();
-        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
             endSession();
         } else {
-            currentOperation++;
+            state.currentOperation++;
             window.buildLevel();
         }
     }, waitTime);
@@ -1679,8 +1699,8 @@ function selectRepte(n) {
 }
 
 function updateUI() {
-    els.sessionDisplay.innerText = 'Sessió ' + (currentSession + 1) + ' de ' + TOTAL_SESSIONS;
-    els.lvlDisplay.innerText = 'Exercici ' + (currentOperation + 1) + ' de ' + TOTAL_OPERATIONS;
+    els.sessionDisplay.innerText = 'Sessió ' + (state.currentSession + 1) + ' de ' + TOTAL_SESSIONS;
+    els.lvlDisplay.innerText = 'Exercici ' + (state.currentOperation + 1) + ' de ' + TOTAL_OPERATIONS;
     els.scoreDisplay.innerText = 'Punts: ' + stepPoints;
 }
 
@@ -1710,8 +1730,8 @@ function buildLevel() {
     // Primer exercici: reutilitzar el preview si és matemàticament compatible
     // amb el mètode triat per l'alumne.
     if (
-        currentOperation === 0 &&
-        currentSession === 0 &&
+        state.currentOperation === 0 &&
+        state.currentSession === 0 &&
         previewProblem &&
         validPerMetode(previewProblem, selectedRepte)
     ) {
@@ -1721,10 +1741,10 @@ function buildLevel() {
         do {
             p =
                 selectedRepte === 1
-                    ? genRepte1(currentOperation)
+                    ? genRepte1(state.currentOperation)
                     : selectedRepte === 2
-                      ? genRepte2(currentOperation)
-                      : genRepte3(currentOperation);
+                      ? genRepte2(state.currentOperation)
+                      : genRepte3(state.currentOperation);
             key = JSON.stringify({ t: p.type, x: p.x0, y: p.y0, a1: p.a1, b1: p.b1 });
             tries++;
         } while (usedProblems.has(key) && tries < 30);
@@ -1788,7 +1808,7 @@ document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
         if (els.gameScreen.style.display !== 'none' && els.resolutionPanel.style.display !== 'none') {
             e.preventDefault();
-            if (!isTransitioning && !isPenalizing) checkStep();
+            if (!state.isTransitioning && !isPenalizing) checkStep();
         }
     }
     // [FIX M3] Tab salta al següent input dins del pas actiu

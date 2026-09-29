@@ -11,10 +11,11 @@
  *   no xoquen entre si.
  * - Math.random es substitueix per un generador amb llavor (Mulberry32): els
  *   tests donen sempre el mateix resultat i, si fallen, l'error es pot repetir.
- * - Els mòduls ES (js/<activitat>/) es carreguen al mateix context traduint
- *   `import {X} from './x.js'` (x.js ja s'ha carregat abans a la llista) i
- *   `export const X =` (queda també a window.X, per als tests). Que els imports
- *   i exports quadrin ho comproven check-repo.js i ESLint.
+ * - Els mòduls ES es carreguen al mateix context traduint `import {X} from
+ *   './x.js'` (x.js s'ha d'haver carregat abans a la llista), `export const X =`
+ *   (queda també a window.X, per als tests) i `export function X` (global).
+ *   Que els imports i exports quadrin ho comproven check-repo.js, esm.test.js
+ *   i ESLint.
  * ============================================================================
  */
 'use strict';
@@ -69,7 +70,9 @@ const MULBERRY32 = `function (seed) {
 function esmToScript(src, file) {
     const out = src
         .replace(/^import\s*\{[^}]*\}\s*from\s*['"][^'"]+['"];?[ \t]*$/gm, '')
-        .replace(/^export const (\w+)\s*=/gm, 'const $1 = window.$1 =');
+        .replace(/^import\s*['"][^'"]+['"];?.*$/gm, '') // import només per l'efecte
+        .replace(/^export const (\w+)\s*=/gm, 'const $1 = window.$1 =')
+        .replace(/^export ((?:async )?function\*? )/gm, '$1'); // funció de nivell superior: ja és global
     if (/^\s*(import|export)\s/m.test(out)) throw new Error(`${file}: import/export que els tests no saben traduir`);
     return '"use strict";\n' + out; // els mòduls sempre són estrictes
 }
@@ -106,4 +109,13 @@ function listFiles(dir, exts, skip = ['.git', 'node_modules', 'vendor']) {
     return out;
 }
 
-module.exports = { ROOT, suite, ok, eq, finish, loadModule, listFiles };
+module.exports = {
+    esmToScript,
+    ROOT,
+    suite,
+    ok,
+    eq,
+    finish,
+    loadModule,
+    listFiles,
+};

@@ -14,6 +14,18 @@
  * ============================================================================
  */
 
+import { TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
+import {
+    state,
+    endSession,
+    hideMiniOverlay,
+    injectSharedHTML,
+    recordAnswerToHistory,
+    recordResult,
+    showMiniOverlay,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 import { MathEngine } from './math-engine.js';
 import { QuestionBank } from './question-bank.js';
 import { Strings } from './strings.js';
@@ -66,13 +78,13 @@ const els = {
 
 // ── BUILDLEVEL (crida de game-core) ──────────────────────────────────────
 function buildLevel() {
-    isTransitioning = false;
+    state.isTransitioning = false;
     totalErrors = 0;
     phaseIdx = 0;
     valueColors = {};
     nextColorIdx = 0;
 
-    els.lvlDisplay.innerHTML = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS} &nbsp;·&nbsp; Exercici ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.lvlDisplay.innerHTML = `Sessió ${state.currentSession + 1} de ${TOTAL_SESSIONS} &nbsp;·&nbsp; Exercici ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
     els.scoreDisplay.innerText = 'Punts: 0';
     els.feedback.style.opacity = '0';
     els.feedback.innerHTML = '';
@@ -606,15 +618,15 @@ function checkStat(statId) {
 
 function finishExercise() {
     const levelPoints = Math.max(0, 10 - totalErrors);
-    sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    state.sessionScore += levelPoints;
+    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
     recordResult(totalErrors === 0 ? 1 : totalErrors <= 3 ? 2 : totalErrors <= 6 ? 3 : 4);
 
     const waitTime = showMiniOverlay(levelPoints);
     setTimeout(() => {
         hideMiniOverlay();
-        currentOperation++;
-        if (currentOperation >= TOTAL_OPERATIONS) {
+        state.currentOperation++;
+        if (state.currentOperation >= TOTAL_OPERATIONS) {
             endSession();
         } else {
             window.buildLevel();

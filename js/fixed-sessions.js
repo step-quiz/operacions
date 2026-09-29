@@ -16,8 +16,9 @@
  *        - Jocs amb game-core.js: automàtic. game-core.js crida
  *          FixedSessions.wrap('buildLevel', …) en començar i cada crida a
  *          buildLevel() torna a sembrar amb (sessió, pregunta).
- *        - Pàgines amb flux propi: criden window.FixedSessions?.seed(etiqueta)
- *          o window.FixedSessions?.next(tipus) quan generen un exercici nou.
+ *        - Pàgines amb flux propi: criden FixedSessions?.seed(etiqueta)
+ *          o FixedSessions?.next(tipus) quan generen un exercici nou.
+ *          (FixedSessions val null si la URL no porta ?fixed=A/B/C.)
  *   2. Injecta paràmetres URL automàticament (5 operacions, 1 sessió, nivell
  *      i famílies segons l'activitat) via history.replaceState, ABANS que
  *      config.js i game-core.js els llegeixin.
@@ -30,26 +31,26 @@
  *   derivades.html?fixed=C       → Sessió C de derivades (nivell avançat)
  *   equacions.html?fixed=A&maxintents=5  → Es pot combinar amb altres params
  *
- * ORDRE DE CÀRREGA:
- *   ⚠️ CRÍTIC: Ha de ser el PRIMER <script> de la pàgina, ABANS de utils.js.
- *   <script src="js/fixed-sessions.js"></script>   ← PRIMER
- *   <script src="js/utils.js"></script>
- *   <script src="js/config.js"></script>
- *   ...
+ * ORDRE D'EXECUCIÓ:
+ *   ⚠️ CRÍTIC: s'ha d'executar ABANS que ningú llegeixi la URL o faci servir
+ *   Math.random. És un mòdul ES: config.js l'importa en primer lloc (i per
+ *   tant també game-core.js), i les pàgines sense game-core.js l'importen
+ *   elles mateixes com a PRIMER import:
+ *     import { FixedSessions } from '../fixed-sessions.js';
  *
  * DEPENDÈNCIES: Cap. Autocontingut.
  * ============================================================================
  */
 
-(function () {
+export const FixedSessions = (() => {
     'use strict';
 
     const params = new URLSearchParams(window.location.search);
     const fixedRaw = params.get('fixed');
-    if (!fixedRaw) return; // mode aleatori normal — no fem res
+    if (!fixedRaw) return null; // mode aleatori normal — no fem res
 
     const fixedKey = fixedRaw.toUpperCase();
-    if (!['A', 'B', 'C'].includes(fixedKey)) return;
+    if (!['A', 'B', 'C'].includes(fixedKey)) return null;
 
     const exercici = window.location.pathname.split('/').pop().replace('.html', '');
 
@@ -82,7 +83,7 @@
     _seed('inici'); // el que es generi en carregar la pàgina, abans de la 1a pregunta
 
     const _counters = {};
-    window.FixedSessions = {
+    const api = {
         key: fixedKey,
 
         /** Torna a sembrar l'atzar per a la pregunta identificada per `label`. */
@@ -100,9 +101,10 @@
         },
 
         /**
-         * Embolcalla la funció global `name` (p. ex. 'buildLevel') perquè cada
-         * crida torni a sembrar amb l'etiqueta que retorna labelFn().
-         * Només funciona amb funcions declarades amb `function` a nivell global.
+         * Embolcalla window[name] (p. ex. 'buildLevel') perquè cada crida torni
+         * a sembrar amb l'etiqueta que retorna labelFn(). El joc l'ha d'haver
+         * exposat (Object.assign(window, { buildLevel })) i cridar-la sempre
+         * com a window.buildLevel(): una crida directa no passaria per aquí.
          */
         wrap(name, labelFn) {
             const fn = window[name];
@@ -225,8 +227,7 @@
     //    (sinó tots els alumnes tindrien el mateix codi i el professor no
     //    podria distingir-los). Restaurem l'original quan l'alumne acaba.
 
-    window._fixedSessionActive = true;
-    window._restoreRandom = function () {
+    api.restoreRandom = function () {
         Math.random = _originalRandom;
     };
 
@@ -247,4 +248,6 @@
         const panel = document.querySelector('.panel') || document.body;
         observer.observe(panel, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
     });
+
+    return api;
 })();

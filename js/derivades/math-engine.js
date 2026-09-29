@@ -10,26 +10,13 @@
  * - FASE 5: Afegit formatPowerTerm(coef, exp) per formatar coef·x^exp com
  *   a string LaTeX. Usat per distractor-lib.js i question-bank.js per a
  *   la nova família de la regla de la potència.
- * DEPENDÈNCIES: Fa servir randIntNonZero i pick de utils.js (globals, carregat
- * a la pàgina com a script clàssic).
+ * DEPENDÈNCIES: Importa gcd, pick i randIntNonZero de utils.js.
  * ============================================================================
  */
 
-export const MathEngine = (() => {
-    // -------------------------------------------------------------------------
-    // AUXILIAR: Màxim Comú Divisor
-    // -------------------------------------------------------------------------
-    function gcd(a, b) {
-        a = Math.abs(a);
-        b = Math.abs(b);
-        while (b) {
-            const temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
+import { gcd, pick, randIntNonZero } from '../utils.js';
 
+export const MathEngine = (() => {
     // -------------------------------------------------------------------------
     // GENERADORS DE LA CONSTANT K
     // -------------------------------------------------------------------------

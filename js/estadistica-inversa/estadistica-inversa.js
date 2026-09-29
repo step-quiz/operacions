@@ -13,6 +13,18 @@
  * ============================================================================
  */
 
+import { TOTAL_OPERATIONS } from '../config.js';
+import {
+    state,
+    endSession,
+    injectSharedHTML,
+    isTouchDevice,
+    recordAnswerToHistory,
+    recordResult,
+    showCustomKeyboard,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
 import { MathEngine } from './math-engine.js';
 import { QuestionBank } from './question-bank.js';
 
@@ -48,15 +60,15 @@ const els = {
 // 1. BUILDLEVEL
 // =========================================================================
 function buildLevel() {
-    isTransitioning = false;
+    state.isTransitioning = false;
     totalErrors = 0;
     helpExpanded = false;
 
     // Reinicia l'estat de sessió del QuestionBank quan comença una sessió nova
-    if (currentOperation === 0) QuestionBank.resetSession();
+    if (state.currentOperation === 0) QuestionBank.resetSession();
 
-    els.lvlDisplay.innerText = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    els.lvlDisplay.innerText = `Pregunta ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
     els.feedback.style.opacity = '0';
     els.feedback.innerHTML = '';
     els.diagBox.innerHTML = '';
@@ -128,7 +140,7 @@ function updateProgressInfo() {
 // 3. COMPROVAR RESPOSTA
 // =========================================================================
 function checkAnswer() {
-    if (isTransitioning) return;
+    if (state.isTransitioning) return;
 
     // Recull valors
     const values = [];
@@ -164,7 +176,7 @@ function checkAnswer() {
 
     if (allOk) {
         markInputsCorrect();
-        isTransitioning = true;
+        state.isTransitioning = true;
         showFeedback('✅ Molt bé! Has trobat una solució correcta!', 'ok');
         const promptText = challengeData.prompt.replace(/<[^>]+>/g, '');
         recordAnswerToHistory(promptText, sorted.join(', '), true);
@@ -289,12 +301,12 @@ function _onNextClick() {
 // =========================================================================
 function finishExercise() {
     const levelPoints = Math.max(0, 10 - totalErrors);
-    sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    state.sessionScore += levelPoints;
+    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
     recordResult(totalErrors === 0 ? 1 : totalErrors <= 2 ? 2 : totalErrors <= 5 ? 3 : 4);
 
-    currentOperation++;
-    if (currentOperation >= TOTAL_OPERATIONS) {
+    state.currentOperation++;
+    if (state.currentOperation >= TOTAL_OPERATIONS) {
         endSession();
     } else {
         window.buildLevel();

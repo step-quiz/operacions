@@ -5,30 +5,20 @@
  * ROL: Motor matemàtic pur per a probabilitat. Operacions amb fraccions,
  *      simplificació i formatació LaTeX.
  * ARQUITECTURA:
- * - Capa matemàtica completament independent: no depèn de cap fitxer de la
- *   plataforma compartida (utils, config, game-core) ni del controlador DOM.
+ * - Capa matemàtica pura: no toca el DOM ni l'estat del joc.
  * - Mòdul ES: exporta MathEngine com a espai de noms explícit.
- * DEPENDÈNCIES: Fa servir randInt i pick de utils.js (globals, carregat a la
- * pàgina com a script clàssic).
+ * DEPENDÈNCIES: Importa gcd de utils.js.
  * ============================================================================
  */
+
+import { gcd } from '../utils.js';
 
 export const MathEngine = (() => {
     // -------------------------------------------------------------------------
     // ARITMÈTICA DE FRACCIONS
     // -------------------------------------------------------------------------
 
-    /** Màxim comú divisor (Euclides) */
-    function gcd(a, b) {
-        a = Math.abs(a);
-        b = Math.abs(b);
-        while (b) {
-            const t = b;
-            b = a % b;
-            a = t;
-        }
-        return a;
-    }
+    // gcd (màxim comú divisor) s'importa de utils.js
 
     /** Simplifica una fracció {num, den}. Garanteix den > 0. */
     function simplify(num, den) {

@@ -11,7 +11,8 @@
  *   5. Sessions fixes: les pàgines que les ofereixen carreguen fixed-sessions.js.
  *   6. Colors comuns: tothom fa servir css/tokens.css.
  *   7. Mòduls ES: els import existeixen, els onclick troben la seva funció,
- *      i els controladors criden window.buildLevel().
+ *      els controladors criden window.buildLevel(), tot js/ es carrega com a
+ *      mòdul i les pàgines amb joc no tenen JS dins de l'HTML.
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -44,6 +45,76 @@ function syntaxError(code, filename, isModule) {
         return e.message;
     }
 }
+
+// Mòduls ES: imports, exports i codi que carrega cada pàgina (seguint els import)
+const isESM = src => /^\s*(import|export)\s/m.test(src);
+const IMPORT_RE = /^\s*import\s+(?:\{([^}]*)\}\s+from\s+)?['"]([^'"]+)['"]/gm;
+const exportsOf = src =>
+    new Set([
+        ...[...src.matchAll(/^\s*export\s+(?:const|let|var|function\*?|class)\s+([\w$]+)/gm)].map(m => m[1]),
+        ...[...src.matchAll(/^\s*export\s*\{([^}]*)\}/gm)].flatMap(m =>
+            m[1].split(',').map(s =>
+                s
+                    .trim()
+                    .split(/\s+as\s+/)
+                    .pop()
+            )
+        ),
+    ]);
+
+// Codi JS de cada pàgina: els <script> inline i els fitxers que carrega,
+// seguint els import dels mòduls. type: 'classic' o 'module'.
+const scriptsOf = f => {
+    const h = stripNoise(read(f)),
+        out = [],
+        seen = new Set();
+    const addFile = (file, type) => {
+        if (seen.has(file) || !exists(file)) return;
+        seen.add(file);
+        const src = read(file);
+        out.push({ name: file, src, type });
+        if (type === 'module') {
+            for (const m of src.matchAll(IMPORT_RE)) addFile(path.join(path.dirname(file), m[2]), 'module');
+        }
+    };
+    for (const m of h.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/gi)) {
+        const attrs = m[1] || '';
+        if (/application\/ld\+json/.test(attrs)) continue;
+        const type = /type\s*=\s*["']module/.test(attrs) ? 'module' : 'classic';
+        const src = attrs.match(/\bsrc\s*=\s*["']([^"'?#]+)/);
+        if (src) addFile(path.join(path.dirname(f), src[1]), type);
+        else if (m[2].trim()) {
+            out.push({ name: `${f} (inline)`, src: m[2], type });
+            if (type === 'module') {
+                for (const i of m[2].matchAll(IMPORT_RE)) addFile(path.join(path.dirname(f), i[2]), 'module');
+            }
+        }
+    }
+    return out;
+};
+
+/** Ordre en què el navegador executa els mòduls d'una pàgina (cada import abans de qui l'importa). */
+function moduleEvalOrder(f) {
+    const order = [],
+        seen = new Set();
+    const visit = file => {
+        if (seen.has(file) || !exists(file)) return;
+        seen.add(file);
+        for (const m of read(file).matchAll(IMPORT_RE)) visit(path.join(path.dirname(file), m[2]));
+        order.push(file);
+    };
+    for (const m of stripNoise(read(f)).matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/gi)) {
+        const attrs = m[1] || '';
+        if (!/type\s*=\s*["']module/.test(attrs)) continue;
+        const src = attrs.match(/\bsrc\s*=\s*["']([^"'?#]+)/);
+        if (src) visit(path.join(path.dirname(f), src[1]));
+        else for (const i of m[2].matchAll(IMPORT_RE)) visit(path.join(path.dirname(f), i[2]));
+    }
+    return order;
+}
+const graphOf = f => scriptsOf(f).map(s => s.name);
+const GAME_CORE = path.join('js', 'game-core.js');
+const FIXED = path.join('js', 'fixed-sessions.js');
 
 // ─────────────────────────────────────────────────────────────────────────────
 suite('1. Sintaxi JavaScript');
@@ -134,28 +205,21 @@ suite("3. Codis d'exercici (js/exercise-codes.js)");
     const noPage = entries.map(([n]) => n).filter(n => !n.startsWith('a-') && !exists(`${n}.html`));
     ok('cada exercici de la taula té la seva pàgina HTML', !noPage.length, noPage.join(', '));
 
-    const gamePages = htmlFiles.filter(f => !f.includes(path.sep) && /src=["']js\/game-core\.js["']/.test(read(f)));
-    const missing = [],
-        order = [],
-        noCode = [];
-    for (const f of gamePages) {
-        const h = read(f);
-        const iCodes = h.search(/src=["']js\/exercise-codes\.js["']/);
-        const iCore = h.search(/src=["']js\/game-core\.js["']/);
-        if (iCodes < 0) missing.push(f);
-        else if (iCodes > iCore) order.push(f);
-        if (!codes[f.replace(/\.html$/, '')]) noCode.push(f);
-    }
+    // Pàgines amb joc: les que acaben important game-core.js
+    const gamePages = htmlFiles.filter(f => !f.includes(path.sep) && graphOf(f).includes(GAME_CORE));
+    const noCode = gamePages.filter(f => !codes[f.replace(/\.html$/, '')]);
     ok(
-        `les ${gamePages.length} pàgines amb game-core.js carreguen exercise-codes.js`,
-        !missing.length,
-        missing.join(', ')
+        'game-core.js importa EXERCISE_CODES de exercise-codes.js',
+        /import\s*\{[^}]*\bEXERCISE_CODES\b[^}]*\}\s*from\s*'\.\/exercise-codes\.js'/.test(read(GAME_CORE))
     );
-    ok('exercise-codes.js es carrega ABANS de game-core.js', !order.length, order.join(', '));
-    ok("cada pàgina amb game-core.js té codi d'exercici (si no, genera 'XX')", !noCode.length, noCode.join(', '));
     ok(
-        "l'analitzador carrega exercise-codes.js",
-        /src=["']js\/exercise-codes\.js["']/.test(read('analitzador-stepquiz.html'))
+        `cada una de les ${gamePages.length} pàgines amb game-core.js té codi d'exercici (si no, genera 'XX')`,
+        gamePages.length > 20 && !noCode.length,
+        noCode.join(', ')
+    );
+    ok(
+        "l'analitzador fa servir js/exercise-codes.js",
+        graphOf('analitzador-stepquiz.html').includes(path.join('js', 'exercise-codes.js'))
     );
 }
 
@@ -200,29 +264,31 @@ suite('5. Sessions fixes (?fixed=A/B/C)');
         notFirst = [],
         noHook = [];
     for (const f of offered) {
-        const h = stripNoise(read(f));
-        const scripts = [...h.matchAll(/<script\b[^>]*>/gi)].map(m => m[0]);
-        if (!scripts.some(s => /src=["']js\/fixed-sessions\.js["']/.test(s))) {
+        const graph = graphOf(f);
+        if (!graph.includes(FIXED)) {
             notLoaded.push(f);
             continue;
         }
-        // Ha d'anar abans de qualsevol altre script del projecte (js/…): utils, config, game-core…
-        const firstLocal = scripts.find(s => /src=["']js\//.test(s));
-        if (!/src=["']js\/fixed-sessions\.js["']/.test(firstLocal)) notFirst.push(f);
         // Sense game-core.js, la pàgina ha de tornar a sembrar ella mateixa a cada exercici
-        if (!/src=["']js\/game-core\.js["']/.test(h)) {
-            const own = [
-                h,
-                ...[...h.matchAll(/src=["'](js\/[^"']+\.js)["']/g)]
-                    .map(m => m[1])
-                    .filter(exists)
-                    .map(read),
-            ].join('\n');
+        if (!graph.includes(GAME_CORE)) {
+            const own = scriptsOf(f)
+                .map(x => x.src)
+                .join('\n');
             if (!/FixedSessions\??\.(seed|next|wrap)\(/.test(own)) noHook.push(f);
         }
     }
-    ok("totes les que l'ofereixen carreguen js/fixed-sessions.js", !notLoaded.length, notLoaded.join(', '));
-    ok('fixed-sessions.js es carrega abans que cap altre script de js/', !notFirst.length, notFirst.join(', '));
+    // A totes les pàgines que l'importen, s'ha d'executar abans que cap altre mòdul
+    // (els altres llegeixen la URL i fan servir Math.random en carregar-se)
+    for (const f of htmlFiles.filter(f => !f.includes(path.sep))) {
+        const order = moduleEvalOrder(f);
+        if (order.includes(FIXED) && order[0] !== FIXED) notFirst.push(`${f} (primer: ${order[0]})`);
+    }
+    ok("totes les que l'ofereixen importen js/fixed-sessions.js", !notLoaded.length, notLoaded.join(', '));
+    ok(
+        "fixed-sessions.js s'executa abans que cap altre mòdul (config.js l'importa primer)",
+        !notFirst.length && /^import '\.\/fixed-sessions\.js';/m.test(read(path.join('js', 'config.js'))),
+        notFirst.join(', ')
+    );
     ok(
         'les pàgines sense game-core.js tornen a sembrar a cada exercici (FixedSessions.seed/next)',
         !noHook.length,
@@ -275,52 +341,6 @@ suite('6. Colors comuns (css/tokens.css)');
 // ─────────────────────────────────────────────────────────────────────────────
 suite('7. Mòduls ES (import/export)');
 {
-    const isESM = src => /^\s*(import|export)\s/m.test(src);
-    const IMPORT_RE = /^\s*import\s+(?:\{([^}]*)\}\s+from\s+)?['"]([^'"]+)['"]/gm;
-    const exportsOf = src =>
-        new Set([
-            ...[...src.matchAll(/^\s*export\s+(?:const|let|var|function\*?|class)\s+([\w$]+)/gm)].map(m => m[1]),
-            ...[...src.matchAll(/^\s*export\s*\{([^}]*)\}/gm)].flatMap(m =>
-                m[1].split(',').map(s =>
-                    s
-                        .trim()
-                        .split(/\s+as\s+/)
-                        .pop()
-                )
-            ),
-        ]);
-
-    // Codi JS de cada pàgina: els <script> inline i els fitxers que carrega,
-    // seguint els import dels mòduls. type: 'classic' o 'module'.
-    const scriptsOf = f => {
-        const h = stripNoise(read(f)),
-            out = [],
-            seen = new Set();
-        const addFile = (file, type) => {
-            if (seen.has(file) || !exists(file)) return;
-            seen.add(file);
-            const src = read(file);
-            out.push({ name: file, src, type });
-            if (type === 'module') {
-                for (const m of src.matchAll(IMPORT_RE)) addFile(path.join(path.dirname(file), m[2]), 'module');
-            }
-        };
-        for (const m of h.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/gi)) {
-            const attrs = m[1] || '';
-            if (/application\/ld\+json/.test(attrs)) continue;
-            const type = /type\s*=\s*["']module/.test(attrs) ? 'module' : 'classic';
-            const src = attrs.match(/\bsrc\s*=\s*["']([^"'?#]+)/);
-            if (src) addFile(path.join(path.dirname(f), src[1]), type);
-            else if (m[2].trim()) {
-                out.push({ name: `${f} (inline)`, src: m[2], type });
-                if (type === 'module') {
-                    for (const i of m[2].matchAll(IMPORT_RE)) addFile(path.join(path.dirname(f), i[2]), 'module');
-                }
-            }
-        }
-        return out;
-    };
-
     // 1) Cada import apunta a un fitxer que existeix (camí relatiu amb .js) i que exporta aquells noms
     const importSources = [
         ...jsFiles
@@ -374,7 +394,8 @@ suite('7. Mòduls ES (import/export)');
     }
     ok('els mòduls ES es carreguen amb <script type="module">', !notModule.length, notModule.join(', '));
 
-    // 3) Les funcions cridades des dels onclick/onchange… han de ser globals. Dins d'un mòdul
+    // 3) Les funcions cridades des dels atributs on…="…" (onclick, onchange, onmouseenter…)
+    //    han de ser globals. Dins d'un mòdul
     //    NO ho són: cal exposar-les amb window.X = … o Object.assign(window, { … }).
     const KEYWORDS = new Set(['if', 'for', 'while', 'switch', 'return', 'function', 'typeof', 'new', 'catch', 'void']);
     const BROWSER = [
@@ -397,10 +418,10 @@ suite('7. Mòduls ES (import/export)');
     ];
     const handlerCalls = src => {
         const calls = [];
-        for (const m of src.matchAll(
-            /\bon(?:click|change|input|keydown|keyup|keypress|submit|blur|focus)\s*=\s*\\?(["'])([\s\S]*?)\\?\1/g
-        )) {
-            for (const c of m[2].replace(/\$\{[^}]*\}/g, '0').matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(/g)) {
+        for (const m of src.matchAll(/\bon[a-z]+\s*=\s*\\?(["'])([\s\S]*?)\\?\1/g)) {
+            // Fora el contingut dels textos entre cometes ('scale(1.05)', 'var(--x)'…): no són crides
+            const code = m[2].replace(/\$\{[^}]*\}/g, '0').replace(/'[^']*'|`[^`]*`/g, "''");
+            for (const c of code.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(/g)) {
                 if (!KEYWORDS.has(c[1])) calls.push(c[1]);
             }
         }
@@ -435,23 +456,25 @@ suite('7. Mòduls ES (import/export)');
         [...new Set(unexposed)].join('\n      → ')
     );
 
-    // 4) Els controladors que exposen buildLevel l'han de cridar com a window.buildLevel():
-    //    les sessions fixes (js/fixed-sessions.js) substitueixen window.buildLevel per una
-    //    versió que sembra cada pregunta, i una crida directa se la saltaria.
+    // 4) Els controladors que exposen buildLevel l'han de fer servir sempre com a
+    //    window.buildLevel: les sessions fixes (js/fixed-sessions.js) substitueixen
+    //    window.buildLevel per una versió que sembra cada pregunta, i una referència
+    //    directa (buildLevel() o setTimeout(buildLevel, …)) se la saltaria.
+    const noComments = src =>
+        src.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' ')).replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
     const esmFiles = jsFiles.filter(f => f.startsWith('js' + path.sep) && isESM(read(f)));
-    const bareCalls = [];
+    const bareRefs = [];
     for (const f of esmFiles) {
-        const src = read(f);
-        if (!/Object\.assign\(\s*window\s*,\s*\{[^}]*\bbuildLevel\b/.test(src) && !/window\.buildLevel\s*=/.test(src)) {
-            continue;
-        }
-        src.split('\n').forEach((line, i) => {
-            if (/(?<![\w$.])buildLevel\s*\(/.test(line.replace(/\bfunction\s+buildLevel\s*\(/, ''))) {
-                bareCalls.push(`${f}:${i + 1}`);
-            }
+        const src = noComments(read(f));
+        if (!/Object\.assign\(\s*window\s*,\s*\{[^}]*\bbuildLevel\b/.test(src)) continue;
+        const code = src
+            .replace(/\bfunction\s+buildLevel\s*\(/g, '')
+            .replace(/Object\.assign\(\s*window\s*,\s*\{[^}]*\}/g, m => m.replace(/[^\n]/g, ' '));
+        code.split('\n').forEach((line, i) => {
+            if (/(?<![\w$.'"`])buildLevel\b(?!\s*:)/.test(line)) bareRefs.push(`${f}:${i + 1}`);
         });
     }
-    ok('els mòduls criden window.buildLevel(), mai buildLevel() directament', !bareCalls.length, bareCalls.join(', '));
+    ok('els mòduls fan servir window.buildLevel, mai buildLevel directament', !bareRefs.length, bareRefs.join(', '));
 
     // 5) Els mòduls exporten els seus espais de noms; no els tornen a posar a window
     const nsOnWindow = esmFiles.filter(f => /\bwindow\.[A-Z][\w$]*\s*=\s*\(/.test(read(f)));
@@ -459,6 +482,37 @@ suite('7. Mòduls ES (import/export)');
         `cap dels ${esmFiles.length} mòduls ES defineix espais de noms a window (window.X = (() => …))`,
         !nsOnWindow.length,
         nsOnWindow.join(', ')
+    );
+
+    // 6) Tot el JS del projecte (js/…) es carrega com a mòdul: un script clàssic no pot
+    //    fer import ni veuria res del que exporten els altres.
+    const rootPages = htmlFiles.filter(f => !f.includes(path.sep));
+    const classicLocal = [];
+    for (const f of rootPages) {
+        for (const m of stripNoise(read(f)).matchAll(/<script(\s[^>]*)>/gi)) {
+            const src = m[1].match(/\bsrc\s*=\s*["']([^"'?#]+)/);
+            if (src && /^js\//.test(src[1]) && !/type\s*=\s*["']module/.test(m[1]))
+                classicLocal.push(`${f} → ${src[1]}`);
+        }
+    }
+    ok('cap pàgina carrega js/… com a script clàssic', !classicLocal.length, classicLocal.join(', '));
+
+    // 7) Les pàgines que fan servir la base tenen el JS a js/, no dins de l'HTML
+    //    (només s'hi admet la configuració window.APP_CONFIG = {…}).
+    const BASE_FILES = ['fixed-sessions', 'utils', 'config', 'exercise-codes', 'game-core'].map(b =>
+        path.join('js', `${b}.js`)
+    );
+    const inlineJs = rootPages.filter(f => {
+        const sc = scriptsOf(f);
+        return (
+            sc.some(x => BASE_FILES.includes(x.name)) &&
+            sc.some(x => x.name.endsWith('(inline)') && !/^\s*window\.APP_CONFIG\s*=/.test(x.src))
+        );
+    });
+    ok(
+        "les pàgines que fan servir la base no tenen JS dins de l'HTML (només window.APP_CONFIG)",
+        !inlineJs.length,
+        inlineJs.join(', ')
     );
 }
 

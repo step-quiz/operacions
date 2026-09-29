@@ -10,6 +10,20 @@
  * ============================================================================
  */
 
+import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
+import {
+    state,
+    bgColors,
+    endSession,
+    hideMiniOverlay,
+    injectSharedHTML,
+    recordAnswerToHistory,
+    recordResult,
+    showMiniOverlay,
+    startGame,
+    validateConfig,
+} from '../game-core.js';
+
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
 // Les crides internes fan servir window.buildLevel() perquè les sessions fixes
@@ -682,21 +696,22 @@ function drawTriangle(problem) {
    CONSTRUCCIÓ DEL NIVELL (cridat per game-core startSession)
    ================================================================ */
 function buildLevel() {
-    attemptsLeft = MAX_INTENTS;
+    state.attemptsLeft = MAX_INTENTS;
     isPenalizing = false;
-    isTransitioning = false;
+    state.isTransitioning = false;
 
-    els.body.style.backgroundColor = bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+    els.body.style.backgroundColor =
+        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
 
     currentProblem = selectProblem();
     const p = currentProblem;
 
     drawTriangle(p);
 
-    els.sessionDisplay.innerText = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
-    els.lvlDisplay.innerText = `Problema ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
-    els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+    els.sessionDisplay.innerText = `Sessió ${state.currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText = `Problema ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
+    els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
     els.attemptsDisplay.className = 'attempts-counter';
 
     const findNameLbl =
@@ -722,7 +737,7 @@ function buildLevel() {
    PENALITZACIÓ
    ================================================================ */
 function penalize(btn) {
-    if (isPenalizing || isTransitioning || attemptsLeft <= 0) return;
+    if (isPenalizing || state.isTransitioning || state.attemptsLeft <= 0) return;
     isPenalizing = true;
     if (btn) {
         btn.classList.add('error-shake');
@@ -731,12 +746,12 @@ function penalize(btn) {
     els.attemptsDisplay.classList.add('blink');
     setTimeout(() => {
         els.attemptsDisplay.classList.remove('blink');
-        attemptsLeft--;
-        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
-        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 2 ? ' danger' : '');
+        state.attemptsLeft--;
+        els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' + (state.attemptsLeft < 2 ? ' danger' : '');
         isPenalizing = false;
-        if (attemptsLeft <= 0) {
-            isTransitioning = true;
+        if (state.attemptsLeft <= 0) {
+            state.isTransitioning = true;
             els.stepValue.classList.remove('active');
             _finishOp(0);
         }
@@ -748,20 +763,20 @@ function penalize(btn) {
    ================================================================ */
 function _finishOp(points) {
     const p = currentProblem;
-    sessionScore += points;
-    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
+    state.sessionScore += points;
+    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
 
     const typeLabel = p.find.type === 'side' ? 'costat' : 'angle';
     recordAnswerToHistory(`${typeLabel} ${p.find.name} del triangle`, p.answer, points > 0);
-    recordResult(points > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
+    recordResult(points > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
 
     const waitTime = showMiniOverlay(points);
     setTimeout(() => {
         hideMiniOverlay();
-        if (currentOperation + 1 >= TOTAL_OPERATIONS) {
+        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
             endSession();
         } else {
-            currentOperation++;
+            state.currentOperation++;
             window.buildLevel();
         }
     }, waitTime);
@@ -944,13 +959,13 @@ function buildValueButtons() {
 }
 
 function checkValue(val, btn) {
-    if (isTransitioning || isPenalizing || attemptsLeft <= 0) return;
+    if (state.isTransitioning || isPenalizing || state.attemptsLeft <= 0) return;
     if (val !== currentProblem.answer) {
         penalize(btn);
         return;
     }
     els.stepValue.classList.remove('active');
-    isTransitioning = true;
+    state.isTransitioning = true;
     _finishOp(1);
 }
 

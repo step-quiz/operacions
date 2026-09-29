@@ -23,6 +23,7 @@
  * ============================================================================
  */
 
+import { shuffle } from '../utils.js';
 import { DistractorLib } from './distractor-lib.js';
 import { MathEngine } from './math-engine.js';
 

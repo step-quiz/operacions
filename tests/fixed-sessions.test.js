@@ -15,9 +15,10 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const { ROOT, suite, ok, eq, finish } = require('./harness');
+const { ROOT, suite, ok, eq, finish, esmToScript } = require('./harness');
 
-const SRC = fs.readFileSync(path.join(ROOT, 'js/fixed-sessions.js'), 'utf8');
+// És un mòdul ES: el traduïm a script clàssic (export const FixedSessions → window.FixedSessions)
+const SRC = esmToScript(fs.readFileSync(path.join(ROOT, 'js/fixed-sessions.js'), 'utf8'), 'js/fixed-sessions.js');
 
 /** Carrega fixed-sessions.js en un context nou, com si fos la pàgina `page`. */
 function page(search, pathname = '/enters.html') {
@@ -42,7 +43,7 @@ const draw = (w, n = 8) => Array.from({ length: n }, () => vm.runInContext('Math
 suite('Sense ?fixed=');
 {
     const w = page('');
-    eq('no es crea FixedSessions', typeof w.FixedSessions, 'undefined');
+    eq('FixedSessions val null', w.FixedSessions, null);
     ok('Math.random continua sent el del navegador', vm.runInContext('Math.random.name', w) !== 'mulberry32');
 }
 
@@ -116,7 +117,10 @@ suite('wrap(): embolcallar buildLevel');
         w.FixedSessions.wrap('buildLevel', () => `q${vm.runInContext('currentOperation', w)}`)
     );
     ok('no embolcalla dues vegades', w.FixedSessions.wrap('buildLevel', () => 'x') === false);
-    vm.runInContext('buildLevel(); Math.random(); Math.random(); buildLevel(); currentOperation++; buildLevel();', w);
+    vm.runInContext(
+        'window.buildLevel(); Math.random(); Math.random(); window.buildLevel(); currentOperation++; window.buildLevel();',
+        w
+    );
     const g = vm.runInContext('generated', w);
     eq('la mateixa pregunta es regenera igual', g[0], g[1]);
     ok('la pregunta següent és diferent', g[2] !== g[0]);

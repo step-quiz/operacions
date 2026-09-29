@@ -20,6 +20,7 @@
  * ============================================================================
  */
 
+import { pick, randInt } from '../utils.js';
 import { DistractorLib } from './distractor-lib.js';
 import { MathEngine } from './math-engine.js';
 import { Strings } from './strings.js';

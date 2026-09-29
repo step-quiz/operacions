@@ -13,17 +13,16 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const vm = require('vm');
 const { pathToFileURL } = require('url');
 const { ROOT, suite, ok, finish, listFiles } = require('./harness');
 
-// Entorn mínim: window.location (llegit en generar preguntes) i les funcions de
-// js/utils.js, que en el navegador són globals (script clàssic).
+// Entorn mínim: window.location (la base i les preguntes llegeixen la URL)
 globalThis.window = globalThis;
 globalThis.location = { search: '', pathname: '/test.html' };
-vm.runInThisContext(fs.readFileSync(path.join(ROOT, 'js/utils.js'), 'utf8'), { filename: 'js/utils.js' });
 
 const isESM = src => /^\s*(import|export)\s/m.test(src);
+// La base compartida (no toca el DOM en carregar-se) i els mòduls de lògica de cada activitat
+const BASE = ['js/fixed-sessions.js', 'js/utils.js', 'js/config.js', 'js/exercise-codes.js', 'js/game-core.js'];
 const modules = listFiles('js', ['.js'])
     .filter(f => f.split(path.sep).length === 3) // js/<activitat>/<fitxer>.js
     .filter(f => isESM(fs.readFileSync(path.join(ROOT, f), 'utf8')));
@@ -33,13 +32,14 @@ const isController = src => /Object\.assign\(window|document\.(getElementById|qu
 (async () => {
     suite(`Mòduls ES carregats amb import() natiu`);
     let tested = 0;
-    for (const f of modules) {
+    for (const f of [...BASE, ...modules]) {
         const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
-        if (isController(src)) continue;
-        const declared = [...src.matchAll(/^export const (\w+)/gm)].map(m => m[1]);
+        if (!BASE.includes(f) && isController(src)) continue;
+        const declared = [...src.matchAll(/^export (?:const|(?:async )?function) (\w+)/gm)].map(m => m[1]);
         try {
             const mod = await import(pathToFileURL(path.join(ROOT, f)).href);
-            const missing = declared.filter(n => mod[n] === undefined || mod[n] === null);
+            // FixedSessions val null quan la URL no porta ?fixed=A/B/C
+            const missing = declared.filter(n => mod[n] === undefined || (mod[n] === null && n !== 'FixedSessions'));
             ok(
                 `${f} → ${declared.join(', ')}`,
                 declared.length > 0 && !missing.length,
@@ -50,6 +50,6 @@ const isController = src => /Object\.assign\(window|document\.(getElementById|qu
         }
         tested++;
     }
-    ok(`s'han provat ${tested} mòduls de lògica`, tested >= 30, `només ${tested}`);
+    ok(`s'han provat ${tested} mòduls (base + lògica)`, tested >= 38, `només ${tested}`);
     finish('TESTS DELS MÒDULS ES');
 })();
