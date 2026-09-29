@@ -55,11 +55,15 @@ const SCOPE_EXP_KX = ['universal', 'linear-inner', 'family:exp'];
  */
 function _selectDistractors(pool, correctTex, count, fallbacks) {
     // 1. Deduplicació: pool primer, fallbacks només si cal
-    const seen  = new Set([correctTex]);
+    //    Es compara SENSE espais: en LaTeX "\frac{1}{2} e^{x}" i "\frac{1}{2}e^{x}" es veuen
+    //    iguals. Si no, podien sortir dues opcions idèntiques o, fins i tot, la
+    //    resposta correcta repetida com a opció "incorrecta".
+    const key   = tex => tex.replace(/\s+/g, '');
+    const seen  = new Set([key(correctTex)]);
     const valid = [];
     [...pool, ...fallbacks].forEach(d => {
-        if (d.tex && d.tex.trim() !== '' && !seen.has(d.tex)) {
-            seen.add(d.tex);
+        if (d.tex && d.tex.trim() !== '' && !seen.has(key(d.tex))) {
+            seen.add(key(d.tex));
             valid.push(d);
         }
     });

@@ -21,7 +21,11 @@ window.QuestionBank = (() => {
 
     // Noms variats per a les preguntes contextuals
     const NOMS = ['en Pau', 'la Laia', 'en Marc', 'la Noa', 'en Moha', 'la Yasmina', 'en Joan', 'la Ruth', 'l\'Ainhoa', 'en Biel', 'la Fàtima', 'en Jan'];
-    function nom() { return pick(NOMS); }
+    // Atenció: aquí NO es pot fer servir pick() de utils.js, perquè la funció
+    // pick(usedIndices) d'aquest mòdul (API pública, més avall) l'amaga i
+    // retornaria una pregunta sencera (sortia "[object Object]" en lloc del nom).
+    function nom() { return NOMS[randInt(0, NOMS.length - 1)]; }
+    const majuscula = s => s.charAt(0).toUpperCase() + s.slice(1);
     // =========================================================================
     // BLOC 1 — EDAT I ANYS  (10 preguntes: 0–9)
     // =========================================================================
@@ -66,7 +70,7 @@ window.QuestionBank = (() => {
     pool.push(() => {
         const n = randInt(2, 4);
         const p = nom();
-        return { context: 'Edat', text: `${p} i el seu germà/na es porten ${n} anys. Si ${p} té ${V} anys i és el/la gran, quants anys té el germà/na?`,
+        return { context: 'Edat', text: `${majuscula(p)} i el seu germà/na es porten ${n} anys. Si ${p} té ${V} anys i és el/la gran, quants anys té el germà/na?`,
             answer: `x − ${n}`, distractors: [`x + ${n}`, `${n}x`, `${n}`] };
     });
 

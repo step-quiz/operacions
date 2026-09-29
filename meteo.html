@@ -368,8 +368,10 @@ function fmtAstVal(val,unit){
   }
   return(val<0?'−'+Math.abs(val):String(val))+(unit||'');
 }
+// Barreja uniforme (Fisher-Yates). sort(()=>Math.random()-.5) està esbiaixat.
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function makePairs(){
-  const sh=[...TOPICS].sort(()=>Math.random()-.5);
+  const sh=shuf([...TOPICS]);
   return{pairs:[[sh[0],sh[1]],[sh[2],sh[3]],[sh[4],sh[5]]],singles:[sh[6],sh[7]]};
 }
 
@@ -1117,7 +1119,7 @@ function handleAsteroidHit(a,hx,hy){
       }
     }else{playSound('expl_small');}
     // Reshuffle values among all asteroids, then realign isAns flags
-    const allVals=asteroids.map(ast=>ast.val).sort(()=>Math.random()-.5);
+    const allVals=shuf(asteroids.map(ast=>ast.val));
     asteroids.forEach((ast,i)=>{
       ast.val=allVals[i];
       ast.isAns=(ast.val===G.currentQ.ans);

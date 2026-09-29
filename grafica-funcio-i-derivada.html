@@ -474,7 +474,7 @@ if (difficultyLevel === 3) {
             const container = document.getElementById('justification-options');
             container.innerHTML = '';
 
-            opts.sort(() => 0.5 - Math.random()).forEach(o => {
+            shuffleArray(opts).forEach(o => {
                 const b = document.createElement('button');
                 b.className = 'btn-option btn-neutral';
                 b.style.textAlign = 'left';

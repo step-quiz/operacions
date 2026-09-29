@@ -92,8 +92,18 @@ window.DistractorLib = (() => {
             if (d > 20 * step) break;   // evita bucle infinit
         }
 
+        // Garantia: com a mínim 3 valors DIFERENTS. Els del núvol es poden repetir
+        // o coincidir amb el correcte (p. ex. núvol [3,4,4,4,4,4,4]) i llavors el
+        // bucle anterior, que compta candidats bruts, deixava preguntes amb
+        // menys de 4 opcions (fins i tot amb una sola).
+        const distinct = () => _dedup(candidates, correctY).filter(v => v >= min && v <= max);
+        for (let d = step; distinct().length < 3 && d <= 20 * step; d += step) {
+            if (correctY + d <= max) candidates.push(correctY + d);
+            if (correctY - d >= min) candidates.push(correctY - d);
+        }
+
         // Netejar i retornar 3
-        const valid = _dedup(candidates, correctY).filter(v => v >= min && v <= max);
+        const valid = distinct();
         return _shuffle(valid).slice(0, 3);
     }
 
