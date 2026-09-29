@@ -17,20 +17,20 @@ DEPENDÈNCIES: Cap. S'ha de carregar ABANS de qualsevol altre CSS.
 */
 :root {
     /* Text */
-    --text-main:     #1e293b;
-    --text-muted:    #64748b;   /* 4,76:1 sobre blanc */
+    --text-main: #1e293b;
+    --text-muted: #64748b; /* 4,76:1 sobre blanc */
 
     /* Fons i vores */
-    --panel-bg:      #ffffff;
-    --border-light:  #e2e8f0;
-    --border-color:  #e2e8f0;
-    --border-heavy:  #cbd5e1;
-    --border-strong: #94a3b8;   /* vores de controls que s'han de distingir bé (p. ex. cercles d'opció) */
+    --panel-bg: #ffffff;
+    --border-light: #e2e8f0;
+    --border-color: #e2e8f0;
+    --border-heavy: #cbd5e1;
+    --border-strong: #94a3b8; /* vores de controls que s'han de distingir bé (p. ex. cercles d'opció) */
 
     /* Estats */
-    --success:       #047857;   /* 5,48:1 — el mateix verd del «Molt bé!» */
+    --success: #047857; /* 5,48:1 — el mateix verd del «Molt bé!» */
     --success-light: #d1fae5;
-    --danger:        #dc2626;   /* 4,83:1 */
-    --danger-light:  #fee2e2;
-    --warning:       #d97706;
+    --danger: #dc2626; /* 4,83:1 */
+    --danger-light: #fee2e2;
+    --warning: #d97706;
 }

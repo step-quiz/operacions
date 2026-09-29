@@ -1,9 +1,15 @@
-# Revisió automàtica: cada cop que es puja alguna cosa a GitHub (o s'obre una
-# pull request), GitHub executa tots els tests del projecte.
+# Revisió automàtica: cada cop que es puja alguna cosa a main (o s'obre una
+# pull request), GitHub comprova el projecte.
 #   ✓ verd  → tot correcte
 #   ✗ vermell → alguna cosa s'ha trencat (el detall és a la pestanya "Actions")
-# Els tests no necessiten instal·lar res: només Node. Es poden executar a mà amb
-#   node tests/run-all.js
+#
+# Passos:
+#   1. Tests (node tests/run-all.js): només cal Node, sense instal·lar res.
+#   2. ESLint: busca errors al codi JavaScript (variables no definides,
+#      codi que no s'executa mai…). Els avisos no fan fallar la revisió.
+#   3. Prettier: comprova el format del codi de js/, css/ i tests/.
+#      NOMÉS a les pull requests: si es puja un fitxer a mà a main, un
+#      problema de format no ha de fer sortir una creu vermella.
 name: Tests
 
 on:
@@ -24,5 +30,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: tools/lint/package-lock.json
       - name: Executa tots els tests
         run: node tests/run-all.js
+      - name: Instal·la ESLint i Prettier
+        run: npm ci --prefix tools/lint --no-audit --no-fund
+      - name: Revisió del codi (ESLint)
+        run: tools/lint/node_modules/.bin/eslint -c tools/lint/eslint.config.mjs .
+      - name: Format del codi (Prettier)
+        if: github.event_name == 'pull_request'
+        run: tools/lint/node_modules/.bin/prettier --check .

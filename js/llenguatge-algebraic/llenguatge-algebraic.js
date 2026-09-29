@@ -26,29 +26,29 @@
 
 // ── ELEMENTS DOM ────────────────────────────────────────────────────────────
 const els = {
-    body:            document.body,
-    gameScreen:      document.getElementById('game-screen'),
-    sessionDisplay:  document.getElementById('session-display'),
-    lvlDisplay:      document.getElementById('lvl-display'),
-    scoreDisplay:    document.getElementById('score-display'),
+    body: document.body,
+    gameScreen: document.getElementById('game-screen'),
+    sessionDisplay: document.getElementById('session-display'),
+    lvlDisplay: document.getElementById('lvl-display'),
+    scoreDisplay: document.getElementById('score-display'),
     attemptsDisplay: document.getElementById('attempts-display'),
     questionContext: document.getElementById('question-context'),
-    questionText:    document.getElementById('question-text'),
-    optionsGrid:     document.getElementById('options-grid'),
+    questionText: document.getElementById('question-text'),
+    optionsGrid: document.getElementById('options-grid'),
 };
 
 // ── ESTAT DEL JOC ───────────────────────────────────────────────────────────
-let isPenalizing    = false;
+let isPenalizing = false;
 let currentQuestion = null;
-let usedQuestions   = [];
+let usedQuestions = [];
 
 // ── BUILD LEVEL (cridat per game-core) ──────────────────────────────────────
 function buildLevel() {
-    attemptsLeft    = MAX_INTENTS;
+    attemptsLeft = MAX_INTENTS;
     isTransitioning = false;
-    isPenalizing    = false;
+    isPenalizing = false;
 
-    const picked    = QuestionBank.pick(usedQuestions);
+    const picked = QuestionBank.pick(usedQuestions);
     currentQuestion = picked.question;
     usedQuestions.push(picked.index);
 
@@ -61,9 +61,9 @@ function buildLevel() {
 
 // ── ACTUALITZAR CAPÇALERA ────────────────────────────────────────────────────
 function updateHeader() {
-    els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
-    els.lvlDisplay.innerText      = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.sessionDisplay.innerText = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText = `Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
     els.attemptsDisplay.className = 'attempts-counter';
     if (attemptsLeft < 5) els.attemptsDisplay.classList.add('danger');
@@ -80,10 +80,9 @@ function renderExpr(str) {
         if (match.index > lastIndex) {
             parts.push(escapeHtml(str.slice(lastIndex, match.index)));
         }
-        parts.push(katex.renderToString(
-            `\\frac{${match[1]}}{${match[2]}}`,
-            { throwOnError: false, displayMode: false }
-        ));
+        parts.push(
+            katex.renderToString(`\\frac{${match[1]}}{${match[2]}}`, { throwOnError: false, displayMode: false })
+        );
         lastIndex = match.index + match[0].length;
     }
     if (lastIndex < str.length) {
@@ -100,7 +99,7 @@ function visualLength(str) {
 // ── RENDERITZAR PREGUNTA ─────────────────────────────────────────────────────
 function renderQuestion() {
     els.questionContext.innerText = currentQuestion.context;
-    els.questionText.innerHTML    = currentQuestion.text;
+    els.questionText.innerHTML = currentQuestion.text;
 
     // Barrejar opcions
     const allOptions = [currentQuestion.answer, ...currentQuestion.distractors];
@@ -116,7 +115,7 @@ function renderQuestion() {
         const btn = document.createElement('button');
         btn.className = 'btn-option';
         btn.innerHTML = renderExpr(opt);
-        btn.dataset.value = opt;                       // valor raw per comparar
+        btn.dataset.value = opt; // valor raw per comparar
         btn.setAttribute('aria-label', `Opció: ${opt}`);
         btn.addEventListener('click', () => checkAnswer(btn, opt));
         els.optionsGrid.appendChild(btn);
@@ -138,11 +137,10 @@ function checkAnswer(btn, selectedOption) {
             recordAnswerToHistory(stepQuestion, selectedOption, true);
         }
 
-        const fails       = MAX_INTENTS - attemptsLeft;
+        const fails = MAX_INTENTS - attemptsLeft;
         const levelPoints = Math.max(0, 10 - fails);
 
         setTimeout(() => finishQuestion(levelPoints), 700);
-
     } else {
         // ❌ Incorrecte
         btn.classList.add('incorrect');
@@ -212,9 +210,10 @@ function finishQuestion(levelPoints) {
     sessionScore += levelPoints;
     els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
 
-    const waitTime = typeof showMiniOverlay === 'function'
-        ? showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)', pointsColor: 'var(--success)' })
-        : 1500;
+    const waitTime =
+        typeof showMiniOverlay === 'function'
+            ? showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)', pointsColor: 'var(--success)' })
+            : 1500;
 
     setTimeout(() => {
         if (typeof hideMiniOverlay === 'function') hideMiniOverlay();

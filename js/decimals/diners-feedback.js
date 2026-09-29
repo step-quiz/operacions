@@ -41,11 +41,11 @@ window.DinersFeedback = (() => {
      * @returns {string} codi d'error
      */
     function detectChangeError(correct, userVal, price) {
-        const c100  = Math.round(correct  * 100);
-        const u100  = Math.round(userVal  * 100);
-        const cInt  = Math.floor(c100 / 100);
+        const c100 = Math.round(correct * 100);
+        const u100 = Math.round(userVal * 100);
+        const cInt = Math.floor(c100 / 100);
         const cCent = c100 % 100;
-        const uInt  = Math.floor(u100 / 100);
+        const uInt = Math.floor(u100 / 100);
         const uCent = u100 % 100;
 
         // ── SWAP_DIGITS ──────────────────────────────────────
@@ -74,7 +74,6 @@ window.DinersFeedback = (() => {
 
         // ── Casos amb enter correcte ─────────────────────────
         if (uInt === cInt && uCent !== cCent) {
-
             // ── SUBTRACTION_ERROR ────────────────────────────
             // L'alumne ha posat la part decimal del PREU en lloc de restar-la.
             // Ex: preu=1,40 → canvi correcte=3,60 → l'alumne escriu 3,40.
@@ -119,19 +118,18 @@ window.DinersFeedback = (() => {
      * @returns {string}
      */
     function getChangeMsg(errorCode, correct, userVal, price) {
-        const c100  = Math.round(correct * 100);
-        const cInt  = Math.floor(c100 / 100);
+        const c100 = Math.round(correct * 100);
+        const cInt = Math.floor(c100 / 100);
         const cCent = c100 % 100;
 
-        const u100  = Math.round(userVal * 100);
+        const u100 = Math.round(userVal * 100);
         const uCent = u100 % 100;
 
         // Format helpers (sense importar fmtMoney, que és local a cada HTML)
-        const fmtCent = (n) => n + ' cèntims';
-        const fmtEur  = (n) => n + ' €';
+        const fmtCent = n => n + ' cèntims';
+        const fmtEur = n => n + ' €';
 
         switch (errorCode) {
-
             case 'SWAP_DIGITS':
                 // Ex: correcte=3,60 / usuari=3,06
                 return `Error: no és el mateix ${fmtCent(uCent)} que ${fmtCent(cCent)}.`;
@@ -147,7 +145,7 @@ window.DinersFeedback = (() => {
             case 'SUBTRACTION_ERROR': {
                 // Ex: preu=1,40 / correcte=3,60 / usuari=3,40
                 const pCent = Math.round(price * 100) % 100;
-                return `Repassa quan restes 0,${String(pCent).padStart(2,'0')} d'un nombre enter.`;
+                return `Repassa quan restes 0,${String(pCent).padStart(2, '0')} d'un nombre enter.`;
             }
 
             case 'WRONG_CENTS':
@@ -165,7 +163,7 @@ window.DinersFeedback = (() => {
                 return `T'has equivocat en la part entera.`;
 
             default: // GENERIC
-                return '';   // sense missatge específic: el sistema mostra l'error estàndard
+                return ''; // sense missatge específic: el sistema mostra l'error estàndard
         }
     }
 
@@ -173,5 +171,4 @@ window.DinersFeedback = (() => {
     // API PÚBLICA
     // ─────────────────────────────────────────────────────────
     return { detectChangeError, getChangeMsg };
-
 })();

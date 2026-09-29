@@ -10,7 +10,6 @@
  */
 
 window.MathEngine = (() => {
-
     /**
      * Calcula la taula de freqüències per a dades discretes.
      * @param {number[]} data       Dades brutes
@@ -18,8 +17,12 @@ window.MathEngine = (() => {
      */
     function discreteFreqTable(data) {
         const counts = {};
-        data.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
-        const values = Object.keys(counts).map(Number).sort((a, b) => a - b);
+        data.forEach(v => {
+            counts[v] = (counts[v] || 0) + 1;
+        });
+        const values = Object.keys(counts)
+            .map(Number)
+            .sort((a, b) => a - b);
         const fi = values.map(v => counts[v]);
         return { values, fi, n: data.length };
     }
@@ -39,14 +42,15 @@ window.MathEngine = (() => {
             intervals.push({
                 lo: limits[i],
                 hi: limits[i + 1],
-                marca: (limits[i] + limits[i + 1]) / 2
+                marca: (limits[i] + limits[i + 1]) / 2,
             });
         }
         data.forEach(v => {
             for (let i = 0; i < k; i++) {
-                const isLast = (i === k - 1);
-                if (isLast ? (v >= intervals[i].lo && v <= intervals[i].hi)
-                           : (v >= intervals[i].lo && v < intervals[i].hi)) {
+                const isLast = i === k - 1;
+                if (
+                    isLast ? v >= intervals[i].lo && v <= intervals[i].hi : v >= intervals[i].lo && v < intervals[i].hi
+                ) {
                     fi[i]++;
                     break;
                 }
@@ -169,12 +173,18 @@ window.MathEngine = (() => {
     }
 
     return {
-        discreteFreqTable, groupedFreqTable,
-        relativeFreq, percentage,
-        meanDiscrete, meanGrouped,
-        medianDiscrete, medianGroupedIndex,
-        modeDiscrete, modeGroupedIndex,
-        fmt, parseInput, approxEqual
+        discreteFreqTable,
+        groupedFreqTable,
+        relativeFreq,
+        percentage,
+        meanDiscrete,
+        meanGrouped,
+        medianDiscrete,
+        medianGroupedIndex,
+        modeDiscrete,
+        modeGroupedIndex,
+        fmt,
+        parseInput,
+        approxEqual,
     };
-
 })();

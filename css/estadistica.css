@@ -7,18 +7,26 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 ============================================================================
 */
 :root {
-    --bg-color:      #f0fdf4;
-    --primary:       #059669;
+    --bg-color: #f0fdf4;
+    --primary: #059669;
     --primary-light: #d1fae5;
-    --primary-dark:  #065f46;
+    --primary-dark: #065f46;
     --primary-hover: #047857;
-    --accent:        #0369a1;
+    --accent: #0369a1;
 }
 
-h1 { color: var(--primary-dark); }
-.header-info { background-color: #ecfdf5; }
-.level-text  { color: var(--primary-dark); }
-.score-text  { color: var(--primary); }
+h1 {
+    color: var(--primary-dark);
+}
+.header-info {
+    background-color: #ecfdf5;
+}
+.level-text {
+    color: var(--primary-dark);
+}
+.score-text {
+    color: var(--primary);
+}
 
 /* ── CONTEXT ── */
 .context-box {
@@ -61,7 +69,10 @@ h1 { color: var(--primary-dark); }
     color: var(--text-main);
     padding: 0 8px;
     cursor: pointer;
-    transition: background 0.25s, border-color 0.25s, color 0.25s;
+    transition:
+        background 0.25s,
+        border-color 0.25s,
+        color 0.25s;
     user-select: none;
 }
 
@@ -101,14 +112,24 @@ h1 { color: var(--primary-dark); }
     padding: 0 12px;
 }
 .sd-dot {
-    width: 14px; height: 14px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--border-heavy);
     transition: background 0.3s;
 }
-.sd-dot.sd-done { background: var(--success); }
-.sd-dot.sd-cur  { background: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.25); }
-.sd-conn { width: 14px; height: 2px; background: var(--border-heavy); }
+.sd-dot.sd-done {
+    background: var(--success);
+}
+.sd-dot.sd-cur {
+    background: var(--primary);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
+}
+.sd-conn {
+    width: 14px;
+    height: 2px;
+    background: var(--border-heavy);
+}
 
 /* ── TAULA + BOTÓ OK (layout horitzontal) ── */
 .table-check-row {
@@ -176,13 +197,17 @@ h1 { color: var(--primary-dark); }
     outline: none;
     color: var(--text-main);
     background: white;
-    transition: border-color 0.2s, background 0.2s;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
 }
 .cell-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
-.cell-input.cell-sm { width: 56px; }
+.cell-input.cell-sm {
+    width: 56px;
+}
 .cell-input.cell-ok {
     border-color: var(--success) !important;
     background: #f0fdf4 !important;
@@ -194,7 +219,9 @@ h1 { color: var(--primary-dark); }
     color: var(--danger) !important;
     animation: shake 0.3s;
 }
-.freq-table-readonly .cell-fixed { color: var(--text-main); }
+.freq-table-readonly .cell-fixed {
+    color: var(--text-main);
+}
 
 /* ── BOTÓ OK (al costat de la taula) ── */
 .check-bar {
@@ -237,8 +264,15 @@ h1 { color: var(--primary-dark); }
     border-color: var(--primary);
     background: var(--primary-light);
 }
-.btn-interval-option strong { font-size: 1.05em; color: var(--primary-dark); }
-.interval-preview { font-size: 0.85em; color: var(--text-muted); font-family: monospace; }
+.btn-interval-option strong {
+    font-size: 1.05em;
+    color: var(--primary-dark);
+}
+.interval-preview {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    font-family: monospace;
+}
 
 /* ── SELECCIÓ D'INTERVAL (estadístics) ── */
 .interval-select-grid {
@@ -259,9 +293,21 @@ h1 { color: var(--primary-dark); }
     cursor: pointer;
     transition: all 0.2s;
 }
-.btn-interval-choice:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-light); }
-.btn-interval-choice.choice-correct { border-color: var(--success) !important; background: #d1fae5 !important; color: var(--primary-dark) !important; }
-.btn-interval-choice.choice-wrong   { border-color: var(--danger) !important; background: #fee2e2 !important; color: var(--danger) !important; opacity: 0.6; }
+.btn-interval-choice:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+.btn-interval-choice.choice-correct {
+    border-color: var(--success) !important;
+    background: #d1fae5 !important;
+    color: var(--primary-dark) !important;
+}
+.btn-interval-choice.choice-wrong {
+    border-color: var(--danger) !important;
+    background: #fee2e2 !important;
+    color: var(--danger) !important;
+    opacity: 0.6;
+}
 
 /* ── ESTADÍSTICS (input) ── */
 .stats-wrap {
@@ -270,7 +316,12 @@ h1 { color: var(--primary-dark); }
     margin: 0 auto;
     text-align: center;
 }
-.stat-question { display: flex; justify-content: center; gap: 12px; align-items: center; }
+.stat-question {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    align-items: center;
+}
 .stat-input {
     width: 140px;
     height: 48px;
@@ -283,7 +334,10 @@ h1 { color: var(--primary-dark); }
     outline: none;
     color: var(--text-main);
 }
-.stat-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.15); }
+.stat-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
 
 /* ── FEEDBACK ── */
 .feedback-bar {
@@ -296,13 +350,23 @@ h1 { color: var(--primary-dark); }
     border-radius: 8px;
     transition: opacity 0.3s;
 }
-.fb-ok   { color: #047857; background: #d1fae5; }
-.fb-err  { color: #991b1b; background: #fee2e2; }
-.fb-warn { color: #92400e; background: #fef3c7; }
+.fb-ok {
+    color: #047857;
+    background: #d1fae5;
+}
+.fb-err {
+    color: #991b1b;
+    background: #fee2e2;
+}
+.fb-warn {
+    color: #92400e;
+    background: #fef3c7;
+}
 
 /* ── SENSE SCROLL DE PÀGINA (PC / Tablet / Chromebook) ── */
 @media (min-width: 601px) {
-    html, body {
+    html,
+    body {
         height: 100vh;
         overflow: hidden;
     }
@@ -342,19 +406,61 @@ h1 { color: var(--primary-dark); }
 
 /* ── RESPONSIU ── */
 @media (max-width: 600px) {
-    .context-box, .data-grid, .phase-bar, .stats-wrap, .step-dots { padding-left: 12px; padding-right: 12px; }
-    .table-check-row { padding-left: 12px; padding-right: 12px; }
-    .cell-input { width: 50px; height: 32px; font-size: 16px; } /* [m11] iOS zoom fix: era 0.9em (~14.4px) */
-    .cell-input.cell-sm { width: 44px; }
-    .data-cell  { min-width: 32px; height: 28px; font-size: 0.9em; padding: 0 5px; }
-    .stat-input { width: 110px; height: 42px; font-size: 1.1em; }
-    .freq-table th { padding: 6px 4px; font-size: 0.78em; }
-    .freq-table td { padding: 5px 4px; font-size: 0.85em; }
-    #btn-check { width: 48px; height: 48px; font-size: 0.9em; }
+    .context-box,
+    .data-grid,
+    .phase-bar,
+    .stats-wrap,
+    .step-dots {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .table-check-row {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .cell-input {
+        width: 50px;
+        height: 32px;
+        font-size: 16px;
+    } /* [m11] iOS zoom fix: era 0.9em (~14.4px) */
+    .cell-input.cell-sm {
+        width: 44px;
+    }
+    .data-cell {
+        min-width: 32px;
+        height: 28px;
+        font-size: 0.9em;
+        padding: 0 5px;
+    }
+    .stat-input {
+        width: 110px;
+        height: 42px;
+        font-size: 1.1em;
+    }
+    .freq-table th {
+        padding: 6px 4px;
+        font-size: 0.78em;
+    }
+    .freq-table td {
+        padding: 5px 4px;
+        font-size: 0.85em;
+    }
+    #btn-check {
+        width: 48px;
+        height: 48px;
+        font-size: 0.9em;
+    }
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25%      { transform: translateX(-4px); }
-    75%      { transform: translateX(4px); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-4px);
+    }
+    75% {
+        transform: translateX(4px);
+    }
 }

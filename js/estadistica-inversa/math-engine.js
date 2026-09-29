@@ -10,7 +10,6 @@
  */
 
 window.MathEngine = (() => {
-
     // ── CÀLCULS BÀSICS ──────────────────────────────────────────────────
 
     function mean(arr) {
@@ -30,10 +29,14 @@ window.MathEngine = (() => {
      */
     function mode(arr) {
         const freq = {};
-        arr.forEach(v => { freq[v] = (freq[v] || 0) + 1; });
+        arr.forEach(v => {
+            freq[v] = (freq[v] || 0) + 1;
+        });
         const maxF = Math.max(...Object.values(freq));
         if (maxF === 1) return null; // totes les dades apareixen 1 sol cop
-        const modes = Object.keys(freq).filter(k => freq[k] === maxF).map(Number);
+        const modes = Object.keys(freq)
+            .filter(k => freq[k] === maxF)
+            .map(Number);
         // Si hi ha més d'un valor diferent i tots empaten en freqüència, és amodal.
         // Si tots els elements són iguals (un sol valor únic), la moda és aquell valor.
         const totalDistinct = Object.keys(freq).length;
@@ -63,12 +66,12 @@ window.MathEngine = (() => {
     function validate(arr, conditions, tol) {
         if (tol === undefined) tol = 0.001;
         const result = {
-            computedMean:   mean(arr),
+            computedMean: mean(arr),
             computedMedian: median(arr),
-            computedMode:   mode(arr),
-            meanOk:   true,
+            computedMode: mode(arr),
+            meanOk: true,
             medianOk: true,
-            modeOk:   true,
+            modeOk: true,
         };
         if (conditions.mean !== undefined) {
             result.meanOk = Math.abs(result.computedMean - conditions.mean) <= tol;
@@ -155,9 +158,14 @@ window.MathEngine = (() => {
     }
 
     return {
-        mean, median, mode, modeMatches,
-        validate, findSolutions,
-        fmt, fmtCondensed, parseInput
+        mean,
+        median,
+        mode,
+        modeMatches,
+        validate,
+        findSolutions,
+        fmt,
+        fmtCondensed,
+        parseInput,
     };
-
 })();

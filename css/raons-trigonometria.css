@@ -13,12 +13,12 @@ ARQUITECTURA:
 
 /* ── TEMA DE COLOR (sobreescriptura del shared.css) ─────────────────────── */
 :root {
-    --bg-color:      #f5f3ff;
-    --primary:       #7c3aed;
+    --bg-color: #f5f3ff;
+    --primary: #7c3aed;
     --primary-light: #ede9fe;
     --primary-hover: #6d28d9;
-    --primary-dark:  #4c1d95;
-    --accent:        #d97706;
+    --primary-dark: #4c1d95;
+    --accent: #d97706;
 }
 
 /* ── ZONA DEL PROBLEMA (cercle + expressió) ────────────────────────────── */
@@ -44,7 +44,9 @@ ARQUITECTURA:
     flex-shrink: 0;
 }
 
-.expression-display { text-align: center; }
+.expression-display {
+    text-align: center;
+}
 
 .trig-expression {
     font-family: 'Courier New', Courier, monospace;
@@ -54,8 +56,12 @@ ARQUITECTURA:
     letter-spacing: 1px;
     line-height: 1.2;
 }
-.trig-fn    { color: var(--primary); }
-.trig-angle { color: var(--accent); }
+.trig-fn {
+    color: var(--primary);
+}
+.trig-angle {
+    color: var(--accent);
+}
 
 /* ── PANELL DE RESOLUCIÓ ────────────────────────────────────────────────── */
 .resolution-panel {
@@ -84,7 +90,9 @@ ARQUITECTURA:
     width: 100%;
     animation: fadeIn 0.3s;
 }
-.step-container.active { display: flex; }
+.step-container.active {
+    display: flex;
+}
 
 /* ── BOTONS DE VALOR (4 opcions múltiples) ──────────────────────────────── */
 .value-buttons {
@@ -119,11 +127,16 @@ ARQUITECTURA:
         border-color: var(--primary);
         color: var(--primary);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(124,58,237,0.2);
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
     }
 }
-.btn-value:active           { transform: scale(0.95); }
-.btn-value:focus-visible    { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-value:active {
+    transform: scale(0.95);
+}
+.btn-value:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
 .btn-value.error-shake {
     background-color: var(--danger-light);
     border-color: var(--danger);
@@ -140,26 +153,59 @@ ARQUITECTURA:
     vertical-align: middle;
     font-size: 0.88em;
 }
-.frac .num { border-bottom: 2px solid currentColor; padding: 1px 4px; }
-.frac .den { padding: 1px 4px; }
+.frac .num {
+    border-bottom: 2px solid currentColor;
+    padding: 1px 4px;
+}
+.frac .den {
+    padding: 1px 4px;
+}
 
 /* ── COMPTADOR D'INTENTS (blink específic) ──────────────────────────────── */
 @keyframes blinkAttempts {
-    0%, 100% { background-color: #fef3c7; }
-    50%       { background-color: white; }
+    0%,
+    100% {
+        background-color: #fef3c7;
+    }
+    50% {
+        background-color: white;
+    }
 }
-.attempts-counter.blink { animation: blinkAttempts 0.22s linear 5; }
+.attempts-counter.blink {
+    animation: blinkAttempts 0.22s linear 5;
+}
 
 /* ── RESPONSIU ──────────────────────────────────────────────────────────── */
 @media (max-width: 500px) {
-    .trig-expression { font-size: 2.2em; }
-    #unit-circle-svg { width: 160px; height: 160px; }
-    .circle-and-expression { gap: 18px; }
-    .btn-value { font-size: 1.15em; padding: 16px 8px; min-height: 58px; }
-    .value-buttons { max-width: 340px; gap: 10px; }
+    .trig-expression {
+        font-size: 2.2em;
+    }
+    #unit-circle-svg {
+        width: 160px;
+        height: 160px;
+    }
+    .circle-and-expression {
+        gap: 18px;
+    }
+    .btn-value {
+        font-size: 1.15em;
+        padding: 16px 8px;
+        min-height: 58px;
+    }
+    .value-buttons {
+        max-width: 340px;
+        gap: 10px;
+    }
 }
 @media (max-width: 360px) {
-    .trig-expression { font-size: 1.8em; }
-    #unit-circle-svg { width: 130px; height: 130px; }
-    .btn-value { font-size: 1em; }
+    .trig-expression {
+        font-size: 1.8em;
+    }
+    #unit-circle-svg {
+        width: 130px;
+        height: 130px;
+    }
+    .btn-value {
+        font-size: 1em;
+    }
 }

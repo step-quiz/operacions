@@ -17,16 +17,16 @@
  * ============================================================================
  */
 
-let errorHistory  = [];
+let errorHistory = [];
 let challengeData = null;
 
 const els = {
-    promptDisplay:    document.getElementById('prompt-display'),
+    promptDisplay: document.getElementById('prompt-display'),
     optionsContainer: document.getElementById('options-container'),
-    feedback:         document.getElementById('missatge-feedback'),
-    scoreDisplay:     document.getElementById('score-display'),
-    lvlDisplay:       document.getElementById('lvl-display'),
-    attemptsDisplay:  document.getElementById('attempts-display')
+    feedback: document.getElementById('missatge-feedback'),
+    scoreDisplay: document.getElementById('score-display'),
+    lvlDisplay: document.getElementById('lvl-display'),
+    attemptsDisplay: document.getElementById('attempts-display'),
 };
 
 // =========================================================================
@@ -34,7 +34,7 @@ const els = {
 // =========================================================================
 function buildLevel() {
     isTransitioning = false;
-    attemptsLeft    = MAX_INTENTS;
+    attemptsLeft = MAX_INTENTS;
 
     // showScreen() posa display:block com a inline style; cal corregir-ho
     const _gs = document.getElementById('game-screen');
@@ -42,11 +42,11 @@ function buildLevel() {
 
     const _lvl = new URLSearchParams(window.location.search).get('nivell');
     const _sessText = TOTAL_SESSIONS > 1 ? `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS} · ` : '';
-    const _lvlText  = _lvl ? ` · Nivell ${_lvl}` : '';
-    els.lvlDisplay.innerText      = `${_sessText}Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}${_lvlText}`;
+    const _lvlText = _lvl ? ` · Nivell ${_lvl}` : '';
+    els.lvlDisplay.innerText = `${_sessText}Pregunta ${currentOperation + 1} de ${TOTAL_OPERATIONS}${_lvlText}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
-    els.feedback.style.opacity    = '0';
-    els.feedback.innerHTML        = '';
+    els.feedback.style.opacity = '0';
+    els.feedback.innerHTML = '';
 
     challengeData = QuestionBank.generateChallenge();
 
@@ -57,7 +57,7 @@ function buildLevel() {
 
     els.optionsContainer.innerHTML = '';
     allOptions.forEach(opt => {
-        const btn  = document.createElement('button');
+        const btn = document.createElement('button');
         btn.className = 'btn-option';
         const span = document.createElement('span');
         katex.render(opt.tex, span, { throwOnError: false, displayMode: false });
@@ -75,24 +75,24 @@ function renderFeedback(opt, showSolution) {
     const fc = els.feedback;
 
     if (opt.isCorrect) {
-        fc.innerHTML     = `<strong class="feedback-correct">${opt.feedback}</strong>`;
+        fc.innerHTML = `<strong class="feedback-correct">${opt.feedback}</strong>`;
         fc.style.opacity = '1';
         return;
     }
 
-    fc.innerHTML     = `<span class="feedback-wrong">${opt.feedback}</span>`;
+    fc.innerHTML = `<span class="feedback-wrong">${opt.feedback}</span>`;
     fc.style.opacity = '1';
 
     // Hint ampliat (botó desplegable)
     const hint = DistractorLib.FeedbackHints[opt.errorType];
     if (hint) {
         const toggleBtn = document.createElement('button');
-        toggleBtn.className   = 'hint-toggle-btn';
+        toggleBtn.className = 'hint-toggle-btn';
         toggleBtn.textContent = '+ ajuda';
 
         const hintBox = document.createElement('div');
-        hintBox.className     = 'hint-box';
-        hintBox.textContent   = hint;
+        hintBox.className = 'hint-box';
+        hintBox.textContent = hint;
         hintBox.style.display = 'none';
 
         toggleBtn.addEventListener('click', () => {
@@ -137,27 +137,32 @@ function checkAnswer(opt, clickedBtn) {
 
         recordAnswerToHistory(challengeData.promptText, opt.tex, true);
         errorHistory.push({
-            question: challengeData.promptText, questionN: currentOperation,
-            errorType: null, isCorrect: true, meta: challengeData.meta
+            question: challengeData.promptText,
+            questionN: currentOperation,
+            errorType: null,
+            isCorrect: true,
+            meta: challengeData.meta,
         });
 
-        const fails       = MAX_INTENTS - attemptsLeft;
-        const levelPoints = Math.max(0, 10 - (fails * 2));
-        sessionScore     += levelPoints;
+        const fails = MAX_INTENTS - attemptsLeft;
+        const levelPoints = Math.max(0, 10 - fails * 2);
+        sessionScore += levelPoints;
         recordResult(Math.min(fails + 1, 3));
         els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
 
-        Array.from(els.optionsContainer.children).forEach(b => b.style.pointerEvents = 'none');
+        Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
         _finishOp(levelPoints);
-
     } else {
         attemptsLeft--;
         els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
         if (clickedBtn) clickedBtn.classList.add('wrong');
 
         errorHistory.push({
-            question: challengeData.promptText, questionN: currentOperation,
-            errorType: opt.errorType, isCorrect: false, meta: challengeData.meta
+            question: challengeData.promptText,
+            questionN: currentOperation,
+            errorType: opt.errorType,
+            isCorrect: false,
+            meta: challengeData.meta,
         });
 
         const isLastAttempt = attemptsLeft <= 0;
@@ -198,24 +203,31 @@ function showSessionSummary() {
         byQuestion[e.questionN].push(e);
     });
 
-    let firstTry = 0, retried = 0, failed = 0;
+    let firstTry = 0,
+        retried = 0,
+        failed = 0;
     Object.values(byQuestion).forEach(entries => {
         const hasCorrect = entries.some(e => e.isCorrect);
-        const hasError   = entries.some(e => !e.isCorrect);
-        if (hasCorrect && !hasError)  firstTry++;
-        else if (hasCorrect)          retried++;
-        else                          failed++;
+        const hasError = entries.some(e => !e.isCorrect);
+        if (hasCorrect && !hasError) firstTry++;
+        else if (hasCorrect) retried++;
+        else failed++;
     });
 
     const errorCounts = {};
     errorHistory
         .filter(e => !e.isCorrect && e.errorType)
-        .forEach(e => { errorCounts[e.errorType] = (errorCounts[e.errorType] || 0) + 1; });
+        .forEach(e => {
+            errorCounts[e.errorType] = (errorCounts[e.errorType] || 0) + 1;
+        });
 
     const sortedErrors = Object.entries(errorCounts).sort((a, b) => b[1] - a[1]);
 
     const panel = document.getElementById('session-summary');
-    if (!panel) { endSession(); return; }
+    if (!panel) {
+        endSession();
+        return;
+    }
 
     const maxScore = TOTAL_OPERATIONS * 10;
     let html = `
@@ -232,7 +244,7 @@ function showSessionSummary() {
     if (sortedErrors.length > 0) {
         html += `<div class="summary-errors-title">Errors conceptuals detectats</div><div class="summary-errors-list">`;
         sortedErrors.forEach(([type, count]) => {
-            const hint  = DistractorLib.FeedbackHints[type] || '';
+            const hint = DistractorLib.FeedbackHints[type] || '';
             const times = count === 1 ? '1 vegada' : `${count} vegades`;
             html += `<div class="summary-error-item"><div class="summary-error-header"><span class="summary-error-type">${_errorTypeLabel(type)}</span><span class="summary-error-count">${times}</span></div>${hint ? `<div class="summary-error-hint">${hint}</div>` : ''}</div>`;
         });
@@ -258,21 +270,21 @@ function showSessionSummary() {
 
 function _errorTypeLabel(type) {
     const labels = {
-        SINGLE_CASE:        'Recompte de casos favorables',
-        WRONG_COUNT:        'Error de recompte',
-        COMPLEMENT:         'Confusió amb l\'esdeveniment contrari',
-        ADD_NOT_MULT:       'Suma en lloc de producte',
-        FORGOT_ONE:         'Esdeveniment oblidat',
-        WRONG_TOTAL:        'Espai mostral incorrecte',
-        SINGLE_TRIAL:       'Una sola extracció en lloc de dues',
-        WITH_REPL:          'Confusió amb/sense reposició',
-        WITHOUT_REPL:       'Confusió amb/sense reposició',
-        IGNORE_CONDITION:   'Condició ignorada',
-        WRONG_NUMERATOR:    'Numerador incorrecte',
-        WRONG_DENOMINATOR:  'Denominador incorrecte',
-        INVERTED:           'Condició invertida',
-        JOINT_NOT_COND:     'Conjunta en lloc de condicionada',
-        MARGINAL_NOT_COND:  'Marginal en lloc de condicionada',
+        SINGLE_CASE: 'Recompte de casos favorables',
+        WRONG_COUNT: 'Error de recompte',
+        COMPLEMENT: "Confusió amb l'esdeveniment contrari",
+        ADD_NOT_MULT: 'Suma en lloc de producte',
+        FORGOT_ONE: 'Esdeveniment oblidat',
+        WRONG_TOTAL: 'Espai mostral incorrecte',
+        SINGLE_TRIAL: 'Una sola extracció en lloc de dues',
+        WITH_REPL: 'Confusió amb/sense reposició',
+        WITHOUT_REPL: 'Confusió amb/sense reposició',
+        IGNORE_CONDITION: 'Condició ignorada',
+        WRONG_NUMERATOR: 'Numerador incorrecte',
+        WRONG_DENOMINATOR: 'Denominador incorrecte',
+        INVERTED: 'Condició invertida',
+        JOINT_NOT_COND: 'Conjunta en lloc de condicionada',
+        MARGINAL_NOT_COND: 'Marginal en lloc de condicionada',
     };
     return labels[type] || type;
 }
@@ -281,7 +293,7 @@ function _errorTypeLabel(type) {
 // 6. Arrencada automàtica
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    if (typeof validateConfig   === 'function') validateConfig();
+    if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
     if (typeof QuestionBank !== 'undefined') QuestionBank.resetSession();
 

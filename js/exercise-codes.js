@@ -21,54 +21,52 @@
 
 window.EXERCISE_CODES = {
     // ESO
-    'enters':               'EN',
-    'enters-ordenar':       'EO',
-    'fraccions':            'FR',
-    'equacions':            'EQ',
-    'sistemes-equacions':   'SE',
-    'mcd-mcm':              'MC',
-    'potencies':            'PT',
-    'factoritzar':          'FA',
-    'radicals':             'RA',
-    'recta-numerica':       'RN',
-    'area-perimetre':       'AP',
-    'pla-cartesia':         'PC',   // reservat: ara no genera codi (no mostra "Copiar codi")
-    'proporciodirecta':     'PR',
-    'decimals':             'DI',
-    'vocabulari':           'VO',   // vocabulari.js genera el codi pel seu compte ('VO')
-    'probabilitat':         'PB',
-    'estadistica':          'ED',
-    'mitjana':              'MJ',
-    'estadistica-inversa':  'EI',
-    'gots-fitxes':          'GC',
-    'prioritat':            'PO',
+    'enters': 'EN',
+    'enters-ordenar': 'EO',
+    'fraccions': 'FR',
+    'equacions': 'EQ',
+    'sistemes-equacions': 'SE',
+    'mcd-mcm': 'MC',
+    'potencies': 'PT',
+    'factoritzar': 'FA',
+    'radicals': 'RA',
+    'recta-numerica': 'RN',
+    'area-perimetre': 'AP',
+    'pla-cartesia': 'PC', // reservat: ara no genera codi (no mostra "Copiar codi")
+    'proporciodirecta': 'PR',
+    'decimals': 'DI',
+    'vocabulari': 'VO', // vocabulari.js genera el codi pel seu compte ('VO')
+    'probabilitat': 'PB',
+    'estadistica': 'ED',
+    'mitjana': 'MJ',
+    'estadistica-inversa': 'EI',
+    'gots-fitxes': 'GC',
+    'prioritat': 'PO',
     'llenguatge-algebraic': 'LA',
-    'triangle-rectangle':   'TR',
-    'raons-trigonometria':  'RT',
-    'teorema-sin-cos':      'TC',
+    'triangle-rectangle': 'TR',
+    'raons-trigonometria': 'RT',
+    'teorema-sin-cos': 'TC',
     // Batxillerat
-    'derivades':                 'DV',
-    'integrals':                 'IT',
+    'derivades': 'DV',
+    'integrals': 'IT',
     // Batxillerat (codis reservats: aquestes activitats ara no generen codi,
     // però es mantenen perquè l'analitzador pugui llegir codis antics)
-    'complexos':                 'CX',
-    'asimptotes':                'AS',
-    'ruffini':                   'RU',
-    'grafica-i-funcio':          'GF',
+    'complexos': 'CX',
+    'asimptotes': 'AS',
+    'ruffini': 'RU',
+    'grafica-i-funcio': 'GF',
     'grafica-funcio-i-derivada': 'GD',
-    'rectes-plans':              'RP',
-    'esglaonar-matriu':          'EM',
-    'inversa-matriu':            'IM',
+    'rectes-plans': 'RP',
+    'esglaonar-matriu': 'EM',
+    'inversa-matriu': 'IM',
     // Adaptades (https://a.step-quiz.net, repositori step-quiz/a)
-    'a-enters':           'AE',
-    'a-decimals':         'AD',
-    'a-diners':           'AN',
-    'a-equacions':        'AQ',
+    'a-enters': 'AE',
+    'a-decimals': 'AD',
+    'a-diners': 'AN',
+    'a-equacions': 'AQ',
     'a-proporciodirecta': 'AO',
-    'a-rellotge':         'AR',   // cal afegir-lo també a js/game-core.js de step-quiz/a
+    'a-rellotge': 'AR', // cal afegir-lo també a js/game-core.js de step-quiz/a
 };
 
 // Lookup invers: codi 2 lletres -> nom exercici
-window.EXERCISE_NAMES = Object.fromEntries(
-    Object.entries(EXERCISE_CODES).map(([nom, codi]) => [codi, nom])
-);
+window.EXERCISE_NAMES = Object.fromEntries(Object.entries(EXERCISE_CODES).map(([nom, codi]) => [codi, nom]));

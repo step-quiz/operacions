@@ -20,7 +20,6 @@
  * ============================================================================
  */
 window.QuestionBank = (() => {
-
     const S = Strings;
     const D = DistractorLib;
 
@@ -32,34 +31,36 @@ window.QuestionBank = (() => {
         }
         return a;
     }
-    function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function _pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
     /* [ROUND 1 — _sortDesc: ordena opcions numèriques de major a menor] */
-    function _sortDesc(arr) { return [...arr].sort((a, b) => b - a); }
+    function _sortDesc(arr) {
+        return [...arr].sort((a, b) => b - a);
+    }
 
     // =========================================================================
     // Q1: Quina temperatura fa avui?
     // =========================================================================
     function generateQ1(cloud, yRange, level) {
-        const today     = cloud.find(p => p.x === 0);
-        const correctY  = today.y;
-        const wrong3    = D.buildDirectRead(correctY, cloud, yRange, 0, level);
+        const today = cloud.find(p => p.x === 0);
+        const correctY = today.y;
+        const wrong3 = D.buildDirectRead(correctY, cloud, yRange, 0, level);
 
-        const allY = _sortDesc([correctY, ...wrong3]);   /* [ROUND 1 — ordenació descendent] */
+        const allY = _sortDesc([correctY, ...wrong3]); /* [ROUND 1 — ordenació descendent] */
         const options = allY.map(y => ({
-            text:      S.numLabel(y),
-            value:     y,
+            text: S.numLabel(y),
+            value: y,
             isCorrect: y === correctY,
-            feedback:  y === correctY
-                ? S.feedback.correct_q1(correctY)
-                : S.feedback.wrong_q1q2
+            feedback: y === correctY ? S.feedback.correct_q1(correctY) : S.feedback.wrong_q1q2,
         }));
 
         return {
-            prompt:  S.Q1_PROMPT,
+            prompt: S.Q1_PROMPT,
             options,
-            layout:  'grid',
-            type:    'Q1',
-            meta:    { x: 0, y: correctY }
+            layout: 'grid',
+            type: 'Q1',
+            meta: { x: 0, y: correctY },
         };
     }
 
@@ -69,26 +70,24 @@ window.QuestionBank = (() => {
     function generateQ2(cloud, yRange, level) {
         // Tria un punt del núvol ≠ x=0
         const candidates = cloud.filter(p => p.x !== 0);
-        const pt         = _pick(candidates);
-        const correctY   = pt.y;
-        const wrong3     = D.buildDirectRead(correctY, cloud, yRange, pt.x, level);
+        const pt = _pick(candidates);
+        const correctY = pt.y;
+        const wrong3 = D.buildDirectRead(correctY, cloud, yRange, pt.x, level);
 
-        const allY = _sortDesc([correctY, ...wrong3]);   /* [ROUND 1 — ordenació descendent] */
+        const allY = _sortDesc([correctY, ...wrong3]); /* [ROUND 1 — ordenació descendent] */
         const options = allY.map(y => ({
-            text:      S.numLabel(y),
-            value:     y,
+            text: S.numLabel(y),
+            value: y,
             isCorrect: y === correctY,
-            feedback:  y === correctY
-                ? S.feedback.correct_q2(pt.x, correctY)
-                : S.feedback.wrong_q1q2
+            feedback: y === correctY ? S.feedback.correct_q2(pt.x, correctY) : S.feedback.wrong_q1q2,
         }));
 
         return {
-            prompt:  S.q2Prompt(pt.x),
+            prompt: S.q2Prompt(pt.x),
             options,
-            layout:  'grid',
-            type:    'Q2',
-            meta:    { x: pt.x, y: correctY }
+            layout: 'grid',
+            type: 'Q2',
+            meta: { x: pt.x, y: correctY },
         };
     }
 
@@ -100,17 +99,17 @@ window.QuestionBank = (() => {
 
         // Marge segur: mateix càlcul que cloud-engine per garantir
         // que queryY sempre és un valor visible al gràfic
-        const span   = yRange.max - yRange.min;
+        const span = yRange.max - yRange.min;
         const margin = Math.max(1, Math.round(span * 0.15));
-        const minY   = yRange.min + margin;
-        const maxY   = yRange.max - margin;
+        const minY = yRange.min + margin;
+        const maxY = yRange.max - margin;
 
         // Tria el valor Y a consultar:
         // 50% → valor que SÍ existeix al núvol (count ≥ 1)
         // 50% → valor proper que NO existeix (count = 0)
         let queryY;
         if (Math.random() < 0.5) {
-            queryY = _pick(cloudY);   // existeix segur (cloud-engine ja garanteix els marges)
+            queryY = _pick(cloudY); // existeix segur (cloud-engine ja garanteix els marges)
         } else {
             // Valor proper als existents però absent, dins el rang visible
             const absent = [];
@@ -127,7 +126,7 @@ window.QuestionBank = (() => {
                 // Agafa dels top 5 del ranking
                 queryY = _pick(absent.slice(0, 5));
             } else {
-                queryY = _pick(cloudY);  // fallback: tots ocupats
+                queryY = _pick(cloudY); // fallback: tots ocupats
             }
         }
 
@@ -135,21 +134,21 @@ window.QuestionBank = (() => {
         const options = D.buildCountOptions(correctCount)
             .sort((a, b) => a.count - b.count)
             .map(opt => ({
-            text:      opt.label,
-            isCorrect: opt.isCorrect,
-            feedback:  opt.isCorrect
-                ? (correctCount === 0
-                    ? S.feedback.correct_q3_zero(queryY)
-                    : S.feedback.correct_q3_some(correctCount, queryY))
-                : S.feedback.wrong_q3
-        }));
+                text: opt.label,
+                isCorrect: opt.isCorrect,
+                feedback: opt.isCorrect
+                    ? correctCount === 0
+                        ? S.feedback.correct_q3_zero(queryY)
+                        : S.feedback.correct_q3_some(correctCount, queryY)
+                    : S.feedback.wrong_q3,
+            }));
 
         return {
-            prompt:  S.q3Prompt(queryY),
+            prompt: S.q3Prompt(queryY),
             options,
-            layout:  'list',
-            type:    'Q3',
-            meta:    { queryY, correctCount }
+            layout: 'list',
+            type: 'Q3',
+            meta: { queryY, correctCount },
         };
     }
 
@@ -158,20 +157,18 @@ window.QuestionBank = (() => {
     // =========================================================================
     function generateQ4(cloud, level) {
         const rawOptions = D.buildFrases(cloud, level);
-        const options    = rawOptions.map(opt => ({
-            text:      opt.text,
+        const options = rawOptions.map(opt => ({
+            text: opt.text,
             isCorrect: opt.isCorrect,
-            feedback:  opt.isCorrect
-                ? S.feedback.correct_q4
-                : S.feedback.wrong_q4
+            feedback: opt.isCorrect ? S.feedback.correct_q4 : S.feedback.wrong_q4,
         }));
 
         return {
-            prompt:  S.Q4_PROMPT,
+            prompt: S.Q4_PROMPT,
             options,
-            layout:  'list',
-            type:    'Q4',
-            meta:    {}
+            layout: 'list',
+            type: 'Q4',
+            meta: {},
         };
     }
 
@@ -194,12 +191,16 @@ window.QuestionBank = (() => {
             3: ['Q1', 'Q2', 'Q3', 'Q4'],
         };
         const types = typesByLevel[level] || typesByLevel[2];
-        const type  = _pick(types);
+        const type = _pick(types);
         switch (type) {
-            case 'Q1': return generateQ1(cloud, yRange, level);
-            case 'Q2': return generateQ2(cloud, yRange, level);
-            case 'Q3': return generateQ3(cloud, yRange, level);
-            case 'Q4': return generateQ4(cloud, level);
+            case 'Q1':
+                return generateQ1(cloud, yRange, level);
+            case 'Q2':
+                return generateQ2(cloud, yRange, level);
+            case 'Q3':
+                return generateQ3(cloud, yRange, level);
+            case 'Q4':
+                return generateQ4(cloud, level);
         }
     }
 

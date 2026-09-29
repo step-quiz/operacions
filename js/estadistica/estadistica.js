@@ -15,16 +15,16 @@
  */
 
 // ── ESTAT ────────────────────────────────────────────────────────────────
-let dataset       = null;    // dades generades
-let tableData     = null;    // taula precomputada
-let totalErrors   = 0;       // errors acumulats a tota l'operació
-let currentPhase  = '';
-let phaseList     = [];
-let phaseIdx      = 0;
+let dataset = null; // dades generades
+let tableData = null; // taula precomputada
+let totalErrors = 0; // errors acumulats a tota l'operació
+let currentPhase = '';
+let phaseList = [];
+let phaseIdx = 0;
 
 // Color-coding de les dades brutes (per ajudar al recompte)
-let valueColors   = {};      // { valor: índex de color }
-let nextColorIdx  = 0;
+let valueColors = {}; // { valor: índex de color }
+let nextColorIdx = 0;
 const DATA_PALETTE = [
     { bg: '#fed7aa', border: '#f97316', text: '#7c2d12' }, // taronja
     { bg: '#bfdbfe', border: '#3b82f6', text: '#1e3a8a' }, // blau
@@ -37,35 +37,35 @@ const DATA_PALETTE = [
 ];
 
 const ME = MathEngine;
-const S  = Strings;
+const S = Strings;
 
 const els = {
-    scoreDisplay:    document.getElementById('score-display'),
-    lvlDisplay:      document.getElementById('lvl-display'),
+    scoreDisplay: document.getElementById('score-display'),
+    lvlDisplay: document.getElementById('lvl-display'),
     attemptsDisplay: document.getElementById('attempts-display'),
-    contextBox:      document.getElementById('context-box'),
-    dataGrid:        document.getElementById('data-grid'),
-    phaseTitle:      document.getElementById('phase-title'),
-    tableWrap:       document.getElementById('table-wrap'),
-    statsWrap:       document.getElementById('stats-wrap'),
-    feedback:        document.getElementById('missatge-feedback'),
-    btnCheck:        document.getElementById('btn-check'),
-    hintBar:         document.getElementById('hint-bar'),
-    stepDots:        document.getElementById('step-dots'),
+    contextBox: document.getElementById('context-box'),
+    dataGrid: document.getElementById('data-grid'),
+    phaseTitle: document.getElementById('phase-title'),
+    tableWrap: document.getElementById('table-wrap'),
+    statsWrap: document.getElementById('stats-wrap'),
+    feedback: document.getElementById('missatge-feedback'),
+    btnCheck: document.getElementById('btn-check'),
+    hintBar: document.getElementById('hint-bar'),
+    stepDots: document.getElementById('step-dots'),
 };
 
 // ── BUILDLEVEL (crida de game-core) ──────────────────────────────────────
 function buildLevel() {
     isTransitioning = false;
-    totalErrors     = 0;
-    phaseIdx        = 0;
-    valueColors     = {};
-    nextColorIdx    = 0;
+    totalErrors = 0;
+    phaseIdx = 0;
+    valueColors = {};
+    nextColorIdx = 0;
 
     els.lvlDisplay.innerHTML = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS} &nbsp;·&nbsp; Exercici ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.innerText    = 'Punts: 0';
-    els.feedback.style.opacity    = '0';
-    els.feedback.innerHTML        = '';
+    els.scoreDisplay.innerText = 'Punts: 0';
+    els.feedback.style.opacity = '0';
+    els.feedback.innerHTML = '';
 
     // Genera dades
     dataset = QuestionBank.generateDataset();
@@ -77,7 +77,7 @@ function buildLevel() {
     // Decideix fases
     if (dataset.type === 'discrete') {
         tableData = ME.discreteFreqTable(dataset.data);
-        tableData.hi  = ME.relativeFreq(tableData.fi, tableData.n);
+        tableData.hi = ME.relativeFreq(tableData.fi, tableData.n);
         tableData.pct = ME.percentage(tableData.hi);
         phaseList = ['FI', 'HI_PCT', 'MEAN', 'MEDIAN', 'MODE'];
     } else {
@@ -110,10 +110,10 @@ function renderDataGrid(data, unit) {
             // Aplica color a totes les cel·les amb el mateix valor
             els.dataGrid.querySelectorAll(`.data-cell[data-val="${val}"]`).forEach(c2 => {
                 const col = DATA_PALETTE[valueColors[val]];
-                c2.style.background    = col.bg;
-                c2.style.borderColor   = col.border;
-                c2.style.color         = col.text;
-                c2.style.cursor        = 'default';
+                c2.style.background = col.bg;
+                c2.style.borderColor = col.border;
+                c2.style.color = col.text;
+                c2.style.cursor = 'default';
             });
         });
     });
@@ -125,10 +125,10 @@ function reapplyDataColors() {
         const val = cell.dataset.val;
         if (valueColors[val] !== undefined) {
             const col = DATA_PALETTE[valueColors[val]];
-            cell.style.background  = col.bg;
+            cell.style.background = col.bg;
             cell.style.borderColor = col.border;
-            cell.style.color       = col.text;
-            cell.style.cursor      = 'default';
+            cell.style.color = col.text;
+            cell.style.cursor = 'default';
         }
     });
 }
@@ -157,15 +157,33 @@ function startPhase() {
     reapplyDataColors();
 
     switch (currentPhase) {
-        case 'SELECT':       renderSelectInterval(); break;
-        case 'MARCA':        renderMarcaPhase();     break;
-        case 'FI':           renderFiPhase();        break;
-        case 'HI_PCT':       renderHiPctPhase();     break;
-        case 'MEAN':         renderStatInput(S.Phases.mean, 'mean');          break;
-        case 'MEDIAN':       renderStatInput(S.Phases.median, 'median');      break;
-        case 'MODE':         renderStatInput(S.Phases.mode, 'mode');          break;
-        case 'MEDIAN_INT':   renderStatSelect(S.Phases.medianInterval, 'medianInt'); break;
-        case 'MODE_INT':     renderStatSelect(S.Phases.modeInterval, 'modeInt');     break;
+        case 'SELECT':
+            renderSelectInterval();
+            break;
+        case 'MARCA':
+            renderMarcaPhase();
+            break;
+        case 'FI':
+            renderFiPhase();
+            break;
+        case 'HI_PCT':
+            renderHiPctPhase();
+            break;
+        case 'MEAN':
+            renderStatInput(S.Phases.mean, 'mean');
+            break;
+        case 'MEDIAN':
+            renderStatInput(S.Phases.median, 'median');
+            break;
+        case 'MODE':
+            renderStatInput(S.Phases.mode, 'mode');
+            break;
+        case 'MEDIAN_INT':
+            renderStatSelect(S.Phases.medianInterval, 'medianInt');
+            break;
+        case 'MODE_INT':
+            renderStatSelect(S.Phases.modeInterval, 'modeInt');
+            break;
     }
 }
 
@@ -181,7 +199,7 @@ function advancePhase() {
 // ── FASE SELECT: triar intervals ─────────────────────────────────────────
 function renderSelectInterval() {
     els.phaseTitle.innerHTML = S.Phases.selectInterval;
-    els.tableWrap.innerHTML  = '';
+    els.tableWrap.innerHTML = '';
     els.btnCheck.style.display = 'none';
 
     const wrap = document.createElement('div');
@@ -192,7 +210,8 @@ function renderSelectInterval() {
         // Mostra etiqueta + previsualització dels intervals
         const preview = [];
         for (let j = 0; j < opt.limits.length - 1; j++) {
-            const lo = opt.limits[j], hi = opt.limits[j + 1];
+            const lo = opt.limits[j],
+                hi = opt.limits[j + 1];
             const bracket = j === opt.limits.length - 2 ? ']' : ')';
             preview.push(`[${lo}, ${hi}${bracket}`);
         }
@@ -206,7 +225,7 @@ function renderSelectInterval() {
 function selectInterval(idx) {
     const opt = dataset.intervalOptions[idx];
     tableData = ME.groupedFreqTable(dataset.data, opt.limits);
-    tableData.hi  = ME.relativeFreq(tableData.fi, tableData.n);
+    tableData.hi = ME.relativeFreq(tableData.fi, tableData.n);
     tableData.pct = ME.percentage(tableData.hi);
     advancePhase();
 }
@@ -214,9 +233,10 @@ function selectInterval(idx) {
 // ── FASE MARCA: marques de classe ────────────────────────────────────────
 function renderMarcaPhase() {
     els.phaseTitle.innerHTML = S.Phases.marca;
-    els.hintBar.innerHTML    = `<span class="hint-text">💡 ${S.Feedback.hintMarca}</span>`;
+    els.hintBar.innerHTML = `<span class="hint-text">💡 ${S.Feedback.hintMarca}</span>`;
     const rows = tableData.intervals.length;
-    let html = '<table class="freq-table"><thead><tr><th>Interval</th><th>Marca de classe (x<sub>i</sub>)</th></tr></thead><tbody>';
+    let html =
+        '<table class="freq-table"><thead><tr><th>Interval</th><th>Marca de classe (x<sub>i</sub>)</th></tr></thead><tbody>';
     tableData.intervals.forEach((iv, i) => {
         const bracket = i === rows - 1 ? ']' : ')';
         html += `<tr><td class="cell-label">[${iv.lo}, ${iv.hi}${bracket}</td><td><input class="cell-input" id="marca-${i}" inputmode="decimal" autocomplete="off"></td></tr>`;
@@ -229,7 +249,7 @@ function renderMarcaPhase() {
 // ── FASE FI: freqüència absoluta ─────────────────────────────────────────
 function renderFiPhase() {
     els.phaseTitle.innerHTML = S.Phases.fi;
-    els.hintBar.innerHTML    = '';
+    els.hintBar.innerHTML = '';
     const isGrouped = dataset.type === 'grouped';
     const rows = isGrouped ? tableData.intervals.length : tableData.values.length;
 
@@ -258,7 +278,7 @@ function renderFiPhase() {
 // ── FASE HI_PCT: relativa i percentatge ──────────────────────────────────
 function renderHiPctPhase() {
     els.phaseTitle.innerHTML = S.Phases.hiPct;
-    els.hintBar.innerHTML    = `<span class="hint-text">💡 ${S.Feedback.hintHi}</span>`;
+    els.hintBar.innerHTML = `<span class="hint-text">💡 ${S.Feedback.hintHi}</span>`;
     const isGrouped = dataset.type === 'grouped';
     const rows = isGrouped ? tableData.intervals.length : tableData.values.length;
 
@@ -288,18 +308,19 @@ function renderHiPctPhase() {
 // ── FASES ESTADÍSTICS: input numèric ─────────────────────────────────────
 function renderStatInput(title, statId) {
     els.phaseTitle.innerHTML = title;
-    els.tableWrap.innerHTML  = '';
+    els.tableWrap.innerHTML = '';
     showReadOnlyTable();
     els.statsWrap.style.display = 'block';
 
     let hintText = '';
     if (statId === 'mean') {
         const isGr = dataset.type === 'grouped';
-        hintText = isGr
-            ? 'Mitjana = Σ(marca<sub>i</sub> · F<sub>a</sub>) / n'
-            : 'Mitjana = Σ(x · F<sub>a</sub>) / n';
+        hintText = isGr ? 'Mitjana = Σ(marca<sub>i</sub> · F<sub>a</sub>) / n' : 'Mitjana = Σ(x · F<sub>a</sub>) / n';
     } else if (statId === 'median') {
-        hintText = 'Ordena les dades i busca el valor central (posició ' + (tableData.n % 2 === 0 ? (tableData.n / 2) + ' i ' + (tableData.n / 2 + 1) : Math.ceil(tableData.n / 2)) + ').';
+        hintText =
+            'Ordena les dades i busca el valor central (posició ' +
+            (tableData.n % 2 === 0 ? tableData.n / 2 + ' i ' + (tableData.n / 2 + 1) : Math.ceil(tableData.n / 2)) +
+            ').';
     } else if (statId === 'mode') {
         hintText = 'La moda és el valor de x amb la freqüència absoluta (F<sub>a</sub>) més alta.';
     }
@@ -315,14 +336,15 @@ function renderStatInput(title, statId) {
 // ── FASES ESTADÍSTICS: selecció d'interval ───────────────────────────────
 function renderStatSelect(title, statId) {
     els.phaseTitle.innerHTML = title;
-    els.tableWrap.innerHTML  = '';
+    els.tableWrap.innerHTML = '';
     showReadOnlyTable();
     els.statsWrap.style.display = 'block';
-    els.btnCheck.style.display  = 'none';
+    els.btnCheck.style.display = 'none';
 
-    let hintText = statId === 'medianInt'
-        ? 'Busca l\'interval on la freqüència acumulada arriba a la posició central (n/2 = ' + (tableData.n / 2) + ').'
-        : 'L\'interval modal és el que té la freqüència absoluta més alta.';
+    let hintText =
+        statId === 'medianInt'
+            ? "Busca l'interval on la freqüència acumulada arriba a la posició central (n/2 = " + tableData.n / 2 + ').'
+            : "L'interval modal és el que té la freqüència absoluta més alta.";
     els.hintBar.innerHTML = `<span class="hint-text">💡 ${hintText}</span>`;
 
     const rows = tableData.intervals.length;
@@ -351,9 +373,13 @@ function selectStatInterval(idx, statId) {
 
     if (idx === correctIdx || (statId === 'modeInt' && ME.modeGroupedIndex(tableData.fi).includes(idx))) {
         clicked.classList.add('choice-correct');
-        btns.forEach(b => b.disabled = true);
+        btns.forEach(b => (b.disabled = true));
         showFeedback(S.Feedback.correct, 'ok');
-        recordAnswerToHistory(S.Phases[statId === 'medianInt' ? 'medianInterval' : 'modeInterval'], fmtInterval(idx), true);
+        recordAnswerToHistory(
+            S.Phases[statId === 'medianInt' ? 'medianInterval' : 'modeInterval'],
+            fmtInterval(idx),
+            true
+        );
         setTimeout(advancePhase, 1200);
     } else {
         clicked.classList.add('choice-wrong');
@@ -398,12 +424,24 @@ function showReadOnlyTable() {
 // ── CHECK BUTTON (dispatcher) ────────────────────────────────────────────
 function checkCurrentStep() {
     switch (currentPhase) {
-        case 'MARCA':       checkMarca();   break;
-        case 'FI':          checkFi();      break;
-        case 'HI_PCT':      checkHiPct();   break;
-        case 'MEAN':        checkStat('mean');    break;
-        case 'MEDIAN':      checkStat('median');  break;
-        case 'MODE':        checkStat('mode');    break;
+        case 'MARCA':
+            checkMarca();
+            break;
+        case 'FI':
+            checkFi();
+            break;
+        case 'HI_PCT':
+            checkHiPct();
+            break;
+        case 'MEAN':
+            checkStat('mean');
+            break;
+        case 'MEDIAN':
+            checkStat('median');
+            break;
+        case 'MODE':
+            checkStat('mode');
+            break;
     }
 }
 
@@ -411,7 +449,10 @@ function checkCurrentStep() {
 
 function checkMarca() {
     const rows = tableData.intervals.length;
-    if (!allFilled('marca-', rows)) { showFeedback(S.Feedback.fillAll, 'warn'); return; }
+    if (!allFilled('marca-', rows)) {
+        showFeedback(S.Feedback.fillAll, 'warn');
+        return;
+    }
     let nErr = 0;
     for (let i = 0; i < rows; i++) {
         const inp = document.getElementById(`marca-${i}`);
@@ -420,16 +461,25 @@ function checkMarca() {
         if (ME.approxEqual(val, tableData.intervals[i].marca, 0.05)) {
             markOk(inp);
         } else {
-            markErr(inp); nErr++;
+            markErr(inp);
+            nErr++;
         }
     }
-    if (nErr === 0) { showFeedback(S.Feedback.allCorrect, 'ok'); setTimeout(advancePhase, 1000); }
-    else { totalErrors += nErr; showFeedback(S.Feedback.someWrong(nErr, rows), 'err'); }
+    if (nErr === 0) {
+        showFeedback(S.Feedback.allCorrect, 'ok');
+        setTimeout(advancePhase, 1000);
+    } else {
+        totalErrors += nErr;
+        showFeedback(S.Feedback.someWrong(nErr, rows), 'err');
+    }
 }
 
 function checkFi() {
     const rows = dataset.type === 'grouped' ? tableData.intervals.length : tableData.values.length;
-    if (!allFilled('fi-', rows)) { showFeedback(S.Feedback.fillAll, 'warn'); return; }
+    if (!allFilled('fi-', rows)) {
+        showFeedback(S.Feedback.fillAll, 'warn');
+        return;
+    }
     let nErr = 0;
     for (let i = 0; i < rows; i++) {
         const inp = document.getElementById(`fi-${i}`);
@@ -438,33 +488,53 @@ function checkFi() {
         if (val === tableData.fi[i]) {
             markOk(inp);
         } else {
-            markErr(inp); nErr++;
+            markErr(inp);
+            nErr++;
         }
     }
-    if (nErr === 0) { showFeedback(S.Feedback.allCorrect, 'ok'); setTimeout(advancePhase, 1000); }
-    else { totalErrors += nErr; showFeedback(S.Feedback.someWrong(nErr, rows), 'err'); }
+    if (nErr === 0) {
+        showFeedback(S.Feedback.allCorrect, 'ok');
+        setTimeout(advancePhase, 1000);
+    } else {
+        totalErrors += nErr;
+        showFeedback(S.Feedback.someWrong(nErr, rows), 'err');
+    }
 }
 
 function checkHiPct() {
     const rows = dataset.type === 'grouped' ? tableData.intervals.length : tableData.values.length;
-    if (!allFilled('hi-', rows) || !allFilled('pct-', rows)) { showFeedback(S.Feedback.fillAll, 'warn'); return; }
+    if (!allFilled('hi-', rows) || !allFilled('pct-', rows)) {
+        showFeedback(S.Feedback.fillAll, 'warn');
+        return;
+    }
     let nErr = 0;
     for (let i = 0; i < rows; i++) {
-        const hiInp  = document.getElementById(`hi-${i}`);
+        const hiInp = document.getElementById(`hi-${i}`);
         const pctInp = document.getElementById(`pct-${i}`);
         if (!hiInp.classList.contains('cell-ok')) {
             const hVal = ME.parseInput(hiInp.value);
             if (ME.approxEqual(hVal, tableData.hi[i], 0.006)) markOk(hiInp);
-            else { markErr(hiInp); nErr++; }
+            else {
+                markErr(hiInp);
+                nErr++;
+            }
         }
         if (!pctInp.classList.contains('cell-ok')) {
             const pVal = ME.parseInput(pctInp.value);
             if (ME.approxEqual(pVal, tableData.pct[i], 0.15)) markOk(pctInp);
-            else { markErr(pctInp); nErr++; }
+            else {
+                markErr(pctInp);
+                nErr++;
+            }
         }
     }
-    if (nErr === 0) { showFeedback(S.Feedback.allCorrect, 'ok'); setTimeout(advancePhase, 1000); }
-    else { totalErrors += nErr; showFeedback(S.Feedback.someWrong(nErr, rows * 2), 'err'); }
+    if (nErr === 0) {
+        showFeedback(S.Feedback.allCorrect, 'ok');
+        setTimeout(advancePhase, 1000);
+    } else {
+        totalErrors += nErr;
+        showFeedback(S.Feedback.someWrong(nErr, rows * 2), 'err');
+    }
 }
 
 // ── VALIDADOR D'ESTADÍSTICS ──────────────────────────────────────────────
@@ -472,9 +542,14 @@ function checkHiPct() {
 function checkStat(statId) {
     const inp = document.getElementById('stat-input');
     const val = ME.parseInput(inp.value);
-    if (isNaN(val)) { showFeedback(S.Feedback.fillAll, 'warn'); return; }
+    if (isNaN(val)) {
+        showFeedback(S.Feedback.fillAll, 'warn');
+        return;
+    }
 
-    let correct, tolerance = 0.05, wrongMsg;
+    let correct,
+        tolerance = 0.05,
+        wrongMsg;
     const isGrouped = dataset.type === 'grouped';
 
     if (statId === 'mean') {
@@ -484,7 +559,7 @@ function checkStat(statId) {
         tolerance = 0.06;
         wrongMsg = isGrouped ? S.Feedback.wrongMeanGr : S.Feedback.wrongMean;
     } else if (statId === 'median') {
-        correct  = ME.medianDiscrete(dataset.data);
+        correct = ME.medianDiscrete(dataset.data);
         tolerance = 0.06;
         wrongMsg = S.Feedback.wrongMedian;
     } else if (statId === 'mode') {
@@ -575,7 +650,7 @@ function focusFirst() {
 
 // ── ARRENCADA ────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-    if (typeof validateConfig   === 'function') validateConfig();
+    if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
 
     // game-core fa display:'block' via inline style; en desktop necessitem 'flex'

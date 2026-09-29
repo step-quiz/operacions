@@ -13,26 +13,26 @@
  * ============================================================================
  */
 
-let challengeData  = null;
-let totalErrors    = 0;
-let helpExpanded   = false;
+let challengeData = null;
+let totalErrors = 0;
+let helpExpanded = false;
 
 const ME = MathEngine;
 
 const els = {
-    scoreDisplay:    document.getElementById('score-display'),
-    lvlDisplay:      document.getElementById('lvl-display'),
+    scoreDisplay: document.getElementById('score-display'),
+    lvlDisplay: document.getElementById('lvl-display'),
     attemptsDisplay: document.getElementById('attempts-display'),
-    promptBox:       document.getElementById('prompt-box'),
-    condBadges:      document.getElementById('cond-badges'),
-    inputGrid:       document.getElementById('input-grid'),
-    feedback:        document.getElementById('missatge-feedback'),
-    diagBox:         document.getElementById('diagnostic-box'),
-    btnCheck:        document.getElementById('btn-check'),
-    progressInfo:    document.getElementById('progress-info'),
-    helpPanel:       document.getElementById('help-panel'),
-    helpContent:     document.getElementById('help-content'),
-    btnHelp:         document.getElementById('btn-help'),
+    promptBox: document.getElementById('prompt-box'),
+    condBadges: document.getElementById('cond-badges'),
+    inputGrid: document.getElementById('input-grid'),
+    feedback: document.getElementById('missatge-feedback'),
+    diagBox: document.getElementById('diagnostic-box'),
+    btnCheck: document.getElementById('btn-check'),
+    progressInfo: document.getElementById('progress-info'),
+    helpPanel: document.getElementById('help-panel'),
+    helpContent: document.getElementById('help-content'),
+    btnHelp: document.getElementById('btn-help'),
 };
 
 // =========================================================================
@@ -40,8 +40,8 @@ const els = {
 // =========================================================================
 function buildLevel() {
     isTransitioning = false;
-    totalErrors     = 0;
-    helpExpanded    = false;
+    totalErrors = 0;
+    helpExpanded = false;
 
     // Reinicia l'estat de sessió del QuestionBank quan comença una sessió nova
     if (currentOperation === 0) QuestionBank.resetSession();
@@ -88,7 +88,10 @@ function renderInputs() {
     for (let i = 0; i < challengeData.k; i++) {
         const inp = document.getElementById(`num-${i}`);
         inp.addEventListener('keydown', e => {
-            if (e.key === 'Enter') { e.preventDefault(); checkAnswer(); }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkAnswer();
+            }
             if (e.key === 'Tab' && !e.shiftKey && i < challengeData.k - 1) {
                 e.preventDefault();
                 document.getElementById(`num-${i + 1}`).focus();
@@ -96,7 +99,10 @@ function renderInputs() {
         });
         // Teclat custom en mòbil
         if (typeof isTouchDevice === 'function' && isTouchDevice() && typeof showCustomKeyboard === 'function') {
-            inp.addEventListener('pointerdown', e => { e.preventDefault(); showCustomKeyboard(inp); });
+            inp.addEventListener('pointerdown', e => {
+                e.preventDefault();
+                showCustomKeyboard(inp);
+            });
         }
     }
 }
@@ -121,8 +127,11 @@ function checkAnswer() {
     for (let i = 0; i < challengeData.k; i++) {
         const inp = document.getElementById(`num-${i}`);
         const val = ME.parseInput(inp.value);
-        if (isNaN(val) || !Number.isInteger(val)) { allFilled = false; }
-        else if (val < 1 || val > 10) { allFilled = false; }
+        if (isNaN(val) || !Number.isInteger(val)) {
+            allFilled = false;
+        } else if (val < 1 || val > 10) {
+            allFilled = false;
+        }
         values.push(val);
     }
 
@@ -174,7 +183,7 @@ function renderDiagnostic(sorted, result) {
 
     if (conds.mean !== undefined) {
         const icon = result.meanOk ? '✅' : '❌';
-        const cls  = result.meanOk ? 'diag-ok' : 'diag-err';
+        const cls = result.meanOk ? 'diag-ok' : 'diag-err';
         const diagText = result.meanOk
             ? `La mitjana de les teves dades és ${ME.fmtCondensed(result.computedMean)}.`
             : `La mitjana de les teves dades és ${ME.fmtCondensed(result.computedMean)}. Has d'aconseguir que sigui ${ME.fmtCondensed(conds.mean)}.`;
@@ -182,12 +191,12 @@ function renderDiagnostic(sorted, result) {
     }
     if (conds.median !== undefined) {
         const icon = result.medianOk ? '✅' : '❌';
-        const cls  = result.medianOk ? 'diag-ok' : 'diag-err';
+        const cls = result.medianOk ? 'diag-ok' : 'diag-err';
         html += `<div class="diag-row ${cls}"><span class="diag-label">${icon} Mediana:</span><span class="diag-value">${ME.fmtCondensed(result.computedMedian)}</span><span class="diag-target">objectiu: ${ME.fmtCondensed(conds.median)}</span></div>`;
     }
     if (conds.mode !== undefined) {
         const icon = result.modeOk ? '✅' : '❌';
-        const cls  = result.modeOk ? 'diag-ok' : 'diag-err';
+        const cls = result.modeOk ? 'diag-ok' : 'diag-err';
         const modeStr = result.computedMode ? result.computedMode.join(', ') : 'cap (amodal)';
         html += `<div class="diag-row ${cls}"><span class="diag-label">${icon} Moda:</span><span class="diag-value">${modeStr}</span><span class="diag-target">objectiu: ${conds.mode}</span></div>`;
     }
@@ -205,7 +214,9 @@ function buildHintMessage(result) {
         // L'ajuda conté la suma necessària. No cal missatge addicional.
     }
     if (conds.median !== undefined && !result.medianOk) {
-        parts.push(`Un cop ordenats, el valor central hauria de ser ${ME.fmtCondensed(conds.median)}, però és ${ME.fmtCondensed(result.computedMedian)}.`);
+        parts.push(
+            `Un cop ordenats, el valor central hauria de ser ${ME.fmtCondensed(conds.median)}, però és ${ME.fmtCondensed(result.computedMedian)}.`
+        );
     }
     if (conds.mode !== undefined && !result.modeOk) {
         if (result.computedMode === null) {
@@ -301,7 +312,7 @@ function toggleHelp() {
 // 8. ARRENCADA
 // =========================================================================
 window.addEventListener('DOMContentLoaded', () => {
-    if (typeof validateConfig   === 'function') validateConfig();
+    if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
 
     els.btnCheck.addEventListener('click', checkAnswer);

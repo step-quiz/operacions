@@ -16,49 +16,49 @@
     // =========================================================================
     const TEXTS = {
         // Capçalera
-        SESSIO_X_DE_Y:   (s, t) => `Sessió ${s} de ${t}`,
-        FIGURA_X_DE_Y:   (f, t) => `Figura ${f} de ${t}`,
-        PUNTS_X:         (p)    => `Punts: ${p}`,
-        INTENTS_X:       (i)    => `Intents: ${i}`,
+        SESSIO_X_DE_Y: (s, t) => `Sessió ${s} de ${t}`,
+        FIGURA_X_DE_Y: (f, t) => `Figura ${f} de ${t}`,
+        PUNTS_X: p => `Punts: ${p}`,
+        INTENTS_X: i => `Intents: ${i}`,
         // Drop-zones
-        DZ_PLACEHOLDER:  '?',
-        FIGURA_HINT:     'Com es diu la figura?',  // pista per a l'etiqueta que nombra la figura
+        DZ_PLACEHOLDER: '?',
+        FIGURA_HINT: 'Com es diu la figura?', // pista per a l'etiqueta que nombra la figura
         // Instruccions
-        INSTR_MODE_A:    'Arrossega cada paraula al lloc correcte de la figura',
-        INSTR_MODE_B:    'Escriu la paraula',
-        INSTR_HINT:      'Escriu el nom de la figura',
-        PARAULA_X_DE_Y:  (w, t) => `Paraula ${w} de ${t}`,
+        INSTR_MODE_A: 'Arrossega cada paraula al lloc correcte de la figura',
+        INSTR_MODE_B: 'Escriu la paraula',
+        INSTR_HINT: 'Escriu el nom de la figura',
+        PARAULA_X_DE_Y: (w, t) => `Paraula ${w} de ${t}`,
         // Mini overlay
         OVERLAY_OK_ICON: '⭐',
         OVERLAY_OK_TEXT: 'Molt bé!',
-        OVERLAY_OK_PTS:  (p)    => `+${p} punts`,
+        OVERLAY_OK_PTS: p => `+${p} punts`,
         OVERLAY_KO_ICON: '❌',
         OVERLAY_KO_TEXT: 'Intents esgotats',
-        OVERLAY_KO_PTS:  '0 punts',
+        OVERLAY_KO_PTS: '0 punts',
         // Pantalla final
-        SUMMARY_TITOL:   '🎉 Activitat completada!',
-        SUMMARY_TROFEU:  '🏆',
-        SUMMARY_SESSIO:  (i)    => `Sessió ${i}`,
-        SUMMARY_NOTA:    'Nota final:',
+        SUMMARY_TITOL: '🎉 Activitat completada!',
+        SUMMARY_TROFEU: '🏆',
+        SUMMARY_SESSIO: i => `Sessió ${i}`,
+        SUMMARY_NOTA: 'Nota final:',
         SUMMARY_ENCERTS: 'encerts',
         SUMMARY_ERRADES: 'errades',
-        BTN_RESTART:     '🔄 Tornar a jugar',
+        BTN_RESTART: '🔄 Tornar a jugar',
         BTN_NEXT_FIGURE: 'Figura següent',
-        BTN_CYCLE:       'Canviar de casella',
-        BTN_INFORME:     '📋 Veure informe',
-        BTN_COPIAR:      '📝 Copiar codi',
+        BTN_CYCLE: 'Canviar de casella',
+        BTN_INFORME: '📋 Veure informe',
+        BTN_COPIAR: '📝 Copiar codi',
         // Avisos d'error tipogràfic (mode B)
-        TYPO_ACCENT:      "Revisa l'accentuació",
-        TYPO_LLETRA:      'Revisa aquesta lletra',
-        TYPO_FALTA_L:     'Revisa, falta una lletra',
-        TYPO_FALTA_P:     'Falta una paraula',
-        INFORME_TITOL:   'Resum de les teves respostes',
-        INFORME_ENCERTS: (n) => `🟢 Encerts (${n})`,
-        INFORME_ERRADES: (n) => `🔴 Errades (${n})`,
-        INFORME_PREGUNTA:'Pregunta:',
-        INFORME_RESPOSTA:'La teva resposta:',
-        INFORME_CAP_OK:  'Cap encert en aquesta partida.',
-        INFORME_CAP_KO:  'Cap errada! Has fet una partida perfecta 🎉',
+        TYPO_ACCENT: "Revisa l'accentuació",
+        TYPO_LLETRA: 'Revisa aquesta lletra',
+        TYPO_FALTA_L: 'Revisa, falta una lletra',
+        TYPO_FALTA_P: 'Falta una paraula',
+        INFORME_TITOL: 'Resum de les teves respostes',
+        INFORME_ENCERTS: n => `🟢 Encerts (${n})`,
+        INFORME_ERRADES: n => `🔴 Errades (${n})`,
+        INFORME_PREGUNTA: 'Pregunta:',
+        INFORME_RESPOSTA: 'La teva resposta:',
+        INFORME_CAP_OK: 'Cap encert en aquesta partida.',
+        INFORME_CAP_KO: 'Cap errada! Has fet una partida perfecta 🎉',
     };
 
     // =========================================================================
@@ -75,21 +75,29 @@
         return n;
     }
 
-    const MODALITAT        = (_p.get('modalitat') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
+    const MODALITAT = (_p.get('modalitat') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
     // Màxims iguals que js/config.js: el codi v2 només representa S = 1-5 i QQ = 01-10
-    const TOTAL_SESS       = _intParam('totalsessions',    1, 1,  5);
-    const TOTAL_OPS        = _intParam('totaloperations',  4, 1, 10);
-    const MAX_INTENTS      = _intParam('maxintents',       4, 1, 10);
-    const MAX_ENLLOC_MITJ  = _intParam('maxenllocmitjana', 1, 0,  1);
+    const TOTAL_SESS = _intParam('totalsessions', 1, 1, 5);
+    const TOTAL_OPS = _intParam('totaloperations', 4, 1, 10);
+    const MAX_INTENTS = _intParam('maxintents', 4, 1, 10);
+    const MAX_ENLLOC_MITJ = _intParam('maxenllocmitjana', 1, 0, 1);
 
     const DEBUG = _p.get('debug') === '1';
 
     // Filtre de dimensió: ?dim=2 (pla) | ?dim=3 (espai) | absent = tot
-    const DIM = _intParam('dim', 0, 2, 3);   // 0 = sense filtre
+    const DIM = _intParam('dim', 0, 2, 3); // 0 = sense filtre
 
     const BG_COLORS = [
-        '#f8fafc', '#eff6ff', '#f0fdf4', '#fefce8', '#fff1f2',
-        '#f5f3ff', '#ecfeff', '#fdf4ff', '#fffbeb', '#faf5ff'
+        '#f8fafc',
+        '#eff6ff',
+        '#f0fdf4',
+        '#fefce8',
+        '#fff1f2',
+        '#f5f3ff',
+        '#ecfeff',
+        '#fdf4ff',
+        '#fffbeb',
+        '#faf5ff',
     ];
 
     // =========================================================================
@@ -107,24 +115,24 @@
     // =========================================================================
     // ESTAT
     // =========================================================================
-    let _figures      = [];
-    let _figActual    = null;
-    let _etTotal      = 0;
-    let _etOK         = 0;
-    let _writeIdx     = 0;
-    let _intents      = 0;
-    let _punts        = 0;
-    let _puntsTotal   = [];
-    let _historial    = [];
-    let _resultats    = [];   // [v2] resultat per figura: 1/2/3/4 (com game-core.js)
-    let _sessio       = 0;
-    let _op           = 0;
+    let _figures = [];
+    let _figActual = null;
+    let _etTotal = 0;
+    let _etOK = 0;
+    let _writeIdx = 0;
+    let _intents = 0;
+    let _punts = 0;
+    let _puntsTotal = [];
+    let _historial = [];
+    let _resultats = []; // [v2] resultat per figura: 1/2/3/4 (com game-core.js)
+    let _sessio = 0;
+    let _op = 0;
     let _isPenalizing = false;
     let _isTransiting = false;
     // [CANVI 2] punts parcials de la figura en curs (+1 per etiqueta correcta)
     let _puntsFiguraActual = 0;
     // [CANVI 3] chip seleccionat en mode tap-to-select (mòbil portrait)
-    let _selectedChip      = null;
+    let _selectedChip = null;
     // [BUGFIX] flag per evitar acumulació de listeners al SVG arrel entre figures
     let _svgDragListenersAdded = false;
 
@@ -138,40 +146,40 @@
     // =========================================================================
     function init() {
         els = {
-            gameArea:        document.getElementById('game-area'),
-            body:            document.body,
-            gameScreen:      document.getElementById('game-screen'),
-            summaryScreen:   document.getElementById('summary-screen'),
-            sessionDisplay:  document.getElementById('session-display'),
-            lvlDisplay:      document.getElementById('lvl-display'),
-            scoreDisplay:    document.getElementById('score-display'),
+            gameArea: document.getElementById('game-area'),
+            body: document.body,
+            gameScreen: document.getElementById('game-screen'),
+            summaryScreen: document.getElementById('summary-screen'),
+            sessionDisplay: document.getElementById('session-display'),
+            lvlDisplay: document.getElementById('lvl-display'),
+            scoreDisplay: document.getElementById('score-display'),
             attemptsDisplay: document.getElementById('attempts-display'),
-            figureSvg:       document.getElementById('figure-svg'),
-            wordPool:        document.getElementById('word-pool'),
-            writePanel:      document.getElementById('write-panel'),
-            writeInput:      document.getElementById('write-input'),
-            btnSubmitWrite:  document.getElementById('btn-submit-write'),
-            writeProgress:   document.getElementById('write-progress'),
-            typoWarning:     document.getElementById('typo-warning'),
-            contextInstr:    document.getElementById('context-instruction'),
-            miniOverlay:     document.getElementById('mini-overlay'),
-            miniIcon:        document.getElementById('mini-icon'),
-            miniText:        document.getElementById('mini-text'),
-            miniPoints:      document.getElementById('mini-points'),
-            btnNextFigure:   document.getElementById('btn-next-figure'),
-            btnCycle:        document.getElementById('btn-cycle'),
-            writePrompt:     document.querySelector('#write-panel .write-prompt'),
-            dragGhost:       document.getElementById('drag-ghost'),
+            figureSvg: document.getElementById('figure-svg'),
+            wordPool: document.getElementById('word-pool'),
+            writePanel: document.getElementById('write-panel'),
+            writeInput: document.getElementById('write-input'),
+            btnSubmitWrite: document.getElementById('btn-submit-write'),
+            writeProgress: document.getElementById('write-progress'),
+            typoWarning: document.getElementById('typo-warning'),
+            contextInstr: document.getElementById('context-instruction'),
+            miniOverlay: document.getElementById('mini-overlay'),
+            miniIcon: document.getElementById('mini-icon'),
+            miniText: document.getElementById('mini-text'),
+            miniPoints: document.getElementById('mini-points'),
+            btnNextFigure: document.getElementById('btn-next-figure'),
+            btnCycle: document.getElementById('btn-cycle'),
+            writePrompt: document.querySelector('#write-panel .write-prompt'),
+            dragGhost: document.getElementById('drag-ghost'),
         };
 
         // Atributs HTML de l'input per evitar correccions automàtiques
         // que confonen l'alumne (autocomplete, autocorrect iOS, etc.)
         if (els.writeInput) {
-            els.writeInput.setAttribute('autocomplete',   'off');
-            els.writeInput.setAttribute('autocorrect',    'off');
+            els.writeInput.setAttribute('autocomplete', 'off');
+            els.writeInput.setAttribute('autocorrect', 'off');
             els.writeInput.setAttribute('autocapitalize', 'off');
-            els.writeInput.setAttribute('spellcheck',     'false');
-            els.writeInput.setAttribute('inputmode',      'text');
+            els.writeInput.setAttribute('spellcheck', 'false');
+            els.writeInput.setAttribute('inputmode', 'text');
         }
 
         // [CANVI] Overlay "Col·loca el mòbil en vertical"
@@ -231,20 +239,19 @@
     // GAME LOOP
     // =========================================================================
     function _startGame() {
-        _sessio     = 0;
+        _sessio = 0;
         _puntsTotal = [];
-        _historial  = [];
-        _resultats  = [];   // [v2] netegem els resultats per figura
+        _historial = [];
+        _resultats = []; // [v2] netegem els resultats per figura
         _startSession();
     }
 
     function _startSession() {
-        _op    = 0;
+        _op = 0;
         _punts = 0;
 
         // Ordre aleatori de figures, repetint si cal fins a TOTAL_OPS
-        const filtered = DIM ? VocabFigures.all.filter(f => f.dim === DIM)
-                             : VocabFigures.all;
+        const filtered = DIM ? VocabFigures.all.filter(f => f.dim === DIM) : VocabFigures.all;
         // Fallback: si el filtre no retorna cap figura (dim no existeix al dataset),
         // usem totes les figures per evitar el bucle infinit que penja la pàgina.
         const all = filtered.length ? filtered : VocabFigures.all;
@@ -259,20 +266,19 @@
     }
 
     function _buildLevel() {
-        _intents      = MAX_INTENTS;
+        _intents = MAX_INTENTS;
         _isTransiting = false;
         _isPenalizing = false;
-        _etOK         = 0;
-        _writeIdx     = 0;
-        _puntsFiguraActual = 0;   // [CANVI 2]
-        _selectedChip      = null; // [CANVI 3]
+        _etOK = 0;
+        _writeIdx = 0;
+        _puntsFiguraActual = 0; // [CANVI 2]
+        _selectedChip = null; // [CANVI 3]
 
         _figActual = _figures[_op % _figures.length];
-        _etTotal   = _figActual.etiquetes.length;
+        _etTotal = _figActual.etiquetes.length;
 
         // Fons rotatiu
-        els.body.style.backgroundColor =
-            BG_COLORS[(_sessio * TOTAL_OPS + _op) % BG_COLORS.length];
+        els.body.style.backgroundColor = BG_COLORS[(_sessio * TOTAL_OPS + _op) % BG_COLORS.length];
 
         els.typoWarning.classList.remove('visible');
         els.contextInstr.innerText = '';
@@ -283,7 +289,7 @@
         _renderFigura();
 
         if (MODALITAT === 'A') _setupModeA();
-        else                   _setupModeB();
+        else _setupModeB();
     }
 
     function _finishLevel(exhausted = false) {
@@ -360,12 +366,11 @@
     // UI HEADER
     // =========================================================================
     function _updateHeader() {
-        els.sessionDisplay.innerText  = TEXTS.SESSIO_X_DE_Y(_sessio + 1, TOTAL_SESS);
-        els.lvlDisplay.innerText      = TEXTS.FIGURA_X_DE_Y(_op + 1, TOTAL_OPS);
-        els.scoreDisplay.innerText    = TEXTS.PUNTS_X(_punts);
+        els.sessionDisplay.innerText = TEXTS.SESSIO_X_DE_Y(_sessio + 1, TOTAL_SESS);
+        els.lvlDisplay.innerText = TEXTS.FIGURA_X_DE_Y(_op + 1, TOTAL_OPS);
+        els.scoreDisplay.innerText = TEXTS.PUNTS_X(_punts);
         els.attemptsDisplay.innerText = TEXTS.INTENTS_X(_intents);
-        els.attemptsDisplay.className = 'attempts-counter' +
-            (_intents < 3 ? ' danger' : '');
+        els.attemptsDisplay.className = 'attempts-counter' + (_intents < 3 ? ' danger' : '');
     }
 
     /**
@@ -381,32 +386,40 @@
     // RENDER SVG + DROP-ZONES
     // =========================================================================
     function _renderFigura() {
-        const DZ_W      = 130;
-        const DZ_H      = 34;
+        const DZ_W = 130;
+        const DZ_H = 34;
         const DZ_W_HINT = 185;
 
         // Clamping: evita que les caselles surtin del viewBox 500×340
-        const SVG_W = 500, SVG_H = 340, MARGIN = 5;
-        function clampLx(v, w) { return Math.min(Math.max(v, w/2 + MARGIN), SVG_W - w/2 - MARGIN); }
-        function clampLy(v)    { return Math.min(v, SVG_H - DZ_H/2 - MARGIN); }
+        const SVG_W = 500,
+            SVG_H = 340,
+            MARGIN = 5;
+        function clampLx(v, w) {
+            return Math.min(Math.max(v, w / 2 + MARGIN), SVG_W - w / 2 - MARGIN);
+        }
+        function clampLy(v) {
+            return Math.min(v, SVG_H - DZ_H / 2 - MARGIN);
+        }
 
         let dzHTML = '';
 
         _figActual.etiquetes.forEach(et => {
-            const isHint     = (et.id === _figActual.id);
-            const w          = isHint ? DZ_W_HINT : DZ_W;
+            const isHint = et.id === _figActual.id;
+            const w = isHint ? DZ_W_HINT : DZ_W;
 
             // Casella hint: sempre a l'extrem superior-esquerre del SVG
-            const lx = isHint ? DZ_W_HINT/2 + MARGIN : clampLx(et.lx, w);
-            const ly = isHint ? DZ_H/2 + 8           : clampLy(et.ly);
+            const lx = isHint ? DZ_W_HINT / 2 + MARGIN : clampLx(et.lx, w);
+            const ly = isHint ? DZ_H / 2 + 8 : clampLy(et.ly);
 
-            const x          = lx - w / 2;
-            const y          = ly - DZ_H / 2;
-            const labelInit  = isHint ? TEXTS.FIGURA_HINT : TEXTS.DZ_PLACEHOLDER;
+            const x = lx - w / 2;
+            const y = ly - DZ_H / 2;
+            const labelInit = isHint ? TEXTS.FIGURA_HINT : TEXTS.DZ_PLACEHOLDER;
             const labelClass = isHint ? 'dz-label dz-label-hint' : 'dz-label';
 
             // Hint: sense connector. Altres: connector en traç CONTINU (sense dasharray)
-            const connectorHTML = isHint ? '' : `
+            const connectorHTML = isHint
+                ? ''
+                : `
                 <line class="dz-connector"
                       x1="${et.px}" y1="${et.py}" x2="${lx}" y2="${ly}"
                       stroke-width="1.5"
@@ -454,7 +467,7 @@
                     e.preventDefault();
                     els.figureSvg.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('dz-over'));
                     const word = e.dataTransfer.getData('text/plain');
-                    const dz   = e.target.closest('.drop-zone');
+                    const dz = e.target.closest('.drop-zone');
                     if (dz) _handleDrop(dz, word);
                 });
             }
@@ -485,9 +498,9 @@
     // MODE A — DRAG & DROP
     // =========================================================================
     function _setupModeA() {
-        els.wordPool.style.display   = 'flex';
+        els.wordPool.style.display = 'flex';
         els.writePanel.style.display = 'none';
-        els.wordPool.innerHTML       = '';
+        els.wordPool.innerHTML = '';
 
         // [ROUND 3 — supressió instrucció mode A] no cal text: l'acció és evident
         els.contextInstr.style.display = 'none';
@@ -523,15 +536,15 @@
         // garanteix l'espai en tots els browsers.
         if (isMob) {
             const spacerStart = document.createElement('span');
-            spacerStart.className    = 'pool-spacer';
+            spacerStart.className = 'pool-spacer';
             spacerStart.setAttribute('aria-hidden', 'true');
             els.wordPool.appendChild(spacerStart);
         }
 
         VocabEngine.shuffle([..._figActual.etiquetes]).forEach(et => {
-            const chip        = document.createElement('div');
-            chip.className    = 'word-chip';
-            chip.textContent  = et.text;
+            const chip = document.createElement('div');
+            chip.className = 'word-chip';
+            chip.textContent = et.text;
             chip.dataset.word = et.text;
 
             if (isMob) {
@@ -556,7 +569,7 @@
         // Spacer final: mateix motiu que l'inicial (padding-inline-end ignorat).
         if (isMob) {
             const spacerEnd = document.createElement('span');
-            spacerEnd.className    = 'pool-spacer';
+            spacerEnd.className = 'pool-spacer';
             spacerEnd.setAttribute('aria-hidden', 'true');
             els.wordPool.appendChild(spacerEnd);
         }
@@ -626,12 +639,11 @@
             dzEl.classList.add('dz-correct');
             dzEl.style.pointerEvents = 'none';
 
-            const chip = [...els.wordPool.querySelectorAll('.word-chip')]
-                            .find(c => c.dataset.word === word);
+            const chip = [...els.wordPool.querySelectorAll('.word-chip')].find(c => c.dataset.word === word);
             if (chip) chip.classList.add('used');
 
             _historial.push({ pregunta: `Vocabulari: ${word}`, resposta: word, ok: true });
-            _puntsFiguraActual++;   // [CANVI 2] +1 per etiqueta correcta
+            _puntsFiguraActual++; // [CANVI 2] +1 per etiqueta correcta
             _updateLiveScore();
             _etOK++;
             if (_etOK >= _etTotal) _finishLevel();
@@ -652,11 +664,11 @@
         e.preventDefault();
         _touchChip = e.currentTarget;
         const touch = e.touches[0];
-        els.dragGhost.textContent    = _touchChip.dataset.word;
-        els.dragGhost.style.display  = 'block';
+        els.dragGhost.textContent = _touchChip.dataset.word;
+        els.dragGhost.style.display = 'block';
         _moveGhost(touch.clientX, touch.clientY);
-        document.addEventListener('touchmove',   _onTouchMove,   { passive: false });
-        document.addEventListener('touchend',    _onTouchEnd,    { passive: false });
+        document.addEventListener('touchmove', _onTouchMove, { passive: false });
+        document.addEventListener('touchend', _onTouchEnd, { passive: false });
         document.addEventListener('touchcancel', _onTouchCancel, { passive: false });
     }
 
@@ -666,8 +678,8 @@
     }
 
     function _moveGhost(cx, cy) {
-        els.dragGhost.style.left = (cx - els.dragGhost.offsetWidth / 2) + 'px';
-        els.dragGhost.style.top  = (cy - 20) + 'px';
+        els.dragGhost.style.left = cx - els.dragGhost.offsetWidth / 2 + 'px';
+        els.dragGhost.style.top = cy - 20 + 'px';
     }
 
     function _onTouchEnd(e) {
@@ -675,22 +687,22 @@
         _removeTouchListeners();
         if (!_touchChip) return;
         const touch = e.changedTouches[0];
-        const el    = document.elementFromPoint(touch.clientX, touch.clientY);
-        const dz    = el ? el.closest('.drop-zone') : null;
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const dz = el ? el.closest('.drop-zone') : null;
         if (dz) _handleDrop(dz, _touchChip.dataset.word);
         _touchChip = null;
     }
 
     function _onTouchCancel() {
         els.dragGhost.style.display = 'none';
-        _touchChip    = null;
-        _selectedChip = null;   // [CANVI 3]
+        _touchChip = null;
+        _selectedChip = null; // [CANVI 3]
         _removeTouchListeners();
     }
 
     function _removeTouchListeners() {
-        document.removeEventListener('touchmove',   _onTouchMove);
-        document.removeEventListener('touchend',    _onTouchEnd);
+        document.removeEventListener('touchmove', _onTouchMove);
+        document.removeEventListener('touchend', _onTouchEnd);
         document.removeEventListener('touchcancel', _onTouchCancel);
     }
 
@@ -698,7 +710,7 @@
     // MODE B — ESCRIPTURA LLIURE
     // =========================================================================
     function _setupModeB() {
-        els.wordPool.style.display   = 'none';
+        els.wordPool.style.display = 'none';
         els.writePanel.style.display = 'flex';
         _writeIdx = 0;
         els.typoWarning.classList.remove('visible');
@@ -711,20 +723,26 @@
     }
 
     function _showWriteStep() {
-        if (_writeIdx >= _etTotal) { _finishLevel(); return; }
+        if (_writeIdx >= _etTotal) {
+            _finishLevel();
+            return;
+        }
 
         // Si la casella actual ja està resolta, avança a la següent lliure
         const dzAll = els.figureSvg.querySelectorAll('.drop-zone');
         if (dzAll[_writeIdx] && dzAll[_writeIdx].classList.contains('dz-correct')) {
             _writeIdx = _findNextUnanswered(_writeIdx);
-            if (_writeIdx === -1) { _finishLevel(); return; }
+            if (_writeIdx === -1) {
+                _finishLevel();
+                return;
+            }
         }
 
         els.writeProgress.innerText = TEXTS.PARAULA_X_DE_Y(_etOK + 1, _etTotal);
 
         // Prompt dinàmic: "Escriu el nom de la figura" si és la casella hint
         const et = _figActual.etiquetes[_writeIdx];
-        const isHintLabel = (et && et.id === _figActual.id);
+        const isHintLabel = et && et.id === _figActual.id;
         if (els.writePrompt) {
             els.writePrompt.innerText = isHintLabel ? TEXTS.INSTR_HINT : TEXTS.INSTR_MODE_B;
         }
@@ -782,7 +800,8 @@
 
     function _highlightWriteTarget() {
         // Treu l'estat actiu de totes les caselles
-        els.figureSvg.querySelectorAll('.drop-zone.dz-active, .drop-zone.dz-active-still')
+        els.figureSvg
+            .querySelectorAll('.drop-zone.dz-active, .drop-zone.dz-active-still')
             .forEach(dz => dz.classList.remove('dz-active', 'dz-active-still'));
 
         // Marca la casella actual
@@ -797,7 +816,7 @@
         const raw = els.writeInput.value.trim();
         if (raw === '') return;
 
-        const et      = _figActual.etiquetes[_writeIdx];
+        const et = _figActual.etiquetes[_writeIdx];
         const resultat = VocabEngine.avaluaResposta(raw, et.text);
 
         if (resultat.verdict === 'correct') {
@@ -811,7 +830,7 @@
                 dz.classList.add('dz-correct');
             }
             _etOK++;
-            _puntsFiguraActual++;   // [CANVI 2] +1 per etiqueta correcta
+            _puntsFiguraActual++; // [CANVI 2] +1 per etiqueta correcta
             _updateLiveScore();
             // Thumb-up breu sobre la casella encertada
             _showThumbsUp(et);
@@ -825,16 +844,15 @@
                     _showWriteStep();
                 }
             }, 400);
-
         } else if (resultat.verdict === 'typo') {
             // Avisa però NO penalitza.
             // Missatge específic segons el tipus d'error; mostra la paraula
             // escrita per l'alumne amb el caràcter problemàtic marcat si escau.
             const TYPO_MSG = {
-                accent:      TEXTS.TYPO_ACCENT,
-                lletra:      TEXTS.TYPO_LLETRA,
+                accent: TEXTS.TYPO_ACCENT,
+                lletra: TEXTS.TYPO_LLETRA,
                 faltaLletra: TEXTS.TYPO_FALTA_L,
-                faltaParaula:TEXTS.TYPO_FALTA_P,
+                faltaParaula: TEXTS.TYPO_FALTA_P,
             };
             const msg = TYPO_MSG[resultat.typoKind] || TEXTS.TYPO_LLETRA;
             els.typoWarning.innerHTML =
@@ -843,7 +861,6 @@
             els.typoWarning.classList.add('visible');
             els.writeInput.value = '';
             _focusWriteInput();
-
         } else {
             els.typoWarning.classList.remove('visible');
             _historial.push({ pregunta: et.text, resposta: raw, ok: false });
@@ -875,7 +892,7 @@
     function _showThumbsUp(et) {
         const DZ_H = 34;
         // Coordenada y: just per sobre del requadre (mig box + marge de 10px)
-        const thumbY = (et.ly - DZ_H / 2 - 10);
+        const thumbY = et.ly - DZ_H / 2 - 10;
 
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.setAttribute('pointer-events', 'none');
@@ -893,7 +910,9 @@
         els.figureSvg.appendChild(g);
 
         // Eliminem l'element just quan acaba l'animació
-        setTimeout(() => { if (g.parentNode) g.parentNode.removeChild(g); }, 1050);
+        setTimeout(() => {
+            if (g.parentNode) g.parentNode.removeChild(g);
+        }, 1050);
     }
 
     // =========================================================================
@@ -901,10 +920,10 @@
     // =========================================================================
     function _showIncorrecte() {
         if (!els.miniOverlay) return;
-        els.miniIcon.innerText     = '❌';
-        els.miniText.innerText     = 'Incorrecte';
-        els.miniText.style.color   = 'var(--danger)';
-        els.miniPoints.innerText   = '';
+        els.miniIcon.innerText = '❌';
+        els.miniText.innerText = 'Incorrecte';
+        els.miniText.style.color = 'var(--danger)';
+        els.miniPoints.innerText = '';
         els.miniOverlay.style.display = 'flex';
         setTimeout(() => {
             // Amaguem només si no ha pres el control el mini-overlay de fi de nivell
@@ -921,17 +940,17 @@
         if (!els.miniOverlay) return;
         if (!exhausted) {
             // Figura completada: celebració amb els punts bonus (sempre 10)
-            els.miniIcon.innerText     = TEXTS.OVERLAY_OK_ICON;
-            els.miniText.innerText     = TEXTS.OVERLAY_OK_TEXT;
-            els.miniText.style.color   = '#047857';
-            els.miniPoints.innerText   = TEXTS.OVERLAY_OK_PTS(points);
+            els.miniIcon.innerText = TEXTS.OVERLAY_OK_ICON;
+            els.miniText.innerText = TEXTS.OVERLAY_OK_TEXT;
+            els.miniText.style.color = '#047857';
+            els.miniPoints.innerText = TEXTS.OVERLAY_OK_PTS(points);
             els.miniPoints.style.color = '#059669';
         } else {
             // Intents esgotats: missatge KO + punts parcials (si n'hi ha)
-            els.miniIcon.innerText     = TEXTS.OVERLAY_KO_ICON;
-            els.miniText.innerText     = TEXTS.OVERLAY_KO_TEXT;
-            els.miniText.style.color   = 'var(--danger)';
-            els.miniPoints.innerText   = points > 0 ? TEXTS.OVERLAY_OK_PTS(points) : TEXTS.OVERLAY_KO_PTS;
+            els.miniIcon.innerText = TEXTS.OVERLAY_KO_ICON;
+            els.miniText.innerText = TEXTS.OVERLAY_KO_TEXT;
+            els.miniText.style.color = 'var(--danger)';
+            els.miniPoints.innerText = points > 0 ? TEXTS.OVERLAY_OK_PTS(points) : TEXTS.OVERLAY_KO_PTS;
             els.miniPoints.style.color = points > 0 ? '#059669' : 'var(--danger)';
         }
         els.miniOverlay.style.display = 'flex';
@@ -969,21 +988,21 @@
     }
 
     function _renderSummary() {
-        const nota10  = _calculaNotaSobre10();
-        const nota    = nota10.toFixed(1).replace('.', ',');
-        const notaText = MAX_ENLLOC_MITJ === 1
-            ? 'Millor sessió:'
-            : TEXTS.SUMMARY_NOTA;
+        const nota10 = _calculaNotaSobre10();
+        const nota = nota10.toFixed(1).replace('.', ',');
+        const notaText = MAX_ENLLOC_MITJ === 1 ? 'Millor sessió:' : TEXTS.SUMMARY_NOTA;
 
         const encerts = _historial.filter(h => h.ok).length;
         const errades = _historial.filter(h => !h.ok).length;
 
-        const sessionsHTML = _puntsTotal.map((p, i) => {
-            const n = (p / (TOTAL_OPS * 10) * 10).toFixed(1).replace('.', ',');
-            return `<div class="session-line">
+        const sessionsHTML = _puntsTotal
+            .map((p, i) => {
+                const n = ((p / (TOTAL_OPS * 10)) * 10).toFixed(1).replace('.', ',');
+                return `<div class="session-line">
                 <span>${TEXTS.SUMMARY_SESSIO(i + 1)}</span><span>${n}</span>
             </div>`;
-        }).join('');
+            })
+            .join('');
 
         els.summaryScreen.innerHTML = `
             <h2>${TEXTS.SUMMARY_TITOL}</h2>
@@ -1047,14 +1066,18 @@
                     ${TEXTS.INFORME_ENCERTS(encerts.length)}
                 </h3>
                 <ul style="list-style:none;padding:0;margin-bottom:30px;">
-                    ${encerts.map(e => `
+                    ${encerts
+                        .map(
+                            e => `
                         <li style="margin-bottom:12px;background:#f0fdf4;padding:12px;border-radius:6px;border:1px solid #bbf7d0;">
                             <div style="margin-bottom:5px;color:#334155;"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
                                 <span style="font-family:monospace;font-size:1.1em;">${_escapeHtml(e.pregunta)}</span></div>
                             <div style="color:#059669;"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
                                 <span style="font-family:monospace;">${_escapeHtml(e.resposta)}</span></div>
                         </li>
-                    `).join('')}
+                    `
+                        )
+                        .join('')}
                     ${encerts.length === 0 ? `<li style="color:var(--text-muted);font-style:italic;">${TEXTS.INFORME_CAP_OK}</li>` : ''}
                 </ul>
 
@@ -1062,14 +1085,18 @@
                     ${TEXTS.INFORME_ERRADES(errades.length)}
                 </h3>
                 <ul style="list-style:none;padding:0;margin-bottom:20px;">
-                    ${errades.map(e => `
+                    ${errades
+                        .map(
+                            e => `
                         <li style="margin-bottom:12px;background:#fef2f2;padding:12px;border-radius:6px;border:1px solid #fecaca;">
                             <div style="margin-bottom:5px;color:#334155;"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
                                 <span style="font-family:monospace;font-size:1.1em;">${_escapeHtml(e.pregunta)}</span></div>
                             <div style="color:#dc2626;"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
                                 <span style="font-family:monospace;">${_escapeHtml(e.resposta)}</span></div>
                         </li>
-                    `).join('')}
+                    `
+                        )
+                        .join('')}
                     ${errades.length === 0 ? `<li style="color:var(--text-muted);font-style:italic;">${TEXTS.INFORME_CAP_KO}</li>` : ''}
                 </ul>
 
@@ -1098,31 +1125,31 @@
         }
 
         // Data i hora
-        const ara    = new Date();
-        const dia    = String(ara.getDate()).padStart(2, '0');
-        const mes    = String(ara.getMonth() + 1).padStart(2, '0');
-        const hora   = String(ara.getHours()).padStart(2, '0');
+        const ara = new Date();
+        const dia = String(ara.getDate()).padStart(2, '0');
+        const mes = String(ara.getMonth() + 1).padStart(2, '0');
+        const hora = String(ara.getHours()).padStart(2, '0');
         const minuts = String(ara.getMinutes()).padStart(2, '0');
 
         // Exercici, dificultat, sessions, preguntes
-        const exCode    = 'VO';                                   // vocabulari
-        const dif       = '0';                                    // sense nivells de dificultat
-        const sessions  = String(Math.min(TOTAL_SESS, 5));
+        const exCode = 'VO'; // vocabulari
+        const dif = '0'; // sense nivells de dificultat
+        const sessions = String(Math.min(TOTAL_SESS, 5));
         const questions = String(Math.min(TOTAL_OPS, 10)).padStart(2, '0');
 
         // Nota (NNN = nota × 10, 000-100)
         const notaSobre10 = _calculaNotaSobre10();
-        const notaInt     = Math.round(notaSobre10 * 10);
-        const notaStr     = String(notaInt).padStart(3, '0');
+        const notaInt = Math.round(notaSobre10 * 10);
+        const notaStr = String(notaInt).padStart(3, '0');
 
         // Resultats per figura (mínim 30 chars, màxim 5 × 10 = 50). 1=sense errors · 2=1 error · 3=2+ · 4=fallada
         const resultsStr = _resultats.slice(0, 50).map(String).join('').padEnd(30, '0');
 
         // Checksum (idèntic a game-core.js: fa servir la nota × 10)
-        const valorAscii  = salt.charCodeAt(0);
-        const sumaControl = notaInt + parseInt(dia, 10) + parseInt(mes, 10)
-                          + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
-        const lletra      = 'TRWAGMYFPDXBNJZSQVHLCKE'.charAt(sumaControl % 23);
+        const valorAscii = salt.charCodeAt(0);
+        const sumaControl =
+            notaInt + parseInt(dia, 10) + parseInt(mes, 10) + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
+        const lletra = 'TRWAGMYFPDXBNJZSQVHLCKE'.charAt(sumaControl % 23);
 
         const output = `${lletra}${salt}-${dia}${mes}-${hora}${minuts}-${exCode}-${dif}-${sessions}-${questions}-${notaStr}-${resultsStr}`;
         console.log('Codi v2 generat per al professor:', output, '(', output.length, 'chars)');
@@ -1140,7 +1167,9 @@
         document.querySelectorAll('.btn-copiar-codi').forEach(btn => {
             btn.innerText = 'Copiat! ✅';
             btn.style.backgroundColor = 'var(--success)';
-            setTimeout(() => { btn.style.display = 'none'; }, 3000);
+            setTimeout(() => {
+                btn.style.display = 'none';
+            }, 3000);
         });
     }
 
@@ -1149,7 +1178,8 @@
         if (!box) {
             box = document.createElement('div');
             box.id = 'fallback-code-box';
-            box.style.cssText = 'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:400px;';
+            box.style.cssText =
+                'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:400px;';
             box.innerHTML = `
                 <div style="font-size:0.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div>
                 <div id="fallback-code-text" style="font-family:monospace;font-size:1.1em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;"></div>
@@ -1180,9 +1210,10 @@
     // També mostra les coordenades del cursor en temps real.
     // =========================================================================
     function _injectDebugGrid() {
-        const SVG_W = 500, SVG_H = 340;
-        const STEP_MAJOR = 50;   // línia + número cada 50px
-        const STEP_MINOR = 10;   // línia fina cada 10px
+        const SVG_W = 500,
+            SVG_H = 340;
+        const STEP_MAJOR = 50; // línia + número cada 50px
+        const STEP_MINOR = 10; // línia fina cada 10px
 
         let gridSVG = '<g class="debug-grid" pointer-events="none">';
 
@@ -1209,7 +1240,8 @@
         for (let y = 0; y <= SVG_H; y += STEP_MAJOR) {
             gridSVG += `<line x1="0" y1="${y}" x2="${SVG_W}" y2="${y}"
                          stroke="#7c3aed" stroke-width="0.5" opacity="0.45"/>`;
-            if (y > 0) { // no duplicar el 0 de la cantonada
+            if (y > 0) {
+                // no duplicar el 0 de la cantonada
                 gridSVG += `<text x="2" y="${y - 2}"
                              font-size="8" fill="#7c3aed" opacity="0.8"
                              font-family="monospace">${y}</text>`;
@@ -1226,7 +1258,7 @@
 
         // Marca cada punt d'ancoratge (px,py) amb el seu id
         _figActual.etiquetes.forEach(et => {
-            const isHint = (et.id === _figActual.id);
+            const isHint = et.id === _figActual.id;
             if (isHint) return; // el hint no té punt d'ancoratge real
             gridSVG += `<circle cx="${et.px}" cy="${et.py}" r="6"
                          fill="#ef4444" opacity="0.5" pointer-events="none"/>`;
@@ -1245,16 +1277,21 @@
         els.figureSvg.addEventListener('pointermove', _onDebugMove);
 
         // Mostra les coordenades de cada etiqueta a la consola
-        console.table(_figActual.etiquetes.map(et => ({
-            id: et.id, text: et.text,
-            'px (punt)': et.px, 'py (punt)': et.py,
-            'lx (caixa)': et.lx, 'ly (caixa)': et.ly
-        })));
+        console.table(
+            _figActual.etiquetes.map(et => ({
+                'id': et.id,
+                'text': et.text,
+                'px (punt)': et.px,
+                'py (punt)': et.py,
+                'lx (caixa)': et.lx,
+                'ly (caixa)': et.ly,
+            }))
+        );
     }
 
     function _onDebugMove(e) {
         const svg = els.figureSvg;
-        const pt  = svg.createSVGPoint();
+        const pt = svg.createSVGPoint();
         pt.x = e.clientX;
         pt.y = e.clientY;
         const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
@@ -1263,9 +1300,12 @@
         const cy = Math.round(svgPt.y);
 
         const cursor = document.getElementById('debug-cursor');
-        const coord  = document.getElementById('debug-coord');
-        if (cursor) { cursor.setAttribute('cx', cx); cursor.setAttribute('cy', cy); }
-        if (coord)  {
+        const coord = document.getElementById('debug-coord');
+        if (cursor) {
+            cursor.setAttribute('cx', cx);
+            cursor.setAttribute('cy', cy);
+        }
+        if (coord) {
             coord.setAttribute('x', cx + 8);
             coord.setAttribute('y', cy - 6);
             coord.textContent = `${cx}, ${cy}`;
@@ -1278,10 +1318,19 @@
     document.addEventListener('DOMContentLoaded', init);
 
     // Globals intencionades: connecten els botons HTML amb el mòdul
-    window._vocabCheckWrite = function () { _checkWrite(); };
-    window._vocabCycleWrite = function () { _cycleWriteTarget(); };
-    window._vocabNextFigure = function () { _advanceToNext(); };
-    window._vocabShowInforme = function () { _showInforme(); };
-    window._vocabCopiarCodi  = function () { _copiarCodi(); };
-
+    window._vocabCheckWrite = function () {
+        _checkWrite();
+    };
+    window._vocabCycleWrite = function () {
+        _cycleWriteTarget();
+    };
+    window._vocabNextFigure = function () {
+        _advanceToNext();
+    };
+    window._vocabShowInforme = function () {
+        _showInforme();
+    };
+    window._vocabCopiarCodi = function () {
+        _copiarCodi();
+    };
 })();

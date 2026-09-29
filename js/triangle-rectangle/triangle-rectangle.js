@@ -29,66 +29,74 @@
  *   hint   : string            — pas a pas per a l'ajuda
  */
 const PROBLEMS = [
-
     /* ── Troba la hipotenusa (a = √(b²+c²)) ────────────────────────────── */
     {
-        id: 0, find: 'a',
+        id: 0,
+        find: 'a',
         given: { b: '3', c: '4' },
         answer: '5',
         distractors: ['7', '√7', '2√2'],
         hint: 'a = √(3² + 4²) = √(9 + 16) = √25 = 5',
     },
     {
-        id: 1, find: 'a',
+        id: 1,
+        find: 'a',
         given: { b: '5', c: '12' },
         answer: '13',
         distractors: ['17', '11', '√119'],
         hint: 'a = √(5² + 12²) = √(25 + 144) = √169 = 13',
     },
     {
-        id: 2, find: 'a',
+        id: 2,
+        find: 'a',
         given: { b: '6', c: '8' },
         answer: '10',
         distractors: ['14', '√28', '7'],
         hint: 'a = √(6² + 8²) = √(36 + 64) = √100 = 10',
     },
     {
-        id: 3, find: 'a',
+        id: 3,
+        find: 'a',
         given: { b: '1', c: '1' },
         answer: '√2',
         distractors: ['2', '√3', '1'],
         hint: 'a = √(1² + 1²) = √(1 + 1) = √2',
     },
     {
-        id: 4, find: 'a',
+        id: 4,
+        find: 'a',
         given: { b: '1', c: '2' },
         answer: '√5',
         distractors: ['3', '√3', '√7'],
         hint: 'a = √(1² + 2²) = √(1 + 4) = √5',
     },
     {
-        id: 5, find: 'a',
+        id: 5,
+        find: 'a',
         given: { b: '2', c: '2' },
         answer: '2√2',
         distractors: ['4', '√6', '2√3'],
         hint: 'a = √(2² + 2²) = √(4 + 4) = √8 = 2√2',
     },
     {
-        id: 6, find: 'a',
+        id: 6,
+        find: 'a',
         given: { b: '8', c: '15' },
         answer: '17',
         distractors: ['23', '16', '√161'],
         hint: 'a = √(8² + 15²) = √(64 + 225) = √289 = 17',
     },
     {
-        id: 7, find: 'a',
+        id: 7,
+        find: 'a',
         given: { b: '3', c: '3' },
         answer: '3√2',
         distractors: ['6', '√15', '9'],
         hint: 'a = √(3² + 3²) = √(9 + 9) = √18 = 3√2',
     },
     {
-        id: 8, find: 'a',
+        id: 8,
+        find: 'a',
         given: { b: '7', c: '24' },
         answer: '25',
         distractors: ['31', '√527', '√625'],
@@ -97,42 +105,48 @@ const PROBLEMS = [
 
     /* ── Troba el catet b (b = √(a²−c²)) ───────────────────────────────── */
     {
-        id: 9, find: 'b',
+        id: 9,
+        find: 'b',
         given: { a: '5', c: '4' },
         answer: '3',
         distractors: ['1', '√41', '6'],
         hint: 'b = √(a² − c²) = √(25 − 16) = √9 = 3',
     },
     {
-        id: 10, find: 'b',
+        id: 10,
+        find: 'b',
         given: { a: '13', c: '12' },
         answer: '5',
         distractors: ['1', '7', '√119'],
         hint: 'b = √(a² − c²) = √(169 − 144) = √25 = 5',
     },
     {
-        id: 11, find: 'b',
+        id: 11,
+        find: 'b',
         given: { a: '10', c: '6' },
         answer: '8',
         distractors: ['4', '√164', '√136'],
         hint: 'b = √(a² − c²) = √(100 − 36) = √64 = 8',
     },
     {
-        id: 12, find: 'b',
+        id: 12,
+        find: 'b',
         given: { a: '√2', c: '1' },
         answer: '1',
         distractors: ['√3', '2', '√5'],
         hint: 'b = √(a² − c²) = √(2 − 1) = √1 = 1',
     },
     {
-        id: 13, find: 'b',
+        id: 13,
+        find: 'b',
         given: { a: '√5', c: '1' },
         answer: '2',
         distractors: ['4', '√6', '√3'],
         hint: 'b = √(a² − c²) = √(5 − 1) = √4 = 2',
     },
     {
-        id: 14, find: 'b',
+        id: 14,
+        find: 'b',
         given: { a: '17', c: '8' },
         answer: '15',
         distractors: ['9', '7', '√353'],
@@ -141,35 +155,40 @@ const PROBLEMS = [
 
     /* ── Troba el catet c (c = √(a²−b²)) ───────────────────────────────── */
     {
-        id: 15, find: 'c',
+        id: 15,
+        find: 'c',
         given: { a: '5', b: '3' },
         answer: '4',
         distractors: ['2', '√34', '6'],
         hint: 'c = √(a² − b²) = √(25 − 9) = √16 = 4',
     },
     {
-        id: 16, find: 'c',
+        id: 16,
+        find: 'c',
         given: { a: '13', b: '5' },
         answer: '12',
         distractors: ['8', '√194', '10'],
         hint: 'c = √(a² − b²) = √(169 − 25) = √144 = 12',
     },
     {
-        id: 17, find: 'c',
+        id: 17,
+        find: 'c',
         given: { a: '15', b: '9' },
         answer: '12',
         distractors: ['6', '√306', '10'],
         hint: 'c = √(a² − b²) = √(225 − 81) = √144 = 12',
     },
     {
-        id: 18, find: 'c',
+        id: 18,
+        find: 'c',
         given: { a: '25', b: '7' },
         answer: '24',
         distractors: ['18', '26', '√576'],
         hint: 'c = √(a² − b²) = √(625 − 49) = √576 = 24',
     },
     {
-        id: 19, find: 'c',
+        id: 19,
+        find: 'c',
         given: { a: '√8', b: '2' },
         answer: '2',
         distractors: ['4', '√12', '√6'],
@@ -178,26 +197,26 @@ const PROBLEMS = [
 ];
 
 /* ── ESTAT ESPECÍFIC D'AQUEST JOC ───────────────────────────────────────── */
-let deck           = [];
-let deckPos        = 0;
-let isPenalizing   = false;
+let deck = [];
+let deckPos = 0;
+let isPenalizing = false;
 let currentProblem = null;
 
 /* ── CACHE DOM ──────────────────────────────────────────────────────────── */
 const els = {
-    body:            document.body,
-    sessionDisplay:  document.getElementById('session-display'),
-    lvlDisplay:      document.getElementById('lvl-display'),
-    scoreDisplay:    document.getElementById('score-display'),
+    body: document.body,
+    sessionDisplay: document.getElementById('session-display'),
+    lvlDisplay: document.getElementById('lvl-display'),
+    scoreDisplay: document.getElementById('score-display'),
     attemptsDisplay: document.getElementById('attempts-display'),
-    problemBox:      document.getElementById('problem-box'),
-    triangleSvg:     document.getElementById('triangle-svg'),
+    problemBox: document.getElementById('problem-box'),
+    triangleSvg: document.getElementById('triangle-svg'),
     resolutionPanel: document.getElementById('resolution-panel'),
     stepInstruction: document.getElementById('step-instruction'),
-    helpBtn:         document.getElementById('btn-help'),
-    helpPanel:       document.getElementById('help-panel'),
-    stepValue:       document.getElementById('step-value'),
-    valueButtons:    document.getElementById('value-buttons'),
+    helpBtn: document.getElementById('btn-help'),
+    helpPanel: document.getElementById('help-panel'),
+    stepValue: document.getElementById('step-value'),
+    valueButtons: document.getElementById('value-buttons'),
 };
 
 /* ── UTILITATS NUMÈRIQUES ───────────────────────────────────────────────── */
@@ -249,17 +268,17 @@ function formatVal(n) {
  * i, si cal, amb variacions numèriques simples.
  */
 function generateDistractors(p) {
-    const ans    = evalVal(p.answer);
-    const chosen = [];   // strings ja triats
+    const ans = evalVal(p.answer);
+    const chosen = []; // strings ja triats
 
     // Afegeix un valor si és vàlid, diferent de la resposta i no duplicat
     function add(val) {
         if (val == null) return false;
-        const s   = String(val);
-        const n   = evalVal(s);
+        const s = String(val);
+        const n = evalVal(s);
         if (!isFinite(n) || n <= 0) return false;
-        if (Math.abs(n - ans) < 0.001) return false;                           // igual a la resposta
-        if (chosen.some(c => Math.abs(evalVal(c) - n) < 0.001)) return false;  // duplicat
+        if (Math.abs(n - ans) < 0.001) return false; // igual a la resposta
+        if (chosen.some(c => Math.abs(evalVal(c) - n) < 0.001)) return false; // duplicat
         chosen.push(s);
         return true;
     }
@@ -268,7 +287,8 @@ function generateDistractors(p) {
     let dA = null;
     if (p.find === 'a') {
         // Calien b²+c²; en canvi: √(max²−min²)
-        const bN = evalVal(p.given.b), cN = evalVal(p.given.c);
+        const bN = evalVal(p.given.b),
+            cN = evalVal(p.given.c);
         const diff = Math.abs(bN * bN - cN * cN);
         if (diff > 0.001) dA = formatVal(Math.sqrt(diff));
     } else {
@@ -277,7 +297,7 @@ function generateDistractors(p) {
         const xN = p.find === 'b' ? evalVal(p.given.c) : evalVal(p.given.b);
         dA = formatVal(Math.sqrt(aN * aN + xN * xN));
     }
-    if (!add(dA)) add(p.distractors[0]);  // fallback si dA = 0 o coincideix
+    if (!add(dA)) add(p.distractors[0]); // fallback si dA = 0 o coincideix
 
     // ── B. Solució al quadrat (40%) ───────────────────────────────────────
     if (Math.random() < 0.4) {
@@ -286,7 +306,7 @@ function generateDistractors(p) {
 
     // ── C. Suma catets / Resta hipotenusa−catet (40%) ─────────────────────
     if (Math.random() < 0.4) {
-        let dC = null;
+        let dC;
         if (p.find === 'a') {
             dC = formatVal(evalVal(p.given.b) + evalVal(p.given.c));
         } else if (p.find === 'b') {
@@ -328,13 +348,14 @@ function getTriangleDimensions(p) {
         cN = evalVal(p.given.c);
         const aN = evalVal(p.given.a);
         bN = Math.sqrt(Math.max(0, aN * aN - cN * cN));
-    } else {   // find === 'c'
+    } else {
+        // find === 'c'
         // Coneixem la hipotenusa i el catet b; calculem c
         bN = evalVal(p.given.b);
         const aN = evalVal(p.given.a);
         cN = Math.sqrt(Math.max(0, aN * aN - bN * bN));
     }
-    return { aN: bN || 1, bN: cN || 1 };  // aN=visual vertical (b), bN=visual horitzontal (c)
+    return { aN: bN || 1, bN: cN || 1 }; // aN=visual vertical (b), bN=visual horitzontal (c)
 }
 
 /* ── BARALLA I SELECCIÓ DE PROBLEMES ─────────────────────────────────────── */
@@ -368,51 +389,55 @@ function drawRightTriangle(p) {
     const { aN, bN } = getTriangleDimensions(p);
 
     // ── Escala per encabir al viewBox 240×195 (marges: 30 dalt/baix, 40 lat.)
-    const MAX_W = 155, MAX_H = 120;
+    const MAX_W = 155,
+        MAX_H = 120;
     const scaleW = MAX_W / bN;
     const scaleH = MAX_H / aN;
-    const scale  = Math.min(scaleW, scaleH);
-    const bPx    = bN * scale;
-    const aPx    = aN * scale;
+    const scale = Math.min(scaleW, scaleH);
+    const bPx = bN * scale;
+    const aPx = aN * scale;
 
     // ── Vèrtexs
-    const AX = 38,      AY = 162;          // angle recte (baix-esq)
-    const BX = AX + bPx, BY = AY;          // baix-dret
-    const CX = AX,       CY = AY - aPx;   // dalt-esq
+    const AX = 38,
+        AY = 162; // angle recte (baix-esq)
+    const BX = AX + bPx,
+        BY = AY; // baix-dret
+    const CX = AX,
+        CY = AY - aPx; // dalt-esq
 
     // ── Colors
-    const COL_KNOWN    = '#334155';
-    const COL_UNKNOWN  = '#7c3aed';
-    const isAUnk = (p.find === 'a');  // hipotenusa desconeguda
-    const isBUnk = (p.find === 'b');  // catet vertical desconegut
-    const isCUnk = (p.find === 'c');  // catet horitzontal desconegut
+    const COL_KNOWN = '#334155';
+    const COL_UNKNOWN = '#7c3aed';
+    const isAUnk = p.find === 'a'; // hipotenusa desconeguda
+    const isBUnk = p.find === 'b'; // catet vertical desconegut
+    const isCUnk = p.find === 'c'; // catet horitzontal desconegut
 
-    const colA = isBUnk ? COL_UNKNOWN : COL_KNOWN;  // costat vertical = b
-    const colB = isCUnk ? COL_UNKNOWN : COL_KNOWN;  // costat horitzontal = c
-    const colC = isAUnk ? COL_UNKNOWN : COL_KNOWN;  // hipotenusa = a
+    const colA = isBUnk ? COL_UNKNOWN : COL_KNOWN; // costat vertical = b
+    const colB = isCUnk ? COL_UNKNOWN : COL_KNOWN; // costat horitzontal = c
+    const colC = isAUnk ? COL_UNKNOWN : COL_KNOWN; // hipotenusa = a
 
     const strokeA = `stroke="${colA}" stroke-width="2.5"${isBUnk ? ' stroke-dasharray="7,4"' : ''}`;
     const strokeB = `stroke="${colB}" stroke-width="2.5"${isCUnk ? ' stroke-dasharray="7,4"' : ''}`;
     const strokeC = `stroke="${colC}" stroke-width="2.5"${isAUnk ? ' stroke-dasharray="7,4"' : ''}`;
 
     // ── Etiquetes de valors
-    const labelA = isBUnk ? '?' : p.given.b;  // costat esquerre = b
-    const labelB = isCUnk ? '?' : p.given.c;  // costat baix = c
-    const labelC = isAUnk ? '?' : p.given.a;  // hipotenusa = a
+    const labelA = isBUnk ? '?' : p.given.b; // costat esquerre = b
+    const labelB = isCUnk ? '?' : p.given.c; // costat baix = c
+    const labelC = isAUnk ? '?' : p.given.a; // hipotenusa = a
 
     // ── Posicions d'etiquetes
-    const midAY  = (AY + CY) / 2;          // mig costat a  → a l'esquerra
-    const midBX  = (AX + BX) / 2;          // mig costat b  → a baix
-    const midCX  = (BX + CX) / 2;          // mig hipotenusa
-    const midCY  = (BY + CY) / 2;
+    const midAY = (AY + CY) / 2; // mig costat a  → a l'esquerra
+    const midBX = (AX + BX) / 2; // mig costat b  → a baix
+    const midCX = (BX + CX) / 2; // mig hipotenusa
+    const midCY = (BY + CY) / 2;
 
     // Offset perpendicular exterior de la hipotenusa
-    const bcLen  = Math.sqrt((CX - BX) ** 2 + (CY - BY) ** 2);
-    const bcDX   = (CX - BX) / bcLen;
-    const bcDY   = (CY - BY) / bcLen;
+    const bcLen = Math.sqrt((CX - BX) ** 2 + (CY - BY) ** 2);
+    const bcDX = (CX - BX) / bcLen;
+    const bcDY = (CY - BY) / bcLen;
     // Girar 90° CCW (exterior del triangle)
     const perpDX = -bcDY;
-    const perpDY =  bcDX;
+    const perpDY = bcDX;
     const OFFSET_C = 16;
     const lCX = midCX + perpDX * OFFSET_C;
     const lCY = midCY + perpDY * OFFSET_C;
@@ -465,20 +490,19 @@ function drawRightTriangle(p) {
 
 /* ── CONSTRUIR UN NIVELL ─────────────────────────────────────────────────── */
 function buildLevel() {
-    attemptsLeft    = MAX_INTENTS;
-    isPenalizing    = false;
+    attemptsLeft = MAX_INTENTS;
+    isPenalizing = false;
     isTransitioning = false;
 
-    els.body.style.backgroundColor =
-        bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
+    els.body.style.backgroundColor = bgColors[(currentSession * TOTAL_OPERATIONS + currentOperation) % bgColors.length];
 
     currentProblem = selectProblem();
 
     drawRightTriangle(currentProblem);
 
-    els.sessionDisplay.innerText  = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
-    els.lvlDisplay.innerText      = `Problema ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
-    els.scoreDisplay.innerText    = `Punts: ${sessionScore}`;
+    els.sessionDisplay.innerText = `Sessió ${currentSession + 1} de ${TOTAL_SESSIONS}`;
+    els.lvlDisplay.innerText = `Problema ${currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    els.scoreDisplay.innerText = `Punts: ${sessionScore}`;
     els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
     els.attemptsDisplay.className = 'attempts-counter';
 
@@ -498,14 +522,14 @@ function buildLevel() {
     buildValueButtons();
     hideMiniOverlay();
 
-    els.problemBox.style.display      = 'flex';
+    els.problemBox.style.display = 'flex';
     els.resolutionPanel.style.display = 'flex';
     els.stepValue.classList.add('active');
 }
 
 /* ── BOTONS DE VALOR (4 opcions múltiples barrejades) ───────────────────── */
 function buildValueButtons() {
-    const p       = currentProblem;
+    const p = currentProblem;
     const options = [p.answer, ...generateDistractors(p)];
 
     // Fisher–Yates shuffle
@@ -517,7 +541,7 @@ function buildValueButtons() {
     els.valueButtons.innerHTML = '';
     options.forEach(val => {
         const btn = document.createElement('button');
-        btn.className   = 'btn-value';
+        btn.className = 'btn-value';
         btn.textContent = val;
         btn.setAttribute('aria-label', val);
         btn.onclick = () => checkValue(val, btn);
@@ -551,9 +575,8 @@ function penalize(btn) {
     setTimeout(() => {
         els.attemptsDisplay.classList.remove('blink');
         attemptsLeft--;
-        els.attemptsDisplay.innerText    = `Intents: ${attemptsLeft}`;
-        els.attemptsDisplay.className    = 'attempts-counter' +
-            (attemptsLeft < 2 ? ' danger' : '');
+        els.attemptsDisplay.innerText = `Intents: ${attemptsLeft}`;
+        els.attemptsDisplay.className = 'attempts-counter' + (attemptsLeft < 2 ? ' danger' : '');
         isPenalizing = false;
         if (attemptsLeft <= 0) {
             isTransitioning = true;
@@ -573,7 +596,7 @@ function _finishOp(points) {
     recordAnswerToHistory(
         `${labelMap[p.find]} del triangle (a=${p.given.a ?? '?'}, b=${p.given.b ?? '?'}, c=${p.given.c ?? '?'})`,
         p.answer,
-        points > 0,
+        points > 0
     );
     recordResult(points > 0 ? Math.min(MAX_INTENTS - attemptsLeft + 1, 3) : 4);
 
@@ -618,15 +641,19 @@ function buildHints(p) {
 
     const hints = [
         {
-            badge: '1r 🏆', badgeClass: 'badge-best', best: true,
+            badge: '1r 🏆',
+            badgeClass: 'badge-best',
+            best: true,
             icon: '📐',
-            name:    'Teorema de Pitàgores',
+            name: 'Teorema de Pitàgores',
             formula: formulaMap[p.find],
-            reason:  reasonMap[p.find],
+            reason: reasonMap[p.find],
         },
     ];
 
-    return hints.map(h => `
+    return hints
+        .map(
+            h => `
         <div class="hint-item${h.best ? ' hint-best' : ''}">
             <div class="hint-left">
                 <span class="hint-badge ${h.badgeClass}">${h.badge}</span>
@@ -637,7 +664,9 @@ function buildHints(p) {
                 <span class="hint-formula">${h.formula}</span>
                 <span class="hint-reason">${h.reason}</span>
             </div>
-        </div>`).join('');
+        </div>`
+        )
+        .join('');
 }
 
 /* ── INICIALITZACIÓ ──────────────────────────────────────────────────────── */

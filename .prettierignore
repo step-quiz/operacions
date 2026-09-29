@@ -1,0 +1,17 @@
+# Prettier només formata el codi JS i CSS en fitxers propis (js/, css/, tests/).
+# Els HTML no es formaten: moltes activitats encara hi tenen tot el JS a dins
+# i reformatar-los faria canvis enormes i arriscats (vegeu CONTRIBUTING.md).
+*.html
+*.md
+*.json
+*.xml
+*.txt
+*.yml
+*.mjs
+# Llibreries de tercers i projectes a part
+vendor/
+cb/
+app/
+gem4eso/
+tools/
+node_modules/

@@ -12,33 +12,58 @@ ARQUITECTURA:
 */
 
 /* ── COMPACTACIÓ VERTICAL (overrides shared.css per cabre en portàtil) ──── */
-body                { padding: 8px 20px; }
-.home-icon-link     { width: 48px; height: 48px; }
-.title-row          { margin-bottom: 0; }
-.subtitle           { display: none; }
-h1                  { font-size: 1.4em; }
-.header-info        { padding: 8px 20px; }
-.level-text         { font-size: 1.1em; }
-.score-text         { font-size: 1.1em; }
-.attempts-counter   { font-size: 1.1em; padding: 4px 8px; }
+body {
+    padding: 8px 20px;
+}
+.home-icon-link {
+    width: 48px;
+    height: 48px;
+}
+.title-row {
+    margin-bottom: 0;
+}
+.subtitle {
+    display: none;
+}
+h1 {
+    font-size: 1.4em;
+}
+.header-info {
+    padding: 8px 20px;
+}
+.level-text {
+    font-size: 1.1em;
+}
+.score-text {
+    font-size: 1.1em;
+}
+.attempts-counter {
+    font-size: 1.1em;
+    padding: 4px 8px;
+}
 
 /* ── TEMA DE COLOR (sobreescriptura del shared.css) ─────────────────────── */
 :root {
-    --bg-color:      #f0fdfa;
-    --primary:       #0f766e;
+    --bg-color: #f0fdfa;
+    --primary: #0f766e;
     --primary-light: #ccfbf1;
     --primary-hover: #0d9488;
-    --primary-dark:  #134e4a;
-    --accent:        #d97706;
+    --primary-dark: #134e4a;
+    --accent: #d97706;
 }
 
 /* ── H1 (color específic del tema) ─────────────────────────────────────── */
-h1 { color: #134e4a; }
+h1 {
+    color: #134e4a;
+}
 
 /* ── CAPÇALERA DEL JOC (color de fons del tema) ─────────────────────────── */
-.header-info { background-color: #f0fdfa; }
-.level-text  { color: #134e4a; }
-
+.header-info {
+    background-color: #f0fdfa;
+}
+.level-text {
+    color: #134e4a;
+}
 
 /* ── ZONA DEL PROBLEMA (SVG triangle + etiqueta) ────────────────────────── */
 .problem-box {
@@ -84,7 +109,9 @@ h1 { color: #134e4a; }
     width: 100%;
     animation: fadeIn 0.3s;
 }
-.step-container.active { display: flex; }
+.step-container.active {
+    display: flex;
+}
 
 /* ── BOTÓ D'AJUDA ────────────────────────────────────────────────────────── */
 .btn-help {
@@ -99,15 +126,28 @@ h1 { color: #134e4a; }
     font-size: 0.85em;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
+    transition:
+        background 0.2s,
+        transform 0.15s;
     touch-action: manipulation;
 }
 @media (hover: hover) {
-    .btn-help:hover { background: #fef3c7; transform: scale(1.04); }
+    .btn-help:hover {
+        background: #fef3c7;
+        transform: scale(1.04);
+    }
 }
-.btn-help:active { transform: scale(0.96); }
-.btn-help:focus-visible { outline: 3px solid #d97706; outline-offset: 2px; }
-.btn-help.open { background: #fef3c7; border-color: #b45309; }
+.btn-help:active {
+    transform: scale(0.96);
+}
+.btn-help:focus-visible {
+    outline: 3px solid #d97706;
+    outline-offset: 2px;
+}
+.btn-help.open {
+    background: #fef3c7;
+    border-color: #b45309;
+}
 
 /* ── PANELL D'AJUDA (hints) ─────────────────────────────────────────────── */
 .help-panel {
@@ -118,7 +158,9 @@ h1 { color: #134e4a; }
     max-width: 480px;
     animation: fadeIn 0.25s;
 }
-.help-panel.visible { display: flex; }
+.help-panel.visible {
+    display: flex;
+}
 
 .hint-item {
     display: flex;
@@ -135,7 +177,7 @@ h1 { color: #134e4a; }
 .hint-item.hint-best {
     background: #f0fdf4;
     border: 2px solid #86efac;
-    box-shadow: 0 2px 8px rgba(16,185,129,0.12);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
 }
 
 .hint-left {
@@ -146,7 +188,10 @@ h1 { color: #134e4a; }
     flex-shrink: 0;
     min-width: 34px;
 }
-.hint-item .hint-icon { font-size: 1.3em; line-height: 1; }
+.hint-item .hint-icon {
+    font-size: 1.3em;
+    line-height: 1;
+}
 
 .hint-badge {
     font-size: 0.7em;
@@ -156,22 +201,45 @@ h1 { color: #134e4a; }
     white-space: nowrap;
     letter-spacing: 0.3px;
 }
-.badge-best   { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-.badge-second { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-.badge-tip    { background: #fef9c3; color: #713f12; border: 1px solid #fde68a; }
+.badge-best {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+.badge-second {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+.badge-tip {
+    background: #fef9c3;
+    color: #713f12;
+    border: 1px solid #fde68a;
+}
 
-.hint-item .hint-body    { display: flex; flex-direction: column; gap: 3px; }
-.hint-item .hint-name    { font-weight: bold; color: #92400e; }
-.hint-item.hint-best .hint-name { color: #166534; }
+.hint-item .hint-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.hint-item .hint-name {
+    font-weight: bold;
+    color: #92400e;
+}
+.hint-item.hint-best .hint-name {
+    color: #166534;
+}
 .hint-item .hint-formula {
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.95em;
     color: #b45309;
-    background: rgba(0,0,0,0.03);
+    background: rgba(0, 0, 0, 0.03);
     padding: 2px 5px;
     border-radius: 4px;
 }
-.hint-item.hint-best .hint-formula { color: #047857; }
+.hint-item.hint-best .hint-formula {
+    color: #047857;
+}
 .hint-reason {
     font-size: 0.85em;
     color: #64748b;
@@ -217,11 +285,16 @@ h1 { color: #134e4a; }
         border-color: var(--primary);
         color: var(--primary-dark);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(15,118,110,0.2);
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
     }
 }
-.btn-value:active          { transform: scale(0.95); }
-.btn-value:focus-visible   { outline: 3px solid var(--primary); outline-offset: 2px; }
+.btn-value:active {
+    transform: scale(0.95);
+}
+.btn-value:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
 .btn-value.error-shake {
     background: var(--danger-light);
     border-color: var(--danger);
@@ -231,18 +304,37 @@ h1 { color: #134e4a; }
 
 /* ── COMPTADOR D'INTENTS (blink específic) ──────────────────────────────── */
 @keyframes blinkAttempts {
-    0%, 100% { background-color: #fef3c7; }
-    50%       { background-color: white; }
+    0%,
+    100% {
+        background-color: #fef3c7;
+    }
+    50% {
+        background-color: white;
+    }
 }
-.attempts-counter.blink { animation: blinkAttempts 0.22s linear 5; }
+.attempts-counter.blink {
+    animation: blinkAttempts 0.22s linear 5;
+}
 
 /* ── RESPONSIU ──────────────────────────────────────────────────────────── */
 @media (max-width: 520px) {
-    .btn-value { font-size: 1.15em; min-height: 58px; }
-    .value-buttons { max-width: 360px; gap: 10px; }
-    #triangle-svg { max-width: 260px; }
+    .btn-value {
+        font-size: 1.15em;
+        min-height: 58px;
+    }
+    .value-buttons {
+        max-width: 360px;
+        gap: 10px;
+    }
+    #triangle-svg {
+        max-width: 260px;
+    }
 }
 @media (max-width: 380px) {
-    .btn-value { font-size: 1em; }
-    #triangle-svg { max-width: 220px; }
+    .btn-value {
+        font-size: 1em;
+    }
+    #triangle-svg {
+        max-width: 220px;
+    }
 }

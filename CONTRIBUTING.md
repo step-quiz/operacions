@@ -63,6 +63,12 @@ L'ordre és **crític** i no es pot alterar:
 - **IDs HTML:** kebab-case → `game-screen`, `btn-next-session`
 - **Classes CSS:** kebab-case → `btn-submit`, `panel-content`
 
+### Format i revisió automàtica
+
+- El format del codi de `js/`, `css/` i `tests/` el decideix **Prettier** (`.prettierrc.json`: 4 espais, cometes simples, línies de fins a 120 caràcters). No cal alinear res a mà.
+- **ESLint** busca errors al JavaScript de `js/` i `tests/`. Si un fitxer fa servir una variable global d'un altre fitxer, s'ha d'afegir a la llista `PROJECT_GLOBALS` de `tools/lint/eslint.config.mjs`.
+- Com executar-los i com funcionen a GitHub: [`tools/lint/README.md`](tools/lint/README.md).
+
 ### Mòduls (patró IIFE)
 
 Cada mòdul exposa un sol objecte al `window`:

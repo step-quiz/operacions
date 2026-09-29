@@ -4,7 +4,7 @@
  * FITXER: js/utils.js
  * ROL: Llibreria de funcions utilitàries pures i genèriques.
  * ARQUITECTURA:
- * - Conté mètodes segurs de generació aleatòria (randInt, pick) i 
+ * - Conté mètodes segurs de generació aleatòria (randInt, pick) i
  * parseig estricte per evitar errors de tipus i d'entrada d'usuari.
  * - Funcions pures: no depenen de cap estat global ni modifiquen el DOM.
  * DEPENDÈNCIES: Cap. Aquest fitxer s'ha de carregar PRIMER de tots els JS.
@@ -69,4 +69,3 @@ function parseStrictInt(str) {
     if (!/^-?\d+$/.test(str)) return NaN;
     return parseInt(str, 10);
 }
-

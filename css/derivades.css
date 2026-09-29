@@ -18,17 +18,17 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 ============================================================================
 */
 :root {
-    --bg-color:      #fdf4ff;
-    --primary:       #9333ea;
+    --bg-color: #fdf4ff;
+    --primary: #9333ea;
     --primary-light: #f3e8ff;
-    --primary-dark:  #6b21a8;
+    --primary-dark: #6b21a8;
     --primary-hover: #7e22ce;
 }
 
 /* ---- CONTENIDOR DE L'ENUNCIAT ---- */
 .function-box {
     padding: 15px 20px;
-    padding-left: 15px;         /* coincideix amb el padding lateral de .options-grid */
+    padding-left: 15px; /* coincideix amb el padding lateral de .options-grid */
     text-align: left;
     display: flex;
     justify-content: flex-start;
@@ -39,7 +39,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     font-size: 1.5em;
     font-weight: bold;
     min-height: 80px;
-    max-width: 780px;           /* igual que .options-grid, per alinear els marges */
+    max-width: 780px; /* igual que .options-grid, per alinear els marges */
     margin: 0 auto;
 }
 
@@ -56,7 +56,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     padding: 10px 30px;
     background: #f3f4f6;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     border: 2px solid var(--border-light);
 }
 
@@ -76,8 +76,14 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 }
 
 @keyframes popIn {
-    0%   { opacity: 0; transform: scale(0.95); }
-    100% { opacity: 1; transform: scale(1); }
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .btn-option {
@@ -88,13 +94,16 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     background: white;
     color: var(--text-main);
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 80px;
     /* height: auto implícit — el botó s'estira verticalment si cal */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     opacity: 0;
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     /* Evita desbordament horitzontal: l'interior pot reduir mida */
@@ -117,7 +126,9 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     /* Scrollbar invisible per no trencar l'estètica */
     scrollbar-width: none;
 }
-.btn-option .katex-html::-webkit-scrollbar { display: none; }
+.btn-option .katex-html::-webkit-scrollbar {
+    display: none;
+}
 
 @media (hover: hover) {
     .btn-option:hover {
@@ -127,12 +138,21 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     }
 }
 
-.btn-option:active { transform: scale(0.97); }
+.btn-option:active {
+    transform: scale(0.97);
+}
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25%      { transform: translateX(-5px); }
-    75%      { transform: translateX(5px); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
 }
 
 .btn-option.error-shake {
@@ -184,7 +204,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     line-height: 1.5;
     text-align: left;
     animation: fadeInDown 0.3s ease;
-    white-space: pre-line;   /* ← afegir aquesta línia */
+    white-space: pre-line; /* ← afegir aquesta línia */
 }
 
 /* Botó que desplega el hint */
@@ -202,11 +222,19 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     transition: background 0.15s ease;
     user-select: none;
 }
-.hint-toggle-btn:hover { background: #fde68a; }
+.hint-toggle-btn:hover {
+    background: #fde68a;
+}
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Resposta correcta (nivell 3): apareix quan s'esgoten els intents */
@@ -268,8 +296,17 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 
 /* Animació de pèrdua d'intent */
 @keyframes attemptsBlink {
-    0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
-    50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
+    0%,
+    100% {
+        background-color: #fef3c7;
+        border-color: #d1d5db;
+        color: #334155;
+    }
+    50% {
+        background-color: #e5e7eb;
+        border-color: #f59e0b;
+        color: #334155;
+    }
 }
 
 .attempts-counter.blink {
@@ -323,18 +360,33 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     min-width: 90px;
     border: 2px solid transparent;
 }
-.summary-stat--ok   { background: #f0fdf4; border-color: #bbf7d0; }
-.summary-stat--warn { background: #fffbeb; border-color: #fde68a; }
-.summary-stat--err  { background: #fef2f2; border-color: #fecaca; }
+.summary-stat--ok {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+.summary-stat--warn {
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+.summary-stat--err {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
 
 .summary-stat-num {
     font-size: 1.8em;
     font-weight: 800;
     line-height: 1;
 }
-.summary-stat--ok   .summary-stat-num { color: #047857; }
-.summary-stat--warn .summary-stat-num { color: #b45309; }
-.summary-stat--err  .summary-stat-num { color: #b91c1c; }
+.summary-stat--ok .summary-stat-num {
+    color: #047857;
+}
+.summary-stat--warn .summary-stat-num {
+    color: #b45309;
+}
+.summary-stat--err .summary-stat-num {
+    color: #b91c1c;
+}
 
 .summary-stat-desc {
     font-size: 0.78em;
@@ -419,13 +471,27 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     font-size: 1em;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.15s ease;
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease;
 }
-.summary-continue-btn:hover  { background: var(--primary-hover); transform: translateY(-1px); }
-.summary-continue-btn:active { transform: scale(0.97); }
+.summary-continue-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+.summary-continue-btn:active {
+    transform: scale(0.97);
+}
 
 @media (max-width: 480px) {
-    .summary-stats   { gap: 8px; }
-    .summary-stat    { min-width: 75px; padding: 10px 10px; }
-    .summary-stat-num{ font-size: 1.5em; }
+    .summary-stats {
+        gap: 8px;
+    }
+    .summary-stat {
+        min-width: 75px;
+        padding: 10px 10px;
+    }
+    .summary-stat-num {
+        font-size: 1.5em;
+    }
 }
