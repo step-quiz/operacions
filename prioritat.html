@@ -26,6 +26,7 @@
             --primary-light: #ede9fe;
             --primary-hover: #6d28d9;
             --primary-dark:  #4c1d95;
+            --dest:          #00008b; /* «destaca»: el darkblue del projecte combinades */
         }
 
         /* ---- Overrides de shared.css ---- */
@@ -55,6 +56,8 @@
         }
         .tok-op    { color: #334155; padding: 0 2px; }
         .tok-paren { color: #475569; }
+        .expression-box .tok-lp { margin-right: -5px; }
+        .expression-box .tok-rp { margin-left: -5px; }
         .tok-pow sup {
             font-size: 0.62em;
             position: relative;
@@ -212,31 +215,74 @@
             color: var(--primary-dark);
             margin-bottom: 8px;
         }
-        .sol-lines {
-            width: fit-content;
+        /* ══════════════════════════════════════════════
+           RESOLUCIÓ «CENTRADA» (les opcions «centrat» i «destaca» del projecte combinades)
+           Una columna per a cada nombre, signe, potència i parèntesi de l'enunciat:
+           el resultat d'una operació queda centrat sota el que substitueix, i
+           l'operació que es fa a la línia següent va en blau fosc i subratllada.
+        ══════════════════════════════════════════════ */
+        .taula-wrap {
             max-width: 100%;
-            margin: 0 auto;
+            overflow-x: auto; /* una expressió massa llarga per a la pantalla es desplaça; no es trenca */
         }
-        .sol-line {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 6px;
-            padding: 2px 0;
+        table.centrat {
+            border-collapse: collapse;
+            margin: 0 auto;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 1.25em;
             font-weight: bold;
             color: #1e293b;
         }
-        .sol-eq     { color: var(--text-muted); margin-right: 4px; }
-        .sol-eq-end { color: var(--text-muted); margin-left: 4px; }
-        .sol-line .tok-num.fresh {
-            color: var(--primary);
-            background: var(--primary-light);
-            border-radius: 5px;
-            padding: 0 4px;
+        table.centrat td {
+            padding: 0;
+            text-align: center;
+            vertical-align: baseline;
+            white-space: nowrap;
+            line-height: 1.9;
         }
+        table.centrat td.tok-op,
+        table.centrat td.igual  { padding: 0 0.3em; }
+        table.centrat td.igual  { color: var(--text-muted); }
+        table.centrat td.tok-paren { color: #475569; }
+        table.centrat sup {
+            font-size: 0.62em;
+            line-height: 0;
+            position: relative;
+            top: -0.15em;
+            margin-left: 1px;
+        }
+        table.centrat td.dest   { color: var(--dest); border-bottom: 0.09em solid currentColor; }
+        /* Les línies que no ha fet l'alumne (Pas a pas, sense intents) */
+        table.centrat tr.auto td { color: var(--text-muted); }
+        .solution-box table.centrat { font-size: 1.25em; }
+
+        /* ══════════════════════════════════════════════
+           MODALITAT «PAS A PAS» (?modalitat=passos)
+           La taula és la zona de treball: a la línia de sota, els signes i
+           les potències són botons.
+        ══════════════════════════════════════════════ */
+        .steps-box { display: none; padding: 28px 12px 14px 12px; }
+        body.mode-passos .steps-box { display: block; }
+        body.mode-passos .expression-box,
+        body.mode-passos .drop-zone { display: none; }
+        body.mode-passos .num-chip { cursor: pointer; touch-action: manipulation; }
+        .steps-box table.centrat { font-size: 1.7em; }
+        .tok-btn {
+            font: inherit;
+            color: inherit;
+            line-height: 1.35;
+            margin: 0;
+            padding: 0 0.12em;
+            min-width: 1.35em;
+            background: var(--primary-light);
+            border: 2px solid #c4b5fd;
+            border-radius: 8px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .tok-btn:focus-visible { outline: 3px solid var(--primary-dark); outline-offset: 2px; }
+        @media (hover: hover) { .tok-btn:hover { background: #ddd6fe; border-color: var(--primary); } }
+        .tok-btn.hl-red   { border-color: var(--danger);  background: var(--danger-light);  color: #991b1b; }
+        .tok-btn.hl-green { border-color: var(--success); background: var(--success-light); color: #065f46; }
 
         /* ---- Marques del diagnòstic sobre l'expressió ---- */
         .expression-box .hl-red, .expression-box .hl-green {
@@ -307,7 +353,11 @@
             .drop-zone        { min-width: 100px; min-height: 54px; font-size: 1.3em; padding: 5px 12px; }
             .num-chip         { padding: 9px 16px; font-size: 1.15em; min-height: 44px; }
             .solution-box     { width: calc(100% - 24px); padding: 10px 12px; }
-            .sol-line         { font-size: 1.05em; gap: 4px; }
+            .solution-box table.centrat { font-size: 1.05em; }
+            .steps-box        { padding: 20px 4px 10px 4px; }
+            .steps-box table.centrat { font-size: 1.3em; }
+            table.centrat td.tok-op,
+            table.centrat td.igual { padding: 0 0.2em; }
             .expression-box .hl-red, .expression-box .hl-green { padding: 0 5px; border-width: 2px; }
         }
         @media (max-width: 350px) {
@@ -338,6 +388,7 @@
         </div>
 
         <div class="expression-box" id="expression-box" role="group" aria-label="Expressió matemàtica"></div>
+        <div class="steps-box" id="steps-box" role="group" aria-label="Resolució pas a pas"></div>
         <div class="step-instruction" id="step-instruction">Quant val aquesta expressió?</div>
         <div class="feedback" id="feedback" aria-live="polite"></div>
 
