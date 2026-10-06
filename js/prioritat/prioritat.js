@@ -62,6 +62,7 @@ const els = {
     stepsBox: document.getElementById('steps-box'),
     stepInstruction: document.getElementById('step-instruction'),
     feedback: document.getElementById('feedback'),
+    answerWrap: document.getElementById('answer-zone-wrap'),
     dropZone: document.getElementById('drop-zone'),
     chipPool: document.getElementById('chip-pool'),
     solutionBox: document.getElementById('solution-box'),
@@ -344,22 +345,28 @@ function handleAnswer(val) {
 // ============================================================
 function buildStepLevel() {
     rows = [{ line: MathEngine.startLine(tokens), op: -1 }];
+    askOp(); // abans de pintar: la línia de treball només té botons quan cal tocar una operació
     renderSteps();
-    askOp();
 }
 
 // marks (opcional): { red:Set, green:Set } amb posicions de la línia de treball
 function renderSteps(marks = {}) {
     const active = !_finished && phase === 'op';
     const table = Renderer.tableHtml(rows, { active, red: marks.red, green: marks.green });
+    // Si el focus era en un botó de la taula (teclat), torna al mateix botó de la taula nova
+    const focused = els.stepsBox.contains(document.activeElement) ? document.activeElement.dataset.i : undefined;
     els.stepsBox.innerHTML = `<div class="taula-wrap">${table}</div>`;
+    if (focused !== undefined) {
+        const btn = els.stepsBox.querySelector(`.tok-btn[data-i="${focused}"]`);
+        if (btn) btn.focus({ preventScroll: true });
+    }
 }
 
 function askOp() {
     phase = 'op';
     els.stepInstruction.textContent = Strings.Step.chooseOp;
     els.chipPool.innerHTML = '';
-    els.chipPool.style.display = 'none';
+    els.answerWrap.style.display = 'none';
     els.hintText.style.display = 'block';
     els.hintText.textContent = Strings.Step.chooseOpHint;
 }
@@ -381,7 +388,10 @@ function askResult() {
         els.chipPool.appendChild(chip);
     });
     els.chipPool.style.display = 'flex';
+    els.answerWrap.style.display = '';
     els.hintText.textContent = Strings.Step.resultHint;
+    // Amb teclat, el focus no es perd quan la taula es torna a pintar: va al primer resultat
+    if (!isTouchDevice()) els.chipPool.querySelector('.num-chip').focus({ preventScroll: true });
 }
 
 // L'alumne ha tocat l'operació de la posició i de la línia de treball
@@ -426,6 +436,7 @@ function handleStepResult(val, chip) {
     } else {
         askOp();
         renderSteps();
+        if (!isTouchDevice()) els.stepsBox.querySelector('.tok-btn').focus({ preventScroll: true });
     }
 }
 
@@ -485,7 +496,10 @@ function finishOperation(ok) {
     els.chipPool.style.display = 'none';
     els.hintText.style.display = 'none';
     if (STEP_MODE) {
-        // Es mantenen el missatge i les marques de l'últim error, per comparar-los amb la resolució
+        els.answerWrap.style.display = 'none';
+        // El missatge de l'últim error es manté; la llegenda no, perquè la taula ja no porta les marques
+        const legend = els.feedback.querySelector('.fb-legend');
+        if (legend) legend.remove();
         if (!ok) completeSteps();
         renderSteps();
         els.stepInstruction.textContent = '';

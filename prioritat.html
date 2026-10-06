@@ -72,6 +72,7 @@
             font-weight: 600;
             font-size: 1.1em;
         }
+        .step-instruction:empty { display: none; }
 
         /* Missatge diagnòstic quan l'alumne s'equivoca */
         .feedback {
@@ -356,6 +357,7 @@
             .solution-box table.centrat { font-size: 1.05em; }
             .steps-box        { padding: 20px 4px 10px 4px; }
             .steps-box table.centrat { font-size: 1.3em; }
+            .tok-btn          { min-width: 1.7em; padding: 0.1em 0.15em; } /* prou grans per al dit */
             table.centrat td.tok-op,
             table.centrat td.igual { padding: 0 0.2em; }
             .expression-box .hl-red, .expression-box .hl-green { padding: 0 5px; border-width: 2px; }
@@ -389,7 +391,7 @@
 
         <div class="expression-box" id="expression-box" role="group" aria-label="Expressió matemàtica"></div>
         <div class="steps-box" id="steps-box" role="group" aria-label="Resolució pas a pas"></div>
-        <div class="step-instruction" id="step-instruction">Quant val aquesta expressió?</div>
+        <div class="step-instruction" id="step-instruction" aria-live="polite">Quant val aquesta expressió?</div>
         <div class="feedback" id="feedback" aria-live="polite"></div>
 
         <div id="answer-zone-wrap">

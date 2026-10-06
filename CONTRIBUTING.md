@@ -214,6 +214,7 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 | `nivell` | 1-3 | 0 (sense nivell) | Dificultat del joc |
 | `fixed` | A, B, C | — | Sessió fixa: mateixos exercicis per a tothom (vegeu `js/fixed-sessions.js`) |
 | `families` | ids separats per comes | totes | Famílies actives (derivades/integrals) |
+| `modalitat` | `passos` · `a`, `b` | — | Modalitat de joc: «Pas a pas» a `prioritat`; nivell a `vocabulari` |
 | `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
 
 Els màxims de sessions (5) i preguntes (10) són els que pot representar el codi v2 (camps S i QQ).
@@ -236,7 +237,7 @@ node tests/run-all.js
 | Fitxer | Què comprova |
 |--------|--------------|
 | `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) |
-| `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…) |
+| `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…). A `prioritat`, també la resolució pas a pas (ordre, disposició «centrat»), la modalitat «Pas a pas» i una empremta que avisa si canvien les preguntes de les sessions fixes |
 | `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) la base i cada mòdul de lògica, i comprova que exporten el que han d'exportar |
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
