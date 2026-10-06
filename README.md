@@ -84,7 +84,7 @@ Les versions simplificades per a alumnes amb necessitats educatives especials s�
 
 El projecte segueix dues arquitectures segons l'antiguitat de l'exercici:
 
-**Mòduls nous** (derivades, integrals, probabilitat, estadística, recta numèrica, asímptotes…): cada exercici té la seva carpeta a `js/`.
+**Mòduls nous** (derivades, integrals, probabilitat, estadística, recta numèrica, asímptotes, prioritat…): cada exercici té la seva carpeta a `js/`.
 ```
 js/derivades/
 ├── math-engine.js      ← Capa matemàtica pura (sense DOM)
@@ -123,6 +123,7 @@ vendor/                 ← Llibreries externes (KaTeX, PDF.js, SheetJS…), veg
 | `families` | ids separats per `,` | totes | Famílies actives (derivades, integrals) |
 | `tipus` | `calcat`, `germans`, `nota`, `son`, `minuts`, `alcada`, `pes`, `pulsacions` | aleatori | Tipus de dades (estadística) |
 | `dim`, `modalitat` | 2/3 · a/b | — | Dimensió i nivell (vocabulari) |
+| `modalitat` | `passos` | resultat final | Prioritat d'operacions: «Pas a pas» (l'alumne resol l'expressió operació a operació) |
 | `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
 
 Els màxims de sessions i preguntes (5 × 10) són els que pot representar el codi de verificació.

@@ -21,7 +21,7 @@
       { file: 'recta-numerica.html', label: 'Recta numèrica', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'potencies.html', label: 'Potències', yt: '', fixed: true },
-      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true },
+      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true },
       { file: 'factoritzar.html', label: 'Descompondre en factors primers', yt: 'https://youtu.be/s2LGUllVMfM', fixed: true },
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ', fixed: true },
       { separator: true },
@@ -320,6 +320,7 @@
         <div class="row" id="row-fixed-eso" style="display:none"><label for="fix-eso">Sessió fixa</label><select id="fix-eso"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
         <div class="row" id="row-dim-eso" style="display:none"><label for="dim-eso">Dimensió</label><select id="dim-eso"><option value="">Totes</option><option value="2">2: figures al pla</option><option value="3">3: cossos a l'espai</option></select></div>
         <div class="row" id="row-nivell-eso" style="display:none"><label for="nivell-eso">Nivell</label><select id="nivell-eso"><option value="a">Fàcil (arrossegar)</option><option value="b">Difícil (escriure)</option></select></div>
+        <div class="row" id="row-mod-eso" style="display:none"><label for="mod-eso">Modalitat</label><select id="mod-eso"><option value="">Resultat final</option><option value="passos">Pas a pas</option></select></div>
         <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
         <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
         <div class="row"><label for="i-eso">Errors màx.</label><select id="i-eso"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
@@ -514,6 +515,8 @@
         rowDim:   document.getElementById('row-dim-' + suffix),
         nivell:   document.getElementById('nivell-' + suffix),
         rowNivell:document.getElementById('row-nivell-' + suffix),
+        mod:      document.getElementById('mod-' + suffix),
+        rowMod:   document.getElementById('row-mod-' + suffix),
         s:      document.getElementById('s-' + suffix),
         o:      document.getElementById('o-' + suffix),
         i:      document.getElementById('i-' + suffix),
@@ -551,6 +554,13 @@
         els.rowNivell.style.display = (dropdown.getValue() === 'vocabulari.html') ? '' : 'none';
       }
 
+      // Activitats amb modalitats (modalitat: true), p. ex. prioritat.html: «Resultat final» o «Pas a pas»
+      function manageModRow() {
+        if (!els.rowMod) return;
+        const selected = activities.find(a => a.file === dropdown.getValue());
+        els.rowMod.style.display = (selected && selected.modalitat) ? '' : 'none';
+      }
+
       function build() {
         const file = dropdown.getValue();
         if (suffix === 'batx') {
@@ -577,6 +587,9 @@
           }
           if (file === 'vocabulari.html' && els.nivell) {
             qs.append('modalitat', els.nivell.value);
+          }
+          if (selected && selected.modalitat && els.mod && els.mod.value) {
+            qs.append('modalitat', els.mod.value);
           }
           els.link.textContent = `${BASE_URL}${file}?${qs.toString()}`;
         }
@@ -605,6 +618,7 @@
         manageFixedRow();
         manageDimRow();
         manageNivellRow();
+        manageModRow();
         build();
         manageHelpButton(false);
       });
@@ -614,9 +628,10 @@
       manageFixedRow();
       manageDimRow();
       manageNivellRow();
+      manageModRow();
       manageHelpButton(true);
 
-      [els.d, els.fix, els.s, els.o, els.i, els.m, els.dim, els.nivell].filter(Boolean).forEach(el => el.addEventListener('change', build));
+      [els.d, els.fix, els.s, els.o, els.i, els.m, els.dim, els.nivell, els.mod].filter(Boolean).forEach(el => el.addEventListener('change', build));
 
       els.copy.addEventListener('click', async () => {
         // [FIX BUG5] try-catch + fallback per a HTTP, Safari antic, etc.

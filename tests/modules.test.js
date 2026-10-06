@@ -466,4 +466,336 @@ suite('Estudi estadístic');
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Prioritat d'operacions. Els valors i l'ordre de les operacions es comproven
+// aquí amb càlculs propis, independents del MathEngine de l'activitat:
+//   - valorDe(): descens recursiu sobre el text de l'expressió («6² − 3 · (5 − 3) + 5»);
+//   - esPotFer(): regla local per saber si una operació ja es pot fer (els dos
+//     costats són nombres i cap operació veïna no li passa al davant).
+const PREC_PO = { '+': 1, '-': 1, '·': 2, ':': 2 };
+function valorDe(text) {
+    const s = text.replace(/\s+/g, '').replace(/−/g, '-');
+    const EXP = { '²': 2, '³': 3 };
+    let i = 0;
+    const factor = () => {
+        let v;
+        if (s[i] === '(') {
+            i++;
+            v = suma();
+            if (s[i++] !== ')') throw new Error(`falta un ) a «${text}»`);
+        } else {
+            const m = /^\d+/.exec(s.slice(i));
+            if (!m) throw new Error(`s'esperava un nombre a «${text}»`);
+            i += m[0].length;
+            v = Number(m[0]);
+        }
+        while (EXP[s[i]]) v = v ** EXP[s[i++]];
+        return v;
+    };
+    const producte = () => {
+        let v = factor();
+        while (s[i] === '·' || s[i] === ':') v = s[i++] === '·' ? v * factor() : v / factor();
+        return v;
+    };
+    const suma = () => {
+        let v = producte();
+        while (s[i] === '+' || s[i] === '-') v = s[i++] === '+' ? v + producte() : v - producte();
+        return v;
+    };
+    const v = suma();
+    if (i !== s.length) throw new Error(`text de més a «${text}»`);
+    return v;
+}
+function esPotFer(line, i) {
+    const t = line[i];
+    if (t.k === 'pow') return true;
+    if (t.k !== 'op') return false;
+    const a = line[i - 1],
+        b = line[i + 1],
+        l = line[i - 2],
+        r = line[i + 2];
+    if (!a || !b || a.k !== 'num' || b.k !== 'num') return false;
+    if (l && l.k === 'op' && PREC_PO[l.v] >= PREC_PO[t.v]) return false; // la de l'esquerra, si és del mateix nivell o més
+    if (r && r.k === 'op' && PREC_PO[r.v] > PREC_PO[t.v]) return false; // la de la dreta, si és de més nivell
+    return true;
+}
+// L'ordre «de llibre»: dins del parèntesis de més endins i més a l'esquerra (o a tota l'expressió),
+// la primera potència; si no n'hi ha, la primera · o :; si no, la primera + o −
+function ordreDeLlibre(line) {
+    let a = 0,
+        b = line.length - 1;
+    const tanca = line.findIndex(t => t.k === 'rp');
+    if (tanca >= 0) {
+        b = tanca - 1;
+        for (a = tanca; line[a].k !== 'lp'; a--);
+        a++;
+    }
+    const dins = line.map((t, i) => i).filter(i => i >= a && i <= b);
+    return (
+        dins.find(i => line[i].k === 'pow') ??
+        dins.find(i => line[i].k === 'op' && PREC_PO[line[i].v] === 2) ??
+        dins.find(i => line[i].k === 'op')
+    );
+}
+const operacionsDe = line => line.map((t, i) => i).filter(i => line[i].k === 'op' || line[i].k === 'pow');
+// Generador pseudoaleatori propi (per triar camins a «Pas a pas» sense tocar el Math.random dels mòduls)
+const lcg = seed => () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+
+suite("Prioritat d'operacions");
+{
+    const w = loadModule([
+        'js/utils.js',
+        'js/prioritat/math-engine.js',
+        'js/prioritat/strings.js',
+        'js/prioritat/renderer.js',
+    ]);
+    const E = w.MathEngine,
+        S = w.Strings,
+        Rd = w.Renderer;
+    const rnd = lcg(7);
+    const err = {
+        val: [],
+        opts: [],
+        fb: [],
+        diag: [],
+        sol: [],
+        order: [],
+        cols: [],
+        html: [],
+        ready: [],
+        block: [],
+        walk: [],
+        stepOpts: [],
+        crash: [],
+    };
+    let n = 0,
+        nBlock = 0;
+    const motius = new Set();
+    for (let nivell = 0; nivell < E.LEVELS.length; nivell++) {
+        for (let k = 0; k < 200; k++) {
+            n++;
+            let txt = `nivell ${nivell}`;
+            try {
+                const ex = E.generateExercise(nivell);
+                const toks = ex.toks;
+                txt = S.toText(toks);
+
+                // 1. El valor, recalculat; natural i com a molt MAX_RESULT
+                const v = valorDe(txt);
+                if (v !== ex.val || !Number.isInteger(v) || v < 0 || v > E.MAX_RESULT)
+                    err.val.push(`${txt} = ${v}, no ${ex.val}`);
+
+                // 2. Les opcions: la correcta i 3 distractors naturals, tots diferents
+                const ds = E.buildDistractors(toks, ex.val);
+                const vals = [ex.val, ...ds.map(d => d.v)];
+                if (ds.length !== 3 || new Set(vals).size !== 4 || !vals.every(x => Number.isInteger(x) && x >= 0))
+                    err.opts.push(`${txt}: ${vals.join(', ')}`);
+                if (ex.nMis < 1) err.opts.push(`${txt}: cap error de prioritat no hi dona un resultat diferent`);
+
+                // 3. El feedback de cada distractor, i les marques del diagnòstic (signes o potències de l'expressió)
+                for (const d of ds) {
+                    const diag = d.id === 'calc' ? null : E.diagnose(toks, d.id);
+                    const fb = S.feedbackFor(d.id, toks, diag);
+                    if (!fb || BAD_TEXT.test(fb)) err.fb.push(`${txt} (${d.id}, ${d.v}): «${fb}»`);
+                    if (diag && [...diag.red, ...diag.green].some(i => !toks[i] || !['op', 'pow'].includes(toks[i].k)))
+                        err.diag.push(`${txt} (${d.id}): ${[...diag.red]} / ${[...diag.green]}`);
+                }
+
+                // 4. La resolució «de llibre»: una operació per línia, el valor no canvia, l'ordre de llibre
+                const rows = E.solve(E.startLine(toks));
+                const nOps = operacionsDe(toks).length;
+                const last = rows[rows.length - 1].line;
+                if (rows.length !== nOps + 1 || !E.isDone(last) || last[0].v !== ex.val)
+                    err.sol.push(`${txt}: ${rows.length} línies, acaba en ${S.toText(last)}`);
+                rows.forEach((row, j) => {
+                    const t = S.toText(row.line);
+                    if (valorDe(t) !== ex.val) err.sol.push(`${txt}: la línia ${t} no val ${ex.val}`);
+                    if (j < rows.length - 1 && (row.op !== ordreDeLlibre(row.line) || !esPotFer(row.line, row.op)))
+                        err.order.push(`${t}: fa ${S.opText(row.line, row.op)}`);
+                });
+
+                // 5. «Centrat»: cada línia ocupa les columnes 0…N de l'enunciat, sense forats; el resultat ocupa
+                //    les columnes del que substitueix (amb els parèntesis que cauen) i la resta no es mou
+                for (let j = 0; j < rows.length; j++) {
+                    const L = rows[j].line;
+                    if (
+                        L.some((t, i) => t.c0 !== (i ? L[i - 1].c1 : 0) || t.c1 <= t.c0) ||
+                        L[L.length - 1].c1 !== toks.length
+                    )
+                        err.cols.push(`${txt}, línia ${j}: ${L.map(t => `${t.c0}-${t.c1}`).join(' ')}`);
+                    if (j === rows.length - 1) break;
+                    const [p, q] = E.opRange(L, rows[j].op);
+                    const nou = rows[j + 1].line.find(t => t.c0 <= L[p].c0 && t.c1 >= L[q].c1);
+                    const abans = L.filter(t => t.c1 <= L[p].c0 || t.c0 >= L[q].c1);
+                    const despres = rows[j + 1].line.filter(t => t !== nou);
+                    const igual = (x, y) => x.c0 === y.c0 && x.c1 === y.c1 && S.toText([x]) === S.toText([y]);
+                    const tretes = abans.filter(t => !despres.some(u => igual(t, u)));
+                    if (
+                        !nou ||
+                        nou.v !== E.opValue(L, rows[j].op) ||
+                        despres.some(u => !abans.some(t => igual(t, u))) ||
+                        !tretes.every(t => (t.k === 'lp' || t.k === 'rp') && t.c0 >= nou.c0 && t.c1 <= nou.c1)
+                    )
+                        err.cols.push(`${txt}: de ${S.toText(L)} a ${S.toText(rows[j + 1].line)}`);
+                }
+
+                // 6. La taula HTML: una fila per línia, totes de N columnes, «=» a totes menys l'última,
+                //    i destacada (en blau) l'operació que es fa a la línia següent
+                const html = Rd.tableHtml(rows);
+                const trs = html.split('<tr').slice(1);
+                const why = [];
+                if (trs.length !== rows.length) why.push(`${trs.length} files`);
+                trs.forEach((tr, j) => {
+                    const cols = [...tr.matchAll(/<td([^>]*)>/g)]
+                        .filter(m => !/igual/.test(m[1]))
+                        .reduce((s, m) => s + Number((/colspan="(\d+)"/.exec(m[1]) || [0, 1])[1]), 0);
+                    if (cols !== toks.length) why.push(`fila ${j}: ${cols} columnes`);
+                    if (/class="igual"/.test(tr) !== j < rows.length - 1) why.push(`fila ${j}: «=»`);
+                    const dest = (tr.match(/ dest"/g) || []).length;
+                    const esperat = j === rows.length - 1 ? 0 : rows[j].line[rows[j].op].k === 'pow' ? 1 : 3;
+                    if (dest !== esperat) why.push(`fila ${j}: ${dest} cel·les destacades`);
+                });
+                if (BAD_TEXT.test(html)) why.push('undefined/NaN');
+                if (why.length) err.html.push(`${txt}: ${why.join(', ')}`);
+
+                // 7. «Pas a pas»: un camí qualsevol (a cada línia, una operació que es pugui fer, a l'atzar)
+                let line = E.startLine(toks),
+                    passos = 0;
+                while (!E.isDone(line) && passos < 20) {
+                    const t = S.toText(line);
+                    const ready = E.readyOps(line);
+                    const esperat = operacionsDe(line).filter(i => esPotFer(line, i));
+                    if (ready.join() !== esperat.join()) err.ready.push(`${t}: ${ready} ≠ ${esperat}`);
+                    for (const i of operacionsDe(line)) {
+                        const bl = E.blockers(line, i);
+                        if (ready.includes(i)) {
+                            if (bl) err.block.push(`${t}: ${i} es pot fer però blockers() no és null`);
+                            continue;
+                        }
+                        nBlock++;
+                        if (!bl || !bl.green.length || bl.green.some(g => !ready.includes(g))) {
+                            err.block.push(`${t}: ${i} → ${JSON.stringify(bl)}`);
+                            continue;
+                        }
+                        motius.add(bl.reason);
+                        const g = bl.green.map(x => line[x]);
+                        const dinsParentesi = x => {
+                            // x és dins d'un parèntesi que no conté i
+                            let obre = -1;
+                            for (let y = 0; y < line.length; y++) {
+                                if (line[y].k === 'lp') obre = y;
+                                if (line[y].k === 'rp' && obre >= 0) {
+                                    if (x > obre && x < y && !(i > obre && i < y)) return true;
+                                    obre = -1;
+                                }
+                            }
+                            return false;
+                        };
+                        const correcte = {
+                            par: bl.green.some(dinsParentesi),
+                            pow: g.some(x => x.k === 'pow'),
+                            prio: PREC_PO[line[i].v] === 1 && g.some(x => x.k === 'op' && PREC_PO[x.v] === 2),
+                            lr: bl.green.every(
+                                x => x < i && line[x].k === 'op' && PREC_PO[line[x].v] === PREC_PO[line[i].v]
+                            ),
+                        }[bl.reason];
+                        const msg = S.blockerMsg(bl, line);
+                        if (!correcte || !msg || BAD_TEXT.test(msg))
+                            err.block.push(`${t}: ${i} → ${bl.reason}: «${msg}»`);
+                    }
+                    const i = ready[Math.floor(rnd() * ready.length)];
+                    const ok = E.opValue(line, i);
+                    if (ok !== valorDe(S.opText(line, i))) err.walk.push(`${t}: ${S.opText(line, i)} = ${ok}?`);
+                    const dd = E.stepDistractors(line, i);
+                    if (
+                        dd.length !== 3 ||
+                        new Set([ok, ...dd]).size !== 4 ||
+                        !dd.every(x => Number.isInteger(x) && x >= 0)
+                    )
+                        err.stepOpts.push(`${S.opText(line, i)} = ${ok}: ${dd.join(', ')}`);
+                    line = E.applyAt(line, i);
+                    if (valorDe(S.toText(line)) !== ex.val) err.walk.push(`${txt}: ${t} → ${S.toText(line)}`);
+                    passos++;
+                }
+                if (!E.isDone(line) || line[0].v !== ex.val || passos !== nOps)
+                    err.walk.push(`${txt}: ${passos} passos, acaba en ${S.toText(line)}`);
+
+                // 8. La línia de treball: un botó per a cada signe i cada potència
+                const act = Rd.tableHtml([{ line: E.startLine(toks), op: -1 }], { active: true });
+                if ((act.match(/class="tok-btn/g) || []).length !== nOps)
+                    err.html.push(`${txt}: botons de la línia de treball`);
+            } catch (e) {
+                err.crash.push(`${txt}: ${e.message}`); // una excepció també és un error
+            }
+        }
+    }
+    const first = a => (a.length ? `${a.length} casos. Primer: ${a[0]}` : '');
+    ok('cap excepció en revisar les expressions', !err.crash.length, first(err.crash));
+    ok(
+        `${n} expressions (10 nivells): el valor és el correcte, natural i ≤ ${E.MAX_RESULT}`,
+        !err.val.length,
+        first(err.val)
+    );
+    ok(
+        'la correcta i 3 distractors naturals i diferents, amb algun error de prioritat',
+        !err.opts.length,
+        first(err.opts)
+    );
+    ok('cada distractor té el seu missatge, sense undefined/NaN', !err.fb.length, first(err.fb));
+    ok('el diagnòstic només marca signes i potències', !err.diag.length, first(err.diag));
+    ok(
+        'resolució: una operació per línia, sempre el mateix valor, acaba en el resultat',
+        !err.sol.length,
+        first(err.sol)
+    );
+    ok(
+        "resolució: l'ordre de llibre (parèntesis, potències, · i :, + i −, d'esquerra a dreta)",
+        !err.order.length,
+        first(err.order)
+    );
+    ok('«centrat»: cada resultat ocupa les columnes del que substitueix', !err.cols.length, first(err.cols));
+    ok('taula: N columnes per fila, «=», operació destacada i botons', !err.html.length, first(err.html));
+    ok(
+        '«Pas a pas»: es poden fer exactament les operacions amb dos nombres que cap veïna avança',
+        !err.ready.length,
+        first(err.ready)
+    );
+    ok(
+        `«Pas a pas»: les ${nBlock} operacions que encara no es poden fer diuen quines van abans i per què`,
+        !err.block.length && nBlock > 1000,
+        first(err.block)
+    );
+    ok(
+        `«Pas a pas»: surten tots els motius (${[...motius].sort().join(', ')})`,
+        ['lr', 'par', 'pow', 'prio'].every(m => motius.has(m))
+    );
+    ok(
+        '«Pas a pas»: qualsevol camí acaba en el resultat, amb tants passos com operacions',
+        !err.walk.length,
+        first(err.walk)
+    );
+    ok('«Pas a pas»: cada resultat té 3 distractors naturals i diferents', !err.stepOpts.length, first(err.stepOpts));
+
+    // 9. Sessions fixes (?fixed=A/B/C): amb la mateixa llavor surten les mateixes preguntes i opcions que
+    //    el dia que es va fer l'empremta. Si un canvi les modifica, les sessions fixes ja no seran les
+    //    mateixes per a tothom: només s'ha d'actualitzar l'empremta si el canvi es vol de debò.
+    const f = loadModule(['js/utils.js', 'js/prioritat/math-engine.js', 'js/prioritat/strings.js'], { seed: 2024 });
+    let text = '';
+    for (let nivell = 0; nivell < 10; nivell++) {
+        for (let k = 0; k < 20; k++) {
+            const ex = f.MathEngine.generateExercise(nivell);
+            const opts = f.shuffle([ex.val, ...f.MathEngine.buildDistractors(ex.toks, ex.val).map(d => d.v)]);
+            text += `${f.Strings.toText(ex.toks)} = ${ex.val} [${opts}]\n`;
+        }
+    }
+    let h = 0x811c9dc5;
+    for (const ch of text) h = Math.imul(h ^ ch.codePointAt(0), 0x01000193) >>> 0;
+    const empremta = h.toString(16).padStart(8, '0');
+    ok(
+        'les preguntes i les opcions no han canviat (sessions fixes)',
+        empremta === '12e8978e',
+        `empremta ${empremta}; les 3 primeres: ${text.split('\n').slice(0, 3).join(' · ')}`
+    );
+}
+
 finish('TESTS DELS MÒDULS');
