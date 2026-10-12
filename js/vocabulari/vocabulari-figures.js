@@ -145,20 +145,21 @@ export const VocabFigures = (() => {
             nom: 'Trapezi',
             dim: 2,
             svg: `
-                <polygon points="140,270 100,90 330,90 400,270" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
+                <!-- Trapezi escalè: només les dues bases són paral·leles; els costats són desiguals i convergents -->
+                <polygon points="100,270 160,90 275,90 430,270" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
                 <line x1="215" y1="90"  x2="215" y2="270" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
                 <rect x="215" y="259" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
-                <circle cx="140" cy="270" r="5" fill="#ea580c"/>
-                <circle cx="100" cy="90"  r="5" fill="#ea580c"/>
-                <circle cx="330" cy="90"  r="5" fill="#ea580c"/>
-                <circle cx="400" cy="270" r="5" fill="#ea580c"/>
+                <circle cx="100" cy="270" r="5" fill="#ea580c"/>
+                <circle cx="160" cy="90"  r="5" fill="#ea580c"/>
+                <circle cx="275" cy="90"  r="5" fill="#ea580c"/>
+                <circle cx="430" cy="270" r="5" fill="#ea580c"/>
             `,
             etiquetes: [
                 { id: 'trapezi', text: 'trapezi', px: 250, py: 200, lx: 108, ly: 24 },
-                { id: 'base', text: 'base', px: 270, py: 270, lx: 338, ly: 309 },
-                { id: 'vertex', text: 'vèrtex', px: 330, py: 90, lx: 358, ly: 46 },
-                { id: 'altura', text: 'altura', px: 215, py: 180, lx: 425, ly: 125 },
-                { id: 'costat', text: 'costat', px: 120, py: 181, lx: 76, ly: 310 },
+                { id: 'base', text: 'base', px: 250, py: 270, lx: 250, ly: 319 },
+                { id: 'vertex', text: 'vèrtex', px: 430, py: 270, lx: 430, ly: 319 },
+                { id: 'altura', text: 'altura', px: 215, py: 150, lx: 265, ly: 30 },
+                { id: 'costat', text: 'costat', px: 352, py: 180, lx: 430, ly: 130 },
             ],
         },
 
@@ -673,6 +674,168 @@ export const VocabFigures = (() => {
                 { id: 'cara_lateral', text: 'cara', px: 380, py: 169, lx: 432, ly: 33 },
                 { id: 'base', text: 'base', px: 236, py: 249, lx: 297, ly: 321 },
                 { id: 'altura', text: 'altura', px: 250, py: 165, lx: 444, ly: 296 },
+            ],
+        },
+
+        // 23. PIRÀMIDE QUADRADA
+        {
+            id: 'piramide_quadrada',
+            nom: 'Piràmide quadrada',
+            dim: 3,
+            svg: `
+                <!-- 3 arestes ocultes (darrere, traç discontinu), totes al vèrtex posterior de la base -->
+                <line x1="250" y1="48"  x2="210" y2="191" stroke="#be123c" stroke-width="1.3" stroke-dasharray="6 4"/>
+                <line x1="210" y1="191" x2="139" y2="262" stroke="#be123c" stroke-width="1.3" stroke-dasharray="6 4"/>
+                <line x1="210" y1="191" x2="361" y2="224" stroke="#be123c" stroke-width="1.3" stroke-dasharray="6 4"/>
+
+                <!-- Base quadrada (translúcida, vista des de dalt) -->
+                <polygon points="290,295 361,224 210,191 139,262"
+                         fill="#fecdd3" fill-opacity="0.55" stroke="none"/>
+
+                <!-- Cares laterals visibles (translúcides, 2 cares frontals) -->
+                <polygon points="250,48 139,262 290,295"
+                         fill="#fda4af" fill-opacity="0.5" stroke="#be123c" stroke-width="2.5" stroke-linejoin="round"/>
+                <polygon points="250,48 290,295 361,224"
+                         fill="#fecdd3" fill-opacity="0.45" stroke="#be123c" stroke-width="2.5" stroke-linejoin="round"/>
+
+                <!-- Altura (eix vertical, del vèrtex al centre de la base) -->
+                <line x1="250" y1="48"  x2="250" y2="243" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <rect x="250" y="232" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+
+                <!-- Punts clau -->
+                <circle cx="250" cy="243" r="3.5" fill="#334155"/>
+                <circle cx="250" cy="48"  r="5.5" fill="#be123c"/>
+                <circle cx="210" cy="191" r="4"   fill="#be123c" opacity="0.5"/>
+                <circle cx="139" cy="262" r="4"   fill="#be123c"/>
+                <circle cx="290" cy="295" r="4"   fill="#be123c"/>
+                <circle cx="361" cy="224" r="4"   fill="#be123c"/>
+            `,
+            etiquetes: [
+                { id: 'piramide_quadrada', text: 'piràmide quadrada', px: 250, py: 200, lx: 110, ly: 26 },
+                { id: 'vertex', text: 'vèrtex', px: 250, py: 48, lx: 340, ly: 30 },
+                { id: 'aresta_lateral', text: 'aresta', px: 208, py: 130, lx: 72, ly: 110 },
+                { id: 'cara_lateral', text: 'cara', px: 310, py: 175, lx: 430, ly: 100 },
+                { id: 'base', text: 'base', px: 255, py: 270, lx: 96, ly: 319 },
+                { id: 'altura', text: 'altura', px: 250, py: 200, lx: 431, ly: 300 },
+            ],
+        },
+
+        // 24. PRISMA QUADRANGULAR
+        {
+            id: 'prisma_quadrangular',
+            nom: 'Prisma quadrangular',
+            dim: 3,
+            svg: `
+                <!-- Arestes ocultes (base posterior inferior + vertical posterior) -->
+                <line x1="339" y1="241" x2="218" y2="214" stroke="#4338ca" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="218" y1="214" x2="161" y2="271" stroke="#4338ca" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <line x1="218" y1="56"  x2="218" y2="214" stroke="#4338ca" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+                <!-- Base inferior (translúcida) -->
+                <polygon points="282,298 339,241 218,214 161,271"
+                         fill="#6366f1" fill-opacity="0.22" stroke="none"/>
+
+                <!-- Cara lateral esquerra -->
+                <polygon points="161,113 282,140 282,298 161,271"
+                         fill="#a5b4fc" fill-opacity="0.55" stroke="none"/>
+                <!-- Cara lateral dreta -->
+                <polygon points="282,140 339,83 339,241 282,298"
+                         fill="#818cf8" fill-opacity="0.5" stroke="none"/>
+                <!-- Base superior -->
+                <polygon points="282,140 339,83 218,56 161,113"
+                         fill="#c7d2fe" fill-opacity="0.7" stroke="none"/>
+
+                <!-- Arestes visibles — base inferior -->
+                <line x1="161" y1="271" x2="282" y2="298" stroke="#3730a3" stroke-width="2.8"/>
+                <line x1="282" y1="298" x2="339" y2="241" stroke="#3730a3" stroke-width="2.8"/>
+                <!-- Arestes visibles — verticals -->
+                <line x1="161" y1="271" x2="161" y2="113" stroke="#3730a3" stroke-width="2.8"/>
+                <line x1="282" y1="298" x2="282" y2="140" stroke="#3730a3" stroke-width="2.8"/>
+                <line x1="339" y1="241" x2="339" y2="83"  stroke="#3730a3" stroke-width="2.8"/>
+                <!-- Arestes visibles — base superior -->
+                <line x1="161" y1="113" x2="282" y2="140" stroke="#3730a3" stroke-width="2.8"/>
+                <line x1="282" y1="140" x2="339" y2="83"  stroke="#3730a3" stroke-width="2.8"/>
+                <line x1="339" y1="83"  x2="218" y2="56"  stroke="#3730a3" stroke-width="2.8"/>
+                <line x1="218" y1="56"  x2="161" y2="113" stroke="#3730a3" stroke-width="2.8"/>
+
+                <!-- Altura (del centre de la base superior al centre de la inferior) -->
+                <line x1="250" y1="98"  x2="250" y2="256" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <rect x="250" y="245" width="11" height="11" fill="none" stroke="#64748b" stroke-width="1.5"/>
+                <circle cx="250" cy="98"  r="3.5" fill="#334155"/>
+                <circle cx="250" cy="256" r="3.5" fill="#334155"/>
+
+                <!-- Vèrtexs superiors -->
+                <circle cx="282" cy="140" r="4" fill="#3730a3"/>
+                <circle cx="339" cy="83"  r="4" fill="#3730a3"/>
+                <circle cx="218" cy="56"  r="4" fill="#3730a3"/>
+                <circle cx="161" cy="113" r="4" fill="#3730a3"/>
+                <!-- Vèrtexs inferiors -->
+                <circle cx="282" cy="298" r="4" fill="#3730a3"/>
+                <circle cx="339" cy="241" r="4" fill="#3730a3"/>
+                <circle cx="218" cy="214" r="4" fill="#3730a3" opacity="0.5"/>
+                <circle cx="161" cy="271" r="4" fill="#3730a3"/>
+            `,
+            etiquetes: [
+                { id: 'prisma_quadrangular', text: 'prisma quadrangular', px: 250, py: 200, lx: 110, ly: 26 },
+                { id: 'vertex', text: 'vèrtex', px: 339, py: 83, lx: 420, ly: 40 },
+                { id: 'aresta', text: 'aresta', px: 161, py: 192, lx: 72, ly: 150 },
+                { id: 'cara_lateral', text: 'cara', px: 312, py: 160, lx: 430, ly: 200 },
+                { id: 'base', text: 'base', px: 195, py: 95, lx: 72, ly: 70 },
+                { id: 'altura', text: 'altura', px: 250, py: 170, lx: 430, ly: 262 },
+            ],
+        },
+
+        // 25. TRAPEZI RECTANGLE
+        {
+            id: 'trapezi_rectangle',
+            nom: 'Trapezi rectangle',
+            dim: 2,
+            svg: `
+                <polygon points="95,270 95,90 265,90 405,270" fill="#eef2ff" stroke="#4f46e5" stroke-width="2.5" stroke-linejoin="round"/>
+                <!-- Els dos angles rectes (el costat de l'esquerra és perpendicular a les dues bases) -->
+                <rect x="95" y="90"  width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+                <rect x="95" y="259" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+                <!-- Altura (puntejada, amb marca d'angle recte) -->
+                <line x1="170" y1="90" x2="170" y2="270" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <rect x="170" y="259" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+                <circle cx="95"  cy="270" r="5" fill="#4f46e5"/>
+                <circle cx="95"  cy="90"  r="5" fill="#4f46e5"/>
+                <circle cx="265" cy="90"  r="5" fill="#4f46e5"/>
+                <circle cx="405" cy="270" r="5" fill="#4f46e5"/>
+            `,
+            etiquetes: [
+                { id: 'trapezi_rectangle', text: 'trapezi rectangle', px: 250, py: 200, lx: 110, ly: 26 },
+                { id: 'base', text: 'base', px: 160, py: 270, lx: 150, ly: 319 },
+                { id: 'vertex', text: 'vèrtex', px: 405, py: 270, lx: 430, ly: 319 },
+                { id: 'altura', text: 'altura', px: 170, py: 150, lx: 265, ly: 30 },
+                { id: 'costat', text: 'costat', px: 335, py: 180, lx: 430, ly: 130 },
+            ],
+        },
+
+        // 26. TRAPEZI ISÒSCELES
+        {
+            id: 'trapezi_isosceles',
+            nom: 'Trapezi isòsceles',
+            dim: 2,
+            svg: `
+                <polygon points="90,270 160,90 340,90 410,270" fill="#f0fdfa" stroke="#0d9488" stroke-width="2.5" stroke-linejoin="round"/>
+                <!-- Marques d'igualtat: els dos costats no paral·lels són iguals -->
+                <line x1="119.4" y1="177.8" x2="130.6" y2="182.2" stroke="#0d9488" stroke-width="2.2"/>
+                <line x1="369.4" y1="182.2" x2="380.6" y2="177.8" stroke="#0d9488" stroke-width="2.2"/>
+                <!-- Altura (puntejada, amb marca d'angle recte) -->
+                <line x1="340" y1="90" x2="340" y2="270" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <rect x="329" y="259" width="11" height="11" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+                <circle cx="90"  cy="270" r="5" fill="#0d9488"/>
+                <circle cx="160" cy="90"  r="5" fill="#0d9488"/>
+                <circle cx="340" cy="90"  r="5" fill="#0d9488"/>
+                <circle cx="410" cy="270" r="5" fill="#0d9488"/>
+            `,
+            etiquetes: [
+                { id: 'trapezi_isosceles', text: 'trapezi isòsceles', px: 250, py: 200, lx: 110, ly: 26 },
+                { id: 'base', text: 'base', px: 250, py: 270, lx: 250, ly: 319 },
+                { id: 'vertex', text: 'vèrtex', px: 410, py: 270, lx: 430, ly: 319 },
+                { id: 'altura', text: 'altura', px: 340, py: 150, lx: 430, ly: 60 },
+                { id: 'costat', text: 'costat', px: 109, py: 220, lx: 70, ly: 80 },
             ],
         },
     ];
