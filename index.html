@@ -68,6 +68,10 @@
 
     const DEFAULT_ESO = 'vocabulari.html';
     const DEFAULT_BATX = 'rectes-plans.html';
+
+    // Menú d'activitats d'ESO: es desplega només fins a aquesta activitat i deixa veure
+    // el principi de la següent (així es nota que el menú continua) sense tapar el botó «Obre».
+    const ESO_LLISTA_FINS = 'prioritat.html';
   </script>
 
   <link rel="stylesheet" href="css/tokens.css">
@@ -367,7 +371,7 @@
 
   <script>
     // ── Custom dropdown factory ──
-    function makeCustomDropdown(wrapId, activities, defaultFile, onChangeCallback) {
+    function makeCustomDropdown(wrapId, activities, defaultFile, onChangeCallback, stopAfterFile) {
       const wrap    = document.getElementById(wrapId);
       const trigger = wrap.querySelector('.cd-trigger');
       const list    = wrap.querySelector('.cd-list');
@@ -450,13 +454,47 @@
       label.textContent = def.label;
       render();
 
+      // Part visible (px, comptada des de dalt de l'opció) de la primera opció que queda tallada.
+      const PEEK_PX = 20;
+
+      // Alçada màxima de la llista desplegada.
+      // Sense `stopAfterFile`: com sempre (320 px com a màxim, sense sortir del panell).
+      // Amb `stopAfterFile`: la llista acaba just després d'aquesta opció i només deixa veure el
+      // principi de la següent, perquè es vegi que el menú continua. Les alçades es mesuren al
+      // navegador (el text pot ocupar 1 o 2 línies segons el dispositiu).
+      function listHeight() {
+        const panel = wrap.closest('.quiz-panel');
+        const triggerBottom = trigger.getBoundingClientRect().bottom;
+        const available = panel.getBoundingClientRect().bottom - triggerBottom - 12;
+        const normal = Math.min(320, Math.max(100, available));
+        if (!stopAfterFile) return normal;
+
+        const optEls = list.querySelectorAll('.cd-option');
+        const idx = options.findIndex(a => a.file === stopAfterFile);
+        if (idx < 0 || idx + 1 >= optEls.length) return normal;
+        return Math.min(normal, optEls[idx + 1].offsetTop + PEEK_PX + 2);   // +2: vores de la llista
+      }
+
+      // Amb `stopAfterFile`, si la llista desplegada arribés al botó «Obre», es baixa el botó
+      // just el que cal (només mentre el menú és obert) perquè mai quedi tapat.
+      function reserveSpaceForButton(h) {
+        wrap.style.marginBottom = '';
+        const btnRow = wrap.closest('.quiz-panel').querySelector('.btn-row');
+        if (!btnRow) return;
+        const listBottom = trigger.getBoundingClientRect().bottom + 5 + h;   // 5 = separació de la llista
+        const need = Math.ceil(listBottom + 10 - btnRow.getBoundingClientRect().top);   // 10 = aire
+        if (need > 0) wrap.style.marginBottom = need + 'px';
+      }
+
       function openList() {
         wrap.classList.add('open');
-        const panel = wrap.closest('.quiz-panel');
-        const panelRect = panel.getBoundingClientRect();
-        const triggerRect = trigger.getBoundingClientRect();
-        const available = panelRect.bottom - triggerRect.bottom - 12;
-        list.style.maxHeight = Math.min(320, Math.max(100, available)) + 'px';
+        const h = listHeight();
+        list.style.maxHeight = h + 'px';
+        if (stopAfterFile) reserveSpaceForButton(h);
+      }
+      if (stopAfterFile) {
+        new MutationObserver(() => { if (!wrap.classList.contains('open')) wrap.style.marginBottom = ''; })
+          .observe(wrap, { attributes: true, attributeFilter: ['class'] });
       }
 
       trigger.addEventListener('click', e => {
@@ -501,11 +539,11 @@
         }
       });
 
-      return { getValue };
+      return { getValue, openList };
     }
 
     // ── Panel init ──
-    function initPanel(suffix, activities, defaultFile) {
+    function initPanel(suffix, activities, defaultFile, stopAfterFile) {
       const els = {
         d:        document.getElementById('d-' + suffix),
         rowD:     document.getElementById('row-diff-' + suffix),
@@ -621,7 +659,7 @@
         manageModRow();
         build();
         manageHelpButton(false);
-      });
+      }, stopAfterFile);
 
       build();
       manageDifficultyRow();
@@ -658,9 +696,11 @@
         const selected = activities.find(a => a.file === dropdown.getValue());
         if (selected && selected.yt) window.open(selected.yt, '_blank');
       });
+
+      return dropdown;
     }
 
-    initPanel('eso',  ACTIVITIES_ESO,  DEFAULT_ESO);
+    const dropdownEso = initPanel('eso',  ACTIVITIES_ESO,  DEFAULT_ESO, ESO_LLISTA_FINS);
     initPanel('batx', ACTIVITIES_BATX, DEFAULT_BATX);
 
     // Tanca dropdowns en clicar fora
@@ -679,10 +719,12 @@
     // Obre els desplegables d'activitat per defecte
     window.addEventListener('load', () => {
       setTimeout(() => {
-        document.querySelectorAll('.cd-wrap').forEach(wrap => {
-          wrap.querySelector('.cd-list').style.maxHeight = '320px';
-          wrap.classList.add('open');
-        });
+        // ESO: l'alçada es calcula perquè la llista no tapi el botó «Obre»
+        dropdownEso.openList();
+        // Batxillerat: com abans
+        const wrapBatx = document.getElementById('cd-batx');
+        wrapBatx.querySelector('.cd-list').style.maxHeight = '320px';
+        wrapBatx.classList.add('open');
       }, 1600);
     });
   </script>
