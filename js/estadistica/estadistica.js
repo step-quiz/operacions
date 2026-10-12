@@ -235,9 +235,10 @@ function renderSelectInterval() {
             const lo = opt.limits[j],
                 hi = opt.limits[j + 1];
             const bracket = j === opt.limits.length - 2 ? ']' : ')';
-            preview.push(`[${lo}, ${hi}${bracket}`);
+            // Cada interval en un tros que no es parteix (en mòbil, el salt de línia cau entre intervals)
+            preview.push(`<span class="iv-chunk">[${lo}, ${hi}${bracket}</span>`);
         }
-        btn.innerHTML = `<strong>${opt.label}</strong><span class="interval-preview">${preview.join(' &nbsp;|&nbsp; ')}</span>`;
+        btn.innerHTML = `<strong>${opt.label}</strong><span class="interval-preview">${preview.join(' | ')}</span>`;
         btn.onclick = () => selectInterval(i);
         wrap.appendChild(btn);
     });

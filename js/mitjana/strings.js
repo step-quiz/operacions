@@ -144,7 +144,7 @@ export const Strings = (() => {
 
     const Input = {
         label: 'Resposta:',
-        placeholder: 'Escriu el resultat',
+        placeholder: 'Resultat',
         btnSubmit: 'Comprova',
     };
 

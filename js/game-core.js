@@ -305,15 +305,27 @@ export function isTouchDevice() {
 let _kbActiveInput = null;
 let _kbClearOnNext = false;
 
+// Opcions: allowNegative (tecla −), allowZero (tecla 0), decimalComma (la tecla − passa a ser la
+// coma decimal «,»: per a activitats amb respostes decimals i sense nombres negatius) i
+// respectMaxLength (el teclat no escriu més caràcters que el maxlength de l'input).
 export function initCustomKeyboard(options = {}) {
     const allowNeg = options.allowNegative ?? false;
     const allowZero = options.allowZero ?? true;
+    const respectMaxLength = options.respectMaxLength ?? false;
     const grid = document.querySelector('#customKeyboard .kb-grid');
     if (grid) {
         if (!allowNeg) grid.classList.add('kb-no-minus');
         else grid.classList.remove('kb-no-minus');
         if (!allowZero) grid.classList.add('kb-no-zero');
         else grid.classList.remove('kb-no-zero');
+    }
+    if (options.decimalComma) {
+        const minusBtn = document.querySelector('#customKeyboard .kb-minus');
+        if (minusBtn) {
+            minusBtn.dataset.key = ',';
+            minusBtn.textContent = ',';
+            minusBtn.classList.remove('kb-minus');
+        }
     }
     document.querySelectorAll('#customKeyboard .kb-btn').forEach(btn => {
         btn.addEventListener('pointerdown', e => {
@@ -328,6 +340,15 @@ export function initCustomKeyboard(options = {}) {
                 } else _kbActiveInput.value = _kbActiveInput.value.slice(0, -1);
             } else if (key === 'enter') {
                 if (typeof window.checkCurrentCell === 'function') window.checkCurrentCell();
+            } else if (key === ',') {
+                if (_kbClearOnNext) {
+                    _kbActiveInput.value = '';
+                    _kbClearOnNext = false;
+                    _kbActiveInput.classList.remove('kb-selected');
+                }
+                const v = _kbActiveInput.value;
+                if (v.includes(',')) return; // una sola coma decimal
+                _kbActiveInput.value = v === '' || v === '-' ? v + '0,' : v + ',';
             } else if (key === '-') {
                 if (_kbClearOnNext) {
                     _kbActiveInput.value = '-';
@@ -345,6 +366,10 @@ export function initCustomKeyboard(options = {}) {
                     _kbActiveInput.classList.remove('kb-selected');
                 }
                 if (_kbActiveInput.value === '-0') _kbActiveInput.value = '-';
+                if (respectMaxLength) {
+                    const maxLen = _kbActiveInput.maxLength;
+                    if (maxLen > 0 && _kbActiveInput.value.length >= maxLen) return;
+                }
                 _kbActiveInput.value += key;
             }
         });

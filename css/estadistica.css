@@ -273,6 +273,9 @@ h1 {
     color: var(--text-muted);
     font-family: monospace;
 }
+.iv-chunk {
+    white-space: nowrap;
+}
 
 /* ── SELECCIÓ D'INTERVAL (estadístics) ── */
 .interval-select-grid {
@@ -363,8 +366,18 @@ h1 {
     background: #fef3c7;
 }
 
-/* ── SENSE SCROLL DE PÀGINA (PC / Tablet / Chromebook) ── */
-@media (min-width: 601px) {
+/* ── PANTALLA DE JOC ──
+   estadistica.js converteix #game-screen en display:flex (vegeu l'arrencada). Sense
+   aquesta regla, en pantalles estretes (≤ 600 px) la direcció per defecte era «row»
+   i la capçalera, l'enunciat i les dades quedaven en columnes una al costat de l'altra. */
+#game-screen {
+    flex-direction: column;
+}
+
+/* ── SENSE SCROLL DE PÀGINA (PC / Tablet / Chromebook) ──
+   Només si la finestra és prou alta: en un mòbil girat (horitzontal) l'alçada és tan petita
+   que amb «overflow:hidden» la taula quedava aixafada i no es veia. */
+@media (min-width: 601px) and (min-height: 500px) {
     html,
     body {
         height: 100vh;
@@ -401,6 +414,16 @@ h1 {
     }
     .check-bar {
         align-items: center;
+    }
+}
+
+/* Finestra baixa (mòbil en horitzontal): res no s'encongeix; es desplaça per veure-ho tot */
+@media not all and (min-height: 500px) {
+    #game-screen > * {
+        flex-shrink: 0;
+    }
+    .table-wrap {
+        overflow-y: visible;
     }
 }
 
@@ -445,10 +468,25 @@ h1 {
         padding: 5px 4px;
         font-size: 0.85em;
     }
+    /* El botó OK passa sota la taula, a tota l'amplada: la taula guanya espai i el botó
+       queda sempre a prop del polze (abans anava a la dreta i quedava lluny en taules llargues). */
+    .table-check-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .table-wrap {
+        flex: 0 0 auto; /* en columna, el flex-basis 0 de dalt l'aixafaria a alçada 0 */
+        overflow-y: visible;
+    }
+    .check-bar {
+        padding: 12px 0 0;
+        align-self: stretch;
+    }
     #btn-check {
-        width: 48px;
+        width: 100%;
+        min-width: 0;
         height: 48px;
-        font-size: 0.9em;
+        font-size: 1em;
     }
 }
 

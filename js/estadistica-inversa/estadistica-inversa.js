@@ -17,8 +17,12 @@ import { TOTAL_OPERATIONS } from '../config.js';
 import {
     state,
     endSession,
+    getKbActiveInput,
+    hideCustomKeyboard,
+    initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
+    kbMarkForOverwrite,
     recordAnswerToHistory,
     recordResult,
     showCustomKeyboard,
@@ -32,7 +36,8 @@ import { QuestionBank } from './question-bank.js';
 // window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
 // Les crides internes fan servir window.buildLevel() perquè les sessions fixes
 // (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
-Object.assign(window, { buildLevel });
+// checkCurrentCell: la crida la tecla → del teclat numèric de game-core.js
+Object.assign(window, { buildLevel, checkCurrentCell });
 
 let challengeData = null;
 let totalErrors = 0;
@@ -102,8 +107,9 @@ function renderInputs() {
     html += '</div>';
     els.inputGrid.innerHTML = html;
 
-    // Focus al primer input
-    document.getElementById('num-0').focus();
+    // Primer input: teclat custom (tàctil) o focus normal (ordinador)
+    if (isTouchDevice()) activateCell(document.getElementById('num-0'));
+    else document.getElementById('num-0').focus();
 
     // Tab entre inputs i Enter per comprovar
     for (let i = 0; i < challengeData.k; i++) {
@@ -119,13 +125,41 @@ function renderInputs() {
             }
         });
         // Teclat custom en mòbil
-        if (typeof isTouchDevice === 'function' && isTouchDevice() && typeof showCustomKeyboard === 'function') {
+        if (isTouchDevice()) {
             inp.addEventListener('pointerdown', e => {
                 e.preventDefault();
-                showCustomKeyboard(inp);
+                activateCell(inp);
             });
         }
     }
+}
+
+// Lliga el teclat custom a una cel·la; si ja té un nombre, la tecla següent el substitueix.
+// (El marcatge es fa un instant després: en tocar la cel·la, game-core.js també torna a activar-la
+// i reiniciaria el marcatge.)
+function activateCell(inp) {
+    showCustomKeyboard(inp);
+    if (inp.value) {
+        setTimeout(() => {
+            if (getKbActiveInput() === inp) kbMarkForOverwrite(inp);
+        }, 0);
+    }
+}
+
+// Tecla → del teclat custom: salta al següent espai buit i, quan tots són plens, comprova.
+function checkCurrentCell() {
+    if (state.isTransitioning) return;
+    const cells = [...document.querySelectorAll('#input-grid .num-input')];
+    const cur = getKbActiveInput();
+    const start = cells.indexOf(cur);
+    for (let step = 1; step <= cells.length; step++) {
+        const cand = cells[(start + step + cells.length) % cells.length];
+        if (cand !== cur && cand.value === '') {
+            activateCell(cand);
+            return;
+        }
+    }
+    checkAnswer();
 }
 
 function renderHelpContent() {
@@ -184,6 +218,9 @@ function checkAnswer() {
     } else {
         totalErrors++;
         markInputsWrong();
+        // Amb el teclat custom, la tecla següent substitueix el nombre de la cel·la activa
+        const curCell = getKbActiveInput();
+        if (curCell && curCell.value) kbMarkForOverwrite(curCell);
         const hint = buildHintMessage(result);
         if (hint) showFeedback(hint, 'err');
         // Registrem cada intent fallit a l'historial
@@ -260,7 +297,9 @@ function markInputsCorrect() {
         inp.classList.remove('num-wrong');
         inp.classList.add('num-correct');
         inp.readOnly = true;
+        inp.dataset.locked = 'true';
     }
+    hideCustomKeyboard();
 }
 
 function markInputsWrong() {
@@ -335,6 +374,8 @@ function toggleHelp() {
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
+    // Teclat numèric custom (tàctil): sense negatius (nombres de l'1 al 10)
+    initCustomKeyboard({ allowNegative: false, respectMaxLength: true });
 
     els.btnCheck.addEventListener('click', checkAnswer);
     els.btnHelp.addEventListener('click', toggleHelp);

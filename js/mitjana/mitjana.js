@@ -16,9 +16,12 @@ import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
 import {
     state,
     endSession,
+    hideCustomKeyboard,
     hideMiniOverlay,
+    initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
+    kbMarkForOverwrite,
     recordAnswerToHistory,
     recordResult,
     showCustomKeyboard,
@@ -34,7 +37,8 @@ import { Strings } from './strings.js';
 // window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
 // Les crides internes fan servir window.buildLevel() perquè les sessions fixes
 // (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
-Object.assign(window, { buildLevel });
+// checkCurrentCell: la crida la tecla → del teclat numèric de game-core.js
+Object.assign(window, { buildLevel, checkCurrentCell });
 
 let challengeData = null;
 let helpExpanded = false;
@@ -137,17 +141,29 @@ function renderInput() {
         }
     });
 
-    // Teclat custom en mòbil
-    if (typeof isTouchDevice === 'function' && isTouchDevice()) {
-        if (typeof showCustomKeyboard === 'function') {
-            inp.addEventListener('pointerdown', e => {
-                e.preventDefault();
-                showCustomKeyboard(inp);
-            });
-        }
+    // Teclat custom en mòbil: queda lligat a l'input nou de cada pregunta
+    // (si no, les tecles escriurien a l'input de la pregunta anterior)
+    if (isTouchDevice()) {
+        inp.addEventListener('pointerdown', e => {
+            e.preventDefault();
+            showCustomKeyboard(inp);
+        });
+        showCustomKeyboard(inp);
+    } else {
+        inp.focus();
     }
+}
 
-    inp.focus();
+// Tecla → del teclat custom
+function checkCurrentCell() {
+    checkAnswer();
+}
+
+// Bloqueja l'input (resposta tancada) i amaga el teclat custom
+function lockInput(inp) {
+    inp.readOnly = true;
+    inp.dataset.locked = 'true';
+    hideCustomKeyboard();
 }
 
 // =========================================================================
@@ -170,7 +186,7 @@ function checkAnswer() {
         // CORRECTE
         state.isTransitioning = true;
         inp.classList.add('input-correct');
-        inp.readOnly = true;
+        lockInput(inp);
 
         const fails = MAX_INTENTS - state.attemptsLeft;
         const levelPoints = Math.max(0, 10 - fails * 2);
@@ -193,11 +209,13 @@ function checkAnswer() {
 
         inp.classList.add('input-wrong');
         setTimeout(() => inp.classList.remove('input-wrong'), 400);
+        // Amb el teclat custom, la tecla següent substitueix la resposta fallida
+        if (isTouchDevice() && inp.value) kbMarkForOverwrite(inp);
 
         if (state.attemptsLeft <= 0) {
             // Esgotats
             state.isTransitioning = true;
-            inp.readOnly = true;
+            lockInput(inp);
             recordResult(4);
             recordAnswerToHistory(
                 challengeData.type === 'weighted' ? S.History.weighted : S.History.simple,
@@ -276,6 +294,8 @@ function showFeedback(msg, type) {
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
+    // Teclat numèric custom (tàctil): sense negatius; la tecla − fa de coma decimal
+    initCustomKeyboard({ allowNegative: false, decimalComma: true });
 
     els.btnHelp.addEventListener('click', toggleHelp);
 
