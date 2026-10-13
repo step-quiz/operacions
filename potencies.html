@@ -212,6 +212,25 @@
             .schema-input   { width: 50px; height: 44px; }
             .selection-btn     { padding: 9px 16px; font-size: .88em; }
         }
+        /* ── Torna al menú de potències ─────────────────────── */
+        .back-menu-bar { padding: 6px 10px 0; }
+        .btn-back-menu {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font: inherit;
+            font-size: 0.92em;
+            font-weight: 700;
+            min-height: 44px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .btn-back-menu:hover { background: var(--primary-light); }
+        .btn-back-menu:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+        #session-end-screen .btn-back-menu { display: block; margin: 14px auto 0; }
+
         @media (max-width: 350px) {
             .expression-box { font-size: 1.35em; }
             .schema-row     { font-size: 1.1em; }
@@ -263,6 +282,9 @@
 
     <!-- ── PANTALLA DE JOC ── -->
     <div id="game-screen" style="display:none;">
+        <div class="back-menu-bar">
+            <button type="button" class="btn-back-menu" onclick="tornaAlMenu()">← Torna al menú de potències</button>
+        </div>
         <div class="header-info">
             <div class="header-left">
                 <div class="session-text" id="session-display"></div>

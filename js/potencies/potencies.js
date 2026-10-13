@@ -29,7 +29,7 @@ import {
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
-Object.assign(window, { selectRepte, checkStep, buildLevel, checkCurrentCell });
+Object.assign(window, { selectRepte, checkStep, buildLevel, checkCurrentCell, tornaAlMenu });
 
 // ================================================================
 // DOM
@@ -803,6 +803,46 @@ function selectRepte(n) {
     startGame();
 }
 
+// Torna al menú general de potències (els 3 reptes). Es recarrega la pàgina: així no queda cap
+// temporitzador ni estat de la partida anterior. Si ja hi ha progrés, es demana confirmació.
+function tornaAlMenu() {
+    const hiHaProgres =
+        state.sessionScores.length > 0 ||
+        state.currentSession > 0 ||
+        state.currentOperation > 0 ||
+        state.sessionScore > 0;
+    if (
+        hiHaProgres &&
+        !confirm("Vols tornar al menú de potències? Perdràs el progrés d'aquest repte (i el codi, si no l'has copiat).")
+    ) {
+        return;
+    }
+    window.location.reload();
+}
+
+// Afegeix «Torna al menú de potències» a les pantalles injectades per game-core.js
+function afegeixBotonsMenu() {
+    const finalRow = document.querySelector('#final-results > div:last-child');
+    if (finalRow) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn-submit';
+        b.style.backgroundColor = 'var(--primary-dark)';
+        b.textContent = '☰ Torna al menú de potències';
+        b.addEventListener('click', tornaAlMenu);
+        finalRow.appendChild(b);
+    }
+    const sessionEnd = document.getElementById('session-end-screen');
+    if (sessionEnd) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn-back-menu';
+        b.textContent = '☰ Torna al menú de potències';
+        b.addEventListener('click', tornaAlMenu);
+        sessionEnd.appendChild(b);
+    }
+}
+
 function updateUI() {
     els.sessionDisplay.innerText = `Sessió ${state.currentSession + 1} de ${TOTAL_SESSIONS}`;
     els.lvlDisplay.innerText = `Exercici ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
@@ -950,6 +990,7 @@ function checkCurrentCell() {
 // ================================================================
 registerScreens(['selection-screen', 'game-screen', 'session-end-screen', 'final-screen']);
 injectSharedHTML();
+afegeixBotonsMenu();
 validateConfig();
 initCustomKeyboard({ allowNegative: true });
 showScreen('selection-screen');

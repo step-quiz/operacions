@@ -240,6 +240,12 @@ CARREGA'S: DESPRÉS de shared.css i del CSS específic de cada joc.
     .panel.panel {
         flex-direction: column;
     }
+    /* Amb el panell en columna, el «flex: 1 1 0» que shared.css dóna a #game-screen en mòbil
+       horitzontal (alçada ≤ 600 px) feia que el joc quedés amb alçada 0, és a dir, la pàgina en
+       blanc (tauletes i Chromebooks tàctils amb pantalla de ≥ 1024 px d'amplada i poca alçada). */
+    .panel.panel > #game-screen {
+        flex: 1 1 auto;
+    }
     #customKeyboard.kb-visible,
     #customKeyboard {
         flex: none;
