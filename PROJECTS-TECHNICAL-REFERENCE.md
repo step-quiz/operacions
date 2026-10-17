@@ -32,7 +32,7 @@ This file has three parts:
 - **No build step, static-first.** Every project deploys as static files (GitHub → Cloudflare Pages, or Netlify/Vercel). Publishing = committing a file. A few projects ship optional Node dev tools (`pycat/tools`, `ggcat/test-validators.js`) but the runtime is always plain files.
 - **Vanilla JS only.** No framework, no npm runtime dependency. Two module styles coexist: ES modules (`cangur`) and the `namespace + IIFE` pattern (`window.L`, `window.P`, `K`, `J`; see `S8`).
 - **Catalan UI and code comments** are the default. Some projects are or aim to be trilingual (`ca`/`es`/`en`); see `S` notes and `P09`.
-- **Licensing (since 2026-09-07):** almost every repository's `LICENSE`/`LLICENCIA.md` is now **content `CC BY-NC-SA 4.0` + code `MIT`**, so code can be combined across projects. Exceptions to check: some HTML footers still print `CC BY-NC-ND 4.0` (e.g. `cb`, `jscat`, `ins`), and the `README` attribution blocks of `sol` and `pau` still say `BY-NC-ND`.
+- **Licensing (since 2026-09-07):** almost every repository's `LICENSE`/`LLICENCIA.md` is now **content `CC BY-NC-SA 4.0` + code `MIT`**, so code can be combined across projects. Since 2026-10-17 the HTML footers say the same (the last ones that printed `CC BY-NC-ND 4.0` — `app`, `cb`, `ins` and `jscat`'s `footer.js` — were fixed, and `ggcat`'s `LICENSE` was aligned with its `LLICENCIA.md`). Exceptions: `pau` (its `LLICENCIA.md` says `CC BY-NC-ND 4.0`) and `sol` (no `LLICENCIA.md`; its README says `BY-NC-ND`).
 - **Must be served over HTTP(S), not `file://`** wherever Web Workers, `fetch()` of JSON, or ES modules are used.
 
 ---
@@ -359,7 +359,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
   2. Refactor generation + decoding into **one** shared `codi.js` per the `cangurcat` pattern (generate and parse in the same module → guaranteed parity). Have `cb` and `operacions` import it.
   3. Optional hardening: fold a digest of `R` into the checksum input so even the checksum covers `R`.
 - **Acceptance criteria:** a hand-edited `R` is flagged invalid by both analyzers; `cb`/`operacions` generation and decoding come from one module; existing valid historical codes still validate.
-- **Risk/notes:** `cb` is `CC BY-NC-ND` — keep the shared module license-compatible or vendor it. The `operacions` analyzer already parses `CB` codes; keep that working.
+- **Risk/notes:** `cb`, like `operacions`, is content `CC BY-NC-SA 4.0` + code `MIT`, so the shared module can be shared freely. The `operacions` analyzer already parses `CB` codes; keep that working.
 - **History:** 2026-06-05 created.
 
 ---
