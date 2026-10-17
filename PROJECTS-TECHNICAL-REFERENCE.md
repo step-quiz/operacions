@@ -148,7 +148,7 @@ Per-entry schema:
 - **Audience:** Beginner students.
 - **Stack:** Vanilla JS (namespace `K`); custom language engine (tokenizer + parser + interpreter).
 - **Entry points:** `index.html` (free simulator); `curs/index.html` (course). Auxiliary authoring tools: `edit-mapa.html`, `editor-reptes.jsx`.
-- **Key files:** `js/tokenizer.js`, `js/parser.js`, `js/interpreter.js`, `js/execution.js`, `js/world.js`, `js/renderer.js`, `js/editor.js`, `js/kbd-accessory.js` (mobile keyboard; `js/vkbd.js`, an older simple-keyboard version, is still in the repo but no page loads it), `curs/capitols.js` (data + `renderSidebar()` + `renderSimuladors()`), `curs/progress.js`, `docs/CURRENT-STATE.md`, `docs/i18n-spanish-guide.md`.
+- **Key files:** `js/tokenizer.js`, `js/parser.js`, `js/interpreter.js`, `js/execution.js`, `js/world.js`, `js/renderer.js`, `js/editor.js`, `js/kbd-accessory.js` (mobile keyboard; the older simple-keyboard version `js/vkbd.js`, which no page loaded, was deleted on 2026-10-17), `curs/capitols.js` (data + `renderSidebar()` + `renderSimuladors()`), `curs/progress.js`, `docs/CURRENT-STATE.md`, `docs/i18n-spanish-guide.md`.
 - **Architecture:** Any valid Karel program is valid Python (given a shim). Course uses iframes for embedded simulators + deep links; progress is a dedicated module.
 - **Excellent features:**
   - **`curs/progress.js` — clean extracted progress module.** localStorage schema `{capitols:{n:true}, reptes:{n:[bool...]}}`; "a success is never downgraded" invariant baked into `saveExercici`/`saveMon`. The only course that extracted this into its own module (others inline it — see `P08`).
@@ -237,7 +237,7 @@ Per-entry schema:
 - **Purpose:** Search/catalog of the math department's teaching material (mostly on Google Drive), plus a toolbox to catalog, edit, and work with CB tests.
 - **Audience:** All teachers (+ a maintainer subset for the editor tools).
 - **Stack:** Vanilla JS; no build. (`manifest.json` is the material catalog, not a PWA manifest.) The SHA-256 password gate (`auth.js`) has been **removed**: `repartiment.html` is public.
-- **Entry points (pages):** `index.html` (search + filters + Drive preview), `repartiment.html` (curriculum distribution), `afegir-material.html` (manifest editor), `extreu-json.html` (**AI cataloguer**), `banc-cb.html` (CB item bank → PDF export), `eliminar-curs.html` (strip a course-year from a PDF/DOCX, client-side), `florence-cb.html` (Florence sessions ⇄ curriculum ⇄ CB), `examen-recuperacio.html` (resit-exam generator → DOCX), `alimentar-banc.html` (AI: photos → resit-bank questions). `seguiment.html` no longer exists (the «Seguiment» link now lives in `pd`).
+- **Entry points (pages):** `index.html` (search + filters + Drive preview), `repartiment.html` (curriculum distribution), `afegir-material.html` (manifest editor), `extreu-json.html` (**AI cataloguer**), `banc-cb.html` (CB item bank → PDF export), `eliminar-curs.html` (strip a course-year from a PDF/DOCX, client-side), `florence-cb.html` (Florence sessions ⇄ curriculum ⇄ CB), `examen-recuperacio.html` (resit-exam generator → DOCX), `alimentar-banc.html` (AI: photos → resit-bank questions). `seguiment.html` no longer exists (the «Seguiment» link moved to `pd`, and was removed from there on 2026-10-17).
 - **Key files:** `manifest.json` (catalog — single source of truth for the search), `repartiment-data.js` (curriculum; read by `repartiment.html` and `florence-cb.html`), `pipeline-data.js` (curriculum ⇄ Florence ⇄ CB threads), `cb-items.json` (218 questions), `cb-img/` (169 PNGs), `recuperacio-items.json` + `recuperacio-img/`, `common.js`, `valida-dades.js` (data consistency check), `lib/` (vendored pdf-lib, pdf.js, jszip).
 - **Excellent features:**
   - *(Former)* **`auth.js` — SHA-256 access gate** (hash-only password, 30-day session). Removed from the repo; only a commented-out `<script>` line remains in `repartiment.html` (see `P07`).
@@ -409,7 +409,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 - **Rationale:** `( ) { } ; => < > " '` (JS) and `( ) .` (Logo) are painful on mobile keyboards. Merge the two existing implementations into one parameterized module (pass the key set), keep karelcat's parent-document bridge for in-iframe editors and pycat's grouped layout.
 - **Implementation:** unify into one module with a `keys` parameter and an `embedMode` (post to parent) branch; pick the **accessory-bar** approach over a full virtual keyboard. In `karelcat`, retire the redundant second implementation (`vkbd.js`) once the shared module covers its cases.
 - **Acceptance criteria:** on a touch device, focusing the editor in jscat and logocat shows a working symbol bar (standalone and inside course iframes); native keyboard still usable.
-- **Risk/notes:** karelcat ships **two** keyboards (`kbd-accessory.js` + `vkbd.js`); consolidating to one is part of this proposal.
+- **Risk/notes:** karelcat used to ship **two** keyboards (`kbd-accessory.js` + `vkbd.js`); since 2026-10-17 only `kbd-accessory.js` is left (`vkbd.js` was dead code and was deleted).
 - **History:** 2026-06-05 created.
 
 ---
