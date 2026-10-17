@@ -1,5 +1,7 @@
 # PATCH SEGÜENT — Auditoria cross-device (29 abril 2026, 2a part)
 
+> **Document històric.** Registre d'un pegat d'abril de 2026, ja aplicat. Les línies i els fitxers que cita poden haver canviat (per exemple, el JS que era inline ara és a `js/`).
+
 ## Bugs corregits:
 
 ### [M9] Aplicació de [M8] a fitxers que se'n havien escapat

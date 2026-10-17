@@ -76,9 +76,25 @@ La columna **Codi** és el camp `EE` del codi de verificació. La taula completa
 
 Els codis de les activitats que ara no en donen es mantenen reservats perquè l'analitzador pugui llegir codis antics.
 
+### Altres pàgines
+
+| Fitxer | Què és |
+|---|---|
+| `analitzador-stepquiz.html` | Analitzador dels codis de verificació (CSV del formulari) per al professorat |
+| `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
+| `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (no l'enllaça cap pàgina) |
+| `descripcio-grafica-inversa.html` | «Dibuixa la gràfica» (sense codi; no l'enllaça l'índex) |
+| `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
+| `decaleg-pau.html` | Decàleg per a la PAU de Matemàtiques (no l'enllaça cap pàgina) |
+| `meteo.html`, `meteo_mobile.html` | Joc «Meteorits matemàtics» (no l'enllaça cap pàgina) |
+| `s.html` | Fitxa adaptada de la unitat 1 (Nombres reals) |
+| `cb.html`, `informe-cb.html` | Versions antigues d'un sol fitxer del corrector de CB de 4t (avui, repositori `step-quiz/comp4eso`) |
+
+A més, hi ha tres carpetes que són **còpies antigues d'altres projectes**, que ja no s'actualitzen aquí: `cb/` (avui `step-quiz/cb`), `gem4eso/` (avui `step-quiz/comp4eso`) i `app/` (avui `step-quiz/app`). `informe-cb-refactor.md` és la guia de refactorització que va donar lloc a `comp4eso`.
+
 ### Adaptades
 
-Les versions simplificades per a alumnes amb necessitats educatives especials són ara un projecte a part: https://a.step-quiz.net (repositori `step-quiz/a`). L'analitzador d'aquest projecte continua llegint els seus codis (`AE`, `AD`, `AN`, `AQ`, `AO`, `AR`).
+Les versions adaptades per a l'aula d'acollida (alumnat que fa poc que és a Catalunya) són ara un projecte a part: https://a.step-quiz.net (repositori `step-quiz/a`). L'analitzador d'aquest projecte continua llegint els seus codis (`AE`, `AD`, `AN`, `AQ`, `AO`, `AR`).
 
 ## Arquitectura
 
@@ -108,7 +124,7 @@ css/
 vendor/                 ← Llibreries externes (KaTeX, PDF.js, SheetJS…), vegeu vendor/README.md
 ```
 
-**Mòduls antics** (equacions, fraccions, etc.): tot el JS va inline dins el HTML.
+**Mòduls antics** (equacions, fraccions, etc.): tot el joc en un sol fitxer, `js/<exercici>/<exercici>.js`. Ja no queda JS d'exercici dins dels HTML (només `window.APP_CONFIG`).
 
 ## Paràmetres URL
 

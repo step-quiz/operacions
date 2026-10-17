@@ -32,7 +32,7 @@ This file has three parts:
 - **No build step, static-first.** Every project deploys as static files (GitHub → Cloudflare Pages, or Netlify/Vercel). Publishing = committing a file. A few projects ship optional Node dev tools (`pycat/tools`, `ggcat/test-validators.js`) but the runtime is always plain files.
 - **Vanilla JS only.** No framework, no npm runtime dependency. Two module styles coexist: ES modules (`cangur`) and the `namespace + IIFE` pattern (`window.L`, `window.P`, `K`, `J`; see `S8`).
 - **Catalan UI and code comments** are the default. Some projects are or aim to be trilingual (`ca`/`es`/`en`); see `S` notes and `P09`.
-- **Licensing is mixed.** Several student-facing projects are `CC BY-NC-ND 4.0` (e.g. `cb`, `jscat`). This blocks some merges (e.g. unifying the `cangur` analyzer with the `cb` analyzer) — check the `LICENSE` file before combining code across projects.
+- **Licensing (since 2026-09-07):** almost every repository's `LICENSE`/`LLICENCIA.md` is now **content `CC BY-NC-SA 4.0` + code `MIT`**, so code can be combined across projects. Exceptions to check: some HTML footers still print `CC BY-NC-ND 4.0` (e.g. `cb`, `jscat`, `ins`), and the `README` attribution blocks of `sol` and `pau` still say `BY-NC-ND`.
 - **Must be served over HTTP(S), not `file://`** wherever Web Workers, `fetch()` of JSON, or ES modules are used.
 
 ---
@@ -51,7 +51,7 @@ Per-entry schema:
 - **Stack:** Vanilla JS **ES modules**; `pdf.js`; direct browser calls to Anthropic and Google (Gemini) APIs.
 - **Entry points:** `index.html` (shell) → `js/init.js` (bootstrap).
 - **Key files:** `js/config.js` (constants: `Q=30`, column rules, default keys), `js/state.js` (single mutable-state source), `js/render.js` (DOM sync from state), `js/ai-recognizer.js` (OMR via Claude/Gemini), `js/scoring.js` (Cangur scoring), `js/key-loader.js` (`.xlsx` answer key reader), `js/export.js` (`.xlsx` export), `js/pdf-viewer.js`.
-- **Architecture:** Strict `state → render` separation; 13 small modules with one responsibility each; the answer key is an `.xlsx` (one row per level × model).
+- **Architecture:** Strict `state → render` separation; 16 small modules with one responsibility each; the answer key is an `.xlsx` (one row per level × model).
 - **Excellent features:**
   - **Multi-provider AI client with tiered retry** (`ai-recognizer.js`): routes to `_callAnthropic()` or `_callGemini()` from one `MODEL_CHOICES` table; distinguishes *transient* errors (5xx/429/network → up to 5 retries with `[5s,10s,15s,40s]` backoff) from *permanent* ones (4xx non-429/parse → 3 retries). API key lives **in memory only**, never persisted.
   - **Deliberate scope reduction for reliability/cost:** the AI is asked to read **only** the A–E bubbles, never the handwritten student code/name/model — those are entered manually because models confuse digits and waste "thinking" tokens. Documented design decision, not an oversight.
@@ -69,7 +69,7 @@ Per-entry schema:
 - **Stack:** Vanilla JS **ES modules**; `pdf.js`; `JSZip` (CDN) for DOCX; direct browser calls to Anthropic/Gemini.
 - **Entry points:** `index.html` (shell) → `js/init.js`; `resum.html` (summary view).
 - **Key files:** `js/state.js`, `js/render.js` (DOM sync via the competency registry), `js/grid.js`, `js/scoring.js` (+ shared `getGrade`), `js/reports.js` (per-student DOCX), `js/ai-recognizer.js` (**the original OMR engine**), `js/key-editor.js` (answer-key editor, load/save `.txt`), `js/centre.js` (centre/year modal + autocomplete), `js/startup.js` (startup wizard + `applyCompetency`), `js/export.js` (XLSX). Data: `data/competencies.js` (stable registry) + `data/{cat,mat,ct}-2025-26.js` (year-variable).
-- **Architecture:** Same `state → render` module tree as `cangur` (its Cangur fork). The headline design is **strict year-variable data isolation**: everything that changes yearly lives in `data/*.js`; `competencies.js` is the only data module imported elsewhere and abstracts **items-based** competencies (`cat`, `ct`) from **ambits-based** ones (`mat`) behind a uniform getter API plus a grid `layout`. Migrating to a new school year = copy three data files + change three import paths (in `competencies.js` and `reports.js`) — **no logic/render/scoring/export change**. ES-module import cycles are broken via setter-injection in `init.js`.
+- **Architecture:** Same `state → render` module tree as `cangur` (its Cangur fork). The headline design is **strict year-variable data isolation**: everything that changes yearly lives in `data/*.js`; `competencies.js` is the only data module imported elsewhere and abstracts **items-based** competencies (`cat`, `ct`) from **ambits-based** ones (`mat`) behind a uniform getter API plus a grid `layout`. Migrating to a new school year = copy three data files + change the import paths in `competencies.js`, `reports.js` **and `ai-recognizer.js`** (added after the refactor; it also imports the year data directly) — **no logic/render/scoring/export change**. ES-module import cycles are broken via setter-injection in `init.js`.
 - **Excellent features:**
   - **In-browser DOCX generation from raw OOXML + JSZip** (`reports.js`): builds WordprocessingML XML by hand and zips it into a valid `.docx` (one document with per-student, per-skill breakdown tables), then triggers download — no heavy document library. More capable than `cangur`'s XLSX-only export (see `P14`).
   - **Competency registry with an items-vs-ambits discriminator** (`competencies.js`): one uniform API serves structurally different competencies; `grid.js` reads `layout` instead of hardcoding columns. A clean strategy-pattern data layer.
@@ -88,7 +88,7 @@ Per-entry schema:
 - **Audience:** Students (tutor) + teachers (analyzer).
 - **Stack:** Vanilla JS (namespace pattern); data generated from a Python catalog.
 - **Entry points:** `index.html` (student tutor); `analitzador-cangur.html` (standalone teacher analyzer, single file).
-- **Key files:** `js/tutor.js` (state machine), `js/app.js` (UI controller), `js/codi.js` (verification code — generate **and** decode), `js/llm.js` (AI gate mirror, disabled), `config.js` (`ENABLE_AI` flag), `data/problems.js` (generated), `build_static.py` (generator — *not in this export's web folder but referenced as the source of truth*).
+- **Key files:** `js/tutor.js` (state machine), `js/app.js` (UI controller), `js/codi.js` (verification code — generate **and** decode), `js/llm.js` (AI gate mirror, disabled), `config.js` (`ENABLE_AI` flag), `data/problems.js` (generated), `build_static.py` (generator — **not in any repository**; the Python sources `problems_*.py`, `tutor.py`, `llm.py` live in the private repo `tutor-cangur`, which only holds the 2026 edition, 120 problems).
 - **Architecture:** The Python catalog `problems_*.py` is the **single source of truth**; `build_static.py` emits `data/problems.js` (+ images). The web app **mirrors the Python logic 1:1** — `tutor.js` reuses the exact function/field names of `tutor.py` (`newSessionState`, `processMessage`, `processCommit`, `buildTrace`, …) so the two stay trivially syncable.
 - **Excellent features:**
   - **Answer secrecy without a backend:** correct answers ship as `sha256(salt + id + letter)` hashes, never in cleartext; "spoiler" fields (`expected_reasoning`, `comentaris_distractors`, etc.) are stripped from the client bundle. Because checking is async-hash-based, `processCommit`/`checkChoice` are `async`. (Explicitly documented as a deterrent, not exam-grade integrity.)
@@ -112,9 +112,9 @@ Per-entry schema:
 - **Excellent features:**
   - **Backend-free privacy model:** no personal data stored anywhere; the student copies a compact verification code and submits it via an authenticated Google Form (educational domain). This is the canonical privacy pattern the rest of the ecosystem copies.
   - Clean image-swap UX in `carregarPregunta()` (avoids reflow flicker by only reloading the statement image when it actually changes).
-- **Code format (v2):** exam `Lsss-DDMM-HHMM-NN,NN-cb`; practice `Lsss-DDMM-HHMM-NN,NN-RRRR...R-cb`.
+- **Code format (v2, same layout as `operacions`):** `Lsss-DDMM-HHMM-CB-D-S-QQ-NNN-R(30|40)` — `sss` = `s`/`q` (2n/4t ESO) + year, `D` = level, `S` = mode (1 exam, 2 practice), `QQ` = questions, `NNN` = grade×10, `R` = one digit per question. Bank: 218 questions (4t ESO 2022–2026, 2n ESO 2024–2026).
 - **Checksum:** `letter = "TRWAGMYFPDXBNJZSQVHLCKE"[ (notaInt + dd + mm + hh + min + salt.charCodeAt(0)) % 23 ]`. **Does not cover `R`** — see `P01`.
-- **Known weakness:** decode logic lives in a separate analyzer, divergent from generation; no cross-verification of `R` (the `cangurcat` analyzer has it, this one does not). License `CC BY-NC-ND 4.0`.
+- **Known weakness:** decode logic lives in a separate analyzer, divergent from generation; no cross-verification of `R` (the `cangurcat` analyzer has it, this one does not).
 - **Related:** student-practice counterpart of `comp4eso` (teacher grading) on the same CB-competencies theme.
 - **Status:** Mature/working.
 - **Participates in:** S1, S4, S5.
@@ -129,7 +129,7 @@ Per-entry schema:
 - **Entry points:** `index.html` (link generator); ~40 per-exercise `*.html` files (`enters.html`, `fraccions.html`, `derivades.html`, `integrals.html`, `inversa-matriu.html`, …). `analitzador-stepquiz.html` (teacher analyzer).
 - **Key files (shared, ES modules):** `js/utils.js` (pure helpers), `js/config.js` (URL params), `js/game-core.js` (session/scoring/code engine + numeric keyboard; game state in an exported `state` object), `js/exercise-codes.js`, `js/fixed-sessions.js`, `css/shared.css`.
 - **Key files (new modular exercises, e.g. `js/derivades/`):** `math-engine.js`, `strings.js`, `distractor-lib.js`, `question-bank.js`, `<exercise>.js` (DOM controller). Also present for `integrals`, `recta-numerica`, `asimptotes`.
-- **Architecture:** Every page loads one ES-module entry (`js/<exercise>/<exercise>.js`) that imports the shared base; no JS left inline in the HTML (only `window.APP_CONFIG`). *Older* exercises (equacions, fraccions, …) are a single module each; *newer* ones use a layered split: a pure math engine with **no DOM dependency**, a strings module, a distractor library, and a thin DOM controller.
+- **Architecture:** Every exercise page loads one ES-module entry (`js/<exercise>/<exercise>.js`) that imports the shared base; no exercise JS left inline in the HTML (only `window.APP_CONFIG`). Non-exercise pages still carry inline JS (`index.html`, `cb.html`/`informe-cb.html`, `meteo*.html`, the tutorials, `setup_vocabulari.html`). The repo also holds stale copies of other projects: `cb/` (157 questions), `gem4eso/` (= old `comp4eso`) and `app/`. *Older* exercises (equacions, fraccions, …) are a single module each; *newer* ones use a layered split: a pure math engine with **no DOM dependency**, a strings module, a distractor library, and a thin DOM controller.
 - **Excellent features:**
   - **`DistractorLib` — misconception-tagged distractors.** Wrong answers are generated to correspond to *named* student errors (`CHAIN_FORGOT`, `SIN_COS_SWAP`, `QUOTIENT_SIGN`, `POWER_FORGOT_R`, `LOG_INVERTED`, …), each carrying its own targeted feedback string and a `scope` (`universal` / `family:exp` / `rule:product` …). Picking a wrong option tells the student *which* mistake they made. This is the highest-ceiling pedagogical idea in the ecosystem and it is currently siloed in 3–4 exercises (see `P06`).
   - **Pedagogically-tuned RNG** (`math-engine.js`): random coefficients are not uniform — small values are weighted higher, and *trivial* cases are excluded (e.g. `generateKExp()` drops `k=±1` for `e^{kx}` because the chain rule becomes invisible there). The randomness is designed for teaching, not for fairness.
@@ -148,20 +148,20 @@ Per-entry schema:
 - **Audience:** Beginner students.
 - **Stack:** Vanilla JS (namespace `K`); custom language engine (tokenizer + parser + interpreter).
 - **Entry points:** `index.html` (free simulator); `curs/index.html` (course). Auxiliary authoring tools: `edit-mapa.html`, `editor-reptes.jsx`.
-- **Key files:** `js/tokenizer.js`, `js/parser.js`, `js/interpreter.js`, `js/execution.js`, `js/world.js`, `js/renderer.js`, `js/editor.js`, `js/kbd-accessory.js` **and** `js/vkbd.js` (two mobile-keyboard implementations), `curs/capitols.js` (data + `renderSidebar()` + `renderSimuladors()`), `curs/progress.js`, `docs/CURRENT-STATE.md`, `docs/i18n-spanish-guide.md`.
+- **Key files:** `js/tokenizer.js`, `js/parser.js`, `js/interpreter.js`, `js/execution.js`, `js/world.js`, `js/renderer.js`, `js/editor.js`, `js/kbd-accessory.js` (mobile keyboard; `js/vkbd.js`, an older simple-keyboard version, is still in the repo but no page loads it), `curs/capitols.js` (data + `renderSidebar()` + `renderSimuladors()`), `curs/progress.js`, `docs/CURRENT-STATE.md`, `docs/i18n-spanish-guide.md`.
 - **Architecture:** Any valid Karel program is valid Python (given a shim). Course uses iframes for embedded simulators + deep links; progress is a dedicated module.
 - **Excellent features:**
   - **`curs/progress.js` — clean extracted progress module.** localStorage schema `{capitols:{n:true}, reptes:{n:[bool...]}}`; "a success is never downgraded" invariant baked into `saveExercici`/`saveMon`. The only course that extracted this into its own module (others inline it — see `P08`).
   - **Two-axis i18n with a written migration guide** (`docs/i18n-spanish-guide.md`): `codeLang` (the typed programming vocabulary — **always English, immutable**: `move()`, `while`, `def`, `True`…) is kept strictly separate from `uiLang` (buttons/errors/hints). Currently `ca`/`en`; the guide gives a ready-to-paste `es` block (see `P09`).
   - **Most advanced mobile keyboard bridge** (`kbd-accessory.js`): when the editor is inside a course iframe, it posts to the **parent** document so the accessory bar renders at top-level (above the system keyboard), using the Visual Viewport API for positioning (see `P05`).
-- **Status:** Pedagogically complete; pending items are visual polish + optional future i18n.
+- **Status:** Pedagogically complete; pending items are visual polish + optional future i18n. No GitHub Action (the course test `tests/comprova-curs.js` is run by hand). Spin-off `karelcat-p` (easy-read Catalan, Primary / newcomers) shares the same engine.
 - **Participates in:** S1, S2, S3, S8.
 
 ---
 
 ### `pycat` — PyCat (real Python in the browser)
 
-- **Purpose:** Sequel to KarelCat; teaches real Python via **CPython compiled to WebAssembly (Pyodide)**. 11 chapters + 15 reptes.
+- **Purpose:** Sequel to KarelCat; teaches real Python via **CPython compiled to WebAssembly (Pyodide)**. 13 chapters (11 + two extras: 4-in-a-row and turtle graphics) + 15 reptes.
 - **Audience:** Students who finished KarelCat or equivalent.
 - **Stack:** Vanilla JS (namespace `P`); Pyodide (~12 MB, cached) in a Web Worker.
 - **Entry points:** `index.html` (free simulator, also the course iframe); `curs/index.html`.
@@ -173,7 +173,7 @@ Per-entry schema:
   - **Service Worker kill-switch** (`sw.js` + `sw-register.js`): safe path to deregister the SW and clear caches if a bad cache ships — important given Pyodide's heavy caching.
   - **Mobile keyboard with grouped keys** (`kbd-accessory.js`): Python symbol set with visual separators; hides in embed mode.
 - **Status:** Mature/working.
-- **Known doc/reality gap:** README states UI is `ca/es/en`, but `js/i18n.js` ships **Catalan only** (flat `P.UI` dict). See `P09`.
+- **i18n:** `js/i18n.js` ships **Catalan only** (flat `P.UI` dict); the README no longer claims otherwise. See `P09`. Tests: `python3 tests/comprova-curs.py` (44 exercises), run by hand (no GitHub Action).
 - **Participates in:** S1, S2, S3, S8.
 
 ---
@@ -190,13 +190,15 @@ Per-entry schema:
 - **Excellent features:**
   - **Worker re-spawn per execution** for guaranteed clean global scope — the cleanest answer to "redeclaration of `let`" in a REPL-like setting.
   - **Dual-sandbox design** sharing one validation contract.
-- **Status:** **Incomplete.** Chapters 11–12 unwritten; only repte 1 of 13 written. Biggest beneficiary of `P03`.
+- **Status:** **Incomplete.** Chapters 1–12 written, but 11–12 hidden (`VISIBLE_MAX_CHAPTER = 10`); only repte 1 of 13 written and the reptes section is hidden (`SHOW_REPTES = false`). Biggest beneficiary of `P03`.
 - **Known doc/reality gap:** `js/i18n.js` is Catalan-only. See `P09`.
 - **Participates in:** S1, S2, S3, S8.
 
 ---
 
 ### `logocat` — LOGOcat (Logo / turtle graphics)
+
+> **Not in the `step-quiz` GitHub organisation** (checked 2026-10-17): this entry describes the Jan–Jun 2026 export and cannot be verified against a live repository.
 
 - **Purpose:** Educational Logo interpreter; students type `avança(100)` / `gira.dreta(90)` and a turtle draws on a canvas. 12 challenges (7 basic + 5 advanced).
 - **Audience:** Beginner students.
@@ -234,47 +236,76 @@ Per-entry schema:
 
 - **Purpose:** Search/catalog of the math department's teaching material (mostly on Google Drive), plus a toolbox to catalog, edit, and work with CB tests.
 - **Audience:** All teachers (+ a maintainer subset for the editor tools).
-- **Stack:** Vanilla JS; PWA (`manifest.json`); SHA-256 password gate. No build.
-- **Entry points (pages):** `index.html` (search + filters + Drive preview), `repartiment.html` (curriculum distribution), `seguiment.html` (per-class progress tracking, localStorage + JSON import/export), `afegir-material.html` (manifest editor), `extreu-json.html` (**AI cataloguer**), `banc-cb.html` (CB item bank → PDF export), `eliminar-curs.html` (strip a course-year from a PDF/DOCX, client-side), `florence-cb.html` (Florence-session → CB mapping).
-- **Key files:** `manifest.json` (catalog — single source of truth for the search), `repartiment-data.js` (shared source of truth for `repartiment.html` + `seguiment.html`), `auth.js` (password portal), `cb-items.json`, `cb-img/` (107 PNGs), `lib/pdf-lib.min.js` (vendored).
+- **Stack:** Vanilla JS; no build. (`manifest.json` is the material catalog, not a PWA manifest.) The SHA-256 password gate (`auth.js`) has been **removed**: `repartiment.html` is public.
+- **Entry points (pages):** `index.html` (search + filters + Drive preview), `repartiment.html` (curriculum distribution), `afegir-material.html` (manifest editor), `extreu-json.html` (**AI cataloguer**), `banc-cb.html` (CB item bank → PDF export), `eliminar-curs.html` (strip a course-year from a PDF/DOCX, client-side), `florence-cb.html` (Florence sessions ⇄ curriculum ⇄ CB), `examen-recuperacio.html` (resit-exam generator → DOCX), `alimentar-banc.html` (AI: photos → resit-bank questions). `seguiment.html` no longer exists (the «Seguiment» link now lives in `pd`).
+- **Key files:** `manifest.json` (catalog — single source of truth for the search), `repartiment-data.js` (curriculum; read by `repartiment.html` and `florence-cb.html`), `pipeline-data.js` (curriculum ⇄ Florence ⇄ CB threads), `cb-items.json` (218 questions), `cb-img/` (169 PNGs), `recuperacio-items.json` + `recuperacio-img/`, `common.js`, `valida-dades.js` (data consistency check), `lib/` (vendored pdf-lib, pdf.js, jszip).
 - **Excellent features:**
-  - **`auth.js` — a clean, documented SHA-256 access gate.** Password stored only as its SHA-256 hash (`AUTH_HASH`); `window.authHash()` exposed for rotating it from the console; 30-day session in localStorage; injects a session badge. Soft deterrent, not real security. Drop-in reusable (see `P07`).
+  - *(Former)* **`auth.js` — SHA-256 access gate** (hash-only password, 30-day session). Removed from the repo; only a commented-out `<script>` line remains in `repartiment.html` (see `P07`).
   - **Gemini cataloguer with dynamic model discovery** (`extreu-json.html`): "Carrega models" lists **only** the models the supplied key can actually use (avoids "model not found"); a **response JSON schema** constrains Gemini to valid vocabulary slugs; key is in-memory only. Complementary to `cangur`'s retry logic (see `P04`).
   - **Client-side PDF/DOCX manipulation** (`eliminar-curs.html`, `banc-cb.html`) via vendored `pdf-lib`.
-- **External dependencies:** Google Drive/Docs, `cb.step-quiz.net` (CB images), `generativelanguage.googleapis.com` (Gemini), `cdnjs.cloudflare.com`.
+- **External dependencies:** Google Drive/Docs, `cb.step-quiz.net` (CB images), `generativelanguage.googleapis.com` (Gemini), `cdnjs.cloudflare.com` (only mammoth, in `extreu-json.html`).
 - **Status:** Mature/working.
 - **Participates in:** S1, S6, S7.
 
 ---
 
-### `llibre` — Digital Math Textbook
+### `llibre` — Digital Math Textbook (PDF viewer)
 
-- **Purpose:** Student-facing per-topic hub aggregating notes, theory pills, problems, complementary material, and Step-Quiz exercises, driven by a CSV.
-- **Audience:** Students.
-- **Stack:** Vanilla JS, single-page `index.html`; CSV-driven.
-- **Entry points:** `index.html`; companions `config.html`, `links-config.html`.
-- **Key files:** `data-classroom.csv` (per-topic links), `index.html`.
-- **Architecture:** Reads `data-classroom.csv` (columns: `subject`, `apunts-bogdan`, `teoria-pildoras`, `problemes-bogdan`, `material-complementari`, `exercicis-stepquiz`). Video columns pack `videoId:Title|videoId:Title|…`. Has a "copy Classroom text" helper and a mobile-landscape prompt.
+- **Purpose:** View and download the department's ESO maths textbook at any granularity (whole course, one unit, or any set of single activities).
+- **Audience:** Teachers and students.
+- **Stack:** Vanilla JS; vendored `pdf-lib` for in-browser PDF merging; no build.
+- **Entry points:** `index.html` (course picker); `1eso.html`, `2eso.html`, `3eso.html`, `4eso.html`, `4eso-apl.html` (each sets `window.COURSE`).
+- **Key files:** `contingut/{curs}/course.json` (units and activity titles), `contingut/{curs}/pdfs/manifest.json` (which PDFs exist + first solutions page of each), `contingut/{curs}/numeracio.json`, `assets/js/{app,course-tree,pdf-merge}.js`, `eines/sync.py` (LaTeX source → PDFs + metadata).
+- **Architecture:** One atomic PDF per activity (`{curs}-ud{U}-{A}.pdf`), compiled from a separate Overleaf LaTeX project; `sync.py` regenerates PDFs, `course.json`, `manifest.json` and `numeracio.json`. The tree view supports tri-state selection and merges the chosen PDFs client-side; a **SOL** toggle adds or strips the teacher solutions pages.
 - **Excellent features:**
-  - **Data-driven content from a flat CSV** — non-technical editing of the whole textbook; YouTube videos encoded inline as `id:title` lists.
-- **Overlap to exploit:** the `exercicis-stepquiz` column hand-links into the `operacions` project; those links could instead be derived from `m`'s `manifest.json` (see `P12`).
-- **Status:** Working; minimal docs.
-- **Participates in:** S1, S7.
+  - **Client-side merging of atomic PDFs** with automatic file naming (whole course / one unit / custom selection).
+  - **Single source of truth in LaTeX**: titles in the web come from `\horatitol` in the `.tex`, never typed by hand.
+- **Overlap to exploit:** could link activities to `m`'s catalog and to `operacions` exercises (see `P12`).
+- **Status:** Working; 5 courses published (1r ESO 76 activities, 2n 53, 3r 54, 4t Acadèmiques 65, 4t Aplicades 72).
+- **Participates in:** S1.
 
 ---
 
 ### `pau` — PAU Exam Repository
 
-- **Purpose:** Curated repository of PAU (university-entrance) exam statements, hints, and solutions, with optional explanatory videos.
+- **Purpose:** Curated repository of PAU (university-entrance) exam statements, hints, and solutions, with optional explanatory videos. 67 exercises (2023–2026).
 - **Audience:** Batxillerat students preparing for PAU.
 - **Stack:** Vanilla JS; PDF-backed; editorial config in JS.
 - **Entry points:** `index.html`.
-- **Key files:** `config.js` (`OPTATIUS` set + `VIDEOS` map), `data/` (PDFs named `{topic}-{year}{session}-q{n}-{e|p|s}.pdf` — `e`=statement, `p`=hint, `s`=solution).
+- **Key files:** `index.html` (`EXERS` list), `config.js` (`OPTATIUS` set + `VIDEOS` map), `data/` (PDFs named `{topic}-{year}{session}-q{n}-{e|p|s}.pdf` — `e`=statement, `p`=hint, `s`=solution), `pistes/src/<id>.tex` + `pistes/build.py` (hints are compiled from LaTeX; a GitHub Action rebuilds them on push), `UPDATING.md` (how to add a session).
 - **Architecture:** Editorial-config pattern: edit `config.js` to mark optional exercises and attach YouTube videos; no need to touch `index.html`. The `e/p/s` triad is the same **statement/hint/solution** shape used by `cangurcat` and `cb`.
 - **Excellent features:**
   - **Zero-touch editorial workflow** — content curation done entirely in a small `config.js`.
 - **Status:** Working; minimal docs. Currently passive (no progress tracking) — see `P11`.
 - **Participates in:** S1, S5.
+
+---
+
+### Repositories in the `step-quiz` organisation not catalogued above
+
+Checked 2026-10-17. Each has its own README; they are listed here so the catalog is complete.
+
+| Repo | What it is |
+|---|---|
+| `a` | Step Quiz activities adapted for the *aula d'acollida* (newly arrived students learning Catalan), `a.step-quiz.net`. |
+| `app` | Public landing page of Step Quiz (cards linking to the sites). |
+| `ins` | School portal page linking to every site. |
+| `repas` | ESO self-assessment for students starting 1r Bat (12 sheets, ~950 questions). |
+| `geom` | 130 open synthetic-geometry questions to explore (no scoring). |
+| `pi` | Adapted maths material (worksheets, digital toolbox, Word exams) for students with cognitive difficulties, 1r and 4t ESO. |
+| `inaba` | Naoki Inaba's maths puzzles, translated into Catalan and made interactive. |
+| `combinades` | Combined-operations / «complete the equality» worksheet generator (LaTeX + PDF). |
+| `recu` | Resit-exam builder for ESO (prova, correcció, pla de repàs). |
+| `prova1eso` | Initial-level test builder for 1r ESO. |
+| `exam2bat` | Question bank and exam builder for Matemàtiques II (2n Bat), PAU questions included. |
+| `sol` | Weekly exercise tasks for 2n Bat with hints and corrected solution-manual errata. |
+| `pd` | Batxillerat teaching programmes viewer (+ curriculum distribution). |
+| `htmlcat` | HTML + CSS course (sibling of the `*cat` courses). |
+| `karelcat-p` | Easy-read spin-off of `karelcat`. |
+| `cagg` | Image catalogue/triage tool for #MathsToday posts. |
+| `pos` | Classroom positives/negatives tracker. |
+| `test-tutor` | Authoring tool for tutor test batteries (IC-002). |
+| `tutor-cangur`, `tutor-eq`, `tutor-grups`, `tutor-probabilitat` | Private Streamlit AI-tutor prototypes (Python + Gemini). |
 
 ---
 
@@ -294,7 +325,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 
 - **`S6` — In-browser LLM calls.** *comp4eso (origin: Anthropic+Gemini OMR), cangur (fork of that OMR), m (Gemini), cangurcat (planned).* Direct browser → provider calls; **API key in memory only, never persisted**. Strengths are split: `comp4eso`/`cangur` have multi-provider routing + tiered retry/backoff; `m` has dynamic model discovery + JSON-schema-constrained output (target of `P04`). `comp4eso/js/ai-recognizer.js` is the original; `cangur`'s is the adaptation.
 
-- **`S7` — Data-driven material catalog.** *m (`manifest.json`, teacher catalog/search), llibre (`data-classroom.csv`, student textbook).* Both render content from a flat data file. They are two views over overlapping data (target of `P12`).
+- **`S7` — Data-driven material catalog.** *m (`manifest.json`, teacher catalog/search), llibre (`course.json` + `manifest.json` per course, textbook PDFs).* Both render content from flat data files over overlapping material (target of `P12`).
 
 - **`S8` — Namespace + centralized-state module pattern.** *logocat (`window.L`), pycat (`P`), jscat (`J`), karelcat (`K`), cangur + comp4eso (ES-module `state.js`).* All modules attach to one namespace; a single `state` object is the source of truth; `render` syncs DOM from state. (Contrast: `cangur`/`comp4eso` use true ES modules; the courses use IIFE-on-namespace.)
 
@@ -403,7 +434,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 - **Implementation:** vendor the shared `auth.js`; set each project's `AUTH_HASH`; document the rotation step (`authHash('new').then(console.log)`).
 - **Acceptance criteria:** the gated pages require the password and remember the session; student-facing pages (`test.html`, per-exercise pages) remain ungated.
 - **Risk/notes:** state clearly it is a **deterrent, not security** (client-side hash) — same caveat `cangurcat` already documents.
-- **History:** 2026-06-05 created.
+- **History:** 2026-06-05 created. 2026-10-17: the source no longer exists — `auth.js` was removed from `m` (its gate is disabled); it would have to be recovered from `m`'s git history.
 
 ---
 
@@ -422,7 +453,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 - **Status:** PROPOSED · **Priority:** P3
 - **Source → Target:** `logocat` i18n architecture (separate `code language` vs `UI language`, full `ca/es/en`) + `karelcat/docs/i18n-spanish-guide.md` → **`pycat`**, **`jscat`**; complete **`karelcat`** `es`.
 - **Affected files:** each course's `js/i18n.js` + a language selector in UI.
-- **Rationale:** `pycat`/`jscat` READMEs claim `ca/es/en` but ship **Catalan only**; `karelcat` is `ca/en` with a ready `es` block already written in its guide. logocat proves the clean pattern: code-vocabulary axis stays English/immutable; only the UI axis translates.
+- **Rationale:** `pycat`/`jscat` ship **Catalan only** (their READMEs used to claim `ca/es/en`); `karelcat` is `ca/en` with a ready `es` block already written in its guide. logocat proves the clean pattern: code-vocabulary axis stays English/immutable; only the UI axis translates.
 - **Implementation:** restructure `pycat`'s flat `P.UI` and `jscat`'s `i18n.js` into the two-axis shape; add `es`/`en` UI strings; paste karelcat's `es` block from its guide; add a UI-language selector. Keep `codeLang` immutable.
 - **Acceptance criteria:** UI language switchable to `ca`/`es`/`en` in all three courses with no change to the code vocabulary; READMEs match reality.
 - **Risk/notes:** translation volume is the cost; ship `es` first (highest local value), `en` second.
@@ -456,7 +487,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 
 ### `P12` — Derive `llibre`'s exercise links from `m`'s manifest
 - **Status:** PROPOSED · **Priority:** P3 (speculative)
-- **Source → Target:** `m/manifest.json` (canonical catalog) → **`llibre`** (`data-classroom.csv` `exercicis-stepquiz` column).
+- **Source → Target:** `m/manifest.json` (canonical catalog) → **`llibre`**. *(2026-10-17: `llibre` is now a PDF viewer with no `data-classroom.csv`; this proposal needs rethinking.)*
 - **Affected files:** `llibre` data pipeline; `m/manifest.json` schema (maybe add topic tags).
 - **Rationale:** `S7` — both are views over overlapping material data, but `llibre` maintains Step-Quiz links by hand in a CSV while `m` already holds the canonical catalog. Deriving from `m` removes duplication and drift.
 - **Implementation:** tag `manifest.json` entries by topic; generate (or fetch) `llibre`'s per-topic exercise links from it instead of the hand-maintained CSV column.
@@ -495,6 +526,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 | Date | Proposal(s) | Change | By |
 |------|-------------|--------|----|
 | 2026-06-05 | — | Initial document created from the Jan–Jun 2026 export of 12 projects. All proposals `PROPOSED`. | AI (initial authoring) |
+| 2026-10-17 | P07 · P09 · P12 · S7 | Reviewed against the live repositories: corrected `cangur`, `comp4eso`, `cangurcat`, `cb`, `operacions`, `karelcat`, `pycat`, `jscat`, `m`, `pau`; rewrote `llibre` (now a PDF viewer); flagged `logocat` as not in the organisation; listed the uncatalogued repositories; updated licensing. No proposal status changed. | AI (docs review) |
 | 2026-06-05 | comp4eso · S10 · P04 · M1 · P13 · P14 | Added 13th project `comp4eso` (CompBàsiques 4t ESO) — ancestor of the `cangur` OMR lineage and the refactor of `operacions/informe-cb.html`. Added shared structure `S10` (OMR grading shell). Updated `P04` source to `comp4eso` (origin of the AI recognizer) and strengthened `M1` evidence + candidate modules. Created `P13` (extract the shared OMR shell) and `P14` (DOCX reports → cangur). Cross-linked the `cangur` / `cb` / `operacions` entries. | AI (comp4eso integration) |
 
 <!--

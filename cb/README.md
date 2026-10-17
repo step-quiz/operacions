@@ -1,5 +1,7 @@
 # Step Quiz: Competències Bàsiques de Matemàtiques
 
+> **Còpia antiga.** Aquesta carpeta/fitxer és una còpia d'un altre projecte que ja no s'actualitza aquí. La versió vigent és al repositori `step-quiz/cb`.
+
 Plataforma interactiva per practicar les proves de competències bàsiques de matemàtiques de l'ESO (Catalunya). Permet als alumnes entrenar amb preguntes reals d'exàmens oficials en dos modes: pràctica (amb pistes pedagògiques) i examen (simulació real).
 
 ## Com funciona?

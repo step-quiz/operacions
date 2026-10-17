@@ -1,5 +1,7 @@
 # CompBàsiques 4t ESO — refactored
 
+> **Còpia antiga.** Aquesta carpeta/fitxer és una còpia d'un altre projecte que ja no s'actualitza aquí. La versió vigent és al repositori `step-quiz/comp4eso`.
+
 End state of Phase 2 of the refactoring described in `REFACTOR_GUIDE.md`.
 
 ## What this is

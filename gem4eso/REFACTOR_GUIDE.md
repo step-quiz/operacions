@@ -1,5 +1,7 @@
 # Refactoring Guide: `informe-cb.html` → Modular Project Structure
 
+> **Còpia antiga.** Aquesta carpeta/fitxer és una còpia d'un altre projecte que ja no s'actualitza aquí. La versió vigent és al repositori `step-quiz/comp4eso`.
+
 > **Audience**: AI agent performing autonomous code transformation.  
 > **Source file**: `informe-cb.html` — 165 KB, 3 675 lines, single-file Catalan secondary-school competency-test corrector ("Corrector CompBàsiques 4t ESO").  
 > **Primary refactoring goal**: Decouple the **yearly-variable data layer** (question numbering, skill/subcompetency mappings) from the stable UI/logic layer, so that migrating to a new academic year (e.g. 2026-27) requires editing **only the data files** with no risk of touching rendering, scoring, or export logic.
