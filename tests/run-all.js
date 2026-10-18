@@ -20,11 +20,14 @@ const TESTS = [
     ['Tests de les sessions fixes', 'tests/fixed-sessions.test.js'],
     ['Lletra de control dels codis', 'tests/codi-verificacio.test.js'],
     ['Tests de derivades', 'js/derivades/run-tests.js'],
+    ['Documentació ↔ codi', 'tests/docs_vs_codi.py'],
 ];
 
 const results = TESTS.map(([name, file]) => {
     console.log(`\n${'═'.repeat(60)}\n  ${name}  (${file})\n${'═'.repeat(60)}`);
-    const r = spawnSync(process.execPath, [path.join(ROOT, file)], { stdio: 'inherit', cwd: ROOT });
+    // Els .py (només biblioteca estàndard) amb python3; la resta, amb el mateix Node.
+    const exe = file.endsWith('.py') ? 'python3' : process.execPath;
+    const r = spawnSync(exe, [path.join(ROOT, file)], { stdio: 'inherit', cwd: ROOT });
     return [name, r.status === 0];
 });
 
