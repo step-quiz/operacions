@@ -42,6 +42,10 @@
  *   Es llegeix automaticament del parametre URL ?nivell=N.
  *   Jocs sense nivells no han de fer res (D=0 per defecte).
  *
+ * ── MODE «ESVAÏMENT» (?esvaiment=1, js/esvaiment.js) ────────────────────────
+ *   No es genera mai el codi (copiarResultats() surt de seguida i el botó
+ *   s'amaga) i la pantalla final mostra estrelles en lloc de la nota.
+ *
  * ── COM S'USA (mòdul ES) ────────────────────────────────────────────────────
  *   import { state, startGame, recordResult } from '../game-core.js';
  *   - L'estat de la partida és a `state` (state.attemptsLeft, state.sessionScore…).
@@ -56,6 +60,7 @@ import { TOTAL_SESSIONS, TOTAL_OPERATIONS, MAX_ENLLOC_MITJANA, MAX_INTENTS } fro
 import { EXERCISE_CODES } from './exercise-codes.js'; // taula única compartida amb l'analitzador
 import { lletraNova, cosDelCodi } from './codi-verificacio.js'; // lletra de control, compartida amb l'analitzador
 import { FixedSessions } from './fixed-sessions.js';
+import { ESVAIMENT } from './esvaiment.js'; // mode «Esvaïment» (?esvaiment=1): no dona codi
 
 // ── NOMBRE MÀXIM DE RESULTATS AL CODI ────────────────────────────────────────
 // El generador d'enllaços permet fins a 5 sessions × 10 preguntes = 50.
@@ -197,7 +202,33 @@ export function calculaNotaSobre10() {
     }
 }
 
+// Mode «Esvaïment»: sense nota ni codi. Una estrella per exercici fet sense errors
+// i fins on ha arribat l'alumne (js/esvaiment.js).
+function resumEsvaiment() {
+    const r = ESVAIMENT.registre;
+    const n = ESVAIMENT.estrelles();
+    const estrelles = r.map(x => (x.senseErrors ? '★' : '☆')).join(' ');
+    const ultim = r[r.length - 1];
+    let fins = '';
+    if (ultim && ultim.senseErrors && ultim.nAlumne >= ultim.nPassos)
+        fins = 'Ja ho fas tot sol! L’últim exercici l’has fet sencer.';
+    else if (ultim) fins = `A l’últim exercici has fet tu ${ultim.nAlumne} de ${ultim.nPassos} passos.`;
+    return (
+        `<div class="esv-resum">` +
+        `<div class="esv-estrelles" aria-label="${n} de ${r.length} exercicis sense errors">${estrelles}</div>` +
+        `<div class="esv-linia">${n} de ${r.length} sense errors.</div>` +
+        (fins ? `<div class="esv-linia">${fins}</div>` : '') +
+        `<div class="esv-nota">Mode esvaïment (exemples resolts): aquesta activitat no dona codi.</div>` +
+        `</div>`
+    );
+}
+
 export function renderFinalSummary() {
+    if (ESVAIMENT) {
+        const el = document.getElementById('final-summary');
+        if (el) el.innerHTML = resumEsvaiment();
+        return;
+    }
     let html = '';
     for (let i = 0; i < state.sessionScores.length; i++) {
         html += `<div class="session-line"><span>Sessió ${i + 1}</span><span>${((state.sessionScores[i] / (TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA)) * 10).toFixed(1).replace('.', ',')}</span></div>`;
@@ -298,7 +329,7 @@ export function injectSharedHTML() {
     finalScreen.style.display = 'none';
     finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     panel.appendChild(finalScreen);
-    if (FixedSessions) finalScreen.querySelector('#btn-copiar').style.display = 'none';
+    if (FixedSessions || ESVAIMENT) finalScreen.querySelector('#btn-copiar').style.display = 'none';
 }
 
 // ── TECLAT NUMERIC CUSTOM ────────────────────────────────────────────────────
@@ -532,7 +563,7 @@ export function showHistorySummary() {
     </div>`;
     // [FIX m9] El botó crida copiarResultats() que ja gestiona el feedback visual internament
     sc.style.display = 'block';
-    if (FixedSessions) {
+    if (FixedSessions || ESVAIMENT) {
         const b = document.getElementById('btn-copiar-hist');
         if (b) b.style.display = 'none';
     }
@@ -546,6 +577,9 @@ Object.assign(window, { startNextSession, showHistorySummary, copiarResultats, f
 
 // ── GENERADOR DE CODI v2 ─────────────────────────────────────────────────────
 export async function copiarResultats() {
+    // Mode «Esvaïment»: mai no es genera codi (l'alumne no ha fet sol tots els passos)
+    if (ESVAIMENT) return;
+
     // Salt
     let salt = '';
     const ch = 'abcdefghijklmnopqrstuvwxyz';

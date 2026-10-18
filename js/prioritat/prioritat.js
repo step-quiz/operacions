@@ -12,6 +12,9 @@
  *       a operació. Toca l'operació que es pot fer (si encara no es pot, se li
  *       diu per què) i en tria el resultat; cada pas s'escriu sota l'anterior,
  *       amb el resultat centrat sota l'operació d'on surt.
+ *     · «Esvaïment» (?esvaiment=1, js/esvaiment.js): «Pas a pas» on els primers
+ *       passos es mostren resolts (d'un en un) i l'alumne fa els últims; com
+ *       més encerta, més passos fa ell. Sense intents, punts ni codi.
  * - En acabar cada expressió es veu tota la resolució en una taula «centrada»,
  *   amb l'operació que es fa a cada línia en blau i subratllada (les opcions
  *   «centrat» i «destaca» del projecte combinades).
@@ -37,6 +40,7 @@ import {
     startGame,
     validateConfig,
 } from '../game-core.js';
+import { ESVAIMENT } from '../esvaiment.js';
 import { MathEngine } from './math-engine.js';
 import { Strings } from './strings.js';
 import { Renderer } from './renderer.js';
@@ -45,8 +49,9 @@ import { Renderer } from './renderer.js';
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
 Object.assign(window, { buildLevel });
 
-// ?modalitat=passos → «Pas a pas»; qualsevol altre valor (o cap) → «Resultat final»
-const STEP_MODE = urlParams.get('modalitat') === 'passos';
+// ?modalitat=passos → «Pas a pas»; qualsevol altre valor (o cap) → «Resultat final».
+// ?esvaiment=1 (js/esvaiment.js) fa servir sempre «Pas a pas».
+const STEP_MODE = ESVAIMENT !== null || urlParams.get('modalitat') === 'passos';
 
 // ============================================================
 // DOM
@@ -68,6 +73,7 @@ const els = {
     solutionBox: document.getElementById('solution-box'),
     hintText: document.getElementById('hint-text'),
     dragGhost: document.getElementById('drag-ghost'),
+    esvAccions: document.getElementById('esv-accions'),
 };
 
 // ============================================================
@@ -85,8 +91,10 @@ let _touchChip = null;
 let _touchStartX = 0;
 let _touchStartY = 0;
 // «Pas a pas»
-let rows = []; // les línies fetes [{ line, op, auto }]; l'última és la de treball
-let phase = 'op'; // 'op': cal tocar l'operació · 'result': cal triar-ne el resultat
+let rows = []; // les línies fetes [{ line, op, auto, marca }]; l'última és la de treball
+let phase = 'op'; // 'op': cal tocar l'operació · 'result': cal triar-ne el resultat · 'esv': cal tocar el botó
+// «Esvaïment»: { passos, nPassos, nAlumne, nExemple, revelats, errors } de l'exercici actual
+let esv = null;
 
 // El nivell es reparteix al llarg de la sessió: sigui quin sigui el nombre
 // d'operacions, la primera és del nivell 0 i l'última del nivell 9.
@@ -205,6 +213,13 @@ function buildResultLevel() {
 function updateHeader() {
     els.sessionDisplay.innerText = `Sessió ${state.currentSession + 1} de ${TOTAL_SESSIONS}`;
     els.lvlDisplay.innerText = `${STEP_MODE ? 'Expressió' : 'Operació'} ${state.currentOperation + 1} de ${TOTAL_OPERATIONS}`;
+    if (ESVAIMENT) {
+        // Sense punts ni intents: estrelles (exercicis sense errors) i quants passos fa l'alumne
+        els.scoreDisplay.innerText = `★ ${ESVAIMENT.estrelles()}`;
+        els.attemptsDisplay.innerText = esv ? Strings.Esv.capcalera(esv.nAlumne, esv.nPassos) : '';
+        els.attemptsDisplay.className = 'attempts-counter';
+        return;
+    }
     els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
     els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
     els.attemptsDisplay.className = 'attempts-counter' + (state.attemptsLeft < 2 ? ' danger' : '');
@@ -345,8 +360,133 @@ function handleAnswer(val) {
 // ============================================================
 function buildStepLevel() {
     rows = [{ line: MathEngine.startLine(tokens), op: -1 }];
+    esvAccio(null);
+    if (ESVAIMENT) {
+        buildEsvLevel();
+        return;
+    }
     askOp(); // abans de pintar: la línia de treball només té botons quan cal tocar una operació
     renderSteps();
+}
+
+// ============================================================
+// «ESVAÏMENT» (?esvaiment=1, js/esvaiment.js)
+// Els primers passos es mostren resolts, d'un en un (l'alumne toca «Següent
+// pas»), i l'alumne fa els últims. Si s'equivoca, se li mostra el pas bo (la
+// línia queda marcada «amb ajuda»), continua quan toca «Continua» i el pròxim
+// exercici serà un nivell més fàcil. No hi ha intents ni punts.
+// ============================================================
+function buildEsvLevel() {
+    const passos = MathEngine.passosEsvaiment(tokens);
+    const nPassos = passos.length;
+    const nAlumne = ESVAIMENT.passosAlumne(nPassos);
+    esv = { passos, nPassos, nAlumne, nExemple: nPassos - nAlumne, revelats: 0, errors: false };
+    if (esv.nExemple > 0) {
+        phase = 'esv';
+        els.chipPool.innerHTML = '';
+        els.answerWrap.style.display = 'none';
+        els.hintText.style.display = 'none';
+        els.stepInstruction.textContent = Strings.Esv.mira;
+        esvAccio(Strings.Esv.seguent, revelaExemple);
+    } else {
+        askOp();
+    }
+    renderSteps();
+}
+
+// El botó d'acció del mode (null: cap)
+function esvAccio(text, fn) {
+    if (!els.esvAccions) return;
+    els.esvAccions.innerHTML = '';
+    if (!text) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-next esv-btn';
+    btn.textContent = text;
+    btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        fn();
+    });
+    els.esvAccions.appendChild(btn);
+    if (!isTouchDevice()) btn.focus({ preventScroll: true });
+}
+
+// Afegeix a la taula el pas resolt següent de l'exemple
+function revelaExemple() {
+    const pas = esv.passos[esv.revelats];
+    rows[rows.length - 1].op = pas.op;
+    rows.push({ line: MathEngine.applyAt(pas.line, pas.op), op: -1, marca: 'exemple' });
+    esv.revelats++;
+    els.stepInstruction.textContent = Strings.Esv.exemple(pas);
+    if (MathEngine.isDone(rows[rows.length - 1].line)) {
+        finishEsv();
+        return;
+    }
+    if (esv.revelats < esv.nExemple) esvAccio(Strings.Esv.seguent, revelaExemple);
+    else
+        esvAccio(Strings.Esv.araTu, () => {
+            esvAccio(null);
+            askOp();
+            els.stepInstruction.textContent = `${Strings.Esv.teu(esv.nAlumne)} ${Strings.Step.chooseOp}`;
+            renderSteps();
+            if (!isTouchDevice()) els.stepsBox.querySelector('.tok-btn')?.focus({ preventScroll: true });
+        });
+    renderSteps();
+}
+
+// L'alumne s'ha equivocat: es fa el pas bo (operació de la posició i), marcat «amb ajuda»
+function esvAjuda(i, missatge) {
+    esv.errors = true;
+    const row = rows[rows.length - 1];
+    row.op = i;
+    rows.push({ line: MathEngine.applyAt(row.line, i), op: -1, marca: 'ajuda' });
+    phase = 'esv';
+    els.chipPool.innerHTML = '';
+    els.answerWrap.style.display = 'none';
+    els.hintText.style.display = 'none';
+    els.stepInstruction.textContent = '';
+    els.feedback.innerHTML = `<div>${missatge}</div>`;
+    renderSteps();
+    esvAccio(Strings.Esv.continua, () => {
+        esvAccio(null);
+        els.feedback.textContent = '';
+        if (MathEngine.isDone(rows[rows.length - 1].line)) finishEsv();
+        else {
+            askOp();
+            renderSteps();
+            if (!isTouchDevice()) els.stepsBox.querySelector('.tok-btn')?.focus({ preventScroll: true });
+        }
+    });
+}
+
+// Fi d'un exercici en mode esvaïment: missatge (màxim dos) i botó «Següent»
+function finishEsv() {
+    if (_finished) return;
+    _finished = true;
+    state.isTransitioning = true;
+    phase = 'esv';
+    esvAccio(null);
+    const senseErrors = !esv.errors;
+    const canvi = ESVAIMENT.acabaItem({ senseErrors, nPassos: esv.nPassos });
+    recordAnswerToHistory(`${Strings.toText(tokens)} = ?`, String(correctAnswer), senseErrors);
+    updateHeader();
+
+    els.chipPool.style.display = 'none';
+    els.answerWrap.style.display = 'none';
+    els.hintText.style.display = 'none';
+    renderSteps();
+
+    let msg;
+    if (!senseErrors) msg = Strings.Esv.ambAjuda;
+    else if (esv.nAlumne === 0) msg = Strings.Esv.fetSencer;
+    else if (canvi.totSol) msg = '✅ ' + Strings.Esv.totSol;
+    else msg = '✅ ' + Strings.Esv.beFet(esv.nAlumne);
+    const seguent = canvi.pujat && !canvi.totSol ? Strings.Esv.puja : canvi.baixat ? Strings.Esv.baixa : '';
+    els.solutionBox.innerHTML =
+        `<div class="solution-title">${msg}</div>` + (seguent ? `<div class="esv-seguent">${seguent}</div>` : '');
+    els.solutionBox.style.display = 'block';
+    afegeixBotoSeguent();
 }
 
 // marks (opcional): { red:Set, green:Set } amb posicions de la línia de treball
@@ -408,6 +548,13 @@ function handleStepOp(i) {
     }
     const bl = MathEngine.blockers(line, i);
     if (!bl) return;
+    if (ESVAIMENT) {
+        // Es fa una de les operacions que calia fer abans, i es diu per què
+        recordAnswerToHistory(`${Strings.toText(line)} (quina operació toca?)`, Strings.opLabel(line[i]), false);
+        const bo = bl.green[0];
+        esvAjuda(bo, `${Strings.blockerMsg(bl, line)} ${Strings.Esv.ferAixi(line, bo, MathEngine.opValue(line, bo))}`);
+        return;
+    }
     renderSteps({ red: new Set([i]), green: new Set(bl.green) });
     els.feedback.innerHTML =
         `<div>${Strings.blockerMsg(bl, line)}</div>` + legendHtml(Strings.Step.legendRed, Strings.Step.legendGreen);
@@ -420,6 +567,13 @@ function handleStepResult(val, chip) {
     if (state.isTransitioning || _finished || phase !== 'result') return;
     if (chip.classList.contains('chip-wrong')) return;
     const row = rows[rows.length - 1];
+    if (ESVAIMENT && val !== MathEngine.opValue(row.line, row.op)) {
+        // Es mostra el resultat bo i el pas queda «amb ajuda»
+        recordAnswerToHistory(`${Strings.opText(row.line, row.op)} = ?`, String(val), false);
+        const bo = MathEngine.opValue(row.line, row.op);
+        esvAjuda(row.op, Strings.Esv.resultatBo(row.line, row.op, val, bo));
+        return;
+    }
     if (val !== MathEngine.opValue(row.line, row.op)) {
         chip.classList.add('chip-wrong');
         els.feedback.innerHTML = `<div>${Strings.wrongResultMsg(row.line, row.op, val)}</div>`;
@@ -431,6 +585,10 @@ function handleStepResult(val, chip) {
     rows.push({ line: next, op: -1 });
     els.feedback.textContent = '';
     if (MathEngine.isDone(next)) {
+        if (ESVAIMENT) {
+            finishEsv();
+            return;
+        }
         recordAnswerToHistory(`${Strings.toText(tokens)} = ?`, String(correctAnswer), true);
         finishOperation(true);
     } else {
@@ -514,7 +672,11 @@ function finishOperation(ok) {
         renderSolution(ok);
     }
     showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
+    afegeixBotoSeguent();
+}
 
+// El botó «Següent» (o «Veure resultats») al final de la resolució
+function afegeixBotoSeguent() {
     const isLast = state.currentOperation + 1 >= TOTAL_OPERATIONS;
     const btn = document.createElement('button');
     btn.className = 'btn-next';

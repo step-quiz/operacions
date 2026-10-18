@@ -21,7 +21,7 @@
       { file: 'recta-numerica.html', label: 'Recta numèrica', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'potencies.html', label: 'Potències', yt: '', fixed: true },
-      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true },
+      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true },
       { file: 'factoritzar.html', label: 'Descompondre en factors primers', yt: 'https://youtu.be/s2LGUllVMfM', fixed: true },
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ', fixed: true },
       { separator: true },
@@ -324,6 +324,7 @@
         <div class="row" id="row-fixed-eso" style="display:none"><label for="fix-eso">Sessió fixa</label><select id="fix-eso"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
         <div class="row" id="row-dim-eso" style="display:none"><label for="dim-eso">Dimensió</label><select id="dim-eso"><option value="">Totes</option><option value="2">2: figures al pla</option><option value="3">3: cossos a l'espai</option></select></div>
         <div class="row" id="row-nivell-eso" style="display:none"><label for="nivell-eso">Nivell</label><select id="nivell-eso"><option value="a">Fàcil (arrossegar)</option><option value="b">Difícil (escriure)</option></select></div>
+        <div class="row" id="row-esv-eso" style="display:none" title="Exemples resolts que es van esvaint: l'alumne comença mirant un exercici resolt i cada cop en fa més passos ell. No dona codi."><label for="esv-eso">Esvaïment</label><select id="esv-eso"><option value="">No</option><option value="0">Sí, amb un exemple sencer</option><option value="1">Sí, l'alumne fa l'últim pas</option><option value="2">Sí, l'alumne fa els 2 últims</option><option value="3">Sí, l'alumne fa els 3 últims</option></select></div>
         <div class="row" id="row-mod-eso" style="display:none"><label for="mod-eso">Modalitat</label><select id="mod-eso"><option value="">Resultat final</option><option value="passos">Pas a pas</option></select></div>
         <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
         <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
@@ -555,6 +556,8 @@
         rowNivell:document.getElementById('row-nivell-' + suffix),
         mod:      document.getElementById('mod-' + suffix),
         rowMod:   document.getElementById('row-mod-' + suffix),
+        esv:      document.getElementById('esv-' + suffix),
+        rowEsv:   document.getElementById('row-esv-' + suffix),
         s:      document.getElementById('s-' + suffix),
         o:      document.getElementById('o-' + suffix),
         i:      document.getElementById('i-' + suffix),
@@ -596,7 +599,19 @@
       function manageModRow() {
         if (!els.rowMod) return;
         const selected = activities.find(a => a.file === dropdown.getValue());
-        els.rowMod.style.display = (selected && selected.modalitat) ? '' : 'none';
+        // Amb l'esvaïment, prioritat sempre és «Pas a pas»: la modalitat no cal
+        const ambEsv = selected && selected.esvaiment && els.esv && els.esv.value !== '';
+        els.rowMod.style.display = (selected && selected.modalitat && !ambEsv) ? '' : 'none';
+      }
+
+      // Activitats amb el mode «Esvaïment» (esvaiment: true; ha de coincidir amb
+      // SUPORTA_ESVAIMENT de js/esvaiment.js, tests/check-repo.js ho comprova)
+      function manageEsvRow() {
+        if (!els.rowEsv) return;
+        const selected = activities.find(a => a.file === dropdown.getValue());
+        els.rowEsv.style.display = (selected && selected.esvaiment) ? '' : 'none';
+        // Quan s'amaga, reseteja el valor per no deixar ?esvaiment= penjat
+        if (!(selected && selected.esvaiment) && els.esv) els.esv.value = '';
       }
 
       function build() {
@@ -626,8 +641,13 @@
           if (file === 'vocabulari.html' && els.nivell) {
             qs.append('modalitat', els.nivell.value);
           }
-          if (selected && selected.modalitat && els.mod && els.mod.value) {
+          const ambEsv = selected && selected.esvaiment && els.esv && els.esv.value !== '';
+          if (selected && selected.modalitat && els.mod && els.mod.value && !ambEsv) {
             qs.append('modalitat', els.mod.value);
+          }
+          if (ambEsv) {
+            qs.append('esvaiment', '1');
+            if (els.esv.value !== '0') qs.append('inici', els.esv.value);
           }
           els.link.textContent = `${BASE_URL}${file}?${qs.toString()}`;
         }
@@ -656,6 +676,7 @@
         manageFixedRow();
         manageDimRow();
         manageNivellRow();
+        manageEsvRow();
         manageModRow();
         build();
         manageHelpButton(false);
@@ -666,10 +687,12 @@
       manageFixedRow();
       manageDimRow();
       manageNivellRow();
+      manageEsvRow();
       manageModRow();
       manageHelpButton(true);
 
       [els.d, els.fix, els.s, els.o, els.i, els.m, els.dim, els.nivell, els.mod].filter(Boolean).forEach(el => el.addEventListener('change', build));
+      if (els.esv) els.esv.addEventListener('change', () => { manageModRow(); build(); });
 
       els.copy.addEventListener('click', async () => {
         // [FIX BUG5] try-catch + fallback per a HTTP, Safari antic, etc.

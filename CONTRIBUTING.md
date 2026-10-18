@@ -16,6 +16,7 @@ operacions/
 │   ├── utils.js                ← Funcions pures: randInt, pick, shuffle, gcd, parseStrictInt
 │   ├── config.js               ← Lectura de paràmetres URL (sessions, intents, etc.)
 │   ├── exercise-codes.js       ← Taula única de codis d'exercici (joc + analitzador)
+│   ├── esvaiment.js            ← Mode «Esvaïment» ?esvaiment=1 (motor de nivells, sense DOM)
 │   ├── game-core.js            ← Motor de joc compartit (estat, puntuació, pantalles, codi v2)
 │   ├── derivades/              ← Mòdul de derivades (patró recomanat, mòduls ES)
 │   │   ├── math-engine.js      ← Capa matemàtica pura (sense DOM)
@@ -215,9 +216,31 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 | `fixed` | A, B, C | — | Sessió fixa: mateixos exercicis per a tothom (vegeu `js/fixed-sessions.js`) |
 | `families` | ids separats per comes | totes | Famílies actives (derivades/integrals) |
 | `modalitat` | `passos` · `a`, `b` | — | Modalitat de joc: «Pas a pas» a `prioritat`; nivell a `vocabulari` |
+| `esvaiment` | 1 | — | Mode «Esvaïment» (exemples resolts que es van esvaint); només a les pàgines de `SUPORTA_ESVAIMENT` |
+| `inici` | 0-9 | 0 | Amb `esvaiment=1`: passos que fa l'alumne al primer exercici |
 | `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
 
 Els màxims de sessions (5) i preguntes (10) són els que pot representar el codi v2 (camps S i QQ).
+
+## Com fer que un exercici admeti l'esvaïment
+
+El mode «Esvaïment» (`?esvaiment=1`, vegeu el README) és a `js/esvaiment.js`:
+
+- `Esvaiment` són funcions pures (les proven els tests): `inicial(k0)`, `passosAlumne(estat, nPassos)` i `despresItem(estat, { senseErrors, nPassos })`. `k` és quants passos, comptant des del final, fa l'alumne. Regla: 2 exercicis seguits sense errors → `k + 1`; un error → `k − 1` (mínim 0).
+- `ESVAIMENT` és la sessió de la pàgina, o `null` si la URL no porta `?esvaiment=1` o si la pàgina no l'admet. Té `passosAlumne(nPassos)`, `acabaItem({ senseErrors, nPassos })` (retorna `{ pujat, baixat, totSol }`), `estrelles()` i `registre`.
+- `game-core.js` ja s'encarrega de la resta: amaga «Copiar codi», `copiarResultats()` no fa res i la pantalla final mostra les estrelles en lloc de la nota.
+
+Per afegir-hi un exercici:
+
+1. **Els passos, com a dades pures** al seu `math-engine.js`: una funció que, donat l'exercici, torni la llista de passos en ordre, `[{ id, resposta, … }]`, amb el que calgui per pintar-los i per explicar-los (a `prioritat`, `MathEngine.passosEsvaiment(toks)` torna `{ id, line, op, resposta, motiu }`). Sense DOM i **sense `Math.random`** (no ha de canviar les preguntes de les sessions fixes).
+2. **Els textos** al seu `strings.js`: la línia que explica cada pas resolt («Exemple. … »), el missatge quan es mostra el pas bo i els de final d'exercici.
+3. **El controlador** importa `ESVAIMENT` (`import { ESVAIMENT } from '../esvaiment.js';`) i, si no és `null`:
+   - pinta els `nPassos − ESVAIMENT.passosAlumne(nPassos)` primers passos com a resolts, **d'un en un** (botó «Següent pas»);
+   - demana a l'alumne els que queden;
+   - si s'equivoca, **no** descompta intents: mostra el pas bo, el marca «amb ajuda», i continua quan l'alumne toca «Continua»;
+   - en acabar l'exercici crida `ESVAIMENT.acabaItem({ senseErrors, nPassos })` i mostra com a màxim dos missatges.
+4. **Registre**: afegeix el nom de la pàgina a `SUPORTA_ESVAIMENT` (`js/esvaiment.js`) i `esvaiment: true` a la seva línia de la llista d'`index.html`. `tests/check-repo.js` comprova que coincideixen.
+5. **Tests** a `tests/esvaiment.test.js`: sobre molts exercicis amb llavor, que els passos aplicats l'un rere l'altre arribin al resultat (recalculat de manera independent) i que cap text tingui `undefined` ni `NaN`.
 
 ## Tecnologies
 
@@ -236,11 +259,12 @@ node tests/run-all.js
 
 | Fitxer | Què comprova |
 |--------|--------------|
-| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) |
+| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) · mode «Esvaïment» (no genera mai codi, `SUPORTA_ESVAIMENT` quadra amb `index.html`) |
 | `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…). A `prioritat`, també la resolució pas a pas (ordre, disposició «centrat»), la modalitat «Pas a pas» i una empremta que avisa si canvien les preguntes de les sessions fixes |
 | `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) la base i cada mòdul de lògica, i comprova que exporten el que han d'exportar |
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
+| `tests/esvaiment.test.js` | Mode «Esvaïment»: el motor de nivells (pujar, baixar, terra a 0, URL estranyes) i, a `prioritat`, que els passos de 1.000 expressions arriben al resultat recalculat a part i que la taula sense marques és la de sempre |
 | `tests/codi-verificacio.test.js` | La lletra de control dels codis: vectors fixos (els mateixos que ha de complir `step-quiz/cb`), que canviar una sola xifra dels resultats es detecti sempre i que els codis antics continuïn sent vàlids |
 | `tests/docs_vs_codi.py` | Que la documentació diu el mateix que el codi: les rutes que citen els documents principals existeixen i el README parla de totes les pàgines de l'arrel (Python, sense dependències) |
 

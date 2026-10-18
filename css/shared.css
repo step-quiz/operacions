@@ -310,6 +310,23 @@ input[type='number'] {
     font-size: 1.1em;
 }
 
+/* ---- MODE ESVAÏMENT (?esvaiment=1): resum final sense nota ni codi ---- */
+.final-summary .esv-estrelles {
+    font-size: 1.6em;
+    letter-spacing: 0.08em;
+    color: var(--warning);
+    line-height: 1.4;
+}
+.final-summary .esv-linia {
+    color: var(--text-main);
+}
+.final-summary .esv-nota {
+    margin-top: 10px;
+    font-size: 0.85em;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
 /* ---- ICONA TROFEU ---- */
 .trophy-icon {
     font-size: 6em;

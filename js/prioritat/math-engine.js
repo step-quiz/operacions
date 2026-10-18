@@ -688,6 +688,43 @@ export const MathEngine = (() => {
         return out;
     }
 
+    // ------------------------------------------------------------
+    // MODE «ESVAÏMENT» (?esvaiment=1, js/esvaiment.js)
+    // Els passos de la resolució «de llibre», com a dades: els primers es
+    // mostren resolts (exemple) i l'alumne fa els últims.
+    // motiu diu per què es fa aquella operació en aquell moment:
+    //   'par'  → és dins d'un parèntesi        'pow' → és una potència
+    //   'prio' → · i : abans que + i −         'lr'  → d'esquerra a dreta
+    //   'sola' → és l'única operació que queda
+    // No fa servir Math.random.
+    // ------------------------------------------------------------
+    function motiuPas(line, i) {
+        let depth = 0;
+        for (let j = 0; j < i; j++) {
+            if (line[j].k === 'lp') depth++;
+            else if (line[j].k === 'rp') depth--;
+        }
+        if (depth > 0) return 'par';
+        if (line[i].k === 'pow') return 'pow';
+        const ops = line.filter(t => t.k === 'op' || t.k === 'pow');
+        if (ops.length === 1) return 'sola';
+        const esProducte = line[i].v === '·' || line[i].v === ':';
+        if (esProducte && line.some(t => t.k === 'op' && (t.v === '+' || t.v === '-'))) return 'prio';
+        return 'lr';
+    }
+
+    /** [{ id, line, op, resposta, motiu }]: un element per operació, en l'ordre «de llibre». */
+    function passosEsvaiment(toks) {
+        const rows = solve(startLine(toks));
+        return rows.slice(0, -1).map((r, j) => ({
+            id: `p${j + 1}`,
+            line: r.line,
+            op: r.op,
+            resposta: opValue(r.line, r.op),
+            motiu: motiuPas(r.line, r.op),
+        }));
+    }
+
     return {
         N,
         O,
@@ -714,5 +751,7 @@ export const MathEngine = (() => {
         readyOps,
         blockers,
         stepDistractors,
+        motiuPas,
+        passosEsvaiment,
     };
 })();

@@ -13,6 +13,8 @@
  *   7. Mòduls ES: els import existeixen, els onclick troben la seva funció,
  *      els controladors criden window.buildLevel(), tot js/ es carrega com a
  *      mòdul i les pàgines amb joc no tenen JS dins de l'HTML.
+ *   8. Mode «Esvaïment» (?esvaiment=1): no genera mai el codi de verificació, i
+ *      la llista de pàgines que l'admeten quadra amb index.html i amb el codi.
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -21,7 +23,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { spawnSync } = require('child_process');
-const { ROOT, suite, ok, finish, loadModule, listFiles } = require('./harness');
+const { ROOT, suite, ok, eq, finish, loadModule, listFiles } = require('./harness');
 
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const exists = f => fs.existsSync(path.join(ROOT, f));
@@ -514,6 +516,69 @@ suite('7. Mòduls ES (import/export)');
         !inlineJs.length,
         inlineJs.join(', ')
     );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+suite('8. Mode «Esvaïment» (?esvaiment=1)');
+{
+    const src = read('js/esvaiment.js');
+    const llista = src.match(/export const SUPORTA_ESVAIMENT\s*=\s*\[([^\]]*)\]/);
+    const suporta = llista ? [...llista[1].matchAll(/'([^']+)'/g)].map(m => m[1]).sort() : [];
+    ok(`js/esvaiment.js declara les pàgines que l'admeten (${suporta.join(', ')})`, suporta.length > 0);
+    const codi = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, ''); // sense comentaris
+    ok('js/esvaiment.js no fa servir Math.random (no canvia les sessions fixes)', !/Math\.random/.test(codi));
+
+    // El generador d'enllaços ofereix la casella exactament a les mateixes activitats
+    const idx = read('index.html');
+    const ambCasella = [...idx.matchAll(/\{\s*file:\s*'([^']+)\.html'[^}]*\besvaiment:\s*true[^}]*\}/g)]
+        .map(m => m[1])
+        .sort();
+    ok(
+        "index.html ofereix l'esvaïment a les mateixes activitats que SUPORTA_ESVAIMENT",
+        JSON.stringify(ambCasella) === JSON.stringify(suporta),
+        `index.html: ${ambCasella.join(', ') || '—'} · SUPORTA_ESVAIMENT: ${suporta.join(', ')}`
+    );
+
+    // Cada pàgina que l'admet existeix i el seu controlador importa ESVAIMENT
+    const senseImport = suporta.filter(p => {
+        const ctrl = path.join('js', p, `${p}.js`);
+        return (
+            !exists(`${p}.html`) ||
+            !exists(ctrl) ||
+            !/import\s*\{[^}]*\bESVAIMENT\b[^}]*\}\s*from\s*'\.\.\/esvaiment\.js'/.test(read(ctrl))
+        );
+    });
+    ok(
+        "cada pàgina que l'admet existeix i el controlador importa ESVAIMENT",
+        !senseImport.length,
+        senseImport.join(', ')
+    );
+
+    // Cap codi de verificació en aquest mode: copiarResultats() surt de seguida,
+    // i el botó «Copiar codi» s'amaga (com a les sessions fixes)
+    const core = read('js/game-core.js');
+    const cos = core.match(/export async function copiarResultats\(\)\s*\{([\s\S]*?)\n\}/);
+    const primera = cos
+        ? cos[1]
+              .replace(/\/\/[^\n]*/g, '')
+              .trim()
+              .split('\n')[0]
+              .trim()
+        : '';
+    eq('copiarResultats() comença amb «if (ESVAIMENT) return;»', primera, 'if (ESVAIMENT) return;');
+    ok(
+        'el botó «Copiar codi» s’amaga en mode esvaïment',
+        /if \(FixedSessions \|\| ESVAIMENT\) finalScreen\.querySelector\('#btn-copiar'\)/.test(core)
+    );
+
+    // L'analitzador i la lletra de control no en saben res (no hi ha codis «d'esvaïment»)
+    const analitzador = [
+        'analitzador-stepquiz.html',
+        'js/codi-verificacio.js',
+        ...listFiles('js/analitzador-stepquiz', ['.js']),
+    ];
+    const toquen = analitzador.filter(f => exists(f) && /esvaiment/i.test(read(f)));
+    ok("l'analitzador i js/codi-verificacio.js no tenen res de l'esvaïment", !toquen.length, toquen.join(', '));
 }
 
 finish('COMPROVACIONS DEL REPOSITORI');

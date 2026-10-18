@@ -139,11 +139,25 @@ Fraccions ja té, a part, el seu diagnòstic d'errors: `js/fraccions/errors-frac
 | `tipus` | `calcat`, `germans`, `nota`, `son`, `minuts`, `alcada`, `pes`, `pulsacions` | aleatori | Tipus de dades (estadística) |
 | `dim`, `modalitat` | 2/3 · a/b | — | Dimensió i nivell (vocabulari) |
 | `modalitat` | `passos` | resultat final | Prioritat d'operacions: «Pas a pas» (l'alumne resol l'expressió operació a operació) |
+| `esvaiment` | `1` | desactivat | Mode «Esvaïment»: exemples resolts que es van esvaint (vegeu més avall). Ara, només a `prioritat` |
+| `inici` | 0-9 | 0 | Amb `esvaiment=1`: quants passos fa l'alumne al primer exercici (0 = l'exemple sencer) |
 | `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
 
 Els màxims de sessions i preguntes (5 × 10) són els que pot representar el codi de verificació.
 
 Exemple: `derivades.html?totalsessions=2&totaloperations=8&families=chain-exp-int,power`
+
+## Mode «Esvaïment» (exemples resolts que es van esvaint)
+
+Amb `?esvaiment=1`, l'alumne comença mirant un exercici **resolt**: els passos apareixen d'un en un quan toca «Següent pas», cadascun amb una línia que diu per què es fa. Després ve un exercici del mateix tipus amb **l'últim pas** per fer, després amb els dos últims… fins que el fa **tot sol**.
+
+- **Puja** un pas quan fa 2 exercicis seguits sense cap error. **Baixa** un pas a cada error (mai per sota de l'exemple sencer).
+- Si s'equivoca en un pas, es mostra el pas bo (la línia queda marcada «amb ajuda») i continua quan toca «Continua». No hi ha intents ni punts.
+- En acabar, una estrella per exercici fet sense errors i fins on ha arribat. **No dona codi de verificació** (com les sessions fixes).
+- `inici=N` fa començar l'alumne fent els N últims passos. Es pot combinar amb `fixed=A/B/C`.
+- Al generador d'enllaços és la fila «Esvaïment». Ara l'admet `prioritat` (sempre en «Pas a pas»); `equacions` i `fraccions` vindran després.
+
+El motor és a [`js/esvaiment.js`](js/esvaiment.js) i les proves a `tests/esvaiment.test.js`. Està basat en la recerca sobre exemples resolts amb esvaïment cap enrere (Renkl, Atkinson i col·laboradors, 2002–2003).
 
 ## Tests
 

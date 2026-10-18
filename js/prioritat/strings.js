@@ -183,6 +183,45 @@ export const Strings = (() => {
         legendGreen: 'Abans cal fer aquesta',
     };
 
+    // ------------------------------------------------------------
+    // MODE «ESVAÏMENT» (?esvaiment=1): exemples resolts que es van esvaint
+    // ------------------------------------------------------------
+
+    // Per què es fa aquest pas ara (pas = un element de MathEngine.passosEsvaiment)
+    const MOTIU = {
+        par: 'Primer, el que hi ha dins del parèntesi',
+        pow: 'Abans, les potències',
+        prio: 'Les multiplicacions i les divisions van abans que les sumes i les restes',
+        lr: 'D’esquerra a dreta',
+        sola: 'Només queda una operació',
+    };
+    function exemplePas(pas) {
+        return `${MOTIU[pas.motiu]}: ${opText(pas.line, pas.op)} = ${pas.resposta}.`;
+    }
+
+    const Esv = {
+        mira: 'Mira com es resol. Toca «Següent pas».',
+        seguent: 'Següent pas',
+        araTu: 'Ara tu',
+        continua: 'Continua',
+        teu: n => (n === 1 ? 'Ara fes tu l’últim pas.' : `Ara fes tu els ${n} últims passos.`),
+        exemple: pas => `Exemple. ${exemplePas(pas)}`,
+        // L'alumne ha triat el resultat equivocat: es mostra el bo
+        resultatBo: (line, i, val, ok) => `${opText(line, i)} no fa ${val}: fa ${ok}. Fixa-t’hi i continua.`,
+        // L'alumne ha triat una operació que encara no es pot fer: es fa la bona
+        ferAixi: (line, i, ok) => `Es fa així: ${opText(line, i)} = ${ok}.`,
+        capcalera: (nAlumne, nPassos) => `Fas tu: ${nAlumne} de ${nPassos}`,
+        fetSencer: 'Has vist l’exemple sencer.',
+        totSol: 'Ja ho fas tot sol!',
+        beFet: n =>
+            n === 1 ? 'Molt bé! Has fet l’últim pas sense ajuda.' : `Molt bé! Has fet ${n} passos sense ajuda.`,
+        ambAjuda: 'Has acabat amb una mica d’ajuda.',
+        puja: 'Al pròxim, faràs un pas més tu.',
+        baixa: 'Al pròxim, un pas menys: anirà millor.',
+        notaExemple: 'exemple',
+        notaAjuda: 'amb ajuda',
+    };
+
     return {
         SUP,
         OP_SHOW,
@@ -193,5 +232,7 @@ export const Strings = (() => {
         blockerMsg,
         wrongResultMsg,
         Step,
+        exemplePas,
+        Esv,
     };
 })();

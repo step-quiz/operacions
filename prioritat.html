@@ -255,6 +255,20 @@
         /* Les línies que no ha fet l'alumne (Pas a pas, sense intents) */
         table.centrat tr.auto td { color: var(--text-muted); }
         .solution-box table.centrat { font-size: 1.25em; }
+        /* Mode «Esvaïment» (?esvaiment=1): passos resolts (exemple, en gris) i fets amb ajuda */
+        table.centrat tr.ajuda td { color: #92400e; /* ambre fosc, 7:1 sobre blanc */ }
+        table.centrat td.nota-pas {
+            padding-left: 0.6em;
+            font-family: system-ui, sans-serif;
+            font-size: 0.5em;
+            font-weight: 600;
+            font-style: italic;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .esv-accions { text-align: center; margin: 4px auto 14px auto; }
+        .esv-accions:empty { display: none; }
+        .esv-seguent { text-align: center; color: var(--text-main); margin-bottom: 8px; }
 
         /* ══════════════════════════════════════════════
            MODALITAT «PAS A PAS» (?modalitat=passos)
@@ -393,6 +407,7 @@
         <div class="steps-box" id="steps-box" role="group" aria-label="Resolució pas a pas"></div>
         <div class="step-instruction" id="step-instruction" aria-live="polite">Quant val aquesta expressió?</div>
         <div class="feedback" id="feedback" aria-live="polite"></div>
+        <div class="esv-accions" id="esv-accions"></div>
 
         <div id="answer-zone-wrap">
             <div class="drop-zone" id="drop-zone" aria-label="Zona per deixar el resultat"></div>

@@ -81,13 +81,13 @@ const isESM = src => /^\s*(import|export)\s/m.test(src);
 /**
  * Carrega fitxers del projecte (camins relatius a l'arrel) en un context nou.
  * @param {string[]} files   p. ex. ['js/utils.js', 'js/integrals/math-engine.js']
- * @param {object}   opts    { search: '?nivell=2', seed: 12345 }
+ * @param {object}   opts    { search: '?nivell=2', seed: 12345, pathname: '/prioritat.html' }
  * @returns {object} el "window" del context (hi ha QuestionBank, MathEngine…)
  */
-function loadModule(files, { search = '', seed = 12345 } = {}) {
+function loadModule(files, { search = '', seed = 12345, pathname = '/test.html' } = {}) {
     const ctx = { console, URLSearchParams };
     ctx.window = ctx;
-    ctx.location = { search, pathname: '/test.html' };
+    ctx.location = { search, pathname };
     vm.createContext(ctx);
     vm.runInContext(`Math.random = (${MULBERRY32})(${seed});`, ctx);
     for (const f of files) {

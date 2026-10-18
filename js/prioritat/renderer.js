@@ -29,7 +29,7 @@ import { Strings } from './strings.js';
 
 export const Renderer = (() => {
     const { opRange } = MathEngine;
-    const { OP_SHOW, opLabel } = Strings;
+    const { OP_SHOW, opLabel, Esv } = Strings;
 
     const CLS = { num: 'tok-num', op: 'tok-op', pow: 'tok-pow', lp: 'tok-paren tok-lp', rp: 'tok-paren tok-rp' };
 
@@ -60,9 +60,10 @@ export const Renderer = (() => {
 
     /**
      * La resolució en una taula «centrada».
-     * @param {Array}  rows  [{ line, op, auto }]: les línies, de l'enunciat cap avall (MathEngine.solve o
+     * @param {Array}  rows  [{ line, op, auto, marca }]: les línies, de l'enunciat cap avall (MathEngine.solve o
      *                       les que fa l'alumne). op: posició de l'operació que es fa per passar a la línia
      *                       següent (-1: cap); es destaca. auto: línia que no ha fet l'alumne (es mostra en gris).
+     *                       marca (mode «Esvaïment»): 'exemple' (resolta, en gris) o 'ajuda' (feta amb ajuda).
      * @param {object} o     { active: l'última línia és la de treball (signes i potències, botons),
      *                         red, green: Set de posicions de la línia de treball a marcar en vermell / verd }
      */
@@ -85,7 +86,14 @@ export const Renderer = (() => {
                 return `<td class="${cls}"${span > 1 ? ` colspan="${span}"` : ''}>${inner}</td>`;
             });
             const eq = k < last ? '<td class="igual">=</td>' : '';
-            return `<tr${row.auto ? ' class="auto"' : ''}>${tds.join('')}${eq}</tr>`;
+            // Mode «Esvaïment»: marca 'exemple' (pas resolt, en gris) o 'ajuda' (pas fet amb ajuda),
+            // amb una nota al final de la línia. La línia de treball no la porta (encara s'hi treballa).
+            const marca = row.marca && !active ? row.marca : '';
+            const cls = [row.auto || marca === 'exemple' ? 'auto' : '', marca].filter(Boolean).join(' ');
+            const nota = marca
+                ? `${k < last ? '' : '<td class="igual"></td>'}<td class="nota-pas">${marca === 'ajuda' ? Esv.notaAjuda : Esv.notaExemple}</td>`
+                : '';
+            return `<tr${cls ? ` class="${cls}"` : ''}>${tds.join('')}${eq}${nota}</tr>`;
         });
         return `<table class="centrat">${trs.join('')}</table>`;
     }
