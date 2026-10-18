@@ -117,7 +117,8 @@ js/
 └── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat)
 css/
 └── shared.css          ← Estils globals, teclat numèric, pantalles finals
-vendor/                 ← Llibreries externes (KaTeX, PDF.js, SheetJS…), vegeu vendor/README.md
+vendor/                 ← Llibreries externes (KaTeX, SheetJS, ExcelJS), vegeu vendor/README.md
+docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat d'abril de 2026); no descriuen l'estat actual
 ```
 
 **Mòduls antics** (equacions, fraccions, etc.): tot el joc en un sol fitxer, `js/<exercici>/<exercici>.js`. Ja no queda JS d'exercici dins dels HTML (només `window.APP_CONFIG`).
