@@ -243,7 +243,7 @@ Per-entry schema:
   - *(Former)* **`auth.js` — SHA-256 access gate** (hash-only password, 30-day session). Removed from the repo; only a commented-out `<script>` line remains in `repartiment.html` (see `P07`).
   - **Gemini cataloguer with dynamic model discovery** (`extreu-json.html`): "Carrega models" lists **only** the models the supplied key can actually use (avoids "model not found"); a **response JSON schema** constrains Gemini to valid vocabulary slugs; key is in-memory only. Complementary to `cangur`'s retry logic (see `P04`).
   - **Client-side PDF/DOCX manipulation** (`eliminar-curs.html`, `banc-cb.html`) via vendored `pdf-lib`.
-- **External dependencies:** Google Drive/Docs, `cb.step-quiz.net` (CB images), `generativelanguage.googleapis.com` (Gemini); no CDN (all libraries are local in `lib/`).
+- **External dependencies:** Google Drive/Docs, `generativelanguage.googleapis.com` (Gemini); no CDN (all libraries are local in `lib/`), and since 2026-10-18 the CB bank images are a local palettised copy in `cb/data/` (`genera_cb_items.py --imatges`), so `banc-cb.html` works offline.
 - **Status:** Mature/working.
 - **Participates in:** S1, S6, S7.
 
