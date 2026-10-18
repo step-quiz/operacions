@@ -340,7 +340,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 > Edit `Status`/`History` here when you ship. Ordered by priority tier, but the permanent handle is the `P##` id.
 
 ### `M1` (META) — Establish a shared "commons" to stop copy-paste drift
-- **Status:** PROPOSED
+- **Status:** IN PROGRESS (2026-10-18) — `step-quiz/step-quiz-commons` exists. Absorbed so far: `P05` (`kbd-accessory.js`), `P08` (`progress.js`), plus `footer.js`, `family.js`, the family icons and the licence text, for `karelcat`, `karelcat-p`, `pycat`, `jscat`, `htmlcat` and `ggcat`. Update path: `comuns.json` says what each site receives and with which config; each site's `.github/workflows/comuns.yml` runs `sincronitza.py` daily (and on demand) and commits the copy. Not yet absorbed: `codi.js`, `ai-client.js`, `auth.js`, `error-help.js`, the OMR shell, design tokens.
 - **Priority:** P1 (umbrella)
 - **Problem:** Genuinely shared logic is copy-pasted between repos and has already drifted. Direct evidence: `cangur` is a whole-app **fork of `comp4eso`** (the `S10` OMR shell — `state`/`render`/`grid`/`keyboard`/`scoring`/`ai-recognizer`/… — duplicated wholesale), and `cangur/js/ai-recognizer.js` even documents itself as "an adaptation of the homonymous module from comp4eso." `S4` (verification code) exists in 3 divergent copies; the `S2`/`S3` course chassis exists in 4.
 - **Proposal:** Create one small shared library — call it `step-quiz-commons` — and consume it everywhere via a shared folder, a git submodule, or a trivial copy step (no framework; preserve `S1`). Candidate modules: `codi.js` (from `P01`), `ai-client.js` (`P04`), `auth.js` (`P07`), `progress.js` (`P08`), `kbd-accessory.js` (`P05`), `error-help.js` + `LogoSyntaxError`-style class (`P02`), the `S2` course chassis, the `S10` OMR grading shell (`P13`), and a single design-token CSS (`S9`).
@@ -380,7 +380,8 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 ---
 
 ### `P03` — Adopt the JSON→HTML page generator for the unfinished courses
-- **Status:** PROPOSED · **Priority:** P1
+- **Status:** DONE (2026-10-18) for the tooling; the pending pages still have to be written · **Priority:** P1
+- **What was done:** one `tools/generate-pages.js`, identical in `pycat`, `jscat` and `ggcat`, with a per-course `PROJECTE` block (header, scripts, hint style, simulator class and attributes — GeoGebra for `ggcat`). `--comprova` checks that `tools/pages/*.json` reproduce the published pages exactly (in CI); `tools/extreu-pagina.js` converts an existing repte back to JSON. All published reptes round-trip identically (pycat 15, jscat 1, ggcat 10).
 - **Source → Target:** `pycat/tools/generate-pages.js` (+ `tools/pages/*.json`) → **`jscat`** (only 1/13 reptes + 2 chapters left) and **`ggcat`** (20/30 reptes pending, already specified in `REPTES_SPECIFICATION.md`).
 - **Affected files:** new `jscat/tools/`, `ggcat/tools/`; their `curs/*.html`.
 - **Rationale:** jscat and ggcat share the same validation contract (`data-expected`/`data-tests`/`data-testcode`) and the same `S2` chassis as pycat, so the generator is ~90% portable — only the header template and the trailing `<script>` block differ per project. This unblocks finishing both courses fast and keeps pages structurally identical.
@@ -404,7 +405,8 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 ---
 
 ### `P05` — Mobile keyboard accessory for the symbol-heavy editors that lack one
-- **Status:** PROPOSED · **Priority:** P2
+- **Status:** DONE (2026-10-18) for `jscat` (`logocat` is not in the organisation) · **Priority:** P2
+- **What was done:** one `kbd-accessory.js` in `step-quiz-commons` (layout `sota`/`fixa`, key list and editor API per site in `comuns.json`), used by `karelcat`, `karelcat-p`, `pycat` and, new, `jscat`. It also fixed pycat's bar being hidden behind the footer on mobile.
 - **Source → Target:** `pycat/js/kbd-accessory.js` (grouped keys) + `karelcat/js/kbd-accessory.js` (iframe→parent bridge, Visual Viewport positioning) → **`jscat`** and **`logocat`** (neither has a mobile keyboard, both are symbol-heavy).
 - **Affected files:** new shared `kbd-accessory.js`; include it in jscat + logocat editor pages.
 - **Rationale:** `( ) { } ; => < > " '` (JS) and `( ) .` (Logo) are painful on mobile keyboards. Merge the two existing implementations into one parameterized module (pass the key set), keep karelcat's parent-document bridge for in-iframe editors and pycat's grouped layout.
@@ -441,7 +443,8 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 ---
 
 ### `P08` — Shared `progress.js` for the course family
-- **Status:** PROPOSED · **Priority:** P3
+- **Status:** DONE (2026-10-18) for `pycat`, `jscat`, `ggcat` · **Priority:** P3
+- **What was done:** one `progress.js` in `step-quiz-commons`, configured per site with its historical storage key (`pycat_progress`, `jscat_progress`, `geocat_progress`), so no saved progress is lost (tested). `karelcat`/`karelcat-p` keep their own `KProgress`, which also stores each world's code fingerprint.
 - **Source → Target:** `karelcat/curs/progress.js` → **`pycat`**, **`jscat`**, **`ggcat`** (which inline progress in `capitols.js`).
 - **Affected files:** new shared `progress.js`; each course's `capitols.js`.
 - **Rationale:** identical concern (localStorage progress, "never downgrade a success"), four separate implementations. One module guarantees one schema and one invariant.
@@ -528,6 +531,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 | Date | Proposal(s) | Change | By |
 |------|-------------|--------|----|
 | 2026-06-05 | — | Initial document created from the Jan–Jun 2026 export of 12 projects. All proposals `PROPOSED`. | AI (initial authoring) |
+| 2026-10-18 | M1 · P03 · P05 · P08 | `step-quiz-commons` created (shared course files, synced daily); P03, P05 and P08 done. | AI (M1) |
 | 2026-10-18 | P06 | In progress: `cb` options tagged with error types (shown in practice mode); `operacions` fraccions diagnoses wrong answers by error type. | AI (P06) |
 | 2026-10-18 | P01 | Done: the checksum letter of `operacions`, `cb` and `cangurcat` codes now covers the results (and every other field); old codes still validate (☑️). | AI (P01) |
 | 2026-10-17 | P07 · P09 · P12 · S7 | Reviewed against the live repositories: corrected `cangur`, `comp4eso`, `cangurcat`, `cb`, `operacions`, `karelcat`, `pycat`, `jscat`, `m`, `pau`; rewrote `llibre` (now a PDF viewer); flagged `logocat` as not in the organisation; listed the uncatalogued repositories; updated licensing. No proposal status changed. | AI (docs review) |
