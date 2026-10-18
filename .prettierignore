@@ -8,10 +8,7 @@
 *.txt
 *.yml
 *.mjs
-# Llibreries de tercers i projectes a part
+# Llibreries de tercers i eines
 vendor/
-cb/
-app/
-gem4eso/
 tools/
 node_modules/

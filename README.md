@@ -82,15 +82,11 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 |---|---|
 | `analitzador-stepquiz.html` | Analitzador dels codis de verificació (CSV del formulari) per al professorat |
 | `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
-| `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (no l'enllaça cap pàgina) |
-| `descripcio-grafica-inversa.html` | «Dibuixa la gràfica» (sense codi; no l'enllaça l'índex) |
+| `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (l'obre el botó «Veure tutorial» de `recta-numerica.html`) |
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
-| `decaleg-pau.html` | Decàleg per a la PAU de Matemàtiques (no l'enllaça cap pàgina) |
-| `meteo.html`, `meteo_mobile.html` | Joc «Meteorits matemàtics» (no l'enllaça cap pàgina) |
 | `s.html` | Fitxa adaptada de la unitat 1 (Nombres reals) |
-| `cb.html`, `informe-cb.html` | Versions antigues d'un sol fitxer del corrector de CB de 4t (avui, repositori `step-quiz/comp4eso`) |
 
-A més, hi ha tres carpetes que són **còpies antigues d'altres projectes**, que ja no s'actualitzen aquí: `cb/` (avui `step-quiz/cb`), `gem4eso/` (avui `step-quiz/comp4eso`) i `app/` (avui `step-quiz/app`). `informe-cb-refactor.md` és la guia de refactorització que va donar lloc a `comp4eso`.
+El 18/10/2026 es van retirar les pàgines que no enllaçava res (decaleg-pau, meteo, meteo_mobile i descripcio-grafica-inversa) i les còpies antigues d'altres projectes (cb.html, informe-cb.html, informe-cb-refactor.md i les carpetes cb, gem4eso i app, que avui són els repositoris step-quiz/cb, step-quiz/comp4eso i step-quiz/app). Són a l'historial de git si mai calen.
 
 ### Adaptades
 

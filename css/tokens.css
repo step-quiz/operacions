@@ -11,7 +11,6 @@ ARQUITECTURA:
   activitat té el seu i es defineixen al seu propi CSS.
 - Els valors d'estat compleixen el contrast WCAG AA (≥ 4,5:1) sobre blanc,
   tant com a color de text com amb text blanc a sobre.
-- Les carpetes cb/, app/ i gem4eso/ són projectes a part amb paleta pròpia.
 DEPENDÈNCIES: Cap. S'ha de carregar ABANS de qualsevol altre CSS.
 ============================================================================
 */

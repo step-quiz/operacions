@@ -13,11 +13,11 @@ import globals from 'globals';
 // Llibreries de vendor/ que les pàgines carreguen amb <script> clàssic i que,
 // per tant, són globals (window.katex…).
 const VENDOR = Object.fromEntries(
-    ['katex', 'renderMathInElement', 'XLSX', 'ExcelJS', 'JSZip', 'pdfjsLib'].map(n => [n, 'readonly'])
+    ['katex', 'renderMathInElement', 'XLSX', 'ExcelJS'].map(n => [n, 'readonly'])
 );
 
 export default [
-    { ignores: ['vendor/**', 'cb/**', 'app/**', 'gem4eso/**', 'tools/**'] },
+    { ignores: ['vendor/**', 'tools/**'] },
     js.configs.recommended,
     {
         // Tot el JS de js/ són mòduls ES: el que un fitxer necessita d'un altre
