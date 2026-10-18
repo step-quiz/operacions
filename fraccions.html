@@ -194,6 +194,9 @@
         .step-container { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.4s; }
         .step-container.active { display: flex; }
 
+        .error-diag { max-width: 34rem; margin: 18px auto 0; padding: 10px 14px; border-left: 4px solid var(--danger);
+                      border-radius: 6px; background: var(--bg-light, rgba(0,0,0,.04)); color: var(--text, inherit);
+                      font-size: 0.95rem; line-height: 1.4; text-align: left; }
         .step-title {
             font-size: 1.1em;
             color: #475569;
@@ -397,6 +400,8 @@
                 <button class="btn-submit step-btn">Comprovar</button>
             </div>
 
+            <!-- Diagnòstic de l'error (js/fraccions/errors-fraccions.js) -->
+            <p class="error-diag" id="error-diag" role="status" aria-live="polite" hidden></p>
         </div>        
     </div>
 </div>    

@@ -123,6 +123,8 @@ docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat 
 
 **Mòduls antics** (equacions, fraccions, etc.): tot el joc en un sol fitxer, `js/<exercici>/<exercici>.js`. Ja no queda JS d'exercici dins dels HTML (només `window.APP_CONFIG`).
 
+Fraccions ja té, a part, el seu diagnòstic d'errors: `js/fraccions/errors-fraccions.js` (mòdul pur, sense DOM) mira si una resposta incorrecta encaixa amb un error típic (sumar els denominadors, amplificar només el denominador, multiplicar en creu…) i en torna el tipus i un missatge que orienta sense donar la resposta. El joc el mostra sota el pas i l'apunta a l'historial («Incorrecte (sumar els denominadors)»). Si la resposta no encaixa amb cap error conegut, el joc fa com sempre. Les proves són a `tests/modules.test.js`.
+
 ## Paràmetres URL
 
 | Paràmetre | Valors | Per defecte | Descripció |

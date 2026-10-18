@@ -416,7 +416,8 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 ---
 
 ### `P06` — Spread misconception-tagged distractors
-- **Status:** PROPOSED · **Priority:** P2
+- **Status:** IN PROGRESS (2026-10-18: `cb` and `operacions` fraccions done) · **Priority:** P2
+- **What was done:** **`cb`**: every wrong option in `preguntes.json` has an `errors` entry (parallel to `pistes`) from a 13-type taxonomy in `cb/errors.json` (`LLEGIR`, `DADES`, `COMPTAR`, `OPERACIO`, `CALCUL`, `PASSOS`, `PROPORCIO`, `FORMULA`, `UNITATS`, `ESPAI`, `QUADRA`, `GAIREBE`, `PATRO`; `null` for the correct option and for generic hints); practice mode shows the type's name as a label above the hint; `cb/tests/docs_vs_codi.py` checks it. **`operacions` fraccions**: `js/fraccions/errors-fraccions.js` diagnoses written answers at every step (21 error types: `DEN_SUMA`, `AMPL_NOMES_DEN`, `RES_ORDRE`, `PROD_CREU`, …) and the game shows a targeted message and logs the type in the session history; tested in `tests/modules.test.js` (24 cases + 30,000 random wrong answers). Still open: the other legacy `operacions` exercises, and a teacher-side aggregate of error types (it would need the verification code to carry them).
 - **Source → Target:** `operacions/js/derivades/distractor-lib.js` (+ `strings.js` taxonomy) → **`cb`** and the **older `operacions` exercises** (equacions, fraccions, … — now single-file ES modules).
 - **Affected files:** the new exercises' pattern as template; `cb/preguntes.json` + `cb/core.js`; legacy `operacions/*.html`.
 - **Rationale:** highest pedagogical ceiling in the ecosystem, currently siloed in ~4 exercises. Wrong answers tied to *named* misconceptions (`CHAIN_FORGOT`, `SIN_COS_SWAP`, …) with targeted feedback turn "wrong, try again" into "you forgot the chain rule."
@@ -527,6 +528,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 | Date | Proposal(s) | Change | By |
 |------|-------------|--------|----|
 | 2026-06-05 | — | Initial document created from the Jan–Jun 2026 export of 12 projects. All proposals `PROPOSED`. | AI (initial authoring) |
+| 2026-10-18 | P06 | In progress: `cb` options tagged with error types (shown in practice mode); `operacions` fraccions diagnoses wrong answers by error type. | AI (P06) |
 | 2026-10-18 | P01 | Done: the checksum letter of `operacions`, `cb` and `cangurcat` codes now covers the results (and every other field); old codes still validate (☑️). | AI (P01) |
 | 2026-10-17 | P07 · P09 · P12 · S7 | Reviewed against the live repositories: corrected `cangur`, `comp4eso`, `cangurcat`, `cb`, `operacions`, `karelcat`, `pycat`, `jscat`, `m`, `pau`; rewrote `llibre` (now a PDF viewer); flagged `logocat` as not in the organisation; listed the uncatalogued repositories; updated licensing. No proposal status changed. | AI (docs review) |
 | 2026-06-05 | comp4eso · S10 · P04 · M1 · P13 · P14 | Added 13th project `comp4eso` (CompBàsiques 4t ESO) — ancestor of the `cangur` OMR lineage and the refactor of `operacions/informe-cb.html`. Added shared structure `S10` (OMR grading shell). Updated `P04` source to `comp4eso` (origin of the AI recognizer) and strengthened `M1` evidence + candidate modules. Created `P13` (extract the shared OMR shell) and `P14` (DOCX reports → cangur). Cross-linked the `cangur` / `cb` / `operacions` entries. | AI (comp4eso integration) |

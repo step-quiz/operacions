@@ -798,4 +798,84 @@ suite("Prioritat d'operacions");
     );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+suite("Fraccions › diagnòstic d'errors (P06)");
+{
+    const w = loadModule(['js/fraccions/errors-fraccions.js']);
+    const D = w.diagnostica;
+    const tipus = (pas, dades) => (D(pas, dades) || {}).errorType || null;
+    const casos = [
+        // [pas, dades, tipus esperat]
+        ['step-1', { d1: 4, d2: 6, ans: 10 }, 'DEN_SUMA'],
+        ['step-1', { d1: 4, d2: 6, ans: 8 }, 'DEN_NO_MULTIPLE'],
+        ['step-1', { d1: 4, d2: 6, ans: 7 }, 'DEN_NO_MULTIPLE'],
+        ['step-1', { d1: 4, d2: 6, ans: 12 }, null], // és comú: no hi ha res a diagnosticar
+        ['step-2', { fila1: { n: 3, d: 4, den: 12, top: 3, bot: 3, num: 3 } }, 'AMPL_NOMES_DEN'],
+        ['step-2', { fila1: { n: 3, d: 4, den: 12, top: 3, bot: 3, num: 6 } }, 'AMPL_SUMA'],
+        ['step-2', { fila1: { n: 3, d: 4, den: 12, top: 2, bot: 3, num: 9 } }, 'AMPL_FACTORS_DIFERENTS'],
+        ['step-2', { fila1: { n: 3, d: 4, den: 12, top: 4, bot: 4, num: 12 } }, 'AMPL_FACTOR'],
+        ['step-2', { fila1: null, fila2: { n: 5, d: 6, den: 12, top: 2, bot: 2, num: 11 } }, 'AMPL_CALCUL'],
+        ['step-3', { op: '+', u1: 9, u2: 10, den: 12, resN: 19, resD: 24 }, 'RES_DEN_OPERAT'],
+        ['step-3', { op: '-', u1: 9, u2: 10, den: 12, resN: -1, resD: 0 }, 'RES_DEN_OPERAT'],
+        ['step-3', { op: '-', u1: 9, u2: 4, den: 12, resN: 13, resD: 12 }, 'RES_SIGNE'],
+        ['step-3', { op: '-', u1: 9, u2: 4, den: 12, resN: -5, resD: 12 }, 'RES_ORDRE'],
+        ['step-3', { op: '+', u1: 9, u2: 4, den: 12, resN: 14, resD: 12 }, 'RES_CALCUL'],
+        ['step-4', { unsN: 6, unsD: 8, finN: 3, finD: 4, simpN: 3, simpD: 8 }, 'SIMP_UN_SOL'],
+        ['step-4', { unsN: 6, unsD: 8, finN: 3, finD: 4, simpN: 2, simpD: 3 }, 'SIMP_NO_EQUIVALENT'],
+        ['step-4', { unsN: 12, unsD: 4, finN: 3, finD: 1, simpN: 4, simpD: 1 }, 'SIMP_ENTER'],
+        ['step-md-1', { n1: 2, d1: 3, n2: 4, d2: 5, inN: 4, inD: 5 }, 'INV_NO_GIRADA'],
+        ['step-md-1', { n1: 2, d1: 3, n2: 4, d2: 5, inN: 3, inD: 2 }, 'INV_PRIMERA'],
+        ['step-md-1', { n1: 2, d1: 3, n2: 4, d2: 5, inN: 5, inD: 5 }, 'INV_MAL'],
+        ['step-md-2', { a: 2, b: 3, c: 4, e: 5, resN: 10, resD: 12 }, 'PROD_CREU'],
+        ['step-md-2', { a: 2, b: 3, c: 4, e: 5, resN: 6, resD: 8 }, 'PROD_SUMA'],
+        ['step-md-2', { a: 2, b: 3, c: 4, e: 5, resN: 9, resD: 15 }, 'PROD_NUM'],
+        ['step-md-2', { a: 2, b: 3, c: 4, e: 5, resN: 8, resD: 16 }, 'PROD_DEN'],
+    ];
+    const malament = casos
+        .filter(([p, d, esperat]) => tipus(p, d) !== esperat)
+        .map(([p, d, e]) => `${p} ${JSON.stringify(d)}: esperat ${e}, surt ${tipus(p, d)}`);
+    ok(`${casos.length} errors típics es diagnostiquen bé`, !malament.length, malament.slice(0, 3).join(' · '));
+
+    // Milers de respostes equivocades a l'atzar: mai trenca, mai dona un tipus
+    // desconegut ni un missatge amb undefined/NaN.
+    const r = n => 1 + Math.floor(Math.random() * n);
+    const dolents = [];
+    for (let i = 0; i < 5000; i++) {
+        const d1 = r(12),
+            d2 = r(12),
+            n1 = r(11),
+            n2 = r(11),
+            den = d1 * d2,
+            op = Math.random() < 0.5 ? '+' : '-';
+        const proves = [
+            ['step-1', { d1, d2, ans: r(150) - 5 }],
+            ['step-2', { fila1: { n: n1, d: d1, den, top: r(13), bot: r(13), num: r(140) }, fila2: null }],
+            ['step-3', { op, u1: n1 * d2, u2: n2 * d1, den, resN: r(300) - 150, resD: r(300) - 10 }],
+            ['step-4', { unsN: n1 * 6, unsD: d1 * 6, finN: n1, finD: d1, simpN: r(60), simpD: r(60) }],
+            ['step-md-1', { n1, d1, n2, d2, inN: r(12), inD: r(12) }],
+            ['step-md-2', { a: n1, b: d1, c: n2, e: d2, resN: r(150), resD: r(150) }],
+        ];
+        for (const [pas, dades] of proves) {
+            let x;
+            try {
+                x = D(pas, dades);
+            } catch (e) {
+                dolents.push(`${pas}: llança ${e.message}`);
+                continue;
+            }
+            if (x && (!w.ERRORS[x.errorType] || BAD_TEXT.test(x.missatge) || !x.missatge))
+                dolents.push(`${pas} ${JSON.stringify(dades)} → ${JSON.stringify(x)}`);
+        }
+    }
+    ok(
+        "30.000 respostes equivocades a l'atzar: cap error, tipus coneguts i missatges sense undefined/NaN",
+        !dolents.length,
+        dolents.slice(0, 2).join(' · ')
+    );
+    ok(
+        'cada tipus té etiqueta',
+        Object.values(w.ERRORS).every(e => e && e.etiqueta)
+    );
+}
+
 finish('TESTS DELS MÒDULS');

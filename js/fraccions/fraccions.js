@@ -26,6 +26,7 @@ import {
     startGame,
     validateConfig,
 } from '../game-core.js';
+import { diagnostica } from './errors-fraccions.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -187,7 +188,17 @@ function resetWarnings() {
 }
 
 // ---- GESTIÓ DE PASSOS ----
+// ---- DIAGNÒSTIC DE L'ERROR (P06) ----
+// Si la resposta encaixa amb un error típic, es diu quin (sota el panell).
+function mostraDiagnostic(diag) {
+    const el = document.getElementById('error-diag');
+    if (!el) return;
+    el.textContent = diag ? diag.missatge : '';
+    el.hidden = !diag;
+}
+
 function showStep(id) {
+    mostraDiagnostic(null);
     document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));
     const target = document.getElementById(id);
     if (target) {
@@ -226,6 +237,7 @@ function buildLevel() {
     state.attemptsLeft = MAX_INTENTS;
     state.isTransitioning = false;
     resetWarnings();
+    mostraDiagnostic(null);
 
     generateProblem();
 
@@ -269,11 +281,17 @@ function buildLevel() {
 }
 
 // ---- PENALITZACIÓ ----
-function processFailure() {
+// diag: el que torna diagnostica() (o null si l'error no encaixa amb cap de típic)
+function processFailure(diag = null) {
     if (isPenalizing || state.isTransitioning) return;
     isPenalizing = true;
+    mostraDiagnostic(diag);
     if (typeof recordAnswerToHistory === 'function') {
-        recordAnswerToHistory('Problema de fraccions (Mode: ' + currentMode + ')', 'Incorrecte', false);
+        recordAnswerToHistory(
+            'Problema de fraccions (Mode: ' + currentMode + ')',
+            diag ? 'Incorrecte (' + diag.etiqueta + ')' : 'Incorrecte',
+            false
+        );
     }
     const attemptsEl = document.getElementById('attempts-display');
     attemptsEl.classList.add('blink');
@@ -346,7 +364,7 @@ function checkValue() {
             hideCustomKeyboard();
             showStep('step-2');
         } else {
-            processFailure();
+            processFailure(diagnostica('step-1', { d1, d2, ans: ansD }));
         }
     } else if (stepId === 'step-2') {
         let expectedF1 = userDen / d1,
@@ -355,6 +373,8 @@ function checkValue() {
             skipF2 = expectedF2 === 1;
         let ok1 = true,
             ok2 = true;
+        let fila1 = null,
+            fila2 = null; // respostes de cada fila, per al diagnòstic
 
         if (!skipF1) {
             let inF1Top = parseInt(document.getElementById('s2-f1-top').value, 10);
@@ -362,6 +382,7 @@ function checkValue() {
             let inN1 = parseInt(document.getElementById('s2-n1').value, 10);
             if (isNaN(inF1Top) || isNaN(inF1Bot) || isNaN(inN1)) return;
             ok1 = inF1Top === expectedF1 && inF1Bot === expectedF1 && inN1 === n1 * expectedF1;
+            fila1 = { n: n1, d: d1, den: userDen, top: inF1Top, bot: inF1Bot, num: inN1 };
             if (ok1) userNum1 = inN1;
         } else {
             userNum1 = n1;
@@ -373,6 +394,7 @@ function checkValue() {
             let inN2 = parseInt(document.getElementById('s2-n2').value, 10);
             if (isNaN(inF2Top) || isNaN(inF2Bot) || isNaN(inN2)) return;
             ok2 = inF2Top === expectedF2 && inF2Bot === expectedF2 && inN2 === n2 * expectedF2;
+            fila2 = { n: n2, d: d2, den: userDen, top: inF2Top, bot: inF2Bot, num: inN2 };
             if (ok2) userNum2 = inN2;
         } else {
             userNum2 = n2;
@@ -388,7 +410,7 @@ function checkValue() {
             hideCustomKeyboard();
             showStep('step-3');
         } else {
-            processFailure();
+            processFailure(diagnostica('step-2', { fila1: ok1 ? null : fila1, fila2: ok2 ? null : fila2 }));
         }
     } else if (stepId === 'step-3') {
         let resN = parseInt(document.getElementById('s3-n').value, 10);
@@ -413,7 +435,7 @@ function checkValue() {
             appendToExpression(`<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`);
             finishSuccess();
         } else {
-            processFailure();
+            processFailure(diagnostica('step-3', { op, u1: userNum1, u2: userNum2, den: userDen, resN, resD }));
         }
     } else if (stepId === 'step-4') {
         if (!isIrreducibleRequired()) {
@@ -432,7 +454,16 @@ function checkValue() {
                 );
                 finishSuccess();
             } else {
-                processFailure();
+                processFailure(
+                    diagnostica('step-4', {
+                        unsN: unsimpResN,
+                        unsD: unsimpResD,
+                        finN: finalResN,
+                        finD: finalResD,
+                        simpN,
+                        simpD,
+                    })
+                );
             }
             return;
         }
@@ -450,7 +481,16 @@ function checkValue() {
                 activeStep.querySelector('.warn-msg').style.display = 'block';
             }
         } else {
-            processFailure();
+            processFailure(
+                diagnostica(stepId, {
+                    unsN: unsimpResN,
+                    unsD: unsimpResD,
+                    finN: finalResN,
+                    finD: finalResD,
+                    simpN,
+                    simpD,
+                })
+            );
         }
     } else if (stepId === 'step-md-1') {
         let inN = parseInt(document.getElementById('md-s1-n').value, 10);
@@ -471,7 +511,7 @@ function checkValue() {
             hideCustomKeyboard();
             showStep('step-md-2');
         } else {
-            processFailure();
+            processFailure(diagnostica('step-md-1', { n1, d1, n2, d2, inN, inD }));
         }
     } else if (stepId === 'step-md-2') {
         let resN = parseInt(document.getElementById('md-s2-n').value, 10);
@@ -493,7 +533,9 @@ function checkValue() {
             appendToExpression(`<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`);
             finishSuccess();
         } else {
-            processFailure();
+            // a/b · c/e: a la divisió, la segona fracció ja està invertida
+            const [c, e] = op === '·' ? [n2, d2] : [d2, n2];
+            processFailure(diagnostica('step-md-2', { a: n1, b: d1, c, e, resN, resD }));
         }
     } else if (stepId === 'step-md-3') {
         if (!isIrreducibleRequired()) {
@@ -518,7 +560,16 @@ function checkValue() {
                 activeStep.querySelector('.warn-msg').style.display = 'block';
             }
         } else {
-            processFailure();
+            processFailure(
+                diagnostica(stepId, {
+                    unsN: unsimpResN,
+                    unsD: unsimpResD,
+                    finN: finalResN,
+                    finD: finalResD,
+                    simpN,
+                    simpD,
+                })
+            );
         }
     }
 }
