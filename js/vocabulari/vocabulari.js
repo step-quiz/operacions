@@ -9,6 +9,7 @@
 
 import { VocabEngine } from './vocabulari-engine.js';
 import { VocabFigures } from './vocabulari-figures.js';
+import { lletraNova, cosDelCodi } from '../codi-verificacio.js';
 
 (function () {
     'use strict';
@@ -1148,11 +1149,16 @@ import { VocabFigures } from './vocabulari-figures.js';
         // Resultats per figura (mínim 30 chars, màxim 5 × 10 = 50). 1=sense errors · 2=1 error · 3=2+ · 4=fallada
         const resultsStr = _resultats.slice(0, 50).map(String).join('').padEnd(30, '0');
 
-        // Checksum (idèntic a game-core.js: fa servir la nota × 10)
-        const valorAscii = salt.charCodeAt(0);
-        const sumaControl =
-            notaInt + parseInt(dia, 10) + parseInt(mes, 10) + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
-        const lletra = 'TRWAGMYFPDXBNJZSQVHLCKE'.charAt(sumaControl % 23);
+        // Lletra de control (idèntica a game-core.js: js/codi-verificacio.js)
+        const lletra = lletraNova(
+            notaInt,
+            parseInt(dia, 10),
+            parseInt(mes, 10),
+            parseInt(hora, 10),
+            parseInt(minuts, 10),
+            salt,
+            cosDelCodi(exCode, dif, sessions, questions, resultsStr)
+        );
 
         const output = `${lletra}${salt}-${dia}${mes}-${hora}${minuts}-${exCode}-${dif}-${sessions}-${questions}-${notaStr}-${resultsStr}`;
         console.log('Codi v2 generat per al professor:', output, '(', output.length, 'chars)');

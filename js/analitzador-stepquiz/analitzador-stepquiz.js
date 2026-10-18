@@ -8,6 +8,7 @@
  */
 
 import { EXERCISE_NAMES } from '../exercise-codes.js';
+import { versioLletra, cosDelCodi } from '../codi-verificacio.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -167,12 +168,15 @@ function parseCode(raw) {
             mm = +p[1].slice(2, 4),
             hh = +p[2].slice(0, 2),
             mn = +p[2].slice(2, 4);
+        // Lletra nova (cobreix també els resultats) o antiga (codis d'abans del 18/10/2026)
         const ni = +p[7],
-            ok = chk(ltr, salt, dd, mm, hh, mn, ni);
+            versio = versioLletra(ltr, ni, dd, mm, hh, mn, salt, cosDelCodi(p[3], p[4], p[5], p[6], p[8])),
+            ok = versio !== null;
         const result = {
             format: 'v2',
             valid: ok,
             checksumOk: ok,
+            resultatsVerificats: versio === 'nova',
             exercise: EX[p[3]] || p[3],
             exerciseCode: p[3],
             note: ni / 10,
@@ -223,6 +227,7 @@ function parseCode(raw) {
             format: 'v1-cb',
             valid: ok,
             checksumOk: ok,
+            resultatsVerificats: false,
             exercise: 'cb',
             exerciseCode: 'CB',
             cbNivell,
@@ -359,8 +364,14 @@ function rnote(n) {
     if (n === null || isNaN(n)) return '<span class="mu">—</span>';
     return `<span class="tm" style="font-weight:700;color:var(--text);">${n.toFixed(1).replace('.', ',')}</span>`;
 }
-function rstatus(s, e) {
-    if (s === 'ok') return `<span title="Checksum correcte">✅</span>`;
+// Codi vàlid amb la lletra antiga: la nota, la data i l'hora quadren, però els
+// resultats de cada pregunta no estan protegits (codi d'abans del 18/10/2026, o
+// amb els resultats canviats).
+const TITOL_ANTIC =
+    "Codi vàlid amb el format d'abans del 18/10/2026: la nota, la data i l'hora estan verificades, però els resultats de cada pregunta no";
+function rstatus(s, e, p) {
+    if (s === 'ok' && p && !p.resultatsVerificats) return `<span title="${TITOL_ANTIC}" style="cursor:help">☑️</span>`;
+    if (s === 'ok') return `<span title="Checksum correcte: també els resultats de cada pregunta">✅</span>`;
     if (s === 'warn') return `<span title="Gap > ${GAP} min" style="cursor:help">⚠️</span>`;
     return `<span title="${e || ''}" style="cursor:help">❌</span>`;
 }
@@ -379,7 +390,7 @@ function renderRow(row) {
     const prg = p.questions || '<span class="mu">—</span>';
     const hd = p.resultsArray && p.resultsArray.some(v => v > 0);
     return `<tr class="${open ? 'row-exp' : ''}" id="row-${row.idx}" onclick="toggleDet(${row.idx})">
-    <td style="text-align:center">${rstatus(row.status, p.error)}</td>
+    <td style="text-align:center">${rstatus(row.status, p.error, p)}</td>
     <td class="tm">${row.dayDisplay}</td>
     <td class="tm">${row.sendTime || '<span class="mu">—</span>'}</td>
     <td title="${esc(row.student)}">${esc(row.student)}</td>
@@ -403,7 +414,14 @@ function renderDet(row) {
         { k: 'Data', v: p.day ? `${String(p.day).padStart(2, '0')}/${String(p.month).padStart(2, '0')}` : '—' },
         { k: 'Hora activitat', v: row.codeTime || '—' },
         { k: 'Hora enviament', v: row.sendTime || '—' },
-        { k: 'Validació', v: p.checksumOk ? '✅ OK' : '❌ KO' },
+        {
+            k: 'Validació',
+            v: !p.checksumOk
+                ? '❌ KO'
+                : p.resultatsVerificats
+                  ? '✅ OK · resultats verificats'
+                  : '☑️ OK · format antic: resultats sense verificar',
+        },
         { k: 'Nota', v: p.note !== null ? p.note.toFixed(2).replace('.', ',') : '—' },
     ];
     if (row.classe) items.push({ k: 'Classe', v: row.classe });
@@ -1006,7 +1024,14 @@ function renderSingle(raw, p) {
     const fmtLabel = { 'v2': 'Format v2', 'v1-cb': 'Format v1 · CB' }[p.format] || p.format;
     const hd = p.resultsArray && p.resultsArray.some(v => v > 0);
     const items = [
-        { k: 'Validació', v: ok ? '✅ Correcta' : '❌ Checksum KO' },
+        {
+            k: 'Validació',
+            v: !ok
+                ? '❌ Checksum KO'
+                : p.resultatsVerificats
+                  ? '✅ Correcta (resultats inclosos)'
+                  : '☑️ Correcta (format antic)',
+        },
         { k: 'Exercici', v: p.exercise || p.exerciseCode || '—' },
         { k: 'Nota', v: p.note !== null && !isNaN(p.note) ? p.note.toFixed(2).replace('.', ',') : '—' },
         { k: 'Data', v: p.day ? `${String(p.day).padStart(2, '0')}/${String(p.month).padStart(2, '0')}` : '—' },
@@ -1036,10 +1061,11 @@ function renderSingle(raw, p) {
         }
     }
 
-    return `<div class="sr-head ${ok ? 'ok' : 'bad'}">${ok ? '✅ Codi vàlid' : '❌ Codi invàlid'}<span class="sr-badge">${fmtLabel}</span></div>
+    return `<div class="sr-head ${ok ? 'ok' : 'bad'}">${ok ? (p.resultatsVerificats ? '✅ Codi vàlid' : '☑️ Codi vàlid (format antic)') : '❌ Codi invàlid'}<span class="sr-badge">${fmtLabel}</span></div>
     <div class="sr-body">
       <div class="sr-grid">${items.map(i => `<div class="sr-item"><span class="k">${i.k}</span><span class="v">${esc(i.v)}</span></div>`).join('')}</div>
       ${!ok ? `<div class="sr-err" style="margin-bottom:10px">⚠️ El checksum no quadra: el codi pot haver estat modificat o mal copiat.</div>` : ''}
+      ${ok && !p.resultatsVerificats ? `<div class="sr-err" style="margin-bottom:10px">☑️ ${TITOL_ANTIC}. Si el codi és d'abans del 18/10/2026 és normal; si és posterior, desconfia dels resultats.</div>` : ''}
       ${
           hd
               ? `${sessHtml}<div class="legend" style="margin-top:8px">

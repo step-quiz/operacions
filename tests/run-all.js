@@ -18,6 +18,7 @@ const TESTS = [
     ['Tests dels mòduls', 'tests/modules.test.js'],
     ['Tests dels mòduls ES', 'tests/esm.test.js'],
     ['Tests de les sessions fixes', 'tests/fixed-sessions.test.js'],
+    ['Lletra de control dels codis', 'tests/codi-verificacio.test.js'],
     ['Tests de derivades', 'js/derivades/run-tests.js'],
 ];
 

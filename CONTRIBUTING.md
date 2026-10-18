@@ -201,7 +201,7 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 | NNN | 3 | Nota ×10 arrodonida (000-100) |
 | RRR…R | 30-50 | Resultats per pregunta, sessió rere sessió (S × QQ posicions, mínim 30): 1=1r intent, 2=2n, 3=3r+, 4=fallada, 0=buit |
 
-**Checksum:** `suma = NNN + DD + MM + HH + mm + ASCII(salt[0])`, lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`
+**Lletra de control:** `js/codi-verificacio.js` (la fan servir els generadors i l'analitzador; `step-quiz/cb` en té una còpia idèntica). Des del 18/10/2026: `suma = NNN + DD + MM + HH + mm + ASCII(salt[0]) + Σ pes(i)·ASCII(cos[i])`, amb `cos = EE + D + S + QQ + RRR…` i `pes(i) = (i mod 22) + 1`; lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`. Cobreix tots els camps: canviar una sola xifra dels resultats la fa deixar de quadrar. Els codis d'abans (sense la suma del cos) continuen sent vàlids, i l'analitzador els marca ☑️ (resultats sense verificar). Proves: `tests/codi-verificacio.test.js`.
 
 ## Paràmetres URL disponibles
 

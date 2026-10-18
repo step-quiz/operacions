@@ -24,8 +24,10 @@
  *               0=posicio buida
  *
  * ── CHECKSUM ────────────────────────────────────────────────────────────────
- *   suma = NNN_int + DD + MM + HH + mm + ASCII(salt[0])
- *   lletra = "TRWAGMYFPDXBNJZSQVHLCKE"[ suma % 23 ]
+ *   lletraNova() de js/codi-verificacio.js: cobreix la nota, la data, l'hora
+ *   i també l'exercici, la dificultat, les sessions, les preguntes i els
+ *   resultats (des del 18/10/2026; la fórmula d'abans només cobria els tres
+ *   primers). Detalls al capdamunt d'aquell fitxer.
  *
  * ── COM REGISTRAR RESULTATS PER PREGUNTA ────────────────────────────────────
  *   Cridar recordResult(codi) en finalitzar cada pregunta:
@@ -52,6 +54,7 @@
 
 import { TOTAL_SESSIONS, TOTAL_OPERATIONS, MAX_ENLLOC_MITJANA, MAX_INTENTS } from './config.js';
 import { EXERCISE_CODES } from './exercise-codes.js'; // taula única compartida amb l'analitzador
+import { lletraNova, cosDelCodi } from './codi-verificacio.js'; // lletra de control, compartida amb l'analitzador
 import { FixedSessions } from './fixed-sessions.js';
 
 // ── NOMBRE MÀXIM DE RESULTATS AL CODI ────────────────────────────────────────
@@ -572,12 +575,16 @@ export async function copiarResultats() {
     // Resultats per pregunta (mínim 30 chars, màxim MAX_RESULTS)
     const resultsStr = state.sessionResults.slice(0, MAX_RESULTS).map(String).join('').padEnd(30, '0');
 
-    // Checksum
-    const valorAscii = salt.charCodeAt(0);
-    const sumaControl =
-        notaInt + parseInt(dia, 10) + parseInt(mes, 10) + parseInt(hora, 10) + parseInt(minuts, 10) + valorAscii;
-    const lletresCtrl = 'TRWAGMYFPDXBNJZSQVHLCKE';
-    const lletra = lletresCtrl.charAt(sumaControl % 23);
+    // Lletra de control (js/codi-verificacio.js): cobreix tots els camps, resultats inclosos
+    const lletra = lletraNova(
+        notaInt,
+        parseInt(dia, 10),
+        parseInt(mes, 10),
+        parseInt(hora, 10),
+        parseInt(minuts, 10),
+        salt,
+        cosDelCodi(exCode, dif, sessions, questions, resultsStr)
+    );
 
     // Codi final: Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
     const output = `${lletra}${salt}-${dia}${mes}-${hora}${minuts}-${exCode}-${dif}-${sessions}-${questions}-${notaStr}-${resultsStr}`;

@@ -500,7 +500,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
         </div>
         <div class="code-caption">Un codi real de l'exemple: enters, fet el 12 de juny a les 9:30, nota 7,5</div>
         <ul class="anat-list">
-          <li><span class="anat-chip cs-l">R</span><div class="t"><b>Lletra de control.</b> <span>És la peça antifrau. Es calcula a partir de totes les altres dades; si l'alumne canvia qualsevol xifra del codi, aquesta lletra deixa de quadrar i l'analitzador el marca com a</span> <b>❌ invàlid</b>. <span>Funciona com la lletra del DNI.</span></div></li>
+          <li><span class="anat-chip cs-l">R</span><div class="t"><b>Lletra de control.</b> <span>És la peça antifrau. Es calcula a partir de totes les altres dades; si l'alumne canvia qualsevol xifra del codi, aquesta lletra deixa de quadrar i l'analitzador el marca com a</span> <b>❌ invàlid</b>. <span>Funciona com la lletra del DNI. Els codis d'abans del 18/10/2026 tenen una lletra que només cobreix la nota, la data i l'hora: surten com a</span> <b>☑️</b> <span>(vàlids, però amb els resultats sense verificar).</span></div></li>
           <li><span class="anat-chip cs-s">ab3</span><div class="t"><b>Salt.</b> <span>Tres caràcters aleatoris que fan que dos codis idèntics surtin diferents. A les Competències Bàsiques, aquí s'hi amaguen a més el curs i l'any de la convocatòria.</span></div></li>
           <li><span class="anat-chip cs-dt">1206</span><div class="t"><b>Data.</b> <span>Dia i mes en què es va fer l'activitat</span> <span class="anat-example">1206 = 12 de juny</span></div></li>
           <li><span class="anat-chip cs-tm">0930</span><div class="t"><b>Hora.</b> <span>Hora i minuts en què es va acabar</span> <span class="anat-example">0930 = 09:30</span><span>. Comparada amb l'hora d'enviament al formulari dona la columna Δt.</span></div></li>
@@ -521,7 +521,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 
       <p class="help-sub">Què vol dir cada columna</p>
       <div class="help-key">
-        <div><b>✅ / ⚠️ / ❌</b> — Estat: vàlid · sospitós (molt de temps entre acabar i enviar) · codi invàlid (checksum incorrecte).</div>
+        <div><b>✅ / ☑️ / ⚠️ / ❌</b> — Estat: vàlid, resultats inclosos · vàlid amb el format d'abans del 18/10/2026 (nota i data verificades, resultats no) · sospitós (molt de temps entre acabar i enviar) · codi invàlid (checksum incorrecte).</div>
         <div><b>Classe</b> — El grup de l'alumne, si el formulari el demana. Si no hi és, la columna no apareix. Pots filtrar-hi.</div>
         <div><b>Δt</b> — Minuts entre l'hora de l'activitat i la de l'enviament al formulari.</div>
         <div><b>Nota</b> — Sobre 10, treta directament del codi.</div>

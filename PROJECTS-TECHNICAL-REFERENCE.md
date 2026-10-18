@@ -93,7 +93,7 @@ Per-entry schema:
 - **Excellent features:**
   - **Answer secrecy without a backend:** correct answers ship as `sha256(salt + id + letter)` hashes, never in cleartext; "spoiler" fields (`expected_reasoning`, `comentaris_distractors`, etc.) are stripped from the client bundle. Because checking is async-hash-based, `processCommit`/`checkChoice` are `async`. (Explicitly documented as a deterrent, not exam-grade integrity.)
   - **`codi.js` is the canonical verification-code module:** it both **generates** and **parses** the code in one file, guaranteeing encoder/decoder parity (the failure mode that plagues split implementations — see `P01`).
-  - **Cross-verification of the results string** (in the analyzer): the DNI-style checksum does **not** cover the per-question `R` string, so the analyzer independently recomputes `answeredR === QQ && solvedR === AA` and flags tampered codes. **This is the only analyzer in the ecosystem that does this** (see `P01`).
+  - **Cross-verification of the results string** (in the analyzer): recomputes `answeredR === QQ && solvedR === AA` from `R`. Since 2026-10-18 the checksum letter itself also covers `TTTTT` and every digit of `R` (weighted sum, see `P01`); older codes still validate and are shown as ☑️ (detail not verified).
   - **Anti-fraud Δt signal:** the analyzer flags submissions where the gap between code generation time and form submission time exceeds 15 min.
 - **Code format (`CG`, 10 segments):** `{L}{salt}-{DDMM}-{HHMM}-CG-{curs}-{QQ}-{AA}-{PP}-{TTTTT}-{R(30)}` where `L`=checksum letter, `salt`=cursChar+conv-year2, `QQ`=answered, `AA`=solved, `PP`=hints, `TTTTT`=session seconds, `R`=per-problem digits (`0`=unanswered, `1–8`=solved on Nth commit, `9`=answered-not-solved).
 - **Status:** Mature; AI path intentionally disabled (needs a server-side proxy to re-enable).
@@ -113,7 +113,7 @@ Per-entry schema:
   - **Backend-free privacy model:** no personal data stored anywhere; the student copies a compact verification code and submits it via an authenticated Google Form (educational domain). This is the canonical privacy pattern the rest of the ecosystem copies.
   - Clean image-swap UX in `carregarPregunta()` (avoids reflow flicker by only reloading the statement image when it actually changes).
 - **Code format (v2, same layout as `operacions`):** `Lsss-DDMM-HHMM-CB-D-S-QQ-NNN-R(30|40)` — `sss` = `s`/`q` (2n/4t ESO) + year, `D` = level, `S` = mode (1 exam, 2 practice), `QQ` = questions, `NNN` = grade×10, `R` = one digit per question. Bank: 218 questions (4t ESO 2022–2026, 2n ESO 2024–2026).
-- **Checksum:** `letter = "TRWAGMYFPDXBNJZSQVHLCKE"[ (notaInt + dd + mm + hh + min + salt.charCodeAt(0)) % 23 ]`. **Does not cover `R`** — see `P01`.
+- **Checksum:** since 2026-10-18, `letter = "TRWAGMYFPDXBNJZSQVHLCKE"[ (notaInt + dd + mm + hh + min + salt.charCodeAt(0) + Σ((i mod 22)+1)·ASCII(cos[i])) % 23 ]` with `cos = EE+D+S+QQ+R`, so it covers every field including `R` (`P01`, done). Same formula as `operacions/js/codi-verificacio.js`, copied into `core.js`.
 - **Known weakness:** decode logic lives in a separate analyzer, divergent from generation; no cross-verification of `R` (the `cangurcat` analyzer has it, this one does not).
 - **Related:** student-practice counterpart of `comp4eso` (teacher grading) on the same CB-competencies theme.
 - **Status:** Mature/working.
@@ -135,7 +135,7 @@ Per-entry schema:
   - **Pedagogically-tuned RNG** (`math-engine.js`): random coefficients are not uniform — small values are weighted higher, and *trivial* cases are excluded (e.g. `generateKExp()` drops `k=±1` for `e^{kx}` because the chain rule becomes invisible there). The randomness is designed for teaching, not for fairness.
   - **`fixed-sessions.js` — deterministic shared sessions with zero backend.** `?fixed=A` (or `B`/`C`) makes **every** student opening the same link get the **exact same** exercises/numbers/options. Mechanism: replace `Math.random()` with a seeded **Mulberry32** PRNG, then inject URL params via `history.replaceState` **before** `config.js`/`game-core.js` read them. Must run **first**: `config.js` imports it before anything else (checked by `tests/check-repo.js`). Elegant and reusable (see `P10`).
   - **Layered architecture** (`math-engine` has no platform/DOM deps) makes the math independently testable (`run-tests.js`).
-- **Code format (v2, 59 chars):** `Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRR...R(30)`. Checksum identical to `cb` and **also does not cover `R`**; analyzer has **no** cross-verification (see `P01`). The analyzer already decodes both `EE`-coded Step-Quiz codes **and** `CB` codes.
+- **Code format (v2, 59 chars):** `Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRR...R(30)`. Checksum identical to `cb`; since 2026-10-18 it covers every field including `R` (`js/codi-verificacio.js`, tested by `tests/codi-verificacio.test.js`), and the analyzer shows older codes as ☑️ (valid, results not verified) — see `P01`. The analyzer already decodes both `EE`-coded Step-Quiz codes **and** `CB` codes.
 - **Lineage note:** the `informe-cb.html` (+ `informe-cb-refactor.md`) shipped here is the original single-file CB grader that was later refactored into the standalone `comp4eso` project.
 - **Status:** Mature. Old-inline → module migration done (all JS in `js/`); per-exercise helpers such as `penalize()` remain game-specific.
 - **Participates in:** S1, S4.
@@ -350,7 +350,8 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 ---
 
 ### `P01` — Cross-verify the results string + unify the verification-code module
-- **Status:** PROPOSED · **Priority:** P1
+- **Status:** DONE (2026-10-18), by a different route than step 1 below · **Priority:** P1
+- **What was done:** step 3 ("fold a digest of `R` into the checksum"), extended to every field the old letter ignored. New letter = old sum + Σ((i mod 22)+1)·ASCII(cos[i]), `cos = EE+D+S+QQ+R` (v2/CB) or `TTTTT+R` (CG); weights 1–22 with modulus 23 (prime) mean any single-digit change always breaks it. The code layout is unchanged (same length and characters, so form validations keep working). Analyzers accept both letters: new → ✅ results verified; old → ☑️ valid, results not verified (codes before 2026-10-18). `operacions`: one module `js/codi-verificacio.js` used by `game-core.js`, `vocabulari.js` and the analyzer; `cb/core.js` has an identical copy checked against the same test vectors; `cangurcat`: `js/codi.js` + the analyzer copy. Steps 1–2 (shared generate+parse module across repos) remain open as a refactor.
 - **Source → Target:** `cangurcat/js/codi.js` (canonical generate+parse) and `cangurcat/analitzador-cangur.html` (cross-verification) → **`cb`** and **`operacions`** analyzers.
 - **Affected files:** `cb/core.js` + cb analyzer; `operacions/js/game-core.js` + `operacions/analitzador-stepquiz.html`; new shared `codi.js`.
 - **Rationale:** In `cb` and `operacions` the DNI checksum covers `nota + date/time + salt` but **not** the per-question `R` string, so a student can edit `R` without breaking the checksum, and neither analyzer notices. `cangurcat` already solved this.
@@ -526,6 +527,7 @@ Stable ids. Use these to decide whether a feature should become a shared module.
 | Date | Proposal(s) | Change | By |
 |------|-------------|--------|----|
 | 2026-06-05 | — | Initial document created from the Jan–Jun 2026 export of 12 projects. All proposals `PROPOSED`. | AI (initial authoring) |
+| 2026-10-18 | P01 | Done: the checksum letter of `operacions`, `cb` and `cangurcat` codes now covers the results (and every other field); old codes still validate (☑️). | AI (P01) |
 | 2026-10-17 | P07 · P09 · P12 · S7 | Reviewed against the live repositories: corrected `cangur`, `comp4eso`, `cangurcat`, `cb`, `operacions`, `karelcat`, `pycat`, `jscat`, `m`, `pau`; rewrote `llibre` (now a PDF viewer); flagged `logocat` as not in the organisation; listed the uncatalogued repositories; updated licensing. No proposal status changed. | AI (docs review) |
 | 2026-06-05 | comp4eso · S10 · P04 · M1 · P13 · P14 | Added 13th project `comp4eso` (CompBàsiques 4t ESO) — ancestor of the `cangur` OMR lineage and the refactor of `operacions/informe-cb.html`. Added shared structure `S10` (OMR grading shell). Updated `P04` source to `comp4eso` (origin of the AI recognizer) and strengthened `M1` evidence + candidate modules. Created `P13` (extract the shared OMR shell) and `P14` (DOCX reports → cangur). Cross-linked the `cangur` / `cb` / `operacions` entries. | AI (comp4eso integration) |
 
