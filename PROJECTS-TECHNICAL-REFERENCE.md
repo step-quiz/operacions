@@ -154,7 +154,7 @@ Per-entry schema:
   - **`curs/progress.js` — clean extracted progress module.** localStorage schema `{capitols:{n:true}, reptes:{n:[bool...]}}`; "a success is never downgraded" invariant baked into `saveExercici`/`saveMon`. The only course that extracted this into its own module (others inline it — see `P08`).
   - **Two-axis i18n with a written migration guide** (`docs/i18n-spanish-guide.md`): `codeLang` (the typed programming vocabulary — **always English, immutable**: `move()`, `while`, `def`, `True`…) is kept strictly separate from `uiLang` (buttons/errors/hints). Currently `ca`/`en`; the guide gives a ready-to-paste `es` block (see `P09`).
   - **Most advanced mobile keyboard bridge** (`kbd-accessory.js`): when the editor is inside a course iframe, it posts to the **parent** document so the accessory bar renders at top-level (above the system keyboard), using the Visual Viewport API for positioning (see `P05`).
-- **Status:** Pedagogically complete; pending items are visual polish + optional future i18n. No GitHub Action (the course test `tests/comprova-curs.js` is run by hand). Spin-off `karelcat-p` (easy-read Catalan, Primary / newcomers) shares the same engine.
+- **Status:** Pedagogically complete; pending items are visual polish + optional future i18n. Course test `tests/comprova-curs.js` runs on GitHub on every push and PR (`tests.yml`, since 2026-10-18). Spin-off `karelcat-p` (easy-read Catalan, Primary / newcomers) shares the same engine.
 - **Participates in:** S1, S2, S3, S8.
 
 ---
@@ -173,7 +173,7 @@ Per-entry schema:
   - **Service Worker kill-switch** (`sw.js` + `sw-register.js`): safe path to deregister the SW and clear caches if a bad cache ships — important given Pyodide's heavy caching.
   - **Mobile keyboard with grouped keys** (`kbd-accessory.js`): Python symbol set with visual separators; hides in embed mode.
 - **Status:** Mature/working.
-- **i18n:** `js/i18n.js` ships **Catalan only** (flat `P.UI` dict); the README no longer claims otherwise. See `P09`. Tests: `python3 tests/comprova-curs.py` (44 exercises), run by hand (no GitHub Action).
+- **i18n:** `js/i18n.js` ships **Catalan only** (flat `P.UI` dict); the README no longer claims otherwise. See `P09`. Tests: `python3 tests/comprova-curs.py` (44 exercises), run on GitHub on every push and PR (`tests.yml`, since 2026-10-18).
 - **Participates in:** S1, S2, S3, S8.
 
 ---
