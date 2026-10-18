@@ -90,7 +90,7 @@ El 18/10/2026 es van retirar les pàgines que no enllaçava res (decaleg-pau, me
 
 ### Adaptades
 
-Les versions adaptades per a l'aula d'acollida (alumnat que fa poc que és a Catalunya) són ara un projecte a part: https://a.step-quiz.net (repositori `step-quiz/a`). L'analitzador d'aquest projecte continua llegint els seus codis (`AE`, `AD`, `AN`, `AQ`, `AO`, `AR`).
+Les versions adaptades per a l'aula d'acollida (alumnat que fa poc que és a Catalunya) són ara un projecte a part: https://a.step-quiz.net (repositori `step-quiz/a`). Les adreces antigues, de dins de step-quiz.net/a/, hi redirigeixen soles (`_redirects`). L'analitzador d'aquest projecte continua llegint els seus codis (`AE`, `AD`, `AN`, `AQ`, `AO`, `AR`).
 
 ## Arquitectura
 

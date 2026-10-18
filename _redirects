@@ -1,2 +1,6 @@
 /pau  /PAU  301
 /pau/*  /PAU/:splat  301
+# Les activitats adaptades van ser a step-quiz.net/a/ fins que es van passar al projecte a
+# (a.step-quiz.net). Els enllaços i els codis QR antics hi continuen portant.
+/a/a-index  https://a.step-quiz.net/  301
+/a/*  https://a.step-quiz.net/:splat  301
