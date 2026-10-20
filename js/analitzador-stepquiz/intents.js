@@ -50,9 +50,13 @@ function perMoment(a, b) {
 
 const alumneReal = row => !!row.student && row.student !== '—';
 
-/** Clau d'un alumne. Sense correu, cada fila és algú diferent (no es poden ajuntar). */
+/**
+ * Clau d'un alumne. Sense correu, cada fila és algú diferent (no es poden ajuntar).
+ * Un codi invàlid tampoc s'ajunta amb els altres: així, p. ex., un codi mal copiat
+ * enviat després no pot passar per «l'últim intent» i desplaçar el vàlid.
+ */
 export function clauAlumne(row) {
-    return alumneReal(row) ? row.student : `#${row.idx}`;
+    return alumneReal(row) && row.parsed.valid ? row.student : `#${row.idx}`;
 }
 
 /** Clau de «la mateixa prova» d'un alumne, o null si no es pot saber (codi invàlid, sense correu…). */
@@ -151,7 +155,7 @@ export function agrupaProves(files, politica, maxRes) {
     for (const r of unics) {
         const p = r.parsed;
         const nq = nombrePreguntes(r, maxRes);
-        const clau = [p.cbNivell || '', p.difficulty, p.cbMode || '', nq].join('|');
+        const clau = [p.cbNivell || '', p.cbMode || '', nq].join('|');
         if (!perClau.has(clau)) perClau.set(clau, { nivell: p.cbNivell || '', mode: p.cbMode || '', nq, files: [] });
         perClau.get(clau).files.push(r);
     }

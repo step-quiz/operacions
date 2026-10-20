@@ -1439,7 +1439,7 @@ function cbNotesHtml(grups, ignorats) {
         h += `<div class="cb-dup-note">↻ Han fet més d'un cop la mateixa prova: <b>${llista}</b>. A les estadístiques compta ${CB_POLITIQUES[cbPolitica][1]}. A la matriu, els intents que no compten surten esvaïts, amb ↻ i el número d'intent.<br>El codi no diu la dificultat triada: si algú ha fet dues proves amb el mateix nombre de preguntes però de dificultat diferent, aquí surten com a dos intents de la mateixa prova.</div>`;
     }
     if (grups.length > 1) {
-        const mides = grups.map(g => esc(cbEtiquetaGrup(g))).join(' · ');
+        const mides = grups.map(g => esc(cbEtiquetaGrup(g))).join('; ');
         h += `<div class="cb-info-note">S'han separat ${grups.length} proves, perquè la pregunta 1 d'una no és la pregunta 1 de l'altra: ${mides}.</div>`;
     }
     if (ignorats > 0) {

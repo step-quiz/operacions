@@ -129,7 +129,7 @@ body.no-classe .th-classe,
 body.no-classe .td-classe { display:none; }
 col.c-exercici { width:93px; }
 col.c-nota     { width:52px; }
-col.c-int      { width:62px; }
+col.c-int      { width:104px; }
 col.c-dif      { width:36px; }
 col.c-sess     { width:38px; }
 col.c-preg     { width:38px; }
@@ -229,7 +229,8 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 .cb-politica { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; font-size:12.5px; font-weight:600; }
 .cb-prova-title { font-size:13px; color:var(--text); }
 .cb-prova-sep { height:22px; }
-.cb-matrix tr.cb-no-compta td { opacity:.4; }
+.cb-matrix tr.cb-no-compta .cb-cell { opacity:.35; }
+.cb-matrix tr.cb-no-compta td.cb-stu-cell, .cb-matrix tr.cb-no-compta td.cb-nota-cell { color:var(--muted); font-weight:400; }
 .cb-int { font-size:8px; font-weight:700; color:#92400e; margin-left:1px; }
 .cb-dup-note { background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:6px; padding:7px 10px; font-size:11.5px; margin-bottom:14px; }
 .empty-state { text-align:center; padding:50px 20px; color:var(--muted); font-size:13px; }

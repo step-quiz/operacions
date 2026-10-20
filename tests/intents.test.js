@@ -162,5 +162,19 @@ function fila(
     const sol = m.agrupaProves([l3], 'ultim', 50);
     igual('duplicat sense l’original a la llista: no s’ignora', [sol.ignorats, sol.grups[0].comptades.size], [0, 1]);
 
+    suite('Resum CB: un codi invàlid no desplaça el vàlid');
+    const v1 = fila('vera', { hora: '11:00', nota: 8 });
+    const v2 = fila('vera', { hora: '11:30', nota: 2, valid: false });
+    const rv = m.agrupaProves([v1, v2], 'ultim', 50);
+    igual('el vàlid compta', [...rv.grups[0].comptades].includes(v1), true);
+    igual('l’invàlid segueix comptant com abans (no es perd)', [...rv.grups[0].comptades].includes(v2), true);
+    igual('i no es presenta com a repetició', rv.grups[0].repetidors, []);
+
+    suite('Resum CB: una sola prova per curs, mode i mida');
+    const w1 = fila('walter', { nq: 4, hora: '11:00' });
+    const w2 = fila('xavi', { nq: 4, hora: '11:05' });
+    w2.parsed.difficulty = 0; // «tots els nivells» té D=0, però la mateixa lletra de curs
+    igual('no es duplica el títol', m.agrupaProves([w1, w2], 'ultim', 50).grups.length, 1);
+
     finish('Intents repetits a l’analitzador');
 })();
