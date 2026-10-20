@@ -265,6 +265,7 @@ node tests/run-all.js
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 | `tests/esvaiment.test.js` | Mode «Esvaïment»: el motor de nivells (pujar, baixar, terra a 0, URL estranyes) i, a `prioritat`, que els passos de 1.000 expressions arriben al resultat recalculat a part i que la taula sense marques és la de sempre |
+| `tests/intents.test.js` | L'analitzador davant d'un alumne que repeteix la prova: intents numerats per l'hora del codi, el mateix codi enviat dos cops, quin intent compta (últim, primer, millor, tots) i proves de CB de mida diferent separades |
 | `tests/codi-verificacio.test.js` | La lletra de control dels codis: vectors fixos (els mateixos que ha de complir `step-quiz/cb`), que canviar una sola xifra dels resultats es detecti sempre i que els codis antics continuïn sent vàlids |
 | `tests/docs_vs_codi.py` | Que la documentació diu el mateix que el codi: les rutes que citen els documents principals existeixen i el README parla de totes les pàgines de l'arrel (Python, sense dependències) |
 

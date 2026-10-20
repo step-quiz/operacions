@@ -22,7 +22,7 @@ No requereix instal·lació. Són arxius totalment estàtics, publicats a https:
 2. Tria l'exercici i configura sessions, preguntes i intents.
 3. Copia l'enllaç i comparteix-lo amb els alumnes.
 4. En acabar, l'alumne obté un **codi de verificació** (format v2, 59–79 caràcters) amb nota, data i checksum antifrau.
-5. El professor carrega les respostes del formulari a `analitzador-stepquiz.html` per validar els codis i veure les notes.
+5. El professor carrega les respostes del formulari a `analitzador-stepquiz.html` per validar els codis i veure les notes. Si un alumne envia més d'un codi de la mateixa prova, la columna **Int.** de l'analitzador ho marca (`↻2/3` = 2n intent de 3, amb el canvi de nota) i el resum de Competències Bàsiques separa les proves de mida diferent i deixa triar quin intent compta (vegeu més avall).
 
 ## Exercicis disponibles
 
@@ -80,7 +80,7 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 
 | Fitxer | Què és |
 |---|---|
-| `analitzador-stepquiz.html` | Analitzador dels codis de verificació (CSV del formulari) per al professorat |
+| `analitzador-stepquiz.html` | Analitzador dels codis de verificació (CSV del formulari) per al professorat. La lògica dels intents repetits i de les proves de CB és a `js/analitzador-stepquiz/intents.js` (vegeu «Intents repetits i proves de CB a l'analitzador») |
 | `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
 | `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (l'obre el botó «Veure tutorial» de `recta-numerica.html`) |
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
@@ -124,6 +124,17 @@ docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat 
 **Mòduls antics** (equacions, fraccions, etc.): tot el joc en un sol fitxer, `js/<exercici>/<exercici>.js`. Ja no queda JS d'exercici dins dels HTML (només `window.APP_CONFIG`).
 
 Fraccions ja té, a part, el seu diagnòstic d'errors: `js/fraccions/errors-fraccions.js` (mòdul pur, sense DOM) mira si una resposta incorrecta encaixa amb un error típic (sumar els denominadors, amplificar només el denominador, multiplicar en creu…) i en torna el tipus i un missatge que orienta sense donar la resposta. El joc el mostra sota el pas i l'apunta a l'historial («Incorrecte (sumar els denominadors)»). Si la resposta no encaixa amb cap error conegut, el joc fa com sempre. Les proves són a `tests/modules.test.js`.
+
+## Intents repetits i proves de CB a l'analitzador
+
+Un alumne pot fer la mateixa prova més d'un cop i enviar cada codi pel formulari. L'analitzador (`analitzador-stepquiz.html`, amb la lògica pura a `js/analitzador-stepquiz/intents.js`) ho tracta així:
+
+- **Què és «la mateixa prova».** Mateix alumne (correu), exercici, camp `D`, camp `S` i nombre de preguntes `QQ`. Els intents es numeren per l'hora del **codi**, no per la de l'enviament. La columna **Int.** de la taula mostra `↻2/3` (2n intent de 3) i el canvi de nota respecte de l'intent anterior.
+- **Mateix codi dos cops.** No és cap intent nou: surt com `= 1` i el resum CB l'ignora.
+- **Resum CB per proves.** El codi només porta la **posició** de cada pregunta (1a, 2a, 3a…), no quina pregunta del banc és. Per no barrejar la «pregunta 1» d'una prova de 4 preguntes amb la d'una de 8, el resum separa les proves per curs, mode i nombre de preguntes, i l'Excel porta un full per prova.
+- **Quin intent compta.** Dalt del resum CB, un selector tria si a les estadístiques compta l'últim intent de cada alumne (per defecte), el primer, el millor o tots. Els intents que no compten surten esvaïts a la matriu.
+- **Limitació.** El codi no diu la dificultat triada a `cb`. Dues proves amb el mateix nombre de preguntes (p. ex. 4 de dificultat 1 i 4 de dificultat 2) no es poden distingir: surten com a intents d'una mateixa prova. Per resoldre-ho caldria afegir la dificultat al codi, al generador de codis del repositori `cb` i a la lletra de control.
+- **Columna «Dif.» a CB.** Als codis de CB el camp `D` és el curs (1 = 2n ESO, 2 = 4t ESO), no la dificultat; per això la columna surt buida.
 
 ## Paràmetres URL
 

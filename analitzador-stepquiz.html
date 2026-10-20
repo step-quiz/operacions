@@ -129,6 +129,7 @@ body.no-classe .th-classe,
 body.no-classe .td-classe { display:none; }
 col.c-exercici { width:93px; }
 col.c-nota     { width:52px; }
+col.c-int      { width:62px; }
 col.c-dif      { width:36px; }
 col.c-sess     { width:38px; }
 col.c-preg     { width:38px; }
@@ -219,6 +220,17 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 .dr-presets { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }
 .dr-preset { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:2px 9px; font-size:11px; cursor:pointer; color:var(--text); font-family:inherit; }
 .dr-preset:hover { border-color:var(--accent); color:var(--accent); background:#eff6ff; }
+.td-int { white-space:nowrap; font-size:12px; }
+.int-rep { font-weight:700; color:#92400e; background:#fef3c7; border-radius:4px; padding:1px 5px; }
+.int-dup { font-weight:700; color:var(--muted); background:var(--surface2); border-radius:4px; padding:1px 5px; }
+.td-int small { margin-left:4px; font-weight:700; font-size:11px; }
+.int-up { color:var(--ok); } .int-down { color:#dc2626; } .int-eq { color:var(--muted); }
+.cb-info-note { background:#eff6ff; border:1px solid #dbeafe; color:#1e40af; border-radius:6px; padding:7px 10px; font-size:11.5px; margin-bottom:10px; }
+.cb-politica { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; font-size:12.5px; font-weight:600; }
+.cb-prova-title { font-size:13px; color:var(--text); }
+.cb-prova-sep { height:22px; }
+.cb-matrix tr.cb-no-compta td { opacity:.4; }
+.cb-int { font-size:8px; font-weight:700; color:#92400e; margin-left:1px; }
 .cb-dup-note { background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:6px; padding:7px 10px; font-size:11.5px; margin-bottom:14px; }
 .empty-state { text-align:center; padding:50px 20px; color:var(--muted); font-size:13px; }
 
@@ -249,10 +261,10 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 .cb-matrix-wrap { overflow-x:auto; max-width:100%; }
 .cb-matrix { border-collapse:collapse; font-size:11px; }
 .cb-matrix th { background:#f1f5f9; color:var(--muted); font-size:9px; font-weight:600; padding:4px 2px; text-align:center; border:1px solid var(--border); min-width:22px; white-space:nowrap; position:sticky; top:0; }
-.cb-matrix th.cb-stu-h { width:46px; min-width:46px; text-align:left; padding-left:6px; }
+.cb-matrix th.cb-stu-h { width:58px; min-width:58px; text-align:left; padding-left:6px; }
 .cb-matrix th.cb-nota-h { min-width:40px; }
 .cb-matrix td { padding:2px; border:1px solid var(--border); text-align:center; }
-.cb-matrix td.cb-stu-cell { text-align:left; padding:3px 6px; font-size:11px; font-weight:600; white-space:nowrap; background:var(--surface); position:sticky; left:0; border-right:2px solid var(--border-h); width:46px; min-width:46px; max-width:46px; overflow:hidden; text-overflow:ellipsis; }
+.cb-matrix td.cb-stu-cell { text-align:left; padding:3px 6px; font-size:11px; font-weight:600; white-space:nowrap; background:var(--surface); position:sticky; left:0; border-right:2px solid var(--border-h); width:58px; min-width:58px; max-width:58px; overflow:hidden; text-overflow:ellipsis; }
 .cb-matrix td.cb-nota-cell { font-family:monospace; font-size:11px; font-weight:700; background:var(--surface); }
 .cb-cell { width:20px; height:20px; border-radius:2px; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; }
 .cb-cell-0 { background:var(--r0); }
@@ -422,7 +434,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
     <table>
       <colgroup>
         <col class="c-estat"><col class="c-dia"><col class="c-hora"><col class="c-alumne">
-        <col class="c-classe"><col class="c-expand"><col class="c-nota"><col class="c-exercici"><col class="c-dif">
+        <col class="c-classe"><col class="c-expand"><col class="c-nota"><col class="c-int"><col class="c-exercici"><col class="c-dif">
         <col class="c-sess"><col class="c-preg"><col class="c-gap">
         <col class="c-results">
       </colgroup>
@@ -434,6 +446,7 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
         <th class="th-classe sortable" data-sort="classe" onclick="sortBy('classe')">Classe<span class="arr">↕</span></th>
         <th></th>
         <th class="sortable" data-sort="nota" onclick="sortBy('nota')">Nota<span class="arr">↕</span></th>
+        <th title="Intent: l'alumne ha enviat més d'un cop la mateixa prova (↻2/3 = 2n intent de 3), amb el canvi de nota respecte de l'anterior">Int.</th>
         <th class="sortable" data-sort="exercici" onclick="sortBy('exercici')">Exercici<span class="arr">↕</span></th>
         <th title="Dificultat">Dif.</th>
         <th title="Sessions">Sess.</th><th title="Preguntes">Preg.</th>
@@ -536,7 +549,11 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
         <div><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--r4);vertical-align:middle;margin-right:5px;"></span><b>✗</b> fallada</div>
       </div>
 
-      <div class="help-tip">💡 <b>Resum CB:</b> si filtres per un dia (o un interval de dies) i tens respostes de Competències Bàsiques, el botó <b>📊 Veure resum CB</b> et munta la matriu alumnes × preguntes i marca les preguntes que han costat més. Amb <b>⬇ Exportar Excel</b> la baixes com a full de càlcul: 1 / X per alumne i pregunta, la nota, el % per pregunta i les preguntes per treballar (les que falla el 50 % o més).</div>
+      <p class="help-sub">Alumnes que repeteixen la prova</p>
+      <p style="color:#475569;font-size:12.75px;margin-bottom:10px;">Si un alumne envia més d'un codi de <b>la mateixa prova</b> (mateix exercici, nivell, mode i nombre de preguntes), la columna <b>Int.</b> ho marca: <code>↻2/3</code> vol dir 2n intent de 3, i el número de color mostra com ha canviat la nota respecte de l'anterior (<span style="color:var(--ok);font-weight:700;">+1,5</span> millora, <span style="color:#dc2626;font-weight:700;">−0,5</span> empitjora). Els intents es numeren per l'hora del <b>codi</b>, no per la de l'enviament. Si l'alumne envia dos cops exactament el mateix codi, surt com <code>= 1</code>: no és cap intent nou.</p>
+      <p style="color:#475569;font-size:12.75px;margin-bottom:10px;"><b>Limitació:</b> el codi porta el nombre de preguntes, però no quina dificultat s'ha triat. Dues proves amb el mateix nombre de preguntes (p. ex. 4 de dificultat 1 i 4 de dificultat 2) no es poden distingir i surten com a intents d'una mateixa prova.</p>
+
+      <div class="help-tip">💡 <b>Resum CB:</b> si filtres per un dia (o un interval de dies) i tens respostes de Competències Bàsiques, el botó <b>📊 Veure resum CB</b> et munta la matriu alumnes × preguntes i marca les preguntes que han costat més. Si hi ha proves de mida diferent (p. ex. una de 4 preguntes i una de 8), el resum les mostra <b>per separat</b>, perquè la pregunta 1 d'una no és la de l'altra, i l'Excel porta un full per prova. Si algun alumne ha repetit la prova, a dalt tries quin intent compta a les estadístiques (per defecte, l'últim). Amb <b>⬇ Exportar Excel</b> la baixes com a full de càlcul: 1 / X per alumne i pregunta, la nota, el % per pregunta i les preguntes per treballar (les que falla el 50 % o més).</div>
     </div>
   </div>
 </div>

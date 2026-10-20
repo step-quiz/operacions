@@ -9,6 +9,7 @@
 
 import { EXERCISE_NAMES } from '../exercise-codes.js';
 import { versioLletra, cosDelCodi } from '../codi-verificacio.js';
+import { marcaIntents, agrupaProves, estadistiquesPreguntes } from './intents.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -32,6 +33,7 @@ Object.assign(window, {
     closeCB,
     exportCBtxt,
     exportCBxlsx,
+    setCBPolitica,
     closeHelp,
     toggleDet,
     drShift,
@@ -382,10 +384,35 @@ function rgap(g) {
     return `<span style="color:var(--danger);font-weight:600">${g}m</span>`;
 }
 
+// Text d'una nota amb coma: 7,5
+const notaText = n => n.toFixed(1).replace('.', ',');
+// Canvi de nota respecte de l'intent anterior: +1,5 / −0,5 / =
+function canviNota(row) {
+    if (row.notaAnterior == null || row.parsed.note == null) return '';
+    const d = Math.round((row.parsed.note - row.notaAnterior) * 10) / 10;
+    return d > 0 ? `+${notaText(d)}` : d < 0 ? `−${notaText(-d)}` : '=';
+}
+// Frase per al títol i el detall: «2n intent de 3 · nota anterior 5,0 (+1,5)»
+function textIntent(row) {
+    if (!row.intents) return '';
+    if (row.duplicatDe) return `Mateix codi que un enviament anterior (intent ${row.intent} de ${row.intents})`;
+    let t = `Intent ${row.intent} de ${row.intents} d'aquesta mateixa prova`;
+    if (row.notaAnterior != null) t += ` · nota anterior ${notaText(row.notaAnterior)} (${canviNota(row)})`;
+    return t;
+}
+function intentCell(row) {
+    if (!row.intents || (row.intents === 1 && !row.duplicatDe)) return '<span class="mu">—</span>';
+    if (row.duplicatDe) return `<span class="int-dup" title="${esc(textIntent(row))}">= ${row.intent}</span>`;
+    const c = canviNota(row);
+    const cls = c.startsWith('+') ? 'int-up' : c.startsWith('−') ? 'int-down' : 'int-eq';
+    return `<span class="int-rep" title="${esc(textIntent(row))}">↻${row.intent}/${row.intents}</span>${c ? `<small class="${cls}">${c}</small>` : ''}`;
+}
+
 function renderRow(row) {
     const p = row.parsed,
         open = expIdx === row.idx;
-    const dif = p.difficulty > 0 ? p.difficulty : '<span class="mu">—</span>';
+    // A CB el camp D del codi és el curs (1 = 2n ESO, 2 = 4t ESO), no la dificultat
+    const dif = p.difficulty > 0 && p.exerciseCode !== 'CB' ? p.difficulty : '<span class="mu">—</span>';
     const ses = p.sessions || '<span class="mu">—</span>';
     const prg = p.questions || '<span class="mu">—</span>';
     const hd = p.resultsArray && p.resultsArray.some(v => v > 0);
@@ -397,6 +424,7 @@ function renderRow(row) {
     <td class="td-classe tm">${row.classe ? esc(row.classe) : '<span class="mu">—</span>'}</td>
     <td><button class="exp-btn ${open ? 'open' : ''}" onclick="event.stopPropagation();toggleDet(${row.idx})">${open ? '▲' : '▼'}</button></td>
     <td>${rnote(p.note)}</td>
+    <td class="td-int">${intentCell(row)}</td>
     <td title="${esc(p.exercise || '')}">${esc(p.exercise || '—')}</td>
     <td class="mu" style="text-align:center">${dif}</td>
     <td class="mu" style="text-align:center">${ses}</td>
@@ -425,6 +453,7 @@ function renderDet(row) {
         { k: 'Nota', v: p.note !== null ? p.note.toFixed(2).replace('.', ',') : '—' },
     ];
     if (row.classe) items.push({ k: 'Classe', v: row.classe });
+    if (row.intents && (row.intents > 1 || row.duplicatDe)) items.push({ k: 'Intent', v: textIntent(row) });
     items.push({ k: 'Activitat', v: p.exercise || p.exerciseCode || '—' });
     if (p.cbNivell) items.push({ k: 'Curs', v: p.cbNivell });
     if (p.cbAny) items.push({ k: 'Convocatòria', v: 'CB ' + p.cbAny });
@@ -459,7 +488,7 @@ function renderDet(row) {
       </div>`;
         }
     }
-    return `<tr class="det-row" id="detail-${row.idx}"><td colspan="13"><div class="det-panel">
+    return `<tr class="det-row" id="detail-${row.idx}"><td colspan="14"><div class="det-panel">
     <button class="collapse-btn" onclick="toggleDet(${row.idx})" title="Col·lapsar">▲</button>
     <div class="det-code">${esc(row.raw.rawCode)}</div>
     <div class="det-grid">${items.map(i => `<div class="det-item"><div class="dk">${i.k}</div><div class="dv">${esc(i.v)}</div></div>`).join('')}</div>
@@ -802,6 +831,7 @@ function loadData(txt) {
         return;
     }
     allRows = processRows(csv);
+    marcaIntents(allRows);
     filtRows = [...allRows];
     expIdx = null;
     // Segona barrera: si res no ha parsejat a un format conegut, no mostrem la taula
@@ -1325,25 +1355,32 @@ document.addEventListener('mousedown', e => {
     if (w && !w.contains(e.target)) closeDatePicker();
 });
 
-// Avís si un mateix alumne apareix més d'un cop dins l'interval
-function dupNoteHtml(rows) {
-    const cnt = {};
-    rows.forEach(r => {
-        cnt[r.student] = (cnt[r.student] || 0) + 1;
-    });
-    const dups = Object.entries(cnt).filter(([, n]) => n > 1);
-    if (!dups.length) return '';
-    const list = dups.map(([s, n]) => `${esc(s)} (${n})`).join(', ');
-    return `<div class="cb-dup-note">⚠️ Hi ha alumnes amb més d'un enviament en aquest període: <b>${list}</b>. Tots compten a les estadístiques per pregunta. Pots filtrar per alumne o per estat si vols excloure'n algun.</div>`;
-}
-
 // ─── CB RESUM ───────────────────────────────────────────────────────────────
+
+// Enviaments de CB amb resultats, dins dels filtres actuals
+const cbFiles = () =>
+    filtRows.filter(
+        r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v => v > 0)
+    );
+
+// Quins intents compten quan un alumne ha fet més d'un cop la mateixa prova
+let cbPolitica = 'ultim';
+const CB_POLITIQUES = {
+    ultim: ["L'últim intent de cada alumne", "l'últim intent de cada alumne"],
+    primer: ['El primer intent de cada alumne', 'el primer intent de cada alumne'],
+    millor: ['El millor intent de cada alumne', 'el millor intent (la nota més alta) de cada alumne'],
+    tots: ['Tots els enviaments', 'tots els enviaments, també els repetits'],
+};
+const cbCursMode = g => [g.nivell, g.mode].filter(Boolean).join(' · ');
+const cbEtiquetaGrup = g => `Prova de ${g.nq} preguntes${cbCursMode(g) ? ' · ' + cbCursMode(g) : ''}`;
+const plural = (n, un, molts) => `${n} ${n === 1 ? un : molts}`;
+// Correu (o nom) de l'alumne, amb el número d'intent si en té més d'un
+const etiquetaAlumne = r =>
+    (r.raw.email || r.student) + (r.intents > 1 && r.intent ? ` (intent ${r.intent}/${r.intents})` : '');
 
 function checkCBButton() {
     const dt = dateFrom;
-    const cbRows = filtRows.filter(
-        r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v => v > 0)
-    );
+    const cbRows = cbFiles();
     const ready = dt !== '' && cbRows.length >= 2;
     const btn = document.getElementById('btn-cb');
     if (!btn) return;
@@ -1362,9 +1399,7 @@ function checkCBButton() {
 
 function openCB() {
     const dt = dateFrom;
-    const cbRows = filtRows.filter(
-        r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v => v > 0)
-    );
+    const cbRows = cbFiles();
 
     // Auto-correct filters if not ready
     const exSel = document.getElementById('f-ex');
@@ -1382,45 +1417,46 @@ function openCB() {
         setTimeout(() => dateFi.classList.remove('f-date-alert'), 3000);
         return;
     }
-    if (!cbRows.length) return;
+    renderCB();
+    document.getElementById('cb-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
 
-    const N = MAX_RES;
+function setCBPolitica(v) {
+    if (!CB_POLITIQUES[v]) return;
+    cbPolitica = v;
+    renderCB();
+}
+
+// Avisos de dalt del resum: repeticions, proves separades i enviaments ignorats
+function cbNotesHtml(grups, ignorats) {
+    let h = '';
+    const repetidors = grups.flatMap(g => g.repetidors.map(r => ({ ...r, nq: g.nq })));
+    if (repetidors.length) {
+        const llista = repetidors
+            .map(r => `${esc(r.student)} (${r.intents} intents${grups.length > 1 ? ', ' + r.nq + ' preg.' : ''})`)
+            .join(', ');
+        h += `<div class="cb-dup-note">↻ Han fet més d'un cop la mateixa prova: <b>${llista}</b>. A les estadístiques compta ${CB_POLITIQUES[cbPolitica][1]}. A la matriu, els intents que no compten surten esvaïts, amb ↻ i el número d'intent.<br>El codi no diu la dificultat triada: si algú ha fet dues proves amb el mateix nombre de preguntes però de dificultat diferent, aquí surten com a dos intents de la mateixa prova.</div>`;
+    }
+    if (grups.length > 1) {
+        const mides = grups.map(g => esc(cbEtiquetaGrup(g))).join(' · ');
+        h += `<div class="cb-info-note">S'han separat ${grups.length} proves, perquè la pregunta 1 d'una no és la pregunta 1 de l'altra: ${mides}.</div>`;
+    }
+    if (ignorats > 0) {
+        h += `<div class="cb-info-note">${plural(ignorats, 'enviament', 'enviaments')} amb un codi idèntic al d'un altre ${ignorats === 1 ? "s'ha ignorat" : "s'han ignorat"} (no és cap intent nou).</div>`;
+    }
+    return h;
+}
+
+// Una prova: gràfic per pregunta + matriu alumnes × preguntes
+function cbGrupHtml(g, dateLabel, multiDay) {
     const labels = ['', '1', '2', '3', '✗'];
     const colors = ['var(--r0)', 'var(--r1)', 'var(--r2)', 'var(--r3)', 'var(--r4)'];
-
-    // Per-question stats (only active questions = non-zero across any student)
-    const qStats = Array.from({ length: N }, (_, q) => {
-        const vals = cbRows.map(r => r.parsed.resultsArray[q] || 0).filter(v => v > 0);
-        if (!vals.length) return null;
-        const counts = [0, 0, 0, 0, 0]; // index 1-4
-        vals.forEach(v => counts[v]++);
-        const sorted = [...vals].sort((a, b) => a - b);
-        const med = sorted[Math.floor(sorted.length / 2)];
-        const pcts = [1, 2, 3, 4].map(v => Math.round((counts[v] / vals.length) * 100));
-        return { med, counts, pcts, total: vals.length };
-    });
-
+    const qStats = estadistiquesPreguntes([...g.comptades], g.nq);
     const activeQs = qStats.map((s, i) => (s ? i : -1)).filter(i => i >= 0);
+    const enviaments = g.files.length !== g.comptades.size ? ` (${g.files.length} enviaments)` : '';
 
-    // Format date display (un dia o un interval)
-    const dateLabel = dateRangeLabel();
-    const multiDay = dateFrom !== dateTo;
-
-    // Decodifica nivell, any i mode del primer codi CB (per al títol)
-    const firstRow = cbRows[0];
-    const cbNivellLabel = firstRow && firstRow.parsed.cbNivell ? ` · ${firstRow.parsed.cbNivell}` : '';
-    const cbAnyLabel = firstRow && firstRow.parsed.cbAny ? ` · CB ${firstRow.parsed.cbAny}` : '';
-    const cbModeLabel = firstRow && firstRow.parsed.cbMode ? ` · ${firstRow.parsed.cbMode}` : '';
-
-    // ── SUMMARY ──
-    let summaryHtml = `<div class="cb-legend">
-    <div class="cb-li"><div class="cb-ld" style="background:var(--r1)"></div>1r intent</div>
-    <div class="cb-li"><div class="cb-ld" style="background:var(--r2)"></div>2n intent</div>
-    <div class="cb-li"><div class="cb-ld" style="background:var(--r3)"></div>3r+ intents</div>
-    <div class="cb-li"><div class="cb-ld" style="background:var(--r4)"></div>Fallit</div>
-  </div>
-  ${dupNoteHtml(cbRows)}
-  <p class="cb-section-title">Resum per pregunta — ${cbRows.length} alumnes · ${dateLabel}${cbNivellLabel}${cbAnyLabel}${cbModeLabel}</p>
+    let h = `<p class="cb-section-title cb-prova-title">${esc(cbEtiquetaGrup(g))} — ${plural(g.alumnes, 'alumne', 'alumnes')}${enviaments} · ${dateLabel}</p>
   <div class="cb-summary-grid">`;
 
     const BAR_H = 60; // total bar height px
@@ -1428,9 +1464,9 @@ function openCB() {
         const s = qStats[q];
         const segs = [1, 2, 3, 4]
             .map(v => {
-                const h = Math.round((s.pcts[v - 1] * BAR_H) / 100);
-                return h > 0
-                    ? `<div class="cb-q-seg" style="height:${h}px;background:${colors[v]};" title="${s.pcts[v - 1]}%"></div>`
+                const alt = Math.round((s.pcts[v - 1] * BAR_H) / 100);
+                return alt > 0
+                    ? `<div class="cb-q-seg" style="height:${alt}px;background:${colors[v]};" title="${s.pcts[v - 1]}%"></div>`
                     : '';
             })
             .join('');
@@ -1438,16 +1474,15 @@ function openCB() {
         const medLabel = labels[s.med] || '?';
         // Difícil: mediana > 1 O percentatge de fallits >= 20%
         const isHard = s.med > 1 || s.pcts[3] >= 20;
-        summaryHtml += `<div class="cb-q-col">
+        h += `<div class="cb-q-col">
       <div class="cb-q-num${isHard ? ' hard' : ''}">${q + 1}</div>
       <div class="cb-q-bar" style="height:${BAR_H}px;">${segs}</div>
       <div class="cb-q-median${isHard ? ' hard' : ''}" style="background:${medColor};">${medLabel}</div>
     </div>`;
     });
-    summaryHtml += `</div>`;
+    h += `</div>`;
 
-    // ── MATRIX ──
-    summaryHtml += `<p class="cb-section-title" style="margin-top:8px;">Matriu alumnes × preguntes</p>
+    h += `<p class="cb-section-title" style="margin-top:8px;">Matriu alumnes × preguntes</p>
   <div class="cb-matrix-wrap"><table class="cb-matrix"><thead><tr>
     <th class="cb-stu-h">Alumne</th>
     <th class="cb-nota-h">Nota</th>
@@ -1460,12 +1495,29 @@ function openCB() {
         .join('')}
   </tr></thead><tbody>`;
 
-    cbRows.sort((a, b) => (b.parsed.note || 0) - (a.parsed.note || 0));
-    cbRows.forEach(row => {
+    // Per nota (la més alta de cada alumne), amb els intents d'un mateix alumne junts
+    const alta = {};
+    g.files.forEach(r => (alta[r.student] = Math.max(alta[r.student] ?? -1, r.parsed.note ?? -1)));
+    const files = [...g.files].sort(
+        (a, b) =>
+            alta[b.student] - alta[a.student] ||
+            a.student.localeCompare(b.student) ||
+            (a.intent || 0) - (b.intent || 0) ||
+            a.idx - b.idx
+    );
+    files.forEach(row => {
         const arr = row.parsed.resultsArray;
         const nota = row.parsed.note !== null ? row.parsed.note.toFixed(2).replace('.', ',') : '—';
-        summaryHtml += `<tr>
-      <td class="cb-stu-cell" data-tip="${esc(row.student + (row.classe ? ' · ' + row.classe : '') + (multiDay && row.dateStr ? ' · ' + fmtDMY(row.dateStr) : ''))}" onmouseenter="showTip(event,this)" onmouseleave="hideTip()">${esc(row.student.slice(0, 4))}</td>
+        const compta = g.comptades.has(row);
+        const repe = row.intents > 1 && row.intent;
+        const tip =
+            row.student +
+            (row.classe ? ' · ' + row.classe : '') +
+            (multiDay && row.dateStr ? ' · ' + fmtDMY(row.dateStr) : '') +
+            (repe ? ' · ' + textIntent(row) : '') +
+            (compta ? '' : ' · no compta a les estadístiques');
+        h += `<tr${compta ? '' : ' class="cb-no-compta"'}>
+      <td class="cb-stu-cell" data-tip="${esc(tip)}" onmouseenter="showTip(event,this)" onmouseleave="hideTip()">${esc(row.student.slice(0, 4))}${repe ? `<sup class="cb-int">↻${row.intent}</sup>` : ''}</td>
       <td class="cb-nota-cell">${nota}</td>
       ${activeQs
           .map(q => {
@@ -1475,63 +1527,66 @@ function openCB() {
           .join('')}
     </tr>`;
     });
+    return h + `</tbody></table></div>`;
+}
 
-    summaryHtml += `</tbody></table></div>`;
+function renderCB() {
+    const { grups, ignorats } = agrupaProves(cbFiles(), cbPolitica, MAX_RES);
+    const dateLabel = dateRangeLabel();
+    const multiDay = dateFrom !== dateTo;
 
-    document.getElementById('cb-modal-title').textContent =
-        `Resum CB — ${dateLabel}${cbNivellLabel}${cbAnyLabel}${cbModeLabel}`;
-    document.getElementById('cb-modal-body').innerHTML = summaryHtml;
-    document.getElementById('cb-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
+    let h = `<div class="cb-legend">
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r1)"></div>1r intent</div>
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r2)"></div>2n intent</div>
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r3)"></div>3r+ intents</div>
+    <div class="cb-li"><div class="cb-ld" style="background:var(--r4)"></div>Fallit</div>
+  </div>
+  <div class="cb-politica"><label for="cb-politica">Si un alumne ha repetit la prova, compta:</label>
+    <select id="cb-politica" class="fi" onchange="setCBPolitica(this.value)">${Object.entries(CB_POLITIQUES)
+        .map(([k, [text]]) => `<option value="${k}"${k === cbPolitica ? ' selected' : ''}>${text}</option>`)
+        .join('')}</select></div>
+  ${cbNotesHtml(grups, ignorats)}`;
+    h += grups.map(g => cbGrupHtml(g, dateLabel, multiDay)).join('<div class="cb-prova-sep"></div>');
+
+    document.getElementById('cb-modal-title').textContent = `Resum CB — ${dateLabel}`;
+    document.getElementById('cb-modal-body').innerHTML = h;
 }
 
 function exportCBtxt() {
-    const dt = dateFrom;
-    const cbRows = filtRows.filter(
-        r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v => v > 0)
-    );
-    if (!cbRows.length || !dt) return;
-
-    const N = MAX_RES;
+    const cbRows = cbFiles();
+    if (!cbRows.length || !dateFrom) return;
+    const { grups } = agrupaProves(cbRows, cbPolitica, MAX_RES);
     const dateLabel = dateRangeLabel();
-
-    const qStats = Array.from({ length: N }, (_, q) => {
-        const vals = cbRows.map(r => r.parsed.resultsArray[q] || 0).filter(v => v > 0);
-        if (!vals.length) return null;
-        const n = vals.length;
-        const counts = [0, 0, 0, 0, 0];
-        vals.forEach(v => counts[v]++);
-        const sorted = [...vals].sort((a, b) => a - b);
-        const med = sorted[Math.floor(sorted.length / 2)];
-        const pcts = [1, 2, 3, 4].map(v => Math.round((counts[v] / n) * 100));
-        const isHard = med > 1 || pcts[3] >= 20;
-        return { q: q + 1, med, pcts, isHard, n };
-    }).filter(Boolean);
-
-    const hard = qStats.filter(s => s.isHard).sort((a, b) => a.q - b.q);
-    const easy = qStats.filter(s => !s.isHard).sort((a, b) => a.q - b.q);
 
     const fmtQ = s =>
         `P${String(s.q).padStart(2, ' ')}:  1r=${String(s.pcts[0]).padStart(3)}%  2n=${String(s.pcts[1]).padStart(3)}%  3r=${String(s.pcts[2]).padStart(3)}%  4t=${String(s.pcts[3]).padStart(3)}%`;
 
-    const fr = cbRows[0];
-    const nLabel = fr && fr.parsed.cbNivell ? ' · ' + fr.parsed.cbNivell : '';
-    const aLabel = fr && fr.parsed.cbAny ? ' · CB ' + fr.parsed.cbAny : '';
-    const mLabel = fr && fr.parsed.cbMode ? ' · ' + fr.parsed.cbMode : '';
-
     const lines = [
-        `Resum CB — ${dateLabel}${nLabel}${aLabel}${mLabel} — ${cbRows.length} alumnes`,
+        `Resum CB — ${dateLabel}`,
+        `Intents que compten: ${CB_POLITIQUES[cbPolitica][1]}`,
         '='.repeat(56),
         '',
-        `PREGUNTES A MILLORAR (${hard.length})`,
-        '-'.repeat(56),
-        ...hard.map(fmtQ),
-        '',
-        `PREGUNTES QUE HAN ANAT BÉ (${easy.length})`,
-        '-'.repeat(56),
-        ...easy.map(fmtQ),
-        '',
     ];
+    grups.forEach(g => {
+        const qStats = estadistiquesPreguntes([...g.comptades], g.nq)
+            .map((s, i) => s && { q: i + 1, pcts: s.pcts, isHard: s.med > 1 || s.pcts[3] >= 20 })
+            .filter(Boolean);
+        const hard = qStats.filter(s => s.isHard);
+        const easy = qStats.filter(s => !s.isHard);
+        lines.push(
+            `${cbEtiquetaGrup(g).toUpperCase()} — ${plural(g.alumnes, 'alumne', 'alumnes')}`,
+            '='.repeat(56),
+            '',
+            `PREGUNTES A MILLORAR (${hard.length})`,
+            '-'.repeat(56),
+            ...hard.map(fmtQ),
+            '',
+            `PREGUNTES QUE HAN ANAT BÉ (${easy.length})`,
+            '-'.repeat(56),
+            ...easy.map(fmtQ),
+            ''
+        );
+    });
 
     const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8;' });
     const a = document.createElement('a');
@@ -1557,152 +1612,169 @@ function xlCol(n) {
     return s;
 }
 
+// Un full de l'Excel per prova (mateix curs, mode i nombre de preguntes)
+function fullCBGrup(wb, g, nomFull) {
+    const rows = g.files.filter(r => g.comptades.has(r));
+    // Preguntes de cada alumne: les que diu el codi (com a màxim les MAX_RES que hi caben)
+    const nPreg = r => {
+        if (r.parsed.questions) return Math.min(r.parsed.questions, MAX_RES);
+        const a = r.parsed.resultsArray;
+        let n = a.length;
+        while (n > 0 && !a[n - 1]) n--;
+        return n;
+    };
+    const res = (r, q) => (q < nPreg(r) ? r.parsed.resultsArray[q] || 0 : 0);
+    const aXL = v => (v === 4 ? 'X' : v >= 1 && v <= 3 ? v : null); // 1 encert · 4 fallada → X · 0 → buit
+    const N = Math.max(...rows.map(nPreg));
+
+    // Disposició idèntica al full fet a mà: capçalera a la fila 2, alumnes des de B3
+    const F1 = 3,
+        FN = F1 + rows.length - 1;
+    const CA = 2,
+        CP1 = 3,
+        CPN = CP1 + N - 1,
+        CR = CPN + 1;
+    const FONT = { name: 'Arial', size: 10 };
+    const ESQ = { horizontal: 'left', vertical: 'middle' },
+        MIG = { horizontal: 'center', vertical: 'middle' };
+
+    const ws = wb.addWorksheet(nomFull);
+    const put = (r, c, value, align) => {
+        const cell = ws.getCell(r, c);
+        cell.value = value;
+        cell.font = FONT;
+        if (align) cell.alignment = align;
+        return cell;
+    };
+
+    // Capçalera
+    const etiqueta = cbEtiquetaGrup(g);
+    put(2, CA, etiqueta, ESQ);
+    for (let q = 1; q <= N; q++) put(2, CP1 + q - 1, 'Pregunta ' + q, ESQ);
+    put(2, CR, 'Resultat', ESQ);
+    ws.getRow(2).height = 22.5;
+
+    // Una fila per alumne: 1 / X i la nota (encerts / preguntes × 10)
+    rows.forEach((r, i) => {
+        const f = F1 + i,
+            nq = nPreg(r);
+        put(f, CA, etiquetaAlumne(r), { vertical: 'middle' });
+        let uns = 0;
+        for (let q = 0; q < N; q++) {
+            const v = aXL(res(r, q));
+            if (v === 1) uns++;
+            put(f, CP1 + q, v, MIG);
+        }
+        const nota =
+            r.parsed.questions > MAX_RES
+                ? r.parsed.note // el codi no hi cap sencer: la nota del codi
+                : { formula: `COUNTIF(${xlCol(CP1)}${f}:${xlCol(CPN)}${f},1)/${nq}*10`, result: (uns / nq) * 10 };
+        put(f, CR, nota, MIG);
+        ws.getRow(f).height = 22.5;
+    });
+
+    // Total: percentatge de cada resposta per pregunta
+    const presents = [1, 2, 3, 'X'].filter(
+        v => v === 1 || v === 'X' || rows.some(r => [...Array(N).keys()].some(q => aXL(res(r, q)) === v))
+    );
+    const FT = FN + 1;
+    put(FT, 1, 'Total:');
+    presents.forEach((v, k) => {
+        const f = FT + 1 + k;
+        put(f, CA, v, { horizontal: 'center' });
+        for (let q = 0; q < N; q++) {
+            const L = xlCol(CP1 + q),
+                col = rows.map(r => aXL(res(r, q))).filter(x => x !== null);
+            if (!col.length) continue;
+            const crit = v === 'X' ? '"X"' : v;
+            const cell = put(
+                f,
+                CP1 + q,
+                {
+                    formula: `COUNTIF(${L}$${F1}:${L}$${FN},${crit})/COUNTA(${L}$${F1}:${L}$${FN})`,
+                    result: col.filter(x => x === v).length / col.length,
+                },
+                { horizontal: 'center' }
+            );
+            cell.numFmt = '0%';
+        }
+    });
+
+    // Preguntes per treballar: les que fallen el CB_XL_LLINDAR % o més (mateixa fila i columnes que al full fet a mà)
+    const FL = FT + presents.length + 6;
+    put(FL, 1, 'Preguntes per treballar:');
+    const perTreballar = [];
+    for (let q = 0; q < N; q++) {
+        const col = rows.map(r => res(r, q)).filter(v => v > 0);
+        const errors = col.filter(v => v !== 1).length;
+        if (col.length && errors * 100 >= CB_XL_LLINDAR * col.length) perTreballar.push(q + 1);
+    }
+    // Una cada 8 columnes (com al full fet a mà) si caben dins l'amplada de la taula; si no, seguides
+    const pas = CA + 8 * (perTreballar.length - 1) <= CR ? 8 : 1;
+    if (perTreballar.length) perTreballar.forEach((q, k) => put(FL, CA + pas * k, `Pregunta ${q}:`));
+    else put(FL, CA, 'Cap');
+
+    // Colors (format condicional, com al full fet a mà)
+    const fill = argb => ({ fill: { type: 'pattern', pattern: 'solid', bgColor: { argb } } });
+    ws.addConditionalFormatting({
+        ref: `${xlCol(CP1)}${F1}:${xlCol(CPN)}${FN}`,
+        rules: presents.map(v => ({
+            type: 'cellIs',
+            operator: 'equal',
+            formulae: [v === 'X' ? '"X"' : String(v)],
+            style: fill(CB_XL_COLORS[v]),
+        })),
+    });
+    ws.addConditionalFormatting({
+        ref: `${xlCol(CR)}${F1}:${xlCol(CR)}${FN}`,
+        rules: [
+            {
+                type: 'cellIs',
+                operator: 'lessThan',
+                formulae: ['5'],
+                style: { font: { color: { argb: CB_XL_NOTA_BAIXA } } },
+            },
+        ],
+    });
+
+    // Amplades: que es llegeixin sencers els correus i "Preguntes per treballar:"
+    ws.getColumn(1).width = 21;
+    ws.getColumn(CA).width = Math.min(
+        45,
+        Math.max(14, ...rows.map(r => etiquetaAlumne(r).length + 2), etiqueta.length + 2)
+    );
+    for (let c = CP1; c <= CR; c++) ws.getColumn(c).width = 12.63;
+}
+
+// Nom de full d'Excel: màxim 31 caràcters i sense repetir-ne cap
+function nomFullCB(base, g, perFull, usats) {
+    const abrev = { Pràctica: 'Prac', Examen: 'Exam' };
+    let nom = perFull
+        ? [base, `${g.nq}p`, (g.nivell || '').slice(0, 2), abrev[g.mode] || ''].filter(Boolean).join(' ')
+        : base;
+    nom = nom.slice(0, 31);
+    let n = 2;
+    while (usats.has(nom.toLowerCase())) nom = `${nom.slice(0, 28)} ${n++}`;
+    usats.add(nom.toLowerCase());
+    return nom;
+}
+
 async function exportCBxlsx() {
     if (typeof ExcelJS === 'undefined') {
         alert("No s'ha pogut carregar el generador d'Excel (cal connexió a Internet). Torna-ho a provar.");
         return;
     }
-    // Mateixos alumnes que el resum CB, en l'ordre del full de respostes
-    const rows = filtRows.filter(
-        r => r.parsed.exerciseCode === 'CB' && r.parsed.resultsArray && r.parsed.resultsArray.some(v => v > 0)
-    );
-    if (!rows.length || !dateFrom) return;
+    const cbRows = cbFiles();
+    if (!cbRows.length || !dateFrom) return;
     try {
-        // Preguntes de cada alumne: les que diu el codi (com a màxim les MAX_RES que hi caben)
-        const nPreg = r => {
-            if (r.parsed.questions) return Math.min(r.parsed.questions, MAX_RES);
-            const a = r.parsed.resultsArray;
-            let n = a.length;
-            while (n > 0 && !a[n - 1]) n--;
-            return n;
-        };
-        const res = (r, q) => (q < nPreg(r) ? r.parsed.resultsArray[q] || 0 : 0);
-        const aXL = v => (v === 4 ? 'X' : v >= 1 && v <= 3 ? v : null); // 1 encert · 4 fallada → X · 0 → buit
-        const N = Math.max(...rows.map(nPreg));
-
-        // Disposició idèntica al full fet a mà: capçalera a la fila 2, alumnes des de B3
-        const F1 = 3,
-            FN = F1 + rows.length - 1;
-        const CA = 2,
-            CP1 = 3,
-            CPN = CP1 + N - 1,
-            CR = CPN + 1;
-        const FONT = { name: 'Arial', size: 10 };
-        const ESQ = { horizontal: 'left', vertical: 'middle' },
-            MIG = { horizontal: 'center', vertical: 'middle' };
-
+        const { grups } = agrupaProves(cbRows, cbPolitica, MAX_RES);
         const [, mf, df] = dateFrom.split('-'),
             [, mt, dt] = (dateTo || dateFrom).split('-');
+        const base = dateFrom === dateTo ? df + mf : `${df}${mf}-${dt}${mt}`;
         const wb = new ExcelJS.Workbook();
         wb.calcProperties.fullCalcOnLoad = true;
-        const ws = wb.addWorksheet(dateFrom === dateTo ? df + mf : `${df}${mf}-${dt}${mt}`);
-        const put = (r, c, value, align) => {
-            const cell = ws.getCell(r, c);
-            cell.value = value;
-            cell.font = FONT;
-            if (align) cell.alignment = align;
-            return cell;
-        };
-
-        // Capçalera
-        const fr = rows[0].parsed;
-        const etiqueta =
-            [fr.cbNivell, fr.cbAny ? 'CB ' + fr.cbAny : '', fr.cbMode].filter(Boolean).join(' · ') || 'Alumne';
-        put(2, CA, etiqueta, ESQ);
-        for (let q = 1; q <= N; q++) put(2, CP1 + q - 1, 'Pregunta ' + q, ESQ);
-        put(2, CR, 'Resultat', ESQ);
-        ws.getRow(2).height = 22.5;
-
-        // Una fila per alumne: 1 / X i la nota (encerts / preguntes × 10)
-        rows.forEach((r, i) => {
-            const f = F1 + i,
-                nq = nPreg(r);
-            put(f, CA, r.raw.email || r.student, { vertical: 'middle' });
-            let uns = 0;
-            for (let q = 0; q < N; q++) {
-                const v = aXL(res(r, q));
-                if (v === 1) uns++;
-                put(f, CP1 + q, v, MIG);
-            }
-            const nota =
-                r.parsed.questions > MAX_RES
-                    ? r.parsed.note // el codi no hi cap sencer: la nota del codi
-                    : { formula: `COUNTIF(${xlCol(CP1)}${f}:${xlCol(CPN)}${f},1)/${nq}*10`, result: (uns / nq) * 10 };
-            put(f, CR, nota, MIG);
-            ws.getRow(f).height = 22.5;
-        });
-
-        // Total: percentatge de cada resposta per pregunta
-        const presents = [1, 2, 3, 'X'].filter(
-            v => v === 1 || v === 'X' || rows.some(r => [...Array(N).keys()].some(q => aXL(res(r, q)) === v))
-        );
-        const FT = FN + 1;
-        put(FT, 1, 'Total:');
-        presents.forEach((v, k) => {
-            const f = FT + 1 + k;
-            put(f, CA, v, { horizontal: 'center' });
-            for (let q = 0; q < N; q++) {
-                const L = xlCol(CP1 + q),
-                    col = rows.map(r => aXL(res(r, q))).filter(x => x !== null);
-                if (!col.length) continue;
-                const crit = v === 'X' ? '"X"' : v;
-                const cell = put(
-                    f,
-                    CP1 + q,
-                    {
-                        formula: `COUNTIF(${L}$${F1}:${L}$${FN},${crit})/COUNTA(${L}$${F1}:${L}$${FN})`,
-                        result: col.filter(x => x === v).length / col.length,
-                    },
-                    { horizontal: 'center' }
-                );
-                cell.numFmt = '0%';
-            }
-        });
-
-        // Preguntes per treballar: les que fallen el CB_XL_LLINDAR % o més (mateixa fila i columnes que al full fet a mà)
-        const FL = FT + presents.length + 6;
-        put(FL, 1, 'Preguntes per treballar:');
-        const perTreballar = [];
-        for (let q = 0; q < N; q++) {
-            const col = rows.map(r => res(r, q)).filter(v => v > 0);
-            const errors = col.filter(v => v !== 1).length;
-            if (col.length && errors * 100 >= CB_XL_LLINDAR * col.length) perTreballar.push(q + 1);
-        }
-        // Una cada 8 columnes (com al full fet a mà) si caben dins l'amplada de la taula; si no, seguides
-        const pas = CA + 8 * (perTreballar.length - 1) <= CR ? 8 : 1;
-        if (perTreballar.length) perTreballar.forEach((q, k) => put(FL, CA + pas * k, `Pregunta ${q}:`));
-        else put(FL, CA, 'Cap');
-
-        // Colors (format condicional, com al full fet a mà)
-        const fill = argb => ({ fill: { type: 'pattern', pattern: 'solid', bgColor: { argb } } });
-        ws.addConditionalFormatting({
-            ref: `${xlCol(CP1)}${F1}:${xlCol(CPN)}${FN}`,
-            rules: presents.map(v => ({
-                type: 'cellIs',
-                operator: 'equal',
-                formulae: [v === 'X' ? '"X"' : String(v)],
-                style: fill(CB_XL_COLORS[v]),
-            })),
-        });
-        ws.addConditionalFormatting({
-            ref: `${xlCol(CR)}${F1}:${xlCol(CR)}${FN}`,
-            rules: [
-                {
-                    type: 'cellIs',
-                    operator: 'lessThan',
-                    formulae: ['5'],
-                    style: { font: { color: { argb: CB_XL_NOTA_BAIXA } } },
-                },
-            ],
-        });
-
-        // Amplades: que es llegeixin sencers els correus i "Preguntes per treballar:"
-        ws.getColumn(1).width = 21;
-        ws.getColumn(CA).width = Math.min(
-            45,
-            Math.max(14, ...rows.map(r => (r.raw.email || r.student).length + 2), etiqueta.length + 2)
-        );
-        for (let c = CP1; c <= CR; c++) ws.getColumn(c).width = 12.63;
+        const usats = new Set();
+        grups.forEach(g => fullCBGrup(wb, g, nomFullCB(base, g, grups.length > 1, usats)));
 
         const buf = await wb.xlsx.writeBuffer();
         const a = document.createElement('a');
