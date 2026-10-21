@@ -5,11 +5,12 @@
  * ROL: La lletra de control dels codis de verificació (format v2):
  *      Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRR…
  *
- *   La fan servir els generadors (game-core.js, vocabulari/vocabulari.js) i
- *   l'analitzador (analitzador-stepquiz/analitzador-stepquiz.js). El projecte
- *   cb (Competències Bàsiques, core.js) en té una còpia idèntica: si es toca
- *   aquí, cal tocar-la allà també (tests/codi-verificacio.test.js té els
- *   vectors de prova que totes dues han de complir).
+ *   La fan servir els generadors (game-core.js, vocabulari/vocabulari.js, que
+ *   munten el codi amb construeixCodiV2) i l'analitzador
+ *   (analitzador-stepquiz/llegeix-codi.js). El projecte cb (Competències
+ *   Bàsiques, codi.js) en té una còpia idèntica: si es toca aquí, cal tocar-la
+ *   allà també (tests/codi-verificacio.test.js té els vectors de prova que
+ *   totes dues han de complir).
  *
  * ── DUES FÓRMULES ──────────────────────────────────────────────────────────
  *   Lletra antiga (codis generats fins al 18/10/2026):
@@ -93,6 +94,33 @@ export function versioLletra(lletra, notaInt, dd, mm, hh, mn, salt, cos) {
     if (lletraNova(notaInt, dd, mm, hh, mn, salt, cos) === lletra) return 'nova';
     if (lletraAntiga(notaInt, dd, mm, hh, mn, salt) === lletra) return 'antiga';
     return null;
+}
+
+/**
+ * El codi v2 sencer, amb la lletra nova. El munten els generadors (game-core.js i
+ * vocabulari.js) i el llegeix parseCode() de l'analitzador; tests/llegeix-codi.test.js
+ * en fa l'anada i tornada. Els camps arriben ja preparats com a text, tal com van al codi:
+ *   salt       3 caràcters (els d'operacions, 3 lletres minúscules a l'atzar)
+ *   ara        Date del moment de copiar el codi
+ *   exCode     2 caràcters (js/exercise-codes.js)
+ *   dif        '0'-'3'          sessions  '1'-'5'
+ *   questions  '01'-'10'        notaInt   0-100 (nota × 10)
+ *   results    30-50 xifres 0-4
+ */
+export function construeixCodiV2({ salt, ara, exCode, dif, sessions, questions, notaInt, results }) {
+    const dos = n => String(n).padStart(2, '0');
+    const lletra = lletraNova(
+        notaInt,
+        ara.getDate(),
+        ara.getMonth() + 1,
+        ara.getHours(),
+        ara.getMinutes(),
+        salt,
+        cosDelCodi(exCode, dif, sessions, questions, results)
+    );
+    const data = dos(ara.getDate()) + dos(ara.getMonth() + 1);
+    const hora = dos(ara.getHours()) + dos(ara.getMinutes());
+    return `${lletra}${salt}-${data}-${hora}-${exCode}-${dif}-${sessions}-${questions}-${String(notaInt).padStart(3, '0')}-${results}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -58,7 +58,7 @@
 
 import { TOTAL_SESSIONS, TOTAL_OPERATIONS, MAX_ENLLOC_MITJANA, MAX_INTENTS } from './config.js';
 import { EXERCISE_CODES } from './exercise-codes.js'; // taula única compartida amb l'analitzador
-import { lletraNova, cosDelCodi } from './codi-verificacio.js'; // lletra de control, compartida amb l'analitzador
+import { construeixCodiV2 } from './codi-verificacio.js'; // codi v2 i lletra de control, compartits amb l'analitzador
 import { FixedSessions } from './fixed-sessions.js';
 import { ESVAIMENT } from './esvaiment.js'; // mode «Esvaïment» (?esvaiment=1): no dona codi
 
@@ -585,13 +585,6 @@ export async function copiarResultats() {
     const ch = 'abcdefghijklmnopqrstuvwxyz';
     for (let i = 0; i < 3; i++) salt += ch.charAt(Math.floor(Math.random() * ch.length));
 
-    // Data i hora
-    const ara = new Date();
-    const dia = String(ara.getDate()).padStart(2, '0');
-    const mes = String(ara.getMonth() + 1).padStart(2, '0');
-    const hora = String(ara.getHours()).padStart(2, '0');
-    const minuts = String(ara.getMinutes()).padStart(2, '0');
-
     // Exercici
     const nomFitxer = window.location.pathname.split('/').pop().replace('.html', '');
     const exCode = EXERCISE_CODES[nomFitxer] || 'XX'; // 'XX': pàgina sense codi a la taula
@@ -602,26 +595,23 @@ export async function copiarResultats() {
     const questions = String(Math.min(TOTAL_OPERATIONS, 10)).padStart(2, '0');
 
     // Nota (NNN = nota x 10, 000-100)
-    const notaSobre10 = calculaNotaSobre10();
-    const notaInt = Math.round(notaSobre10 * 10);
-    const notaStr = String(notaInt).padStart(3, '0');
+    const notaInt = Math.round(calculaNotaSobre10() * 10);
 
     // Resultats per pregunta (mínim 30 chars, màxim MAX_RESULTS)
-    const resultsStr = state.sessionResults.slice(0, MAX_RESULTS).map(String).join('').padEnd(30, '0');
+    const results = state.sessionResults.slice(0, MAX_RESULTS).map(String).join('').padEnd(30, '0');
 
-    // Lletra de control (js/codi-verificacio.js): cobreix tots els camps, resultats inclosos
-    const lletra = lletraNova(
-        notaInt,
-        parseInt(dia, 10),
-        parseInt(mes, 10),
-        parseInt(hora, 10),
-        parseInt(minuts, 10),
+    // Codi final, amb la lletra de control (js/codi-verificacio.js), que cobreix tots els camps:
+    // Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+    const output = construeixCodiV2({
         salt,
-        cosDelCodi(exCode, dif, sessions, questions, resultsStr)
-    );
-
-    // Codi final: Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
-    const output = `${lletra}${salt}-${dia}${mes}-${hora}${minuts}-${exCode}-${dif}-${sessions}-${questions}-${notaStr}-${resultsStr}`;
+        ara: new Date(),
+        exCode,
+        dif,
+        sessions,
+        questions,
+        notaInt,
+        results,
+    });
     console.log('Codi v2:', output, '(', output.length, 'chars)');
 
     function mostrarExit() {

@@ -9,7 +9,7 @@
 
 import { VocabEngine } from './vocabulari-engine.js';
 import { VocabFigures } from './vocabulari-figures.js';
-import { lletraNova, cosDelCodi } from '../codi-verificacio.js';
+import { construeixCodiV2 } from '../codi-verificacio.js';
 
 (function () {
     'use strict';
@@ -1128,13 +1128,6 @@ import { lletraNova, cosDelCodi } from '../codi-verificacio.js';
             salt += caracters.charAt(Math.floor(Math.random() * caracters.length));
         }
 
-        // Data i hora
-        const ara = new Date();
-        const dia = String(ara.getDate()).padStart(2, '0');
-        const mes = String(ara.getMonth() + 1).padStart(2, '0');
-        const hora = String(ara.getHours()).padStart(2, '0');
-        const minuts = String(ara.getMinutes()).padStart(2, '0');
-
         // Exercici, dificultat, sessions, preguntes
         const exCode = 'VO'; // vocabulari
         const dif = '0'; // sense nivells de dificultat
@@ -1142,25 +1135,22 @@ import { lletraNova, cosDelCodi } from '../codi-verificacio.js';
         const questions = String(Math.min(TOTAL_OPS, 10)).padStart(2, '0');
 
         // Nota (NNN = nota × 10, 000-100)
-        const notaSobre10 = _calculaNotaSobre10();
-        const notaInt = Math.round(notaSobre10 * 10);
-        const notaStr = String(notaInt).padStart(3, '0');
+        const notaInt = Math.round(_calculaNotaSobre10() * 10);
 
         // Resultats per figura (mínim 30 chars, màxim 5 × 10 = 50). 1=sense errors · 2=1 error · 3=2+ · 4=fallada
-        const resultsStr = _resultats.slice(0, 50).map(String).join('').padEnd(30, '0');
+        const results = _resultats.slice(0, 50).map(String).join('').padEnd(30, '0');
 
-        // Lletra de control (idèntica a game-core.js: js/codi-verificacio.js)
-        const lletra = lletraNova(
-            notaInt,
-            parseInt(dia, 10),
-            parseInt(mes, 10),
-            parseInt(hora, 10),
-            parseInt(minuts, 10),
+        // Codi final, amb la lletra de control (la mateixa que game-core.js: js/codi-verificacio.js)
+        const output = construeixCodiV2({
             salt,
-            cosDelCodi(exCode, dif, sessions, questions, resultsStr)
-        );
-
-        const output = `${lletra}${salt}-${dia}${mes}-${hora}${minuts}-${exCode}-${dif}-${sessions}-${questions}-${notaStr}-${resultsStr}`;
+            ara: new Date(),
+            exCode,
+            dif,
+            sessions,
+            questions,
+            notaInt,
+            results,
+        });
         console.log('Codi v2 generat per al professor:', output, '(', output.length, 'chars)');
 
         // Intentar copiar al portapapers; fallback visual si falla
