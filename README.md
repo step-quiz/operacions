@@ -80,7 +80,7 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 
 | Fitxer | Què és |
 |---|---|
-| `analitzador-stepquiz.html` | Analitzador dels codis de verificació (CSV del formulari) per al professorat. La lògica dels intents repetits i de les proves de CB és a `js/analitzador-stepquiz/intents.js` (vegeu «Intents repetits i proves de CB a l'analitzador») |
+| `analitzador-stepquiz.html` | Analitzador dels codis de verificació (CSV del formulari) per al professorat. La lectura dels codis (tots els formats, de totes les èpoques) és a `js/analitzador-stepquiz/llegeix-codi.js`, i la dels intents repetits i de les proves de CB, a `js/analitzador-stepquiz/intents.js` (vegeu «Intents repetits i proves de CB a l'analitzador»). Totes dues són lògica pura, amb proves |
 | `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
 | `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (l'obre el botó «Veure tutorial» de `recta-numerica.html`) |
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |

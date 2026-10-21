@@ -28,7 +28,7 @@ operacions/
 │   ├── recta-numerica/         ← Mateixa estructura
 │   ├── asimptotes/             ← Mateixa estructura (amb noms *-asimptotes.js)
 │   ├── equacions/equacions.js  ← Jocs més antics: tot el joc en un sol fitxer
-│   ├── analitzador-stepquiz/   ← L'analitzador de codis del professorat
+│   ├── analitzador-stepquiz/   ← L'analitzador de codis del professorat (llegeix-codi.js: llegeix els codis)
 │   └── ...
 ├── equacions.html              ← Només HTML i CSS; carrega js/equacions/equacions.js
 ├── tools/                      ← Eines per a qui programa (servidor de prova, desa.sh, lint)
@@ -202,7 +202,7 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 | NNN | 3 | Nota ×10 arrodonida (000-100) |
 | RRR…R | 30-50 | Resultats per pregunta, sessió rere sessió (S × QQ posicions, mínim 30): 1=1r intent, 2=2n, 3=3r+, 4=fallada, 0=buit |
 
-**Lletra de control:** `js/codi-verificacio.js` (la fan servir els generadors i l'analitzador; `step-quiz/cb` en té una còpia idèntica). Des del 18/10/2026: `suma = NNN + DD + MM + HH + mm + ASCII(salt[0]) + Σ pes(i)·ASCII(cos[i])`, amb `cos = EE + D + S + QQ + RRR…` i `pes(i) = (i mod 22) + 1`; lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`. Cobreix tots els camps: canviar una sola xifra dels resultats la fa deixar de quadrar. Els codis d'abans (sense la suma del cos) continuen sent vàlids, i l'analitzador els marca ☑️ (resultats sense verificar). Proves: `tests/codi-verificacio.test.js`.
+**Lletra de control:** `js/codi-verificacio.js` (la fan servir els generadors i l'analitzador; `step-quiz/cb` en té una còpia idèntica, al seu codi.js). Els dos generadors d'operacions (`game-core.js` i `vocabulari.js`) munten el codi sencer amb `construeixCodiV2()`, del mateix fitxer. Des del 18/10/2026: `suma = NNN + DD + MM + HH + mm + ASCII(salt[0]) + Σ pes(i)·ASCII(cos[i])`, amb `cos = EE + D + S + QQ + RRR…` i `pes(i) = (i mod 22) + 1`; lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`. Cobreix tots els camps: canviar una sola xifra dels resultats la fa deixar de quadrar. Els codis d'abans (sense la suma del cos) continuen sent vàlids, i l'analitzador els marca ☑️ (resultats sense verificar). Proves: `tests/codi-verificacio.test.js`.
 
 ### Format v3 (només Competències Bàsiques)
 
@@ -224,7 +224,24 @@ Lsss-DDMM-HHMM-CB-D-S-QQ-AA-F-SS-EEEE-NNN-RRR…R
 
 L'empremta és un FNV-1a de 32 bits del text `id,id,id…`, reduït a 4 lletres. Dues proves amb la mateixa empremta tenen exactament les mateixes preguntes en el mateix ordre; serveix per detectar preguntes triades a mà (paràmetre `q`) o un banc que ha canviat, encara que els filtres coincideixin. L'analitzador no la recalcula: només la compara.
 
-**Lletra de control del v3:** la mateixa fórmula de `lletraNova`, amb `cos = CB + D + S + QQ + AA + F + SS + EEEE + RRR…`. Només s'accepta la lletra nova (no hi ha codis v3 anteriors al 18/10/2026). Les lletres de l'empremta són 23 de seguides perquè canviar-ne una de sola mai quedi amagat per la lletra. `llegeixCodiV3()` de `js/codi-verificacio.js` llegeix i valida un codi v3; els vectors de `tests/codi-verificacio.test.js` són els mateixos que té el test del generador a `step-quiz/cb`.
+**Lletra de control del v3:** la mateixa fórmula de `lletraNova`, amb `cos = CB + D + S + QQ + AA + F + SS + EEEE + RRR…`. Només s'accepta la lletra nova (no hi ha codis v3 anteriors al 18/10/2026). Les lletres de l'empremta són 23 de seguides perquè canviar-ne una de sola mai quedi amagat per la lletra. `llegeixCodiV3()` de `js/codi-verificacio.js` llegeix i valida un codi v3; els vectors (`tests/vectors-cb-v3.js`) són els mateixos que té el test del generador a `step-quiz/cb`.
+
+### Format v1 (només els primers codis de CB)
+
+```
+Lsss-DDMM-HHMM-NN,NN-RRR…R(30)-cb
+```
+
+La nota amb dos decimals i coma, els intents de cada pregunta i `cb` al final; la lletra és la fórmula antiga amb la nota × 100. L'analitzador els continua llegint (format `v1-cb`), amb els resultats sense verificar.
+
+### Com es canvia el format dels codis
+
+Els alumnes ja han enviat codis de tots aquests formats, i el professor els pot tornar a carregar a l'analitzador en qualsevol moment. Per això:
+
+1. **Un format publicat no es toca mai.** Ni l'ordre dels camps, ni què vol dir cada valor, ni la fórmula de la lletra.
+2. **Un canvi és un format nou** (v4…), que ha de tenir una forma que no es pugui confondre amb cap dels anteriors (per exemple, un altre nombre de segments). L'analitzador el reconeix per la forma.
+3. **L'analitzador els llegeix tots.** La lectura és a `js/analitzador-stepquiz/llegeix-codi.js` (lògica pura, sense DOM) i `tests/llegeix-codi.test.js` té un codi de cada format i de cada època amb el que se n'ha de treure. Quan s'afegeix un format, s'hi afegeixen codis seus; els que ja hi són no es canvien: si un deixa de passar, l'analitzador ja no llegiria codis que els alumnes han enviat.
+4. **Els dos costats a la vegada.** Si el format el genera un altre repositori (`step-quiz/cb`), els vectors fixos han de ser els mateixos als dos tests (`tests/vectors-cb-v3.js` aquí, tests/codi.test.js allà). Amb `cb` clonat al costat (a la carpeta ../cb), `tests/llegeix-codi.test.js` també llegeix 300 codis que genera de debò el codi.js de `cb`.
 
 ## Paràmetres URL disponibles
 
@@ -288,7 +305,8 @@ node tests/run-all.js
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 | `tests/esvaiment.test.js` | Mode «Esvaïment»: el motor de nivells (pujar, baixar, terra a 0, URL estranyes) i, a `prioritat`, que els passos de 1.000 expressions arriben al resultat recalculat a part i que la taula sense marques és la de sempre |
 | `tests/intents.test.js` | L'analitzador davant d'un alumne que repeteix la prova: intents numerats per l'hora del codi, el mateix codi enviat dos cops, quin intent compta (últim, primer, millor, tots) i proves de CB de mida diferent separades |
-| `tests/codi-verificacio.test.js` | La lletra de control dels codis: vectors fixos (els mateixos que ha de complir `step-quiz/cb`), que canviar una sola xifra dels resultats es detecti sempre i que els codis antics continuïn sent vàlids |
+| `tests/codi-verificacio.test.js` | La lletra de control dels codis: vectors fixos (els mateixos que ha de complir `step-quiz/cb`; els del v3 són a `tests/vectors-cb-v3.js`), que canviar una sola xifra dels resultats es detecti sempre i que els codis antics continuïn sent vàlids |
+| `tests/llegeix-codi.test.js` | El lector de codis de l'analitzador: un codi de cada format i de cada època (v1-cb, v2 amb la lletra antiga i la nova, v2 i v3 de CB) i el que se n'ha de treure, els codis dolents, l'anada i tornada del v2 per a tots els codis d'exercici i la del v3 amb els vectors de `cb` (i, si `cb` és clonat a la carpeta ../cb, 300 codis del seu codi.js) |
 | `tests/docs_vs_codi.py` | Que la documentació diu el mateix que el codi: les rutes que citen els documents principals existeixen i el README parla de totes les pàgines de l'arrel (Python, sense dependències) |
 
 **GitHub ho fa sol:** el fitxer `.github/workflows/tests.yml` executa `node tests/run-all.js` cada cop que es puja alguna cosa a `main` i a cada pull request. El resultat surt com una ✓ verda o una ✗ vermella al costat del commit (pestanya **Actions** per veure'n el detall).
