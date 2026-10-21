@@ -1482,7 +1482,7 @@ function cbGrupHtml(g, dateLabel, multiDay) {
     });
     h += `</div>`;
 
-    h += `<p class="cb-section-title" style="margin-top:8px;">Matriu alumnes × preguntes</p>
+    h += `<p class="cb-section-title" style="margin-top:22px;">Matriu alumnes × preguntes</p>
   <div class="cb-matrix-wrap"><table class="cb-matrix"><thead><tr>
     <th class="cb-stu-h">Alumne</th>
     <th class="cb-nota-h">Nota</th>

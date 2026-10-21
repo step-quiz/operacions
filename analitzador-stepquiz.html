@@ -227,8 +227,10 @@ tbody td { padding:7px 9px; vertical-align:middle; overflow:hidden; text-overflo
 .int-up { color:var(--ok); } .int-down { color:#dc2626; } .int-eq { color:var(--muted); }
 .cb-info-note { background:#eff6ff; border:1px solid #dbeafe; color:#1e40af; border-radius:6px; padding:7px 10px; font-size:11.5px; margin-bottom:10px; }
 .cb-politica { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; font-size:12.5px; font-weight:600; }
-.cb-prova-title { font-size:13px; color:var(--text); }
-.cb-prova-sep { height:22px; }
+/* Títol de cada prova: negre i més gran (la doble classe guanya a .cb-section-title, que és grisa) */
+.cb-section-title.cb-prova-title { font-size:15px; color:#000; letter-spacing:.4px; margin-bottom:18px; }
+/* Línia horitzontal entre una prova i la següent */
+.cb-prova-sep { height:0; border-top-width:2px; border-top-style:solid; border-top-color:var(--border-h); margin:44px 0 34px; }
 .cb-matrix tr.cb-no-compta .cb-cell { opacity:.35; }
 .cb-matrix tr.cb-no-compta td.cb-stu-cell, .cb-matrix tr.cb-no-compta td.cb-nota-cell { color:var(--muted); font-weight:400; }
 .cb-int { font-size:8px; font-weight:700; color:#92400e; margin-left:1px; }
