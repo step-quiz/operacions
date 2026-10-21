@@ -9,6 +9,9 @@
  *   2. Canviar UNA xifra qualsevol dels resultats d'un codi nou el fa deixar
  *      de quadrar amb la lletra nova (sempre, a totes les posicions).
  *   3. Els codis d'abans (lletra antiga) continuen sent vàlids.
+ *   4. Format v3 (CB): vectors fixos (els mateixos que tests/codi.test.js de cb), com es
+ *      llegeixen els camps nous, que canviar-ne un de sol es detecti sempre, i que els
+ *      codis mal formats es rebutgin.
  * ÚS: node tests/codi-verificacio.test.js
  * ============================================================================
  */
@@ -102,6 +105,259 @@ const VECTORS = [
     }
     // G (nova) i E (antiga) són les dues lletres vàlides del primer vector; Z no ho és
     eq('un codi amb una lletra que no quadra amb cap fórmula és invàlid', versio('Z' + VECTORS[0][0].slice(1)), null);
+
+    // ── 4. Format v3 (CB) ────────────────────────────────────────────────────
+    // [codi, camps que se n'han de llegir]. Són els vectors de tests/codi.test.js de cb:
+    // allà es generen a partir d'unes entrades; aquí es llegeixen amb la fórmula de l'analitzador.
+    const V3 = [
+        [
+            'Mq26-2010-1150-CB-2-2-04-25-3-03-GTGS-100-211100000000000000000000000000',
+            {
+                curs: 2,
+                mode: 2,
+                questions: 4,
+                any: '25',
+                difMask: 3,
+                sentMask: 3,
+                empremta: 'GTGS',
+                notaInt: 100,
+                dd: 20,
+                mm: 10,
+                hh: 11,
+                mn: 50,
+                dif: ['1', '2'],
+                sent: ['numeric', 'algebraic'],
+            },
+        ],
+        [
+            'Ns26-2010-0905-CB-0-1-08-00-7-31-PSSH-075-141141110000000000000000000000',
+            {
+                curs: 0,
+                mode: 1,
+                questions: 8,
+                any: '00',
+                difMask: 7,
+                sentMask: 31,
+                empremta: 'PSSH',
+                notaInt: 75,
+                dd: 20,
+                mm: 10,
+                hh: 9,
+                mn: 5,
+                dif: ['1', '2', '3'],
+                sent: ['numeric', 'algebraic', 'mesura', 'espacial', 'estocastic'],
+            },
+        ],
+        [
+            'Bs26-2912-2359-CB-1-2-31-24-4-08-UHVO-100-1211311141111111111111111111111000000000',
+            {
+                curs: 1,
+                mode: 2,
+                questions: 31,
+                any: '24',
+                difMask: 4,
+                sentMask: 8,
+                empremta: 'UHVO',
+                notaInt: 100,
+                dd: 29,
+                mm: 12,
+                hh: 23,
+                mn: 59,
+                dif: ['3'],
+                sent: ['espacial'],
+            },
+        ],
+        [
+            'Cq27-0401-0800-CB-2-1-03-00-6-21-GDIL-033-144000000000000000000000000000',
+            {
+                curs: 2,
+                mode: 1,
+                questions: 3,
+                any: '00',
+                difMask: 6,
+                sentMask: 21,
+                empremta: 'GDIL',
+                notaInt: 33,
+                dd: 4,
+                mm: 1,
+                hh: 8,
+                mn: 0,
+                dif: ['2', '3'],
+                sent: ['numeric', 'mesura', 'estocastic'],
+            },
+        ],
+        [
+            'Jq26-2010-1200-CB-2-2-04-00-7-31-OUTV-100-111100000000000000000000000000',
+            {
+                curs: 2,
+                mode: 2,
+                questions: 4,
+                any: '00',
+                difMask: 7,
+                sentMask: 31,
+                empremta: 'OUTV',
+                notaInt: 100,
+                dd: 20,
+                mm: 10,
+                hh: 12,
+                mn: 0,
+                dif: ['1', '2', '3'],
+                sent: ['numeric', 'algebraic', 'mesura', 'espacial', 'estocastic'],
+            },
+        ],
+        [
+            'Yq26-2010-1200-CB-2-2-04-00-7-31-NTNO-100-111100000000000000000000000000',
+            {
+                curs: 2,
+                mode: 2,
+                questions: 4,
+                any: '00',
+                difMask: 7,
+                sentMask: 31,
+                empremta: 'NTNO',
+                notaInt: 100,
+                dd: 20,
+                mm: 10,
+                hh: 12,
+                mn: 0,
+                dif: ['1', '2', '3'],
+                sent: ['numeric', 'algebraic', 'mesura', 'espacial', 'estocastic'],
+            },
+        ],
+    ];
+
+    suite('4a. Format v3: vectors fixos (els mateixos que a step-quiz/cb)');
+    for (const [codi, esperat] of V3) {
+        const r = m.llegeixCodiV3(codi);
+        const nom = codi.slice(0, 24) + '…';
+        ok(`${nom} es llegeix i la lletra quadra`, r !== null && r.valid === true);
+        if (!r) continue;
+        for (const k of [
+            'curs',
+            'mode',
+            'questions',
+            'any',
+            'difMask',
+            'sentMask',
+            'empremta',
+            'notaInt',
+            'dd',
+            'mm',
+            'hh',
+            'mn',
+        ])
+            eq(`${nom} ${k}`, r[k], esperat[k]);
+        eq(
+            `${nom} dificultats`,
+            m
+                .llistaDeMascara(r.difMask, m.DIFICULTATS_CB)
+                .map(e => e.valor)
+                .join(),
+            esperat.dif.join()
+        );
+        eq(
+            `${nom} sentits`,
+            m
+                .llistaDeMascara(r.sentMask, m.SENTITS_CB)
+                .map(e => e.valor)
+                .join(),
+            esperat.sent.join()
+        );
+    }
+    eq('les màscares de «totes» valen 7 i 31', [m.MASCARA_DIFICULTATS_TOTES, m.MASCARA_SENTITS_TOTS].join(), '7,31');
+    eq('els bits de les dificultats són 1, 2, 4', m.DIFICULTATS_CB.map(e => e.bit).join(), '1,2,4');
+    eq('els bits dels sentits són 1, 2, 4, 8, 16', m.SENTITS_CB.map(e => e.bit).join(), '1,2,4,8,16');
+    eq('l\u2019empremta només usa 23 lletres seguides (A-W)', m.ALFABET_EMPREMTA, 'ABCDEFGHIJKLMNOPQRSTUVW');
+
+    suite('4b. Format v3: canviar un sol caràcter del cos es detecta SEMPRE');
+    {
+        // alfabet permès a cada camp del cos (sense el codi d'exercici): curs, mode, QQ, AA, F, SS, EEEE, resultats
+        const alfabets = {
+            4: '0123',
+            5: '12',
+            6: '0123456789',
+            7: '0123456789',
+            8: '1234567',
+            9: '0123456789',
+            10: m.ALFABET_EMPREMTA,
+            12: '01234',
+        };
+        let provats = 0,
+            sensePerdre = 0;
+        for (const [codi] of V3) {
+            const p = codi.split('-');
+            for (const [idx, alf] of Object.entries(alfabets)) {
+                for (let i = 0; i < p[idx].length; i++) {
+                    for (const c of alf) {
+                        if (c === p[idx][i]) continue;
+                        const q = [...p];
+                        q[idx] = p[idx].slice(0, i) + c + p[idx].slice(i + 1);
+                        const r = m.llegeixCodiV3(q.join('-'));
+                        provats++;
+                        if (r === null || r.valid === false) sensePerdre++;
+                    }
+                }
+            }
+        }
+        ok(
+            `${provats} canvis d'un sol caràcter (convocatòria, dificultats, sentits, empremta, resultats…), tots detectats`,
+            provats > 1000 && sensePerdre === provats,
+            `${provats - sensePerdre} no detectats`
+        );
+    }
+    {
+        // Els codis v3 no accepten la lletra antiga: només la nova
+        const [codi] = V3[0];
+        const r = m.llegeixCodiV3(codi);
+        const antiga = m.lletraAntiga(r.notaInt, r.dd, r.mm, r.hh, r.mn, r.salt);
+        if (antiga !== r.lletra)
+            ok(
+                'un codi v3 amb la lletra antiga (només nota i data) no és vàlid',
+                m.llegeixCodiV3(antiga + codi.slice(1)).valid === false
+            );
+        else ok('(la lletra antiga coincideix amb la nova en aquest vector: es prova amb un altre)', true);
+        ok(
+            'un codi v3 amb la lletra d\u2019un altre vector no és vàlid',
+            m.llegeixCodiV3(V3[1][0][0] + codi.slice(1)).valid === false
+        );
+    }
+
+    suite('4c. Format v3: els codis mal formats es rebutgen');
+    {
+        const [codi] = V3[0];
+        const p = codi.split('-');
+        const amb = (idx, valor) => {
+            const q = [...p];
+            q[idx] = valor;
+            return q.join('-');
+        };
+        eq('el v2 (9 segments) no és un v3', m.llegeixCodiV3(VECTORS[2][0]), null);
+        eq('un segment de menys', m.llegeixCodiV3(p.slice(0, 12).join('-')), null);
+        eq('un segment de més', m.llegeixCodiV3(codi + '-1'), null);
+        eq('buit', m.llegeixCodiV3(''), null);
+        eq('null', m.llegeixCodiV3(null), null);
+        eq('text qualsevol', m.llegeixCodiV3('hola-que-tal'), null);
+        const dolents = [
+            ['empremta amb X, Y o Z (fora de A-W)', 10, 'GTGX'],
+            ['empremta en minúscules', 10, 'gtgs'],
+            ['empremta de 3 lletres', 10, 'GTG'],
+            ['empremta amb una xifra', 10, 'GT5S'],
+            ['sentits 00 (cap)', 9, '00'],
+            ['sentits 32 (fora de 31)', 9, '32'],
+            ['sentits d\u2019una sola xifra', 9, '3'],
+            ['dificultats 0 (cap)', 8, '0'],
+            ['dificultats 8 (fora de 7)', 8, '8'],
+            ['convocatòria de 4 xifres', 7, '2025'],
+            ['convocatòria amb lletres', 7, 'ab'],
+            ['curs 4', 4, '4'],
+            ['mode 0', 5, '0'],
+            ['resultats amb un 5', 12, '5' + p[12].slice(1)],
+            ['resultats massa curts (29)', 12, p[12].slice(1)],
+            ['nota de 2 xifres', 11, '99'],
+        ];
+        for (const [nom, idx, valor] of dolents) eq(nom, m.llegeixCodiV3(amb(idx, valor)), null);
+        ok('el codi correcte, amb espais al voltant, es llegeix', m.llegeixCodiV3(`  ${codi}\n`) !== null);
+    }
 
     finish('Lletra de control dels codis');
 })();

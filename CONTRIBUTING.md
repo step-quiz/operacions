@@ -204,6 +204,28 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 
 **Lletra de control:** `js/codi-verificacio.js` (la fan servir els generadors i l'analitzador; `step-quiz/cb` en té una còpia idèntica). Des del 18/10/2026: `suma = NNN + DD + MM + HH + mm + ASCII(salt[0]) + Σ pes(i)·ASCII(cos[i])`, amb `cos = EE + D + S + QQ + RRR…` i `pes(i) = (i mod 22) + 1`; lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`. Cobreix tots els camps: canviar una sola xifra dels resultats la fa deixar de quadrar. Els codis d'abans (sense la suma del cos) continuen sent vàlids, i l'analitzador els marca ☑️ (resultats sense verificar). Proves: `tests/codi-verificacio.test.js`.
 
+### Format v3 (només Competències Bàsiques)
+
+El que genera `step-quiz/cb` des de la nova generació de codis. Té els camps del v2 i quatre més, que diuen què s'havia triat a l'enllaç de la prova (13 segments en lloc de 9):
+
+```
+Lsss-DDMM-HHMM-CB-D-S-QQ-AA-F-SS-EEEE-NNN-RRR…R
+```
+
+| Camp | Llarg | Descripció |
+|------|-------|------------|
+| D | 1 | Curs: 0 = tots, 1 = 2n ESO, 2 = 4t ESO |
+| S | 1 | Mode: 1 = examen, 2 = pràctica |
+| QQ | 2 | Nombre de preguntes de la prova |
+| AA | 2 | Convocatòria triada: els dos últims dígits de l'any (`25`), o `00` = tots els anys |
+| F | 1 | Dificultats triades, com a suma de bits: baixa = 1, mitjana = 2, alta = 4 (`7` = totes) |
+| SS | 2 | Sentits triats, com a suma de bits: numèric = 1, algebraic = 2, de mesura = 4, espacial = 8, estocàstic = 16 (`31` = tots) |
+| EEEE | 4 | Empremta de la llista d'ids de les preguntes, en ordre (lletres de la A a la W) |
+
+L'empremta és un FNV-1a de 32 bits del text `id,id,id…`, reduït a 4 lletres. Dues proves amb la mateixa empremta tenen exactament les mateixes preguntes en el mateix ordre; serveix per detectar preguntes triades a mà (paràmetre `q`) o un banc que ha canviat, encara que els filtres coincideixin. L'analitzador no la recalcula: només la compara.
+
+**Lletra de control del v3:** la mateixa fórmula de `lletraNova`, amb `cos = CB + D + S + QQ + AA + F + SS + EEEE + RRR…`. Només s'accepta la lletra nova (no hi ha codis v3 anteriors al 18/10/2026). Les lletres de l'empremta són 23 de seguides perquè canviar-ne una de sola mai quedi amagat per la lletra. `llegeixCodiV3()` de `js/codi-verificacio.js` llegeix i valida un codi v3; els vectors de `tests/codi-verificacio.test.js` són els mateixos que té el test del generador a `step-quiz/cb`.
+
 ## Paràmetres URL disponibles
 
 | Paràmetre | Valors | Per defecte | Descripció |

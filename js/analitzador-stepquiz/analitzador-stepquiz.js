@@ -8,7 +8,16 @@
  */
 
 import { EXERCISE_NAMES } from '../exercise-codes.js';
-import { versioLletra, cosDelCodi } from '../codi-verificacio.js';
+import {
+    versioLletra,
+    cosDelCodi,
+    llegeixCodiV3,
+    llistaDeMascara,
+    DIFICULTATS_CB,
+    SENTITS_CB,
+    MASCARA_DIFICULTATS_TOTES,
+    MASCARA_SENTITS_TOTS,
+} from '../codi-verificacio.js';
 import { marcaIntents, agrupaProves, estadistiquesPreguntes } from './intents.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -129,6 +138,9 @@ function esc(s) {
         .replace(/'/g, '&#39;');
 }
 
+// Els codis v2 i els v3 (CB amb convocatòria, dificultats, sentits i empremta) comparteixen els camps bàsics
+const esV2 = p => p.format === 'v2' || p.format === 'v3';
+
 function parseCode(raw) {
     // Mateixos camps que 'unknown' perquè el detall de la fila no falli (p.note, etc.)
     if (!raw || !raw.trim())
@@ -152,6 +164,44 @@ function parseCode(raw) {
         };
     const code = raw.trim(),
         p = code.split('-');
+    const v3 = llegeixCodiV3(code);
+    if (v3) {
+        const result = {
+            format: 'v3',
+            valid: v3.valid,
+            checksumOk: v3.valid,
+            resultatsVerificats: v3.valid, // al v3 només hi ha lletra nova: cobreix també els resultats
+            exercise: EX[v3.exCode] || v3.exCode,
+            exerciseCode: v3.exCode,
+            note: v3.notaInt / 10,
+            difficulty: v3.curs, // com al v2: el camp D (a CB és el curs)
+            sessions: v3.mode, // com al v2: el camp S (a CB és el mode)
+            questions: v3.questions,
+            day: v3.dd,
+            month: v3.mm,
+            hour: v3.hh,
+            minute: v3.mn,
+            results: v3.results,
+            resultsArray: v3.results.split('').map(Number),
+            cbNivell: null,
+            cbAny: null,
+            cbMode: null,
+            cbConvocatoria: null,
+            cbDifMask: v3.difMask,
+            cbSentMask: v3.sentMask,
+            cbDificultats: llistaDeMascara(v3.difMask, DIFICULTATS_CB),
+            cbSentits: llistaDeMascara(v3.sentMask, SENTITS_CB),
+            empremta: v3.empremta,
+            error: v3.valid ? null : 'Checksum invàlid',
+        };
+        if (v3.exCode === 'CB') {
+            result.cbNivell = { 1: '2n ESO', 2: '4t ESO', 0: 'Tots els cursos' }[v3.curs] || null;
+            result.cbAny = /^\d{2}$/.test(v3.salt.slice(1)) ? '20' + v3.salt.slice(1) : null; // any en què es fa la prova
+            result.cbMode = v3.mode === 1 ? 'Examen' : v3.mode === 2 ? 'Pràctica' : null;
+            result.cbConvocatoria = v3.any === '00' ? null : '20' + v3.any;
+        }
+        return result;
+    }
     if (
         p.length === 9 &&
         /^[A-Z][a-z][a-z0-9]{2}$/.test(p[0]) &&
@@ -411,8 +461,12 @@ function intentCell(row) {
 function renderRow(row) {
     const p = row.parsed,
         open = expIdx === row.idx;
-    // A CB el camp D del codi és el curs (1 = 2n ESO, 2 = 4t ESO), no la dificultat
-    const dif = p.difficulty > 0 && p.exerciseCode !== 'CB' ? p.difficulty : '<span class="mu">—</span>';
+    // A CB el camp D del codi és el curs (1 = 2n ESO, 2 = 4t ESO), no la dificultat. Els codis v3 de CB
+    // porten les dificultats triades: es mostren (1, 1,2, 2,3…) i, si són totes, res.
+    let dif = p.difficulty > 0 && p.exerciseCode !== 'CB' ? p.difficulty : '<span class="mu">—</span>';
+    if (p.format === 'v3' && p.exerciseCode === 'CB' && p.cbDifMask !== MASCARA_DIFICULTATS_TOTES) {
+        dif = `<span title="Dificultat ${esc(p.cbDificultats.map(d => d.valor + ' · ' + d.nom).join(', '))}">${esc(p.cbDificultats.map(d => d.valor).join(','))}</span>`;
+    }
     const ses = p.sessions || '<span class="mu">—</span>';
     const prg = p.questions || '<span class="mu">—</span>';
     const hd = p.resultsArray && p.resultsArray.some(v => v > 0);
@@ -432,6 +486,29 @@ function renderRow(row) {
     <td>${rgap(row.gap)}</td>
     <td>${hd ? dots(p.resultsArray) : '<span class="mu">—</span>'}</td>
   </tr>${open ? renderDet(row) : ''}`;
+}
+
+// Fitxa d'un codi de CB: curs, any de la prova, mode i, als codis v3, el que s'havia triat
+function cbItems(p) {
+    const items = [];
+    if (p.cbNivell) items.push({ k: 'Curs', v: p.cbNivell });
+    if (p.format === 'v3' && p.exerciseCode === 'CB') {
+        items.push({ k: 'Convocatòria', v: p.cbConvocatoria ? `CB ${p.cbConvocatoria}` : 'Totes' });
+        items.push({
+            k: 'Dificultat',
+            v:
+                p.cbDifMask === MASCARA_DIFICULTATS_TOTES
+                    ? 'Totes'
+                    : p.cbDificultats.map(d => `${d.valor} · ${d.nom}`).join(', '),
+        });
+        items.push({
+            k: 'Sentits',
+            v: p.cbSentMask === MASCARA_SENTITS_TOTS ? 'Tots' : p.cbSentits.map(d => d.nom).join(', '),
+        });
+    }
+    if (p.cbAny) items.push({ k: 'Any de la prova', v: p.cbAny });
+    if (p.cbMode) items.push({ k: 'Mode', v: p.cbMode });
+    return items;
 }
 
 function renderDet(row) {
@@ -455,15 +532,14 @@ function renderDet(row) {
     if (row.classe) items.push({ k: 'Classe', v: row.classe });
     if (row.intents && (row.intents > 1 || row.duplicatDe)) items.push({ k: 'Intent', v: textIntent(row) });
     items.push({ k: 'Activitat', v: p.exercise || p.exerciseCode || '—' });
-    if (p.cbNivell) items.push({ k: 'Curs', v: p.cbNivell });
-    if (p.cbAny) items.push({ k: 'Convocatòria', v: 'CB ' + p.cbAny });
-    if (p.cbMode) items.push({ k: 'Mode', v: p.cbMode });
-    if (p.format === 'v2' && p.exerciseCode !== 'CB') {
+    items.push(...cbItems(p));
+    if (esV2(p) && p.exerciseCode !== 'CB') {
         items.push({ k: 'Dificultat', v: p.difficulty === 0 ? '—' : `Nivell ${p.difficulty}` });
         items.push({ k: 'Sessions', v: String(p.sessions) });
         items.push({ k: 'Preguntes', v: String(p.questions) });
-    } else if (p.format === 'v2' && p.exerciseCode === 'CB') {
+    } else if (esV2(p) && p.exerciseCode === 'CB') {
         items.push({ k: 'Preguntes', v: String(p.questions) });
+        if (p.format === 'v3') items.push({ k: 'Empremta', v: p.empremta });
     }
     const ss = p.sessions || 1,
         qq = p.questions || 30;
@@ -812,7 +888,7 @@ function looksLikeStepQuizData(csv) {
     if (csv._headerFound) return true;
     return csv.some(r => {
         const f = parseCode(r.rawCode).format;
-        return f === 'v2' || f === 'v1-cb';
+        return f === 'v2' || f === 'v3' || f === 'v1-cb';
     });
 }
 
@@ -835,7 +911,7 @@ function loadData(txt) {
     filtRows = [...allRows];
     expIdx = null;
     // Segona barrera: si res no ha parsejat a un format conegut, no mostrem la taula
-    if (!allRows.some(r => r.parsed.format === 'v2' || r.parsed.format === 'v1-cb')) {
+    if (!allRows.some(r => esV2(r.parsed) || r.parsed.format === 'v1-cb')) {
         allRows = [];
         filtRows = [];
         showLoadError(
@@ -1051,7 +1127,7 @@ function analyzeSingle() {
 
 function renderSingle(raw, p) {
     const ok = p.checksumOk;
-    const fmtLabel = { 'v2': 'Format v2', 'v1-cb': 'Format v1 · CB' }[p.format] || p.format;
+    const fmtLabel = { 'v3': 'Format v3', 'v2': 'Format v2', 'v1-cb': 'Format v1 · CB' }[p.format] || p.format;
     const hd = p.resultsArray && p.resultsArray.some(v => v > 0);
     const items = [
         {
@@ -1070,14 +1146,16 @@ function renderSingle(raw, p) {
             v: p.hour === null ? '—' : `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`,
         },
     ];
-    if (p.format === 'v2' && p.exerciseCode !== 'CB') {
+    if (esV2(p) && p.exerciseCode !== 'CB') {
         items.push({ k: 'Dificultat', v: p.difficulty === 0 ? '—' : `Nivell ${p.difficulty}` });
         items.push({ k: 'Sessions', v: String(p.sessions) });
         items.push({ k: 'Preguntes', v: String(p.questions) });
     }
-    if (p.cbNivell) items.push({ k: 'Curs', v: p.cbNivell });
-    if (p.cbAny) items.push({ k: 'Convocatòria', v: 'CB ' + p.cbAny });
-    if (p.cbMode) items.push({ k: 'Mode', v: p.cbMode });
+    items.push(...cbItems(p));
+    if (p.format === 'v3' && p.exerciseCode === 'CB') {
+        items.push({ k: 'Preguntes', v: String(p.questions) });
+        items.push({ k: 'Empremta', v: p.empremta });
+    }
 
     const ss = p.sessions || 1,
         qq = p.questions || 30;
@@ -1371,8 +1449,8 @@ const CB_POLITIQUES = {
     millor: ['El millor intent de cada alumne', 'el millor intent (la nota més alta) de cada alumne'],
     tots: ['Tots els enviaments', 'tots els enviaments, també els repetits'],
 };
-const cbCursMode = g => [g.nivell, g.mode].filter(Boolean).join(' · ');
-const cbEtiquetaGrup = g => `Prova de ${g.nq} preguntes${cbCursMode(g) ? ' · ' + cbCursMode(g) : ''}`;
+// Títol de la prova (el posa agrupaProves): «Prova de 4 preguntes · 4t ESO · Pràctica · Dificultat 1»
+const cbEtiquetaGrup = g => g.etiqueta;
 const plural = (n, un, molts) => `${n} ${n === 1 ? un : molts}`;
 // Correu (o nom) de l'alumne, amb el número d'intent si en té més d'un
 const etiquetaAlumne = r =>
@@ -1436,7 +1514,11 @@ function cbNotesHtml(grups, ignorats) {
         const llista = repetidors
             .map(r => `${esc(r.student)} (${r.intents} intents${grups.length > 1 ? ', ' + r.nq + ' preg.' : ''})`)
             .join(', ');
-        h += `<div class="cb-dup-note">↻ Han fet més d'un cop la mateixa prova: <b>${llista}</b>. A les estadístiques compta ${CB_POLITIQUES[cbPolitica][1]}. A la matriu, els intents que no compten surten esvaïts, amb ↻ i el número d'intent.<br>El codi no diu la dificultat triada: si algú ha fet dues proves amb el mateix nombre de preguntes però de dificultat diferent, aquí surten com a dos intents de la mateixa prova.</div>`;
+        // Només els codis v2 no diuen la dificultat triada; els v3 sí, i en separen les proves
+        const limitacioV2 = grups.some(g => g.repetidors.length && !g.meta)
+            ? '<br>Els codis antics no diuen la dificultat triada: si algú ha fet dues proves amb el mateix nombre de preguntes però de dificultat diferent, aquí surten com a dos intents de la mateixa prova.'
+            : '';
+        h += `<div class="cb-dup-note">↻ Han fet més d'un cop la mateixa prova: <b>${llista}</b>. A les estadístiques compta ${CB_POLITIQUES[cbPolitica][1]}. A la matriu, els intents que no compten surten esvaïts, amb ↻ i el número d'intent.${limitacioV2}</div>`;
     }
     if (grups.length > 1) {
         const mides = grups.map(g => esc(cbEtiquetaGrup(g))).join('; ');
@@ -1749,10 +1831,12 @@ function fullCBGrup(wb, g, nomFull) {
 // Nom de full d'Excel: màxim 31 caràcters i sense repetir-ne cap
 function nomFullCB(base, g, perFull, usats) {
     const abrev = { Pràctica: 'Prac', Examen: 'Exam' };
-    let nom = perFull
-        ? [base, `${g.nq}p`, (g.nivell || '').slice(0, 2), abrev[g.mode] || ''].filter(Boolean).join(' ')
-        : base;
+    const curs =
+        { '2n ESO': '2n', '4t ESO': '4t', 'Tots els cursos': 'tots' }[g.nivell] || (g.nivell || '').slice(0, 2);
+    let nom = perFull ? [base, `${g.nq}p`, curs, abrev[g.mode] || ''].filter(Boolean).join(' ') : base;
     nom = nom.slice(0, 31);
+    // Dues proves amb el mateix curs, mode i mida (filtres o preguntes diferents): l'empremta les distingeix
+    if (usats.has(nom.toLowerCase()) && g.meta) nom = `${nom.slice(0, 26)} ${g.meta.empremta}`;
     let n = 2;
     while (usats.has(nom.toLowerCase())) nom = `${nom.slice(0, 28)} ${n++}`;
     usats.add(nom.toLowerCase());

@@ -21,7 +21,7 @@ No requereix instal·lació. Són arxius totalment estàtics, publicats a https:
 1. Obre `index.html` al navegador — és el **generador d'enllaços** per al professorat.
 2. Tria l'exercici i configura sessions, preguntes i intents.
 3. Copia l'enllaç i comparteix-lo amb els alumnes.
-4. En acabar, l'alumne obté un **codi de verificació** (format v2, 59–79 caràcters) amb nota, data i checksum antifrau.
+4. En acabar, l'alumne obté un **codi de verificació** (format v2, 59–79 caràcters) amb nota, data i checksum antifrau. Les Competències Bàsiques (`step-quiz/cb`) en donen un de més complet, el **v3**, que a més diu quina convocatòria, dificultats i sentits s'havien triat i porta una empremta de les preguntes (vegeu [CONTRIBUTING.md](CONTRIBUTING.md)).
 5. El professor carrega les respostes del formulari a `analitzador-stepquiz.html` per validar els codis i veure les notes. Si un alumne envia més d'un codi de la mateixa prova, la columna **Int.** de l'analitzador ho marca (`↻2/3` = 2n intent de 3, amb el canvi de nota) i el resum de Competències Bàsiques separa les proves de mida diferent i deixa triar quin intent compta (vegeu més avall).
 
 ## Exercicis disponibles
@@ -131,10 +131,11 @@ Un alumne pot fer la mateixa prova més d'un cop i enviar cada codi pel formular
 
 - **Què és «la mateixa prova».** Mateix alumne (correu), exercici, camp `D`, camp `S` i nombre de preguntes `QQ`. Els intents es numeren per l'hora del **codi**, no per la de l'enviament. La columna **Int.** de la taula mostra `↻2/3` (2n intent de 3) i el canvi de nota respecte de l'intent anterior.
 - **Mateix codi dos cops.** No és cap intent nou: surt com `= 1` i el resum CB l'ignora.
-- **Resum CB per proves.** El codi només porta la **posició** de cada pregunta (1a, 2a, 3a…), no quina pregunta del banc és. Per no barrejar la «pregunta 1» d'una prova de 4 preguntes amb la d'una de 8, el resum separa les proves per curs, mode i nombre de preguntes, i l'Excel porta un full per prova.
+- **Resum CB per proves.** El codi només porta la **posició** de cada pregunta (1a, 2a, 3a…), no quina pregunta del banc és. Per no barrejar la «pregunta 1» d'una prova de 4 preguntes amb la d'una de 8, el resum separa les proves per curs, mode i nombre de preguntes i, als codis v3, també per convocatòria, dificultats, sentits i empremta de les preguntes. L'Excel porta un full per prova. El títol de cada prova diu què s'havia triat: «Prova de 4 preguntes · 4t ESO · Pràctica · Dificultat 1».
 - **Quin intent compta.** Dalt del resum CB, un selector tria si a les estadístiques compta l'últim intent de cada alumne (per defecte), el primer, el millor o tots. Els intents que no compten surten esvaïts a la matriu.
-- **Limitació.** El codi no diu la dificultat triada a `cb`. Dues proves amb el mateix nombre de preguntes (p. ex. 4 de dificultat 1 i 4 de dificultat 2) no es poden distingir: surten com a intents d'una mateixa prova. Per resoldre-ho caldria afegir la dificultat al codi, al generador de codis del repositori `cb` i a la lletra de control.
-- **Columna «Dif.» a CB.** Als codis de CB el camp `D` és el curs (1 = 2n ESO, 2 = 4t ESO), no la dificultat; per això la columna surt buida.
+- **Codis v3.** Porten la convocatòria, les dificultats, els sentits i una empremta de les preguntes, i tot això compta per saber si dues proves són la mateixa. Quatre preguntes de dificultat 1 i quatre de dificultat 2 són proves diferents, i també ho són dues proves amb els mateixos filtres però preguntes diferents (triades a mà o amb un banc que ha canviat). A la columna «Dif.» es veuen les dificultats triades.
+- **Limitació dels codis v2 (anteriors).** No diuen la dificultat triada: dues proves amb el mateix nombre de preguntes (p. ex. 4 de dificultat 1 i 4 de dificultat 2) no es poden distingir i surten com a intents d'una mateixa prova.
+- **Columna «Dif.» a CB.** Als codis de CB el camp `D` és el curs (1 = 2n ESO, 2 = 4t ESO), no la dificultat; als codis v2 la columna surt buida i als v3 mostra les dificultats triades.
 
 ## Paràmetres URL
 

@@ -15,7 +15,7 @@
 'use strict';
 const path = require('path');
 const { pathToFileURL } = require('url');
-const { ROOT, suite, eq, finish } = require('./harness');
+const { ROOT, suite, ok, eq, finish } = require('./harness');
 // eq() compara amb ===: per a llistes i objectes, es comparen com a JSON
 const igual = (label, actual, esperat) => eq(label, JSON.stringify(actual), JSON.stringify(esperat));
 
@@ -175,6 +175,160 @@ function fila(
     const w2 = fila('xavi', { nq: 4, hora: '11:05' });
     w2.parsed.difficulty = 0; // «tots els nivells» té D=0, però la mateixa lletra de curs
     igual('no es duplica el títol', m.agrupaProves([w1, w2], 'ultim', 50).grups.length, 1);
+
+    suite('Codis v3: la dificultat, els sentits, la convocatòria i les preguntes compten');
+    const cod = await import(pathToFileURL(path.join(ROOT, 'js/codi-verificacio.js')).href);
+    // Fila v3 de CB: com fila(), amb el que diu el codi nou. Per defecte, filtres «tot» i l'empremta ABCD.
+    function filaV3(
+        student,
+        {
+            hora = '11:50',
+            nq = 4,
+            nota = 5,
+            any = null,
+            difMask = 7,
+            sentMask = 31,
+            empremta = 'ABCD',
+            codi,
+            curs = '4t ESO',
+            mode = 'Pràctica',
+        } = {}
+    ) {
+        const f = fila(student, {
+            hora,
+            nq,
+            nota,
+            curs,
+            mode,
+            codi: codi || `V3-${student}-${hora}-${nq}-${nota}-${any}-${difMask}-${sentMask}-${empremta}`,
+        });
+        Object.assign(f.parsed, {
+            format: 'v3',
+            cbConvocatoria: any,
+            cbDifMask: difMask,
+            cbSentMask: sentMask,
+            cbDificultats: cod.llistaDeMascara(difMask, cod.DIFICULTATS_CB),
+            cbSentits: cod.llistaDeMascara(sentMask, cod.SENTITS_CB),
+            empremta,
+        });
+        return f;
+    }
+    // El cas que el v2 no podia resoldre: 4 preguntes de dificultat 1 i 4 de dificultat 2
+    const wd1 = filaV3('dora', { hora: '11:00', difMask: 1, empremta: 'AAAA' });
+    const wd2 = filaV3('dora', { hora: '11:10', difMask: 2, empremta: 'BBBB' });
+    m.marcaIntents([wd1, wd2]);
+    eq(
+        'dificultat 1 i dificultat 2 són proves diferents: cap intent repetit',
+        [wd1.intents, wd2.intents].join(),
+        '1,1'
+    );
+    // Mateixos filtres i mateixes preguntes: sí que és repetició
+    const we1 = filaV3('enric', { hora: '11:00', difMask: 1, empremta: 'AAAA', nota: 5 });
+    const we2 = filaV3('enric', { hora: '11:10', difMask: 1, empremta: 'AAAA', nota: 8 });
+    m.marcaIntents([we1, we2]);
+    eq('mateixos filtres i empremta: 2 intents', [we1.intent, we2.intent, we2.intents].join(), '1,2,2');
+    eq('i la nota anterior és la del primer', we2.notaAnterior, 5);
+    // Mateixos filtres però preguntes diferents (triades a mà, o un banc que ha canviat)
+    const wf1 = filaV3('fina', { hora: '11:00', empremta: 'AAAA' });
+    const wf2 = filaV3('fina', { hora: '11:10', empremta: 'BBBB' });
+    m.marcaIntents([wf1, wf2]);
+    eq('mateixos filtres però una altra empremta: no és repetició', [wf1.intents, wf2.intents].join(), '1,1');
+    // Els sentits i la convocatòria també separen
+    const wg1 = filaV3('gina', { hora: '11:00', sentMask: 1 });
+    const wg2 = filaV3('gina', { hora: '11:10', sentMask: 2 });
+    const wg3 = filaV3('gina', { hora: '11:20', any: '2025' });
+    const wg4 = filaV3('gina', { hora: '11:30' });
+    m.marcaIntents([wg1, wg2, wg3, wg4]);
+    eq(
+        'un sentit diferent, una convocatòria diferent: proves diferents',
+        [wg1, wg2, wg3, wg4].map(x => x.intents).join(),
+        '1,1,1,1'
+    );
+    // El mateix codi v3 dues vegades: enviament repetit
+    const wh1 = filaV3('hug', { codi: 'MATEIX-V3', hora: '10:00' });
+    const wh2 = filaV3('hug', { codi: 'MATEIX-V3', hora: '10:00' });
+    m.marcaIntents([wh1, wh2]);
+    eq('el mateix codi v3 dos cops no és un intent nou', [wh2.duplicatDe === wh1, wh1.intents].join(), 'true,1');
+    // Un v2 i un v3 amb els mateixos camps bàsics no es barregen (el v3 té l'empremta)
+    const wi1 = fila('ivan', { hora: '11:00' });
+    const wi2 = filaV3('ivan', { hora: '11:10' });
+    m.marcaIntents([wi1, wi2]);
+    eq('un codi v2 i un v3 són proves diferents', [wi1.intents, wi2.intents].join(), '1,1');
+
+    suite('Codis v3: els títols de les proves');
+    eq('sense meta (v2): cap part', m.descripcioFiltres(null).length, 0);
+    const metaV3 = (o = {}) => {
+        const f = filaV3('x', o).parsed;
+        return {
+            convocatoria: f.cbConvocatoria,
+            difMask: f.cbDifMask,
+            sentMask: f.cbSentMask,
+            empremta: f.empremta,
+            dificultats: f.cbDificultats,
+            sentits: f.cbSentits,
+        };
+    };
+    eq('tot a «tots»: cap part', m.descripcioFiltres(metaV3()).length, 0);
+    igual('convocatòria 2025', m.descripcioFiltres(metaV3({ any: '2025' })), ['Convocatòria 2025']);
+    igual('una dificultat', m.descripcioFiltres(metaV3({ difMask: 4 })), ['Dificultat 3']);
+    igual('dues dificultats', m.descripcioFiltres(metaV3({ difMask: 3 })), ['Dificultats 1, 2']);
+    igual('un sentit', m.descripcioFiltres(metaV3({ sentMask: 8 })), ['Sentit Espacial']);
+    igual('dos sentits, en l\u2019ordre dels bits', m.descripcioFiltres(metaV3({ sentMask: 3 })), [
+        'Sentits Numèric, Algebraic',
+    ]);
+    igual('tot junt', m.descripcioFiltres(metaV3({ any: '2024', difMask: 6, sentMask: 20 })), [
+        'Convocatòria 2024',
+        'Dificultats 2, 3',
+        'Sentits De mesura, Estocàstic',
+    ]);
+
+    // Dues proves de dificultat diferent surten separades i amb el títol que ho diu
+    const wj1 = filaV3('joan', { hora: '11:00', difMask: 1, empremta: 'AAAA' });
+    const wj2 = filaV3('joan', { hora: '11:10', difMask: 2, empremta: 'BBBB' });
+    const wk1 = filaV3('kim', { hora: '11:05', difMask: 1, empremta: 'AAAA' });
+    const wtots3 = [wj1, wj2, wk1];
+    m.marcaIntents(wtots3);
+    const wr3 = m.agrupaProves(wtots3, 'ultim', 50);
+    eq('dues proves', wr3.grups.length, 2);
+    igual(
+        'els títols diuen la dificultat',
+        wr3.grups.map(x => x.etiqueta),
+        [
+            'Prova de 4 preguntes · 4t ESO · Pràctica · Dificultat 1',
+            'Prova de 4 preguntes · 4t ESO · Pràctica · Dificultat 2',
+        ]
+    );
+    eq('la de dificultat 1 té 2 alumnes', wr3.grups[0].alumnes, 2);
+    eq(
+        'ningú no ha repetit: ni avís',
+        wr3.grups.every(x => x.repetidors.length === 0),
+        true
+    );
+    // Si el títol coincidiria, s'hi afegeix l'empremta (v3) o «codis antics» (v2)
+    const wl1 = filaV3('laia', { hora: '11:00', empremta: 'AAAA' });
+    const wl2 = filaV3('laia', { hora: '11:10', empremta: 'BBBB' });
+    const wl3 = fila('laia', { hora: '11:20' });
+    const wtl3 = [wl1, wl2, wl3];
+    m.marcaIntents(wtl3);
+    const wrl = m.agrupaProves(wtl3, 'tots', 50);
+    igual(
+        'mateix títol: es distingeixen per l\u2019empremta i per «codis antics»',
+        wrl.grups.map(x => x.etiqueta).sort(),
+        [
+            'Prova de 4 preguntes · 4t ESO · Pràctica · codis antics',
+            'Prova de 4 preguntes · 4t ESO · Pràctica · preguntes AAAA',
+            'Prova de 4 preguntes · 4t ESO · Pràctica · preguntes BBBB',
+        ]
+    );
+    ok('cap títol no es repeteix', new Set(wrl.grups.map(x => x.etiqueta)).size === wrl.grups.length);
+    // El v3 que repeteix la prova (mateixes preguntes) compta com a repetidor; l'avís de limitació és només del v2
+    const wm1 = filaV3('mar', { hora: '11:00', nota: 5 });
+    const wm2 = filaV3('mar', { hora: '11:10', nota: 8 });
+    const wtm = [wm1, wm2];
+    m.marcaIntents(wtm);
+    const wrm = m.agrupaProves(wtm, 'ultim', 50);
+    igual('el v3 repetit surt com a repetidor', wrm.grups[0].repetidors, [{ student: 'mar', intents: 2 }]);
+    ok('i el grup sap que és v3 (meta)', wrm.grups[0].meta !== null && wrm.grups[0].meta.empremta === 'ABCD');
 
     finish('Intents repetits a l’analitzador');
 })();
