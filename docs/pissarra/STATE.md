@@ -9,14 +9,15 @@ How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file win
 |---|---|---|
 | 0 | Engine ported (`js/pissarra/`, `css/pissarra.css`), demo page `pissarra-demo.html`, tests (`tests/pissarra.test.js`, `tests/navegador/prova-pissarra.js`, `check-repo.js` §9), index button | DONE |
 | 1 | Pilot `prioritat` (1r–2n ESO), with the fading mode that is already there | DONE (2026-10-27); David tests it with a 1r ESO group |
-| 2 | `equacions` (1r grau), together with its planned fading mode (`docs/esvaiment/STATE.md`) | PENDING |
+| 2 | `equacions` (1r grau) | DONE (2026-10-27). Its fading mode is still pending (see «Wave 2») |
 | 3 | `fraccions`: addition/subtraction first (with its planned fading mode), then product/division | PENDING |
 | 4 | `potencies` and `enters` (reuse the pilot) | PENDING |
 | 5 | `sistemes-equacions` and `radicals` (3r–4t ESO) | PENDING |
 | 6 | Batxillerat: `esglaonar-matriu` → `ruffini` → `complexos` (port `pau`'s `matrius.js` as needed) | PENDING |
 | 7 | Optional: `mcd-mcm`, `inversa-matriu`, `derivades`/`integrals` («Mira com es fa») | PENDING |
 
-After wave 1, David tests it with a 1r ESO group before the next waves. Next: wave 2 (`equacions`).
+After wave 1, David tests it with a 1r ESO group before the next waves. Wave 2 done at his request (27/10/2026).
+Next: wave 3 (`fraccions`).
 
 ## Decisions approved by the user
 
@@ -81,6 +82,29 @@ After wave 1, David tests it with a 1r ESO group before the next waves. Next: wa
   queued so an animation always finishes before the next one; taps on the operations are ignored while the
   board is animating. Speed: 1.6 (≈1.5 s) for the student's own step, 1 for worked/help steps.
 - With the keys off (no `?pissarra=1`) the table HTML is byte-identical to before (tested on 2,400 tables).
+
+## Wave 2: how `equacions` uses the board (2026-10-27)
+
+- Refactor first, with a characterisation test: the generators and `determineSteps` moved from the controller
+  to the pure `js/equacions/math-engine.js` (`generateEquation(opIndex, {nivell, leftToRight,
+  totalOperations})`), the term HTML to `js/equacions/renderer.js`. The fingerprint of 7,200 seeded equations
+  (steps and HTML included) was identical to the old code (`e12f22f1`).
+- **Bug fixed in the old generator** (no `?nivell=`, the last equation of a session and those from the 7th on):
+  the second retry loop of `genLegacy` could end with rC = lA, i.e. «3x + 4 = 3x + 4» (no single solution; the
+  activity then asked for «the solution» after «4 = 4» and «0 = 0»). It happened in 0.56 % of the questions;
+  comparing 60,000 questions seeded one by one (as fixed sessions do), only those 335 changed. New fingerprint
+  `98bae53`; `tests/equacions.test.js` also checks that no equation lacks a single integer solution.
+- The history is one HTML row of a frameless board (`Renderer.historiaHtml`): every correct step appends a
+  line and animates (speed 1.6); the work line (with the input) hides during the animation and the next step
+  appears when it ends. Keys: `e<r><side><i><piece>` (canonical side even when the first line of «b = ax» is
+  shown swapped; pieces s c x n a t m b z), copies `f…`, «=» `e<r>q`. What moves (`Renderer.moviments`):
+  distributive → the outer coefficient and the x travel to the x term, the inner number merges into the new
+  constant; simplify / group → the joined terms merge into the new one (the first x travels when the new term
+  has a coefficient); solve → the x travels, the coefficient and the right number merge into the solution.
+  At most 6 pieces per step (≤ 3 terms).
+- The fading mode for `equacions` (planned in `docs/esvaiment/STATE.md`) is NOT done: with the index button
+  on there are no options (decision 5), so it is a separate feature for the normal links. The pure
+  `math-engine.js` it needed now exists.
 
 ## Accumulating lines (2026-10-27, after decision 6)
 

@@ -34,7 +34,8 @@ operacions/
 │   ├── integrals/              ← Mateixa estructura que derivades/
 │   ├── recta-numerica/         ← Mateixa estructura
 │   ├── asimptotes/             ← Mateixa estructura (amb noms *-asimptotes.js)
-│   ├── equacions/equacions.js  ← Jocs més antics: tot el joc en un sol fitxer
+│   ├── fraccions/fraccions.js  ← Jocs més antics: tot el joc en un sol fitxer
+│   ├── equacions/              ← equacions.js (el joc), math-engine.js (equacions i passos, pur), renderer.js (HTML)
 │   ├── analitzador-stepquiz/   ← L'analitzador de codis del professorat (llegeix-codi.js: llegeix els codis)
 │   └── ...
 ├── equacions.html              ← Només HTML i CSS; carrega js/equacions/equacions.js
@@ -322,6 +323,7 @@ node tests/run-all.js
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 | `tests/esvaiment.test.js` | Mode «Esvaïment»: el motor de nivells (pujar, baixar, terra a 0, URL estranyes) i, a `prioritat`, que els passos de 1.000 expressions arriben al resultat recalculat a part i que la taula sense marques és la de sempre |
+| `tests/equacions.test.js` | Equacions de 1r grau: una empremta de 7.200 equacions amb els seus passos i l'HTML (si canvia, canvien les preguntes de les sessions fixes), cap equació sense una sola solució entera, i la resolució pas a pas (unes 6.300 animacions: guions correctes, cada línia amb la solució de l'equació, poques peces per pas i, sense les claus, l'HTML de sempre) |
 | `tests/pissarra.test.js` | «Resolució pas a pas»: les claus i el guió, la revisió dels guions (amb guions dolents fets a mà), el text pla de cada fila, el paràmetre `?pissarra=1` i, per a tots els guions (avui els de mostra), que KaTeX dibuixa totes les fórmules, que els textos són en segona persona i que **cada línia que es veu és certa** (calculada amb aritmètica exacta). A `prioritat`, sobre 800 expressions (unes 2.400 animacions): cada animació passa la revisió, només baixen els símbols de l'operació, cada línia de la taula val el resultat i, sense les claus, la taula és la de sempre |
 | `tests/navegador/prova-pissarra.js` | La pissarra en un navegador de debò (Chromium amb Playwright): `pissarra-demo.html` (cada pas acaba amb els seus símbols, sense restes de l'animació, a mida de portàtil i de mòbil; el reproductor; la càrrega de KaTeX), el botó «Activar la resolució pas a pas» d'`index.html` i `prioritat.html?pissarra=1` (10 expressions resoltes clicant: cada pas s'anima i afegeix una línia; també amb l'esvaïment; sense el paràmetre, cap pissarra). Si no hi ha Playwright (p. ex. a GitHub), s'omet |
 | `tests/intents.test.js` | L'analitzador davant d'un alumne que repeteix la prova: intents numerats per l'hora del codi, el mateix codi enviat dos cops, quin intent compta (últim, primer, millor, tots) i proves de CB de mida diferent separades |
