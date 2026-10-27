@@ -20,6 +20,7 @@
     <!-- 3. Estils compartits -->
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/pissarra.css">
 
     <style>
         /* ---- Variables de color específiques d'equacions ---- */
@@ -141,6 +142,12 @@
         .eq-history-line.eq-solved               { color: var(--success); font-size: 1.5em; padding-top: 8px; }
         .eq-history-line.eq-solved .eq-sign      { color: var(--success); }
         .eq-history-line.eq-solved .eq-var       { color: var(--success); }
+
+        /* «Resolució pas a pas» (?pissarra=1): l'historial dins d'una pissarra sense marc (js/pissarra/).
+           Les línies no tornen a fer el fadeIn cada cop que la pissarra les redibuixa. */
+        .eq-history .pis-escenari { align-self: stretch; }
+        .eq-linies { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        .pis-escenari .eq-history-line { animation: none; }
 
         /* ---- ZONA DE RESOLUCIÓ PAS A PAS ---- */
         .resolution-panel {

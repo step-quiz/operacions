@@ -254,11 +254,9 @@ export const MathEngine = (() => {
         } else {
             leftA = randIntNonZero(-6, 6);
             rightC = randIntNonZero(-5, 5);
-            while (rightC === leftA) rightC = randIntNonZero(-5, 5);
-            while (Math.abs(leftA - rightC) === 1) {
-                rightC = randIntNonZero(-5, 5);
-                if (rightC === leftA) continue;
-            }
+            // rC ≠ lA (si no, «3x + 4 = 3x + 4»: no té una solució) i |lA − rC| ≠ 1. Abans el segon bucle
+            // podia acabar amb rC = lA (corregit el 27/10/2026); les equacions bones no han canviat.
+            while (rightC === leftA || Math.abs(leftA - rightC) === 1) rightC = randIntNonZero(-5, 5);
             leftB = randIntNonZero(-10, 10);
             rightD = (leftA - rightC) * xSol + leftB;
         }

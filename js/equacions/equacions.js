@@ -5,8 +5,12 @@
  * ROL: Joc «Equacions de 1r Grau» (equacions.html). Abans era dins de l'HTML.
  * ARQUITECTURA: la generació de les equacions i els passos són a math-engine.js
  *      (pur); l'HTML dels termes, a renderer.js; aquí, el joc (DOM).
+ *      «Resolució pas a pas» (?pissarra=1, js/pissarra/): l'historial es pinta dins
+ *      d'una pissarra sense marc i cada línia nova s'anima (els termes que el pas
+ *      mou baixen de la línia anterior i s'hi fusionen; les d'abans queden
+ *      escrites). No canvia res més: preguntes, punts ni codi.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa game-core.js, utils.js, config.js,
- *      math-engine.js i renderer.js.
+ *      pissarra/mode.js, pissarra/pissarra.js, math-engine.js i renderer.js.
  * ============================================================================
  */
 
@@ -29,6 +33,8 @@ import {
     startGame,
     validateConfig,
 } from '../game-core.js';
+import { PISSARRA_ACTIVA } from '../pissarra/mode.js';
+import { creaPissarra } from '../pissarra/pissarra.js';
 import { MathEngine } from './math-engine.js';
 import { Renderer } from './renderer.js';
 
@@ -89,6 +95,11 @@ let equation = null;
 let steps = [];
 let currentStepIndex = 0;
 let isPenalizing = false;
+// «Resolució pas a pas» (?pissarra=1): la pissarra de l'historial (null si no és actiu), les línies de
+// l'historial ({ left, right, inv, classe, pas }, vegeu renderer.js) i la cua d'animacions
+const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.eqHistory, { files: 1, marc: false }) : null;
+let historia = [];
+let cuaPissarra = Promise.resolve();
 
 // La matemàtica és a math-engine.js; l'HTML dels termes, a renderer.js
 const { xT, nT, determineSteps } = MathEngine;
@@ -124,6 +135,22 @@ function addEquationToHistory(leftArr, rightArr, extraClass) {
     els.eqHistory.appendChild(div);
 }
 
+// «Resolució pas a pas»: l'historial a la pissarra. anima: la línia nova s'escriu amb animació (un pas
+// que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
+// Les pintades van en cua: una animació sempre acaba abans que comenci la següent.
+function pintaHistoria(anima) {
+    const pas = Object.assign(
+        { files: [Renderer.historiaHtml(historia)], classes: ['centrada'], text: '' },
+        anima ? Renderer.animacioUltimaLinia(historia) : {}
+    );
+    cuaPissarra = cuaPissarra.then(() => {
+        if (!anima) return pissarra.mostraPas(pas);
+        pissarra.velocitat(1.6);
+        return pissarra.animaPas(pas);
+    });
+    return cuaPissarra;
+}
+
 // ---- BUILD LEVEL (cridat per game-core) ----
 function buildLevel() {
     state.attemptsLeft = MAX_INTENTS;
@@ -136,7 +163,7 @@ function buildLevel() {
     const colorIndex = (state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length;
     els.body.style.backgroundColor = bgColors[colorIndex];
 
-    els.eqHistory.innerHTML = '';
+    if (!pissarra) els.eqHistory.innerHTML = '';
     els.eqHistory.style.display = 'flex';
     els.stepHint.style.display = 'none';
 
@@ -144,7 +171,18 @@ function buildLevel() {
     // primera línia visual; la resta del joc treballa en forma canònica.
     const origLeft = equation.swapInitial ? equation.dispRight : equation.dispLeft;
     const origRight = equation.swapInitial ? equation.dispLeft : equation.dispRight;
-    addEquationToHistory(origLeft, origRight, 'eq-original');
+    if (pissarra) {
+        historia = [
+            {
+                left: equation.dispLeft,
+                right: equation.dispRight,
+                inv: !!equation.swapInitial,
+                classe: 'eq-original',
+                pas: null,
+            },
+        ];
+        pintaHistoria(false);
+    } else addEquationToHistory(origLeft, origRight, 'eq-original');
 
     updateHeader();
     showCurrentStep();
@@ -364,6 +402,28 @@ function advanceStep() {
     const step = steps[currentStepIndex];
 
     const isFinal = currentStepIndex === steps.length - 1;
+    if (pissarra) {
+        // La línia nova s'anima; mentre baixen els termes, la línia de treball s'amaga i el pas
+        // següent surt quan l'animació s'acaba
+        const darrera = historia[historia.length - 1];
+        if (darrera.classe === 'eq-latest') darrera.classe = '';
+        historia.push({
+            left: step.dispLeftAfter,
+            right: step.dispRightAfter,
+            inv: false,
+            classe: isFinal ? 'eq-solved' : 'eq-latest',
+            pas: step,
+        });
+        els.stepValue.classList.remove('active');
+        if (els.valueInput) els.valueInput.value = '';
+        hideCustomKeyboard();
+        els.stepHint.style.display = 'none';
+        currentStepIndex++;
+        pintaHistoria(true).then(() => {
+            if (!state.isTransitioning) showCurrentStep();
+        });
+        return;
+    }
     addEquationToHistory(step.dispLeftAfter, step.dispRightAfter, isFinal ? 'eq-solved' : 'eq-latest');
 
     els.stepValue.classList.remove('active');
