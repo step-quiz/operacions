@@ -23,6 +23,7 @@ const TESTS = [
     ["Intents repetits a l'analitzador", 'tests/intents.test.js'],
     ['Mode esvaïment', 'tests/esvaiment.test.js'],
     ['Equacions de 1r grau (empremta i resolució pas a pas)', 'tests/equacions.test.js'],
+    ['Fraccions (resolució pas a pas)', 'tests/fraccions.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Tests de derivades', 'js/derivades/run-tests.js'],

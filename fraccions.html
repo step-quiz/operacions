@@ -20,6 +20,7 @@
     <!-- 3. Estils compartits -->
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/pissarra.css">
 
     <style>
         /* ---- Variables de color específiques de fraccions ---- */
@@ -173,6 +174,9 @@
             font-weight: bold;
         }
 
+        /* «Resolució pas a pas» (?pissarra=1): l'expressió dins d'una pissarra sense marc (js/pissarra/). */
+        .expression-box .pis-escenari { align-self: stretch; }
+        .fr-linies { display: flex; flex-direction: column; align-items: center; width: 100%; }
         .fraction hr {
             width: 100%;
             border: none;

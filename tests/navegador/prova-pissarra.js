@@ -19,6 +19,10 @@
  *   7. equacions.html amb ?pissarra=1: 5 equacions resoltes (sense nivell, a mida
  *      de portàtil, i de nivell 3, a mida de mòbil): cada pas s'anima i afegeix una
  *      línia a l'historial; sense el paràmetre, cap pissarra;
+ *   8. fraccions.html amb ?pissarra=1: sumes i restes (nivell 3, a mida de portàtil)
+ *      i productes i divisions (a mida de mòbil) resoltes pas a pas; cada pas
+ *      encertat s'anima i afegeix una línia, també una simplificació a mitges (i
+ *      el pas torna a sortir, amb l'avís); sense el paràmetre, cap pissarra;
  *   i cap error a la consola.
  * - Si Playwright no hi és (p. ex. a GitHub), la prova s'omet i no falla.
  * ÚS: node tests/navegador/prova-pissarra.js
@@ -484,6 +488,158 @@ function engegaServidor() {
             await p.goto(BASE + '/equacions.html');
             await p.waitForSelector('#eq-history .eq-history-line');
             eq('equacions.html (sense paràmetres): cap pissarra', await p.$$eval('.pis-escenari', es => es.length), 0);
+            await p.close();
+        }
+
+        suite('8. fraccions.html amb la resolució pas a pas (?pissarra=1)');
+        {
+            // Les respostes del pas actiu, calculades a partir de la primera línia (sense el codi de l'activitat).
+            // mitges: a la simplificació, una fracció equivalent que encara no és irreductible (si n'hi ha).
+            const RESPOSTA = mitges => {
+                const mcd = (a, b) => (b ? mcd(b, a % b) : Math.abs(a));
+                const linies = [...document.querySelectorAll('#expression-box .pis-capa .expr-line')];
+                const llegeix = l =>
+                    [...l.children]
+                        .map(c =>
+                            c.classList.contains('fraction')
+                                ? [...c.querySelectorAll('.math-cell')].map(m => +m.textContent)
+                                : c.classList.contains('integer-val')
+                                  ? [+c.textContent, 1]
+                                  : c.textContent
+                        )
+                        .filter(t => t !== '=');
+                const [[n1, d1], , [n2, d2]] = llegeix(linies[0]);
+                const darrera = llegeix(linies[linies.length - 1]);
+                const pas = document.querySelector('.step-container.active').id;
+                if (pas === 'step-1') return { 's1-den': (d1 * d2) / mcd(d1, d2) };
+                if (pas === 'step-2') {
+                    const D = +document.getElementById('s2-d1-text').textContent;
+                    return {
+                        's2-f1-top': D / d1,
+                        's2-f1-bot': D / d1,
+                        's2-n1': (n1 * D) / d1,
+                        's2-f2-top': D / d2,
+                        's2-f2-bot': D / d2,
+                        's2-n2': (n2 * D) / d2,
+                    };
+                }
+                if (pas === 'step-3') {
+                    const [[a, D], o, [b]] = darrera;
+                    return { 's3-n': o === '+' ? a + b : a - b, 's3-d': D };
+                }
+                if (pas === 'step-md-1') return { 'md-s1-n': d2, 'md-s1-d': n2 };
+                if (pas === 'step-md-2') {
+                    const [[a, b], , [c, e]] = darrera;
+                    return { 'md-s2-n': a * c, 'md-s2-d': b * e };
+                }
+                const [[n, d]] = darrera;
+                const g = mcd(n, d);
+                let k = g;
+                if (mitges) for (let j = 2; j < g; j++) if (g % j === 0) k = j;
+                const [cn, cd] = pas === 'step-4' ? ['s4-n', 's4-d'] : ['md-s3-n', 'md-s3-d'];
+                return { [cn]: n / k, [cd]: d / k === 1 ? '' : d / k, mitges: k !== g };
+            };
+            for (const [nom, viewport, boto] of [
+                ['portàtil, suma o resta (nivell 3)', { width: 1366, height: 768 }, 'addsub'],
+                ['mòbil, producte o divisió', { width: 375, height: 740 }, 'muldiv'],
+            ]) {
+                const pagina = await navegador.newPage({ viewport });
+                const errors = [];
+                pagina.on('pageerror', e => errors.push(String(e)));
+                pagina.on('console', m => m.type() === 'error' && errors.push(m.text()));
+                await pagina.goto(BASE + '/fraccions.html?pissarra=1&totaloperations=6');
+                await pagina.click(`button[onclick="selectMode('${boto}')"]`);
+                let passos = 0,
+                    animats = 0,
+                    ample = false,
+                    mitges = 0;
+                const malament = [];
+                const linies = () => pagina.$$eval('#expression-box .pis-capa .expr-line', ls => ls.length);
+                for (let e = 0; e < 6; e++) {
+                    for (let g = 0; g < 10; g++) {
+                        const actiu = await pagina
+                            .waitForFunction(() => document.querySelector('.step-container.active'), null, {
+                                timeout: 6000,
+                            })
+                            .then(() => true)
+                            .catch(() => false);
+                        if (!actiu) break;
+                        // Quan surt un pas, l'activitat posa el cursor a la primera casella al cap de 50 ms: si
+                        // s'escriu abans, una xifra pot anar a parar a la casella que no és
+                        await pagina.waitForTimeout(100);
+                        const pas = await pagina.$eval('.step-container.active', s => s.id);
+                        const aMitges = /step-4|md-3/.test(pas) && !mitges;
+                        const { mitges: mig, ...respostes } = await pagina.evaluate(RESPOSTA, aMitges);
+                        const abans = await linies();
+                        for (const [id, v] of Object.entries(respostes))
+                            if (await pagina.isVisible('#' + id)) await pagina.fill('#' + id, String(v));
+                        await pagina.keyboard.press('Enter');
+                        // El denominador comú no escriu cap línia (surt el pas de les fraccions equivalents)
+                        if (pas === 'step-1') {
+                            await pagina.waitForSelector('#step-2.active', { timeout: 3000 }).catch(() => {});
+                            continue;
+                        }
+                        const fantasmes = await pagina
+                            .waitForFunction(() => document.querySelectorAll('.pis-fantasma').length > 0, null, {
+                                timeout: 2500,
+                            })
+                            .then(() => true)
+                            .catch(() => false);
+                        await pagina.waitForFunction(() => !document.querySelector('#expression-box .pis-nova'));
+                        ample =
+                            ample ||
+                            (await pagina.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1));
+                        passos++;
+                        if (fantasmes) animats++;
+                        const despres = await linies();
+                        if (despres !== abans + 1)
+                            malament.push(
+                                `operació ${e + 1}, ${pas} ${JSON.stringify(respostes)}: ${abans} → ${despres}`
+                            );
+                        // Una simplificació a mitges: el pas torna a sortir, amb l'avís
+                        if (mig) {
+                            const torna = await pagina
+                                .waitForFunction(
+                                    id => document.querySelector('.step-container.active')?.id === id,
+                                    pas,
+                                    { timeout: 3000 }
+                                )
+                                .then(() => true)
+                                .catch(() => false);
+                            const avis = torna && (await pagina.isVisible(`#${pas} .warn-msg`));
+                            if (torna && avis) mitges++;
+                            else if (torna) malament.push(`${pas}: torna a sortir però sense l'avís`);
+                        }
+                        // L'operació s'acaba quan surt el «Correcte!»
+                        if (await pagina.isVisible('#mini-victory-overlay')) break;
+                    }
+                    await pagina
+                        .waitForFunction(
+                            () => getComputedStyle(document.getElementById('mini-victory-overlay')).display === 'none',
+                            null,
+                            { timeout: 6000 }
+                        )
+                        .catch(() => {});
+                }
+                const punts = await pagina.textContent('#score-display');
+                ok(
+                    `${nom}: ${passos} passos encertats, tots animats`,
+                    passos >= 6 && animats === passos,
+                    `${animats} de ${passos}`
+                );
+                ok(`${nom}: cada pas afegeix exactament una línia`, !malament.length, malament.join('\n      → '));
+                eq(`${nom}: les 6 operacions, amb tots els punts`, punts.trim(), 'Punts: 60');
+                ok(`${nom}: la pàgina no surt de la pantalla`, !ample);
+                ok(`${nom}: cap error a la consola`, !errors.length, errors.join('\n      → '));
+                if (mitges) ok(`${nom}: una simplificació a mitges s'anima i el pas torna a sortir, amb l'avís`, true);
+                await pagina.close();
+            }
+            // Sense ?pissarra=1, fraccions és com sempre: cap pissarra
+            const p = await navegador.newPage();
+            await p.goto(BASE + '/fraccions.html');
+            await p.click(`button[onclick="selectMode('addsub')"]`);
+            await p.waitForSelector('#expression-box .expr-line');
+            eq('fraccions.html (sense paràmetres): cap pissarra', await p.$$eval('.pis-escenari', es => es.length), 0);
             await p.close();
         }
     } finally {

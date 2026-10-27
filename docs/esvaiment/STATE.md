@@ -12,7 +12,7 @@ Spec: [`SPEC.md`](SPEC.md). Where they disagree, this file wins (it records late
 | Link generator (`index.html`, row «Esvaïment», sets `esvaiment=1` and `inici=`) | DONE |
 | Pilot 1 `prioritat` | DONE (delivered in ZIP 1) |
 | Pilot 2 `equacions` (characterisation test → pure `math-engine.js` → adapter) | Characterisation test and pure `math-engine.js` DONE (2026-10-27, with «Resolució pas a pas», `tests/equacions.test.js`); adapter PENDING |
-| Pilot 3 `fraccions` (addition/subtraction only) | PENDING (ZIP 3) |
+| Pilot 3 `fraccions` (addition/subtraction only) | PENDING (ZIP 3). «Resolució pas a pas» is done (2026-10-27, `js/fraccions/renderer.js`); the fading adapter is not |
 | Line in `a/UPSTREAM.md` (other repository) | PENDING (ZIP 4) |
 | Phase 2: «Per què?» self-explanation prompts | NOT STARTED (optional) |
 
