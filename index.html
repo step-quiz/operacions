@@ -21,7 +21,7 @@
       { file: 'recta-numerica.html', label: 'Recta numèrica', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'potencies.html', label: 'Potències', yt: '', fixed: true },
-      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true },
+      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true, pissarra: true },
       { file: 'factoritzar.html', label: 'Descompondre en factors primers', yt: 'https://youtu.be/s2LGUllVMfM', fixed: true },
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ', fixed: true },
       { separator: true },
@@ -639,9 +639,9 @@
       function manageModRow() {
         if (!els.rowMod) return;
         const selected = activities.find(a => a.file === dropdown.getValue());
-        // Amb l'esvaïment, prioritat sempre és «Pas a pas»: la modalitat no cal
+        // Amb l'esvaïment o la resolució pas a pas, prioritat sempre és «Pas a pas»: la modalitat no cal
         const ambEsv = selected && selected.esvaiment && els.esv && els.esv.value !== '';
-        els.rowMod.style.display = (selected && selected.modalitat && !ambEsv) ? '' : 'none';
+        els.rowMod.style.display = (selected && selected.modalitat && !ambEsv && !resolucioPasAPas) ? '' : 'none';
       }
 
       // Activitats amb el mode «Esvaïment» (esvaiment: true; ha de coincidir amb
@@ -689,7 +689,7 @@
             qs.append('modalitat', els.nivell.value);
           }
           const ambEsv = selected && selected.esvaiment && els.esv && els.esv.value !== '';
-          if (selected && selected.modalitat && els.mod && els.mod.value && !ambEsv) {
+          if (selected && selected.modalitat && els.mod && els.mod.value && !ambEsv && !resolucioPasAPas) {
             qs.append('modalitat', els.mod.value);
           }
           if (ambEsv) {

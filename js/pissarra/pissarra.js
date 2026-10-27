@@ -6,14 +6,25 @@
  *      amb KaTeX, files de text) i anima el canvi al pas següent a l'estil de
  *      Graspable Math: els símbols viatgen, es fusionen o s'esvaeixen.
  * ARQUITECTURA:
- * - creaPissarra(contenidor, { files }) posa la pissarra dins d'un element de
- *   la pàgina d'una activitat i torna un controlador:
+ * - creaPissarra(contenidor, { files, marc }) posa la pissarra dins d'un element
+ *   de la pàgina d'una activitat i torna un controlador. Dues maneres de fer-la
+ *   servir:
+ *   · amb un GUIÓ (tots els passos se saben d'entrada, p. ex. un exemple resolt):
  *     carrega(passos)  passos nous (de formules.js guio()): mostra el primer
  *     seguent()        anima el pas següent (Promise: acaba quan acaba l'animació)
  *     salta(i)         mostra el pas i, sense animació
  *     repeteix()       torna a animar l'arribada al pas actual («Torna-ho a veure»)
- *     velocitat(v)     0.6 lenta, 1 normal, 1.6 ràpida
- *     pas, total, ocupat, passos, element
+ *   · PAS A PAS LLIURE (l'activitat decideix cada pas segons el que fa l'alumne):
+ *     mostraPas(pas)   mostra aquest pas, sense animació
+ *     animaPas(pas)    anima el canvi del pas que es veu a aquest (Promise)
+ *   i, per a totes dues: velocitat(v) (0.6 lenta, 1 normal, 1.6 ràpida),
+ *   escolta(f), pas, total, ocupat, passos, element.
+ *   marc: false treu la vora i el fons de punts (la pissarra queda invisible i
+ *   només es veuen les animacions: serveix per animar la zona de treball que
+ *   l'activitat ja tenia, amb el seu aspecte de sempre).
+ * - Tipus de fila: TeX (KaTeX), text («§…»), esquema SVG («<svg…», només es fon)
+ *   i HTML («<…», qualsevol altre element: l'HTML de l'activitat, inserit tal
+ *   qual; els seus elements amb data-k="clau" es mouen com els símbols).
  * - Què passa amb cada símbol amb clau (vegeu formules.js):
  *     · mateixa clau abans i després, o pas.reanomena = {nova: vella}: és el
  *       mateix símbol i es desplaça; si el contingut canvia, es fon;
@@ -116,6 +127,11 @@ function textAmbFrases(text) {
 const esFilaText = tex => tex.startsWith('§');
 /** Una fila que és un esquema (SVG fet pel procediment, no per l'usuari): es mostra tal qual. */
 const esFilaFigura = tex => tex.startsWith('<svg');
+/**
+ * Una fila d'HTML (fet per l'activitat, no per l'usuari: p. ex. la seva taula de la
+ * resolució): es mostra tal qual i els elements amb data-k es mouen com els símbols.
+ */
+const esFilaHtml = tex => tex.startsWith('<') && !esFilaFigura(tex);
 
 /** Anima un element i espera que acabi. L'estat final es manté. */
 function anima(el, fotogrames, opcions) {
@@ -237,14 +253,15 @@ function creaCursor(escenari, el, temps) {
  * (vegeu la capçalera). opcions: { files, etiqueta } (etiqueta: nom per als lectors
  * de pantalla).
  */
-export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució pas a pas' } = {}) {
+export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució pas a pas', marc = true } = {}) {
     if (!Number.isInteger(nFiles) || nFiles < 1) throw new Error('creaPissarra: cal dir quantes files té');
     const r = {
         pissarra: element('div', { class: 'pis-pissarra' }),
         efectes: element('div', { 'class': 'pis-efectes', 'aria-hidden': 'true' }),
         cursor: element('div', { 'class': 'pis-cursor', 'aria-hidden': 'true', 'html': CURSOR }),
     };
-    r.escenari = element('div', { 'class': 'pis-escenari', 'role': 'img', 'aria-label': etiqueta }, [
+    const classe = 'pis-escenari' + (marc ? '' : ' pis-sense-marc');
+    r.escenari = element('div', { 'class': classe, 'role': 'group', 'aria-label': etiqueta }, [
         r.pissarra,
         r.efectes,
         r.cursor,
@@ -268,16 +285,19 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         const c = element('div', { class: 'pis-capa' });
         for (let i = 0; i < nFiles; i++) {
             const tex = pas.files[i];
-            const figura = tex && esFilaFigura(tex);
+            const figura = tex && esFilaFigura(tex),
+                html = tex && esFilaHtml(tex);
             const fila = element('div', {
                 class:
                     'pis-fila' +
                     (tex && esFilaText(tex) ? ' text' : '') +
                     (figura ? ' figura' : '') +
+                    (html ? ' html' : '') +
                     (pas.classes[i] ? ' ' + pas.classes[i] : ''),
             });
             if (usades && !usades.has(i)) fila.hidden = true;
-            if (tex) fila.innerHTML = figura ? tex : esFilaText(tex) ? textAmbFrases(tex.slice(1)) : renderitza(tex);
+            if (tex)
+                fila.innerHTML = figura || html ? tex : esFilaText(tex) ? textAmbFrases(tex.slice(1)) : renderitza(tex);
             c.append(fila);
         }
         return c;
@@ -319,7 +339,8 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
 
     /**
      * Tria la mida de la lletra (la fila més ampla de tots els passos hi ha de cabre)
-     * i quines files fa servir el guió (les altres no ocupen lloc).
+     * i quines files fa servir el guió (les altres no ocupen lloc). Si cap pas no té
+     * fórmules (només text o HTML), la pissarra fa servir la lletra de la pàgina.
      */
     function ajusta(passos) {
         renders = new Map();
@@ -337,12 +358,14 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         let maxim = 0;
         for (const pas of passos) {
             for (const tex of pas.files) {
-                if (!tex || esFilaText(tex) || esFilaFigura(tex)) continue; // el text i els esquemes s'ajusten sols
+                if (!tex || esFilaText(tex) || esFilaFigura(tex) || esFilaHtml(tex)) continue; // s'ajusten sols
                 prova.innerHTML = renderitza(tex);
                 maxim = Math.max(maxim, prova.firstElementChild.getBoundingClientRect().width);
             }
         }
         prova.remove();
+        r.pissarra.classList.toggle('pis-sense-tex', maxim === 0);
+        if (maxim === 0) return;
         const estil = getComputedStyle(r.pissarra);
         const disponible = r.pissarra.clientWidth - parseFloat(estil.paddingLeft) - parseFloat(estil.paddingRight) - 12;
         const factor = maxim > 0 && disponible > 0 ? Math.min(1, disponible / maxim) : 1;
@@ -377,6 +400,8 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         f.style.color = estil.color;
         f.style.fontFamily = estil.fontFamily; // una frase de text no ha de canviar de lletra
         f.style.fontStyle = estil.fontStyle;
+        f.style.fontWeight = estil.fontWeight; // l'HTML d'una activitat pot ser en negreta
+        f.style.letterSpacing = estil.letterSpacing;
         const copia = el.cloneNode(true);
         copia.removeAttribute('data-k');
         // KaTeX pot posar a l'element mateix una classe de mida relativa al pare: fora del
@@ -416,6 +441,14 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         const nova = dibuixaCapa(pas);
         nova.classList.add('pis-nova');
         r.pissarra.append(nova);
+        // Si el pas nou és més alt (p. ex. una línia més a la taula), la pissarra creix
+        // abans de mesurar res: així no surt cap barra de desplaçament durant l'animació.
+        // (la capa nova ocupa tota la pissarra, marge interior inclòs; vegeu .pis-capa.pis-nova)
+        if (nova.offsetHeight > r.pissarra.offsetHeight) {
+            const cs = getComputedStyle(r.pissarra);
+            const marge = cs.boxSizing === 'border-box' ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+            r.pissarra.style.minHeight = nova.offsetHeight - marge + 'px';
+        }
         fesVisible(vella, nova);
 
         const A = ambClau(vella),
@@ -644,6 +677,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         nova.classList.remove('pis-nova', 'pis-amaga-claus');
         nova.querySelectorAll('.pis-sense-fantasma').forEach(e => e.classList.remove('pis-sense-fantasma'));
         nova.style.visibility = '';
+        r.pissarra.style.minHeight = '';
         aturaAnimacions(nova);
         capa = nova;
         for (const e of [...r.efectes.children]) if (!arrossegat || e !== arrossegat.el) e.remove();
@@ -719,7 +753,45 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
     addEventListener('resize', enCanviarMida);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(reajusta);
 
+    /** Pas a pas lliure: mostra un pas sense animació (torna false si hi ha una animació en marxa). */
+    function mostraPas(pas) {
+        if (ocupat) return false;
+        passos = [pas];
+        idx = 0;
+        ajusta(passos);
+        mostra(pas);
+        cursor.amaga();
+        avisa();
+        return true;
+    }
+
+    /**
+     * Pas a pas lliure: anima el canvi del pas que es veu al pas «pas» (amb les seves
+     * claus, fusiona, reanomena i cursor). Si encara no es veu cap pas, el mostra.
+     * Torna una Promise que acaba quan acaba l'animació (false si n'hi havia una en marxa).
+     */
+    async function animaPas(pas) {
+        if (ocupat) return false;
+        if (!capa || !passos.length) return mostraPas(pas);
+        const actual = passos[idx];
+        ocupat = true;
+        try {
+            ajusta([actual, pas]);
+            mostra(actual); // amb la mida de lletra que serveix per als dos passos
+            passos = [actual, pas];
+            idx = 1;
+            avisa();
+            await transicio(pas);
+        } finally {
+            ocupat = false;
+        }
+        avisa();
+        return true;
+    }
+
     return Object.freeze({
+        mostraPas,
+        animaPas,
         /** Passos nous: torna al primer. No es pot cridar durant una animació. */
         carrega(nous) {
             if (ocupat) return false;

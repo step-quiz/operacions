@@ -21,7 +21,7 @@
  */
 
 /** Pàgines que admeten ?pissarra=1 (nom del fitxer HTML sense «.html»). */
-export const SUPORTA_PISSARRA = [];
+export const SUPORTA_PISSARRA = ['prioritat'];
 
 /**
  * Cert si la URL (search, p. ex. '?pissarra=1') activa el mode a la pàgina «pagina»

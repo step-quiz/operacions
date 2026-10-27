@@ -12,7 +12,9 @@ Living state, decisions and the rollout plan: [`STATE.md`](STATE.md) (it wins ov
 > between two consecutive states, using *keys* as the identity of each symbol.**
 
 - A **board state** (a *pas*) is N rows. A row is TeX (rendered by KaTeX), a text paragraph (starts with
-  `§`) or an SVG sketch (starts with `<svg`). Every symbol that must be *followed* from one step to the next
+  `§`), an SVG sketch (starts with `<svg`, only cross-fades) or **HTML** (starts with any other `<`: the
+  activity's own markup, inserted as is; its elements with `data-k="KEY"` move like symbols — this is how
+  an activity animates the work area it already had, e.g. `prioritat`'s table). Every symbol that must be *followed* from one step to the next
   is wrapped `\htmlData{k=KEY}{…}` (helpers `clau`, `op`, `rel` in `js/pissarra/formules.js`).
 - From state A to state B the board finds every key in both, measures where KaTeX drew it, and moves it
   there. Same key → the symbol travels (and cross-fades if its content changed); keys declared in
@@ -30,7 +32,7 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 |---|---|
 | `js/pissarra/formules.js` | Pure. Keys (`clau`, `marca`, `op`, `rel`, `marcat`, `tatxa`, `MARQUES`), text rows (`filaText`, `frase`), long rows (`ampleTex`, `enLinies`), the step builder `guio(n)`. |
 | `js/pissarra/comprova.js` | Pure, for tests. `comprovaGuio(passos, nFiles, nom)` → list of structural errors; `textPla(tex)` → plain text that can be evaluated; `clausDe(tex)`. |
-| `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files})` → controller `{carrega, seguent, salta, repeteix, velocitat, escolta, pas, total, ocupat, passos, element}`; `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once); `textAmbFormules(text)` (captions); `element()`. |
+| `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files, marc})` → controller. Script mode: `carrega(passos)`, `seguent()`, `salta(i)`, `repeteix()`. Free mode (the activity decides each state from what the student does): `mostraPas(pas)`, `animaPas(pas)`. Both: `velocitat(v)`, `escolta(f)`, `pas`, `total`, `ocupat`, `passos`, `element`. `marc: false` hides the frame and dotted background (only the animations show). Also `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once), `textAmbFormules(text)` (captions), `element()`. |
 | `js/pissarra/reproductor.js` | DOM. `creaReproductor(container, pissarra, {reprodueix, punts, velocitat, teclat})`: restart / previous / play / next buttons, one dot per step, speed, step caption. |
 | `js/pissarra/mode.js` | `SUPORTA_PISSARRA` (pages that have it), `pissarraActiva(search, page, list)` (pure), `PISSARRA_ACTIVA` (current page). |
 | `js/pissarra/demo.js`, `demo-pagina.js`, `pissarra-demo.html` | Three model scripts (order of operations, a linear equation, a sum of fractions) and the demo page. |
@@ -71,7 +73,14 @@ solutions, `cami0/1/2` one colour per tree path. `marca(tex, m)` colours a group
 ## 4. Putting the board inside an activity
 
 The activity keeps working exactly as before unless `PISSARRA_ACTIVA` is true (URL `?pissarra=1` on a page
-listed in `SUPORTA_PISSARRA`). Then:
+listed in `SUPORTA_PISSARRA`). **Reference implementation: `prioritat`** (`js/prioritat/prioritat.js`
+`pintaPissarra`, `js/prioritat/renderer.js` `tableHtml(rows, {claus})` and `fusioUltimaLinia`; details in
+`STATE.md` «Wave 1»). Two ways:
+
+- **Animate the activity's own work area** (best for ESO: same notation as always): free mode, `marc: false`,
+  one HTML row with the activity's markup where every visible symbol has a `data-k`; call `animaPas` when a
+  new line is written and `mostraPas` for any other change; queue the calls so animations do not overlap.
+- **A TeX board** (like `pau`, e.g. a worked example with captions): script mode with `carrega`/`seguent`:
 
 ```js
 import { PISSARRA_ACTIVA } from '../pissarra/mode.js';

@@ -15,13 +15,20 @@
  *     · «Esvaïment» (?esvaiment=1, js/esvaiment.js): «Pas a pas» on els primers
  *       passos es mostren resolts (d'un en un) i l'alumne fa els últims; com
  *       més encerta, més passos fa ell. Sense intents, punts ni codi.
+ * - «Resolució pas a pas» (?pissarra=1, js/pissarra/): «Pas a pas» amb la taula
+ *   dins d'una pissarra sense marc. Quan s'hi escriu una línia nova (un pas que
+ *   l'alumne encerta, un pas d'un exemple resolt o el pas bo després d'un
+ *   error), els nombres de l'operació baixen a la línia nova i es fusionen en
+ *   el resultat; la resta de la línia hi apareix. No canvia res més (preguntes,
+ *   punts ni codi). Es pot combinar amb l'esvaïment.
  * - En acabar cada expressió es veu tota la resolució en una taula «centrada»,
  *   amb l'operació que es fa a cada línia en blau i subratllada (les opcions
  *   «centrat» i «destaca» del projecte combinades).
  * - La matemàtica és a math-engine.js; els textos, a strings.js; l'HTML de
  *   l'expressió i de la taula, a renderer.js.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa config.js, utils.js,
- *      game-core.js, math-engine.js, strings.js i renderer.js.
+ *      game-core.js, esvaiment.js, pissarra/mode.js, pissarra/pissarra.js,
+ *      math-engine.js, strings.js i renderer.js.
  * ============================================================================
  */
 
@@ -41,6 +48,8 @@ import {
     validateConfig,
 } from '../game-core.js';
 import { ESVAIMENT } from '../esvaiment.js';
+import { PISSARRA_ACTIVA } from '../pissarra/mode.js';
+import { creaPissarra } from '../pissarra/pissarra.js';
 import { MathEngine } from './math-engine.js';
 import { Strings } from './strings.js';
 import { Renderer } from './renderer.js';
@@ -50,8 +59,8 @@ import { Renderer } from './renderer.js';
 Object.assign(window, { buildLevel });
 
 // ?modalitat=passos → «Pas a pas»; qualsevol altre valor (o cap) → «Resultat final».
-// ?esvaiment=1 (js/esvaiment.js) fa servir sempre «Pas a pas».
-const STEP_MODE = ESVAIMENT !== null || urlParams.get('modalitat') === 'passos';
+// ?esvaiment=1 (js/esvaiment.js) i ?pissarra=1 (js/pissarra/) fan servir sempre «Pas a pas».
+const STEP_MODE = ESVAIMENT !== null || PISSARRA_ACTIVA || urlParams.get('modalitat') === 'passos';
 
 // ============================================================
 // DOM
@@ -95,6 +104,12 @@ let rows = []; // les línies fetes [{ line, op, auto, marca }]; l'última és l
 let phase = 'op'; // 'op': cal tocar l'operació · 'result': cal triar-ne el resultat · 'esv': cal tocar el botó
 // «Esvaïment»: { passos, nPassos, nAlumne, nExemple, revelats, errors } de l'exercici actual
 let esv = null;
+// «Resolució pas a pas» (?pissarra=1): la pissarra on es pinta la taula (null si no és actiu),
+// quantes línies tenia l'última taula que s'hi ha enviat i la cua de pintades (cada animació
+// acaba abans que comenci la següent)
+const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.stepsBox, { files: 1, marc: false }) : null;
+let liniesPissarra = 0;
+let cuaPissarra = Promise.resolve();
 
 // El nivell es reparteix al llarg de la sessió: sigui quin sigui el nombre
 // d'operacions, la primera és del nivell 0 i l'última del nivell 9.
@@ -492,14 +507,44 @@ function finishEsv() {
 // marks (opcional): { red:Set, green:Set } amb posicions de la línia de treball
 function renderSteps(marks = {}) {
     const active = !_finished && phase === 'op';
-    const table = Renderer.tableHtml(rows, { active, red: marks.red, green: marks.green });
+    const table = Renderer.tableHtml(rows, { active, red: marks.red, green: marks.green, claus: !!pissarra });
     // Si el focus era en un botó de la taula (teclat), torna al mateix botó de la taula nova
     const focused = els.stepsBox.contains(document.activeElement) ? document.activeElement.dataset.i : undefined;
-    els.stepsBox.innerHTML = `<div class="taula-wrap">${table}</div>`;
-    if (focused !== undefined) {
+    const tornaFocus = () => {
+        if (focused === undefined) return;
         const btn = els.stepsBox.querySelector(`.tok-btn[data-i="${focused}"]`);
         if (btn) btn.focus({ preventScroll: true });
+    };
+    if (pissarra) {
+        pintaPissarra(`<div class="taula-wrap">${table}</div>`, tornaFocus);
+        return;
     }
+    els.stepsBox.innerHTML = `<div class="taula-wrap">${table}</div>`;
+    tornaFocus();
+}
+
+// «Resolució pas a pas»: la taula nova va a la pissarra. Si té una línia més que l'última,
+// s'anima (l'operació baixa i es fusiona en el resultat); si no, es mostra tal qual.
+function pintaPissarra(html, tornaFocus) {
+    const pas = { files: [html], classes: ['centrada'], text: '', fusiona: Renderer.fusioUltimaLinia(rows) };
+    const anima = liniesPissarra > 0 && rows.length === liniesPissarra + 1;
+    liniesPissarra = rows.length;
+    // Un pas que ha fet l'alumne (ja sap quina operació és) va més de pressa que un pas
+    // d'un exemple resolt o el pas bo després d'un error, que l'alumne ha de mirar
+    const velocitat = rows[rows.length - 1].marca ? 1 : 1.6;
+    cuaPissarra = cuaPissarra
+        .then(() => {
+            if (!anima) return pissarra.mostraPas(pas);
+            pissarra.velocitat(velocitat);
+            return pissarra.animaPas(pas);
+        })
+        .then(() => {
+            tornaFocus();
+            // Amb teclat, després d'una animació el focus va a la primera operació de la línia nova
+            const enTaula = els.stepsBox.contains(document.activeElement);
+            if (anima && !enTaula && phase === 'op' && !_finished && !isTouchDevice())
+                els.stepsBox.querySelector('.tok-btn')?.focus({ preventScroll: true });
+        });
 }
 
 function askOp() {
@@ -537,6 +582,7 @@ function askResult() {
 // L'alumne ha tocat l'operació de la posició i de la línia de treball
 function handleStepOp(i) {
     if (state.isTransitioning || _finished || phase !== 'op') return;
+    if (pissarra && pissarra.ocupat) return; // mentre s'escriu la línia nova
     const row = rows[rows.length - 1];
     const line = row.line;
     if (MathEngine.readyOps(line).includes(i)) {
@@ -594,7 +640,7 @@ function handleStepResult(val, chip) {
     } else {
         askOp();
         renderSteps();
-        if (!isTouchDevice()) els.stepsBox.querySelector('.tok-btn').focus({ preventScroll: true });
+        if (!isTouchDevice()) els.stepsBox.querySelector('.tok-btn')?.focus({ preventScroll: true });
     }
 }
 

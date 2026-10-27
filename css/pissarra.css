@@ -42,12 +42,25 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 .pis-escenari [hidden] {
     display: none !important;
 }
+/* Sense marc (opció marc: false): no es veu la pissarra, només les animacions */
+.pis-escenari.pis-sense-marc {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+}
+.pis-sense-marc .pis-pissarra {
+    padding: 0;
+}
 
 /* ── PISSARRA ─────────────────────────────────────────────────────────────── */
 .pis-pissarra {
     position: relative;
     padding: 18px 22px 14px;
     font-size: var(--pis-mida, 30px);
+}
+.pis-pissarra.pis-sense-tex {
+    font-size: inherit; /* sense fórmules (només text o HTML): la lletra de la pàgina */
 }
 .pis-capa {
     width: 100%;
@@ -83,6 +96,16 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 }
 .pis-fila.destacat {
     background: var(--pis-cat-fons);
+}
+.pis-fila.centrada {
+    justify-content: center;
+}
+/* Una fila d'HTML de l'activitat (p. ex. la taula de la resolució): sense marges propis */
+.pis-fila.html {
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    white-space: normal;
 }
 .pis-fila.pis-prova {
     position: absolute;

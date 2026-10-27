@@ -398,5 +398,103 @@ function solucioLineal(text) {
         ok(`les ${linies} línies que es veuen són certes`, linies > 0 && !falses.length, falses.join('\n      → '));
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    suite("9. Prioritat d'operacions amb la pissarra (?pissarra=1)");
+    {
+        // Preguntes repetibles: Math.random amb llavor (Mulberry32) abans de generar-les
+        let llavor = 20261027;
+        Math.random = () => {
+            llavor |= 0;
+            llavor = (llavor + 0x6d2b79f5) | 0;
+            let t = Math.imul(llavor ^ (llavor >>> 15), 1 | llavor);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        const { MathEngine: ME } = await importa('js/prioritat/math-engine.js');
+        const { Renderer: R } = await importa('js/prioritat/renderer.js');
+        const { SUPORTA_PISSARRA } = M;
+        ok('prioritat és a SUPORTA_PISSARRA', SUPORTA_PISSARRA.includes('prioritat'));
+
+        // El text pla de cada línia de la taula (per calcular-la): − → -, · → *, x<sup>e</sup> → x^e
+        const liniesDeTaula = html =>
+            [...html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map(m =>
+                m[1]
+                    .replace(/<td class="(igual|nota-pas)">[\s\S]*?<\/td>/g, '')
+                    .replace(/<sup>/g, '^')
+                    .replace(/<[^>]+>/g, '')
+                    .replace(/−/g, '-')
+                    .replace(/·/g, '*')
+                    .replace(/\s+/g, '')
+            );
+        const senseClaus = html => html.replace(/<span data-k="[^"]*">/g, '').replace(/<\/span>/g, '');
+
+        let exercicis = 0,
+            animacions = 0;
+        const dolents = [],
+            falses = [],
+            fonts = [],
+            diferents = [];
+        for (let k = 0; k < 800; k++) {
+            const ex = ME.generateExercise(k % ME.LEVELS.length);
+            exercicis++;
+            const llibre = ME.solve(ME.startLine(ex.toks)); // [{ line, op }], la resolució «de llibre»
+            // L'alumne fa el pas j: A = línies 0..j-1 (l'última amb l'operació triada, sense botons),
+            // B = línies 0..j (la nova és la de treball, amb botons si encara no s'ha acabat)
+            for (let j = 1; j < llibre.length; j++) {
+                const filesA = llibre.slice(0, j).map((r, i) => ({ line: r.line, op: r.op }));
+                const filesB = llibre.slice(0, j + 1).map((r, i) => ({ line: r.line, op: i < j ? r.op : -1 }));
+                const fet = ME.isDone(filesB[j].line);
+                const A = R.tableHtml(filesA, { active: false, claus: true });
+                const B = R.tableHtml(filesB, { active: !fet, claus: true });
+                const fusiona = R.fusioUltimaLinia(filesB);
+                const passos = [
+                    { files: [A], classes: [''], text: 'A.' },
+                    { files: [B], classes: [''], text: 'B.', fusiona },
+                ];
+                animacions++;
+                const errors = C.comprovaGuio(passos, 1, `exercici ${k}, pas ${j}`);
+                if (errors.length && dolents.length < 5) dolents.push(...errors);
+                const n = Object.values(fusiona).flat().length;
+                if (![1, 3, 5].includes(n) && fonts.length < 5) fonts.push(`exercici ${k}, pas ${j}: ${n} símbols`);
+                if (senseClaus(B) !== R.tableHtml(filesB, { active: !fet }) && diferents.length < 3)
+                    diferents.push(`exercici ${k}, pas ${j}`);
+                liniesDeTaula(B).forEach((text, i) => {
+                    try {
+                        const v = avalua(text);
+                        if (!igualQ(v, Q(ex.val)) && falses.length < 5)
+                            falses.push(`exercici ${k}, línia ${i + 1}: ${text} val ${textQ(v)}, no ${ex.val}`);
+                    } catch (e) {
+                        if (falses.length < 5) falses.push(`exercici ${k}, línia ${i + 1}: ${text}: ${e.message}`);
+                    }
+                });
+            }
+        }
+        ok(
+            `${animacions} animacions de ${exercicis} expressions passen la revisió dels guions`,
+            animacions > 2000 && !dolents.length,
+            dolents.join('\n      → ')
+        );
+        ok(
+            'a cada pas només baixen els símbols de l’operació: 1 (potència), 3 (a, signe, b) o 5 (amb els parèntesis)',
+            !fonts.length,
+            fonts.join('\n      → ')
+        );
+        ok('cada línia de cada taula val el resultat de l’expressió', !falses.length, falses.join('\n      → '));
+        ok(
+            'amb les claus, la taula és la de sempre (només hi afegeix <span data-k>)',
+            !diferents.length,
+            diferents.join(', ')
+        );
+        // Les marques de l'esvaïment (exemple, ajuda) també porten clau
+        const ex = ME.generateExercise(5);
+        const llibre = ME.solve(ME.startLine(ex.toks));
+        const ambNota = llibre
+            .slice(0, 2)
+            .map((r, i) => ({ line: r.line, op: i ? -1 : r.op, marca: i ? 'exemple' : '' }));
+        const html = R.tableHtml(ambNota, { claus: true });
+        ok('el «=» i la nota d’un exemple resolt porten clau', /data-k="e0"/.test(html) && /data-k="n1"/.test(html));
+        eq('sense línia nova, cap fusió', JSON.stringify(R.fusioUltimaLinia(llibre.slice(0, 1))), '{}');
+    }
+
     finish('RESOLUCIÓ PAS A PAS (PISSARRA)');
 })();
