@@ -153,7 +153,7 @@ Un alumne pot fer la mateixa prova més d'un cop i enviar cada codi pel formular
 | `families` | ids separats per `,` | totes | Famílies actives (derivades, integrals) |
 | `tipus` | `calcat`, `germans`, `nota`, `son`, `minuts`, `alcada`, `pes`, `pulsacions` | aleatori | Tipus de dades (estadística) |
 | `dim`, `modalitat` | 2/3 · a/b | — | Dimensió i nivell (vocabulari) |
-| `modalitat` | `passos` | resultat final | Prioritat d'operacions: «Pas a pas» (l'alumne resol l'expressió operació a operació) |
+| `modalitat` | `passos` | resultat final | Prioritat d'operacions: «Pas a pas» (l'alumne resol l'expressió operació a operació). Amb `esvaiment=1` o `pissarra=1` sempre és «Pas a pas» |
 | `esvaiment` | `1` | desactivat | Mode «Esvaïment»: exemples resolts que es van esvaint (vegeu més avall). Ara, només a `prioritat` |
 | `inici` | 0-9 | 0 | Amb `esvaiment=1`: quants passos fa l'alumne al primer exercici (0 = l'exemple sencer) |
 | `pissarra` | `1` | desactivat | «Resolució pas a pas» animada (vegeu més avall). Només a les activitats que la tenen; el posa el botó «Activar la resolució pas a pas» del generador d'enllaços |
@@ -167,9 +167,9 @@ Exemple: `derivades.html?totalsessions=2&totaloperations=8&families=chain-exp-in
 
 A l'estil de Graspable Math: la resolució d'un exercici es veu en una **pissarra** on els símbols es mouen d'una línia a la següent, es fusionen en el resultat (`4 · 2` vola i es converteix en `8`) o desapareixen, i cada pas porta una frase que diu què es fa i per què. És el mateix motor dels procediments animats del web de la PAU (`step-quiz/pau`).
 
-- **Al generador d'enllaços** (`index.html`) hi ha el botó **«Activar la resolució pas a pas»**. Normalment està desactivat i tot funciona com sempre. Si es clica, els menús d'ESO i de Batxillerat només ofereixen les activitats que tenen la resolució pas a pas, i l'enllaç porta `pissarra=1`. El botó no surt mentre cap activitat no la tingui.
-- **Què veurà l'alumne** (quan una activitat la tingui): l'animació dels passos dels exemples resolts i, quan encerta un pas, la línia anterior que es transforma en la nova. Ell marca el ritme. **No canvia res més**: ni les preguntes, ni la nota, ni el codi de verificació.
-- **Activitats que la tenen ara:** encara cap. Se'n van afegint d'una en una, començant per Prioritat d'operacions; el pla és a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md).
+- **Al generador d'enllaços** (`index.html`) hi ha el botó **«Activar la resolució pas a pas»**. Normalment està desactivat i tot funciona com sempre. Si es clica, els menús d'ESO i de Batxillerat només ofereixen les activitats que tenen la resolució pas a pas, i l'enllaç porta `pissarra=1`. Si un menú encara no en té cap, diu «Encara no n'hi ha cap».
+- **Què veu l'alumne:** l'animació dels passos dels exemples resolts i, quan encerta un pas, la línia anterior que es transforma en la nova. Ell marca el ritme. **No canvia res més**: ni les preguntes, ni la nota, ni el codi de verificació.
+- **Activitats que la tenen ara:** **Prioritat d'operacions** (`prioritat.html?pissarra=1`). Sempre és «Pas a pas» i la taula és la de sempre, però quan s'hi escriu una línia nova (un pas que l'alumne encerta, un pas d'un exemple resolt o el pas bo després d'un error), els nombres de l'operació baixen a la línia nova i es fusionen en el resultat. Si el pas l'ha fet l'alumne, l'animació és més ràpida (uns 1,5 s). Es pot combinar amb l'esvaïment. Les altres activitats s'aniran afegint d'una en una; el pla és a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md).
 - **Per veure-la funcionar:** `pissarra-demo.html`.
 
 El motor és a `js/pissarra/` (estil a `css/pissarra.css`), explicat a [`docs/pissarra/MOTOR.md`](docs/pissarra/MOTOR.md). Les proves comproven, entre altres coses, que **cada línia que es veu a la pissarra és certa** (`tests/pissarra.test.js`).

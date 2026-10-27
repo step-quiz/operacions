@@ -11,7 +11,12 @@
  *   3. el reproductor: «Pas següent», «Pas anterior», «Torna a començar», els
  *      punts i les fletxes del teclat;
  *   4. carregaKatex() carrega KaTeX en una pàgina que no el té;
- *   5. cap error a la consola.
+ *   5. el botó «Activar la resolució pas a pas» d'index.html;
+ *   6. prioritat.html amb ?pissarra=1: es resolen expressions senceres clicant
+ *      (l'operació bona i el resultat bo); cada línia nova s'anima (l'operació
+ *      baixa i es fusiona) i en acabar hi ha exactament una línia més; també amb
+ *      l'esvaïment; i sense el paràmetre, prioritat no té cap pissarra;
+ *   i cap error a la consola.
  * - Si Playwright no hi és (p. ex. a GitHub), la prova s'omet i no falla.
  * ÚS: node tests/navegador/prova-pissarra.js
  * ============================================================================
@@ -216,6 +221,133 @@ function engegaServidor() {
             ok('desactivat de nou: «Obre» actiu', !(await pagina.isDisabled('#p-batx')));
             ok("cap error a la consola de l'index", !errors.length, errors.join('\n      → '));
             await pagina.close();
+        }
+
+        suite('6. prioritat.html amb la resolució pas a pas (?pissarra=1)');
+        {
+            // L'operació que toca a la línia de treball (ordre «de llibre») i el seu resultat,
+            // llegits de la taula de la pàgina (sense fer servir el codi de l'activitat)
+            const quinPas = () =>
+                pagina.evaluate(() => {
+                    const files = [...document.querySelectorAll('#steps-box .pis-capa table.centrat tr')];
+                    const cel = [...files[files.length - 1].querySelectorAll('td')].filter(
+                        td => !td.classList.contains('igual') && !td.classList.contains('nota-pas')
+                    );
+                    const tok = cel.map(td => {
+                        const t = td.textContent.trim(),
+                            sup = td.querySelector('sup');
+                        if (sup)
+                            return {
+                                k: 'pow',
+                                b: +t.slice(0, t.length - sup.textContent.length),
+                                e: +sup.textContent,
+                                td,
+                            };
+                        if (t === '(' || t === ')') return { k: t, td };
+                        return /^\d+$/.test(t) ? { k: 'num', v: +t, td } : { k: 'op', v: t, td };
+                    });
+                    let s = 0,
+                        e = tok.length - 1,
+                        d = 0,
+                        maxd = 0;
+                    tok.forEach((t, i) => {
+                        if (t.k === '(' && ++d > maxd) {
+                            maxd = d;
+                            s = i + 1;
+                        } else if (t.k === ')') d--;
+                    });
+                    if (maxd) e = tok.findIndex((t, i) => i >= s && t.k === ')') - 1;
+                    const dins = tok.map((t, i) => i).filter(i => i >= s && i <= e);
+                    const i =
+                        dins.find(j => tok[j].k === 'pow') ??
+                        dins.find(j => tok[j].k === 'op' && (tok[j].v === '·' || tok[j].v === ':')) ??
+                        dins.find(j => tok[j].k === 'op');
+                    const t = tok[i];
+                    let val;
+                    if (t.k === 'pow') val = t.b ** t.e;
+                    else {
+                        const [a, b] = [tok[i - 1].v, tok[i + 1].v];
+                        val = t.v === '+' ? a + b : t.v === '·' ? a * b : t.v === ':' ? a / b : a - b;
+                    }
+                    const boto = t.td.querySelector('.tok-btn');
+                    return { i: boto ? boto.dataset.i : null, val, linies: files.length };
+                });
+            const linies = () => pagina.$$eval('#steps-box .pis-capa table.centrat tr', trs => trs.length);
+            const sensePissarraOcupada = () =>
+                pagina.waitForFunction(() => !document.querySelector('#steps-box .pis-nova'));
+
+            const pagina = await navegador.newPage({ viewport: { width: 1366, height: 700 } });
+            const errors = [];
+            pagina.on('pageerror', e => errors.push(String(e)));
+            pagina.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            await pagina.goto(BASE + '/prioritat.html?pissarra=1&totaloperations=10&maxintents=3');
+            await pagina.waitForSelector('#steps-box .pis-escenari');
+            let passos = 0,
+                animats = 0,
+                malament = [];
+            for (let ex = 0; ex < 10; ex++) {
+                for (let guarda = 0; guarda < 12 && !(await pagina.$('#btn-next')); guarda++) {
+                    const { i, val, linies: abans } = await quinPas();
+                    await pagina.click(`#steps-box .pis-capa .tok-btn[data-i="${i}"]`);
+                    await pagina.click(`#chip-pool .num-chip[data-val="${val}"]`);
+                    // A mitja animació hi ha fantasmes (els símbols que es mouen)
+                    const fantasmes = await pagina
+                        .waitForFunction(() => document.querySelectorAll('.pis-fantasma').length > 0, null, {
+                            timeout: 2500,
+                        })
+                        .then(() => true)
+                        .catch(() => false);
+                    await sensePissarraOcupada();
+                    passos++;
+                    if (fantasmes) animats++;
+                    const despres = await linies();
+                    const restes = await pagina.$$eval('.pis-efectes > *', es => es.length);
+                    if (despres !== abans + 1 || restes)
+                        malament.push(`exercici ${ex + 1}: ${abans} → ${despres} línies, ${restes} restes`);
+                }
+                if (ex < 9) await pagina.click('#btn-next');
+            }
+            ok(
+                `${passos} passos fets clicant: tots s'animen`,
+                passos > 20 && animats === passos,
+                `${animats} de ${passos}`
+            );
+            ok(
+                'cada pas afegeix exactament una línia i no deixa restes de l’animació',
+                !malament.length,
+                malament.join('\n      → ')
+            );
+            ok(
+                'les 10 expressions acaben amb el botó «Veure resultats»',
+                /Veure resultats/.test(await pagina.textContent('#btn-next'))
+            );
+            ok('cap error a la consola', !errors.length, errors.join('\n      → '));
+            await pagina.close();
+
+            // Esvaïment + pissarra: els passos de l'exemple resolt també s'animen
+            const esv = await navegador.newPage({ viewport: { width: 1366, height: 700 } });
+            await esv.goto(BASE + '/prioritat.html?esvaiment=1&pissarra=1');
+            await esv.waitForSelector('.esv-btn');
+            await esv.click('.esv-btn');
+            const animaExemple = await esv
+                .waitForFunction(() => document.querySelectorAll('.pis-fantasma').length > 0, null, { timeout: 3000 })
+                .then(() => true)
+                .catch(() => false);
+            ok('esvaïment: el pas de l’exemple resolt s’anima', animaExemple);
+            await esv.close();
+
+            // Sense ?pissarra=1, prioritat és com sempre: cap pissarra i KaTeX no es carrega
+            for (const q of ['modalitat=passos', '']) {
+                const p = await navegador.newPage();
+                await p.goto(BASE + '/prioritat.html?' + q);
+                await p.waitForTimeout(600);
+                const [pis, kx] = await p.evaluate(() => [
+                    document.querySelectorAll('.pis-escenari').length,
+                    document.querySelectorAll('script[src*="katex"]').length,
+                ]);
+                ok(`prioritat.html?${q || '(sense paràmetres)'}: cap pissarra ni KaTeX`, pis === 0 && kx === 0);
+                await p.close();
+            }
         }
     } finally {
         await navegador.close();

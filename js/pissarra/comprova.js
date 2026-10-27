@@ -22,8 +22,11 @@
  */
 import { CLAU_VALIDA } from './formules.js';
 
-/** Claus d'una fila (TeX o text amb frases {{clau|…}}), en ordre. */
-export const clausDe = tex => [...tex.matchAll(/\\htmlData\{k=([^},]*)[^}]*\}|\{\{([^|}]+)\|/g)].map(m => m[1] || m[2]);
+/** Claus d'una fila (TeX, text amb frases {{clau|…}} o HTML amb data-k="clau"), en ordre. */
+export const clausDe = tex =>
+    [...tex.matchAll(/\\htmlData\{k=([^},]*)[^}]*\}|\{\{([^|}]+)\||\bdata-k="([^"]+)"/g)].map(
+        m => m[1] || m[2] || m[3]
+    );
 
 /**
  * Revisió estructural d'un guió. Torna una llista de frases que diuen què falla
