@@ -3,7 +3,11 @@
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/fraccions/fraccions.js
  * ROL: Joc «Operacions amb Fraccions» (fraccions.html). Abans era dins de l'HTML.
- * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa game-core.js, utils.js, config.js.
+ *      «Resolució pas a pas» (?pissarra=1, js/pissarra/): l'expressió es pinta dins
+ *      d'una pissarra sense marc i cada línia nova s'anima (els nombres que el pas fa
+ *      servir hi baixen volant; vegeu renderer.js). Sense el paràmetre, tot és com sempre.
+ * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa game-core.js, utils.js, config.js,
+ *      errors-fraccions.js, renderer.js, pissarra/mode.js i pissarra/pissarra.js.
  * ============================================================================
  */
 
@@ -27,6 +31,9 @@ import {
     validateConfig,
 } from '../game-core.js';
 import { diagnostica } from './errors-fraccions.js';
+import { Renderer } from './renderer.js';
+import { PISSARRA_ACTIVA } from '../pissarra/mode.js';
+import { creaPissarra } from '../pissarra/pissarra.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -63,6 +70,12 @@ let unsimpResN = 0,
 let finalResN = 0,
     finalResD = 0;
 let isPenalizing = false;
+
+// «Resolució pas a pas» (?pissarra=1): la pissarra de l'expressió (null si no és actiu), les línies
+// ({ termes, pas }, vegeu renderer.js) i la cua d'animacions
+const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.exprBox, { files: 1, marc: false }) : null;
+let historia = [];
+let cuaPissarra = Promise.resolve();
 
 // ---- MENÚ DE SELECCIÓ ----
 function selectMode(mode) {
@@ -175,13 +188,46 @@ function formatFraction(n, d) {
     return `<div class="fraction"><span class="math-cell">${n}</span><hr><span class="math-cell">${d}</span></div>`;
 }
 
-function appendToExpression(htmlContent) {
+// termes i pas: la línia per a la pissarra (vegeu renderer.js); sense pissarra, s'afegeix htmlContent
+function appendToExpression(htmlContent, termes, pas) {
+    if (pissarra) {
+        historia.push({ termes, pas });
+        pintaHistoria(true);
+        return;
+    }
     let line = document.createElement('div');
     line.className = 'expr-line';
     line.style.animation = 'fadeIn 0.5s ease-out';
     line.innerHTML = htmlContent;
     els.exprBox.appendChild(line);
 }
+
+// «Resolució pas a pas»: l'expressió a la pissarra. anima: la línia nova s'escriu amb animació (un pas
+// que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
+// Les pintades van en cua: una animació sempre acaba abans que comenci la següent.
+function pintaHistoria(anima) {
+    const pas = Object.assign(
+        { files: [Renderer.historiaHtml(historia)], classes: ['centrada'], text: '' },
+        anima ? Renderer.animacioUltimaLinia(historia) : {}
+    );
+    cuaPissarra = cuaPissarra.then(() => {
+        if (!anima) return pissarra.mostraPas(pas);
+        pissarra.velocitat(1.6);
+        return pissarra.animaPas(pas);
+    });
+    return cuaPissarra;
+}
+
+// Després d'escriure una línia: amb la pissarra, el pas s'amaga mentre la línia s'anima i fn es crida
+// quan l'animació s'acaba; sense pissarra, fn es crida de seguida (com sempre).
+function quanAcabi(fn) {
+    if (!pissarra) return fn();
+    document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));
+    hideCustomKeyboard();
+    cuaPissarra.then(fn);
+}
+
+const F = (n, d) => ({ n, d });
 
 function resetWarnings() {
     document.querySelectorAll('.warn-msg').forEach(msg => (msg.style.display = 'none'));
@@ -241,7 +287,11 @@ function buildLevel() {
 
     generateProblem();
 
-    els.exprBox.innerHTML = `
+    if (pissarra) {
+        historia = [{ termes: [F(n1, d1), op, F(n2, d2)], pas: null }];
+        pintaHistoria(false);
+    } else {
+        els.exprBox.innerHTML = `
             <div class="expr-line">
                 ${formatFraction(n1, d1)}
                 <span class="operator">${op}</span>
@@ -249,10 +299,16 @@ function buildLevel() {
                 <span class="operator">=</span>
             </div>
         `;
+    }
 
     updateUI();
     document.querySelectorAll('input[type="text"].math-cell').forEach(inp => (inp.value = ''));
 
+    // Amb la pissarra, el primer pas surt quan ja s'hi veu l'expressió
+    quanAcabi(mostraPrimerPas);
+}
+
+function mostraPrimerPas() {
     if (currentMode === 'addsub') {
         if (d1 === d2) {
             userDen = d1;
@@ -401,14 +457,18 @@ function checkValue() {
         }
 
         if (ok1 && ok2) {
-            appendToExpression(`
+            appendToExpression(
+                `
                     <span class="operator">=</span>
                     ${formatFraction(userNum1, userDen)}
                     <span class="operator">${op}</span>
                     ${formatFraction(userNum2, userDen)}
-                `);
+                `,
+                [F(userNum1, userDen), op, F(userNum2, userDen)],
+                'amplia'
+            );
             hideCustomKeyboard();
-            showStep('step-3');
+            quanAcabi(() => showStep('step-3'));
         } else {
             processFailure(diagnostica('step-2', { fila1: ok1 ? null : fila1, fila2: ok2 ? null : fila2 }));
         }
@@ -424,16 +484,26 @@ function checkValue() {
         if (resN === expectedResN && resD === userDen) {
             unsimpResN = resN;
             unsimpResD = resD;
-            appendToExpression(`<span class="operator">=</span>${formatFraction(unsimpResN, unsimpResD)}`);
-            if (!requireIrred || getMCD(unsimpResN, unsimpResD) === 1) {
-                finishSuccess();
-            } else {
-                hideCustomKeyboard();
-                showStep('step-4');
-            }
+            appendToExpression(
+                `<span class="operator">=</span>${formatFraction(unsimpResN, unsimpResD)}`,
+                [F(unsimpResN, unsimpResD)],
+                'opera'
+            );
+            quanAcabi(() => {
+                if (!requireIrred || getMCD(unsimpResN, unsimpResD) === 1) {
+                    finishSuccess();
+                } else {
+                    hideCustomKeyboard();
+                    showStep('step-4');
+                }
+            });
         } else if (resN === finalResN && resD === finalResD) {
-            appendToExpression(`<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`);
-            finishSuccess();
+            appendToExpression(
+                `<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`,
+                [F(finalResN, finalResD)],
+                'opera'
+            );
+            quanAcabi(finishSuccess);
         } else {
             processFailure(diagnostica('step-3', { op, u1: userNum1, u2: userNum2, den: userDen, resN, resD }));
         }
@@ -450,9 +520,11 @@ function checkValue() {
         if (finalResD === 1) {
             if (simpN === finalResN) {
                 appendToExpression(
-                    `<span class="operator">=</span><span class="math-cell integer-val">${finalResN}</span>`
+                    `<span class="operator">=</span><span class="math-cell integer-val">${finalResN}</span>`,
+                    [F(finalResN, 1)],
+                    'simplifica'
                 );
-                finishSuccess();
+                quanAcabi(finishSuccess);
             } else {
                 processFailure(
                     diagnostica('step-4', {
@@ -470,15 +542,26 @@ function checkValue() {
 
         if (simpN * finalResD === simpD * finalResN) {
             if (simpN === finalResN && simpD === finalResD) {
-                appendToExpression(`<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`);
-                finishSuccess();
+                appendToExpression(
+                    `<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`,
+                    [F(finalResN, finalResD)],
+                    'simplifica'
+                );
+                quanAcabi(finishSuccess);
             } else {
-                appendToExpression(`<span class="operator">=</span>${formatFraction(simpN, simpD)}`);
-                document.getElementById('s4-n').value = '';
-                document.getElementById('s4-d').value = '';
-                if (isTouchDevice()) showCustomKeyboard(document.getElementById('s4-n'));
-                else document.getElementById('s4-n').focus();
-                activeStep.querySelector('.warn-msg').style.display = 'block';
+                appendToExpression(
+                    `<span class="operator">=</span>${formatFraction(simpN, simpD)}`,
+                    [F(simpN, simpD)],
+                    'simplifica'
+                );
+                quanAcabi(() => {
+                    activeStep.classList.add('active');
+                    document.getElementById('s4-n').value = '';
+                    document.getElementById('s4-d').value = '';
+                    if (isTouchDevice()) showCustomKeyboard(document.getElementById('s4-n'));
+                    else document.getElementById('s4-n').focus();
+                    activeStep.querySelector('.warn-msg').style.display = 'block';
+                });
             }
         } else {
             processFailure(
@@ -502,14 +585,18 @@ function checkValue() {
                 n2 === 1
                     ? `<div class="fraction"><span class="math-cell">${d2}</span><hr><span class="math-cell">1</span></div>`
                     : formatFraction(d2, n2);
-            appendToExpression(`
+            appendToExpression(
+                `
                     <span class="operator">=</span>
                     ${formatFraction(n1, d1)}
                     <span class="operator">·</span>
                     ${invHTML}
-                `);
+                `,
+                [F(n1, d1), '·', { n: d2, d: n2, fr: true }],
+                'inverteix'
+            );
             hideCustomKeyboard();
-            showStep('step-md-2');
+            quanAcabi(() => showStep('step-md-2'));
         } else {
             processFailure(diagnostica('step-md-1', { n1, d1, n2, d2, inN, inD }));
         }
@@ -522,16 +609,26 @@ function checkValue() {
         let requireIrred = isIrreducibleRequired();
 
         if (resN === unsimpResN && resD === unsimpResD) {
-            appendToExpression(`<span class="operator">=</span>${formatFraction(unsimpResN, unsimpResD)}`);
-            if (!requireIrred || getMCD(unsimpResN, unsimpResD) === 1) {
-                finishSuccess();
-            } else {
-                hideCustomKeyboard();
-                showStep('step-md-3');
-            }
+            appendToExpression(
+                `<span class="operator">=</span>${formatFraction(unsimpResN, unsimpResD)}`,
+                [F(unsimpResN, unsimpResD)],
+                'opera'
+            );
+            quanAcabi(() => {
+                if (!requireIrred || getMCD(unsimpResN, unsimpResD) === 1) {
+                    finishSuccess();
+                } else {
+                    hideCustomKeyboard();
+                    showStep('step-md-3');
+                }
+            });
         } else if (resN === finalResN && resD === finalResD) {
-            appendToExpression(`<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`);
-            finishSuccess();
+            appendToExpression(
+                `<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`,
+                [F(finalResN, finalResD)],
+                'opera'
+            );
+            quanAcabi(finishSuccess);
         } else {
             // a/b · c/e: a la divisió, la segona fracció ja està invertida
             const [c, e] = op === '·' ? [n2, d2] : [d2, n2];
@@ -549,15 +646,26 @@ function checkValue() {
 
         if (simpN * finalResD === simpD * finalResN) {
             if (simpN === finalResN && simpD === finalResD) {
-                appendToExpression(`<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`);
-                finishSuccess();
+                appendToExpression(
+                    `<span class="operator">=</span>${formatFraction(finalResN, finalResD)}`,
+                    [F(finalResN, finalResD)],
+                    'simplifica'
+                );
+                quanAcabi(finishSuccess);
             } else {
-                appendToExpression(`<span class="operator">=</span>${formatFraction(simpN, simpD)}`);
-                document.getElementById('md-s3-n').value = '';
-                document.getElementById('md-s3-d').value = '';
-                if (isTouchDevice()) showCustomKeyboard(document.getElementById('md-s3-n'));
-                else document.getElementById('md-s3-n').focus();
-                activeStep.querySelector('.warn-msg').style.display = 'block';
+                appendToExpression(
+                    `<span class="operator">=</span>${formatFraction(simpN, simpD)}`,
+                    [F(simpN, simpD)],
+                    'simplifica'
+                );
+                quanAcabi(() => {
+                    activeStep.classList.add('active');
+                    document.getElementById('md-s3-n').value = '';
+                    document.getElementById('md-s3-d').value = '';
+                    if (isTouchDevice()) showCustomKeyboard(document.getElementById('md-s3-n'));
+                    else document.getElementById('md-s3-n').focus();
+                    activeStep.querySelector('.warn-msg').style.display = 'block';
+                });
             }
         } else {
             processFailure(

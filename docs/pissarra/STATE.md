@@ -10,14 +10,14 @@ How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file win
 | 0 | Engine ported (`js/pissarra/`, `css/pissarra.css`), demo page `pissarra-demo.html`, tests (`tests/pissarra.test.js`, `tests/navegador/prova-pissarra.js`, `check-repo.js` §9), index button | DONE |
 | 1 | Pilot `prioritat` (1r–2n ESO), with the fading mode that is already there | DONE (2026-10-27); David tests it with a 1r ESO group |
 | 2 | `equacions` (1r grau) | DONE (2026-10-27). Its fading mode is still pending (see «Wave 2») |
-| 3 | `fraccions`: addition/subtraction first (with its planned fading mode), then product/division | PENDING |
+| 3 | `fraccions`: addition/subtraction and product/division | DONE (2026-10-27). Its fading mode is still pending (see «Wave 3») |
 | 4 | `potencies` and `enters` (reuse the pilot) | PENDING |
 | 5 | `sistemes-equacions` and `radicals` (3r–4t ESO) | PENDING |
 | 6 | Batxillerat: `esglaonar-matriu` → `ruffini` → `complexos` (port `pau`'s `matrius.js` as needed) | PENDING |
 | 7 | Optional: `mcd-mcm`, `inversa-matriu`, `derivades`/`integrals` («Mira com es fa») | PENDING |
 
-After wave 1, David tests it with a 1r ESO group before the next waves. Wave 2 done at his request (27/10/2026).
-Next: wave 3 (`fraccions`).
+After wave 1, David tests it with a 1r ESO group before the next waves. Waves 2 and 3 done at his request
+(27/10/2026). Next: wave 4 (`potencies` and `enters`), when David says so.
 
 ## Decisions approved by the user
 
@@ -105,6 +105,31 @@ Next: wave 3 (`fraccions`).
 - The fading mode for `equacions` (planned in `docs/esvaiment/STATE.md`) is NOT done: with the index button
   on there are no options (decision 5), so it is a separate feature for the normal links. The pure
   `math-engine.js` it needed now exists.
+
+## Wave 3: how `fraccions` uses the board (2026-10-27)
+
+- No refactor of the generator: the lines depend on the student's answers (the common denominator they chose,
+  a simplification in several goes), so the controller builds each line from the values it has just checked
+  and the pure `js/fraccions/renderer.js` turns the lines into HTML with keys and says what moves. Without
+  `?pissarra=1` the controller writes the lines exactly as before (old code path untouched); fixed sessions
+  cannot change (no new `Math.random`, generator untouched).
+- The expression is one HTML row of a frameless board (`Renderer.historiaHtml`), speed 1.6; while a line
+  animates the step panel hides (`quanAcabi`) and the next step (or the «Correcte!» overlay) appears when it
+  ends; the first step of an operation also waits until its expression is drawn. Browser-test lesson: the
+  activity focuses the first input 50 ms after a step appears, so a test that types at once can put a digit
+  in the wrong box (`prova-pissarra.js` §8 waits 100 ms). A line is `{ termes, pas }`: fractions `{n, d}` (`fr: true` writes «n/1» as a fraction, as the old
+  inverse did) and signs; the first line ends with «=», the others start with it. Keys `e<r><i><piece>`
+  (pieces n, d, o), copies `f…`, «=» `e<r>q`. What moves (`Renderer.moviments`): `amplia` → each fraction
+  travels and changes into its equivalent; `inverteix` → the first fraction travels, «:» becomes «·», the
+  numerator and denominator of the second cross; `opera` (sum, difference or product) → numerators and sign
+  merge into the new numerator, denominators into the new denominator; `simplifica` → the fraction travels and
+  changes. When the result is an integer, everything merges into it. At most 5 pieces per step.
+- `tests/fraccions.test.js`: 6,000 operations solved along random paths (equal or different denominators, any
+  common multiple, product, division, simplification in one or two goes, integer results, the irreducible
+  result at once): about 14,800 animations pass the script check, every line shown has the value of the
+  operation, without keys the HTML of each line is the old one.
+- The fading mode for `fraccions` (planned in `docs/esvaiment/STATE.md`) is NOT done, for the same reason as
+  `equacions` (decision 5).
 
 ## Accumulating lines (2026-10-27, after decision 6)
 
