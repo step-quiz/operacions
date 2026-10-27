@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Demostració de la resolució pas a pas animada (Step Quiz)">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="icon.png">
+    <title>Resolució pas a pas — demostració</title>
+
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="vendor/katex-0.16.11/katex.min.css">
+    <link rel="stylesheet" href="css/pissarra.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: rgba(37, 99, 235, 0.10);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #f8fafc;
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+        }
+        header {
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+        header h1 { margin: 0; font-size: 1.1rem; }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 6px 11px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+        main {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+        .nota { margin: 0 0 14px; color: var(--text-muted); max-width: 70ch; }
+        #demos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .demo-tria {
+            font: inherit;
+            font-size: 15px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border-heavy);
+            background: #fff;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+        .demo-tria[aria-pressed="true"] {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            font-weight: 700;
+        }
+    </style>
+    <script src="vendor/katex-0.16.11/katex.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Resolució pas a pas — demostració</h1>
+        <a href="index.html">← Step Quiz</a>
+    </header>
+    <main>
+        <p class="nota">Així es veurà la resolució pas a pas animada a les activitats que la tinguin. Tria un exemple i fes servir els botons de sota la pissarra (o les fletxes del teclat).</p>
+        <div id="demos" role="group" aria-label="Exemples"></div>
+        <div id="demo"></div>
+    </main>
+    <script type="module" src="js/pissarra/demo-pagina.js"></script>
+</body>
+</html>

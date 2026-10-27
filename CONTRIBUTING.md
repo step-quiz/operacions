@@ -18,6 +18,13 @@ operacions/
 │   ├── exercise-codes.js       ← Taula única de codis d'exercici (joc + analitzador)
 │   ├── esvaiment.js            ← Mode «Esvaïment» ?esvaiment=1 (motor de nivells, sense DOM)
 │   ├── game-core.js            ← Motor de joc compartit (estat, puntuació, pantalles, codi v2)
+│   ├── pissarra/               ← «Resolució pas a pas»: la pissarra animada (?pissarra=1)
+│   │   ├── formules.js         ← Claus dels símbols i guió dels passos (pur)
+│   │   ├── comprova.js         ← Revisió dels guions i text pla de cada fila (pur, per als tests)
+│   │   ├── pissarra.js         ← La pissarra: dibuixa els passos i anima el canvi (DOM)
+│   │   ├── reproductor.js      ← Botons, punts i text de cada pas (DOM)
+│   │   ├── mode.js             ← SUPORTA_PISSARRA i PISSARRA_ACTIVA
+│   │   └── demo.js             ← Guions de mostra (pissarra-demo.html)
 │   ├── derivades/              ← Mòdul de derivades (patró recomanat, mòduls ES)
 │   │   ├── math-engine.js      ← Capa matemàtica pura (sense DOM)
 │   │   ├── strings.js          ← Tots els textos i feedback
@@ -257,6 +264,7 @@ Els alumnes ja han enviat codis de tots aquests formats, i el professor els pot 
 | `modalitat` | `passos` · `a`, `b` | — | Modalitat de joc: «Pas a pas» a `prioritat`; nivell a `vocabulari` |
 | `esvaiment` | 1 | — | Mode «Esvaïment» (exemples resolts que es van esvaint); només a les pàgines de `SUPORTA_ESVAIMENT` |
 | `inici` | 0-9 | 0 | Amb `esvaiment=1`: passos que fa l'alumne al primer exercici |
+| `pissarra` | 1 | — | «Resolució pas a pas» animada; només a les pàgines de `SUPORTA_PISSARRA` |
 | `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
 
 Els màxims de sessions (5) i preguntes (10) són els que pot representar el codi v2 (camps S i QQ).
@@ -281,6 +289,16 @@ Per afegir-hi un exercici:
 4. **Registre**: afegeix el nom de la pàgina a `SUPORTA_ESVAIMENT` (`js/esvaiment.js`) i `esvaiment: true` a la seva línia de la llista d'`index.html`. `tests/check-repo.js` comprova que coincideixen.
 5. **Tests** a `tests/esvaiment.test.js`: sobre molts exercicis amb llavor, que els passos aplicats l'un rere l'altre arribin al resultat (recalculat de manera independent) i que cap text tingui `undefined` ni `NaN`.
 
+## Com afegir la resolució pas a pas a una activitat
+
+La «Resolució pas a pas» (`?pissarra=1`, vegeu el README) és a `js/pissarra/`. L'explicació completa del motor (claus, fusions, regles i proves) és a [`docs/pissarra/MOTOR.md`](docs/pissarra/MOTOR.md) i el pla d'activitats, a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md). En resum:
+
+1. **Els passos, com a dades pures** al `math-engine.js` de l'activitat: una funció que, donat l'exercici, torni la llista de passos de la pissarra, feta amb `guio()` de `js/pissarra/formules.js` (què hi ha a la pissarra després de cada pas, amb una **clau** per a cada símbol que s'ha de seguir, i una frase curta en segona persona). Sense DOM i **sense `Math.random`**.
+2. **El controlador** importa `PISSARRA_ACTIVA` (`import { PISSARRA_ACTIVA } from '../pissarra/mode.js';`). Si és fals, no fa res de nou: l'activitat ha de funcionar exactament com sempre. Si és cert, carrega KaTeX (`carregaKatex()`), posa la pissarra on toqui (`creaPissarra(element, { files })`) i l'anima (`seguent()`) als moments acordats: els exemples resolts de l'esvaïment i cada pas que l'alumne encerta.
+3. **L'HTML** enllaça `css/pissarra.css` (després de `css/tokens.css`).
+4. **Registre**: el nom de la pàgina a `SUPORTA_PISSARRA` (`js/pissarra/mode.js`) i `pissarra: true` a la seva línia de la llista d'`index.html`. `tests/check-repo.js` comprova que coincideixen.
+5. **Tests** a `tests/pissarra.test.js`: els guions de molts exercicis generats amb llavor s'afegeixen a `GUIONS`, amb el resultat calculat per un altre camí. Així es comprova que cada guió és correcte, que KaTeX dibuixa totes les fórmules i que **cada línia que es veu és certa**.
+
 ## Tecnologies
 
 - HTML5 / CSS3 purs (sense frameworks)
@@ -298,12 +316,14 @@ node tests/run-all.js
 
 | Fitxer | Què comprova |
 |--------|--------------|
-| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) · mode «Esvaïment» (no genera mai codi, `SUPORTA_ESVAIMENT` quadra amb `index.html`) |
+| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) · mode «Esvaïment» (no genera mai codi, `SUPORTA_ESVAIMENT` quadra amb `index.html`) · «Resolució pas a pas» (`SUPORTA_PISSARRA` quadra amb `index.html`, la pissarra no fa servir `Math.random`, l'analitzador no en sap res) |
 | `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…). A `prioritat`, també la resolució pas a pas (ordre, disposició «centrat»), la modalitat «Pas a pas» i una empremta que avisa si canvien les preguntes de les sessions fixes |
 | `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) la base i cada mòdul de lògica, i comprova que exporten el que han d'exportar |
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 | `tests/esvaiment.test.js` | Mode «Esvaïment»: el motor de nivells (pujar, baixar, terra a 0, URL estranyes) i, a `prioritat`, que els passos de 1.000 expressions arriben al resultat recalculat a part i que la taula sense marques és la de sempre |
+| `tests/pissarra.test.js` | «Resolució pas a pas»: les claus i el guió, la revisió dels guions (amb guions dolents fets a mà), el text pla de cada fila, el paràmetre `?pissarra=1` i, per a tots els guions (avui els de mostra), que KaTeX dibuixa totes les fórmules, que els textos són en segona persona i que **cada línia que es veu és certa** (calculada amb aritmètica exacta) |
+| `tests/navegador/prova-pissarra.js` | La pissarra en un navegador de debò (Chromium amb Playwright), a `pissarra-demo.html`: cada pas acaba amb els seus símbols, sense restes de l'animació, a mida de portàtil i de mòbil; el reproductor; la càrrega de KaTeX; i el botó «Activar la resolució pas a pas» d'`index.html`. Si no hi ha Playwright (p. ex. a GitHub), s'omet |
 | `tests/intents.test.js` | L'analitzador davant d'un alumne que repeteix la prova: intents numerats per l'hora del codi, el mateix codi enviat dos cops, quin intent compta (últim, primer, millor, tots) i proves de CB de mida diferent separades |
 | `tests/codi-verificacio.test.js` | La lletra de control dels codis: vectors fixos (els mateixos que ha de complir `step-quiz/cb`; els del v3 són a `tests/vectors-cb-v3.js`), que canviar una sola xifra dels resultats es detecti sempre i que els codis antics continuïn sent vàlids |
 | `tests/llegeix-codi.test.js` | El lector de codis de l'analitzador: un codi de cada format i de cada època (v1-cb, v2 amb la lletra antiga i la nova, v2 i v3 de CB) i el que se n'ha de treure, els codis dolents, l'anada i tornada del v2 per a tots els codis d'exercici i la del v3 amb els vectors de `cb` (i, si `cb` és clonat a la carpeta ../cb, 300 codis del seu codi.js) |

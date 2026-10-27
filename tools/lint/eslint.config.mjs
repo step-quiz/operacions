@@ -41,4 +41,10 @@ export default [
         languageOptions: { ecmaVersion: 2022, sourceType: 'commonjs', globals: { ...globals.node } },
         rules: { 'no-unused-vars': ['warn', { args: 'none', caughtErrors: 'none' }] },
     },
+    {
+        // Proves amb el navegador (Playwright): el codi de dins de page.evaluate()
+        // s'executa a la pàgina, on hi ha window, document…
+        files: ['tests/navegador/**/*.js'],
+        languageOptions: { globals: { ...globals.node, ...globals.browser } },
+    },
 ];

@@ -235,6 +235,27 @@
 
     .help-btn { display: none; }
 
+    /* ── Botó «Activar la resolució pas a pas» ──
+       Desactivat (per defecte): tot com sempre. Activat: els menús només ofereixen les
+       activitats amb resolució pas a pas animada (pissarra: true) i l'enllaç porta ?pissarra=1. */
+    .pissarra-toggle {
+      display: flex; align-items: center; gap: 8px;
+      margin: 0 auto 16px; height: 38px; padding: 0 18px;
+      border-radius: 999px; border: 1px solid var(--border-heavy);
+      background: #ffffff; color: var(--text-main);
+      font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+      opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards;
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .pissarra-toggle:hover { background-color: #cbd5e1; border-color: #94a3b8; }
+    .pissarra-toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+    .pissarra-toggle[aria-pressed="true"]:hover { background: #1d4ed8; }
+    .pissarra-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .pissarra-toggle svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .pissarra-toggle[hidden] { display: none; }
+    .cd-wrap.buit .cd-label { color: var(--text-muted); font-style: italic; }
+    .copy-btn:disabled, .open-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+
     /* ── Animació derrapada sabatilla ── */
     .icon-wrap {
       position: relative;
@@ -299,6 +320,11 @@
     </h1>
     <div class="title-row-2">Matemàtiques</div>
   </div>
+
+  <button id="btn-pissarra" class="pissarra-toggle" type="button" aria-pressed="false" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 10.5h3M14 9l3 3M17 9l-3 3"/></svg>
+    <span class="pissarra-toggle-text">Activar la resolució pas a pas</span>
+  </button>
 
   <div id="mobile-nav-container" class="mobile-nav">
     <input type="radio" id="nav-eso" name="mobile-nav" value="panel-eso" checked>
@@ -377,7 +403,7 @@
       const trigger = wrap.querySelector('.cd-trigger');
       const list    = wrap.querySelector('.cd-list');
       const label   = wrap.querySelector('.cd-label');
-      const options = activities.filter(a => !a.separator);   // només les opcions triables
+      let options = activities.filter(a => !a.separator);   // només les opcions triables
       let currentFile = defaultFile;
       let activeIdx   = -1;   // opció ressaltada amb les fletxes del teclat
 
@@ -454,6 +480,20 @@
       const def = activities.find(a => a.file === defaultFile) || activities[0];
       label.textContent = def.label;
       render();
+
+      // Canvia les activitats del menú (el botó «Activar la resolució pas a pas»). Si la triada
+      // ja no hi és, es tria la primera; si no n'hi ha cap, getValue() torna null.
+      const BUIT = "Encara no n'hi ha cap";
+      function setActivities(llista) {
+        activities = llista;
+        options = activities.filter(a => !a.separator);
+        if (!options.some(a => a.file === currentFile)) currentFile = options.length ? options[0].file : null;
+        const sel = options.find(a => a.file === currentFile);
+        label.textContent = sel ? sel.label : BUIT;
+        wrap.classList.toggle('buit', !sel);
+        wrap.classList.remove('open');
+        render();
+      }
 
       // Part visible (px, comptada des de dalt de l'opció) de la primera opció que queda tallada.
       const PEEK_PX = 20;
@@ -540,7 +580,7 @@
         }
       });
 
-      return { getValue, openList };
+      return { getValue, openList, setActivities };
     }
 
     // ── Panel init ──
@@ -616,9 +656,16 @@
 
       function build() {
         const file = dropdown.getValue();
+        // Amb la resolució pas a pas activada, un menú pot quedar buit: no hi ha enllaç
+        els.copy.disabled = els.open.disabled = !file;
+        if (!file) {
+          els.link.textContent = '';
+          return;
+        }
         if (suffix === 'batx') {
           const qs = new URLSearchParams();
           if (els.fix && els.fix.value) qs.set('fixed', els.fix.value);
+          if (resolucioPasAPas) qs.set('pissarra', '1');
           const q = qs.toString();
           els.link.textContent = `${BASE_URL}${file}` + (q ? '?' + q : '');
         } else {
@@ -649,6 +696,7 @@
             qs.append('esvaiment', '1');
             if (els.esv.value !== '0') qs.append('inici', els.esv.value);
           }
+          if (resolucioPasAPas) qs.append('pissarra', '1');
           els.link.textContent = `${BASE_URL}${file}?${qs.toString()}`;
         }
       }
@@ -671,7 +719,7 @@
         }
       }
 
-      const dropdown = makeCustomDropdown('cd-' + suffix, activities, defaultFile, () => {
+      function refresh() {
         manageDifficultyRow();
         manageFixedRow();
         manageDimRow();
@@ -680,7 +728,8 @@
         manageModRow();
         build();
         manageHelpButton(false);
-      }, stopAfterFile);
+      }
+      const dropdown = makeCustomDropdown('cd-' + suffix, activities, defaultFile, refresh, stopAfterFile);
 
       build();
       manageDifficultyRow();
@@ -720,11 +769,37 @@
         if (selected && selected.yt) window.open(selected.yt, '_blank');
       });
 
-      return dropdown;
+      // El botó «Activar la resolució pas a pas»: el menú ofereix només les activitats amb
+      // pissarra: true (o totes, si es desactiva) i l'enllaç porta ?pissarra=1.
+      function setResolucioPasAPas() {
+        dropdown.setActivities(resolucioPasAPas ? activities.filter(a => a.pissarra) : activities);
+        refresh();
+      }
+
+      return Object.assign({}, dropdown, { setResolucioPasAPas });
     }
 
+    // «Activar la resolució pas a pas» (desactivat per defecte: tot com sempre). Les activitats
+    // que la tenen porten «pissarra: true» a la llista i han de coincidir amb SUPORTA_PISSARRA
+    // de js/pissarra/mode.js (tests/check-repo.js ho comprova).
+    let resolucioPasAPas = false;
+
     const dropdownEso = initPanel('eso',  ACTIVITIES_ESO,  DEFAULT_ESO, ESO_LLISTA_FINS);
-    initPanel('batx', ACTIVITIES_BATX, DEFAULT_BATX);
+    const dropdownBatx = initPanel('batx', ACTIVITIES_BATX, DEFAULT_BATX);
+
+    {
+      const boto = document.getElementById('btn-pissarra');
+      const text = boto.querySelector('.pissarra-toggle-text');
+      // Mentre cap activitat no la tingui, el botó no surt
+      boto.hidden = ![...ACTIVITIES_ESO, ...ACTIVITIES_BATX].some(a => a.pissarra);
+      boto.addEventListener('click', () => {
+        resolucioPasAPas = !resolucioPasAPas;
+        boto.setAttribute('aria-pressed', String(resolucioPasAPas));
+        text.textContent = resolucioPasAPas ? 'Desactivar la resolució pas a pas' : 'Activar la resolució pas a pas';
+        dropdownEso.setResolucioPasAPas();
+        dropdownBatx.setResolucioPasAPas();
+      });
+    }
 
     // Tanca dropdowns en clicar fora
     document.addEventListener('click', () => {

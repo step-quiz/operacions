@@ -15,6 +15,9 @@
  *      mòdul i les pàgines amb joc no tenen JS dins de l'HTML.
  *   8. Mode «Esvaïment» (?esvaiment=1): no genera mai el codi de verificació, i
  *      la llista de pàgines que l'admeten quadra amb index.html i amb el codi.
+ *   9. Mode «Resolució pas a pas» (?pissarra=1): la llista de pàgines que
+ *      l'admeten quadra amb index.html (botó «Activar la resolució pas a pas»)
+ *      i amb el codi; no canvia les sessions fixes ni els codis.
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -579,6 +582,66 @@ suite('8. Mode «Esvaïment» (?esvaiment=1)');
     ];
     const toquen = analitzador.filter(f => exists(f) && /esvaiment/i.test(read(f)));
     ok("l'analitzador i js/codi-verificacio.js no tenen res de l'esvaïment", !toquen.length, toquen.join(', '));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+suite('9. Mode «Resolució pas a pas» (?pissarra=1)');
+{
+    const src = read('js/pissarra/mode.js');
+    const llista = src.match(/export const SUPORTA_PISSARRA\s*=\s*\[([^\]]*)\]/);
+    ok('js/pissarra/mode.js declara SUPORTA_PISSARRA', Boolean(llista));
+    const suporta = llista ? [...llista[1].matchAll(/'([^']+)'/g)].map(m => m[1]).sort() : [];
+
+    // Cap fitxer de la pissarra fa servir Math.random (les sessions fixes no canvien)
+    const senseComentaris = f =>
+        read(f)
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+            .replace(/\/\/[^\n]*/g, '');
+    const random = listFiles('js/pissarra', ['.js']).filter(f => /Math\.random/.test(senseComentaris(f)));
+    ok('cap fitxer de js/pissarra/ fa servir Math.random', !random.length, random.join(', '));
+
+    // index.html: les activitats amb «pissarra: true» són exactament les de SUPORTA_PISSARRA
+    const idx = read('index.html');
+    const ambPissarra = [...idx.matchAll(/\{\s*file:\s*'([^']+)\.html'[^}]*\bpissarra:\s*true[^}]*\}/g)]
+        .map(m => m[1])
+        .sort();
+    ok(
+        'index.html marca «pissarra: true» a les mateixes activitats que SUPORTA_PISSARRA',
+        JSON.stringify(ambPissarra) === JSON.stringify(suporta),
+        `index.html: ${ambPissarra.join(', ') || '—'} · SUPORTA_PISSARRA: ${suporta.join(', ') || '—'}`
+    );
+    ok(
+        'index.html té el botó «Activar la resolució pas a pas» i l’enllaç hi afegeix pissarra=1',
+        /id="btn-pissarra"/.test(idx) &&
+            /Activar la resolució pas a pas/.test(idx) &&
+            /if \(resolucioPasAPas\) qs\.append\('pissarra', '1'\)/.test(idx) &&
+            /if \(resolucioPasAPas\) qs\.set\('pissarra', '1'\)/.test(idx)
+    );
+
+    // Cada pàgina que l'admet existeix, carrega l'estil de la pissarra i el controlador importa PISSARRA_ACTIVA
+    const malament = suporta.filter(p => {
+        const ctrl = path.join('js', p, `${p}.js`);
+        return (
+            !exists(`${p}.html`) ||
+            !/href=["']css\/pissarra\.css["']/.test(read(`${p}.html`)) ||
+            !exists(ctrl) ||
+            !/import\s*\{[^}]*\bPISSARRA_ACTIVA\b[^}]*\}\s*from\s*'\.\.\/pissarra\/mode\.js'/.test(read(ctrl))
+        );
+    });
+    ok(
+        "cada pàgina que l'admet existeix, enllaça css/pissarra.css i el controlador importa PISSARRA_ACTIVA",
+        !malament.length,
+        malament.join(', ')
+    );
+
+    // És només visual: l'analitzador i la lletra de control no en saben res
+    const analitzador = [
+        'analitzador-stepquiz.html',
+        'js/codi-verificacio.js',
+        ...listFiles('js/analitzador-stepquiz', ['.js']),
+    ];
+    const toquen = analitzador.filter(f => exists(f) && /pissarra/i.test(read(f)));
+    ok("l'analitzador i js/codi-verificacio.js no tenen res de la pissarra", !toquen.length, toquen.join(', '));
 }
 
 finish('COMPROVACIONS DEL REPOSITORI');

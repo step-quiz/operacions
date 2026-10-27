@@ -8,7 +8,7 @@ Còpies exactes de les llibreries de tercers que fan servir les pàgines. Es ser
 
 | Carpeta | Llibreria | Origen (paquet npm) | Llicència | La fan servir |
 |---|---|---|---|---|
-| `katex-0.16.11/` | KaTeX (fórmules) | `katex@0.16.11` → `dist/` | MIT | derivades, integrals, probabilitat, asímptotes, sistemes, gràfiques, llenguatge algebraic… |
+| `katex-0.16.11/` | KaTeX (fórmules) | `katex@0.16.11` → `dist/` | MIT | derivades, integrals, probabilitat, asímptotes, sistemes, gràfiques, llenguatge algebraic, la resolució pas a pas (`js/pissarra/`, el carrega sol quan cal)… |
 | `xlsx-0.18.5/` | SheetJS (llegir Excel) | `xlsx@0.18.5` → `dist/xlsx.full.min.js` | Apache-2.0 | analitzador-stepquiz.html |
 | `exceljs-4.3.0/` | ExcelJS (crear Excel) | `exceljs@4.3.0` → `dist/exceljs.min.js` | MIT | analitzador-stepquiz.html |
 
@@ -20,5 +20,5 @@ JSZip i PDF.js es van treure el 18/10/2026: només les feien servir `cb.html` i 
 
 1. Descarrega el paquet nou: `npm pack katex@X.Y.Z` (crea un `.tgz`).
 2. Descomprimeix-lo i copia els mateixos fitxers a una carpeta nova `vendor/katex-X.Y.Z/`.
-3. Canvia les rutes a les pàgines HTML (cerca `vendor/katex-0.16.11/`).
+3. Canvia les rutes a les pàgines HTML, a `js/pissarra/pissarra.js` i als tests (cerca `katex-0.16.11` a tot el repositori).
 4. Esborra la carpeta antiga.

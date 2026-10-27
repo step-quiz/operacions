@@ -1,0 +1,384 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/pissarra.css
+ROL: Estil de la «Resolució pas a pas»: la pissarra animada (js/pissarra/
+     pissarra.js) i el seu reproductor (js/pissarra/reproductor.js).
+ARQUITECTURA:
+- Totes les classes comencen per «pis-» (o són dins d'una .pis-fila): així no
+  xoquen amb les de cap activitat. Les classes de fila que posa un procediment
+  (final, separat, destacat, text, figura) només valen dins de .pis-fila.
+- El color de la pissarra és el de l'activitat: --primary i --primary-light
+  (els defineix cada pàgina); si no n'hi ha, el blau del web.
+- Els colors de les marques volen dir sempre el mateix: verd = triat/positiu,
+  vermell = eliminat/negatiu, groc = afegit/el que es comprova, lila = el que
+  es calcula ara/solució.
+- Origen: estil.css dels procediments animats de step-quiz/pau (octubre 2026).
+DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
+============================================================================
+*/
+
+.pis-escenari {
+    --pis-cat: var(--primary, #3b82f6);
+    --pis-cat-fons: var(--primary-light, rgba(59, 130, 246, 0.1));
+    --pis-ma: rgba(59, 130, 246, 0.16); /* la «mà» que manipula: requadres d'avís, ona del clic */
+    --pis-ma-vora: rgba(59, 130, 246, 0.55);
+    --pis-ona: rgba(59, 130, 246, 0.45);
+    --pis-graella: #e3e8ef; /* punts de la pissarra */
+
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto; /* si té alçada màxima i no hi cap, barra pròpia */
+    background-attachment: local;
+    background-color: var(--panel-bg, #fff);
+    background-image: radial-gradient(var(--pis-graella) 1.1px, transparent 1.3px);
+    background-size: 22px 22px;
+    background-position: 11px 11px;
+    border: 1px solid var(--border-heavy, #cbd5e1);
+    border-radius: 12px;
+    color: var(--text-main, #1e293b);
+    text-align: left;
+}
+.pis-escenari [hidden] {
+    display: none !important;
+}
+
+/* ── PISSARRA ─────────────────────────────────────────────────────────────── */
+.pis-pissarra {
+    position: relative;
+    padding: 18px 22px 14px;
+    font-size: var(--pis-mida, 30px);
+}
+.pis-capa {
+    width: 100%;
+}
+/* La capa del pas següent mentre es prepara, i la que serveix per mesurar */
+.pis-capa.pis-nova {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: inherit;
+    visibility: hidden;
+}
+.pis-fila {
+    min-height: 2.2em;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    border-radius: 10px;
+    padding: 0.15em 0.45em;
+    margin: 0 -0.45em;
+}
+.pis-fila .katex {
+    font-size: 1em;
+}
+/* El resultat (una mica separat de les files del costat) */
+.pis-fila.final {
+    background: var(--pis-cat-fons);
+    box-shadow: inset 0 0 0 1.5px var(--pis-cat);
+    margin-block: 0.3em;
+}
+.pis-fila.separat {
+    margin-top: 0.9em;
+}
+.pis-fila.destacat {
+    background: var(--pis-cat-fons);
+}
+.pis-fila.pis-prova {
+    position: absolute;
+    left: 0;
+    top: 0;
+    visibility: hidden;
+}
+/* Durant una transició, els símbols amb clau els fan els fantasmes */
+.pis-amaga-claus [data-k] {
+    visibility: hidden;
+}
+.pis-amaga-claus [data-k].pis-sense-fantasma {
+    visibility: visible; /* una frase partida en dues línies */
+}
+
+/* Files de text (enunciats) i frases marcades */
+.pis-fila.text {
+    display: block;
+    white-space: normal;
+    min-height: 0;
+    padding: 0.35em 0.45em 0.5em;
+    font-size: 16px;
+    line-height: 1.75;
+    max-width: 72ch;
+}
+.pis-fila.text .katex {
+    font-size: 1.05em;
+}
+/* Una fórmula dins d'un text mai es parteix en dues línies */
+.pis-fila.text .katex,
+.pis-text-pas .katex {
+    white-space: nowrap;
+}
+.pis-frase {
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+.pis-escenari .marca-objectiu,
+.pis-escenari .marca-avis {
+    background: rgba(234, 179, 8, 0.3);
+    box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.3);
+}
+.pis-escenari .marca-condicio {
+    background: rgba(16, 185, 129, 0.24);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.24);
+}
+
+/* Esquemes (SVG) a la pissarra */
+.pis-fila.figura {
+    display: flex;
+    justify-content: center;
+}
+.pis-fila.figura svg {
+    width: max(14em, 260px);
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* Marques dins de les fórmules (\htmlData{k=…,marca=…}) */
+.pis-escenari .katex [data-marca='mes'] {
+    background: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+    border-radius: 2px;
+}
+.pis-escenari .katex [data-marca='menys'] {
+    background: rgba(220, 38, 38, 0.22);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.22);
+    border-radius: 2px;
+}
+.pis-escenari .katex [data-marca='tria'] {
+    background: rgba(234, 179, 8, 0.32);
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.32);
+    border-radius: 2px;
+}
+.pis-escenari .katex [data-marca='cami0'] {
+    background: rgba(59, 130, 246, 0.22);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+    border-radius: 2px;
+}
+.pis-escenari .katex [data-marca='cami1'] {
+    background: rgba(219, 39, 119, 0.18);
+    box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.18);
+    border-radius: 2px;
+}
+.pis-escenari .katex [data-marca='cami2'] {
+    background: rgba(6, 182, 212, 0.24);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.24);
+    border-radius: 2px;
+}
+.pis-escenari .katex [data-marca='solucio'],
+.pis-escenari .katex [data-marca='actual'] {
+    background: rgba(124, 92, 191, 0.22);
+    box-shadow: 0 0 0 3px rgba(124, 92, 191, 0.22);
+    border-radius: 2px;
+}
+
+/* ── EFECTES: fantasmes, requadres d'avís, cursor ─────────────────────────── */
+.pis-efectes {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.pis-fantasma {
+    position: absolute;
+    left: 0;
+    top: 0;
+    white-space: nowrap;
+    will-change: transform, opacity;
+}
+.pis-requadre {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    border-radius: 7px;
+    background: var(--pis-ma);
+    box-shadow: 0 0 0 1.5px var(--pis-ma-vora);
+}
+.pis-ona {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    border-radius: 50%;
+    border: 2px solid var(--pis-ona);
+    pointer-events: none;
+}
+.pis-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    width: 22px;
+    height: 30px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s;
+    transform-origin: 2px 2px;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+}
+.pis-cursor svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.pis-cursor.visible {
+    opacity: 1;
+}
+
+/* ── REPRODUCTOR ──────────────────────────────────────────────────────────── */
+.pis-controls {
+    --pis-cat: var(--primary, #3b82f6);
+    --pis-cat-fons: var(--primary-light, rgba(59, 130, 246, 0.1));
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+    text-align: left;
+}
+.pis-reproductor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+}
+.pis-botons {
+    display: flex;
+    gap: 6px;
+}
+.pis-boto {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border-heavy, #cbd5e1);
+    background: var(--panel-bg, #fff);
+    color: var(--text-main, #1e293b);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+.pis-boto:hover:not(:disabled) {
+    border-color: var(--pis-cat);
+}
+.pis-boto:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+.pis-boto.principal {
+    width: 48px;
+    height: 48px;
+    background: var(--pis-cat);
+    border-color: var(--pis-cat);
+    color: #fff;
+}
+.pis-boto svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+.pis-boto:focus-visible,
+.pis-punt:focus-visible {
+    outline: 2px solid var(--pis-cat);
+    outline-offset: 2px;
+}
+
+/* Un punt per pas: el botó fa 20 px, i el punt que es veu, 12 px */
+.pis-punts {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1 1 160px;
+    min-width: 0;
+}
+.pis-punt {
+    width: 20px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+.pis-punt::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-heavy, #cbd5e1);
+    box-sizing: border-box;
+}
+.pis-punt.fet::before {
+    background: var(--border-heavy, #cbd5e1);
+}
+.pis-punt.actual::before {
+    background: var(--pis-cat);
+    border-color: var(--pis-cat);
+}
+
+.pis-velocitat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted, #64748b);
+}
+.pis-velocitat select {
+    font: inherit;
+    color: var(--text-main, #1e293b);
+    background: var(--panel-bg, #fff);
+    border: 1px solid var(--border-heavy, #cbd5e1);
+    border-radius: 6px;
+    padding: 4px 6px;
+}
+
+.pis-explicacio {
+    margin: 0;
+    min-height: 3.4em;
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+}
+.pis-num-pas {
+    font-size: 12px;
+    color: var(--text-muted, #64748b);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.pis-text-pas {
+    font-size: 16px;
+    max-width: 62ch;
+    min-width: 0;
+}
+.pis-text-pas .katex {
+    font-size: 1.05em;
+}
+
+/* ── PANTALLA PETITA (igual que MIDA.pantallaPetita de pissarra.js) ───────── */
+@media (max-width: 520px) {
+    .pis-pissarra {
+        padding: 14px 12px 10px;
+    }
+    .pis-text-pas {
+        font-size: 15px;
+    }
+    /* Al mòbil, una fórmula llarga del text del pas es pot partir (pel =) abans que fer sortir la pàgina */
+    .pis-text-pas .katex {
+        white-space: normal;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pis-cursor,
+    .pis-boto {
+        transition: none;
+    }
+}

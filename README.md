@@ -84,6 +84,7 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 | `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
 | `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (l'obre el botó «Veure tutorial» de `recta-numerica.html`) |
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
+| `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): tres exemples (prioritat d'operacions, una equació i una suma de fraccions) |
 | `s.html` | Fitxa adaptada de la unitat 1 (Nombres reals) |
 
 El 18/10/2026 es van retirar les pàgines que no enllaçava res (decaleg-pau, meteo, meteo_mobile i descripcio-grafica-inversa) i les còpies antigues d'altres projectes (cb.html, informe-cb.html, informe-cb-refactor.md i les carpetes cb, gem4eso i app, que avui són els repositoris step-quiz/cb, step-quiz/comp4eso i step-quiz/app). Són a l'historial de git si mai calen.
@@ -114,9 +115,11 @@ js/
 ├── utils.js            ← Funcions pures: randInt, pick, shuffle, parseStrictInt
 ├── config.js           ← Lectura de paràmetres URL
 ├── exercise-codes.js   ← Taula única de codis d'exercici (joc i analitzador)
-└── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat)
+├── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat)
+└── pissarra/           ← «Resolució pas a pas»: la pissarra animada (vegeu més avall)
 css/
-└── shared.css          ← Estils globals, teclat numèric, pantalles finals
+├── shared.css          ← Estils globals, teclat numèric, pantalles finals
+└── pissarra.css        ← Estil de la pissarra animada
 vendor/                 ← Llibreries externes (KaTeX, SheetJS, ExcelJS), vegeu vendor/README.md
 docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat d'abril de 2026); no descriuen l'estat actual
 ```
@@ -153,11 +156,23 @@ Un alumne pot fer la mateixa prova més d'un cop i enviar cada codi pel formular
 | `modalitat` | `passos` | resultat final | Prioritat d'operacions: «Pas a pas» (l'alumne resol l'expressió operació a operació) |
 | `esvaiment` | `1` | desactivat | Mode «Esvaïment»: exemples resolts que es van esvaint (vegeu més avall). Ara, només a `prioritat` |
 | `inici` | 0-9 | 0 | Amb `esvaiment=1`: quants passos fa l'alumne al primer exercici (0 = l'exemple sencer) |
+| `pissarra` | `1` | desactivat | «Resolució pas a pas» animada (vegeu més avall). Només a les activitats que la tenen; el posa el botó «Activar la resolució pas a pas» del generador d'enllaços |
 | `debug` | 1 | desactivat | Mode de depuració (només `inversa-matriu` i `vocabulari`) |
 
 Els màxims de sessions i preguntes (5 × 10) són els que pot representar el codi de verificació.
 
 Exemple: `derivades.html?totalsessions=2&totaloperations=8&families=chain-exp-int,power`
+
+## Resolució pas a pas (pissarra animada)
+
+A l'estil de Graspable Math: la resolució d'un exercici es veu en una **pissarra** on els símbols es mouen d'una línia a la següent, es fusionen en el resultat (`4 · 2` vola i es converteix en `8`) o desapareixen, i cada pas porta una frase que diu què es fa i per què. És el mateix motor dels procediments animats del web de la PAU (`step-quiz/pau`).
+
+- **Al generador d'enllaços** (`index.html`) hi ha el botó **«Activar la resolució pas a pas»**. Normalment està desactivat i tot funciona com sempre. Si es clica, els menús d'ESO i de Batxillerat només ofereixen les activitats que tenen la resolució pas a pas, i l'enllaç porta `pissarra=1`. El botó no surt mentre cap activitat no la tingui.
+- **Què veurà l'alumne** (quan una activitat la tingui): l'animació dels passos dels exemples resolts i, quan encerta un pas, la línia anterior que es transforma en la nova. Ell marca el ritme. **No canvia res més**: ni les preguntes, ni la nota, ni el codi de verificació.
+- **Activitats que la tenen ara:** encara cap. Se'n van afegint d'una en una, començant per Prioritat d'operacions; el pla és a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md).
+- **Per veure-la funcionar:** `pissarra-demo.html`.
+
+El motor és a `js/pissarra/` (estil a `css/pissarra.css`), explicat a [`docs/pissarra/MOTOR.md`](docs/pissarra/MOTOR.md). Les proves comproven, entre altres coses, que **cada línia que es veu a la pissarra és certa** (`tests/pissarra.test.js`).
 
 ## Mode «Esvaïment» (exemples resolts que es van esvaint)
 
@@ -177,7 +192,7 @@ El motor és a [`js/esvaiment.js`](js/esvaiment.js) i les proves a `tests/esvaim
 node tests/run-all.js
 ```
 
-GitHub els executa automàticament a cada pujada a `main` i a cada pull request. Vegeu [CONTRIBUTING.md](CONTRIBUTING.md#tests).
+La prova de la pissarra al navegador (`tests/navegador/prova-pissarra.js`) només s'executa si l'ordinador té Playwright; si no, s'omet. GitHub els executa automàticament a cada pujada a `main` i a cada pull request. Vegeu [CONTRIBUTING.md](CONTRIBUTING.md#tests).
 
 ## Tecnologies
 
