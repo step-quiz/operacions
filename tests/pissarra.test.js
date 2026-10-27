@@ -208,6 +208,42 @@ function solucioLineal(text) {
         eq('completa() allarga el text de l’últim pas', g.passos[1].text, 'Només canvia la classe. I una frase més.');
         ok('els passos són immutables', Object.isFrozen(g.passos[0]));
         eq('cada pas té les seves files (còpia)', g.passos[0].classes[0], '');
+
+        // Línies que queden escrites (linies): la nova s'escriu a sota i l'anterior hi queda
+        const h = F.guio(3);
+        const L = F.linies(h);
+        L.escriu([F.P('a', '3'), F.P('s', '+'), F.P('b', '4')], 'Suma.');
+        L.escriu([F.P('r', '7')], 'Fet.', {
+            fusiona: { r: ['a', 's', 'b'] },
+            anterior: [F.P('a', '3'), F.P('s', '+'), F.P('b', '4'), F.P('q', '=')],
+            final: true,
+        });
+        const [p0, p1] = h.passos;
+        eq('linies(): dos passos', h.passos.length, 2);
+        eq('linies(): la primera línia continua escrita', C.textPla(p1.files[0]), '3+4=');
+        eq('linies(): la línia nova, a sota', C.textPla(p1.files[1]), '7');
+        eq(
+            'linies(): les peces que baixen deixen una còpia (clau nova)',
+            C.clausDe(p1.files[0]).join(),
+            'Lc0ka,Lc0ks,Lc0kb,L0kq'
+        );
+        eq(
+            'linies(): la fusió surt de les claus d’abans',
+            JSON.stringify(p1.fusiona),
+            '{"L1kr":["L0ka","L0ks","L0kb"]}'
+        );
+        eq('linies(): la línia nova és el resultat', p1.classes[1], 'final');
+        eq(
+            'linies(): la còpia de cada peça que baixa es queda al seu lloc',
+            JSON.stringify(p1.copia),
+            '{"Lc0ka":"L0ka","Lc0ks":"L0ks","Lc0kb":"L0kb"}'
+        );
+        eq('linies(): un guió correcte', C.comprovaGuio(h.passos, 3).length, 0);
+        eq(
+            'linies(): «=» és una relació i «+» un operador',
+            /\\mathrel\{\\htmlData\{k=L0kq\}/.test(p1.files[0]) && /\\mathbin/.test(p0.files[0]),
+            true
+        );
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -265,6 +301,10 @@ function solucioLineal(text) {
                 [pas([K('a', '1')]), pas([K('a', '1') + K('b', '1')], 'T.', { reanomena: { b: 'a' } })],
                 /ha de ser vella/
             )
+        );
+        ok(
+            'una còpia d’un símbol que no hi era',
+            errorDe([pas([K('a', '1')]), pas([K('b', '1')], 'T.', { copia: { b: 'z' } })], /no era al pas anterior/)
         );
         ok(
             'el cursor clica un símbol que no hi és',
@@ -377,7 +417,7 @@ function solucioLineal(text) {
                     linies++;
                     const on = `${g.nom}, pas ${i + 1}, fila ${j + 1}`;
                     try {
-                        const pla = C.textPla(tex);
+                        const pla = C.textPla(tex).replace(/=$/, ''); // «3 + 8 =»: la línia continua a sota
                         if (g.veritat.expressio) {
                             const v = avalua(pla);
                             if (!igualQ(v, g.veritat.expressio))
@@ -447,9 +487,10 @@ function solucioLineal(text) {
                 const A = R.tableHtml(filesA, { active: false, claus: true });
                 const B = R.tableHtml(filesB, { active: !fet, claus: true });
                 const fusiona = R.fusioUltimaLinia(filesB);
+                const copia = R.copiesUltimaLinia(filesB);
                 const passos = [
                     { files: [A], classes: [''], text: 'A.' },
-                    { files: [B], classes: [''], text: 'B.', fusiona },
+                    { files: [B], classes: [''], text: 'B.', fusiona, copia },
                 ];
                 animacions++;
                 const errors = C.comprovaGuio(passos, 1, `exercici ${k}, pas ${j}`);

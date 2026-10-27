@@ -6,7 +6,7 @@
  *      els tests, no les pàgines). Mòdul PUR (sense DOM ni window).
  * ARQUITECTURA:
  * - comprovaGuio(passos, nFiles): la revisió estructural d'un guió (claus
- *   vàlides i úniques a cada pas, fusions i canvis de nom coherents, el cursor
+ *   vàlides i úniques a cada pas, fusions, canvis de nom i còpies coherents, el cursor
  *   apunta a símbols que hi són, cap pas idèntic a l'anterior…). Torna la llista
  *   d'errors (buida si tot és correcte).
  * - textPla(tex): una fila TeX de la pissarra convertida en text pla que es pot
@@ -78,6 +78,10 @@ export function comprovaGuio(passos, nFiles, nom = 'guió') {
             for (const [kb, ka] of reanomena) {
                 comprova(B.has(kb) && !A.has(kb), () => `${on}: reanomena ${kb}←${ka}: «${kb}» ha de ser nova`);
                 comprova(A.has(ka) && !B.has(ka), () => `${on}: reanomena ${kb}←${ka}: «${ka}» ha de ser vella`);
+            }
+            for (const [kb, ka] of Object.entries(pas.copia || {})) {
+                comprova(B.has(kb) && !A.has(kb), () => `${on}: còpia ${kb}←${ka}: «${kb}» ha de ser nova`);
+                comprova(A.has(ka), () => `${on}: còpia ${kb}←${ka}: «${ka}» no era al pas anterior`);
             }
             const fonts = fusiona.flatMap(([, kas]) => kas);
             comprova(new Set(fonts).size === fonts.length, () => `${on}: un símbol es fusiona dues vegades`);

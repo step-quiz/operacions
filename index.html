@@ -256,6 +256,36 @@
     .cd-wrap.buit .cd-label { color: var(--text-muted); font-style: italic; }
     .copy-btn:disabled, .open-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
 
+    /* Amb la resolució pas a pas activada (body.resolucio-pas-a-pas):
+       1. tots els blaus passen a ser els lila equivalents (els de prioritat.html: #7c3aed, #6d28d9…);
+       2. les opcions de configuració desapareixen: l'enllaç és només «activitat?pissarra=1». */
+    .sub-panel, .title-row-2 { transition: background-color 0.3s, color 0.3s; }
+    body.resolucio-pas-a-pas {
+      --bg-body: #faf9fd;
+      --eso-bg: #f5f3ff;
+      --batx-bg: #f3f1f9;
+      --math-title: #8b5cf6;
+      --accent: #7c3aed;
+    }
+    body.resolucio-pas-a-pas .cd-wrap.open .cd-trigger { box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+    body.resolucio-pas-a-pas .cd-option:hover,
+    body.resolucio-pas-a-pas .cd-option.active,
+    body.resolucio-pas-a-pas .cd-option.selected { background: #f5f3ff; }
+    body.resolucio-pas-a-pas .open-btn:hover,
+    body.resolucio-pas-a-pas .pissarra-toggle[aria-pressed="true"]:hover { background: #6d28d9; }
+    body.resolucio-pas-a-pas .inline-icon { filter: hue-rotate(48deg); }   /* la sabatilla blava, lila */
+    /* Els grisos blavosos (vores, fons de l'enllaç, estats «hover»), en gris lila */
+    body.resolucio-pas-a-pas .sub-panel,
+    body.resolucio-pas-a-pas .cd-trigger,
+    body.resolucio-pas-a-pas .cd-list,
+    body.resolucio-pas-a-pas .link-output,
+    body.resolucio-pas-a-pas .copy-btn { border-color: #d6cdee; }
+    body.resolucio-pas-a-pas .link-output { background: #ece8f6; }
+    body.resolucio-pas-a-pas .cd-trigger:hover { background: #ede9fe; border-color: #c4b5fd; }
+    body.resolucio-pas-a-pas .copy-btn:hover { background-color: #ddd6fe; border-color: #a78bfa; }
+    body.resolucio-pas-a-pas .sub-panel-params .row,
+    body.resolucio-pas-a-pas #row-fixed-batx { display: none !important; }
+
     /* ── Animació derrapada sabatilla ── */
     .icon-wrap {
       position: relative;
@@ -522,7 +552,8 @@
         wrap.style.marginBottom = '';
         const btnRow = wrap.closest('.quiz-panel').querySelector('.btn-row');
         if (!btnRow) return;
-        const listBottom = trigger.getBoundingClientRect().bottom + 5 + h;   // 5 = separació de la llista
+        const real = Math.min(h, list.scrollHeight);   // una llista curta no ocupa tota l'alçada màxima
+        const listBottom = trigger.getBoundingClientRect().bottom + 5 + real;   // 5 = separació de la llista
         const need = Math.ceil(listBottom + 10 - btnRow.getBoundingClientRect().top);   // 10 = aire
         if (need > 0) wrap.style.marginBottom = need + 'px';
       }
@@ -639,9 +670,9 @@
       function manageModRow() {
         if (!els.rowMod) return;
         const selected = activities.find(a => a.file === dropdown.getValue());
-        // Amb l'esvaïment o la resolució pas a pas, prioritat sempre és «Pas a pas»: la modalitat no cal
+        // Amb l'esvaïment, prioritat sempre és «Pas a pas»: la modalitat no cal
         const ambEsv = selected && selected.esvaiment && els.esv && els.esv.value !== '';
-        els.rowMod.style.display = (selected && selected.modalitat && !ambEsv && !resolucioPasAPas) ? '' : 'none';
+        els.rowMod.style.display = (selected && selected.modalitat && !ambEsv) ? '' : 'none';
       }
 
       // Activitats amb el mode «Esvaïment» (esvaiment: true; ha de coincidir amb
@@ -662,10 +693,14 @@
           els.link.textContent = '';
           return;
         }
+        // Amb la resolució pas a pas activada no hi ha opcions: només l'activitat i pissarra=1
+        if (resolucioPasAPas) {
+          els.link.textContent = `${BASE_URL}${file}?pissarra=1`;
+          return;
+        }
         if (suffix === 'batx') {
           const qs = new URLSearchParams();
           if (els.fix && els.fix.value) qs.set('fixed', els.fix.value);
-          if (resolucioPasAPas) qs.set('pissarra', '1');
           const q = qs.toString();
           els.link.textContent = `${BASE_URL}${file}` + (q ? '?' + q : '');
         } else {
@@ -689,14 +724,13 @@
             qs.append('modalitat', els.nivell.value);
           }
           const ambEsv = selected && selected.esvaiment && els.esv && els.esv.value !== '';
-          if (selected && selected.modalitat && els.mod && els.mod.value && !ambEsv && !resolucioPasAPas) {
+          if (selected && selected.modalitat && els.mod && els.mod.value && !ambEsv) {
             qs.append('modalitat', els.mod.value);
           }
           if (ambEsv) {
             qs.append('esvaiment', '1');
             if (els.esv.value !== '0') qs.append('inici', els.esv.value);
           }
-          if (resolucioPasAPas) qs.append('pissarra', '1');
           els.link.textContent = `${BASE_URL}${file}?${qs.toString()}`;
         }
       }
@@ -770,7 +804,7 @@
       });
 
       // El botó «Activar la resolució pas a pas»: el menú ofereix només les activitats amb
-      // pissarra: true (o totes, si es desactiva) i l'enllaç porta ?pissarra=1.
+      // pissarra: true (o totes, si es desactiva) i l'enllaç és «activitat?pissarra=1».
       function setResolucioPasAPas() {
         dropdown.setActivities(resolucioPasAPas ? activities.filter(a => a.pissarra) : activities);
         refresh();
@@ -795,6 +829,7 @@
       boto.addEventListener('click', () => {
         resolucioPasAPas = !resolucioPasAPas;
         boto.setAttribute('aria-pressed', String(resolucioPasAPas));
+        document.body.classList.toggle('resolucio-pas-a-pas', resolucioPasAPas);   // lila i sense opcions
         text.textContent = resolucioPasAPas ? 'Desactivar la resolució pas a pas' : 'Activar la resolució pas a pas';
         dropdownEso.setResolucioPasAPas();
         dropdownBatx.setResolucioPasAPas();

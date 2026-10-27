@@ -25,7 +25,8 @@
  *   token, cada «=» i cada nota porten una clau (data-k) perquè la pissarra els
  *   pugui seguir d'una taula a la següent. Quan s'escriu una línia nova, els
  *   tokens de l'operació (i els parèntesis que cauen) baixen i es fusionen en el
- *   resultat (fusioUltimaLinia); la resta de la línia nova apareix al seu lloc.
+ *   resultat (fusioUltimaLinia) i a la línia anterior en queda la còpia, que no es
+ *   mou (copiesUltimaLinia); la resta de la línia nova apareix al seu lloc.
  *     token de la línia r      r<r>c<c0>x<c1>  (c0, c1: les columnes que ocupa)
  *     ja fusionat a la r + 1   s<r>c<c0>x<c1>  (la còpia que queda a la línia r)
  *     «=» de la línia r        e<r>            nota de la línia r   n<r>
@@ -97,6 +98,21 @@ export const Renderer = (() => {
     }
 
     /**
+     * Les còpies que queden a la línia anterior dels tokens que s'han fusionat en la línia nova:
+     * { s<L-1>…: r<L-1>… }. La pissarra les mostra al seu lloc tota l'estona (no parpellegen).
+     */
+    function copiesUltimaLinia(rows) {
+        const L = rows.length - 1;
+        if (L < 1) return {};
+        const fets = fusionats(rows, L - 1);
+        return Object.fromEntries(
+            rows[L - 1].line
+                .filter(t => fets.has(columnes(t)))
+                .map(t => [`s${L - 1}${columnes(t)}`, `r${L - 1}${columnes(t)}`])
+        );
+    }
+
+    /**
      * La resolució en una taula «centrada».
      * @param {Array}  rows  [{ line, op, auto, marca }]: les línies, de l'enunciat cap avall (MathEngine.solve o
      *                       les que fa l'alumne). op: posició de l'operació que es fa per passar a la línia
@@ -141,5 +157,5 @@ export const Renderer = (() => {
         return `<table class="centrat">${trs.join('')}</table>`;
     }
 
-    return { tokText, tokHtml, expressionHtml, tableHtml, fusioUltimaLinia };
+    return { tokText, tokHtml, expressionHtml, tableHtml, fusioUltimaLinia, copiesUltimaLinia };
 })();

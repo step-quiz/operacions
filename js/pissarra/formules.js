@@ -241,7 +241,96 @@ export function enLinies(inici, peces, { ample = AMPLE_LINIA, sagnat = '\\qquad 
     return linies.length > 1 ? `\\begin{array}{l} ${linies.join(` \\\\[${espai}] `)} \\end{array}` : linies[0];
 }
 
-// ── 4. GUIÓ ──────────────────────────────────────────────────────────────────
+// ── 4. LÍNIES QUE QUEDEN ESCRITES ────────────────────────────────────────────
+
+/**
+ * Una resolució escrita línia a línia, com a la pissarra de classe: cada pas escriu una línia nova a
+ * sota i les d'abans QUEDEN ESCRITES (així ho vol el David: tots els passos intermedis a la vista).
+ *   const L = linies(g, 0);                       // la primera línia, a la fila 0 del guió
+ *   L.escriu([P('a', '3'), P('s', '+'), P('b', '4')], 'Has de calcular…');
+ *   L.escriu([P('r', '7')], 'Suma.', { fusiona: { r: ['a', 's', 'b'] }, final: true });
+ * Una línia és una llista de peces: P(id, tex, marca) (id: lletres i xifres, únic dins de la línia;
+ * «+», «-», «\cdot» i «:» s'escriuen com a operadors, «=» com a relació), grup(peces, marca) per
+ * pintar diverses peces d'un sol color i fraccio(numerador, denominador) (dues llistes de peces).
+ * Quan s'escriu una línia nova:
+ *   · mou: { idNou: idVell }       la peça de la línia anterior hi baixa volant (i pot canviar,
+ *                                   p. ex. «+3» que passa a l'altre membre com a «−3»);
+ *   · fusiona: { idNou: [idsVells] } les peces de la línia anterior hi baixen i es fusionen en una;
+ *   · la resta de peces de la línia nova hi apareixen al seu lloc;
+ *   · a la línia anterior en queda una còpia (no es mou res de les línies que ja estaven escrites);
+ *   · anterior: [peces]             la línia anterior canvia alhora (p. ex. s'hi afegeix «=» al final
+ *                                   o se n'hi treu una marca);
+ *   · final: true                   la línia nova és el resultat (fila ressaltada).
+ * canvia(peces, text) canvia l'última línia sense escriure'n cap de nova (p. ex. per marcar l'operació
+ * que es farà). Les claus: peça «id» de la línia r → <P><r>k<id>; la seva còpia, quan ja ha baixat a
+ * la línia r + 1 → <P>c<r>k<id>. Cada línia ocupa una fila del guió (primeraFila + r).
+ */
+export const P = (id, tex, marca = '') => ({ id, tex, marca });
+export const grup = (peces, marca) => ({ grup: peces, marca });
+export const fraccio = (numerador, denominador) => ({ fraccio: [numerador, denominador] });
+
+export function linies(g, primeraFila = 0, prefix = 'L') {
+    const escrites = []; // [{ peces, baixades: Set(ids que han baixat a la línia següent) }]
+    const clauDe = (r, id) => (escrites[r].baixades.has(id) ? `${prefix}c${r}k${id}` : `${prefix}${r}k${id}`);
+
+    function texPeca(p, r) {
+        const tros = peces => peces.map(q => texPeca(q, r)).join('');
+        if (p.grup) return marca(tros(p.grup), p.marca);
+        if (p.fraccio) return `\\dfrac{${tros(p.fraccio[0])}}{${tros(p.fraccio[1])}}`;
+        const k = clauDe(r, p.id);
+        if (OPERADORS.has(p.tex) || p.tex === ':') return `\\mathbin{${clau(k, p.tex, p.marca)}}`;
+        if (RELACIONS.has(p.tex)) return `\\mathrel{${clau(k, p.tex, p.marca)}}`;
+        return clau(k, p.tex, p.marca);
+    }
+    function pinta() {
+        escrites.forEach((l, r) => {
+            g.files[primeraFila + r] = l.peces.map(p => texPeca(p, r)).join('');
+        });
+    }
+
+    return Object.freeze({
+        /** Escriu una línia nova a sota de les que ja hi ha (vegeu la capçalera). */
+        escriu(peces, text, { mou = {}, fusiona = {}, anterior = null, final = false, cursor = null } = {}) {
+            const r = escrites.length;
+            const opcions = {};
+            if (r > 0) {
+                const ant = escrites[r - 1];
+                if (anterior) ant.peces = anterior;
+                for (const id of Object.values(mou)) ant.baixades.add(id);
+                for (const ids of Object.values(fusiona)) ids.forEach(id => ant.baixades.add(id));
+                const vella = id => `${prefix}${r - 1}k${id}`; // la clau que tenia abans del pas
+                const nova = id => `${prefix}${r}k${id}`;
+                if (Object.keys(mou).length)
+                    opcions.reanomena = Object.fromEntries(Object.entries(mou).map(([n, v]) => [nova(n), vella(v)]));
+                if (Object.keys(fusiona).length)
+                    opcions.fusiona = Object.fromEntries(
+                        Object.entries(fusiona).map(([n, vs]) => [nova(n), vs.map(vella)])
+                    );
+                // La còpia que queda a la línia anterior hi és tota l'estona (no parpelleja)
+                if (ant.baixades.size)
+                    opcions.copia = Object.fromEntries(
+                        [...ant.baixades].map(id => [`${prefix}c${r - 1}k${id}`, vella(id)])
+                    );
+            }
+            if (cursor) opcions.cursor = cursor;
+            escrites.push({ peces, baixades: new Set() });
+            if (final) g.classes[primeraFila + r] = 'final';
+            pinta();
+            g.afegeix(text, opcions);
+        },
+        /** Canvia l'última línia (p. ex. hi posa una marca) sense escriure'n cap de nova. */
+        canvia(peces, text) {
+            escrites[escrites.length - 1].peces = peces;
+            pinta();
+            g.afegeix(text);
+        },
+        get nombre() {
+            return escrites.length;
+        },
+    });
+}
+
+// ── 5. GUIÓ ──────────────────────────────────────────────────────────────────
 
 /**
  * Constructor de la llista de passos d'un procediment.

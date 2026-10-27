@@ -611,11 +611,10 @@ suite('9. Mode «Resolució pas a pas» (?pissarra=1)');
         `index.html: ${ambPissarra.join(', ') || '—'} · SUPORTA_PISSARRA: ${suporta.join(', ') || '—'}`
     );
     ok(
-        'index.html té el botó «Activar la resolució pas a pas» i l’enllaç hi afegeix pissarra=1',
+        'index.html té el botó «Activar la resolució pas a pas» i aleshores l’enllaç és «activitat?pissarra=1»',
         /id="btn-pissarra"/.test(idx) &&
             /Activar la resolució pas a pas/.test(idx) &&
-            /if \(resolucioPasAPas\) qs\.append\('pissarra', '1'\)/.test(idx) &&
-            /if \(resolucioPasAPas\) qs\.set\('pissarra', '1'\)/.test(idx)
+            /if \(resolucioPasAPas\) \{\s*els\.link\.textContent = `\$\{BASE_URL\}\$\{file\}\?pissarra=1`;/.test(idx)
     );
 
     // Cada pàgina que l'admet existeix, carrega l'estil de la pissarra i el controlador importa PISSARRA_ACTIVA

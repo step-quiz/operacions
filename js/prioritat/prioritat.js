@@ -526,7 +526,13 @@ function renderSteps(marks = {}) {
 // «Resolució pas a pas»: la taula nova va a la pissarra. Si té una línia més que l'última,
 // s'anima (l'operació baixa i es fusiona en el resultat); si no, es mostra tal qual.
 function pintaPissarra(html, tornaFocus) {
-    const pas = { files: [html], classes: ['centrada'], text: '', fusiona: Renderer.fusioUltimaLinia(rows) };
+    const pas = {
+        files: [html],
+        classes: ['centrada'],
+        text: '',
+        fusiona: Renderer.fusioUltimaLinia(rows),
+        copia: Renderer.copiesUltimaLinia(rows),
+    };
     const anima = liniesPissarra > 0 && rows.length === liniesPissarra + 1;
     liniesPissarra = rows.length;
     // Un pas que ha fet l'alumne (ja sap quina operació és) va més de pressa que un pas
