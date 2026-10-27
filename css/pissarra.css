@@ -79,7 +79,7 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     align-items: center;
     white-space: nowrap;
     border-radius: 10px;
-    padding: 0.15em 0.45em;
+    padding: 0.3em 0.45em; /* les línies que queden escrites (amb fraccions) no s'han de tocar */
     margin: 0 -0.45em;
 }
 .pis-fila .katex {

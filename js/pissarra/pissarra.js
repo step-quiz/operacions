@@ -29,6 +29,9 @@
  *     · mateixa clau abans i després, o pas.reanomena = {nova: vella}: és el
  *       mateix símbol i es desplaça; si el contingut canvia, es fon;
  *     · pas.fusiona = {nova: [velles]}: les velles van a parar a la nova;
+ *     · pas.copia = {nova: vella}: la nova és una còpia de la vella que es queda
+ *       al seu lloc tota l'estona, mentre la vella baixa o es fusiona (la línia
+ *       d'on surt un símbol continua escrita, sense parpellejar);
  *     · la resta de símbols vells s'esvaeixen, i els nous apareixen.
  *   Si el pas no arrossega cap símbol, abans de moure res uns requadres blaus
  *   assenyalen què canviarà o desapareixerà, i després el segueixen. Totes les
@@ -457,11 +460,17 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             RB = posicions(B);
         const reanomena = new Map(Object.entries(pas.reanomena || {}));
         const fusiona = new Map(Object.entries(pas.fusiona || {}));
+        const copia = new Map(Object.entries(pas.copia || {}));
 
-        /* Parelles: cada símbol nou amb el símbol vell que és el mateix. */
+        /* Parelles: cada símbol nou amb el símbol vell que és el mateix. Una còpia fa parella amb
+           el seu original sense gastar-lo: l'original també pot baixar o fusionar-se. */
         const parelles = new Map(); // clau nova → clau vella
         const aparellades = new Set();
         for (const kb of B.keys()) {
+            if (copia.has(kb)) {
+                if (A.has(copia.get(kb))) parelles.set(kb, copia.get(kb));
+                continue;
+            }
             const ka = reanomena.get(kb) || kb;
             if (A.has(ka) && !aparellades.has(ka)) {
                 parelles.set(kb, ka);
@@ -548,8 +557,35 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         vella.classList.add('pis-amaga-claus');
         nova.classList.add('pis-amaga-claus');
         nova.style.visibility = 'visible';
-        feines.push(anima(vella, [{ opacity: 1 }, { opacity: 0 }], { duration: D * 0.6 }));
-        feines.push(anima(nova, [{ opacity: 0 }, { opacity: 1 }], { duration: D * 0.6, delay: D * 0.4 }));
+        // Cada fila es fon amb la seva nova versió, menys les que no canvien (mateix contingut, mateix
+        // lloc): es queden quietes, perquè les parts sense clau (la ratlla d'una fracció, un text) no
+        // parpellegin. Així les línies que ja estaven escrites no es mouen gens.
+        // Una fila que només ha canviat les claus (p. ex. la còpia que queda d'un símbol que baixa)
+        // també compta com a igual. Les altres es fonen sense enfosquir-se a mig camí: la nova
+        // apareix abans que la vella se'n vagi.
+        const senseClaus = html => html.replace(/ data-k="[^"]*"/g, '');
+        const filesVelles = [...vella.children],
+            filesNoves = [...nova.children];
+        filesNoves.forEach((f, i) => {
+            const v = filesVelles[i];
+            const igual =
+                v &&
+                senseClaus(v.innerHTML) === senseClaus(f.innerHTML) &&
+                v.className === f.className &&
+                Math.abs(v.getBoundingClientRect().top - f.getBoundingClientRect().top) < 0.5 &&
+                Math.abs(v.offsetHeight - f.offsetHeight) < 0.5;
+            if (igual) {
+                f.style.opacity = '0'; // fins al final es veu la vella, que és igual
+                return;
+            }
+            if (v)
+                feines.push(anima(v, [{ opacity: 1 }, { offset: 0.45, opacity: 1 }, { opacity: 0 }], { duration: D }));
+            feines.push(
+                anima(f, [{ opacity: 0 }, { offset: 0.25, opacity: 0 }, { offset: 0.75, opacity: 1 }, { opacity: 1 }], {
+                    duration: D,
+                })
+            );
+        });
 
         // Els requadres d'avís segueixen el seu símbol, o s'esvaeixen amb ell.
         for (const a of avisos) {
@@ -679,6 +715,10 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         nova.style.visibility = '';
         r.pissarra.style.minHeight = '';
         aturaAnimacions(nova);
+        for (const f of nova.children) {
+            aturaAnimacions(f);
+            f.style.opacity = '';
+        }
         capa = nova;
         for (const e of [...r.efectes.children]) if (!arrossegat || e !== arrossegat.el) e.remove();
         if (arrossegat) {

@@ -84,7 +84,7 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 | `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
 | `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (l'obre el botó «Veure tutorial» de `recta-numerica.html`) |
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
-| `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): tres exemples (prioritat d'operacions, una equació i una suma de fraccions) |
+| `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): tres exemples (prioritat d'operacions, una equació i una suma de fraccions); cada pas s'escriu a sota de l'anterior |
 | `s.html` | Fitxa adaptada de la unitat 1 (Nombres reals) |
 
 El 18/10/2026 es van retirar les pàgines que no enllaçava res (decaleg-pau, meteo, meteo_mobile i descripcio-grafica-inversa) i les còpies antigues d'altres projectes (cb.html, informe-cb.html, informe-cb-refactor.md i les carpetes cb, gem4eso i app, que avui són els repositoris step-quiz/cb, step-quiz/comp4eso i step-quiz/app). Són a l'historial de git si mai calen.
@@ -167,8 +167,8 @@ Exemple: `derivades.html?totalsessions=2&totaloperations=8&families=chain-exp-in
 
 A l'estil de Graspable Math: la resolució d'un exercici es veu en una **pissarra** on els símbols es mouen d'una línia a la següent, es fusionen en el resultat (`4 · 2` vola i es converteix en `8`) o desapareixen, i cada pas porta una frase que diu què es fa i per què. És el mateix motor dels procediments animats del web de la PAU (`step-quiz/pau`).
 
-- **Al generador d'enllaços** (`index.html`) hi ha el botó **«Activar la resolució pas a pas»**. Normalment està desactivat i tot funciona com sempre. Si es clica, els menús d'ESO i de Batxillerat només ofereixen les activitats que tenen la resolució pas a pas, i l'enllaç porta `pissarra=1`. Si un menú encara no en té cap, diu «Encara no n'hi ha cap».
-- **Què veu l'alumne:** l'animació dels passos dels exemples resolts i, quan encerta un pas, la línia anterior que es transforma en la nova. Ell marca el ritme. **No canvia res més**: ni les preguntes, ni la nota, ni el codi de verificació.
+- **Al generador d'enllaços** (`index.html`) hi ha el botó **«Activar la resolució pas a pas»**. Normalment està desactivat i tot funciona com sempre. Si es clica, la pàgina passa del blau al lila, els menús d'ESO i de Batxillerat només ofereixen les activitats que tenen la resolució pas a pas i desapareixen totes les opcions (sessions, preguntes, errors, criteri, sessió fixa, esvaïment…): l'enllaç és només `activitat.html?pissarra=1` i l'activitat fa servir els seus valors per defecte. Si un menú encara no en té cap, diu «Encara no n'hi ha cap».
+- **Què veu l'alumne:** l'animació dels passos dels exemples resolts i, quan encerta un pas, la línia nova que surt de l'anterior. **Tots els passos intermedis queden escrits**, un a sota de l'altre, com a la pissarra de classe. Ell marca el ritme. **No canvia res més**: ni les preguntes, ni la nota, ni el codi de verificació.
 - **Activitats que la tenen ara:** **Prioritat d'operacions** (`prioritat.html?pissarra=1`). Sempre és «Pas a pas» i la taula és la de sempre, però quan s'hi escriu una línia nova (un pas que l'alumne encerta, un pas d'un exemple resolt o el pas bo després d'un error), els nombres de l'operació baixen a la línia nova i es fusionen en el resultat. Si el pas l'ha fet l'alumne, l'animació és més ràpida (uns 1,5 s). Es pot combinar amb l'esvaïment. Les altres activitats s'aniran afegint d'una en una; el pla és a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md).
 - **Per veure-la funcionar:** `pissarra-demo.html`.
 

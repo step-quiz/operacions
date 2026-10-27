@@ -190,8 +190,18 @@ function engegaServidor() {
             ok('desactivat: el menú d’ESO té totes les activitats', esoAbans > 20);
             ok('desactivat: l’enllaç no porta pissarra=1', !/pissarra=/.test(await enllac('eso')));
 
+            const fonsObre = () => pagina.$eval('#p-eso', b => getComputedStyle(b).backgroundColor);
+            eq('desactivat: «Obre» és blau', await fonsObre(), 'rgb(59, 130, 246)');
+            ok('desactivat: hi ha les opcions (sessions…)', await pagina.isVisible('#s-eso'));
             await pagina.click('#btn-pissarra');
             eq('activat: aria-pressed', await pagina.getAttribute('#btn-pissarra', 'aria-pressed'), 'true');
+            await pagina.mouse.move(5, 5);
+            await pagina.waitForTimeout(400); // la transició de colors
+            eq('activat: «Obre» és lila', await fonsObre(), 'rgb(124, 58, 237)');
+            const opcionsVisibles = await pagina.$$eval('.sub-panel-params .row, #row-fixed-batx', rs =>
+                rs.filter(r => r.offsetParent !== null).map(r => r.textContent.trim().split('\n')[0])
+            );
+            ok('activat: no hi ha cap opció de configuració', !opcionsVisibles.length, opcionsVisibles.join(', '));
             eq(
                 'activat: el text diu «Desactivar…»',
                 (await pagina.textContent('#btn-pissarra')).trim(),
@@ -199,8 +209,8 @@ function engegaServidor() {
             );
             eq("activat: el menú d'ESO només té prioritat", (await opcions('eso')).join('|'), "Prioritat d'operacions");
             ok(
-                'activat: l’enllaç d’ESO és de prioritat i porta pissarra=1',
-                /prioritat\.html\?.*pissarra=1/.test(await enllac('eso'))
+                'activat: l’enllaç d’ESO és només «prioritat.html?pissarra=1»',
+                /\/prioritat\.html\?pissarra=1$/.test((await enllac('eso')).trim())
             );
             eq('activat: el menú de Batxillerat és buit', (await opcions('batx')).length, 0);
             eq(
@@ -215,6 +225,10 @@ function engegaServidor() {
             eq('activat: sense activitat, no hi ha enllaç', (await enllac('batx')).trim(), '');
 
             await pagina.click('#btn-pissarra');
+            await pagina.mouse.move(5, 5);
+            await pagina.waitForTimeout(400);
+            eq('desactivat de nou: «Obre» torna a ser blau', await fonsObre(), 'rgb(59, 130, 246)');
+            ok('desactivat de nou: tornen les opcions', await pagina.isVisible('#s-eso'));
             eq('desactivat de nou: totes les activitats', (await opcions('eso')).length, esoAbans);
             ok('desactivat de nou: l’enllaç ja no porta pissarra=1', !/pissarra=/.test(await enllac('eso')));
             ok('desactivat de nou: Batxillerat torna a tenir enllaç', /\.html/.test(await enllac('batx')));

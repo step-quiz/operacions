@@ -36,6 +36,18 @@ After wave 1, David tests it with a 1r ESO group before the next waves. Next: wa
 4. The agent creates the PRs and merges them (permission given on 2026-10-27). No proposal for the
    department: David works on this alone.
 
+2026-10-27 (after seeing wave 1 published):
+5. **Index with the button on: lilac, no options.** Every blue becomes the equivalent lilac (the palette of
+   `prioritat`: `#7c3aed`, hover `#6d28d9`, light `#f5f3ff`; the bluish greys become lilac greys; the shoe
+   icon is hue-rotated), and **all configuration options disappear** (sessions, questions, errors, criterion,
+   fixed session, fading, difficulty, modality…). The link is only `activity.html?pissarra=1`; the activity
+   uses its `APP_CONFIG` defaults. Implemented with `body.resolucio-pas-a-pas` in `index.html`.
+6. **All intermediate steps stay written** («vull que tots els passos intermitjos quedin escrits»): every
+   step writes a NEW line below and the previous lines stay, as on the classroom board. An existing line may
+   only get a mark or the trailing «=» when the next line is written; never transform a line in place.
+   This is a general rule for every procedure of this repository (the demo was rewritten; `prioritat`'s
+   table already worked this way). Tool: `formules.js` `linies()`.
+
 ## Technical decisions (agent)
 
 - **ES modules, not the `pau` IIFEs.** This repository forbids shared globals (`tests/check-repo.js` §7) and
@@ -69,6 +81,21 @@ After wave 1, David tests it with a 1r ESO group before the next waves. Next: wa
   queued so an animation always finishes before the next one; taps on the operations are ignored while the
   board is animating. Speed: 1.6 (≈1.5 s) for the student's own step, 1 for worked/help steps.
 - With the keys off (no `?pissarra=1`) the table HTML is byte-identical to before (tested on 2,400 tables).
+
+## Accumulating lines (2026-10-27, after decision 6)
+
+- `linies(g, primeraFila)` writes line r in row `primeraFila + r`. Pieces `P(id, tex, marca)`,
+  `grup(peces, marca)`, `fraccio(num, den)`. A new line declares what comes from the previous one:
+  `mou` (travels, may change, e.g. «+3» → «−3»), `fusiona` (several fly into one). Keys:
+  `L<r>k<id>`; once a piece has gone down, its copy in line r is `Lc<r>k<id>`.
+- Engine support: `pas.copia = {new: old}` (the copy is shown in place the whole time while the original
+  flies; a copy pairs with its original without using it up); rows whose HTML is equal except for the keys
+  stay still (no cross-fade, no flicker of fraction bars); other rows cross-fade without the mid-way dip
+  (the new one appears before the old one leaves). `prioritat` uses `copia` too
+  (`Renderer.copiesUltimaLinia`).
+- Rows have a little more vertical padding (`.pis-fila` 0.3em) so stacked fractions do not touch.
+- The board reserves the height of all the lines of a script from the first step (rows used later keep
+  their height, as in `pau`): nothing jumps while lines are added.
 
 ## Known limits
 

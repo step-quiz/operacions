@@ -22,6 +22,10 @@ Living state, decisions and the rollout plan: [`STATE.md`](STATE.md) (it wins ov
   first mark what will change. Nothing is positioned by hand.
 - So **the author never programs animation**: they write, like a teacher at the blackboard, *what the board
   looks like after each step* plus one short caption, and choose keys well.
+- **David's rule (27/10/2026): all intermediate steps stay written.** Each step writes a new line below;
+  previous lines stay (they may only get a mark, or the trailing «=» when the next line is written). Use
+  `linies()` (§3), which handles the keys: the pieces that change fly down from the previous line, where a
+  still copy stays (`copia`).
 
 This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `graspable-formulae.md` and
 `INSIGHTS.md` for the full story and the lessons learned there), ported to this repository.
@@ -30,7 +34,7 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 
 | File | What it is |
 |---|---|
-| `js/pissarra/formules.js` | Pure. Keys (`clau`, `marca`, `op`, `rel`, `marcat`, `tatxa`, `MARQUES`), text rows (`filaText`, `frase`), long rows (`ampleTex`, `enLinies`), the step builder `guio(n)`. |
+| `js/pissarra/formules.js` | Pure. Keys (`clau`, `marca`, `op`, `rel`, `marcat`, `tatxa`, `MARQUES`), text rows (`filaText`, `frase`), long rows (`ampleTex`, `enLinies`), **lines that stay written** (`linies`, pieces `P`, `grup`, `fraccio`), the step builder `guio(n)`. |
 | `js/pissarra/comprova.js` | Pure, for tests. `comprovaGuio(passos, nFiles, nom)` → list of structural errors; `textPla(tex)` → plain text that can be evaluated; `clausDe(tex)`. |
 | `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files, marc})` → controller. Script mode: `carrega(passos)`, `seguent()`, `salta(i)`, `repeteix()`. Free mode (the activity decides each state from what the student does): `mostraPas(pas)`, `animaPas(pas)`. Both: `velocitat(v)`, `escolta(f)`, `pas`, `total`, `ocupat`, `passos`, `element`. `marc: false` hides the frame and dotted background (only the animations show). Also `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once), `textAmbFormules(text)` (captions), `element()`. |
 | `js/pissarra/reproductor.js` | DOM. `creaReproductor(container, pissarra, {reprodueix, punts, velocitat, teclat})`: restart / previous / play / next buttons, one dot per step, speed, step caption. |
@@ -42,25 +46,27 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 
 ## 3. A step and a script
 
-```js
-import { clau as K, op, rel, guio } from '../pissarra/formules.js';
-// (in files that tests load with tests/harness.js loadModule, avoid «as»: write `const K = clau;`)
+The normal way (lines that stay written, the rule in §1) is `linies()`:
 
-function passos(dades) {
-    const g = guio(1);                                   // 1 row
-    g.files[0] = K('a', '3') + op('s', '+') + K('b', '4') + op('m', '\\cdot') + K('c', '2');
-    g.afegeix('Has de calcular $3 + 4 \\cdot 2$.');      // first step: animates nothing
-    g.files[0] = K('a', '3') + op('s', '+') + K('p', '8');
-    g.afegeix('$4 \\cdot 2 = 8$.', { fusiona: { p: ['b', 'm', 'c'] } });
-    g.files[0] = K('r', '11');
-    g.classes[0] = 'final';                             // the result, highlighted
-    g.afegeix('Ara la suma: $3 + 8 = 11$.', { fusiona: { r: ['a', 's', 'p'] } });
-    return g.passos;
-}
+```js
+import { guio, linies, P, grup } from '../pissarra/formules.js';
+const g = guio(3);                                    // 3 lines → 3 rows
+const L = linies(g);
+const igual = P('q', '=');
+const l0 = [P('a', '3'), P('s', '+'), P('b', '4'), P('m', '\\cdot'), P('c', '2')];
+L.escriu(l0, 'Has de calcular $3 + 4 \\cdot 2$.');
+L.canvia([P('a', '3'), P('s', '+'), grup([P('b', '4'), P('m', '\\cdot'), P('c', '2')], 'actual')], 'Primer, la multiplicació.');
+const l1 = [P('a', '3'), P('s', '+'), P('p', '8')];
+L.escriu(l1, '$4 \\cdot 2 = 8$.', { fusiona: { p: ['b', 'm', 'c'] }, anterior: [...l0, igual] });
+L.escriu([P('r', '11')], 'Ara la suma.', { fusiona: { r: ['a', 's', 'p'] }, anterior: [...l1, igual], final: true });
 ```
 
-Step object: `{files, classes, text, reanomena?, fusiona?, cursor?}` (`cursor: {clic: 'k'}` or
-`{arrossega: 'k', fins: 'k2'}`). Rules (all checked by `comprovaGuio`): a key matches
+Low level (what `linies()` writes for you): set `g.files[i]` to keyed TeX (`clau`, `op`, `rel`) and call
+`g.afegeix(text, {fusiona, reanomena, copia, cursor})`; `g.classes[i] = 'final'` highlights the result row.
+Writing a row in place (instead of a new line) is only for marks.
+
+Step object: `{files, classes, text, reanomena?, fusiona?, copia?, cursor?}` (`copia: {new: old}` = a still
+copy of a symbol that flies away; `cursor: {clic: 'k'}` or `{arrossega: 'k', fins: 'k2'}`). Rules (all checked by `comprovaGuio`): a key matches
 `/^[A-Za-z][A-Za-z0-9]*$/` and is **unique within a step across all rows**; a renamed key is new in B and its
 old key is gone; a fusion source exists in A and not in B; cursor keys exist; the first step animates
 nothing; no step identical to the previous one (`guio` drops it, so optional steps need no `if`). Rows never
@@ -119,6 +125,7 @@ they press play), and the mode **does not change questions, scores or the verifi
 6. Methods are the ones taught in Catalan schools for that level.
 7. **ESO 1r–2n (12–14 years): at most 2–3 symbols move in a step**, captions of one short sentence, the
    notation used in class. 3r–4t: steps with two movements are fine. Batxillerat: the full `pau` format.
+8. **All intermediate steps stay written** (David, 27/10/2026): a new line per step, below the previous ones.
 
 ## 6. Tests — why there are no wrong lines
 
@@ -150,6 +157,10 @@ Source: `step-quiz/pau` `procediments/` at commit `945968a` (October 2026).
 - CSS classes prefixed `pis-`; colours from the activity's `--primary`.
 - KaTeX is the vendored 0.16.11, loaded lazily by `carregaKatex()`.
 - `comprovaGuio` returns a list of errors instead of using the checker's global `comprova`.
+- Added here (not in `pau`): HTML rows; free mode (`mostraPas`/`animaPas`); `marc: false`; `pas.copia`;
+  rows equal except for their keys stay still, and changed rows cross-fade without the mid-way dip (in `pau`
+  the whole layer fades, so unkeyed parts such as fraction bars dim at mid-transition); the board grows
+  before a taller step; `linies()` (lines that stay written). These are candidates to port back to `pau`.
 - Maths writers (`mates.js`, polynomials, equation solvers, matrices) are **not** ported yet: port each one
   with the first activity that needs it (fractions → `Fraccio`; Batxillerat matrices → `matrius.js`).
 
