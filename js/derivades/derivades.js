@@ -26,10 +26,8 @@ import { shuffle } from '../utils.js';
 import {
     state,
     endSession,
-    hideMiniOverlay,
     injectSharedHTML,
     recordAnswerToHistory,
-    showMiniOverlay,
     startGame,
     validateConfig,
 } from '../game-core.js';
@@ -196,9 +194,9 @@ function checkAnswer(opt, clickedBtn) {
         if (isLastAttempt) {
             state.isTransitioning = true;
             recordAnswerToHistory(challengeData.promptTex, opt.tex, false);
-            // Petit retard per deixar que l'alumne llegeixi la solució
-            // abans que aparegui el mini-overlay de game-core.js
-            setTimeout(() => _finishOp(0), 800);
+            // Sense temporitzador: l'alumne llegeix la solució i clica «Següent →»
+            Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
+            _showNextButton(0);
         }
     }
 }
@@ -206,25 +204,19 @@ function checkAnswer(opt, clickedBtn) {
 // =========================================================================
 // 4. Finalitza l'operació actual
 // =========================================================================
-function _finishOp(levelPoints) {
-    const waitTime = showMiniOverlay(levelPoints);
-
-    setTimeout(() => {
-        hideMiniOverlay();
-        _advance();
-    }, waitTime);
-}
-
 /**
- * Encert: no hi ha temporitzador. Mostra els punts i el botó «Següent →»
- * dins el bloc de feedback; l'alumne decideix quan passar a l'exercici següent.
+ * Final d'exercici (encert o intents esgotats): no hi ha temporitzador.
+ * Mostra els punts (si n'hi ha) i el botó «Següent →» dins el bloc de feedback;
+ * l'alumne decideix quan passar a l'exercici següent.
  */
 function _showNextButton(levelPoints) {
     const fc = els.feedback;
 
     const points = document.createElement('div');
-    points.className = 'correct-points';
-    points.innerText = `⭐ +${levelPoints} punts`;
+    if (levelPoints > 0) {
+        points.className = 'correct-points';
+        points.innerText = `⭐ +${levelPoints} punts`;
+    }
 
     const btn = document.createElement('button');
     btn.className = 'btn-next';
