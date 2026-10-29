@@ -337,10 +337,33 @@
       15%  { opacity: 0.9; }
       100% { opacity: 0;   transform: scale(2.0) translateX(-10px); }
     }
+
+    /* Petjada: enllaç a l'app, cantonada superior esquerra */
+    .petjada-link { position: fixed; top: 10px; left: 12px; z-index: 102; display: block; line-height: 0; opacity: 0.85; transition: opacity 0.2s; }
+    .petjada-link img { height: 56px; width: auto; display: block; transform-origin: 50% 80%; }
+    .petjada-link:hover, .petjada-link:focus-visible { opacity: 1; }
+    .petjada-link:hover img, .petjada-link:focus-visible img { animation: petjada-blink-shake 1.5s ease-in-out; }
+    @keyframes petjada-blink-shake {
+      0%   { transform: translateX(0) rotate(0);        opacity: 1; }
+      10%  { transform: translateX(-4px) rotate(-6deg); opacity: 0.2; }
+      20%  { transform: translateX(4px) rotate(6deg);   opacity: 1; }
+      30%  { transform: translateX(-4px) rotate(-6deg); opacity: 0.2; }
+      40%  { transform: translateX(4px) rotate(6deg);   opacity: 1; }
+      50%  { transform: translateX(-3px) rotate(-4deg); opacity: 0.3; }
+      60%  { transform: translateX(3px) rotate(4deg);   opacity: 1; }
+      70%  { transform: translateX(-2px) rotate(-3deg); opacity: 0.5; }
+      80%  { transform: translateX(2px) rotate(3deg);   opacity: 1; }
+      90%  { transform: translateX(-1px) rotate(-1deg); opacity: 0.7; }
+      100% { transform: translateX(0) rotate(0);        opacity: 1; }
+    }
+    @media (max-width: 480px) { .petjada-link { top: 6px; left: 8px; } .petjada-link img { height: 40px; } }
+    @media (prefers-reduced-motion: reduce) { .petjada-link:hover img, .petjada-link:focus-visible img { animation: none; } }
   </style>
 <link rel="stylesheet" href="css/chromebook.css">
 </head>
 <body>
+
+  <a href="https://app.step-quiz.net/" class="petjada-link" aria-label="Step Quiz App" title="Step Quiz App"><img src="icon-petjada.png" alt=""></a>
 
   <div class="title-container">
     <h1 class="title-row-1">
