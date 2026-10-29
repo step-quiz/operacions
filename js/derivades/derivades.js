@@ -173,7 +173,7 @@ function checkAnswer(opt, clickedBtn) {
         els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
 
         Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
-        _finishOp(levelPoints);
+        _showNextButton(levelPoints);
     } else {
         state.attemptsLeft--;
         els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
@@ -211,14 +211,50 @@ function _finishOp(levelPoints) {
 
     setTimeout(() => {
         hideMiniOverlay();
-        state.currentOperation++;
-
-        if (state.currentOperation >= TOTAL_OPERATIONS) {
-            showSessionSummary(); // resum pedagògic → crida endSession() intern
-        } else {
-            window.buildLevel();
-        }
+        _advance();
     }, waitTime);
+}
+
+/**
+ * Encert: no hi ha temporitzador. Mostra els punts i el botó «Següent →»
+ * dins el bloc de feedback; l'alumne decideix quan passar a l'exercici següent.
+ */
+function _showNextButton(levelPoints) {
+    const fc = els.feedback;
+
+    const points = document.createElement('div');
+    points.className = 'correct-points';
+    points.innerText = `⭐ +${levelPoints} punts`;
+
+    const btn = document.createElement('button');
+    btn.className = 'btn-next';
+    btn.id = 'btn-next';
+    btn.type = 'button';
+    btn.textContent = state.currentOperation + 1 >= TOTAL_OPERATIONS ? 'Acabar →' : 'Següent →';
+    btn.addEventListener(
+        'click',
+        () => {
+            btn.disabled = true;
+            _advance();
+        },
+        { once: true }
+    );
+
+    fc.appendChild(points);
+    fc.appendChild(btn);
+    btn.focus({ preventScroll: true });
+    btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+/** Passa a l'exercici següent o, si ja són tots, al resum de sessió. */
+function _advance() {
+    state.currentOperation++;
+
+    if (state.currentOperation >= TOTAL_OPERATIONS) {
+        showSessionSummary(); // resum pedagògic → crida endSession() intern
+    } else {
+        window.buildLevel();
+    }
 }
 
 // =========================================================================

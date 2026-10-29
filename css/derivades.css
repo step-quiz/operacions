@@ -495,3 +495,33 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
         font-size: 1.5em;
     }
 }
+
+/* ── Encert: punts + botó «Següent →» (l'alumne decideix quan continuar) ── */
+.correct-points {
+    margin-top: 8px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.btn-next {
+    display: block;
+    margin: 14px auto 0;
+    padding: 12px 36px;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #fff;
+    background-color: #059669;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    animation: fadeInDown 0.3s;
+}
+
+.btn-next:hover {
+    background-color: #047857;
+}
+
+.btn-next:focus-visible {
+    outline: 3px solid #065f46;
+    outline-offset: 2px;
+}
