@@ -657,7 +657,11 @@ function sheet() {
       <div class="msg" id="msg"></div>`;
     const fa = $('fa');
     const fb = $('fb');
-    fa.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fb.focus(); } });
+    fa.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (fb.value.trim()) act('split'); else fb.focus(); } });
+    for (const el of [fa, fb]) {
+      el.addEventListener('input', () => say('', ''));          // the old message never outlives the numbers it was about
+      el.addEventListener('focus', () => el.select());
+    }
     fb.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); act('split'); } });
     if (!coarse) fa.focus({ preventScroll: true });
   } else if (t.c) {
@@ -690,8 +694,9 @@ function act(a) {
     const hint = isPrime(t.v) ? ` Potser ${t.v} és un nombre primer?` : '';
     if (!sa || !sb) { say('Escriu els dos factors.', 'bad'); return; }
     const x = Number(sa), y = Number(sb);
-    if (!Number.isInteger(x) || !Number.isInteger(y) || x <= 1 || y <= 1) { say('Els dos factors han de ser enters majors que 1.' + hint, 'bad'); return; }
+    if (!Number.isInteger(x) || !Number.isInteger(y)) { say('Escriu dos nombres enters.', 'bad'); return; }
     if (x * y !== t.v) { say(`${x} · ${y} = ${x * y}, i no ${t.v}.` + hint, 'bad'); return; }
+    if (x <= 1 || y <= 1) { say('Els dos factors han de ser nombres enters majors que 1.' + hint, 'bad'); return; }
     pushHist();
     const [p, q] = x <= y ? [x, y] : [y, x];
     t.st = 'split'; t.c = [bud(p), bud(q)];
