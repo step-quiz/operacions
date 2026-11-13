@@ -110,6 +110,9 @@ h2.sec::after{content:"";flex:1;border-bottom:1px dotted var(--line);transform:t
 /* tree */
 .stage-card{position:relative}
 .dl{font-size:15px;white-space:nowrap}
+.build-tools{display:flex;gap:14px;align-items:baseline}
+.stage-card .sec-row{flex-wrap:wrap;row-gap:0}
+.stage-card .sec-row h2.sec{min-width:7em}
 .menu{position:absolute;top:58px;right:0;background:var(--bg);border:1.4px solid var(--pen);border-radius:2px;box-shadow:4px 4px 0 color-mix(in srgb,var(--pen) 20%,transparent);padding:4px;display:flex;flex-direction:column;z-index:5}
 .menu button{padding:9px 16px;text-align:left;font-size:15px}
 .menu button:hover{background:var(--chip)}
@@ -144,6 +147,27 @@ h2.sec::after{content:"";flex:1;border-bottom:1px dotted var(--line);transform:t
 .budT{fill:var(--ink);font-size:17px}
 .tap{cursor:pointer}
 .bud{fill:var(--card);stroke:var(--accent);stroke-width:1.6;stroke-dasharray:4 4}
+.tf{font-family:"Caveat","Segoe Print",cursive;font-weight:600;fill:#221d1a;stroke:#221d1a;stroke-width:.7px;pointer-events:none}
+.mini .tf{display:none}
+.a.brc{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .5s ease-out forwards;animation-delay:var(--d)}
+.bloom.a .pet{opacity:0;animation:fade .3s ease-out forwards;animation-delay:calc(var(--d) + .12s + var(--p) * .05s)}
+body.sty-flors .stage{background:#fffaf2;box-shadow:inset 0 0 0 1px var(--line)}
+body.sty-flors .mini{background:#fffaf2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cg fill='none' stroke-linecap='round' stroke-width='1.5'%3E%3Cpath d='M1 12 Q2 7 0 3 M5 12 Q5 6 8 2' stroke='%235cbf45'/%3E%3Cpath d='M9 12 Q10 8 12 5 M14 12 Q13 6 15 1' stroke='%233f9b3a'/%3E%3Cpath d='M18 12 Q19 7 17 4 M22 12 Q22 8 24 6' stroke='%237ccf5a'/%3E%3C/g%3E%3C/svg%3E") repeat-x left bottom 22px/24px 12px;border-radius:6px}
+body.sty-flors .garden .grid{row-gap:6px}
+body.sty-flors .selRing{stroke:#221d1a}
+body.sty-flors #flip{display:none}
+body.sty-flors .stage svg{margin:auto auto 0}
+.pc{display:inline-block;min-width:1.3em;padding:0 .18em;border:2px solid #221d1a;border-radius:.45em;line-height:1.15;text-align:center;color:#221d1a;font-weight:600}
+.expr sup .pc{border:0}
+.leaves.bouquet{display:block}.leaves.bouquet svg{width:auto;height:auto;max-width:100%;display:block}
+.leaves .mush{width:120px;height:auto}
+body.sty-flors .lg-ink,body:not(.sty-flors) .lg-col{display:none}
+.lgl{display:inline-flex;gap:2px}.legend .lgl svg{width:20px;height:20px}.legend.lg-col svg{width:24px;height:22px}
+.bfly{position:absolute;left:-60px;z-index:6;pointer-events:none;animation:flyby 4.2s ease-in-out forwards;animation-delay:calc(var(--i) * .35s)}
+.bfly .wing{transform-box:fill-box;transform-origin:right center;animation:flap .22s ease-in-out infinite alternate}
+.bfly .wing.r{transform-origin:left center}
+@keyframes flyby{0%{transform:translate(0,0) rotate(8deg)}25%{transform:translate(28vw,-40px) rotate(-6deg)}50%{transform:translate(45vw,30px) rotate(10deg)}75%{transform:translate(65vw,-30px) rotate(-8deg)}100%{transform:translate(90vw,10px) rotate(5deg);opacity:0}}
+@keyframes flap{to{transform:scaleX(.45)}}
 .selRing{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-dasharray:2 5;stroke-linecap:round}
 .a.br{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .5s ease-out forwards;animation-delay:var(--d)}
 .a.fill{opacity:0;animation:fade .4s ease-out forwards;animation-delay:calc(var(--d) + .25s)}
@@ -157,26 +181,26 @@ h2.sec::after{content:"";flex:1;border-bottom:1px dotted var(--line);transform:t
 @keyframes sway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
 @keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-@media (prefers-reduced-motion:reduce){.a.br{animation:none;stroke-dashoffset:0}.a.pop{animation:none;transform:none}.a.fill{animation:none;opacity:1}.sway,.breathe{animation:none}}
+@media (prefers-reduced-motion:reduce){.bloom.a .pet{animation:none;opacity:1}.a.br,.a.brc{animation:none;stroke-dashoffset:0}.a.pop{animation:none;transform:none}.a.fill{animation:none;opacity:1}.sway,.breathe{animation:none}}
 
 /* worksheet (build mode) */
-.sheet{max-width:520px;margin:16px auto 6px;padding:16px 20px 14px;background:var(--bg);border:1.4px solid var(--pen);box-shadow:5px 5px 0 color-mix(in srgb,var(--pen) 16%,transparent);transform:rotate(-.35deg)}
-.sheet h3{margin:0 0 12px;font-size:18px;font-weight:450;line-height:1.3}
+.sheet{max-width:520px;margin:10px auto 6px;padding:10px 16px 10px;background:var(--bg);border:1.4px solid var(--pen);box-shadow:5px 5px 0 color-mix(in srgb,var(--pen) 16%,transparent);transform:rotate(-.35deg)}
+.sheet h3{margin:0 0 6px;font-size:18px;font-weight:450;line-height:1.3}
 .eq{display:flex;align-items:flex-end;gap:10px;font-size:32px;font-weight:520;flex-wrap:wrap}
 .eq input{width:3.4ch;font-size:32px;font-weight:520;text-align:center;border:0;border-bottom:1.5px solid var(--ink);border-radius:0;background:transparent;padding:0 2px;outline:none}
 .eq input:focus{border-bottom-color:var(--pen);border-bottom-width:2px}
-.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.sheet .msg{margin-top:6px}
 .msg{margin-top:12px;font-style:italic;font-size:15px;min-height:1px}
 .msg.bad{color:var(--bad)}.msg.good{color:var(--penLeaf)}
 .shake{animation:shake .4s}
 @keyframes shake{25%{transform:translateX(-6px) rotate(-.35deg)}75%{transform:translateX(6px) rotate(-.35deg)}}
-#buildUI .nav{margin-top:12px}
 
 /* harvest */
 .leaves{display:flex;flex-wrap:wrap;gap:2px}
 .leaves svg{width:44px;height:50px}
 .expr{font-size:34px;font-weight:450;margin:10px 0 6px;font-variant-numeric:lining-nums}
-.expr sup{font-size:.55em}
+.expr sup{font-size:.72em;font-weight:600;color:var(--ink);vertical-align:.62em;line-height:0;margin-left:2px}
 .moral{color:var(--muted);font-size:16px;font-style:italic;margin:6px 0 0;max-width:44ch;line-height:1.45}
 .moral b{color:var(--ink);font-style:normal;font-weight:600}
 .secret{color:var(--muted);font-style:italic;padding:10px 0}
@@ -199,8 +223,9 @@ h2.sec::after{content:"";flex:1;border-bottom:1px dotted var(--line);transform:t
   .harvest{grid-area:harvest;padding-right:30px}
   .stage-card{grid-area:stage;align-self:stretch;border-top:0!important;border-left:1px solid var(--line);padding-left:30px}
   .stage-sticky{position:sticky;top:8px}
-  .wrap{padding-bottom:calc(46px + env(safe-area-inset-bottom))}
-  .stage-card{padding-bottom:0}
+  .wrap{padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+  .stage-card{padding-top:4px;padding-bottom:0}
+  .stage-card h2.sec{margin-bottom:8px}
   .garden{grid-area:garden}
 }
 @media (max-width:480px){.wrap{padding:20px 16px calc(100px + env(safe-area-inset-bottom))}.tabs button{font-size:16.5px;padding:8px 14px 9px}.seed-input{font-size:42px}.expr{font-size:28px}.top-tools{gap:14px}}
@@ -216,7 +241,7 @@ body.proj .t{font-size:118%}
 
 .toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translate(-50%,16px);background:var(--bg);color:var(--ink);border:1.4px solid var(--pen);border-radius:2px;box-shadow:4px 4px 0 color-mix(in srgb,var(--pen) 20%,transparent);padding:9px 18px;font-style:italic;font-size:15px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center;z-index:9}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-footer{position:fixed;left:0;right:0;bottom:0;z-index:8;text-align:center;color:var(--muted);font-size:13.8px;line-height:1.5;padding:7px 14px calc(7px + env(safe-area-inset-bottom));background-color:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+footer{position:fixed;left:0;right:0;bottom:0;z-index:8;text-align:center;color:#000;font-size:12.8px;line-height:1.4;padding:3px 14px calc(3px + env(safe-area-inset-bottom));background-color:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
 footer a{color:inherit;white-space:nowrap;text-underline-offset:3px}
 </style>
 </head>
@@ -235,6 +260,7 @@ footer a{color:inherit;white-space:nowrap;text-underline-offset:3px}
       </div>
     </div>
     <nav class="top-tools" aria-label="Opcions">
+      <button class="tl" id="styleBtn" title="Canvia l'estil del dibuix">estil: flors</button>
       <button class="tl" id="flip" aria-pressed="false" title="L'arbre creix cap amunt o cap avall">girar</button>
       <button class="tl" id="gardenBtn" aria-pressed="false" title="Tots els arbres d'aquesta llavor">jardí</button>
       <button class="tl" id="projBtn" aria-pressed="false" title="Pantalla completa per a la pissarra">projector</button>
@@ -249,7 +275,7 @@ footer a{color:inherit;white-space:nowrap;text-underline-offset:3px}
   <section class="card seedcard">
     <h2 class="sec">La llavor</h2>
     <form class="seed-form" id="form" autocomplete="off">
-      <label class="seed-label" for="num">Escriu un nombre enter entre 2 i 1500</label>
+      <label class="seed-label" for="num">Escriu un nombre enter entre 2 i 2500</label>
       <div class="seed-row">
         <input class="seed-input" id="num" inputmode="numeric" pattern="[0-9]*" value="360">
         <button class="btn grow-btn" type="submit" id="growBtn">Començar</button>
@@ -275,6 +301,10 @@ footer a{color:inherit;white-space:nowrap;text-underline-offset:3px}
    <div class="stage-sticky">
     <div class="sec-row">
       <h2 class="sec">L'arbre</h2>
+      <span class="build-tools" id="buildTools" hidden>
+        <button class="link dl" id="undo">desfés l'últim pas</button>
+        <button class="link dl" id="restart">torna a començar</button>
+      </span>
       <button class="link dl" id="dlBtn">desa la làmina</button>
     </div>
     <div class="menu" id="dlMenu" hidden>
@@ -301,13 +331,10 @@ footer a{color:inherit;white-space:nowrap;text-underline-offset:3px}
 
     <div id="buildUI" hidden>
       <div class="sheet" id="sheet"></div>
-      <div class="nav">
-        <button class="link" id="undo">desfés l'últim pas</button>
-        <button class="link" id="restart">torna a començar</button>
-      </div>
     </div>
 
-    <div class="legend">
+    <div class="legend lg-col" id="lgCol"></div>
+    <div class="legend lg-ink">
       <span><svg viewBox="0 0 20 20"><path d="M2 10C2 3 17 3 18 9 18.5 16 3 17 2 10Z" fill="none" stroke="var(--pen)" stroke-width="1.3" stroke-linecap="round"/></svg>llavor</span>
       <span><svg viewBox="0 0 20 20"><path d="M3 17C7 12 12 9 17 5 M5.5 16.5C9 12.5 13 10 18 7" stroke="var(--pen)" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>branca</span>
       <span><svg viewBox="0 0 20 20"><ellipse cx="10" cy="10" rx="8" ry="5.5" fill="none" stroke="var(--pen)" stroke-width="1.3"/></svg>nus</span>
@@ -335,7 +362,7 @@ footer a{color:inherit;white-space:nowrap;text-underline-offset:3px}
 <script>
 "use strict";
 /* ================= number theory (FACTOR_TREES.md) ================= */
-const MAXN = 1500;
+const MAXN = 2500;
 const pairs = n => { const r = []; for (let a = 2; a * a <= n; a++) if (n % a === 0) r.push([a, n / a]); return r; };
 const factor = n => { const f = []; let m = n; for (let p = 2; p * p <= m; p++) while (m % p === 0) { f.push(p); m /= p; } if (m > 1) f.push(m); return f; };
 const isPrime = n => n >= 2 && pairs(n).length === 0;
@@ -454,12 +481,119 @@ function branchSVG(px, py, cx, cy, w0, w1, seed, cls, d, fx = true) {
     + `<g${F}><path class="br${A}" pathLength="1" style="--d:${d}s" d="${outline}" fill="none" stroke="var(--pen)" stroke-width="1.4" stroke-linejoin="round"/></g>`;
 }
 
+/* ================= drawing: "flors" style (pupils' felt-tip flowers) ================= */
+let ST = 'flors';                                          // 'flors' | 'fulles'
+try { const v = localStorage.getItem('arbre-estil'); ST = v === 'fulles' || v === 'fitxa' ? 'fulles' : 'flors'; } catch (e) {}
+const INK = '#221d1a', SW = 2.3, CREAM = '#fffaf2', YEL = '#ffd84d', GRN = '#62c04e', GRN_D = '#2f8a33', TAG = '#8fd46e';
+const PAL = ['#ffffff', '#ffb627', '#e63946', '#56c7f2', '#b86cf5', '#ff8fc7', '#ff8c42', '#2ec4b6', '#ff6b6b', '#5b8def', '#f15bb5', '#8ac926'];
+const mixc = (a, b, t) => { const q = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = q(a), B = q(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+const PRIMES = []; for (let i = 2; i <= MAXN; i++) if (isPrime(i)) PRIMES.push(i);
+const pIdx = p => { const i = PRIMES.indexOf(p); return i < 0 ? 0 : i; };
+const FTYPES = ['margarida', 'girasol', 'dalia', 'cinc', 'pompo', 'cors', 'tulipa', 'caragol', 'bicolor', 'estrella', 'rosa', 'puntets'];
+/* D1: 12 flowers x 12 colours, shifted every 12 primes -> 144 different flowers */
+const flowerOf = p => { const i = pIdx(p); return { type: FTYPES[i % 12], col: PAL[(i + Math.floor(i / 12)) % 12] }; };
+const flowerR = v => 32 + Math.max(0, digits(v) - 2) * 5;
+const tagW = v => Math.max(36, digits(v) * 13 + 16);
+/* centre the INK of the digits (not the em box) on 0,0: Caveat sits low and leans */
+const INKC = new Map(); let inkCtx = null, inkFallback = false;
+function inkOff(str) {
+  if (INKC.has(str)) return INKC.get(str);
+  let o = [.5 * String(str).length * .45, -.3];             // fallback before the font is ready
+  try { inkCtx = inkCtx || document.createElement('canvas').getContext('2d'); inkCtx.font = '600 100px Caveat';
+    if (document.fonts && document.fonts.check('600 100px Caveat')) { const m = inkCtx.measureText(str);
+      o = [(m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 200, (m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) / 200]; INKC.set(str, o); } else inkFallback = true; } catch (e) { inkFallback = true; }
+  return o;
+}
+const numF = (v, size) => { const [cx, cy] = inkOff(String(v)); return `<text class="tf" x="${f1(-cx * size)}" y="${f1(-cy * size)}" font-size="${f1(size)}">${v}</text>`; };
+/* hand-drawn wobble (D4) */
+function wcirc(r, seed, amt = .06) { const q = rng(seed), k = 3 + Math.floor(q() * 3), ph = q() * 6.28, ph2 = q() * 6.28; let d = '';
+  for (let i = 0; i <= 40; i++) { const t = i / 40 * 2 * Math.PI, rr = r * (1 + amt * Math.sin(k * t + ph) * .6 + amt * .4 * Math.sin((k + 2) * t + ph2)); d += (i ? 'L' : 'M') + f1(Math.cos(t) * rr) + ',' + f1(Math.sin(t) * rr); }
+  return d + 'Z'; }
+const centreF = (v, R, seed, fill = YEL) => { const r = R * .54; return `<path d="${wcirc(r, seed, .07)}" fill="${fill}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>` + numF(v, r * [2, 2, 2, 1.5, 1.2][Math.min(4, digits(v))]); };
+function petals(k, seed, draw, off = 0) { const q = rng(seed); let g = '';
+  for (let i = 0; i < k; i++) { const a = off + i * 360 / k + (q() - .5) * 14, sc = .9 + q() * .2; g += `<g transform="rotate(${f1(a)}) scale(${f1(sc * 100) / 100})"><g class="pet" style="--p:${i}">${draw(i)}</g></g>`; }
+  return g; }
+const P = (d, fill, w = SW) => `<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const ell = (cy, rx, ry, fill) => `<ellipse cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}" fill="${fill}" stroke="${INK}" stroke-width="${SW}"/>`;
+const pointy = (r0, L, w) => `M0,${f1(-r0)} Q${f1(w)},${f1(-r0 - L * .55)} 0,${f1(-r0 - L)} Q${f1(-w)},${f1(-r0 - L * .55)} 0,${f1(-r0)}Z`;
+const FLOWER = {
+  margarida: (v, c, R, s) => petals(11, s, () => ell(-R * .64, R * .19, R * .36, c)) + centreF(v, R, s),
+  girasol: (v, c, R, s) => petals(16, s, () => P(`M${f1(-R * .15)},${f1(-R * .42)} Q${f1(-R * .14)},${f1(-R * .8)} 0,${f1(-R * 1.02)} Q${f1(R * .14)},${f1(-R * .8)} ${f1(R * .15)},${f1(-R * .42)}Z`, c))
+    + `<path d="${wcirc(R * .6, s + 1)}" fill="#8a5a35" stroke="${INK}" stroke-width="${SW}"/>` + centreF(v, R, s),
+  dalia: (v, c, R, s) => petals(14, s, () => P(pointy(R * .3, R * .72, R * .2), mixc(c, '#000000', .15), SW * .9)) + petals(14, s + 5, () => P(pointy(R * .3, R * .5, R * .16), mixc(c, '#ffffff', .3), SW * .9), 13) + centreF(v, R, s),
+  cinc: (v, c, R, s) => petals(5, s, () => `<circle cy="${f1(-R * .56)}" r="${f1(R * .44)}" fill="${c}" stroke="${INK}" stroke-width="${SW}"/>`) + centreF(v, R, s),
+  pompo: (v, c, R, s) => { const q = rng(s); let g = ''; for (let i = 0; i < 34; i++) { const a = i * 360 / 34 + (q() - .5) * 8, L = R * (.86 + q() * .16), d = `M0,${f1(-R * .4)} Q${f1(R * .09)},${f1(-L * .7)} 0,${f1(-L)}`;
+      g += `<g transform="rotate(${f1(a)})"><g class="pet" style="--p:${i >> 2}"><path d="${d}" fill="none" stroke="${INK}" stroke-width="4.8" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${i % 2 ? c : mixc(c, '#ffffff', .35)}" stroke-width="2.5" stroke-linecap="round"/></g></g>`; }
+    return g + centreF(v, R, s); },
+  cors: (v, c, R, s) => { const h = R * .5; return petals(6, s, () => P(`M0,${f1(-R * .36)} C${f1(-h * .2)},${f1(-R * .5)} ${f1(-h * .85)},${f1(-R * .58)} ${f1(-h * .62)},${f1(-R * .88)} C${f1(-h * .45)},${f1(-R * 1.06)} ${f1(-h * .05)},${f1(-R * 1.0)} 0,${f1(-R * .88)} C${f1(h * .05)},${f1(-R * 1.0)} ${f1(h * .45)},${f1(-R * 1.06)} ${f1(h * .62)},${f1(-R * .88)} C${f1(h * .85)},${f1(-R * .58)} ${f1(h * .2)},${f1(-R * .5)} 0,${f1(-R * .36)}Z`, c)) + centreF(v, R, s); },
+  tulipa: (v, c, R, s) => `<g class="pet" style="--p:0">` + P(`M${f1(-R * .7)},${f1(-R * .15)} C${f1(-R * .78)},${f1(R * .75)} ${f1(R * .78)},${f1(R * .75)} ${f1(R * .7)},${f1(-R * .15)} L${f1(R * .56)},${f1(-R * .95)} L${f1(R * .24)},${f1(-R * .5)} L0,${f1(-R * 1.05)} L${f1(-R * .24)},${f1(-R * .5)} L${f1(-R * .56)},${f1(-R * .95)}Z`, c) + `</g><g transform="translate(0,${f1(R * .1)})">${centreF(v, R, s)}</g>`,
+  caragol: (v, c, R, s) => { let sp = ''; for (let t = 0; t <= 2.6 * Math.PI; t += .2) { const r = R * .52 + t * R * .022; sp += (sp ? ' L' : 'M') + f1(Math.cos(t) * r) + ',' + f1(Math.sin(t) * r); }
+    return petals(9, s, () => ell(-R * .72, R * .22, R * .3, c)) + `<path d="${wcirc(R * .66, s + 2)}" fill="${mixc(c, '#000000', .35)}" stroke="${INK}" stroke-width="${SW}"/><path d="${sp}" fill="none" stroke="${mixc(c, '#ffffff', .55)}" stroke-width="2" stroke-linecap="round"/>` + centreF(v, R, s); },
+  bicolor: (v, c, R, s) => { const c2 = c === '#ffffff' ? '#ffd84d' : mixc(c, '#ffffff', .55); return petals(12, s, i => ell(-R * .66, R * .17, R * .34, i % 2 ? c : c2)) + centreF(v, R, s); },
+  estrella: (v, c, R, s) => petals(6, s, () => P(`M${f1(-R * .3)},${f1(-R * .3)} Q${f1(-R * .32)},${f1(-R * .78)} 0,${f1(-R * 1.04)} Q${f1(R * .32)},${f1(-R * .78)} ${f1(R * .3)},${f1(-R * .3)}Z`, c)) + centreF(v, R, s),
+  rosa: (v, c, R, s) => { const ring = (r, k, col, off, i) => { let d = ''; for (let j = 0; j < k; j++) { const a0 = j / k * 2 * Math.PI + off, a1 = (j + 1) / k * 2 * Math.PI + off, am = (a0 + a1) / 2; d += (j ? ' ' : 'M' + f1(Math.cos(a0) * r) + ',' + f1(Math.sin(a0) * r)) + ` Q${f1(Math.cos(am) * r * 1.3)},${f1(Math.sin(am) * r * 1.3)} ${f1(Math.cos(a1) * r)},${f1(Math.sin(a1) * r)}`; } return `<g class="pet" style="--p:${i}">${P(d + 'Z', col, SW * .9)}</g>`; };
+    return ring(R * .8, 6, mixc(c, '#000000', .12), 0, 0) + ring(R * .66, 5, c, .5, 2) + centreF(v, R, s); },
+  puntets: (v, c, R, s) => petals(7, s, () => ell(-R * .64, R * .29, R * .38, c) + `<circle cx="${f1(-R * .1)}" cy="${f1(-R * .78)}" r="2.2" fill="#fff"/><circle cx="${f1(R * .1)}" cy="${f1(-R * .64)}" r="2" fill="#fff"/>`) + centreF(v, R, s),
+};
+const flowerSVG = (v, R = flowerR(v), seed = v * 7) => { const f = flowerOf(v); return FLOWER[f.type](v, f.col, R, seed); };
+/* mushrooms: a prime seed (B1-B2) */
+const numM = (v, y, base = 36) => `<g transform="translate(0,${y})">${numF(v, base * [1, 1, 1, .86, .68][Math.min(4, digits(v))])}</g>`;
+const STEMM = (w1, w2, top = -6) => P(`M${-w2},40 C${-w2 - 2},12 ${-w1 - 4},${top + 4} ${-w1},${top} L${w1},${top} C${w1 + 4},${top + 4} ${w2 + 2},12 ${w2},40Z`, '#fff6e6');
+const MUSH = [
+  v => STEMM(16, 22) + P('M-62,-6 C-60,-62 60,-62 62,-6 C30,4 -30,4 -62,-6Z', '#e63946') + [[-38, -22, 7], [-12, -40, 8], [18, -30, 6], [40, -14, 5], [-30, -42, 4], [34, -40, 4]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`).join('') + numM(v, 18),
+  v => STEMM(18, 27) + P('M-56,-4 C-58,-52 58,-52 56,-4 C28,6 -28,6 -56,-4Z', '#8a5a35') + '<path d="M-40,-28 C-26,-42 10,-46 30,-36" fill="none" stroke="#c48a5a" stroke-width="4" stroke-linecap="round"/>' + numM(v, 18),
+  v => P('M-16,40 L-13,0 L13,0 L16,40Z', '#fff6e6') + P('M-54,4 C-60,-32 -32,-62 0,-62 C32,-62 60,-32 54,4 Z', '#ff8c42') + numM(v, -26),
+  v => STEMM(15, 21) + `<clipPath id="mclip"><path d="M-58,-4 C-56,-56 56,-56 58,-4 C30,6 -30,6 -58,-4Z"/></clipPath><path d="M-58,-4 C-56,-56 56,-56 58,-4 C30,6 -30,6 -58,-4Z" fill="#e63946"/><g clip-path="url(#mclip)">${[-56, -34, -12, 10, 32, 54].map(x => `<rect x="${x}" y="-60" width="11" height="70" fill="#fff" transform="rotate(18 ${x} 0)"/>`).join('')}</g><path d="M-58,-4 C-56,-56 56,-56 58,-4 C30,6 -30,6 -58,-4Z" fill="none" stroke="${INK}" stroke-width="${SW}"/>` + numM(v, 18),
+  v => STEMM(18, 24) + P('M-58,-4 C-56,-58 56,-58 58,-4 C30,6 -30,6 -58,-4Z', '#ff9fcf') + [[-34, -24, 6], [-6, -40, 7], [24, -28, 6], [42, -12, 4]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${INK}" stroke-width="1.5"/>`).join('') + `<circle cx="-9" cy="31" r="2.2" fill="${INK}"/><circle cx="9" cy="31" r="2.2" fill="${INK}"/>` + numM(v, 15, 24),
+];
+const mushSVG = v => MUSH[pIdx(v) % MUSH.length](v);
+/* pot (C1), tags (C2), stems (C5) */
+const potSVG = (v, seed = v) => { const w = Math.max(84, digits(v) * 17 + 34), q = rng(seed), tilt = f1((q() - .5) * 3);
+  return `<g transform="rotate(${tilt})">${P(`M${-w / 2},-20 L${w / 2},-20 L${w / 2 - 8},20 L${-w / 2 + 8},20Z`, '#c46a3a')}${P(`M${-w / 2 - 6},-30 L${w / 2 + 6},-30 L${w / 2 + 6},-18 L${-w / 2 - 6},-18Z`, '#d98a5a')}<g transform="translate(0,1)">${numF(v, 34)}</g></g>`; };
+const tagSVG = (v, seed, bud = false) => { const w = tagW(v), q = rng(seed), a = f1((q() - .5) * 9);
+  return `<g transform="rotate(${a})"><rect x="${f1(-w / 2)}" y="-18" width="${w}" height="36" rx="3" fill="${bud ? CREAM : TAG}" stroke="${INK}" stroke-width="${SW}"${bud ? ' stroke-dasharray="6 4"' : ''}/>${numF(v, 32)}</g>`; };
+function stemF(px, py, cx, cy, w, cls, d, wob) {
+  const dy = cy - py, dd = `M${f1(px)},${f1(py)} C${f1(px + wob)},${f1(py + dy * .5)} ${f1(cx - wob)},${f1(cy - dy * .45)} ${f1(cx)},${f1(cy)}`, A = cls ? ' a' : '';
+  return `<path class="brc${A}" pathLength="1" style="--d:${d}s" d="${dd}" fill="none" stroke="${INK}" stroke-width="${f1(w + 4.4)}" stroke-linecap="round"/><path class="brc${A}" pathLength="1" style="--d:${d}s" d="${dd}" fill="none" stroke="${GRN}" stroke-width="${f1(w)}" stroke-linecap="round"/>`;
+}
+function grassSVG(x, y, half) {                             // tufts of curved blades in two greens
+  const q = rng(Math.round(half) + 7), cols = ['#3f9b3a', '#5cbf45', '#2f8a33', '#7ccf5a']; let d = ['', '', '', ''];
+  d[2] += `M${f1(x - half)},${f1(y)} Q${f1(x)},${f1(y - 2)} ${f1(x + half)},${f1(y)} `;
+  for (let gx = x - half + 2; gx < x + half - 2; gx += 6 + q() * 6) {
+    const n = 1 + Math.floor(q() * 3);
+    for (let k = 0; k < n; k++) { const h = 6 + q() * (q() < .15 ? 14 : 8), lean = (q() - .5) * 9, bx = gx + k * 2.2, c = Math.floor(q() * 4);
+      d[c] += `M${f1(bx)},${f1(y)} Q${f1(bx + lean * .2)},${f1(y - h * .6)} ${f1(bx + lean)},${f1(y - h)} `; }
+  }
+  return d.map((p, i) => p ? `<path d="${p}" fill="none" stroke="${cols[i]}" stroke-width="${i === 2 ? 2.4 : 2.1}" stroke-linecap="round"/>` : '').join('');
+}
+/* E2: the harvest as an open fan of flowers that never touch */
+function bouquetSVG(f) {
+  const k = f.length, R = 26, gap = 2 * R + 8, span = Math.min(2.6, Math.max(.001, (k - 1) * gap / 110));
+  const L = k > 1 ? Math.max(110, (k - 1) * gap / span) : 110, ox = 0, oy = 0;
+  let st = '', fl = '';
+  f.forEach((p, i) => { const a = k > 1 ? -span / 2 + i * span / (k - 1) : 0, x = Math.sin(a) * L, y = -Math.cos(a) * L;
+    st += stemF(ox, oy, x, y + R * .6, 5, false, 0, 0); fl += `<g transform="translate(${f1(x)},${f1(y)})"><g class="sway" style="--s:${-i * .6}s">${flowerSVG(p, R, p * 7 + i)}</g></g>`; });
+  const bow = `${P('M-14,-14 L14,-14 L11,2 L-11,2Z', '#ff8fc7')}${P('M-12,-11 C-36,-26 -38,4 -13,-4Z', '#ff8fc7')}${P('M12,-11 C36,-26 38,4 13,-4Z', '#ff8fc7')}`;
+  const half = k > 1 ? Math.sin(span / 2) * L + R + 6 : R + 40, top = Math.min(-L - R - 6, -40);
+  return `<svg viewBox="${f1(-half)} ${f1(top)} ${f1(2 * half)} ${f1(-top + 14)}" width="${f1(Math.min(330, 2 * half))}" xmlns="http://www.w3.org/2000/svg">${st}${fl}<g transform="translate(0,4)">${bow}</g></svg>`;
+}
+/* E4: butterflies when a tree is finished */
+function butterflies() {
+  if (ST !== 'flors' || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const host = document.querySelector('.stage-card'); if (!host) return;
+  ['#56c7f2', '#ff8fc7', '#ffb627'].forEach((c, i) => {
+    const b = document.createElement('div'); b.className = 'bfly'; b.style.setProperty('--i', i); b.style.top = (25 + i * 18) + '%';
+    b.innerHTML = `<svg viewBox="-28 -30 56 56" width="46" height="46"><g class="wing"><ellipse cx="-12" cy="-8" rx="14" ry="11" fill="${c}" stroke="${INK}" stroke-width="2"/><ellipse cx="-9" cy="10" rx="9" ry="8" fill="${mixc(c, '#ffffff', .4)}" stroke="${INK}" stroke-width="2"/></g><g class="wing r"><ellipse cx="12" cy="-8" rx="14" ry="11" fill="${c}" stroke="${INK}" stroke-width="2"/><ellipse cx="9" cy="10" rx="9" ry="8" fill="${mixc(c, '#ffffff', .4)}" stroke="${INK}" stroke-width="2"/></g><rect x="-3" y="-16" width="6" height="34" rx="3" fill="${INK}"/><path d="M-2,-15 Q-8,-28 -12,-28 M2,-15 Q8,-28 12,-28" fill="none" stroke="${INK}" stroke-width="1.6"/></svg>`;
+    host.appendChild(b); setTimeout(() => b.remove(), 4600);
+  });
+}
+
 function layout(tree) {
   const nodes = [], edges = []; let cursor = 0, maxD = 0;
   (function walk(t, d, path) {
     const me = { t, d, path, x: 0, y: d * LEVEL };
     nodes.push(me); maxD = Math.max(maxD, d);
-    if (!t.c) { const w = Math.max(SLOT, (t.st === 'bud' ? knotW(t.v) : leafR(t.v) * 2.1) + 18); me.x = cursor + w / 2; cursor += w; }
+    if (!t.c) { const w = ST === 'flors' && !layout.ink ? (t.st === 'bud' ? tagW(t.v) + 30 : flowerR(t.v) * 2.1 + 14) : Math.max(SLOT, (t.st === 'bud' ? knotW(t.v) : leafR(t.v) * 2.1) + 18); me.x = cursor + w / 2; cursor += w; }
     else { const a = walk(t.c[0], d + 1, path + '0'), b = walk(t.c[1], d + 1, path + '1'); me.x = (a.x + b.x) / 2; edges.push([me, a], [me, b]); }
     return me;
   })(tree, 0, '');
@@ -468,8 +602,10 @@ function layout(tree) {
 const seedRx = v => Math.max(40, digits(v) * 8 + 28);
 /* opts: up, anim ('all' | 'fresh' | false), mini, exp (export), sel (selected path), seedOnly */
 function svgFor(tree, o = {}) {
-  const { up = false, anim = 'all', mini = false, exp = false, sel = null } = o;
-  const fx = !mini;
+  const col = (o.style || ST) === 'flors';
+  const { anim = 'all', mini = false, exp = false, sel = null } = o, up = col ? true : !!o.up;
+  const fx = !mini && !col;
+  layout.ink = !col;
   const L = layout(tree), H = L.maxD * LEVEL, Y = y => up ? H - y : y, out = [];
   const animOf = n => anim === 'all' || (anim === 'fresh' && n.t.fresh);
   const dNode = n => anim === 'fresh' ? .3 : (n.d === 0 ? 0 : (n.d - 1) * STEP + .5);
@@ -477,11 +613,14 @@ function svgFor(tree, o = {}) {
   let ei = 0;
   for (const [p, c] of L.edges) {
     const w0 = Math.max(5, 21 * Math.pow(.7, p.d)), w1 = Math.max(3.5, 21 * Math.pow(.7, p.d + 1));
-    out.push(branchSVG(p.x, Y(p.y), c.x, Y(c.y), w0, w1, 97 + ei++ * 13, animOf(c), dEdge(p).toFixed(2), fx));
+    if (col) { const ctop = !c.t.c && c.t.st !== 'bud' ? flowerR(c.t.v) * .55 : 16;
+      out.push(stemF(p.x, Y(p.y) - (p.d === 0 ? 27 : 16), c.x, Y(c.y) + ctop, Math.max(6, 10 - p.d), animOf(c), dEdge(p).toFixed(2), (ei++ % 2 ? 1 : -1) * Math.min(22, Math.abs(c.x - p.x) * .35 + 8))); }
+    else out.push(branchSVG(p.x, Y(p.y), c.x, Y(c.y), w0, w1, 97 + ei++ * 13, animOf(c), dEdge(p).toFixed(2), fx));
   }
   const root = L.nodes[0];
   let ground = '';
-  if (up && !mini) {
+  if (col && !mini) ground = grassSVG(root.x, Y(0) + (tree.c || o.seedOnly || tree.st === 'bud' ? 20 : 40), Math.max(110, L.width / 2 + 20));
+  else if (up && !mini) {
     const gy = Y(0) + 30, gx = root.x, s = 'fill="none" stroke="var(--pen)" stroke-width="1.6" stroke-linecap="round"';
     ground = `<g ${s} filter="url(#ink)" opacity=".85"><path d="M${gx-110},${gy} q12,-6 24,0 t24,0 M${gx-58},${gy+9} q10,-5 20,0 t20,0 t20,0 M${gx+40},${gy-2} q10,-6 22,0 t22,0 M${gx+70},${gy+10} q8,-4 18,0 M${gx-30},${gy+18} h40"/></g>`;
   }
@@ -495,7 +634,18 @@ function svgFor(tree, o = {}) {
     const txt = (cls, extra = '') => mini ? '' : `<text class="t ${cls}" text-anchor="middle" dominant-baseline="central" y="1" ${extra}>${v}</text>`;
     const isBud = n.t.st === 'bud';
     let g;
-    if (!n.t.c && !isBud && !(isRoot && o.seedOnly)) {                     // leaf
+    if (col) {
+      const hide = mini ? ' class="mini-n"' : '';
+      if (!n.t.c && !isBud && !(isRoot && o.seedOnly)) {
+        if (isRoot) g = `<g class="pop leafg${A}" data-path="" ${D}>${ring(64, 52)}${mushSVG(v)}</g>`;
+        else { const R = flowerR(v); g = `<g class="pop leafg bloom${A}" data-path="${n.path}" ${D}>${ring(R, R)}<g class="${exp ? '' : 'sway'}" style="--s:${(-si++ * .73).toFixed(2)}s">${flowerSVG(v, R)}</g></g>`; }
+      } else if (isRoot) {
+        const breathe = (isBud && !exp && !mini) ? 'breathe' : '';
+        g = `<g class="pop tap${A}" data-path="" ${D}>${ring(Math.max(50, digits(v) * 9 + 24), 32)}<g class="${breathe}">${potSVG(v)}</g></g>`;
+      } else {
+        g = `<g class="pop tap${A}" data-path="${n.path}" ${D}>${ring(tagW(v) / 2 + 2, 20)}${tagSVG(v, v * 13 + n.d, isBud)}</g>`;
+      }
+    } else if (!n.t.c && !isBud && !(isRoot && o.seedOnly)) {                     // leaf
       const R = isRoot ? leafR(v) * 1.5 : leafR(v), p = parentOf.get(n);
       const rot = p ? Math.atan2(y - Y(p.y), x - p.x) * 180 / Math.PI + 90 : 0;
       g = `<g class="pop leafg${A}" data-path="${n.path}" ${D}>${ring(R, R * 1.15)}<g class="${exp ? '' : 'sway'}" style="--s:${(-si * .73).toFixed(2)}s">${leafSVG(R, rot, v * 31 + si++, fx)}</g>${txt('leafT', isRoot ? 'style="font-size:24px"' : '')}</g>`;
@@ -513,9 +663,10 @@ function svgFor(tree, o = {}) {
   }
   const pad = mini ? 36 : 46;
   const top = Math.min(0, Y(0) - 30) - pad + (mini ? 20 : 0);
-  const bot = Math.max(H, Y(0) + (up && !mini ? 52 : 30)) + pad - (mini ? 20 : 0);
+  const bot = col ? Y(0) + (tree.c || o.seedOnly || tree.st === 'bud' ? 24 : 44) + (mini ? 4 : 8) : Math.max(H, Y(0) + (up && !mini ? 52 : 30)) + pad - (mini ? 20 : 0);
   const left = -pad, right = Math.max(L.width, 80) + pad, vw = right - left, vh = bot - top;
-  const bg = exp ? `<rect x="${left}" y="${top}" width="${vw}" height="${vh}" fill="var(--card)"/>` : '';
+  const bg = exp ? `<rect x="${left}" y="${top}" width="${vw}" height="${vh}" fill="${col ? CREAM : 'var(--card)'}"/>` : '';
+  layout.ink = false;
   return `<svg viewBox="${left} ${top} ${vw} ${vh}" width="${vw}" height="${vh}" xmlns="http://www.w3.org/2000/svg">${exp ? '<!--STYLE-->' + DEFS : ''}${bg}${ground}${out.join('')}</svg>`;
 }
 
@@ -590,18 +741,22 @@ function drawLook(anim = 'all') {
   $('nav').hidden = false;
   ['prev', 'next', 'shuffle'].forEach(id => $(id).hidden = one);
   $('prev').disabled = S.i <= 0; $('next').disabled = S.i >= S.list.length - 1;
-  $('counter').textContent = !S.tree.c ? 'només hi ha una fulla' : one ? 'només hi ha 1 arbre' : `Fig. ${fmt(S.i + 1)} de ${fmt(total)}`;
-  $('hint').textContent = !S.tree.c ? `El ${fmt(S.n)} és un nombre primer: la llavor ja és fulla` : (one ? 'Aquest nombre només té un arbre possible' : '');
+  $('counter').textContent = !S.tree.c ? (ST === 'flors' ? 'només hi ha un bolet' : 'només hi ha una fulla') : one ? 'només hi ha 1 arbre' : `Fig. ${fmt(S.i + 1)} de ${fmt(total)}`;
+  $('hint').textContent = !S.tree.c ? `El ${fmt(S.n)} és un nombre primer: la llavor ja és ${ST === 'flors' ? 'un bolet' : 'fulla'}` : (one ? 'Aquest nombre només té un arbre possible' : '');
   if (S.garden) markGarden();
 }
 function harvest(show = true) {
   const box = $('harvestBody');
-  if (!show) { box.innerHTML = `<div class="secret">${S.mode === 'build' ? "Acaba l'arbre i aquí apareixeran les fulles que has collit." : 'Encara no ha crescut: què hi creixerà?'}</div>`; return; }
+  if (!show) { box.innerHTML = `<div class="secret">${S.mode === 'build' ? `Acaba l'arbre i aquí apareixeran les ${ST === 'flors' ? 'flors' : 'fulles'} que has collit.` : 'Encara no ha crescut: què hi creixerà?'}</div>`; return; }
   const f = factor(S.n);
-  const leaves = f.map((p, i) => `<svg viewBox="-24 -28 48 52"><g class="sway" style="--s:${-i*.6}s">${leafSVG(17, 0, p * 7 + i, false)}</g><text class="t leafT" text-anchor="middle" dominant-baseline="central" y="1" style="font-size:${p > 99 ? 11 : 15}px">${p}</text></svg>`).join('');
+  const col = ST === 'flors';
+  const leaves = col
+    ? (f.length === 1 ? `<svg class="mush" viewBox="-66 -66 132 110" width="120">${mushSVG(f[0])}</svg>` : bouquetSVG(f))
+    : f.map((p, i) => `<svg viewBox="-24 -28 48 52"><g class="sway" style="--s:${-i*.6}s">${leafSVG(17, 0, p * 7 + i, false)}</g><text class="t leafT" text-anchor="middle" dominant-baseline="central" y="1" style="font-size:${p > 99 ? 11 : 15}px">${p}</text></svg>`).join('');
   const groups = []; for (const p of f) { const g = groups[groups.length - 1]; if (g && g[0] === p) g[1]++; else groups.push([p, 1]); }
-  const expr = `${fmt(S.n)} = ` + groups.map(([p, e]) => e > 1 ? `${p}<sup>${e}</sup>` : p).join(' · ');
-  box.innerHTML = `<div class="leaves">${leaves}</div><div class="expr">${expr}</div>
+  const pc = p => col ? `<span class="pc" style="background:${f.length === 1 ? '#fff' : flowerOf(p).col}">${p}</span>` : p;
+  const expr = `${fmt(S.n)} = ` + groups.map(([p, e]) => e > 1 ? `${pc(p)}<sup>${e}</sup>` : pc(p)).join(' · ');
+  box.innerHTML = `<div class="leaves${col ? ' bouquet' : ''}">${leaves}</div><div class="expr">${expr}</div>
     <p class="moral">${f.length === 1 ? `El nombre ${S.n} és un nombre primer` : `El nombre ${S.n} s'expressa com a producte d'aquests nombres primers.<br>Si fem servir nombres primers, aquesta manera d'expressar-lo és <b>única</b>.`}</p>`;
 }
 const GARDEN_MAX = 24;
@@ -609,7 +764,7 @@ function garden() {
   const shown = S.list.slice(0, GARDEN_MAX), total = U(S.n);
   $('gardenTitle').textContent = `El jardí de ${fmt(S.n)}`;
   $('grid').innerHTML = shown.map((t, i) => `<button class="mini" data-i="${i}" title="Arbre ${i + 1}">${svgFor(t, { up: S.up, anim: false, mini: true })}</button>`).join('');
-  $('more').textContent = total > GARDEN_MAX ? `… i ${fmt(total - GARDEN_MAX)} arbres més` : (total === 1 ? 'Només hi creix un arbre.' : `${total} arbres diferents, les mateixes fulles.`);
+  $('more').textContent = total > GARDEN_MAX ? `… i ${fmt(total - GARDEN_MAX)} arbres més` : (total === 1 ? 'Només hi creix un arbre.' : `${total} arbres diferents, les mateixes ${ST === 'flors' ? 'flors' : 'fulles'}.`);
   markGarden();
 }
 function markGarden() { const cur = S.mode === 'look' ? S.idx.get(S.tree.k) : -1; document.querySelectorAll('.mini').forEach(b => b.classList.toggle('on', +b.dataset.i === cur)); }
@@ -672,8 +827,8 @@ function sheet() {
   const sh = $('sheet');
   if (Bd.done) {
     const k = bkey(Bd.root), i = S.idx.get(k), u = U(S.n);
-    sh.innerHTML = `<h3>Fet. L'arbre de ${fmt(S.n)} ja té totes les fulles.</h3>
-      <div class="msg good">${u === 1 ? 'Aquest nombre només té aquest arbre.' : `El teu és l'arbre ${fmt((i ?? 0) + 1)} de ${fmt(u)}. Prova de fer-ne un altre de diferent: les fulles seran les mateixes!`}</div>
+    sh.innerHTML = `<h3>Fet. L'arbre de ${fmt(S.n)} ja té totes les ${ST === 'flors' ? 'flors' : 'fulles'}.</h3>
+      <div class="msg good">${u === 1 ? 'Aquest nombre només té aquest arbre.' : `El teu és l'arbre ${fmt((i ?? 0) + 1)} de ${fmt(u)}. Prova de fer-ne un altre de diferent: les ${ST === 'flors' ? 'flors' : 'fulles'} seran les mateixes!`}</div>
       <div class="acts"><button class="pill pri" data-act="again">Fes-ne un altre</button><button class="pill" data-act="newseed">Llavor sorpresa</button></div>`;
     return;
   }
@@ -710,7 +865,7 @@ function autoLeaf() {                             // a prime already declared as
 function afterChange() {
   autoLeaf();
   const nb = firstBud();
-  if (nb === null) { Bd.done = true; Bd.sel = null; drawBuild(); harvest(true); return; }
+  if (nb === null) { Bd.done = true; Bd.sel = null; drawBuild(); harvest(true); setTimeout(butterflies, 500); return; }
   Bd.sel = nb; drawBuild();
 }
 function act(a) {
@@ -746,15 +901,16 @@ function undo() {
 
 /* ================= export (P3) ================= */
 function fontFaceCSS() {
-  for (const sh of document.styleSheets) { try { for (const r of sh.cssRules) if (r instanceof CSSFontFaceRule && /Fraunces/.test(r.cssText) && !/italic/.test(r.cssText)) return r.cssText; } catch (e) {} }
-  return '';
+  let out = '';
+  for (const sh of document.styleSheets) { try { for (const r of sh.cssRules) if (r instanceof CSSFontFaceRule && (ST === 'flors' ? /Caveat/ : /Fraunces/).test(r.cssText) && !/italic/.test(r.cssText)) out += r.cssText; } catch (e) {} }
+  return out;
 }
 function currentTree() { return S.mode === 'build' ? Bd.root : (S.waiting ? { v: S.n, c: null, st: 'bud' } : S.tree); }
 function exportSVG() {
   const t = currentTree();
   let s = svgFor(t, { up: S.up, anim: false, exp: true, seedOnly: t.st === 'bud' && !t.c });
   const cs = getComputedStyle(document.documentElement);
-  const css = `${fontFaceCSS()} .t{font-family:Fraunces,Georgia,serif;font-weight:600;paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}.seedT{fill:var(--pen);font-size:24px}.knotT{fill:var(--pen);font-size:17px}.leafT{fill:var(--penLeaf);font-size:18px;font-weight:650}.budT{fill:var(--ink);font-size:17px}.lbl{fill:var(--muted);font-size:12px;letter-spacing:.1em;text-transform:uppercase}.bud{fill:var(--card);stroke:var(--accent);stroke-width:2;stroke-dasharray:5 4}`;
+  const css = `${fontFaceCSS()} .t{font-family:Fraunces,Georgia,serif;font-weight:600;paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}.seedT{fill:var(--pen);font-size:24px}.knotT{fill:var(--pen);font-size:17px}.leafT{fill:var(--penLeaf);font-size:18px;font-weight:650}.budT{fill:var(--ink);font-size:17px}.lbl{fill:var(--muted);font-size:12px;letter-spacing:.1em;text-transform:uppercase}.bud{fill:var(--card);stroke:var(--accent);stroke-width:2;stroke-dasharray:5 4}.tf{font-family:Caveat,cursive;font-weight:600;fill:${INK};stroke:${INK};stroke-width:.7px}`;
   s = s.replace('<!--STYLE-->', `<style>${css}</style>`).replace(/ class="[^"]*\bsel\b[^"]*"/g, m => m.replace(' sel', ''));
   return s.replace(/var\(--([a-zA-Z]+)\)/g, (m, n) => cs.getPropertyValue('--' + n).trim() || m);
 }
@@ -820,6 +976,28 @@ $('next').onclick = () => go(1);
 $('shuffle').onclick = () => { if (S.list.length < 2) return; let j; do j = Math.floor(Math.random() * S.list.length); while (j === S.i); S.i = j; S.tree = S.list[j]; drawLook(); };
 $('cdPause').onclick = () => { CD.run = !CD.run; CD.last = performance.now(); $('cdPause').textContent = CD.run ? 'Pausa' : 'Continua'; $('cdTxt').textContent = CD.run ? 'Pensa com es descompon… la planta creixerà sola.' : 'En pausa. Pren-te el temps que calgui.'; };
 $('cdNow').onclick = growNow;
+function redrawAll() {
+  if (S.mode === 'build') { drawBuild(false); harvest(Bd.done); }
+  else if (S.waiting) { $('stage').innerHTML = svgFor({ v: S.n, c: null, st: 'bud' }, { up: S.up, anim: false, seedOnly: true }); }
+  else { drawLook(false); harvest(); }
+  if (S.garden && S.mode === 'look' && !S.waiting) garden();
+}
+function applyStyle() {
+  document.body.classList.toggle('sty-flors', ST === 'flors');
+  $('styleBtn').textContent = 'estil: ' + ST;
+  $('styleBtn').title = ST === 'flors' ? 'Canvia a l\'estil fulles (tinta)' : 'Canvia a l\'estil flors';
+}
+$('styleBtn').onclick = () => {
+  ST = ST === 'flors' ? 'fulles' : 'flors';
+  try { localStorage.setItem('arbre-estil', ST); } catch (e) {}
+  applyStyle(); redrawAll();
+};
+$('lgCol').innerHTML = `<span><svg viewBox="-50 -46 100 84">${potSVG(12, 1)}</svg>llavor (test)</span>`
+  + `<span><svg viewBox="0 0 20 20"><path d="M4 17C9 13 9 8 16 4" stroke="${INK}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M4 17C9 13 9 8 16 4" stroke="${GRN}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>tija</span>`
+  + `<span><svg viewBox="-24 -22 48 44">${tagSVG(6, 3)}</svg>nus</span>`
+  + `<span><span class="lgl">${[2, 3, 5, 7].map(q => `<svg viewBox="-34 -34 68 68">${flowerSVG(q, 32)}</svg>`).join('')}</span>flor: cada nombre primer té la seva</span>`
+  + `<span><svg viewBox="-66 -66 132 110">${MUSH[0]('')}</svg>bolet: la llavor ja és primera</span>`;
+applyStyle();
 $('flip').onclick = () => {
   S.up = !S.up; $('flip').setAttribute('aria-pressed', S.up);
   if (S.mode === 'build') drawBuild(false); else if (S.waiting) $('stage').innerHTML = svgFor({ v: S.n, c: null, st: 'bud' }, { up: S.up, anim: false, seedOnly: true }); else drawLook();
@@ -853,7 +1031,7 @@ function setMode(m) {
   if (S.mode === m) return;
   S.mode = m; stopCountdown(); document.body.classList.toggle('build', m === 'build');
   $('tabLook').classList.toggle('on', m === 'look'); $('tabBuild').classList.toggle('on', m === 'build');
-  $('lookUI').hidden = m !== 'look'; $('buildUI').hidden = m !== 'build';
+  $('lookUI').hidden = m !== 'look'; $('buildUI').hidden = m !== 'build'; $('buildTools').hidden = m !== 'build';
   
   $('garden').hidden = !(S.garden && m === 'look');
   plant(S.n);
@@ -883,7 +1061,7 @@ addEventListener('resize', fitStage);
 wideMQ.addEventListener('change', fitStage);
 new MutationObserver(fitStage).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 if (window.ResizeObserver) { const ro = new ResizeObserver(fitStage); ro.observe(document.querySelector('header')); ro.observe(document.querySelector('.tabs')); ro.observe(document.querySelector('footer')); }
-if (document.fonts) document.fonts.ready.then(fitStage);
+if (document.fonts) { document.fonts.ready.then(fitStage); document.fonts.load('600 100px Caveat').then(() => { if (inkFallback) { inkFallback = false; INKC.clear(); redrawAll(); } }).catch(() => {}); }
 const m0 = /^#n(\d+)$/.exec(location.hash);
 plant(m0 && +m0[1] >= 2 && +m0[1] <= MAXN ? +m0[1] : 360);
 </script>
