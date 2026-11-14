@@ -16,7 +16,6 @@
 import { TOTAL_OPERATIONS } from '../config.js';
 import {
     state,
-    endSession,
     getKbActiveInput,
     hideCustomKeyboard,
     initCustomKeyboard,
@@ -28,6 +27,8 @@ import {
     showCustomKeyboard,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsAmbErrors,
 } from '../game-core.js';
 import { MathEngine } from './math-engine.js';
 import { QuestionBank } from './question-bank.js';
@@ -214,7 +215,7 @@ function checkAnswer() {
         showFeedback('✅ Molt bé! Has trobat una solució correcta!', 'ok');
         const promptText = challengeData.prompt.replace(/<[^>]+>/g, '');
         recordAnswerToHistory(promptText, sorted.join(', '), true);
-        showNextButton();
+        finishExercise();
     } else {
         totalErrors++;
         markInputsWrong();
@@ -317,39 +318,14 @@ function showFeedback(msg, type) {
 }
 
 // =========================================================================
-// 6. BOTÓ "SEGÜENT"
-// =========================================================================
-function showNextButton() {
-    const btn = els.btnCheck;
-    btn.textContent = 'Següent →';
-    btn.classList.add('btn-next-shake');
-    btn.removeEventListener('click', checkAnswer);
-    btn.addEventListener('click', _onNextClick);
-}
-
-function _onNextClick() {
-    const btn = els.btnCheck;
-    btn.classList.remove('btn-next-shake');
-    btn.removeEventListener('click', _onNextClick);
-    btn.addEventListener('click', checkAnswer);
-    finishExercise();
-}
-
-// =========================================================================
-// 7. FI DE L'EXERCICI
+// 6. FI DE L'EXERCICI
 // =========================================================================
 function finishExercise() {
-    const levelPoints = Math.max(0, 10 - totalErrors);
-    state.sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
     recordResult(totalErrors === 0 ? 1 : totalErrors <= 2 ? 2 : totalErrors <= 5 ? 3 : 4);
-
-    state.currentOperation++;
-    if (state.currentOperation >= TOTAL_OPERATIONS) {
-        endSession();
-    } else {
-        window.buildLevel();
-    }
+    els.btnCheck.style.display = 'none'; // buildLevel() el torna a mostrar
+    // Cada «Comprova» fallat és un error: 10 punts, 2 menys per error (js/punts.js).
+    // Punts, franja i botó «Següent» (game-core.js)
+    acabaPregunta(puntsAmbErrors(totalErrors), { encert: true });
 }
 
 // =========================================================================

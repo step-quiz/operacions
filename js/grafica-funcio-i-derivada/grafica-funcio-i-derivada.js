@@ -8,6 +8,7 @@
  */
 
 import { FixedSessions } from '../fixed-sessions.js';
+import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunta amb «Següent»
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -272,10 +273,17 @@ function renderOptions(opts) {
             if (o.correct) {
                 isTransitioning = true;
                 b.classList.add('correct-flash');
-                setTimeout(() => {
-                    currentOperation++;
-                    buildLevel();
-                }, 1000);
+                // Franja «Molt bé!» i botó «Següent», com a totes les activitats (js/seguent.js);
+                // aquesta activitat no compta punts
+                mostraSeguent({
+                    punts: null,
+                    ultima: currentOperation + 1 >= TOTAL_OPERATIONS,
+                    lloc: document.querySelector('.interaction-panel') || undefined,
+                    onSeguent: () => {
+                        currentOperation++;
+                        buildLevel();
+                    },
+                });
             } else {
                 b.classList.add('error-shake');
                 setTimeout(() => b.classList.remove('error-shake'), 300);

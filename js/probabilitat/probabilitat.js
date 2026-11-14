@@ -22,13 +22,13 @@ import { shuffle } from '../utils.js';
 import {
     state,
     endSession,
-    hideMiniOverlay,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 import { DistractorLib } from './distractor-lib.js';
 import { QuestionBank } from './question-bank.js';
@@ -167,13 +167,9 @@ function checkAnswer(opt, clickedBtn) {
         });
 
         const fails = MAX_INTENTS - state.attemptsLeft;
-        const levelPoints = Math.max(0, 10 - fails * 2);
-        state.sessionScore += levelPoints;
         recordResult(Math.min(fails + 1, 3));
-        els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
         Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
-        _finishOp(levelPoints);
+        _finishOp(puntsDeLaPregunta());
     } else {
         state.attemptsLeft--;
         els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
@@ -194,7 +190,8 @@ function checkAnswer(opt, clickedBtn) {
             state.isTransitioning = true;
             recordAnswerToHistory(challengeData.promptText, opt.tex, false);
             recordResult(4);
-            setTimeout(() => _finishOp(0), 800);
+            Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
+            _finishOp(0); // la solució es queda a la vista fins que l'alumne prem «Següent»
         }
     }
 }
@@ -203,16 +200,8 @@ function checkAnswer(opt, clickedBtn) {
 // 4. Finalitza l'operació actual
 // =========================================================================
 function _finishOp(levelPoints) {
-    const waitTime = showMiniOverlay(levelPoints);
-    setTimeout(() => {
-        hideMiniOverlay();
-        state.currentOperation++;
-        if (state.currentOperation >= TOTAL_OPERATIONS) {
-            showSessionSummary();
-        } else {
-            window.buildLevel();
-        }
-    }, waitTime);
+    // Punts, franja i botó «Següent»; després de l'última, el resum pedagògic
+    acabaPregunta(levelPoints, { alFinal: showSessionSummary });
 }
 
 // =========================================================================

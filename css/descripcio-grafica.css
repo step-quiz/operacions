@@ -206,57 +206,6 @@ body {
     background: rgba(255, 255, 255, 0.6);
 }
 
-/* ---- FOOTER DE GRÀFIC ---- */
-#graph-footer {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 2px 2px;
-    flex-shrink: 0;
-}
-#countdown-wrap {
-    flex: 1;
-    height: 5px;
-    background: var(--border-light);
-    border-radius: 3px;
-    overflow: hidden;
-}
-@keyframes drainBar {
-    from {
-        width: 100%;
-    }
-    to {
-        width: 0%;
-    }
-}
-#countdown-bar {
-    height: 100%;
-    width: 100%;
-    background: var(--primary);
-    border-radius: 3px;
-    transition: background 0.15s;
-}
-#countdown-bar.paused {
-    background: var(--text-muted);
-}
-#btn-skip {
-    flex-shrink: 0;
-    padding: 4px 12px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 700;
-    border: none;
-    background: var(--primary);
-    color: white;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: background 0.15s;
-    white-space: nowrap;
-}
-#btn-skip:hover {
-    background: var(--primary-hover);
-}
-
 /* ---- GAME SCREEN ---- */
 #game-screen {
     display: flex;

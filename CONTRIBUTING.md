@@ -17,6 +17,8 @@ operacions/
 │   ├── config.js               ← Lectura de paràmetres URL (sessions, intents, etc.)
 │   ├── exercise-codes.js       ← Taula única de codis d'exercici (joc + analitzador)
 │   ├── esvaiment.js            ← Mode «Esvaïment» ?esvaiment=1 (motor de nivells, sense DOM)
+│   ├── punts.js                ← La regla única dels punts (10 per pregunta, 2 menys per error; pur)
+│   ├── seguent.js              ← La franja del final de pregunta amb el botó «Següent» (DOM)
 │   ├── game-core.js            ← Motor de joc compartit (estat, puntuació, pantalles, codi v2)
 │   ├── pissarra/               ← «Resolució pas a pas»: la pissarra animada (?pissarra=1)
 │   │   ├── formules.js         ← Claus dels símbols i guió dels passos (pur)
@@ -98,7 +100,7 @@ La base compartida exporta funcions i constants, i qui les necessita les importa
 ```js
 import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
 import { randInt, shuffle } from '../utils.js';
-import { state, startGame, recordResult, showMiniOverlay } from '../game-core.js';
+import { state, startGame, recordResult, acabaPregunta, puntsDeLaPregunta } from '../game-core.js';
 ```
 
 **L'estat de la partida és a `state`**: `state.attemptsLeft`, `state.sessionScore`, `state.currentOperation`, `state.isTransitioning`… (i no `attemptsLeft` a seques). Un mòdul pot llegir una variable que n'importa, però no la pot reassignar; en canvi, sí que pot canviar les propietats d'un objecte importat (`state.attemptsLeft--`).
@@ -138,6 +140,22 @@ Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngin
 **Teclat numèric de `game-core.js`**: en un aparell tàctil, qualsevol casella de text o de número de dins del panell (`.panel`) que l'alumne toqui passa a rebre el teclat propi, encara que el joc no l'hagi activada mai amb `showCustomKeyboard()` (un sol listener per a tota la pàgina, a `initCustomKeyboard()`). Una casella que no ha de fer servir el teclat numèric es marca amb `data-kb="off"`. Un input amb `data-locked="true"` (resposta ja encertada) no s'activa ni perd el `readonly`. Per saber quin input fa servir el teclat, `getKbActiveInput()`; per deixar d'usar-ne un sense amagar el teclat, `kbReleaseInput(inp)`. No redefiniu les funcions del teclat dins d'un joc: afegiu l'opció a `game-core.js`.
 
 **Per provar-ho localment** cal un servidor: `node tools/servidor.js` i obrir http://localhost:8000 (al Codespace s'engega sol; vegeu [`COM-TREBALLAR.md`](COM-TREBALLAR.md)). Obrint l'HTML amb doble clic (`file://`) el navegador bloqueja els mòduls.
+
+### Final de cada pregunta i punts
+
+Totes les activitats acaben cada pregunta de la mateixa manera, i cap no passa de pregunta sola:
+
+```js
+recordResult(encert ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4); // el codi de la pregunta
+acabaPregunta(encert ? puntsDeLaPregunta() : 0); // punts + franja + botó «Següent»
+```
+
+- **`puntsDeLaPregunta()`** (game-core.js) torna 10, 8, 6… fins a 0 segons els intents gastats: és `puntsAmbErrors(errors)` de `js/punts.js`. Una activitat només se'n pot apartar si ho declara al codi, passant un altre descompte: `puntsAmbErrors(totalErrors, 1)` (Estudi estadístic, que compta cada casella errònia i no cada intent).
+- **`acabaPregunta(punts, opcions)`** suma els punts amb `sumaPunts()`, tanca el teclat i mostra la franja de `js/seguent.js` («Molt bé! +8 punts» o «Intents esgotats · 0 punts») amb el botó «Següent» («Veure resultats» a l'última pregunta de la sessió). Quan l'alumne el prem (o prem Enter), passa a la pregunta següent amb `window.buildLevel()` o acaba la sessió. Opcions: `encert` (si no, punts > 0), `alFinal` (en lloc d'`endSession`, p. ex. el resum pedagògic de derivades), `alSeguent` (en lloc de `buildLevel`, p. ex. Pla cartesià), `lloc` (on va la franja; per defecte, al final de `#game-screen`) i `titol` (p. ex. «Intents esgotats. Solució: 3/4»).
+- **`sumaPunts(p)`** és l'única manera de sumar punts a `state.sessionScore`: rebutja el que no sigui un enter de 0 a 10 (el porta dins del marge i ho diu a la consola) i posa al dia el marcador. `tests/check-repo.js` falla si una activitat suma punts pel seu compte.
+- La resolució o la solució s'han de quedar **a la vista** fins que l'alumne prem «Següent»: no les amagueu en acabar (`buildLevel()` ja les buida a la pregunta nova).
+- Les activitats que no fan servir game-core.js (Vocabulari, Asímptotes, les de gràfiques de Batxillerat) criden directament `mostraSeguent({ punts, encert, ultima, lloc, onSeguent })` de `js/seguent.js`; `punts: null` per a les que no compten punts.
+- L'HTML enllaça `css/seguent.css` (`tests/check-repo.js` ho comprova).
 
 ### Capçalera de fitxer estàndard
 
@@ -317,16 +335,17 @@ node tests/run-all.js
 
 | Fitxer | Què comprova |
 |--------|--------------|
-| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) · mode «Esvaïment» (no genera mai codi, `SUPORTA_ESVAIMENT` quadra amb `index.html`) · «Resolució pas a pas» (`SUPORTA_PISSARRA` quadra amb `index.html`, la pissarra no fa servir `Math.random`, l'analitzador no en sap res) |
+| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) · mode «Esvaïment» (no genera mai codi, `SUPORTA_ESVAIMENT` quadra amb `index.html`) · «Resolució pas a pas» (`SUPORTA_PISSARRA` quadra amb `index.html`, la pissarra no fa servir `Math.random`, l'analitzador no en sap res) · final de pregunta (cap activitat suma punts pel seu compte, ningú no fa servir la finestra antiga «Molt bé!», les pàgines amb la franja enllacen `css/seguent.css`) |
 | `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…). A `prioritat`, també la resolució pas a pas (ordre, disposició «centrat»), la modalitat «Pas a pas» i una empremta que avisa si canvien les preguntes de les sessions fixes |
 | `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) la base i cada mòdul de lògica, i comprova que exporten el que han d'exportar |
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |
+| `tests/punts.test.js` | La regla dels punts (`js/punts.js`): 10 per pregunta i 2 menys per error, mai per sota de 0; només s'accepten enters de 0 a 10; `sumaPunts()` de game-core.js no suma mai més de 10 per pregunta |
 | `js/derivades/run-tests.js` | Tests detallats del mòdul de derivades |
 | `tests/esvaiment.test.js` | Mode «Esvaïment»: el motor de nivells (pujar, baixar, terra a 0, URL estranyes) i, a `prioritat`, que els passos de 1.000 expressions arriben al resultat recalculat a part i que la taula sense marques és la de sempre |
 | `tests/equacions.test.js` | Equacions de 1r grau: una empremta de 7.200 equacions amb els seus passos i l'HTML (si canvia, canvien les preguntes de les sessions fixes), cap equació sense una sola solució entera, i la resolució pas a pas (unes 6.300 animacions: guions correctes, cada línia amb la solució de l'equació, poques peces per pas i, sense les claus, l'HTML de sempre) |
 | `tests/pissarra.test.js` | «Resolució pas a pas»: les claus i el guió, la revisió dels guions (amb guions dolents fets a mà), el text pla de cada fila, el paràmetre `?pissarra=1` i, per a tots els guions (avui els de mostra), que KaTeX dibuixa totes les fórmules, que els textos són en segona persona i que **cada línia que es veu és certa** (calculada amb aritmètica exacta). A `prioritat`, sobre 800 expressions (unes 2.400 animacions): cada animació passa la revisió, només baixen els símbols de l'operació, cada línia de la taula val el resultat i, sense les claus, la taula és la de sempre |
 | `tests/fraccions.test.js` | Fraccions, la resolució pas a pas: 6.000 operacions resoltes per camins triats a l'atzar (denominadors iguals o diferents i qualsevol múltiple comú, producte, divisió, simplificació d'un cop o en dos, resultat enter, el resultat irreductible de cop). Unes 14.800 animacions: guions correctes, cada línia val el resultat, poques peces per pas i, sense les claus, l'HTML de sempre |
-| `tests/navegador/prova-pissarra.js` | La pissarra en un navegador de debò (Chromium amb Playwright): `pissarra-demo.html` (cada pas acaba amb els seus símbols, sense restes de l'animació, a mida de portàtil i de mòbil; el reproductor; la càrrega de KaTeX), el botó «Activar la resolució pas a pas» d'`index.html` `prioritat.html?pissarra=1` (10 expressions resoltes clicant: cada pas s'anima i afegeix una línia; també amb l'esvaïment; sense el paràmetre, cap pissarra), `equacions.html?pissarra=1` i `fraccions.html?pissarra=1` (operacions senceres resoltes a mida de portàtil i de mòbil, també una simplificació a mitges). Si no hi ha Playwright (p. ex. a GitHub), s'omet |
+| `tests/navegador/prova-pissarra.js` | La pissarra en un navegador de debò (Chromium amb Playwright): `pissarra-demo.html` (cada pas acaba amb els seus símbols, sense restes de l'animació, a mida de portàtil i de mòbil; el reproductor; la càrrega de KaTeX), el botó «Activar la resolució pas a pas» d'`index.html` `prioritat.html?pissarra=1` (10 expressions resoltes clicant: cada pas s'anima i afegeix una línia; també amb l'esvaïment; sense el paràmetre, cap pissarra), `equacions.html?pissarra=1` i `fraccions.html?pissarra=1` (operacions senceres resoltes a mida de portàtil i de mòbil, també una simplificació a mitges; cada pregunta s'acaba prement «Següent»). Si no hi ha Playwright (p. ex. a GitHub), s'omet |
 | `tests/intents.test.js` | L'analitzador davant d'un alumne que repeteix la prova: intents numerats per l'hora del codi, el mateix codi enviat dos cops, quin intent compta (últim, primer, millor, tots) i proves de CB de mida diferent separades |
 | `tests/codi-verificacio.test.js` | La lletra de control dels codis: vectors fixos (els mateixos que ha de complir `step-quiz/cb`; els del v3 són a `tests/vectors-cb-v3.js`), que canviar una sola xifra dels resultats es detecti sempre i que els codis antics continuïn sent vàlids |
 | `tests/llegeix-codi.test.js` | El lector de codis de l'analitzador: un codi de cada format i de cada època (v1-cb, v2 amb la lletra antiga i la nova, v2 i v3 de CB) i el que se n'ha de treure, els codis dolents, l'anada i tornada del v2 per a tots els codis d'exercici i la del v3 amb els vectors de `cb` (i, si `cb` és clonat a la carpeta ../cb, 300 codis del seu codi.js) |

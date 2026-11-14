@@ -196,7 +196,7 @@
             25%      { transform: translateX(-6px); }
             75%      { transform: translateX(6px); }
         }
-        #btn-check, #btn-continue, #btn-next {
+        #btn-check, #btn-continue {
             background: var(--primary);
             color: #fff;
             border: none;
@@ -209,9 +209,9 @@
             min-height: 48px;
         }
         @media (hover: hover) {
-            #btn-check:hover, #btn-continue:hover, #btn-next:hover { background: var(--primary-hover); }
+            #btn-check:hover, #btn-continue:hover { background: var(--primary-hover); }
         }
-        #btn-check:active, #btn-continue:active, #btn-next:active { transform: scale(0.96); }
+        #btn-check:active, #btn-continue:active { transform: scale(0.96); }
 
         /* ---- FEEDBACK ---- */
         #feedback-area {
@@ -285,6 +285,7 @@
         .level-btn.active:hover { background: var(--primary); }
     </style>
     <link rel="stylesheet" href="css/chromebook.css">
+    <link rel="stylesheet" href="css/seguent.css">
 </head>
 <body>
 
@@ -333,7 +334,6 @@
                    aria-label="Resposta numèrica" maxlength="3">
             <button id="btn-check" type="button" onclick="checkCurrentCell()">Respon</button>
             <button id="btn-continue" type="button" style="display:none;" onclick="continueObservation()">Continua →</button>
-            <button id="btn-next" type="button" style="display:none;" onclick="continueToNext()">Equació següent →</button>
         </div>
 
         <div id="feedback-area" aria-live="polite"></div>

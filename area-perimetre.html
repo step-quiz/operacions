@@ -363,35 +363,6 @@
         }
 
         /* ── MINI OVERLAY ───────────────────────────────────────── */
-        #mini-victory-overlay {
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 28px 20px;
-            background-color: var(--bg-color);
-            border-top: 1px solid var(--border-color);
-            animation: fadeIn 0.3s;
-        }
-        .vic-message-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            margin-bottom: 10px;
-        }
-        .star-icon      { font-size: 3em; animation: pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
-        .mini-vic-text  { color: #047857; font-size: 2em; font-weight: bold; }
-        .mini-vic-points {
-            color: #059669;
-            font-size: 1.3em;
-            font-weight: bold;
-            font-family: monospace;
-            background: rgba(255,255,255,0.95);
-            padding: 5px 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
 
         /* ── PANTALLES FINALS ───────────────────────────────────── */
         #session-end-screen, #final-screen {
@@ -518,8 +489,7 @@
             .measure-input { width: 88px; font-size: 1.8em; }
             #session-end-screen h2, #final-screen h2 { font-size: 1.5em; }
             .trophy-icon   { font-size: 4em; }
-            .star-icon     { font-size: 2.5em; }
-            .mini-vic-text { font-size: 1.6em; }
+
         }
         @media (orientation:landscape) and (max-height:500px) {
             .kb-grid     { grid-template-columns: 48px 48px 48px 64px; gap: 5px; }
@@ -540,6 +510,7 @@
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
+    <link rel="stylesheet" href="css/seguent.css">
 </head>
 <body>
 
@@ -616,7 +587,6 @@
         </div>
     </div>
 </div>
-
 
 <script type="module" src="js/area-perimetre/area-perimetre.js"></script>
 </body>

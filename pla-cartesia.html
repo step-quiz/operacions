@@ -42,8 +42,6 @@
         @media (hover:hover) { .btn-green:hover { background-color: var(--primary-hover); } }
 
         /* ---- Mini overlay (override: posició absoluta per sobre el canvas) ---- */
-        #mini-victory-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 100; justify-content: flex-end; padding-bottom: 40px; pointer-events: none; border-radius: 8px; border-top: none; }
-        .mini-vic-points { color: var(--primary); }
 
         /* ---- SECCIONS ---- */
         #section-screen { display: none; padding: 30px 20px; text-align: center; }
@@ -127,6 +125,7 @@
         @media (max-width: 350px) { .section-icon { font-size: 1.3em; } .section-title { font-size: 0.95em; } .coord-input { width: 52px; font-size: 1.1em; padding: 8px; } .coord-label { font-size: 1.1em; } .q-btn { font-size: 0.9em; padding: 8px 2px; } .feedback-bar { font-size: 1em; padding: 8px 12px; } }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
+    <link rel="stylesheet" href="css/seguent.css">
 </head>
 <body>
 
@@ -219,13 +218,6 @@
             <canvas id="cartesian-canvas"></canvas>
         </div>
 
-        <div id="mini-victory-overlay" aria-hidden="true">
-            <div class="vic-message-row">
-                <div class="mini-vic-text" id="mini-vic-text">Molt bé!</div>
-                <div class="star-icon" id="mini-vic-icon">⭐</div>
-            </div>
-            <div class="mini-vic-points" id="mini-vic-points">+10 punts</div>
-        </div>
     </div>
 
     <div id="session-end-screen">

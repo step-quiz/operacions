@@ -197,13 +197,6 @@
             50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
         }
         /* [ROUND 4 — overlay posicionat sota l'expression-box; no tapa l'expressió] */
-        #mini-victory-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: auto;
-            background: transparent; z-index: 100;
-            justify-content: center; align-items: flex-end;
-            padding: 0 20px 24px; pointer-events: none;
-            border-radius: 0 0 8px 8px; border-top: none;
-        }
 
         /* ── RESPONSIU ───────────────────────────────────────── */
         @media (max-width: 480px) {
@@ -238,6 +231,7 @@
         }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
+    <link rel="stylesheet" href="css/seguent.css">
 </head>
 <body>
 
@@ -247,7 +241,6 @@
     </a>
     <h1>Potències</h1>
 </div>
-
 
 <div class="panel" id="main-panel">
 
@@ -306,7 +299,6 @@
             </div>
         </div>
     </div>
-    <!-- #mini-victory-overlay, #session-end-screen, #final-screen → injectats per injectSharedHTML() -->
 </div>
 
 <script type="module" src="js/potencies/potencies.js"></script>

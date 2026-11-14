@@ -11,6 +11,8 @@
 import { FixedSessions } from '../fixed-sessions.js';
 import { FunctionEngine } from './function-engine.js';
 import { QuestionBankA } from './question-bank-asimptotes.js';
+import { PUNTS_MAX, puntsAmbErrors, validaPunts } from '../punts.js'; // la regla única dels punts
+import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunta amb «Següent»
 // [ROUND 1 — bloc TEXTS centralitzat amb tots els strings de la UI]
 const TEXTS = {
     title: 'Asímptotes i Límits Laterals',
@@ -34,7 +36,7 @@ const TEXTS = {
     solutionWas: 'La resposta correcta era:',
     summaryScoreLabel: 'Puntuació',
     summaryFirstTry: 'al primer intent',
-    summarySecondTry: 'al segon intent',
+    summarySecondTry: "després d'algun error",
     summaryFailed: 'sense resoldre',
     summaryErrTitle: 'Errors per tipus de pregunta',
     summaryErrOnce: '1 vegada',
@@ -53,7 +55,6 @@ const _params = new URLSearchParams(window.location.search);
 const GAME_LEVEL = Math.min(3, Math.max(1, parseInt(_params.get('nivell') || '2', 10)));
 const TOTAL_Q = Math.min(12, Math.max(3, parseInt(_params.get('preguntes') || '6', 10)));
 const MAX_INTENTS = 3; // nombre màxim d'intents per pregunta
-const PTS_FIRST = 10; // punts per encert al primer intent
 
 let currentQ = 0;
 let score = 0;
@@ -388,16 +389,19 @@ function checkAnswer(opt, clickedBtn) {
 
     if (opt.isCorrect) {
         isAnswered = true;
-        let pts = attemptsLeft === MAX_INTENTS ? PTS_FIRST : attemptsLeft === 2 ? 5 : 0;
-        if (graphRevealed && pts > 0) pts = Math.floor(pts / 2);
+        // 10 punts, 2 menys per cada error (js/punts.js). Excepció declarada: si l'alumne
+        // ha obert la gràfica com a ajuda, la meitat.
+        const errors = MAX_INTENTS - attemptsLeft;
+        let pts = puntsAmbErrors(errors);
+        if (graphRevealed) pts = Math.floor(pts / 2);
+        pts = validaPunts(pts).punts;
         score += pts;
 
         clickedBtn.classList.add('correct');
         _disableAll();
-        answerHistory.push({ type: challengeData.type, correct: true, pointsEarned: pts });
+        answerHistory.push({ type: challengeData.type, correct: true, errors, pointsEarned: pts });
         _renderFeedback(opt, false);
-        // [ROUND 5 — scoreDisplay eliminat]
-        setTimeout(() => _next(), 1600);
+        _acabaPregunta(pts, true);
     } else {
         attemptsLeft--;
         clickedBtn.classList.add('wrong');
@@ -410,7 +414,7 @@ function checkAnswer(opt, clickedBtn) {
         if (isLast) {
             isAnswered = true;
             _disableAll();
-            setTimeout(() => _next(), 2200);
+            _acabaPregunta(0, false); // la solució es queda a la vista fins a «Següent»
         }
     }
 }
@@ -448,6 +452,18 @@ function _disableAll() {
     });
 }
 
+// Franja «Molt bé! +N punts» / «Intents esgotats» i botó «Següent», com a totes les
+// activitats (js/seguent.js), a la columna de la pregunta
+function _acabaPregunta(punts, encert) {
+    mostraSeguent({
+        punts,
+        encert,
+        ultima: currentQ + 1 >= TOTAL_Q,
+        lloc: document.querySelector('.game-left') || undefined,
+        onSeguent: _next,
+    });
+}
+
 function _next() {
     currentQ++;
     if (currentQ >= TOTAL_Q) _showSummary();
@@ -460,16 +476,14 @@ function _next() {
 function _showSummary() {
     els.gameScreen.style.display = 'none';
 
-    const maxScore = TOTAL_Q * PTS_FIRST;
-    const firstTry = answerHistory.filter(h => h.correct && h.pointsEarned === PTS_FIRST).length;
-    const retried = answerHistory.filter(h => h.correct && h.pointsEarned === 5).length;
-    const failed = answerHistory.filter(h => !h.correct).length;
+    const maxScore = TOTAL_Q * PUNTS_MAX;
+    const firstTry = answerHistory.filter(h => h.correct && h.errors === 0).length;
+    const retried = answerHistory.filter(h => h.correct && h.errors > 0).length;
+    const failed = TOTAL_Q - firstTry - retried; // preguntes sense resoldre (no intents fallats)
     const pct = Math.round((score / maxScore) * 100);
 
-    const scoreOver10Raw = (score / maxScore) * 10;
-    const scoreOver10 = Number.isInteger(scoreOver10Raw)
-        ? String(scoreOver10Raw)
-        : scoreOver10Raw.toFixed(2).replace('.', ',');
+    // La nota, com a totes les activitats: un decimal i «/ 10»
+    const scoreOver10 = ((score / maxScore) * 10).toFixed(1).replace('.', ',') + ' / 10';
 
     const trophy = pct >= 90 ? '🌟' : pct >= 70 ? '😊' : pct >= 50 ? '🙂' : '💪';
 

@@ -18,6 +18,7 @@ const TESTS = [
     ['Tests dels mòduls', 'tests/modules.test.js'],
     ['Tests dels mòduls ES', 'tests/esm.test.js'],
     ['Tests de les sessions fixes', 'tests/fixed-sessions.test.js'],
+    ['Punts de cada pregunta', 'tests/punts.test.js'],
     ['Lletra de control dels codis', 'tests/codi-verificacio.test.js'],
     ['Lector de codis (analitzador)', 'tests/llegeix-codi.test.js'],
     ["Intents repetits a l'analitzador", 'tests/intents.test.js'],

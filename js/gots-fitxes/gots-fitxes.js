@@ -11,9 +11,7 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { parseStrictInt, randInt } from '../utils.js';
 import {
     state,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -21,14 +19,15 @@ import {
     recordAnswerToHistory,
     recordResult,
     showCustomKeyboard,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
-Object.assign(window, { checkCurrentCell, continueObservation, continueToNext, buildLevel });
+Object.assign(window, { checkCurrentCell, continueObservation, buildLevel });
 
 // ============================================================
 // CODI ESPECÍFIC DE "GOTS I FITXES"
@@ -52,7 +51,6 @@ const els = {
     answerInput: document.getElementById('answer-input'),
     btnCheck: document.getElementById('btn-check'),
     btnContinue: document.getElementById('btn-continue'),
-    btnNext: document.getElementById('btn-next'),
     feedback: document.getElementById('feedback-area'),
 };
 
@@ -62,9 +60,6 @@ let currentLevel = 1; // 1..4
 let phases = []; // descripció dels passos de la pregunta actual
 let currentPhase = 0; // índex dins de `phases`
 let isPenalizing = false;
-let awaitingNext = false; // esperant que l'usuari cliqui "Equació següent"
-let lastQuestionSuccess = false;
-let lastQuestionPoints = 0;
 
 // ---- Llegim el nivell de la URL (per defecte 2; admetem 1..4) ----
 (function readLevel() {
@@ -680,7 +675,6 @@ function showCurrentPhase() {
     els.feedback.innerHTML = '';
     els.feedback.className = '';
     els.answerInput.value = '';
-    els.btnNext.style.display = 'none';
 
     if (phase.kind === 'observe') {
         els.answerInput.style.display = 'none';
@@ -765,15 +759,6 @@ function advancePhase() {
     }, 400);
 }
 
-// L'usuari ha decidit passar a la pregunta següent (o, si és la darrera de la
-// darrera sessió, a la pantalla final amb el codi).
-function continueToNext() {
-    if (!awaitingNext) return;
-    awaitingNext = false;
-    els.btnNext.style.display = 'none';
-    proceedAfterQuestion();
-}
-
 function penalize() {
     if (isPenalizing) return;
     isPenalizing = true;
@@ -798,54 +783,12 @@ function penalize() {
 function finishQuestion(success) {
     const attemptCode = success ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4;
     recordResult(attemptCode);
-
-    hideCustomKeyboard();
-    // La nota de game-core.js compta 10 punts màxims per pregunta
-    // (MAX_PUNTS_PREGUNTA): cal sumar els mateixos punts que mostra l'overlay.
-    lastQuestionPoints = success ? Math.max(0, 10 - (MAX_INTENTS - state.attemptsLeft)) : 0;
-    lastQuestionSuccess = success;
-    state.sessionScore += lastQuestionPoints;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
-    // Cas especial: si era la darrera pregunta de la darrera sessió, anem
-    // directament a la pantalla final (no té sentit demanar "Equació següent").
-    const isLastOfAll = state.currentOperation + 1 >= TOTAL_OPERATIONS && state.currentSession + 1 >= TOTAL_SESSIONS;
-    if (isLastOfAll) {
-        proceedAfterQuestion();
-        return;
-    }
-
-    // Mostrem el botó "Equació següent →" i amaguem la resta de controls.
-    awaitingNext = true;
+    // Amaguem els controls; el feedback (✓ o la solució) es queda a la vista
     els.answerInput.style.display = 'none';
     els.btnCheck.style.display = 'none';
     els.btnContinue.style.display = 'none';
-    els.btnNext.style.display = 'inline-block';
-    // El feedback ja conté el ✓ o el missatge d'error final; el deixem.
-}
-
-// Es crida quan l'usuari clica "Equació següent" — o automàticament quan és
-// la pregunta finalíssima de tot l'exercici.
-function proceedAfterQuestion() {
-    const success = lastQuestionSuccess;
-    const points = lastQuestionPoints;
-    const waitTime =
-        typeof showMiniOverlay === 'function'
-            ? showMiniOverlay(success ? points : 0, {
-                  successColor: 'var(--primary-dark)',
-                  pointsColor: 'var(--success)',
-              })
-            : 1500;
-
-    setTimeout(() => {
-        if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    // Punts, franja i botó «Següent» (game-core.js), també a l'última pregunta
+    acabaPregunta(success ? puntsDeLaPregunta() : 0, { encert: success });
 }
 
 // ============================================================
@@ -881,10 +824,6 @@ document.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
     if (els.gameScreen.style.display === 'none') return;
     e.preventDefault();
-    if (awaitingNext) {
-        continueToNext();
-        return;
-    }
     const phase = phases[currentPhase];
     if (!phase || state.isTransitioning) return;
     if (phase.kind === 'observe') {

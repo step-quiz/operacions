@@ -9,7 +9,7 @@
  *   AGRUPAT:  SELECT → MARCA → FI → HI_PCT → MEAN → MEDIAN_INT → MODE_INT
  * - Cada fase de taula valida totes les cel·les alhora (verd/vermell).
  * - Cada fase d'estadístic valida un sol input.
- * - Puntuació: 10 − totalErrors (mínim 0).
+ * - Puntuació: 10 − totalErrors (mínim 0): excepció declarada a js/punts.js (es compta cada casella errònia, no cada intent).
  * DEPENDÈNCIES: utils, config, game-core, math-engine, strings, question-bank.
  * ============================================================================
  */
@@ -17,14 +17,13 @@
 import { TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import {
     state,
-    endSession,
-    hideMiniOverlay,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsAmbErrors,
 } from '../game-core.js';
 import { MathEngine } from './math-engine.js';
 import { QuestionBank } from './question-bank.js';
@@ -618,21 +617,12 @@ function checkStat(statId) {
 // ── FI DE L'EXERCICI ─────────────────────────────────────────────────────
 
 function finishExercise() {
-    const levelPoints = Math.max(0, 10 - totalErrors);
-    state.sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
     recordResult(totalErrors === 0 ? 1 : totalErrors <= 3 ? 2 : totalErrors <= 6 ? 3 : 4);
-
-    const waitTime = showMiniOverlay(levelPoints);
-    setTimeout(() => {
-        hideMiniOverlay();
-        state.currentOperation++;
-        if (state.currentOperation >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            window.buildLevel();
-        }
-    }, waitTime);
+    // Excepció declarada a la regla dels punts (js/punts.js): aquí es compta cada casella
+    // errònia de les taules, no cada intent, i per això cada error en treu 1, no 2.
+    const levelPoints = puntsAmbErrors(totalErrors, 1);
+    // Punts, franja i botó «Següent» (game-core.js). L'exercici sempre s'acaba resolt.
+    acabaPregunta(levelPoints, { encert: true });
 }
 
 // ── HELPERS UI ───────────────────────────────────────────────────────────

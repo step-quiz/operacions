@@ -13,13 +13,11 @@
  * ============================================================================
  */
 
-import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS, urlParams } from '../config.js';
+import { TOTAL_OPERATIONS, TOTAL_SESSIONS, urlParams } from '../config.js';
 import { pick, randIntNonZero } from '../utils.js';
 import {
     state,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -27,10 +25,10 @@ import {
     recordResult,
     registerScreens,
     showCustomKeyboard,
-    showMiniOverlay,
     showScreen,
     startGame,
     validateConfig,
+    acabaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -1611,7 +1609,6 @@ function checkStep() {
         var hasSoftWarning = els.stepFeedback && els.stepFeedback.innerText !== '';
         if (!hasSoftWarning) {
             stepPoints = Math.max(0, stepPoints - 2);
-            els.scoreDisplay.innerText = 'Punts: ' + stepPoints;
 
             if (stepPoints === 0) {
                 // Intents esgotats: bloquejem interacció, mostrem solució i passem endavant
@@ -1670,7 +1667,10 @@ function penalize() {
 
 function finalizeProblem(forcedPoints) {
     if (forcedPoints === undefined) forcedPoints = null;
-    recordResult(forcedPoints === 0 ? 4 : Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3));
+    // Aquí no es gasten intents: cada error treu 2 punts del problema (stepPoints), i
+    // d'aquí surten els errors per al codi (1 = sense errors, 2 = un error, 3 = més)
+    var errors = (10 - stepPoints) / 2;
+    recordResult(forcedPoints === 0 ? 4 : Math.min(errors + 1, 3));
     state.isTransitioning = true;
     hideCustomKeyboard();
     els.currentStep.classList.remove('active');
@@ -1679,18 +1679,7 @@ function finalizeProblem(forcedPoints) {
     var pts = forcedPoints !== null ? forcedPoints : stepPoints;
     if (pts === 0) showCorrectAnswer(currentProblem);
 
-    state.sessionScore += pts;
-
-    var waitTime = showMiniOverlay(pts);
-    setTimeout(function () {
-        hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    acabaPregunta(pts, { encert: forcedPoints !== 0 });
 }
 
 function selectRepte(n) {
@@ -1701,7 +1690,7 @@ function selectRepte(n) {
 function updateUI() {
     els.sessionDisplay.innerText = 'Sessió ' + (state.currentSession + 1) + ' de ' + TOTAL_SESSIONS;
     els.lvlDisplay.innerText = 'Exercici ' + (state.currentOperation + 1) + ' de ' + TOTAL_OPERATIONS;
-    els.scoreDisplay.innerText = 'Punts: ' + stepPoints;
+    els.scoreDisplay.innerText = 'Punts: ' + state.sessionScore; // el total de la sessió
 }
 
 function buildLevel() {

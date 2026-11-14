@@ -145,15 +145,19 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     font-weight: 600;
 }
 
-/* ---- LAYOUT: opcions + overlay en fila ---- */
+/* ---- LAYOUT: una sola columna; la franja «Següent» va a sota del feedback ---- */
 #game-screen {
     display: grid;
-    grid-template-columns: 1fr 160px;
+    grid-template-columns: 1fr;
     grid-template-areas:
-        'header   header'
-        'prompt   prompt'
-        'options  overlay'
-        'feedback overlay';
+        'header'
+        'prompt'
+        'options'
+        'feedback'
+        'franja';
+}
+#game-screen > .franja-final {
+    grid-area: franja;
 }
 .header-info {
     grid-area: header;
@@ -166,18 +170,6 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 }
 #missatge-feedback {
     grid-area: feedback;
-}
-#mini-victory-overlay {
-    grid-area: overlay;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-top: none;
-    border-left: 1px solid var(--border-light);
-    background-color: transparent;
-    padding: 10px;
-    animation: fadeInDown 0.3s ease;
 }
 
 /* ---- FEEDBACK (idèntic a derivades.css) ---- */
@@ -413,14 +405,6 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 
 /* ---- RESPONSIU ---- */
 @media (max-width: 600px) {
-    #game-screen {
-        grid-template-columns: 1fr;
-        grid-template-areas: 'header' 'prompt' 'options' 'overlay' 'feedback';
-    }
-    #mini-victory-overlay {
-        border-left: none;
-        border-top: 1px solid var(--border-light);
-    }
     .options-grid {
         grid-template-columns: 1fr;
         gap: 10px;

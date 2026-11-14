@@ -21,15 +21,14 @@ import { shuffle } from '../utils.js';
 import {
     state,
     bgColors,
-    endSession,
     escapeHtml,
-    hideMiniOverlay,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 import { QuestionBank } from './question-bank.js';
 
@@ -152,9 +151,7 @@ function checkAnswer(btn, selectedOption) {
             recordAnswerToHistory(stepQuestion, selectedOption, true);
         }
 
-        const fails = MAX_INTENTS - state.attemptsLeft;
-        const levelPoints = Math.max(0, 10 - fails);
-
+        const levelPoints = puntsDeLaPregunta();
         setTimeout(() => finishQuestion(levelPoints), 700);
     } else {
         // ❌ Incorrecte
@@ -221,25 +218,7 @@ function disableAllOptions() {
 // ── FINALITZAR PREGUNTA I AVANÇAR ────────────────────────────────────────────
 function finishQuestion(levelPoints) {
     recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
-
-    state.sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
-    const waitTime =
-        typeof showMiniOverlay === 'function'
-            ? showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)', pointsColor: 'var(--success)' })
-            : 1500;
-
-    setTimeout(() => {
-        if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
-
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            if (typeof endSession === 'function') endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    acabaPregunta(levelPoints);
 }
 
 // ── INICIALITZACIÓ ──────────────────────────────────────────────────────────

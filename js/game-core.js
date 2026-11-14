@@ -29,6 +29,14 @@
  *   resultats (des del 18/10/2026; la fórmula d'abans només cobria els tres
  *   primers). Detalls al capdamunt d'aquell fitxer.
  *
+ * ── FINAL DE CADA PREGUNTA ──────────────────────────────────────────────────
+ *   acabaPregunta(punts) suma els punts (sumaPunts), mostra la franja «Molt bé!
+ *   +N punts» / «Intents esgotats» amb el botó «Següent» (js/seguent.js) i, quan
+ *   l'alumne el prem, passa a la pregunta següent o acaba la sessió. Mai no es
+ *   passa de pregunta sol. Els punts surten de puntsDeLaPregunta() (10 menys 2
+ *   per error, js/punts.js) i sumaPunts() és l'única manera de sumar-los a
+ *   state.sessionScore (tests/check-repo.js ho comprova).
+ *
  * ── COM REGISTRAR RESULTATS PER PREGUNTA ────────────────────────────────────
  *   Cridar recordResult(codi) en finalitzar cada pregunta:
  *
@@ -61,6 +69,8 @@ import { EXERCISE_CODES } from './exercise-codes.js'; // taula única compartida
 import { construeixCodiV2 } from './codi-verificacio.js'; // codi v2 i lletra de control, compartits amb l'analitzador
 import { FixedSessions } from './fixed-sessions.js';
 import { ESVAIMENT } from './esvaiment.js'; // mode «Esvaïment» (?esvaiment=1): no dona codi
+import { PUNTS_MAX, puntsAmbErrors, validaPunts } from './punts.js'; // la regla única dels punts
+import { mostraSeguent } from './seguent.js'; // la franja del final de pregunta amb el botó «Següent»
 
 // ── NOMBRE MÀXIM DE RESULTATS AL CODI ────────────────────────────────────────
 // El generador d'enllaços permet fins a 5 sessions × 10 preguntes = 50.
@@ -183,11 +193,68 @@ export function startNextSession() {
     startSession();
 }
 
+// ── PUNTS DE CADA PREGUNTA ───────────────────────────────────────────────────
+// Cada pregunta val com a màxim MAX_PUNTS_PREGUNTA (10) punts i cada error en treu 2
+// (js/punts.js). La puntuació màxima d'una sessió és TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA.
+export const MAX_PUNTS_PREGUNTA = PUNTS_MAX;
+export { puntsAmbErrors };
+
+/** Punts de la pregunta actual segons els intents gastats: 10, 8, 6… fins a 0. */
+export function puntsDeLaPregunta() {
+    return puntsAmbErrors(MAX_INTENTS - state.attemptsLeft);
+}
+
+/**
+ * L'única manera de sumar punts a la sessió. Rebutja els valors que no són un enter
+ * de 0 a 10 (els porta dins del marge i ho diu a la consola) i posa al dia el marcador.
+ * @returns {number} els punts sumats
+ */
+export function sumaPunts(punts) {
+    const v = validaPunts(punts);
+    if (!v.ok) console.error(`sumaPunts: ${punts} no són uns punts vàlids (0-${PUNTS_MAX}); se'n compten ${v.punts}`);
+    state.sessionScore += v.punts;
+    const marcador = document.getElementById('score-display');
+    if (marcador) marcador.textContent = `Punts: ${state.sessionScore}`;
+    return v.punts;
+}
+
+/**
+ * Final de la pregunta actual: suma els punts, tanca el teclat i mostra la franja amb
+ * el botó «Següent» (o «Veure resultats» a l'última pregunta de la sessió). Quan
+ * l'alumne el prem, passa a la pregunta següent o crida `alFinal` (endSession).
+ * @param {number} punts         punts de la pregunta (normalment puntsDeLaPregunta(), o 0)
+ * @param {object} [o]
+ * @param {boolean} [o.encert]   cert si l'ha resolta (per defecte, punts > 0)
+ * @param {Function} [o.alFinal] què fer després de l'última pregunta (per defecte, endSession)
+ * @param {Function} [o.alSeguent] com es munta la pregunta següent (per defecte, window.buildLevel)
+ * @param {Element} [o.lloc]     on va la franja (per defecte, al final de #game-screen)
+ * @param {string} [o.titol]     text principal, si no és el de sempre
+ */
+export function acabaPregunta(punts, { encert, alFinal = endSession, alSeguent, lloc, titol } = {}) {
+    const sumats = sumaPunts(punts);
+    state.isTransitioning = true;
+    hideCustomKeyboard();
+    const ultima = state.currentOperation + 1 >= TOTAL_OPERATIONS;
+    mostraSeguent({
+        punts: sumats,
+        encert: encert ?? sumats > 0,
+        ultima,
+        lloc,
+        titol,
+        onSeguent: () => {
+            if (ultima) {
+                alFinal();
+            } else {
+                state.currentOperation++;
+                state.isTransitioning = false;
+                if (alSeguent) alSeguent();
+                else window.buildLevel();
+            }
+        },
+    });
+}
+
 // ── NOTA FINAL ───────────────────────────────────────────────────────────────
-// Cada pregunta val com a màxim MAX_PUNTS_PREGUNTA punts (totes les activitats
-// usen levelPoints/pts = Math.max(0, 10 - ...), és a dir un màxim de 10).
-// La puntuació màxima d'una sessió és, doncs, TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA.
-export const MAX_PUNTS_PREGUNTA = 10;
 export function calculaNotaSobre10() {
     if (!state.sessionScores.length) return 0;
     const maxSessio = TOTAL_OPERATIONS * MAX_PUNTS_PREGUNTA; // punts màxims d'1 sessió
@@ -247,83 +314,25 @@ export function finalitzar() {
     }
 }
 
-// ── MINI OVERLAY ─────────────────────────────────────────────────────────────
-export function showMiniOverlay(levelPoints, options = {}) {
-    const successColor = options.successColor || '#047857';
-    const pointsColor = options.pointsColor || '#059669';
-    const vicText = document.getElementById('mini-vic-text');
-    const vicIcon = document.getElementById('mini-vic-icon');
-    const vicPoints = document.getElementById('mini-vic-points');
-    const overlay = document.getElementById('mini-victory-overlay');
-    let waitTime;
-    if (levelPoints > 0) {
-        if (vicText) {
-            vicText.innerText = 'Molt bé!';
-            vicText.style.color = successColor;
-        }
-        if (vicIcon) {
-            vicIcon.innerText = '⭐';
-        }
-        if (vicPoints) {
-            vicPoints.innerText = `+${levelPoints} punts`;
-            vicPoints.style.color = pointsColor;
-        }
-        waitTime = 1500;
-    } else {
-        if (vicText) {
-            vicText.innerText = 'Intents esgotats';
-            vicText.style.color = 'var(--danger)';
-        }
-        if (vicIcon) {
-            vicIcon.innerText = '❌';
-        }
-        if (vicPoints) {
-            vicPoints.innerText = '0 punts';
-            vicPoints.style.color = 'var(--danger)';
-        }
-        waitTime = 3000;
-    }
-    if (overlay) {
-        overlay.style.display = 'flex';
-        overlay.setAttribute('aria-hidden', 'false');
-    }
-    return waitTime;
-}
-
-export function hideMiniOverlay() {
-    const overlay = document.getElementById('mini-victory-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden', 'true');
-    }
-}
-
 // ── INJECCIO HTML COMPARTIT ──────────────────────────────────────────────────
 export function injectSharedHTML() {
     const gameScreen = document.getElementById('game-screen');
     const panel = document.querySelector('.panel');
     if (!gameScreen || !panel) return;
 
-    // 1. Mini overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'mini-victory-overlay';
-    overlay.setAttribute('aria-hidden', 'true');
-    overlay.innerHTML = `<div class="vic-message-row"><div class="mini-vic-text" id="mini-vic-text">Molt bé!</div><div class="star-icon" id="mini-vic-icon">⭐</div></div><div class="mini-vic-points" id="mini-vic-points">+10 punts</div>`;
-    gameScreen.appendChild(overlay);
-
-    // 2. Teclat numeric
+    // 1. Teclat numeric
     const kb = document.createElement('div');
     kb.id = 'customKeyboard';
     kb.innerHTML = `<div class="kb-grid"><button class="kb-btn" data-key="7">7</button><button class="kb-btn" data-key="8">8</button><button class="kb-btn" data-key="9">9</button><button class="kb-btn kb-del" data-key="del">⌫</button><button class="kb-btn" data-key="4">4</button><button class="kb-btn" data-key="5">5</button><button class="kb-btn" data-key="6">6</button><button class="kb-btn kb-minus" data-key="-">−</button><button class="kb-btn" data-key="1">1</button><button class="kb-btn" data-key="2">2</button><button class="kb-btn" data-key="3">3</button><button class="kb-btn kb-enter" data-key="enter">→</button><button class="kb-btn kb-zero" data-key="0">0</button></div>`;
     panel.appendChild(kb);
 
-    // 3. Fi de sessio
+    // 2. Fi de sessio
     const sessionEnd = document.createElement('div');
     sessionEnd.id = 'session-end-screen';
     sessionEnd.innerHTML = `<div class="trophy-icon">👍</div><h2 id="session-end-title">Sessió completada</h2><button class="btn-green" id="btn-next-session" onclick="startNextSession()">Començar sessió següent</button>`;
     panel.appendChild(sessionEnd);
 
-    // 4. Pantalla final
+    // 3. Pantalla final
     const finalScreen = document.createElement('div');
     finalScreen.id = 'final-screen';
     finalScreen.style.display = 'none';

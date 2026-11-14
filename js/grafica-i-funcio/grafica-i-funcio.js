@@ -8,6 +8,7 @@
  */
 
 import { FixedSessions } from '../fixed-sessions.js';
+import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunta amb «Següent»
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -642,14 +643,21 @@ function checkStep2(isCorrect, btn) {
         score++;
         document.getElementById('score-display').innerText = `Punts: ${score}`;
         btn.classList.add('correct-flash');
-        setTimeout(() => {
-            currentOperation++;
-            if (currentOperation >= TOTAL_OPERATIONS) {
-                showEndScreen();
-            } else {
-                buildLevel();
-            }
-        }, 1000);
+        // Franja «Molt bé!» i botó «Següent», com a totes les activitats (js/seguent.js).
+        // Aquí els punts compten gràfiques resoltes (no punts sobre 10): la franja no en diu res.
+        mostraSeguent({
+            punts: null,
+            ultima: currentOperation + 1 >= TOTAL_OPERATIONS,
+            lloc: document.querySelector('.interaction-panel') || undefined,
+            onSeguent: () => {
+                currentOperation++;
+                if (currentOperation >= TOTAL_OPERATIONS) {
+                    showEndScreen();
+                } else {
+                    buildLevel();
+                }
+            },
+        });
     } else {
         btn.classList.add('error-shake', 'wrong-choice');
     }

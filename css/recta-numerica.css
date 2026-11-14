@@ -692,15 +692,6 @@ body {
     position: relative;
 }
 
-#mini-victory-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 20;
-    background: rgba(255, 255, 255, 0.96);
-    border-top: none;
-    border-radius: 0 0 var(--radius) var(--radius);
-}
-
 /* session-end-screen i final-screen injectats per game-core:
    assegura scroll intern si el contingut és llarg */
 #session-end-screen,

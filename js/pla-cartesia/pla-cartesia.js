@@ -17,6 +17,8 @@ import {
     kbMarkForOverwrite,
     recordResult,
     showCustomKeyboard,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -62,10 +64,6 @@ const els = {
     btnEixX: document.getElementById('btn-eix-x'),
     btnEixY: document.getElementById('btn-eix-y'),
     btnOrigen: document.getElementById('btn-origen'),
-    miniOverlay: document.getElementById('mini-victory-overlay'),
-    miniVicText: document.getElementById('mini-vic-text'),
-    miniVicIcon: document.getElementById('mini-vic-icon'),
-    miniVicPoints: document.getElementById('mini-vic-points'),
     sessionEndScreen: document.getElementById('session-end-screen'),
     sessionEndTitle: document.getElementById('session-end-title'),
     sessionScoreText: document.getElementById('session-score-text'),
@@ -695,44 +693,19 @@ function finalizeProblem(forcedPoints) {
     els.coordInputArea.classList.remove('active');
     els.quadrantArea.classList.remove('active');
 
-    var pts,
-        waitTime = 1500;
-
-    if (forcedPoints !== null) {
-        pts = forcedPoints;
-        els.miniVicText.innerText = 'Intents esgotats';
-        els.miniVicText.style.color = 'var(--danger)';
-        els.miniVicIcon.innerText = '❌';
-        els.miniVicPoints.innerText = '0 punts';
-        els.miniVicPoints.style.color = 'var(--danger)';
-        waitTime = 3000;
-    } else {
-        var fails = MAX_INTENTS - state.attemptsLeft;
-        pts = Math.max(0, 10 - fails * 2);
-        els.miniVicText.innerText = 'Molt bé!';
-        els.miniVicText.style.color = 'var(--primary-dark)';
-        els.miniVicIcon.innerText = '⭐';
-        els.miniVicPoints.innerText = '+' + pts + ' punts';
-        els.miniVicPoints.style.color = 'var(--success)';
-    }
-
-    state.sessionScore += pts;
-    els.scoreDisplay.innerText = 'Punts: ' + state.sessionScore;
-    els.miniOverlay.style.display = 'flex';
-
-    setTimeout(function () {
-        els.miniOverlay.style.display = 'none';
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSection();
-        } else {
-            state.currentOperation++;
+    var pts = forcedPoints !== null ? forcedPoints : puntsDeLaPregunta();
+    // Punts, franja i botó «Següent» (game-core.js); la secció acaba amb endSection()
+    acabaPregunta(pts, {
+        encert: forcedPoints === null,
+        alFinal: endSection,
+        alSeguent: function () {
             buildExercise();
             els.gamePrompt.classList.add('highlight-new');
             setTimeout(function () {
                 els.gamePrompt.classList.remove('highlight-new');
             }, 1200);
-        }
-    }, waitTime);
+        },
+    });
 }
 
 // ---- FI SECCIÓ I RESULTATS FINALS ----

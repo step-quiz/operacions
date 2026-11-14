@@ -18,6 +18,10 @@
  *   9. Mode «Resolució pas a pas» (?pissarra=1): la llista de pàgines que
  *      l'admeten quadra amb index.html (botó «Activar la resolució pas a pas»)
  *      i amb el codi; no canvia les sessions fixes ni els codis.
+ *  10. Final de pregunta i punts: cap activitat suma punts pel seu compte
+ *      (només sumaPunts() de game-core.js), ningú no fa servir la finestra
+ *      antiga «Molt bé!» ni passa de pregunta sol, i les pàgines amb la franja
+ *      del botó «Següent» enllacen css/seguent.css.
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -641,6 +645,50 @@ suite('9. Mode «Resolució pas a pas» (?pissarra=1)');
     ];
     const toquen = analitzador.filter(f => exists(f) && /pissarra/i.test(read(f)));
     ok("l'analitzador i js/codi-verificacio.js no tenen res de la pissarra", !toquen.length, toquen.join(', '));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+suite('10. Final de pregunta i punts (botó «Següent», js/punts.js)');
+{
+    const codiJs = jsFiles.filter(f => f.startsWith('js' + path.sep) && !f.includes('analitzador-stepquiz'));
+    const sensComentaris = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/[^\n]*/g, '$1');
+
+    // Els punts només entren a la sessió per sumaPunts() (valida que siguin un enter de 0 a 10)
+    const sumenPelSeuCompte = codiJs.filter(
+        f => f !== path.join('js', 'game-core.js') && /sessionScore\s*(\+=|-=|\+\+|--)/.test(sensComentaris(read(f)))
+    );
+    ok(
+        'cap activitat suma punts pel seu compte a state.sessionScore (tot passa per sumaPunts)',
+        !sumenPelSeuCompte.length,
+        sumenPelSeuCompte.join(', ')
+    );
+    ok(
+        'game-core.js: sumaPunts() valida els punts amb validaPunts() de js/punts.js',
+        /export function sumaPunts\([^)]*\)\s*\{[^}]*validaPunts\(/.test(read('js/game-core.js'))
+    );
+
+    // La finestra antiga «Molt bé!» (que tapava l'exercici i avançava sola) no torna
+    const finestraAntiga = [...codiJs, ...htmlFiles, ...listFiles('css', ['.css'])].filter(f =>
+        /showMiniOverlay|hideMiniOverlay|mini-victory-overlay/.test(sensComentaris(read(f)))
+    );
+    ok(
+        'ningú no fa servir la finestra antiga (showMiniOverlay, #mini-victory-overlay)',
+        !finestraAntiga.length,
+        finestraAntiga.join(', ')
+    );
+
+    // Les pàgines que mostren la franja enllacen el seu estil
+    const ambFranja = htmlFiles.filter(h =>
+        graphOf(h)
+            .filter(exists)
+            .some(f => /acabaPregunta\(|mostraSeguent\(/.test(sensComentaris(read(f))))
+    );
+    const senseEstil = ambFranja.filter(h => !/href=["']css\/seguent\.css["']/.test(read(h)));
+    ok(
+        `les ${ambFranja.length} pàgines amb la franja «Següent» enllacen css/seguent.css`,
+        ambFranja.length >= 30 && !senseEstil.length,
+        senseEstil.join(', ')
+    );
 }
 
 finish('COMPROVACIONS DEL REPOSITORI');
