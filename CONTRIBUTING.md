@@ -135,7 +135,7 @@ Els noms d'un mòdul **no són globals**: `MathEngine` de derivades i `MathEngin
 
 `tests/check-repo.js` comprova les tres coses i que cada `import` apunti a un fitxer que exporta aquell nom.
 
-**Teclat numèric de `game-core.js`**: un input amb `data-locked="true"` (resposta ja encertada) no s'activa ni perd el `readonly`. Per saber quin input fa servir el teclat, `getKbActiveInput()`; per deixar d'usar-ne un sense amagar el teclat, `kbReleaseInput(inp)`. No redefiniu les funcions del teclat dins d'un joc: afegiu l'opció a `game-core.js`.
+**Teclat numèric de `game-core.js`**: en un aparell tàctil, qualsevol casella de text o de número de dins del panell (`.panel`) que l'alumne toqui passa a rebre el teclat propi, encara que el joc no l'hagi activada mai amb `showCustomKeyboard()` (un sol listener per a tota la pàgina, a `initCustomKeyboard()`). Una casella que no ha de fer servir el teclat numèric es marca amb `data-kb="off"`. Un input amb `data-locked="true"` (resposta ja encertada) no s'activa ni perd el `readonly`. Per saber quin input fa servir el teclat, `getKbActiveInput()`; per deixar d'usar-ne un sense amagar el teclat, `kbReleaseInput(inp)`. No redefiniu les funcions del teclat dins d'un joc: afegiu l'opció a `game-core.js`.
 
 **Per provar-ho localment** cal un servidor: `node tools/servidor.js` i obrir http://localhost:8000 (al Codespace s'engega sol; vegeu [`COM-TREBALLAR.md`](COM-TREBALLAR.md)). Obrint l'HTML amb doble clic (`file://`) el navegador bloqueja els mòduls.
 

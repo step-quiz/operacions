@@ -23,14 +23,7 @@
 
 import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
 import { shuffle } from '../utils.js';
-import {
-    state,
-    endSession,
-    injectSharedHTML,
-    recordAnswerToHistory,
-    startGame,
-    validateConfig,
-} from '../game-core.js';
+import { state, endSession, injectSharedHTML, recordAnswerToHistory, startGame, validateConfig } from '../game-core.js';
 import { DistractorLib } from './distractor-lib.js';
 import { QuestionBank } from './question-bank.js';
 

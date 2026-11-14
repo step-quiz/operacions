@@ -579,7 +579,8 @@ function checkValue(val, btn) {
     }
     els.stepValue.classList.remove('active');
     state.isTransitioning = true;
-    _finishOp(1);
+    // 10 punts per pregunta, 2 menys per cada error (la nota de game-core.js en compta 10 per pregunta)
+    _finishOp(Math.max(0, 10 - (MAX_INTENTS - state.attemptsLeft) * 2));
 }
 
 /* ── PENALITZACIÓ (resposta incorrecta) ─────────────────────────────────── */
