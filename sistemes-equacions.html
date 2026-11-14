@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-algebra">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,6 +20,7 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
@@ -29,12 +30,7 @@
        ══════════════════════════════════════════════════════ */
 
     :root {
-        --primary:       #0d9488;
-        --primary-light: #ccfbf1;
-        --primary-hover: #0f766e;
-        --primary-dark:  #115e59;
-        --bg-color:      #f0fdfa;
-        --warn-color:    #b45309;
+        --warn-color:    var(--warning-dark);
     }
 
     /* ── Overrides de shared.css ───────────────────────── */
@@ -140,7 +136,7 @@
     }
     /* Destacar l'equació escollida (marcador groc) */
     .eq-highlight {
-        background: #fef9c3;
+        background: var(--warning-light);
         border-radius: 4px;
         padding: 2px 8px;
         margin: -2px -8px;
@@ -226,9 +222,9 @@
         white-space: nowrap;
         flex-shrink: 0;
     }
-    .badge-sub { background: #dbeafe; color: #1d4ed8; }
+    .badge-sub { background: var(--primary-light); color: var(--primary); }
     .badge-red { background: var(--success-light); color: var(--success); }
-    .badge-igu { background: #fef3c7; color: #92400e; }
+    .badge-igu { background: var(--warning-light); color: var(--warning-dark); }
     .ws-body {
         padding: 18px 18px 20px;
     }
@@ -251,8 +247,8 @@
     .math-input::-webkit-inner-spin-button,
     .math-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     .math-input:focus {
-        background: #99f6e4;
-        box-shadow: 0 0 0 3px rgba(13,148,136,.18);
+        background: color-mix(in srgb, var(--primary) 35%, white);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
     }
     .math-input.locked-green {
         color: var(--success);
@@ -314,7 +310,7 @@
     .eq-pill.selected {
         border-color: var(--primary);
         background: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(13,148,136,.12);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
     }
     .eq-pill.error-flash {
         border-color: var(--danger);
@@ -416,8 +412,8 @@
         display: block;
         margin: 16px auto 0;
         padding: 11px 30px;
-        background: #e2e8f0;
-        color: #475569;
+        background: var(--border-light);
+        color: var(--text-soft);
         border: none;
         border-radius: 8px;
         font-size: .95em;
@@ -428,7 +424,7 @@
         transition: all .2s;
     }
     .btn-ok:active { transform: scale(.96); }
-    @media (hover:hover) { .btn-ok:hover { background: #1e293b; color: white; } }
+    @media (hover:hover) { .btn-ok:hover { background: var(--text-main); color: white; } }
     .btn-ok.error-shake { background: var(--danger); color: white; animation: shake .25s; }
 
     /* ── Pantalla de selecció ──────────────────────────── */
@@ -476,7 +472,7 @@
             border-color: var(--primary);
             background: var(--primary-light);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(13,148,136,.1);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 10%, transparent);
         }
     }
     .method-icon {
@@ -489,9 +485,9 @@
         font-weight: bold;
         flex-shrink: 0;
     }
-    .icon-sub { background: #dbeafe; color: #1d4ed8; }
+    .icon-sub { background: var(--primary-light); color: var(--primary); }
     .icon-red { background: var(--success-light); color: var(--success); }
-    .icon-igu { background: #fef3c7; color: #92400e; }
+    .icon-igu { background: var(--warning-light); color: var(--warning-dark); }
     .method-name { font-size: 1.05em; font-weight: bold; color: var(--text-main); }
     .method-desc { font-size: .88em; color: var(--text-muted); margin-top: 2px; }
 
@@ -581,7 +577,7 @@
        Casella activa ben visible: fons gris + vora negra + ombra */
     .kb-active-input {
         background-color: #d1d5db !important;
-        border-color: #1e293b !important;
+        border-color: var(--text-main) !important;
         box-shadow: 0 0 0 3px rgba(30,41,59,.20) !important;
         color: var(--text-main) !important;
     }

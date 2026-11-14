@@ -6,9 +6,11 @@ ROL: Colors comuns AMB SIGNIFICAT (text, vores, encert, error, avís).
 ARQUITECTURA:
 - Font única d'aquests colors per a totes les pàgines de l'arrel. Cap altre
   fitxer els ha de redefinir (tests/check-repo.js ho comprova).
-- Els colors de TEMA de cada activitat (--primary, --primary-light,
-  --primary-dark, --primary-hover, --bg-color, --accent…) NO són aquí: cada
-  activitat té el seu i es defineixen al seu propi CSS.
+- Els colors de TEMA (--primary, --primary-light, --primary-dark,
+  --primary-hover, --bg-color, --accent…) NO són aquí: són a css/temes.css,
+  un per bloc de continguts, i cada pàgina tria el seu amb una classe.
+- Els tons d'estat (verd, vermell, ambre) NOMÉS surten d'aquí: cap altre
+  fitxer no els escriu a mà (tests/check-repo.js ho comprova).
 - Els valors d'estat compleixen el contrast WCAG AA (≥ 4,5:1) sobre blanc,
   tant com a color de text com amb text blanc a sobre.
 DEPENDÈNCIES: Cap. S'ha de carregar ABANS de qualsevol altre CSS.
@@ -17,19 +19,29 @@ DEPENDÈNCIES: Cap. S'ha de carregar ABANS de qualsevol altre CSS.
 :root {
     /* Text */
     --text-main: #1e293b;
+    --text-soft: #475569; /* text secundari fosc (7,6:1) */
     --text-muted: #64748b; /* 4,76:1 sobre blanc */
 
     /* Fons i vores */
     --panel-bg: #ffffff;
+    --bg-soft: #f8fafc; /* fons gris molt clar (caixes, taules) */
+    --bg-soft-alt: #f1f5f9;
     --border-light: #e2e8f0;
     --border-color: #e2e8f0;
     --border-heavy: #cbd5e1;
     --border-strong: #94a3b8; /* vores de controls que s'han de distingir bé (p. ex. cercles d'opció) */
 
-    /* Estats */
+    /* Estats: verd = encert, vermell = error, ambre = avís o pista. Res més no fa servir aquests tons. */
     --success: #047857; /* 5,48:1 — el mateix verd del «Molt bé!» */
+    --success-dark: #065f46; /* text sobre --success-light (7,6:1) */
     --success-light: #d1fae5;
+    --success-border: #a7f3d0;
     --danger: #dc2626; /* 4,83:1 */
+    --danger-dark: #991b1b; /* text sobre --danger-light (7,2:1) */
     --danger-light: #fee2e2;
+    --danger-border: #fecaca;
     --warning: #d97706;
+    --warning-dark: #92400e; /* text sobre --warning-light (6,4:1) */
+    --warning-light: #fef3c7;
+    --warning-border: #fde68a;
 }

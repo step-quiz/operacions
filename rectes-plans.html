@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-geometria">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,23 +10,21 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <style>
         :root {
-            --primary: #8b5cf6;
-            --primary-dark: #7c3aed;
-            --primary-light: #ede9fe;
-            --gris: #64748b;
-            --gris-fosc: #334155;
-            --bg: #f8fafc;
+            --gris: var(--text-muted);
+            --gris-fosc: var(--text-main);
+            --bg: var(--bg-soft);
             --card: #ffffff;
-            --border: #e2e8f0;
+            --border: var(--border-light);
             --font-math: 'Times New Roman', 'Cambria Math', serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         .title-row { display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:12px; }
-        .title-row h1 { font-size:1.5rem; font-weight:700; color:#334155; text-align:center; }
+        .title-row h1 { font-size:1.5rem; font-weight:700; color:var(--text-main); text-align:center; }
         .home-icon-link { display:block; width:58px; height:58px; flex-shrink:0; opacity:.75; transition:opacity .2s ease; }
         .home-icon-link:hover { opacity:1; }
         .home-icon-link img { width:100%; height:100%; object-fit:contain; }
@@ -130,7 +128,7 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .sign-select:hover { background-color: #f1f5f9; }
+        .sign-select:hover { background-color: var(--bg-soft-alt); }
         .sign-select:focus { border-color: #000; outline: none; }
 
         .math-input {
@@ -142,7 +140,7 @@
             transition: all 0.2s;
             background-color: white;
         }
-        .math-input:hover { background-color: #f1f5f9; }
+        .math-input:hover { background-color: var(--bg-soft-alt); }
         .math-input:focus { border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
 
         .eq-row {
@@ -188,7 +186,7 @@
             cursor: pointer; font-size: 1rem;
             margin: 0; /* Eliminem el marge original que trencava l'alineació flex */
         }
-        .btn-check-sm:hover { background: #15803d; }
+        .btn-check-sm:hover { background: var(--success); }
         .btn-next { background: var(--primary); display: none; margin: 0; }
         .btn-next:hover { background: var(--primary-dark); }
         
@@ -234,11 +232,11 @@
             <div class="action-buttons">
                 <button class="btn-check-sm btn-next" id="btn-next" onclick="initProblem()">Practicar un altre exemple</button>
                 <button class="btn-check-sm" id="btn-check" onclick="checkAnswer()" style="display: none;">Comprovar</button>
-                <button class="btn-check-sm" id="btn-help" onclick="handleLevel1Help()" style="display: none; background: #F0CB90; color: #000;">Ajuda</button>
-                <button class="btn-check-sm" id="btn-more-help" onclick="handleLevel2Help()" style="display: none; background: #F0A226; color: #000;">Més ajuda</button>
+                <button class="btn-check-sm" id="btn-help" onclick="handleLevel1Help()" style="display: none; background: var(--warning-border); color: #000;">Ajuda</button>
+                <button class="btn-check-sm" id="btn-more-help" onclick="handleLevel2Help()" style="display: none; background: var(--warning); color: #000;">Més ajuda</button>
             </div>
-            <div id="error-box" style="display:none; margin: 1rem auto; max-width: 650px; padding: 1rem; background: #e2e8f0; color: #000; border: 2px solid #000; border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6; font-weight: 500;"></div>
-            <div id="help-box" style="display:none; margin: 1rem auto; max-width: 650px; padding: 1rem; background: #fefce8; border: 1px solid #fef08a; border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6;"></div>
+            <div id="error-box" style="display:none; margin: 1rem auto; max-width: 650px; padding: 1rem; background: var(--border-light); color: #000; border: 2px solid #000; border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6; font-weight: 500;"></div>
+            <div id="help-box" style="display:none; margin: 1rem auto; max-width: 650px; padding: 1rem; background: var(--warning-light); border: 1px solid var(--warning-border); border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6;"></div>
         </div>
     </div>
 
@@ -263,11 +261,11 @@
             <div class="action-buttons">
                 <button class="btn-check-sm btn-next" id="btn-next-plans" onclick="initProblemPlans()">Practicar un altre exemple</button>
                 <button class="btn-check-sm" id="btn-check-plans" onclick="checkAnswerPlans()" style="display: none;">Comprovar</button>
-                <button class="btn-check-sm" id="btn-help-plans" onclick="handleLevel1HelpPlans()" style="display: none; background: #F0CB90; color: #000;">Ajuda</button>
-                <button class="btn-check-sm" id="btn-more-help-plans" onclick="handleLevel2HelpPlans()" style="display: none; background: #F0A226; color: #000;">Més ajuda</button>
+                <button class="btn-check-sm" id="btn-help-plans" onclick="handleLevel1HelpPlans()" style="display: none; background: var(--warning-border); color: #000;">Ajuda</button>
+                <button class="btn-check-sm" id="btn-more-help-plans" onclick="handleLevel2HelpPlans()" style="display: none; background: var(--warning); color: #000;">Més ajuda</button>
             </div>
-            <div id="error-box-plans" style="display:none; margin: 1rem auto; max-width: 750px; padding: 1rem; background: #e2e8f0; color: #000; border: 2px solid #000; border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6; font-weight: 500;"></div>
-            <div id="help-box-plans" style="display:none; margin: 1rem auto; max-width: 750px; padding: 1rem; background: #fefce8; border: 1px solid #fef08a; border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6;"></div>
+            <div id="error-box-plans" style="display:none; margin: 1rem auto; max-width: 750px; padding: 1rem; background: var(--border-light); color: #000; border: 2px solid #000; border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6; font-weight: 500;"></div>
+            <div id="help-box-plans" style="display:none; margin: 1rem auto; max-width: 750px; padding: 1rem; background: var(--warning-light); border: 1px solid var(--warning-border); border-radius: 0.5rem; font-size: 0.95rem; text-align: left; line-height: 1.6;"></div>
         </div>
     </div>  
     

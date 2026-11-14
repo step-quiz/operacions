@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,28 +16,23 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
         /* ── Variables de color ─────────────────────────────── */
-        :root {
-            --primary:       #4f46e5;
-            --primary-light: #e0e7ff;
-            --primary-hover: #4338ca;
-            --primary-dark:  #3730a3;
-            --bg-color:      #f5f3ff;
-        }
+        
 
         /* ── Overrides de shared.css ────────────────────────── */
         h1           { color: var(--primary-dark); }
-        .header-info { background-color: #eef2ff; }
+        .header-info { background-color: var(--primary-light); }
         .level-text  { color: var(--primary-dark); }
         .score-text  { color: var(--primary); }
         .panel       { border-top-color: var(--primary); }
 
         /* ── PANTALLA DE SELECCIÓ ────────────────────────────── */
         #selection-screen    { padding: 30px 20px; text-align: center; }
-        #selection-screen h2 { color: #334155; font-size: 1.4em; margin-bottom: 20px; }
+        #selection-screen h2 { color: var(--text-main); font-size: 1.4em; margin-bottom: 20px; }
         .selection-cards {
             display: flex; flex-direction: column; gap: 12px;
             max-width: 440px; margin: 0 auto;
@@ -52,11 +47,11 @@
         @media (hover:hover) {
             .selection-card:hover {
                 border-color: var(--primary); background: var(--primary-light);
-                transform: translateY(-2px); box-shadow: 0 4px 15px rgba(79,70,229,.15);
+                transform: translateY(-2px); box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 15%, transparent);
             }
         }
         /* [ROUND 1 — .selection-icon eliminat; fonts +40%] */
-        .selection-text h3  { margin: 0 0 4px 0; color: #334155; font-size: 1.47em; }
+        .selection-text h3  { margin: 0 0 4px 0; color: var(--text-main); font-size: 1.47em; }
         .selection-text p   { margin: 0; color: var(--text-muted); font-size: 1.26em; }
 
         /* ── EXPRESSION BOX ──────────────────────────────────── */
@@ -68,7 +63,7 @@
             font-weight: bold; min-height: 115px; line-height: 1.8;
         }
         .expr-sup  { font-size: .52em; vertical-align: super; line-height: 0; }
-        .expr-op   { padding: 0 6px; color: #475569; }
+        .expr-op   { padding: 0 6px; color: var(--text-soft); }
         .expr-eq   { padding: 0 10px; color: var(--text-muted); }
         .expr-frac {
             display: inline-flex; flex-direction: column; align-items: center;
@@ -89,10 +84,10 @@
             font-size: 0.48em;     /* ~0.96em a nivell de body */
             font-weight: bold; text-align: center;
             border: 2.5px solid var(--primary); border-radius: 6px;
-            background: var(--primary-light); outline: none; color: #1e293b;
+            background: var(--primary-light); outline: none; color: var(--text-main);
             -moz-appearance: textfield;
         }
-        .expr-sup-input:focus { background: #c7d2fe; box-shadow: 0 0 0 3px rgba(79,70,229,.25); }
+        .expr-sup-input:focus { background: var(--primary-light); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
         .expr-sup-input::-webkit-inner-spin-button,
         .expr-sup-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .expr-sup-input.error-flash {
@@ -108,11 +103,11 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.75em; font-weight: bold; text-align: center;
             border: 2.5px solid var(--primary); border-radius: 8px;
-            background: var(--primary-light); outline: none; color: #1e293b;
+            background: var(--primary-light); outline: none; color: var(--text-main);
             vertical-align: middle; margin-left: 6px;
             -moz-appearance: textfield;
         }
-        .expr-inline-input:focus { background: #c7d2fe; box-shadow: 0 0 0 3px rgba(79,70,229,.25); }
+        .expr-inline-input:focus { background: var(--primary-light); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
         .expr-inline-input::-webkit-inner-spin-button,
         .expr-inline-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .expr-inline-input.error-flash {
@@ -126,17 +121,17 @@
             font-size: 1.5em; margin-bottom: 12px; animation: fadeIn .3s;
             min-height: 60px;
         }
-        .schema-text     { color: #334155; white-space: nowrap; }
+        .schema-text     { color: var(--text-main); white-space: nowrap; }
         .schema-text sup { font-size: .52em; vertical-align: super; line-height: 0; }
         .schema-eq       { padding: 0 8px; color: var(--text-muted); }
         .schema-input {
             width: 60px; height: 50px;
             font-family: 'Courier New', Courier, monospace; font-size: .9em; font-weight: bold;
             text-align: center; border: 3px solid var(--primary); border-radius: 8px;
-            background: var(--primary-light); outline: none; color: #1e293b;
+            background: var(--primary-light); outline: none; color: var(--text-main);
             -moz-appearance: textfield;
         }
-        .schema-input:focus { background: #c7d2fe; box-shadow: 0 0 0 3px rgba(79,70,229,.25); }
+        .schema-input:focus { background: var(--primary-light); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
         .schema-input::-webkit-inner-spin-button,
         .schema-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .schema-input.error-flash {
@@ -170,7 +165,7 @@
         .step-container       { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn .3s; }
         .step-container.active { display: flex; }
         .step-title {
-            font-size: 1.05em; color: #475569; margin-bottom: 12px;
+            font-size: 1.05em; color: var(--text-soft); margin-bottom: 12px;
             font-weight: bold; text-align: center; line-height: 1.45;
             max-width: 560px;
         }
@@ -178,23 +173,23 @@
             margin-top: 6px; font-size: .95em; color: var(--text-muted);
             text-align: center; min-height: 1.3em;
         }
-        #step-feedback.important { color: #b45309; font-weight: bold; }
-        #step-feedback.error     { color: #dc2626; font-weight: bold; }
+        #step-feedback.important { color: var(--warning-dark); font-weight: bold; }
+        #step-feedback.error     { color: var(--danger); font-weight: bold; }
 
         .btn-submit-schema {
-            background-color: #475569; color: white; border: none;
+            background-color: var(--text-soft); color: white; border: none;
             padding: 12px 28px; font-size: 1em; font-weight: bold; border-radius: 6px;
             cursor: pointer; text-transform: uppercase; touch-action: manipulation; margin-top: 14px;
         }
         .btn-submit-schema:active { transform: scale(.95); }
-        @media (hover:hover) { .btn-submit-schema:hover { background-color: #334155; } }
+        @media (hover:hover) { .btn-submit-schema:hover { background-color: var(--text-main); } }
         .btn-submit-schema.error-shake { background-color: var(--danger); animation: shake .25s; }
 
         /* ── MISC ────────────────────────────────────────────── */
         .attempts-counter.blink { animation: attemptsBlink .2s linear 5; }
         @keyframes attemptsBlink {
-            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
-            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
+            0%, 100% { background-color: var(--warning-light); border-color: #d1d5db; color: var(--text-main); }
+            50%      { background-color: #e5e7eb; border-color: var(--warning); color: var(--text-main); }
         }
         /* [ROUND 4 — overlay posicionat sota l'expression-box; no tapa l'expressió] */
 

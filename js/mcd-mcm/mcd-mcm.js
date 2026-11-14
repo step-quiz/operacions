@@ -48,19 +48,6 @@ const els = {
     errorMsg: document.getElementById('error-msg'),
 };
 
-const bgColors_override = [
-    '#fef7ed',
-    '#fefce8',
-    '#fdf4ff',
-    '#f0fdf4',
-    '#fff1f2',
-    '#ecfeff',
-    '#eff6ff',
-    '#faf5ff',
-    '#fffbeb',
-    '#f5f3ff',
-];
-
 // ============================================================
 // ESTAT ESPECÍFIC DEL JOC
 // ============================================================
@@ -173,10 +160,6 @@ function buildLevel() {
     mcdValue = computeMCD(factorsA, factorsB);
     mcmValue = computeMCM(factorsA, factorsB);
 
-    els.body.style.backgroundColor =
-        bgColors_override[
-            (state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors_override.length
-        ];
     currentPhase = 'mcd';
     startPhase();
 }
@@ -283,8 +266,9 @@ function checkMcdMcm(answer, label) {
 
     const resultDiv = document.createElement('div');
     resultDiv.className = 'factorization-display';
-    resultDiv.style.background = label === 'MCD' ? 'var(--success-light)' : 'var(--accent-light)';
-    resultDiv.style.color = label === 'MCD' ? '#065f46' : '#5b21b6';
+    // MCD amb el color del tema, MCM amb el segon to (el verd és només per als encerts)
+    resultDiv.style.background = label === 'MCD' ? 'var(--primary-light)' : 'var(--accent-light)';
+    resultDiv.style.color = label === 'MCD' ? 'var(--primary-dark)' : 'var(--accent-dark)';
     resultDiv.innerHTML = `✅ ${label}(${numberA}, ${numberB}) = <strong>${answer}</strong>`;
     els.mcdMcmZone.appendChild(resultDiv);
 

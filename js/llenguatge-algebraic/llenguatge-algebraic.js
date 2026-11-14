@@ -20,7 +20,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { shuffle } from '../utils.js';
 import {
     state,
-    bgColors,
     escapeHtml,
     injectSharedHTML,
     recordAnswerToHistory,
@@ -65,9 +64,6 @@ function buildLevel() {
     const picked = QuestionBank.pick(usedQuestions);
     currentQuestion = picked.question;
     usedQuestions.push(picked.index);
-
-    const colorIndex = (state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length;
-    els.body.style.backgroundColor = bgColors[colorIndex];
 
     updateHeader();
     renderQuestion();

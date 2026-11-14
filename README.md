@@ -126,6 +126,8 @@ js/
 ├── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat; acabaPregunta)
 └── pissarra/           ← «Resolució pas a pas»: la pissarra animada (vegeu més avall)
 css/
+├── tokens.css          ← Colors comuns amb significat: text, vores i els d'estat (encert, error, avís)
+├── temes.css           ← Un color de tema per bloc de continguts (cada pàgina en tria un amb una classe)
 ├── shared.css          ← Estils globals, teclat numèric, pantalles finals
 ├── seguent.css         ← La franja del final de pregunta (també a les pàgines sense shared.css)
 ├── codi.css            ← La icona «Codi» i la seva finestra
@@ -137,6 +139,16 @@ docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat 
 **Mòduls antics** (fraccions, etc.): tot el joc en un sol fitxer, `js/<exercici>/<exercici>.js`. Equacions ja té la generació i els passos a `js/equacions/math-engine.js` i l'HTML dels termes a `js/equacions/renderer.js` (mòduls purs, amb proves a `tests/equacions.test.js`). Ja no queda JS d'exercici dins dels HTML (només `window.APP_CONFIG`).
 
 Fraccions ja té, a part, el seu diagnòstic d'errors: `js/fraccions/errors-fraccions.js` (mòdul pur, sense DOM) mira si una resposta incorrecta encaixa amb un error típic (sumar els denominadors, amplificar només el denominador, multiplicar en creu…) i en torna el tipus i un missatge que orienta sense donar la resposta. El joc el mostra sota el pas i l'apunta a l'historial («Incorrecte (sumar els denominadors)»). Si la resposta no encaixa amb cap error conegut, el joc fa com sempre. Les proves són a `tests/modules.test.js`.
+
+## Colors
+
+La paleta és sòbria perquè l'alumne es concentri en les matemàtiques:
+
+- **Un color de tema per bloc de continguts**, el mateix a ESO i a Batxillerat: Nombres i operacions (blau acer), Àlgebra (indi), Geometria i mesura (petroli), Estadística i probabilitat (pruna) i Funcions i gràfiques (pissarra). Són a `css/temes.css`, i cada pàgina tria el seu amb una classe a `<html>` (`class="tema-algebra"`). El fons de la pàgina és fix (no canvia a cada pregunta).
+- **Els colors d'estat només volen dir això:** verd = encert, vermell = error, ambre = avís o pista. Surten de `css/tokens.css` i cap tema no fa servir aquests tons, perquè un botó normal no es confongui amb una resposta correcta.
+- La resta, grisos. Les excepcions són el dibuix que porta el color a la mateixa pregunta (les corbes blava i vermella de *Funció i derivada*, l'operació destacada en blau fosc de *Prioritat*, les barres de l'histograma).
+
+`tests/check-repo.js` comprova que cada activitat té tema, que només `css/temes.css` el defineix i que ningú no escriu a mà un color d'estat.
 
 ## Intents repetits i proves de CB a l'analitzador
 

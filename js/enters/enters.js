@@ -11,7 +11,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { randInt, randIntNonZero, shuffle } from '../utils.js';
 import {
     state,
-    bgColors,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -276,8 +275,7 @@ function buildLevel() {
     state.isTransitioning = false;
     isPenalizing = false;
     opCueLocked = false;
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
+
     clearOpSelectionCue();
     updateUI();
 }

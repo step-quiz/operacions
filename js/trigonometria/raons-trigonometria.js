@@ -6,14 +6,13 @@
  * DEPENDÈNCIES: js/game-core.js (estat global, startGame, endSession,
  *               acabaPregunta, puntsDeLaPregunta, recordAnswerToHistory,
  *               recordResult, sessionScore, currentSession, currentOperation,
- *               attemptsLeft, isTransitioning, bgColors)
+ *               attemptsLeft, isTransitioning)
  * ============================================================================
  */
 
 import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import {
     state,
-    bgColors,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
@@ -22,6 +21,10 @@ import {
     acabaPregunta,
     puntsDeLaPregunta,
 } from '../game-core.js';
+
+// Colors del tema (css/temes.css) i d'estat (css/tokens.css) per al dibuix: un canvas o un atribut
+// SVG no entenen var(--x), i així la figura té sempre el mateix color que el text de la pàgina.
+const token = nom => getComputedStyle(document.documentElement).getPropertyValue(nom).trim();
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
@@ -206,12 +209,12 @@ function drawCircle(angle) {
     const lblX = +(cx + lblDist * Math.cos(midRad)).toFixed(1);
     const lblY = +(cy - lblDist * Math.sin(midRad) + 4).toFixed(1);
 
-    const PC = '#7c3aed';
-    const AC = '#d97706';
+    const PC = token('--primary');
+    const AC = token('--accent');
 
     els.unitCircleSvg.innerHTML = `
         <circle cx="${cx}" cy="${cy}" r="${r}"
-                fill="none" stroke="#ddd6fe" stroke-width="1.8"/>
+                fill="none" stroke="${token('--primary-light')}" stroke-width="1.8"/>
         <line x1="${cx - r - 14}" y1="${cy}" x2="${cx + r + 14}" y2="${cy}"
               stroke="#cbd5e1" stroke-width="1"/>
         <line x1="${cx}" y1="${cy - r - 14}" x2="${cx}" y2="${cy + r + 14}"
@@ -243,9 +246,6 @@ function buildLevel() {
     state.attemptsLeft = MAX_INTENTS;
     isPenalizing = false;
     state.isTransitioning = false;
-
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
 
     const problem = pickProblem(state.currentOperation);
     currentAngle = problem.angle;

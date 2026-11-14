@@ -86,19 +86,6 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
     // Filtre de dimensió: ?dim=2 (pla) | ?dim=3 (espai) | absent = tot
     const DIM = _intParam('dim', 0, 2, 3); // 0 = sense filtre
 
-    const BG_COLORS = [
-        '#f8fafc',
-        '#eff6ff',
-        '#f0fdf4',
-        '#fefce8',
-        '#fff1f2',
-        '#f5f3ff',
-        '#ecfeff',
-        '#fdf4ff',
-        '#fffbeb',
-        '#faf5ff',
-    ];
-
     // =========================================================================
     // DETECCIÓ DE DISPOSITIU TÀCTIL
     // Utilitzada per ajustar el comportament de l'input en mode B:
@@ -282,7 +269,6 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
         _etTotal = _figActual.etiquetes.length;
 
         // Fons rotatiu
-        els.body.style.backgroundColor = BG_COLORS[(_sessio * TOTAL_OPS + _op) % BG_COLORS.length];
 
         els.typoWarning.classList.remove('visible');
         els.contextInstr.innerText = '';
@@ -985,12 +971,12 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
                 </div>
             </div>
             <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;">
-                <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
-                    <div style="font-size:1.8em;font-weight:800;color:#059669;">${encerts}</div>
+                <div style="background:#f0fdf4;border:2px solid var(--success-border);border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
+                    <div style="font-size:1.8em;font-weight:800;color:var(--success);">${encerts}</div>
                     <div style="font-size:0.8em;color:var(--text-muted);">${TEXTS.SUMMARY_ENCERTS}</div>
                 </div>
-                <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
-                    <div style="font-size:1.8em;font-weight:800;color:#dc2626;">${errades}</div>
+                <div style="background:#fef2f2;border:2px solid var(--danger-border);border-radius:8px;padding:12px 20px;text-align:center;min-width:90px;">
+                    <div style="font-size:1.8em;font-weight:800;color:var(--danger);">${errades}</div>
                     <div style="font-size:0.8em;color:var(--text-muted);">${TEXTS.SUMMARY_ERRADES}</div>
                 </div>
             </div>
@@ -1037,10 +1023,10 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
                     ${encerts
                         .map(
                             e => `
-                        <li style="margin-bottom:12px;background:#f0fdf4;padding:12px;border-radius:6px;border:1px solid #bbf7d0;">
-                            <div style="margin-bottom:5px;color:#334155;"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
+                        <li style="margin-bottom:12px;background:#f0fdf4;padding:12px;border-radius:6px;border:1px solid var(--success-border);">
+                            <div style="margin-bottom:5px;color:var(--text-main);"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
                                 <span style="font-family:monospace;font-size:1.1em;">${_escapeHtml(e.pregunta)}</span></div>
-                            <div style="color:#059669;"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
+                            <div style="color:var(--success);"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
                                 <span style="font-family:monospace;">${_escapeHtml(e.resposta)}</span></div>
                         </li>
                     `
@@ -1056,10 +1042,10 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
                     ${errades
                         .map(
                             e => `
-                        <li style="margin-bottom:12px;background:#fef2f2;padding:12px;border-radius:6px;border:1px solid #fecaca;">
-                            <div style="margin-bottom:5px;color:#334155;"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
+                        <li style="margin-bottom:12px;background:#fef2f2;padding:12px;border-radius:6px;border:1px solid var(--danger-border);">
+                            <div style="margin-bottom:5px;color:var(--text-main);"><strong>${TEXTS.INFORME_PREGUNTA}</strong>
                                 <span style="font-family:monospace;font-size:1.1em;">${_escapeHtml(e.pregunta)}</span></div>
-                            <div style="color:#dc2626;"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
+                            <div style="color:var(--danger);"><strong>${TEXTS.INFORME_RESPOSTA}</strong>
                                 <span style="font-family:monospace;">${_escapeHtml(e.resposta)}</span></div>
                         </li>
                     `
@@ -1070,7 +1056,7 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
 
                 <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:30px;">
                     <button class="btn-submit btn-copiar-codi" onclick="_vocabCopiarCodi()"
-                            style="background-color:#334155;">${TEXTS.BTN_COPIAR}</button>
+                            style="background-color:var(--text-main);">${TEXTS.BTN_COPIAR}</button>
                     <button class="btn-submit" onclick="location.reload()"
                             style="background-color:var(--text-muted);">${TEXTS.BTN_RESTART}</button>
                 </div>

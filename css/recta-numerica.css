@@ -11,17 +11,13 @@ FONT: Barlow (Google Fonts)
 /* ---- VARIABLES ---- */
 :root {
     --panel-width: 92vw;
-    --primary: #0077b6;
-    --primary-light: #e0f4ff;
-    --primary-dark: #023e8a;
-    --accent: #00b4d8;
-    --bg: #f0f9ff;
+    --bg: var(--primary-light);
     --panel: #ffffff;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --warn: #d97706;
-    --warn-light: #fef3c7;
+    --text: var(--text-main);
+    --muted: var(--text-muted);
+    --border: var(--border-light);
+    --warn: var(--warning);
+    --warn-light: var(--warning-light);
     --radius: 10px;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
 }
@@ -111,7 +107,7 @@ body {
 
 /* ---- CAPÇALERA DEL JOC ---- */
 .game-header {
-    background: #f1f8ff;
+    background: var(--primary-light);
     border-bottom: 1px solid var(--border);
     padding: 12px 20px;
     display: flex;
@@ -316,8 +312,8 @@ body {
 }
 .options-list .btn-option.reveal-answer::before,
 .options-grid .btn-option.reveal-answer::before {
-    border-color: #6ee7b7 !important;
-    background: #6ee7b7 !important;
+    border-color: var(--success-border) !important;
+    background: var(--success-border) !important;
 }
 
 @media (hover: hover) {
@@ -354,9 +350,9 @@ body {
 
 /* Estat: correcte revelat quan s'esgoten els intents (verd clar, no taronja) */
 .btn-option.reveal-answer {
-    background: #d1fae5 !important; /* verd molt clar */
-    border-color: #6ee7b7 !important; /* verd menta */
-    color: #065f46 !important; /* verd fosc llegible */
+    background: var(--success-light) !important; /* verd molt clar */
+    border-color: var(--success-border) !important; /* verd menta */
+    color: var(--success-dark) !important; /* verd fosc llegible */
 }
 
 @keyframes shake {
@@ -387,17 +383,17 @@ body {
 .feedback-correct {
     background: var(--success-light);
     border: 1.5px solid var(--success);
-    color: #065f46;
+    color: var(--success-dark);
 }
 .feedback-wrong {
-    background: #f1f5f9;
-    border: 1.5px solid #cbd5e1;
+    background: var(--bg-soft-alt);
+    border: 1.5px solid var(--border-heavy);
     color: #000000;
 }
 .feedback-neutral {
-    background: #f8fafc;
-    border: 1.5px solid #94a3b8;
-    color: #334155;
+    background: var(--bg-color);
+    border: 1.5px solid var(--border-strong);
+    color: var(--text-main);
 }
 
 /* ---- RESUM FINAL ---- */
@@ -474,15 +470,15 @@ body {
 }
 .summary-stat--ok {
     background: var(--success-light);
-    border-color: #6ee7b7;
+    border-color: var(--success-border);
 }
 .summary-stat--warn {
     background: var(--warn-light);
-    border-color: #fcd34d;
+    border-color: var(--warning-border);
 }
 .summary-stat--err {
     background: var(--danger-light);
-    border-color: #fca5a5;
+    border-color: var(--danger-border);
 }
 .stat-num {
     font-size: 1.8em;
@@ -587,8 +583,8 @@ body {
     width: 11px;
     height: 11px;
     border-radius: 50%;
-    background: #ff3b30; /* vermell REC — valor fix intencionat */
-    box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.35);
+    background: var(--danger); /* vermell REC — valor fix intencionat */
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent);
     /* [ROUND 6 — 4 cicles d'1s de parpelleig, després s'apaga definitivament] */
     animation:
         rec-blink 1s ease-in-out 4,

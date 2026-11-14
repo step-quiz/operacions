@@ -79,20 +79,6 @@ export const MAX_RESULTS = 50;
 // ── DIFICULTAT (llegida automaticament de l'URL) ─────────────────────────────
 const _urlNivell = new URLSearchParams(window.location.search).get('nivell');
 
-// ── PALETA DE FONS ───────────────────────────────────────────────────────────
-export const bgColors = [
-    '#f8fafc',
-    '#eff6ff',
-    '#f0fdf4',
-    '#fefce8',
-    '#fff1f2',
-    '#f5f3ff',
-    '#ecfeff',
-    '#fdf4ff',
-    '#fffbeb',
-    '#faf5ff',
-];
-
 // ── ESTAT COMPARTIT DEL JOC ──────────────────────────────────────────────────
 // Tot l'estat en un sol objecte perquè els jocs el puguin modificar
 // (state.attemptsLeft--, state.sessionScore += …): una variable importada d'un
@@ -341,7 +327,7 @@ export function injectSharedHTML() {
     const finalScreen = document.createElement('div');
     finalScreen.id = 'final-screen';
     finalScreen.style.display = 'none';
-    finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
+    finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:var(--text-main);">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     panel.appendChild(finalScreen);
     if (FixedSessions || ESVAIMENT) finalScreen.querySelector('#btn-copiar').style.display = 'none';
 
@@ -601,7 +587,7 @@ export function showHistorySummary() {
         <h3 class="history-title history-title--bad">🔴 Errades (${errades.length})</h3>
         <ul class="history-list">${liBad}</ul>
         <div class="history-actions">
-            <button class="btn-submit" id="btn-copiar-hist" onclick="copiarResultats()" style="background-color:#334155;">📝 Copiar codi</button>
+            <button class="btn-submit" id="btn-copiar-hist" onclick="copiarResultats()" style="background-color:var(--text-main);">📝 Copiar codi</button>
             <button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);margin-left:12px;">🔄 Tornar a jugar</button>
         </div>
     </div>`;

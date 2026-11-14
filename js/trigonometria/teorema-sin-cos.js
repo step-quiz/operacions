@@ -6,14 +6,13 @@
  * DEPENDÈNCIES: js/game-core.js (estat global, startGame, endSession,
  *               acabaPregunta, puntsDeLaPregunta, recordAnswerToHistory,
  *               recordResult, sessionScore, currentSession, currentOperation,
- *               attemptsLeft, isTransitioning, bgColors)
+ *               attemptsLeft, isTransitioning)
  * ============================================================================
  */
 
 import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import {
     state,
-    bgColors,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
@@ -22,6 +21,10 @@ import {
     acabaPregunta,
     puntsDeLaPregunta,
 } from '../game-core.js';
+
+// Colors del tema (css/temes.css) i d'estat (css/tokens.css) per al dibuix: un canvas o un atribut
+// SVG no entenen var(--x), i així la figura té sempre el mateix color que el text de la pàgina.
+const token = nom => getComputedStyle(document.documentElement).getPropertyValue(nom).trim();
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
@@ -599,13 +602,16 @@ function drawTriangle(problem) {
     }
 
     function getLabel(type, name) {
-        if (find.type === type && find.name === name) return { text: '?', color: '#d97706', bold: true, size: 17 };
+        if (find.type === type && find.name === name)
+            return { text: '?', color: token('--accent'), bold: true, size: 17 };
         if (type === 'side') {
             const v = given.sides?.[name];
             return v ? { text: v, color: '#334155', bold: true, size: 14 } : null;
         } else {
             const v = given.angles?.[name];
-            return v !== undefined && v !== null ? { text: v + '°', color: '#0f766e', bold: false, size: 13 } : null;
+            return v !== undefined && v !== null
+                ? { text: v + '°', color: token('--primary'), bold: false, size: 13 }
+                : null;
         }
     }
 
@@ -642,7 +648,7 @@ function drawTriangle(problem) {
     if (na.C === 90) extraMarkers += rightAngleMark(Cv.x, Cv.y, Av.x, Av.y, Bv.x, Bv.y);
 
     function strokeColor(type, name) {
-        return find.type === type && find.name === name ? '#d97706' : '#94a3b8';
+        return find.type === type && find.name === name ? token('--accent') : '#94a3b8';
     }
     function strokeW(type, name) {
         return find.type === type && find.name === name ? 3 : 2.2;
@@ -671,16 +677,16 @@ function drawTriangle(problem) {
 
         ${extraMarkers}
 
-        <circle cx="${Av.x.toFixed(1)}" cy="${Av.y.toFixed(1)}" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
-        <circle cx="${Bv.x.toFixed(1)}" cy="${Bv.y.toFixed(1)}" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
-        <circle cx="${Cv.x.toFixed(1)}" cy="${Cv.y.toFixed(1)}" r="4" fill="#0f766e" stroke="white" stroke-width="1.5"/>
+        <circle cx="${Av.x.toFixed(1)}" cy="${Av.y.toFixed(1)}" r="4" fill="${token('--primary')}" stroke="white" stroke-width="1.5"/>
+        <circle cx="${Bv.x.toFixed(1)}" cy="${Bv.y.toFixed(1)}" r="4" fill="${token('--primary')}" stroke="white" stroke-width="1.5"/>
+        <circle cx="${Cv.x.toFixed(1)}" cy="${Cv.y.toFixed(1)}" r="4" fill="${token('--primary')}" stroke="white" stroke-width="1.5"/>
 
         <text x="${vA.x.toFixed(1)}" y="${vA.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
-              font-size="14" font-weight="bold" fill="#0f766e" font-family="'Segoe UI', sans-serif">A</text>
+              font-size="14" font-weight="bold" fill="${token('--primary')}" font-family="'Segoe UI', sans-serif">A</text>
         <text x="${vB.x.toFixed(1)}" y="${vB.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
-              font-size="14" font-weight="bold" fill="#0f766e" font-family="'Segoe UI', sans-serif">B</text>
+              font-size="14" font-weight="bold" fill="${token('--primary')}" font-family="'Segoe UI', sans-serif">B</text>
         <text x="${vC.x.toFixed(1)}" y="${vC.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
-              font-size="14" font-weight="bold" fill="#0f766e" font-family="'Segoe UI', sans-serif">C</text>
+              font-size="14" font-weight="bold" fill="${token('--primary')}" font-family="'Segoe UI', sans-serif">C</text>
 
         ${svgTxt(pA.x, pA.y, getLabel('side', 'a'))}
         ${svgTxt(pB.x, pB.y, getLabel('side', 'b'))}
@@ -698,9 +704,6 @@ function buildLevel() {
     state.attemptsLeft = MAX_INTENTS;
     isPenalizing = false;
     state.isTransitioning = false;
-
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
 
     currentProblem = selectProblem();
     const p = currentProblem;

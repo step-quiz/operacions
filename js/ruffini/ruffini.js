@@ -387,8 +387,8 @@ function buildTable(r) {
         row3.classList.add('row-divider');
         const tdBlank = row3.insertCell();
         tdBlank.className = 'cell-root';
-        tdBlank.style.borderRight = '3px solid #1e293b';
-        tdBlank.style.borderTop = '2.5px solid #1e293b';
+        tdBlank.style.borderRight = '3px solid var(--text-main)';
+        tdBlank.style.borderTop = '2.5px solid var(--text-main)';
         for (let j = 0; j < n; j++) {
             const td = row3.insertCell();
             td.className = j === n - 1 ? 'cell-result cell-remainder' : 'cell-result';
@@ -403,7 +403,7 @@ function buildTable(r) {
         tdRoot.style.verticalAlign = 'top';
         tdRoot.style.paddingTop = '10px';
         tdRoot.innerHTML = r >= 0 ? '+' + r : '' + r;
-        tdRoot.style.borderRight = '3px solid #1e293b';
+        tdRoot.style.borderRight = '3px solid var(--text-main)';
         for (let j = 0; j < n; j++) {
             const td = row2.insertCell();
             td.className = 'cell-prod';
@@ -593,9 +593,9 @@ function confirmRootFound() {
         if (parseInt(b.dataset.val) === currentR) {
             b.disabled = true;
             b.classList.remove('active');
-            b.style.background = '#f1f5f9';
-            b.style.borderColor = '#cbd5e1';
-            b.style.color = '#64748b';
+            b.style.background = 'var(--bg-soft-alt)';
+            b.style.borderColor = 'var(--border-heavy)';
+            b.style.color = 'var(--text-muted)';
         }
     });
 

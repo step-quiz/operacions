@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-funcions">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,19 +16,12 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
         /* ---- Variables de color específiques ---- */
-        :root {
-            --bg-color:       #f0f4ff;
-            --primary:        #4f46e5;
-            --primary-light:  #e0e7ff;
-            --primary-hover:  #4338ca;
-            --primary-dark:   #312e81;
-            --accent:         #f59e0b;
-            --accent-light:   #fef3c7;
-        }
+        
 
         /* ---- Overrides de shared.css ---- */
         body { padding: 12px; }
@@ -46,41 +39,41 @@
 
         /* ---- SECCIONS ---- */
         #section-screen { display: none; padding: 30px 20px; text-align: center; }
-        #section-screen h2 { color: #334155; font-size: 1.4em; margin-bottom: 25px; }
+        #section-screen h2 { color: var(--text-main); font-size: 1.4em; margin-bottom: 25px; }
         .section-grid { display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto; }
         .section-btn { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border: 2px solid var(--border-color); border-radius: 10px; background: white; cursor: pointer; transition: all 0.2s; text-align: left; touch-action: manipulation; }
-        @media (hover:hover) { .section-btn:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79,70,229,0.15); } }
+        @media (hover:hover) { .section-btn:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 15%, transparent); } }
         .section-btn:active:not(.disabled) { transform: scale(0.97); }
-        .section-btn.disabled { opacity: 0.45; cursor: not-allowed; background: #f8fafc; }
+        .section-btn.disabled { opacity: 0.45; cursor: not-allowed; background: var(--bg-soft); }
         .section-icon { font-size: 2em; flex-shrink: 0; }
         .section-info { display: flex; flex-direction: column; gap: 2px; }
-        .section-title { font-weight: bold; font-size: 1.05em; color: #334155; }
+        .section-title { font-weight: bold; font-size: 1.05em; color: var(--text-main); }
         .section-desc { font-size: 0.85em; color: var(--text-muted); }
-        .section-badge { font-size: 0.7em; background: var(--accent-light); color: #92400e; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: auto; flex-shrink: 0; }
+        .section-badge { font-size: 0.7em; background: var(--accent-light); color: var(--warning-dark); padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: auto; flex-shrink: 0; }
 
         /* ---- DIFICULTAT ---- */
         #difficulty-screen { display: none; padding: 30px 20px; text-align: center; }
-        #difficulty-screen h2 { color: #334155; font-size: 1.3em; margin-bottom: 5px; }
+        #difficulty-screen h2 { color: var(--text-main); font-size: 1.3em; margin-bottom: 5px; }
         .diff-subtitle { color: var(--text-muted); margin-bottom: 25px; }
         .diff-grid { display: flex; flex-direction: column; gap: 10px; max-width: 360px; margin: 0 auto; }
         .diff-btn { padding: 16px 20px; border: 2px solid var(--border-color); border-radius: 10px; background: white; cursor: pointer; transition: all 0.2s; text-align: left; touch-action: manipulation; display: flex; align-items: center; gap: 12px; }
-        @media (hover:hover) { .diff-btn:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79,70,229,0.15); } }
+        @media (hover:hover) { .diff-btn:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 15%, transparent); } }
         .diff-btn:active { transform: scale(0.97); }
         .diff-stars { font-size: 1.4em; flex-shrink: 0; font-weight: bold; color: var(--primary); width: 1.6em; text-align: center; }
         .diff-info { display: flex; flex-direction: column; gap: 2px; }
-        .diff-name { font-weight: bold; color: #334155; }
+        .diff-name { font-weight: bold; color: var(--text-main); }
         .diff-detail { font-size: 0.85em; color: var(--text-muted); }
         .btn-back { margin-top: 20px; background: none; border: 2px solid var(--border-heavy); padding: 10px 25px; border-radius: 6px; color: var(--text-muted); font-weight: bold; cursor: pointer; font-size: 0.95em; touch-action: manipulation; }
-        @media (hover:hover) { .btn-back:hover { border-color: #94a3b8; color: #334155; } }
+        @media (hover:hover) { .btn-back:hover { border-color: var(--border-strong); color: var(--text-main); } }
 
         /* ---- JOC ---- */
         #game-screen { display: none; }
-        .game-prompt { text-align: center; padding: 12px 20px 4px; font-size: 1.15em; color: #475569; }
+        .game-prompt { text-align: center; padding: 12px 20px 4px; font-size: 1.15em; color: var(--text-soft); }
         .game-prompt strong { color: var(--primary); font-family: 'Courier New', monospace; font-size: 1.2em; }
 
         .coord-input-area { display: none; justify-content: center; align-items: center; gap: 8px; padding: 8px 20px 12px; flex-wrap: wrap; }
         .coord-input-area.active { display: flex; }
-        .coord-label { font-size: 1.3em; font-weight: bold; font-family: 'Courier New', monospace; color: #475569; }
+        .coord-label { font-size: 1.3em; font-weight: bold; font-family: 'Courier New', monospace; color: var(--text-soft); }
         .coord-input { width: 65px; font-family: 'Courier New', monospace; font-size: 1.3em; font-weight: bold; padding: 10px; text-align: center; border: 2px solid var(--border-heavy); border-radius: 6px; outline: none; -moz-appearance: textfield; }
         .coord-input:focus { border-color: var(--primary); }
         .coord-input::-webkit-inner-spin-button, .coord-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -97,22 +90,22 @@
         .quadrant-area { display: none; padding: 4px 20px 8px; flex-direction: column; align-items: center; gap: 6px; }
         .quadrant-area.active { display: flex; }
         .quadrant-row { display: flex; gap: 6px; width: 100%; max-width: 600px; }
-        .q-btn { flex: 1; padding: 10px 4px; font-size: 1.05em; font-weight: bold; border-radius: 8px; border: 2px solid var(--border-color); background: white; color: #334155; cursor: pointer; transition: all 0.15s; touch-action: manipulation; text-align: center; }
+        .q-btn { flex: 1; padding: 10px 4px; font-size: 1.05em; font-weight: bold; border-radius: 8px; border: 2px solid var(--border-color); background: white; color: var(--text-main); cursor: pointer; transition: all 0.15s; touch-action: manipulation; text-align: center; }
         @media (hover:hover) { .q-btn:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); transform: scale(1.04); } }
         .q-btn:active { transform: scale(0.95); }
-        .q-btn.correct-flash { background: #d1fae5; border-color: var(--success); color: var(--success); }
+        .q-btn.correct-flash { background: var(--success-light); border-color: var(--success); color: var(--success); }
         .q-btn.error-shake { background: var(--danger-light); border-color: var(--danger); color: var(--danger); animation: shake 0.2s; }
         .q-btn.hidden-btn { display: none; }
 
         /* ---- Session end score ---- */
         .session-score-text { color: var(--primary); font-size: 2.2em; font-family: monospace; font-weight: bold; margin-bottom: 25px; }
         .btn-menu { margin-top: 12px; background: none; border: 2px solid var(--border-heavy); padding: 12px 30px; border-radius: 6px; color: var(--text-muted); font-weight: bold; cursor: pointer; font-size: 1em; touch-action: manipulation; }
-        @media (hover:hover) { .btn-menu:hover { border-color: #94a3b8; color: #334155; } }
+        @media (hover:hover) { .btn-menu:hover { border-color: var(--border-strong); color: var(--text-main); } }
 
         .game-prompt.highlight-new { animation: promptFlash 1.2s ease-out; }
         @keyframes promptFlash {
-            0%   { background-color: #bbf7d0; transform: scale(1.04); }
-            30%  { background-color: #d1fae5; transform: scale(1.02); }
+            0%   { background-color: var(--success-border); transform: scale(1.04); }
+            30%  { background-color: var(--success-light); transform: scale(1.02); }
             100% { background-color: transparent; transform: scale(1); }
         }
 

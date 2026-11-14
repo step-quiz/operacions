@@ -145,12 +145,12 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 }
 .pis-escenari .marca-objectiu,
 .pis-escenari .marca-avis {
-    background: rgba(234, 179, 8, 0.3);
-    box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.3);
+    background: color-mix(in srgb, var(--warning) 30%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning) 30%, transparent);
 }
 .pis-escenari .marca-condicio {
-    background: rgba(16, 185, 129, 0.24);
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.24);
+    background: color-mix(in srgb, var(--success) 24%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 24%, transparent);
 }
 
 /* Esquemes (SVG) a la pissarra */
@@ -167,18 +167,18 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 
 /* Marques dins de les fórmules (\htmlData{k=…,marca=…}) */
 .pis-escenari .katex [data-marca='mes'] {
-    background: rgba(16, 185, 129, 0.3);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+    background: color-mix(in srgb, var(--success) 30%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 30%, transparent);
     border-radius: 2px;
 }
 .pis-escenari .katex [data-marca='menys'] {
-    background: rgba(220, 38, 38, 0.22);
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.22);
+    background: color-mix(in srgb, var(--danger) 22%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent);
     border-radius: 2px;
 }
 .pis-escenari .katex [data-marca='tria'] {
-    background: rgba(234, 179, 8, 0.32);
-    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.32);
+    background: color-mix(in srgb, var(--warning) 32%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 32%, transparent);
     border-radius: 2px;
 }
 .pis-escenari .katex [data-marca='cami0'] {

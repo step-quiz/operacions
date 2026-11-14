@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,26 +19,20 @@
 
     <!-- 3. Estils compartits -->
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
         /* ---- Variables de color específiques de factoritzar ---- */
         :root {
-            --bg-color:      #fef7ed;
-            --primary:       #d97706;
-            --primary-light: #fef3c7;
-            --primary-hover: #b45309;
-            --primary-dark:  #92400e;
-            --accent:        #7c3aed;
-            --accent-light:  #ede9fe;
-            --node-active:   #f59e0b;
-            --node-prime:    #10b981;
-            --node-done:     #94a3b8;
+            --node-active:   var(--primary);
+            --node-prime:    var(--success);
+            --node-done:     var(--border-strong);
         }
 
         /* ---- Overrides de color específics ---- */
         h1 { color: var(--primary-dark); }
-        .header-info { background-color: #fffbeb; }
+        .header-info { background-color: var(--primary-light); }
         .level-text  { color: var(--primary-dark); font-size: 1.1em; }
         .score-text  { color: var(--primary); }
 
@@ -74,10 +68,10 @@
             transition: all 0.3s;
             position: relative;
         }
-        .node-value.prime      { border-color: var(--node-prime); background: var(--success-light); color: #065f46; }
-        .node-value.prime-done { border-color: var(--node-done);  background: #f1f5f9; color: var(--text-muted); }
-        .node-value.active     { border-color: var(--node-active); background: var(--primary-light); color: var(--primary-dark); animation: pulse 1.5s infinite; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
-        .node-value.decomposed { border-color: var(--node-done); background: #f1f5f9; color: var(--text-muted); }
+        .node-value.prime      { border-color: var(--node-prime); background: var(--success-light); color: var(--success-dark); }
+        .node-value.prime-done { border-color: var(--node-done);  background: var(--bg-soft-alt); color: var(--text-muted); }
+        .node-value.active     { border-color: var(--node-active); background: var(--primary-light); color: var(--primary-dark); animation: pulse 1.5s infinite; box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); }
+        .node-value.decomposed { border-color: var(--node-done); background: var(--bg-soft-alt); color: var(--text-muted); }
 
         .node-children {
             display: flex;
@@ -131,7 +125,7 @@
 
         /* ---- PANELL DE RESOLUCIÓ ---- */
         .resolution-panel {
-            background-color: #f8fafc;
+            background-color: var(--bg-soft);
             border-top: 1px solid var(--border-color);
             padding: 25px 20px;
             display: none;
@@ -141,7 +135,7 @@
         }
         .step-instruction {
             font-size: 1.15em;
-            color: #334155;
+            color: var(--text-main);
             margin-bottom: 20px;
             font-weight: bold;
             text-align: center;
@@ -203,12 +197,12 @@
 
         /* ---- Animacions específiques ---- */
         @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.2); }
-            50%      { box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+            0%, 100% { box-shadow: 0 0 5px color-mix(in srgb, var(--primary) 20%, transparent); }
+            50%      { box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 50%, transparent); }
         }
         @keyframes blink-yellow {
             0%, 50%, 100% { background-color: white; }
-            25%, 75%      { background-color: #fef08a; border-color: #facc15; }
+            25%, 75%      { background-color: color-mix(in srgb, var(--primary) 35%, white); border-color: var(--primary); }
         }
         .blink-animation { animation: blink-yellow 1s step-end; }
     </style>

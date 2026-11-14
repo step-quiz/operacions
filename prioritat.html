@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,23 +16,19 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/pissarra.css">
 
     <style>
         /* ---- Variables de color específiques (paleta violeta, com vocabulari.html) ---- */
         :root {
-            --bg-color:      #fafaf7;
-            --primary:       #7c3aed;
-            --primary-light: #ede9fe;
-            --primary-hover: #6d28d9;
-            --primary-dark:  #4c1d95;
             --dest:          #00008b; /* «destaca»: el darkblue del projecte combinades */
         }
 
         /* ---- Overrides de shared.css ---- */
         h1 { color: var(--primary-dark); }
-        .header-info { background-color: #f5f3ff; }
+        .header-info { background-color: var(--primary-light); }
         .level-text  { font-size: 1.1em; color: var(--primary-dark); }
         .score-text  { color: var(--primary); }
         .btn-submit  { background-color: var(--primary-dark); }
@@ -53,10 +49,10 @@
             font-weight: bold;
             min-height: 100px;
             line-height: 1.5;
-            color: #1e293b;
+            color: var(--text-main);
         }
-        .tok-op    { color: #334155; padding: 0 2px; }
-        .tok-paren { color: #475569; }
+        .tok-op    { color: var(--text-main); padding: 0 2px; }
+        .tok-paren { color: var(--text-soft); }
         .expression-box .tok-lp { margin-right: -5px; }
         .expression-box .tok-rp { margin-left: -5px; }
         .tok-pow sup {
@@ -69,7 +65,7 @@
         .step-instruction {
             padding: 0 20px 14px 20px;
             text-align: center;
-            color: #475569;
+            color: var(--text-soft);
             font-weight: 600;
             font-size: 1.1em;
         }
@@ -82,9 +78,9 @@
             max-width: 560px;
             width: calc(100% - 40px);
             text-align: center;
-            color: #991b1b;
+            color: var(--danger-dark);
             background: var(--danger-light);
-            border: 1px solid #fecaca;
+            border: 1px solid var(--danger-border);
             border-radius: 10px;
             font-weight: 600;
             font-size: 0.98em;
@@ -122,9 +118,9 @@
         }
         .drop-zone .dz-placeholder { font-size: 0.5em; font-family: 'Segoe UI', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .drop-zone.dz-over    { background: var(--primary-light); border-color: var(--primary); border-style: solid; }
-        .drop-zone.dz-correct { background: #d1fae5; border-color: var(--success); border-style: solid; color: #065f46; }
-        .drop-zone.dz-wrong   { background: #fee2e2; border-color: var(--danger); border-style: solid; color: #991b1b; animation: shake 0.3s; }
-        .drop-zone.dz-reveal  { background: #fef3c7; border-color: #f59e0b; border-style: solid; color: #92400e; }
+        .drop-zone.dz-correct { background: var(--success-light); border-color: var(--success); border-style: solid; color: var(--success-dark); }
+        .drop-zone.dz-wrong   { background: var(--danger-light); border-color: var(--danger); border-style: solid; color: var(--danger-dark); animation: shake 0.3s; }
+        .drop-zone.dz-reveal  { background: var(--warning-light); border-color: var(--warning); border-style: solid; color: var(--warning-dark); }
 
         #chip-pool {
             display: flex;
@@ -159,9 +155,9 @@
         .num-chip.used     { opacity: 0.2; pointer-events: none; }
         .num-chip.chip-wrong {
             opacity: 0.45;
-            background: #fee2e2;
-            border-color: #fca5a5;
-            color: #991b1b;
+            background: var(--danger-light);
+            border-color: var(--danger-border);
+            color: var(--danger-dark);
             text-decoration: line-through;
             pointer-events: none;
         }
@@ -170,13 +166,13 @@
             color: white;
             border-color: var(--primary-dark);
             transform: scale(1.08);
-            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 45%, transparent);
         }
         @media (hover: hover) {
             .num-chip:not(.used):not(.chip-wrong):not(.dragging):not(.chip-selected):hover {
-                background: #e2e8f0;
-                border-color: #94a3b8;
-                color: #1e293b;
+                background: var(--border-light);
+                border-color: var(--border-strong);
+                color: var(--text-main);
             }
         }
 
@@ -192,7 +188,7 @@
             font-size: 1.3em;
             font-weight: 700;
             font-family: 'Courier New', Courier, monospace;
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 40%, transparent);
             display: none;
             white-space: nowrap;
         }
@@ -206,8 +202,8 @@
             padding: 12px 18px;
             max-width: 560px;
             width: calc(100% - 40px);
-            background: #f5f3ff;
-            border: 1px solid #ddd6fe;
+            background: var(--primary-light);
+            border: 1px solid var(--primary-light);
             border-radius: 10px;
             animation: fadeIn 0.3s;
         }
@@ -232,7 +228,7 @@
             margin: 0 auto;
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
-            color: #1e293b;
+            color: var(--text-main);
         }
         table.centrat td {
             padding: 0;
@@ -244,7 +240,7 @@
         table.centrat td.tok-op,
         table.centrat td.igual  { padding: 0 0.3em; }
         table.centrat td.igual  { color: var(--text-muted); }
-        table.centrat td.tok-paren { color: #475569; }
+        table.centrat td.tok-paren { color: var(--text-soft); }
         table.centrat sup {
             font-size: 0.62em;
             line-height: 0;
@@ -257,7 +253,7 @@
         table.centrat tr.auto td { color: var(--text-muted); }
         .solution-box table.centrat { font-size: 1.25em; }
         /* Mode «Esvaïment» (?esvaiment=1): passos resolts (exemple, en gris) i fets amb ajuda */
-        table.centrat tr.ajuda td { color: #92400e; /* ambre fosc, 7:1 sobre blanc */ }
+        table.centrat tr.ajuda td { color: var(--warning-dark); /* ambre fosc, 7:1 sobre blanc */ }
         table.centrat td.nota-pas {
             padding-left: 0.6em;
             font-family: system-ui, sans-serif;
@@ -290,15 +286,15 @@
             padding: 0 0.12em;
             min-width: 1.35em;
             background: var(--primary-light);
-            border: 2px solid #c4b5fd;
+            border: 2px solid color-mix(in srgb, var(--primary) 35%, white);
             border-radius: 8px;
             cursor: pointer;
             touch-action: manipulation;
         }
         .tok-btn:focus-visible { outline: 3px solid var(--primary-dark); outline-offset: 2px; }
-        @media (hover: hover) { .tok-btn:hover { background: #ddd6fe; border-color: var(--primary); } }
-        .tok-btn.hl-red   { border-color: var(--danger);  background: var(--danger-light);  color: #991b1b; }
-        .tok-btn.hl-green { border-color: var(--success); background: var(--success-light); color: #065f46; }
+        @media (hover: hover) { .tok-btn:hover { background: var(--primary-light); border-color: var(--primary); } }
+        .tok-btn.hl-red   { border-color: var(--danger);  background: var(--danger-light);  color: var(--danger-dark); }
+        .tok-btn.hl-green { border-color: var(--success); background: var(--success-light); color: var(--success-dark); }
 
         /* ---- Marques del diagnòstic sobre l'expressió ---- */
         .expression-box .hl-red, .expression-box .hl-green {
@@ -306,8 +302,8 @@
             padding: 0 8px;
             border: 3px solid;
         }
-        .expression-box .hl-red   { border-color: var(--danger);  background: #fee2e2; color: #991b1b; }
-        .expression-box .hl-green { border-color: var(--success); background: #d1fae5; color: #065f46; }
+        .expression-box .hl-red   { border-color: var(--danger);  background: var(--danger-light); color: var(--danger-dark); }
+        .expression-box .hl-green { border-color: var(--success); background: var(--success-light); color: var(--success-dark); }
         .fb-legend {
             display: flex;
             flex-wrap: wrap;
@@ -315,13 +311,13 @@
             gap: 6px 16px;
             margin-top: 8px;
             font-size: 0.92em;
-            color: #334155;
+            color: var(--text-main);
             font-weight: 600;
         }
         .fb-legend span { display: inline-flex; align-items: center; gap: 6px; }
         .lg-box { width: 16px; height: 16px; border-radius: 4px; border: 3px solid; display: inline-block; flex-shrink: 0; }
-        .lg-red   { border-color: var(--danger);  background: #fee2e2; }
-        .lg-green { border-color: var(--success); background: #d1fae5; }
+        .lg-red   { border-color: var(--danger);  background: var(--danger-light); }
+        .lg-green { border-color: var(--success); background: var(--success-light); }
 
         /* ---- Botó "Següent" ---- */
         .btn-next {
@@ -339,7 +335,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             touch-action: manipulation;
-            box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3);
+            box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 30%, transparent);
             animation: fadeIn 0.3s;
         }
         .btn-next:focus-visible { outline: 3px solid var(--primary-dark); outline-offset: 2px; }
@@ -355,9 +351,9 @@
         }
 
         /* ---- Animació intents ---- */
-        .attempts-counter.blink-error { animation: blink-violet 0.25s step-end infinite; border-color: #a855f7; }
+        .attempts-counter.blink-error { animation: blink-violet 0.25s step-end infinite; border-color: color-mix(in srgb, var(--primary) 35%, white); }
         @keyframes blink-violet {
-            0%, 100% { background-color: #f3e8ff; color: #6b21a8; }
+            0%, 100% { background-color: var(--primary-light); color: var(--primary); }
             50%      { background-color: white; color: var(--text-muted); }
         }
 

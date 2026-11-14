@@ -6,19 +6,12 @@ ROL: Estils específics del joc de mitjana aritmètica i ponderada.
 DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 ============================================================================
 */
-:root {
-    --bg-color: #eff6ff;
-    --primary: #2563eb;
-    --primary-light: #dbeafe;
-    --primary-dark: #1e40af;
-    --primary-hover: #1d4ed8;
-}
 
 h1 {
     color: var(--primary-dark);
 }
 .header-info {
-    background-color: #eff6ff;
+    background-color: var(--bg-color);
 }
 .level-text {
     color: var(--primary-dark);
@@ -66,7 +59,7 @@ h1 {
     border-bottom: 1px solid var(--border-light);
 }
 .notes-table tbody tr:nth-child(even) {
-    background: #f8fafc;
+    background: var(--bg-soft);
 }
 .td-label {
     font-weight: 600;
@@ -85,7 +78,7 @@ h1 {
     font-size: 1em;
     font-weight: 600;
     color: var(--text-muted);
-    background: #fef3c7;
+    background: var(--warning-light);
 }
 
 /* ── PREGUNTA ── */
@@ -93,7 +86,7 @@ h1 {
     font-size: 1.1em;
     color: var(--text-main);
     padding: 10px 16px;
-    background: #f8fafc;
+    background: var(--bg-soft);
     border-left: 4px solid var(--primary);
     border-radius: 0 8px 8px 0;
     margin-bottom: 4px;
@@ -134,12 +127,12 @@ h1 {
 }
 .answer-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 .answer-input.input-correct {
     border-color: var(--success) !important;
     background: #f0fdf4 !important;
-    color: #047857 !important;
+    color: var(--success) !important;
 }
 .answer-input.input-wrong {
     border-color: var(--danger) !important;
@@ -170,16 +163,16 @@ h1 {
     text-align: center;
 }
 .fb-ok {
-    color: #047857;
-    background: #d1fae5;
+    color: var(--success);
+    background: var(--success-light);
 }
 .fb-err {
-    color: #991b1b;
-    background: #fee2e2;
+    color: var(--danger-dark);
+    background: var(--danger-light);
 }
 .fb-warn {
-    color: #92400e;
-    background: #fef3c7;
+    color: var(--warning-dark);
+    background: var(--warning-light);
 }
 
 /* ── AJUDA DESPLEGABLE ── */
@@ -194,16 +187,16 @@ h1 {
     padding: 8px 20px;
     font-size: 0.9em;
     font-weight: 700;
-    color: #92400e;
-    background: #fef3c7;
-    border: 1.5px solid #f59e0b;
+    color: var(--warning-dark);
+    background: var(--warning-light);
+    border: 1.5px solid var(--warning);
     border-radius: 99px;
     cursor: pointer;
     transition: background 0.15s;
     touch-action: manipulation;
 }
 .btn-help:hover {
-    background: #fde68a;
+    background: var(--warning-border);
 }
 
 .help-panel {
@@ -212,22 +205,22 @@ h1 {
     margin: 8px auto 16px;
     padding: 16px 22px;
     background: #fffbeb;
-    border: 1.5px solid #fde68a;
+    border: 1.5px solid var(--warning-border);
     border-radius: 10px;
     text-align: left;
     animation: fadeSlide 0.3s ease;
 }
 .help-line {
     font-size: 0.95em;
-    color: #78350f;
+    color: var(--warning-dark);
     line-height: 1.7;
     padding: 4px 0;
-    border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+    border-bottom: 1px solid color-mix(in srgb, var(--warning) 15%, transparent);
 }
 .help-line:last-child {
     border-bottom: none;
     font-weight: 700;
-    color: #92400e;
+    color: var(--warning-dark);
     padding-top: 8px;
 }
 

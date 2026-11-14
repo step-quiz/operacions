@@ -9,21 +9,13 @@ DEPENDÈNCIES: Requereix css/shared.css carregat ABANS.
 */
 
 /* ---- Variables de color específiques ---- */
-:root {
-    --bg-color: #f5f3ff;
-    --primary: #7c3aed;
-    --primary-light: #ede9fe;
-    --primary-hover: #6d28d9;
-    --primary-dark: #4c1d95;
-    --accent: #f59e0b;
-}
 
 /* ---- Overrides de color específics ---- */
 h1 {
     color: var(--primary-dark);
 }
 .header-info {
-    background-color: #f5f3ff;
+    background-color: var(--bg-color);
 }
 .level-text {
     color: var(--primary-dark);
@@ -88,7 +80,7 @@ h1 {
 
 .btn-option {
     background: white;
-    border: 2.5px solid #d8d0f0;
+    border: 2.5px solid var(--primary-light);
     border-radius: 12px;
     padding: 18px 14px;
     font-family: 'Courier New', Courier, monospace;
@@ -113,7 +105,7 @@ h1 {
         background-color: var(--primary-light);
         border-color: var(--primary);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent);
     }
 }
 
@@ -122,16 +114,16 @@ h1 {
 }
 
 .btn-option.correct {
-    background-color: #d1fae5;
-    border-color: #10b981;
-    color: #065f46;
+    background-color: var(--success-light);
+    border-color: var(--success);
+    color: var(--success-dark);
     animation: correctPop 0.4s ease;
 }
 
 .btn-option.incorrect {
-    background-color: #fee2e2;
-    border-color: #ef4444;
-    color: #991b1b;
+    background-color: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger-dark);
     animation: shake 0.3s;
 }
 
@@ -141,9 +133,9 @@ h1 {
 }
 
 .btn-option.reveal-correct {
-    background-color: #d1fae5;
-    border-color: #10b981;
-    color: #065f46;
+    background-color: var(--success-light);
+    border-color: var(--success);
+    color: var(--success-dark);
     opacity: 1 !important;
     pointer-events: none;
 }
@@ -205,18 +197,18 @@ h1 {
 }
 @keyframes blinkAttempts {
     0% {
-        background-color: #facc15;
+        background-color: var(--warning);
     }
     25% {
         background-color: white;
     }
     50% {
-        background-color: #facc15;
+        background-color: var(--warning);
     }
     75% {
         background-color: white;
     }
     100% {
-        background-color: #facc15;
+        background-color: var(--warning);
     }
 }

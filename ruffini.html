@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-algebra">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,16 +8,14 @@
     <link rel="icon" href="icon.png">
     <title>Regla de Ruffini</title>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <style>
         :root {
-            --primary: #8b5cf6;
-            --primary-dark: #7c3aed;
-            --primary-light: #ede9fe;
-            --gris: #64748b;
-            --gris-fosc: #334155;
-            --bg: #f8fafc;
+            --gris: var(--text-muted);
+            --gris-fosc: var(--text-main);
+            --bg: var(--bg-soft);
             --card: #ffffff;
-            --border: #e2e8f0;
+            --border: var(--border-light);
 
             /* ════ TEMPS CSS ════════════════════════════════════════════════
                Sincronitza amb les constants JS T_* al principi del <script>  */
@@ -46,7 +44,7 @@
             font-size: 1.5rem;
             font-weight: 800;
             letter-spacing: -0.5px;
-            color: #1e293b;
+            color: var(--text-main);
             text-align: center;
             margin: 8px 0 16px;
         }
@@ -89,7 +87,7 @@
             text-align: center;
             font-size: 1.12rem;   /* 1.6rem × 0.70 ≈ 1.12rem */
             font-weight: 700;
-            color: #1e293b;
+            color: var(--text-main);
             margin-bottom: 20px;
             letter-spacing: -0.5px;
         }
@@ -109,8 +107,8 @@
             flex-shrink: 0;
             padding: 4px 10px;
             border-radius: 6px;
-            border: 1.5px solid #cbd5e1;
-            background: #f1f5f9;
+            border: 1.5px solid var(--border-heavy);
+            background: var(--bg-soft-alt);
             color: var(--gris);
             font-size: 0.75rem;
             font-weight: 700;
@@ -125,7 +123,7 @@
 
         .hint-box {
             background: var(--primary-light);
-            border: 1px solid #c4b5fd;
+            border: 1px solid color-mix(in srgb, var(--primary) 35%, white);
             border-radius: 10px;
             padding: 10px 16px;
             font-size: 0.9rem;
@@ -199,8 +197,8 @@
         .btn-candidate:disabled { opacity: 0.35; cursor: default; }
         .btn-candidate.tried-wrong {
             background: #fef2f2;
-            border-color: #fca5a5;
-            color: #b91c1c;
+            border-color: var(--danger-border);
+            color: var(--danger-dark);
             text-decoration: line-through;
         }
         .btn-candidate.active {
@@ -229,14 +227,14 @@
             font-size: 1.3rem;
             font-weight: 800;
             color: var(--primary);
-            border-right: 3px solid #1e293b;
+            border-right: 3px solid var(--text-main);
             padding-right: 10px;
         }
         .cell-coef {
             width: 70px;
             font-size: 1.25rem;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--text-main);
         }
         .cell-prod {
             width: 70px;
@@ -248,7 +246,7 @@
             padding-bottom: 2px;
         }
         .row-divider td {
-            border-top: 2.5px solid #1e293b;
+            border-top: 2.5px solid var(--text-main);
             padding-top: 6px;
         }
         .cell-result { width: 70px; height: 52px; }
@@ -261,7 +259,7 @@
             font-size: 1.2rem;
             font-weight: 700;
             color: var(--primary);
-            background: #f8fafc;
+            background: var(--bg-soft);
             transition: border-color 0.2s, background 0.2s;
         }
         .cell-input:focus {
@@ -272,15 +270,15 @@
         .cell-input:disabled {
             background: white;
             border-color: transparent;
-            color: #1e293b;
+            color: var(--text-main);
             cursor: default;
         }
         .cell-input.confirmed {
             background: white;
             border-color: transparent;
-            color: #1e293b;
+            color: var(--text-main);
         }
-        .cell-input.confirmed-root { color: #1e293b; }
+        .cell-input.confirmed-root { color: var(--text-main); }
         .cell-input.kb-selected {
             background: var(--primary);
             border-color: var(--primary-dark);
@@ -356,7 +354,7 @@
             display: block;
             margin: 10px auto 0;
             padding: 8px 20px;
-            background: #e2e8f0;
+            background: var(--border-light);
             color: var(--gris-fosc);
             border: none;
             border-radius: 8px;
@@ -364,11 +362,11 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .btn-mini:hover { background: #cbd5e1; }
+        .btn-mini:hover { background: var(--border-heavy); }
 
         .result-box {
             background: var(--success-light);
-            border: 2px solid #86efac;
+            border: 2px solid var(--success-border);
             border-radius: 12px;
             padding: 16px 20px;
             text-align: center;
@@ -383,7 +381,7 @@
         .result-box .result-expr {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #166534;
+            color: var(--success-dark);
         }
 
         input[type=number]::-webkit-outer-spin-button,
@@ -392,7 +390,7 @@
 
         #customKeyboard {
             display: none;
-            background: #f1f5f9;
+            background: var(--bg-soft-alt);
             border: 2px solid var(--border-heavy);
             border-radius: 12px;
             padding: 12px 12px 16px;
@@ -409,13 +407,13 @@
         .kb-btn {
             width: 58px; height: 52px;
             border-radius: 10px;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid var(--border-heavy);
             background: white;
             font-size: 1.3rem;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--text-main);
             cursor: pointer;
-            box-shadow: 0 2px 0 #cbd5e1;
+            box-shadow: 0 2px 0 var(--border-heavy);
             transition: 0.08s;
             display: flex; align-items: center; justify-content: center;
         }
@@ -428,26 +426,26 @@
             box-shadow: 0 2px 0 var(--primary-dark);
             font-size: 1.5rem;
         }
-        .kb-btn.kb-minus { background: #f8fafc; color: var(--primary); }
+        .kb-btn.kb-minus { background: var(--bg-soft); color: var(--primary); }
         .kb-btn.kb-del {
             background: #fff1f2;
-            border-color: #fca5a5;
-            color: #b91c1c;
+            border-color: var(--danger-border);
+            color: var(--danger-dark);
             font-size: 1.1rem;
         }
 
         .debug-box {
-            background: #fef08a;
-            border: 2px dashed #ca8a04;
+            background: var(--warning-border);
+            border: 2px dashed var(--warning);
             border-radius: 8px;
             padding: 6px 14px;
             font-family: monospace;
             font-size: 0.9rem;
-            color: #78350f;
+            color: var(--warning-dark);
             margin-bottom: 14px;
             text-align: center;
         }
-        .debug-box strong { color: #92400e; }
+        .debug-box strong { color: var(--warning-dark); }
 
         @media (max-width: 600px) {
             .app-card { padding: 18px 14px; }

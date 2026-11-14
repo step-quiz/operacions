@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,21 +16,22 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
         /* ---- Variables de color específiques ---- */
         :root {
-            --blue-box: #3b82f6;
-            --grey-box: #94a3b8;
+            --blue-box: var(--primary);
+            --grey-box: var(--border-strong);
         }
 
         /* ---- Overrides de shared.css ---- */
-        .panel { border-top-color: #475569; }
+        .panel { border-top-color: var(--text-soft); }
 
         /* ---- Pantalla de selecció ---- */
         #selection-screen { padding: 30px 20px; text-align: center; }
-        #selection-screen h2 { color: #334155; font-size: 1.4em; margin-bottom: 20px; }
+        #selection-screen h2 { color: var(--text-main); font-size: 1.4em; margin-bottom: 20px; }
         .selection-cards { display: flex; flex-direction: column; gap: 12px; max-width: 420px; margin: 0 auto; }
         .selection-card {
             background: white; border: 2px solid var(--border-heavy); border-radius: 10px;
@@ -40,7 +41,7 @@
         .selection-card:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
         .selection-card:active { transform: scale(0.97); }
         @media (hover:hover) {
-            .selection-card:hover { border-color: var(--blue-box); background: #f0f7ff; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+            .selection-card:hover { border-color: var(--blue-box); background: var(--primary-light); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         }
         .selection-icon {
             font-family: 'Courier New', monospace; font-size: 1.6em; font-weight: bold;
@@ -48,7 +49,7 @@
             width: 52px; height: 52px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        .selection-text h3 { margin: 0 0 4px 0; color: #334155; font-size: 1.05em; }
+        .selection-text h3 { margin: 0 0 4px 0; color: var(--text-main); font-size: 1.05em; }
         .selection-text p { margin: 0; color: var(--text-muted); font-size: 0.9em; }
 
         /* ---- Zona expressió principal ---- */
@@ -100,9 +101,9 @@
             width: 40px; height: 40px; border-radius: 6px; border: 3px solid;
             display: inline-flex; align-items: center; justify-content: center; font-size: 0.85em;
         }
-        .schema-box.blue { border-color: var(--blue-box); background: #eff6ff; }
-        .schema-box.grey { border-color: var(--grey-box); background: #f1f5f9; }
-        .schema-box.grey.filled { background: #e2e8f0; color: var(--grey-box); font-weight: bold; }
+        .schema-box.blue { border-color: var(--blue-box); background: var(--primary-light); }
+        .schema-box.grey { border-color: var(--grey-box); background: var(--bg-soft-alt); }
+        .schema-box.grey.filled { background: var(--border-light); color: var(--grey-box); font-weight: bold; }
         .schema-dot { padding: 0 8px; color: var(--text-muted); font-size: 1.1em; align-self: center; }
         .schema-sign { font-size: 1.55em; line-height: 0.9; padding-right: 1px; align-self: flex-end; }
         .schema-radicand-bar {
@@ -113,10 +114,10 @@
             width: 40px; height: 40px;
             font-family: 'Courier New', Courier, monospace; font-size: 0.85em; font-weight: bold;
             text-align: center; border: 3px solid var(--blue-box); border-radius: 6px;
-            background: #eff6ff; outline: none; color: var(--text-main);
+            background: var(--primary-light); outline: none; color: var(--text-main);
             -moz-appearance: textfield;
         }
-        .schema-input:focus { background: #dbeafe; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+        .schema-input:focus { background: var(--primary-light); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
         .schema-input::-webkit-inner-spin-button,
         .schema-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .schema-input.error-flash { border-color: var(--danger); background: var(--danger-light); animation: shake 0.2s; }
@@ -128,26 +129,26 @@
         }
         .step-container { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s; }
         .step-container.active { display: flex; }
-        .step-title { font-size: 1.05em; color: #475569; margin-bottom: 18px; font-weight: bold; text-align: center; }
+        .step-title { font-size: 1.05em; color: var(--text-soft); margin-bottom: 18px; font-weight: bold; text-align: center; }
 
         #step-feedback { margin-top: 10px; font-size: 0.95em; color: var(--text-muted); text-align: center; min-height: 1.2em; }
-        #step-feedback.important { color: #b45309; font-weight: bold; }
+        #step-feedback.important { color: var(--warning-dark); font-weight: bold; }
 
         .btn-submit-schema {
-            background-color: #475569; color: white; border: none;
+            background-color: var(--text-soft); color: white; border: none;
             padding: 12px 28px; font-size: 1em; font-weight: bold;
             border-radius: 6px; cursor: pointer; text-transform: uppercase;
             touch-action: manipulation; margin-top: 18px;
         }
         .btn-submit-schema:active { transform: scale(0.95); }
-        @media (hover:hover) { .btn-submit-schema:hover { background-color: #334155; } }
+        @media (hover:hover) { .btn-submit-schema:hover { background-color: var(--text-main); } }
         .btn-submit-schema.error-shake { background-color: var(--danger); animation: shake 0.2s; }
 
         /* ---- Animació intents ---- */
         .attempts-counter.blink { animation: attemptsBlink 0.2s linear 5; }
         @keyframes attemptsBlink {
-            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
-            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
+            0%, 100% { background-color: var(--warning-light); border-color: #d1d5db; color: var(--text-main); }
+            50%      { background-color: #e5e7eb; border-color: var(--warning); color: var(--text-main); }
         }
 
         /* ---- Mini overlay (override: posició absoluta) ---- */

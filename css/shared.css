@@ -15,13 +15,6 @@ DEPENDÈNCIES: css/tokens.css (colors comuns: text, vores, encert, error),
 */
 /* ---- VARIABLES DE TEMA (fallbacks si el joc no les defineix) ----
    Els colors comuns (--text-main, --danger, --success…) són a css/tokens.css. */
-:root {
-    --bg-color: #f8fafc;
-    --primary: #0369a1;
-    --primary-light: #e0f2fe;
-    --primary-hover: #2563eb;
-    --primary-dark: #0f172a;
-}
 
 /* ---- RESET BASE ---- */
 * {
@@ -60,7 +53,7 @@ body {
 h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #334155;
+    color: var(--text-main);
     font-size: 1.6em;
     margin-bottom: 5px;
     text-align: center;
@@ -121,7 +114,7 @@ h1 {
 
 /* ---- CAPÇALERA DEL JOC ---- */
 .header-info {
-    background-color: #f1f5f9;
+    background-color: var(--bg-soft-alt);
     padding: 15px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -143,11 +136,11 @@ h1 {
 }
 .level-text {
     font-size: 1.2em;
-    color: #334155;
+    color: var(--text-main);
 }
 .score-text {
     font-size: 1.2em;
-    color: #059669;
+    color: var(--success);
     font-family: monospace;
 }
 
@@ -178,7 +171,7 @@ input[type='number'] {
 
 /* ---- BOTÓ PRINCIPAL (submit) ---- */
 .btn-submit {
-    background-color: #475569;
+    background-color: var(--text-soft);
     color: white;
     border: none;
     padding: 15px 25px;
@@ -198,7 +191,7 @@ input[type='number'] {
 }
 @media (hover: hover) {
     .btn-submit:hover {
-        background-color: #334155;
+        background-color: var(--text-main);
     }
 }
 .btn-submit.error-shake {
@@ -208,7 +201,7 @@ input[type='number'] {
 
 /* ---- BOTÓ VERD (sessió completada) ---- */
 .btn-green {
-    background-color: #059669;
+    background-color: var(--success);
     color: white;
     border: none;
     padding: 15px 35px;
@@ -229,13 +222,13 @@ input[type='number'] {
 }
 @media (hover: hover) {
     .btn-green:hover {
-        background-color: #047857;
+        background-color: var(--success);
     }
 }
 
 /* ---- BOTÓ FINALITZAR ---- */
 .btn-finalitzar {
-    background-color: #475569;
+    background-color: var(--text-soft);
     color: white;
     border: none;
     padding: 15px 35px;
@@ -256,7 +249,7 @@ input[type='number'] {
 }
 @media (hover: hover) {
     .btn-finalitzar:hover {
-        background-color: #334155;
+        background-color: var(--text-main);
     }
 }
 
@@ -441,7 +434,7 @@ input[type='number'] {
 
 #customKeyboard {
     display: none;
-    background: #f1f5f9;
+    background: var(--bg-soft-alt);
     border: 2px solid var(--border-heavy);
     border-radius: 12px;
     padding: 12px 12px 16px;
@@ -463,13 +456,13 @@ input[type='number'] {
 .kb-btn {
     height: 52px;
     border-radius: 10px;
-    border: 1.5px solid #cbd5e1;
+    border: 1.5px solid var(--border-heavy);
     background: white;
     font-size: 1.3rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-main);
     cursor: pointer;
-    box-shadow: 0 2px 0 #cbd5e1;
+    box-shadow: 0 2px 0 var(--border-heavy);
     transition: 0.08s;
     display: flex;
     align-items: center;
@@ -490,13 +483,13 @@ input[type='number'] {
     font-size: 1.5rem;
 }
 .kb-btn.kb-minus {
-    background: #f8fafc;
+    background: var(--bg-color);
     color: var(--primary);
 }
 .kb-btn.kb-del {
     background: #fff1f2;
-    border-color: #fca5a5;
-    color: #b91c1c;
+    border-color: var(--danger-border);
+    color: var(--danger-dark);
     font-size: 1.1rem;
 }
 
@@ -680,7 +673,7 @@ input[type='number'] {
     background-color: var(--primary);
 }
 .btn-action-copy {
-    background-color: #a84359;
+    background-color: var(--danger-dark);
     color: white;
 }
 
@@ -723,26 +716,26 @@ input[type='number'] {
 }
 .history-item--ok {
     background: #f0fdf4;
-    border-color: #bbf7d0;
+    border-color: var(--success-border);
 }
 .history-item--bad {
     background: #fef2f2;
-    border-color: #fecaca;
+    border-color: var(--danger-border);
 }
 
 .history-q {
     margin-bottom: 6px;
-    color: #334155;
+    color: var(--text-main);
 }
 .history-mono {
     font-family: monospace;
     font-size: 1.05em;
 }
 .history-a--ok {
-    color: #059669;
+    color: var(--success);
 }
 .history-a--bad {
-    color: #dc2626;
+    color: var(--danger);
 }
 
 .history-empty {

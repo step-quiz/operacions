@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-algebra">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,24 +19,18 @@
 
     <!-- 3. Estils compartits -->
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/pissarra.css">
 
     <style>
         /* ---- Variables de color específiques d'equacions ---- */
-        :root {
-            --bg-color:      #f0fdfa;
-            --primary:       #0d9488;
-            --primary-light: #ccfbf1;
-            --primary-hover: #0f766e;
-            --primary-dark:  #115e59;
-            --accent:        #f59e0b;
-        }
+        
 
         /* ---- Overrides de color específics ---- */
-        h1 { color: #134e4a; }
-        .header-info { background-color: #f0fdfa; }
-        .level-text  { color: #134e4a; }
+        h1 { color: var(--primary-dark); }
+        .header-info { background-color: var(--bg-color); }
+        .level-text  { color: var(--primary-dark); }
         .score-text  { color: var(--primary); }
 
         /* ---- ZONA EQUACIÓ ---- */
@@ -151,7 +145,7 @@
 
         /* ---- ZONA DE RESOLUCIÓ PAS A PAS ---- */
         .resolution-panel {
-            background-color: #f8fafc;
+            background-color: var(--bg-soft);
             border-top: 1px solid var(--border-color);
             padding: 25px 20px;
             display: none;
@@ -162,7 +156,7 @@
 
         .step-instruction {
             font-size: 1.15em;
-            color: #334155;
+            color: var(--text-main);
             margin-bottom: 20px;
             font-weight: bold;
             text-align: center;
@@ -217,11 +211,11 @@
         .attempts-counter.blink-warning { animation: blinkAttempts 1s ease-in-out; }
 
         @keyframes blinkAttempts {
-            0%   { background-color: #facc15; }
+            0%   { background-color: var(--warning); }
             25%  { background-color: white; }
-            50%  { background-color: #facc15; }
+            50%  { background-color: var(--warning); }
             75%  { background-color: white; }
-            100% { background-color: #facc15; }
+            100% { background-color: var(--warning); }
         }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">

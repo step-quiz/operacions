@@ -11,7 +11,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { parseStrictInt, randInt } from '../utils.js';
 import {
     state,
-    bgColors,
     getKbActiveInput,
     hideCustomKeyboard,
     initCustomKeyboard,
@@ -382,8 +381,8 @@ function renderDimLabels(cells, CELL, PAD) {
         EXT = 18,
         GAP = 8,
         FS = 15;
-    const LC = '#475569',
-        TC = '#1e293b';
+    const LC = 'var(--text-soft)',
+        TC = 'var(--text-main)';
     const TA = `font-family="'Segoe UI',Tahoma,sans-serif" font-size="${FS}" font-weight="700" fill="${TC}"`;
     let svg = '';
     for (const side of sides) {
@@ -577,9 +576,6 @@ function buildLevel() {
     _areaLocked = false;
     _perimLocked = false;
     currentPentomino = pickNextShape();
-
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
 
     els.pentoContainer.innerHTML = renderPentominoSVG(currentPentomino.cells);
 
