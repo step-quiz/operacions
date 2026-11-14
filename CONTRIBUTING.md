@@ -19,6 +19,7 @@ operacions/
 │   ├── esvaiment.js            ← Mode «Esvaïment» ?esvaiment=1 (motor de nivells, sense DOM)
 │   ├── punts.js                ← La regla única dels punts (10 per pregunta, 2 menys per error; pur)
 │   ├── seguent.js              ← La franja del final de pregunta amb el botó «Següent» (DOM)
+│   ├── codi-finestra.js        ← La icona «Codi», la seva finestra i generaCodi() (DOM)
 │   ├── game-core.js            ← Motor de joc compartit (estat, puntuació, pantalles, codi v2)
 │   ├── pissarra/               ← «Resolució pas a pas»: la pissarra animada (?pissarra=1)
 │   │   ├── formules.js         ← Claus dels símbols i guió dels passos (pur)
@@ -157,6 +158,12 @@ acabaPregunta(encert ? puntsDeLaPregunta() : 0); // punts + franja + botó «Seg
 - Les activitats que no fan servir game-core.js (Vocabulari, Asímptotes, les de gràfiques de Batxillerat) criden directament `mostraSeguent({ punts, encert, ultima, lloc, onSeguent })` de `js/seguent.js`; `punts: null` per a les que no compten punts.
 - L'HTML enllaça `css/seguent.css` (`tests/check-repo.js` ho comprova).
 
+### Icona «Codi» i codi de verificació
+
+- **`posaIconaCodi(estat)`** (`js/codi-finestra.js`) posa la icona «Codi», fixa a dalt a la dreta. `estat()` torna `{ codi }` quan l'activitat s'ha acabat, o bé `{ falten, unitat: ['figura', 'figures'] }` o `{ missatge }` abans: aleshores la finestra diu quantes en falten i no dona cap codi. game-core.js la posa sol a `injectSharedHTML()` (menys en sessions fixes i esvaïment); Vocabulari, Pla cartesià i Asímptotes la posen ells.
+- **El codi es genera un sol cop**, en acabar, amb `generaCodi({ exCode, dif, sessions, questions, nota10, resultats })`, i es desa: game-core.js ho fa a `codiFinal()`, des d'`endSession()`. `copiarResultats()` (el botó «Copiar codi» de la pantalla final i de l'informe) i la icona obren la mateixa finestra, que mostra sempre aquest codi. `avisaCodiLlest()` pinta la icona del color de l'activitat perquè l'alumne la vegi.
+- L'HTML enllaça `css/codi.css` (`tests/check-repo.js` ho comprova).
+
 ### Capçalera de fitxer estàndard
 
 ```js
@@ -228,7 +235,7 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 | NNN | 3 | Nota ×10 arrodonida (000-100) |
 | RRR…R | 30-50 | Resultats per pregunta, sessió rere sessió (S × QQ posicions, mínim 30): 1=1r intent, 2=2n, 3=3r+, 4=fallada, 0=buit |
 
-**Lletra de control:** `js/codi-verificacio.js` (la fan servir els generadors i l'analitzador; `step-quiz/cb` en té una còpia idèntica, al seu codi.js). Els dos generadors d'operacions (`game-core.js` i `vocabulari.js`) munten el codi sencer amb `construeixCodiV2()`, del mateix fitxer. Des del 18/10/2026: `suma = NNN + DD + MM + HH + mm + ASCII(salt[0]) + Σ pes(i)·ASCII(cos[i])`, amb `cos = EE + D + S + QQ + RRR…` i `pes(i) = (i mod 22) + 1`; lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`. Cobreix tots els camps: canviar una sola xifra dels resultats la fa deixar de quadrar. Els codis d'abans (sense la suma del cos) continuen sent vàlids, i l'analitzador els marca ☑️ (resultats sense verificar). Proves: `tests/codi-verificacio.test.js`.
+**Lletra de control:** `js/codi-verificacio.js` (la fan servir els generadors i l'analitzador; `step-quiz/cb` en té una còpia idèntica, al seu codi.js). Tots els generadors d'operacions (`game-core.js`, `vocabulari.js`, `pla-cartesia.js` i `asimptotes.js`) munten el codi amb `generaCodi()` de `js/codi-finestra.js`, que posa la sal i l'hora i crida `construeixCodiV2()` d'aquest fitxer. Des del 18/10/2026: `suma = NNN + DD + MM + HH + mm + ASCII(salt[0]) + Σ pes(i)·ASCII(cos[i])`, amb `cos = EE + D + S + QQ + RRR…` i `pes(i) = (i mod 22) + 1`; lletra = `"TRWAGMYFPDXBNJZSQVHLCKE"[suma % 23]`. Cobreix tots els camps: canviar una sola xifra dels resultats la fa deixar de quadrar. Els codis d'abans (sense la suma del cos) continuen sent vàlids, i l'analitzador els marca ☑️ (resultats sense verificar). Proves: `tests/codi-verificacio.test.js`.
 
 ### Format v3 (només Competències Bàsiques)
 
@@ -335,7 +342,7 @@ node tests/run-all.js
 
 | Fitxer | Què comprova |
 |--------|--------------|
-| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) · mode «Esvaïment» (no genera mai codi, `SUPORTA_ESVAIMENT` quadra amb `index.html`) · «Resolució pas a pas» (`SUPORTA_PISSARRA` quadra amb `index.html`, la pissarra no fa servir `Math.random`, l'analitzador no en sap res) · final de pregunta (cap activitat suma punts pel seu compte, ningú no fa servir la finestra antiga «Molt bé!», les pàgines amb la franja enllacen `css/seguent.css`) |
+| `tests/check-repo.js` | Sintaxi de tots els JS i dels `<script>` inline · enllaços locals trencats · coherència de `js/exercise-codes.js` amb les pàgines · que no tornin errors ja corregits (barrejat esbiaixat, PDF.js sense `isEvalSupported: false`, zoom bloquejat) · sessions fixes (`fixed-sessions.js` s'executa primer) · colors comuns · mòduls ES (cada `import` existeix, cada `on…="…"` troba la seva funció, `window.buildLevel`, cap `js/` com a script clàssic, cap JS dins l'HTML de les pàgines amb joc) · mode «Esvaïment» (no genera mai codi, `SUPORTA_ESVAIMENT` quadra amb `index.html`) · «Resolució pas a pas» (`SUPORTA_PISSARRA` quadra amb `index.html`, la pissarra no fa servir `Math.random`, l'analitzador no en sap res) · final de pregunta (cap activitat suma punts pel seu compte, ningú no fa servir la finestra antiga «Molt bé!», les pàgines amb la franja enllacen `css/seguent.css`) · icona «Codi» (les 28 pàgines que donen codi la posen i enllacen `css/codi.css`, només `generaCodi()` munta codis, game-core.js el genera un sol cop i no en dona en sessions fixes ni esvaïment) |
 | `tests/modules.test.js` | Genera milers de preguntes de cada mòdul: una sola opció correcta, cap opció repetida, cap `undefined`/`NaN`, la correcta repartida per igual entre posicions, i solucions recalculades de manera independent (mitjana, mediana, moda…). A `prioritat`, també la resolució pas a pas (ordre, disposició «centrat»), la modalitat «Pas a pas» i una empremta que avisa si canvien les preguntes de les sessions fixes |
 | `tests/esm.test.js` | Importa de debò (amb `import`, com el navegador) la base i cada mòdul de lògica, i comprova que exporten el que han d'exportar |
 | `tests/fixed-sessions.test.js` | Sessions fixes: la mateixa pregunta és igual per a tothom encara que l'alumne hagi fet coses diferents abans |

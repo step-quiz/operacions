@@ -66,7 +66,7 @@
 
 import { TOTAL_SESSIONS, TOTAL_OPERATIONS, MAX_ENLLOC_MITJANA, MAX_INTENTS } from './config.js';
 import { EXERCISE_CODES } from './exercise-codes.js'; // taula única compartida amb l'analitzador
-import { construeixCodiV2 } from './codi-verificacio.js'; // codi v2 i lletra de control, compartits amb l'analitzador
+import { avisaCodiLlest, generaCodi, obreFinestraCodi, posaIconaCodi } from './codi-finestra.js'; // icona i finestra del codi
 import { FixedSessions } from './fixed-sessions.js';
 import { ESVAIMENT } from './esvaiment.js'; // mode «Esvaïment» (?esvaiment=1): no dona codi
 import { PUNTS_MAX, puntsAmbErrors, validaPunts } from './punts.js'; // la regla única dels punts
@@ -107,6 +107,7 @@ export const state = {
     sessionScores: [],
     attemptsLeft: 0,
     isTransitioning: false,
+    preguntesFetes: 0, // preguntes acabades (per dir quantes en falten abans de donar el codi)
 };
 
 // ── VALIDACIO DE CONFIGURACIO ────────────────────────────────────────────────
@@ -149,6 +150,7 @@ export function startGame() {
     state.sessionScores = [];
     state.sessionHistory = [];
     state.sessionResults = [];
+    state.preguntesFetes = 0;
     showScreen('game-screen');
     startSession();
 }
@@ -162,6 +164,8 @@ export function startSession() {
 export function endSession() {
     state.sessionScores.push(state.sessionScore);
     if (state.currentSession + 1 >= TOTAL_SESSIONS) {
+        // El codi es genera ara, un sol cop: la icona «Codi» i el botó «Copiar codi» mostren sempre aquest
+        if (codiFinal()) avisaCodiLlest();
         renderFinalSummary();
         showScreen('final-screen');
     } else {
@@ -232,6 +236,7 @@ export function sumaPunts(punts) {
  */
 export function acabaPregunta(punts, { encert, alFinal = endSession, alSeguent, lloc, titol } = {}) {
     const sumats = sumaPunts(punts);
+    state.preguntesFetes++;
     state.isTransitioning = true;
     hideCustomKeyboard();
     const ultima = state.currentOperation + 1 >= TOTAL_OPERATIONS;
@@ -339,6 +344,13 @@ export function injectSharedHTML() {
     finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:#334155;">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     panel.appendChild(finalScreen);
     if (FixedSessions || ESVAIMENT) finalScreen.querySelector('#btn-copiar').style.display = 'none';
+
+    // 4. Icona «Codi» de dalt a la dreta (no en sessions fixes ni en esvaïment, que no donen codi)
+    if (!FixedSessions && !ESVAIMENT) {
+        posaIconaCodi(() =>
+            _codiFinal ? { codi: _codiFinal } : { falten: TOTAL_SESSIONS * TOTAL_OPERATIONS - state.preguntesFetes }
+        );
+    }
 }
 
 // ── TECLAT NUMERIC CUSTOM ────────────────────────────────────────────────────
@@ -607,71 +619,35 @@ export function showHistorySummary() {
 // aquest mòdul (p. ex. window.showHistorySummary = …).
 Object.assign(window, { startNextSession, showHistorySummary, copiarResultats, finalitzar });
 
-// ── GENERADOR DE CODI v2 ─────────────────────────────────────────────────────
+// ── CODI DE VERIFICACIÓ v2 ───────────────────────────────────────────────────
+// Es genera UN SOL COP, en acabar l'última sessió (endSession). La icona «Codi» i el
+// botó «Copiar codi» obren la mateixa finestra (js/codi-finestra.js), que mostra
+// sempre aquest codi: copiar-lo deu vegades no en fa deu de diferents.
+let _codiFinal = null;
+
+/** El codi de la partida (el genera la primera vegada), o null si aquesta modalitat no en dona. */
+export function codiFinal() {
+    if (FixedSessions || ESVAIMENT) return null;
+    if (!_codiFinal) {
+        const nomFitxer = window.location.pathname.split('/').pop().replace('.html', '');
+        _codiFinal = generaCodi({
+            exCode: EXERCISE_CODES[nomFitxer] || 'XX', // 'XX': pàgina sense codi a la taula
+            dif: state.currentDifficulty || 0,
+            sessions: Math.min(TOTAL_SESSIONS, 5),
+            questions: Math.min(TOTAL_OPERATIONS, 10),
+            nota10: calculaNotaSobre10(),
+            resultats: state.sessionResults.slice(0, MAX_RESULTS),
+        });
+        console.log('Codi v2:', _codiFinal, '(', _codiFinal.length, 'chars)');
+    }
+    return _codiFinal;
+}
+
+/** Botó «Copiar codi» (pantalla final i informe): obre la finestra del codi. */
+// Mode «Esvaïment» i sessions fixes: mai no es genera codi (l'alumne no ha fet sol tots els passos)
 export async function copiarResultats() {
-    // Mode «Esvaïment»: mai no es genera codi (l'alumne no ha fet sol tots els passos)
     if (ESVAIMENT) return;
-
-    // Salt
-    let salt = '';
-    const ch = 'abcdefghijklmnopqrstuvwxyz';
-    for (let i = 0; i < 3; i++) salt += ch.charAt(Math.floor(Math.random() * ch.length));
-
-    // Exercici
-    const nomFitxer = window.location.pathname.split('/').pop().replace('.html', '');
-    const exCode = EXERCISE_CODES[nomFitxer] || 'XX'; // 'XX': pàgina sense codi a la taula
-
-    // Dificultat, sessions, preguntes
-    const dif = String(Math.min(Math.max(state.currentDifficulty || 0, 0), 3));
-    const sessions = String(Math.min(TOTAL_SESSIONS, 5));
-    const questions = String(Math.min(TOTAL_OPERATIONS, 10)).padStart(2, '0');
-
-    // Nota (NNN = nota x 10, 000-100)
-    const notaInt = Math.round(calculaNotaSobre10() * 10);
-
-    // Resultats per pregunta (mínim 30 chars, màxim MAX_RESULTS)
-    const results = state.sessionResults.slice(0, MAX_RESULTS).map(String).join('').padEnd(30, '0');
-
-    // Codi final, amb la lletra de control (js/codi-verificacio.js), que cobreix tots els camps:
-    // Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
-    const output = construeixCodiV2({
-        salt,
-        ara: new Date(),
-        exCode,
-        dif,
-        sessions,
-        questions,
-        notaInt,
-        results,
-    });
-    console.log('Codi v2:', output, '(', output.length, 'chars)');
-
-    function mostrarExit() {
-        const btn = document.getElementById('btn-copiar');
-        if (btn) {
-            btn.innerText = 'Copiat! ✅';
-            btn.style.backgroundColor = 'var(--success)';
-            setTimeout(() => {
-                btn.style.display = 'none';
-            }, 3000);
-        }
-    }
-
-    try {
-        await navigator.clipboard.writeText(output);
-        mostrarExit();
-    } catch (err) {
-        let fb = document.getElementById('fallback-code-box');
-        if (!fb) {
-            fb = document.createElement('div');
-            fb.id = 'fallback-code-box';
-            fb.style.cssText =
-                'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:520px;';
-            fb.innerHTML = `<div style="font-size:0.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div><div id="fallback-code-text" style="font-family:monospace;font-size:0.9em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;letter-spacing:0.5px;"></div>`;
-            (document.querySelector('.panel') || document.body).appendChild(fb);
-        }
-        document.getElementById('fallback-code-text').textContent = output;
-        fb.style.display = 'block';
-        fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+    if (FixedSessions) return;
+    codiFinal();
+    obreFinestraCodi();
 }

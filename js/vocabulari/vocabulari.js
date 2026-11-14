@@ -9,7 +9,7 @@
 
 import { VocabEngine } from './vocabulari-engine.js';
 import { VocabFigures } from './vocabulari-figures.js';
-import { construeixCodiV2 } from '../codi-verificacio.js';
+import { avisaCodiLlest, generaCodi, obreFinestraCodi, posaIconaCodi } from '../codi-finestra.js'; // icona i finestra del codi
 import { puntsAmbErrors, validaPunts } from '../punts.js'; // la regla única dels punts
 import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunta amb «Següent»
 
@@ -144,6 +144,12 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
     // INIT
     // =========================================================================
     function init() {
+        // Icona «Codi» de dalt a la dreta: abans d'acabar diu quantes figures falten
+        posaIconaCodi(() =>
+            _codiFinal
+                ? { codi: _codiFinal }
+                : { falten: TOTAL_SESS * TOTAL_OPS - _resultats.length, unitat: ['figura', 'figures'] }
+        );
         els = {
             gameArea: document.getElementById('game-area'),
             body: document.body,
@@ -343,6 +349,9 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
     function _endSession() {
         _puntsTotal.push(_punts);
         if (_sessio + 1 >= TOTAL_SESS) {
+            // El codi es genera ara, un sol cop: la icona i el botó «Copiar codi» mostren sempre aquest
+            _codiFinal = _generaCodiFinal();
+            avisaCodiLlest();
             _renderSummary();
             _showScreen('summary-screen');
         } else {
@@ -1072,77 +1081,30 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
     }
 
     // =========================================================================
-    // COPIAR CODI (antifrau per al professor) — FORMAT v2
-    //   Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRR…(30)  · idèntic a game-core.js
+    // CODI DE VERIFICACIÓ (antifrau per al professor) — FORMAT v2
+    //   Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRR…(30)  · el mateix que game-core.js
+    //   Es genera un sol cop, en acabar; «Copiar codi» i la icona obren la finestra.
     // =========================================================================
-    async function _copiarCodi() {
-        // Salt aleatori (3 lletres minúscules)
-        let salt = '';
-        const caracters = 'abcdefghijklmnopqrstuvwxyz';
-        for (let i = 0; i < 3; i++) {
-            salt += caracters.charAt(Math.floor(Math.random() * caracters.length));
-        }
+    let _codiFinal = null;
 
-        // Exercici, dificultat, sessions, preguntes
-        const exCode = 'VO'; // vocabulari
-        const dif = '0'; // sense nivells de dificultat
-        const sessions = String(Math.min(TOTAL_SESS, 5));
-        const questions = String(Math.min(TOTAL_OPS, 10)).padStart(2, '0');
-
-        // Nota (NNN = nota × 10, 000-100)
-        const notaInt = Math.round(_calculaNotaSobre10() * 10);
-
-        // Resultats per figura (mínim 30 chars, màxim 5 × 10 = 50). 1=sense errors · 2=1 error · 3=2+ · 4=fallada
-        const results = _resultats.slice(0, 50).map(String).join('').padEnd(30, '0');
-
-        // Codi final, amb la lletra de control (la mateixa que game-core.js: js/codi-verificacio.js)
-        const output = construeixCodiV2({
-            salt,
-            ara: new Date(),
-            exCode,
-            dif,
-            sessions,
-            questions,
-            notaInt,
-            results,
+    function _generaCodiFinal() {
+        if (_codiFinal) return _codiFinal;
+        const codi = generaCodi({
+            exCode: 'VO', // vocabulari
+            dif: 0, // sense nivells de dificultat
+            sessions: Math.min(TOTAL_SESS, 5),
+            questions: Math.min(TOTAL_OPS, 10),
+            nota10: _calculaNotaSobre10(),
+            // Resultat per figura: 1=sense errors · 2=1 error · 3=2+ · 4=fallada (màxim 5 × 10 = 50)
+            resultats: _resultats.slice(0, 50),
         });
-        console.log('Codi v2 generat per al professor:', output, '(', output.length, 'chars)');
-
-        // Intentar copiar al portapapers; fallback visual si falla
-        try {
-            await navigator.clipboard.writeText(output);
-            _showCopiatFeedback();
-        } catch {
-            _showFallbackCode(output);
-        }
+        console.log('Codi v2 generat per al professor:', codi, '(', codi.length, 'chars)');
+        return codi;
     }
 
-    function _showCopiatFeedback() {
-        document.querySelectorAll('.btn-copiar-codi').forEach(btn => {
-            btn.innerText = 'Copiat! ✅';
-            btn.style.backgroundColor = 'var(--success)';
-            setTimeout(() => {
-                btn.style.display = 'none';
-            }, 3000);
-        });
-    }
-
-    function _showFallbackCode(code) {
-        let box = document.getElementById('fallback-code-box');
-        if (!box) {
-            box = document.createElement('div');
-            box.id = 'fallback-code-box';
-            box.style.cssText =
-                'margin:15px auto;padding:14px 18px;background:#f1f5f9;border:2px solid #cbd5e1;border-radius:8px;text-align:center;max-width:400px;';
-            box.innerHTML = `
-                <div style="font-size:0.9em;color:#64748b;margin-bottom:8px;">Selecciona i copia aquest codi:</div>
-                <div id="fallback-code-text" style="font-family:monospace;font-size:1.1em;font-weight:bold;color:#1e293b;user-select:all;-webkit-user-select:all;cursor:text;padding:8px;background:white;border-radius:4px;border:1px solid #e2e8f0;word-break:break-all;"></div>
-            `;
-            document.querySelector('.panel').appendChild(box);
-        }
-        document.getElementById('fallback-code-text').textContent = code;
-        box.style.display = 'block';
-        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    function _copiarCodi() {
+        _codiFinal = _generaCodiFinal();
+        obreFinestraCodi();
     }
 
     // =========================================================================
