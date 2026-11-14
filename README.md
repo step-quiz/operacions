@@ -2,7 +2,9 @@
 
 Conjunt d'activitats interactives en format web per practicar operacions matemàtiques d'ESO i Batxillerat. Cada exercici inclou feedback pedagògic pas a pas i un sistema de puntuació per sessions.
 
-**Totes les activitats acaben cada pregunta igual:** a sota de l'exercici surt una franja «Molt bé! +8 punts» (o «Intents esgotats · 0 punts», amb la solució a la vista) i el botó **«Següent»** («Veure resultats» a l'última). Mai no es passa de pregunta sol: l'alumne decideix quan ha entès la resolució (també amb la tecla Enter). **Cada pregunta val 10 punts i cada error en treu 2**, fins a 0, i la nota final és sobre 10. Estudi estadístic en treu 1 per cada casella errònia de les taules, i Vocabulari, quan s'esgoten els intents, dona 1 punt per etiqueta encertada (vegeu [CONTRIBUTING.md](CONTRIBUTING.md#final-de-cada-pregunta-i-punts)). Tots els d'ESO (menys el pla cartesià) i els de derivades i integrals donen, en acabar, un **codi de verificació** que l'alumne lliura al professor.
+**Totes les activitats acaben cada pregunta igual:** a sota de l'exercici surt una franja «Molt bé! +8 punts» (o «Intents esgotats · 0 punts», amb la solució a la vista) i el botó **«Següent»** («Veure resultats» a l'última). Mai no es passa de pregunta sol: l'alumne decideix quan ha entès la resolució (també amb la tecla Enter). **Cada pregunta val 10 punts i cada error en treu 2**, fins a 0, i la nota final és sobre 10. Estudi estadístic en treu 1 per cada casella errònia de les taules, i Vocabulari, quan s'esgoten els intents, dona 1 punt per etiqueta encertada (vegeu [CONTRIBUTING.md](CONTRIBUTING.md#final-de-cada-pregunta-i-punts)).
+
+**Codi de verificació.** Tots els d'ESO i els de derivades, integrals i asímptotes donen, en acabar, un **codi de verificació** que l'alumne lliura al professor pel formulari. A dalt a la dreta hi ha sempre la icona **«Codi»**: abans d'acabar, la finestra diu quantes preguntes falten (no dona cap codi a mitges); en acabar, mostra el codi en gran amb el botó «Copiar». El codi es genera un sol cop, en acabar, i la icona i el botó «Copiar codi» de la pantalla final mostren sempre el mateix. Amb sessions fixes (`?fixed=`) i en mode esvaïment no hi ha icona ni codi.
 
 Web: https://step-quiz.net
 
@@ -51,7 +53,7 @@ La columna **Codi** és el camp `EE` del codi de verificació. La taula completa
 | Gots i fitxes (equacions) | GC | `gots-fitxes.html` | sí |
 | Sistemes d'equacions | SE | `sistemes-equacions.html` | sí |
 | Simplificació de radicals | RA | `radicals.html` | sí |
-| Pla cartesià | PC | `pla-cartesia.html` | no |
+| Pla cartesià | PC | `pla-cartesia.html` | sí |
 | Estudi estadístic | ED | `estadistica.html` | sí |
 | Mitjana aritmètica | MJ | `mitjana.html` | sí |
 | Paràmetres estadístics | EI | `estadistica-inversa.html` | sí |
@@ -72,7 +74,7 @@ La columna **Codi** és el camp `EE` del codi de verificació. La taula completa
 | Càlcul de derivades | DV | `derivades.html` | sí |
 | Càlcul d'integrals | IT | `integrals.html` | sí |
 | Gràfica i funció | GF | `grafica-i-funcio.html` | no |
-| Asímptota i límit lateral | AS | `asimptotes.html` | no |
+| Asímptota i límit lateral | AS | `asimptotes.html` | sí |
 | Comparar gràfiques de funció i de derivada | GD | `grafica-funcio-i-derivada.html` | no |
 | Descripció d'una gràfica | — | `descripcio-grafica.html` | no |
 
@@ -120,11 +122,13 @@ js/
 ├── exercise-codes.js   ← Taula única de codis d'exercici (joc i analitzador)
 ├── punts.js            ← La regla única dels punts: 10 per pregunta, 2 menys per error (pur, amb proves)
 ├── seguent.js          ← La franja del final de pregunta amb el botó «Següent»
+├── codi-finestra.js    ← La icona «Codi» i la finestra del codi; generaCodi() munta el codi v2
 ├── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat; acabaPregunta)
 └── pissarra/           ← «Resolució pas a pas»: la pissarra animada (vegeu més avall)
 css/
 ├── shared.css          ← Estils globals, teclat numèric, pantalles finals
 ├── seguent.css         ← La franja del final de pregunta (també a les pàgines sense shared.css)
+├── codi.css            ← La icona «Codi» i la seva finestra
 └── pissarra.css        ← Estil de la pissarra animada
 vendor/                 ← Llibreries externes (KaTeX, SheetJS, ExcelJS), vegeu vendor/README.md
 docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat d'abril de 2026); no descriuen l'estat actual

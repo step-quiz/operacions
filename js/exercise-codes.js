@@ -31,7 +31,7 @@ export const EXERCISE_CODES = {
     'radicals': 'RA',
     'recta-numerica': 'RN',
     'area-perimetre': 'AP',
-    'pla-cartesia': 'PC', // reservat: ara no genera codi (no mostra "Copiar codi")
+    'pla-cartesia': 'PC', // pla-cartesia.js genera el codi pel seu compte (seccions triades per l'alumne)
     'proporciodirecta': 'PR',
     'decimals': 'DI',
     'vocabulari': 'VO', // vocabulari.js genera el codi pel seu compte ('VO')
@@ -48,10 +48,10 @@ export const EXERCISE_CODES = {
     // Batxillerat
     'derivades': 'DV',
     'integrals': 'IT',
+    'asimptotes': 'AS', // asimptotes.js genera el codi pel seu compte (no fa servir game-core.js)
     // Batxillerat (codis reservats: aquestes activitats ara no generen codi,
     // però es mantenen perquè l'analitzador pugui llegir codis antics)
     'complexos': 'CX',
-    'asimptotes': 'AS',
     'ruffini': 'RU',
     'grafica-i-funcio': 'GF',
     'grafica-funcio-i-derivada': 'GD',

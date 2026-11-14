@@ -7,8 +7,9 @@
  *   1. Un codi de cada format i de cada època (v1-cb, v2 amb la lletra antiga i
  *      amb la nova, v2 de cb, v3 de cb), i el que se n'ha de treure camp per camp.
  *   2. Els codis dolents: lletra que no quadra, massa resultats, buits, brossa.
- *   3. Anada i tornada del v2: construeixCodiV2 (el que fan servir game-core.js i
- *      vocabulari.js) per a TOTS els codis d'exercici, i parseCode ho ha de llegir igual.
+ *   3. Anada i tornada del v2: construeixCodiV2 (el que fa servir generaCodi() de
+ *      js/codi-finestra.js, per a tots els generadors) per a TOTS els codis
+ *      d'exercici, i parseCode ho ha de llegir igual.
  *   4. Anada i tornada del v3: els vectors de cb (tests/vectors-cb-v3.js).
  *   5. Si step-quiz/cb és clonat al costat (../cb), els codis que genera el seu
  *      codi.js de debò. A GitHub no hi és i se salta (els vectors del punt 4 ja hi són).
@@ -285,10 +286,14 @@ const DOLENTS = [
             'Gabc-1206-0930-EN-1-3-10-075-111211143111214111311112141111'
         );
         ok(
-            'game-core.js i vocabulari.js munten el codi amb construeixCodiV2',
-            ['js/game-core.js', 'js/vocabulari/vocabulari.js'].every(f =>
-                /construeixCodiV2\(/.test(fs.readFileSync(path.join(ROOT, f), 'utf8'))
-            )
+            'js/codi-finestra.js munta el codi amb construeixCodiV2, i tots els generadors fan servir generaCodi()',
+            /construeixCodiV2\(/.test(fs.readFileSync(path.join(ROOT, 'js/codi-finestra.js'), 'utf8')) &&
+                [
+                    'js/game-core.js',
+                    'js/vocabulari/vocabulari.js',
+                    'js/pla-cartesia/pla-cartesia.js',
+                    'js/asimptotes/asimptotes.js',
+                ].every(f => /generaCodi\(/.test(fs.readFileSync(path.join(ROOT, f), 'utf8')))
         );
     }
 

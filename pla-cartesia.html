@@ -38,7 +38,8 @@
         .header-info { padding: 10px 20px; gap: 8px; }
         .level-text { font-size: 1em; }
         .score-text { color: var(--primary); }
-        .btn-green { background-color: var(--primary); }
+        /* shared.css amaga .btn-green (game-core.js el mostra al cap d'1 s); aquí no hi ha aquesta espera */
+        .btn-green { background-color: var(--primary); display: inline-block; }
         @media (hover:hover) { .btn-green:hover { background-color: var(--primary-hover); } }
 
         /* ---- Mini overlay (override: posició absoluta per sobre el canvas) ---- */
@@ -126,6 +127,7 @@
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
     <link rel="stylesheet" href="css/seguent.css">
+    <link rel="stylesheet" href="css/codi.css">
 </head>
 <body>
 
@@ -236,6 +238,7 @@
                 <div id="final-summary" class="final-summary"></div>
                 <div class="trophy-icon">🏆</div>
             </div>
+            <button class="btn-finalitzar" id="btn-copiar" onclick="copiaCodiPla()">Copiar codi</button>
             <button class="btn-finalitzar" id="btn-finalitzar" onclick="finalitzar()">Tornar a començar</button>
         </div>
     </div>

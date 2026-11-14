@@ -20,6 +20,7 @@ import {
     acabaPregunta,
     puntsDeLaPregunta,
 } from '../game-core.js';
+import { avisaCodiLlest, generaCodi, obreFinestraCodi, posaIconaCodi } from '../codi-finestra.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -32,6 +33,7 @@ Object.assign(window, {
     showFinalScreen,
     finalitzar,
     checkCurrentCell,
+    copiaCodiPla,
 });
 
 // ============================================================
@@ -715,6 +717,7 @@ function endSection() {
     allResults.push({
         section: currentSection,
         difficulty: dn[difficultyLevel],
+        nivell: difficultyLevel,
         score: state.sessionScore,
         maxScore: TOTAL_OPERATIONS * 10,
     });
@@ -725,8 +728,46 @@ function endSection() {
 }
 
 function showFinalScreen() {
+    // El codi es genera ara, un sol cop: la icona «Codi» i el botó «Copiar codi» mostren sempre aquest
+    if (codiFinalPla()) avisaCodiLlest();
     renderFinalSummary();
     showScreen('final-screen');
+}
+
+// ---- CODI DE VERIFICACIÓ (v2, 'PC') ----
+// L'alumne tria les seccions: el codi porta les primeres 5 (el màxim del format), amb les
+// preguntes de cada una (QQ), i la dificultat més alta que ha fet. La nota és la de totes.
+let _codiFinal = null;
+function codiFinalPla() {
+    if (FixedSessions || !allResults.length) return null;
+    if (!_codiFinal) {
+        const seccions = Math.min(allResults.length, 5);
+        _codiFinal = generaCodi({
+            exCode: 'PC',
+            dif: Math.max(...allResults.map(r => r.nivell || 0)),
+            sessions: seccions,
+            questions: Math.min(TOTAL_OPERATIONS, 10),
+            nota10: calculaNotaSobre10(),
+            resultats: state.sessionResults.slice(0, seccions * Math.min(TOTAL_OPERATIONS, 10)),
+        });
+    }
+    return _codiFinal;
+}
+function copiaCodiPla() {
+    if (codiFinalPla()) obreFinestraCodi();
+}
+
+// Què diu la finestra del codi abans d'acabar
+function estatCodiPla() {
+    if (_codiFinal) return { codi: _codiFinal };
+    const ara = document.getElementById('game-screen').style.display === 'block';
+    if (ara) {
+        const fetesSeccio = state.preguntesFetes - TOTAL_OPERATIONS * allResults.length;
+        return { falten: Math.max(0, TOTAL_OPERATIONS - fetesSeccio) };
+    }
+    if (allResults.length)
+        return { missatge: 'Ja has acabat una secció: prem «Veure resultats finals» i el codi sortirà aquí.' };
+    return { missatge: 'Encara no has començat: tria una secció i un nivell. Quan acabis, el codi sortirà aquí.' };
 }
 
 function renderFinalSummary() {
@@ -847,6 +888,10 @@ function checkCurrentCell() {
     panel.appendChild(kb);
 })();
 initCustomKeyboard({ allowNegative: true }); // [CANVI 1] Activa listeners del teclat custom
+
+// Icona «Codi» de dalt a la dreta (en sessions fixes no hi ha codi)
+if (!FixedSessions) posaIconaCodi(estatCodiPla);
+else document.getElementById('btn-copiar').style.display = 'none';
 
 // Comencem directament al selector de seccions
 goToSections();

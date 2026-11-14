@@ -22,6 +22,9 @@
  *      (només sumaPunts() de game-core.js), ningú no fa servir la finestra
  *      antiga «Molt bé!» ni passa de pregunta sol, i les pàgines amb la franja
  *      del botó «Següent» enllacen css/seguent.css.
+ *  11. Icona «Codi»: les pàgines que donen codi la posen i enllacen
+ *      css/codi.css; el codi es genera un sol cop (generaCodi) i les
+ *      sessions fixes i l'esvaïment no en donen.
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -688,6 +691,56 @@ suite('10. Final de pregunta i punts (botó «Següent», js/punts.js)');
         `les ${ambFranja.length} pàgines amb la franja «Següent» enllacen css/seguent.css`,
         ambFranja.length >= 30 && !senseEstil.length,
         senseEstil.join(', ')
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+suite('11. Icona «Codi» (js/codi-finestra.js)');
+{
+    const sensComentaris = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/[^\n]*/g, '$1');
+    const codiDe = h =>
+        graphOf(h)
+            .filter(exists)
+            .map(f => sensComentaris(read(f)))
+            .join('\n');
+    // Pàgines que donen codi: les que munten les pantalles comunes (injectSharedHTML) i les que el generen pel seu compte
+    const ambCodi = htmlFiles.filter(h =>
+        /injectSharedHTML\(\)|generaCodi\(/.test(codiDe(h).replace(/function generaCodi[\s\S]*?\n\}/, ''))
+    );
+    const sensIcona = ambCodi.filter(
+        h => !/posaIconaCodi\(/.test(codiDe(h)) || !/href=["']css\/codi\.css["']/.test(read(h))
+    );
+    ok(
+        `les ${ambCodi.length} pàgines que donen codi tenen la icona «Codi» i enllacen css/codi.css`,
+        ambCodi.length >= 28 && !sensIcona.length,
+        sensIcona.join(', ')
+    );
+    for (const p of ['pla-cartesia.html', 'asimptotes.html', 'vocabulari.html']) {
+        ok(`${p} dona codi`, ambCodi.includes(p));
+    }
+
+    // Només js/codi-finestra.js munta codis v2 (l'analitzador i les proves a part)
+    const munten = jsFiles.filter(
+        f =>
+            f.startsWith('js' + path.sep) &&
+            !f.includes('analitzador-stepquiz') &&
+            f !== path.join('js', 'codi-verificacio.js') &&
+            f !== path.join('js', 'codi-finestra.js') &&
+            /construeixCodiV2\(/.test(sensComentaris(read(f)))
+    );
+    ok('només js/codi-finestra.js (generaCodi) munta codis v2', !munten.length, munten.join(', '));
+
+    // Un sol codi per partida: game-core.js el desa i no en torna a fer cap
+    const core = sensComentaris(read('js/game-core.js'));
+    ok(
+        'game-core.js genera el codi un sol cop (codiFinal el desa a _codiFinal)',
+        /export function codiFinal\(\)\s*\{[\s\S]*?if \(!_codiFinal\)\s*\{\s*const nomFitxer[\s\S]*?_codiFinal = generaCodi\(/.test(
+            core
+        )
+    );
+    ok(
+        'game-core.js no posa la icona en sessions fixes ni en esvaïment',
+        /if \(!FixedSessions && !ESVAIMENT\) \{\s*posaIconaCodi\(/.test(core)
     );
 }
 

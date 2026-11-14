@@ -13,6 +13,7 @@ import { FunctionEngine } from './function-engine.js';
 import { QuestionBankA } from './question-bank-asimptotes.js';
 import { PUNTS_MAX, puntsAmbErrors, validaPunts } from '../punts.js'; // la regla única dels punts
 import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunta amb «Següent»
+import { avisaCodiLlest, generaCodi, obreFinestraCodi, posaIconaCodi } from '../codi-finestra.js';
 // [ROUND 1 — bloc TEXTS centralitzat amb tots els strings de la UI]
 const TEXTS = {
     title: 'Asímptotes i Límits Laterals',
@@ -64,6 +65,8 @@ let challengeData = null;
 let currentFunc = null;
 // No es diu `history` per no tapar window.history (l'historial del navegador)
 let answerHistory = [];
+let resultats = []; // resultat de cada pregunta per al codi: 1, 2, 3 (intent de l'encert) o 4 (fallada)
+let codiFinal = null; // es genera un sol cop, en acabar (js/codi-finestra.js)
 let graphRevealed = false;
 
 const els = {
@@ -400,6 +403,7 @@ function checkAnswer(opt, clickedBtn) {
         clickedBtn.classList.add('correct');
         _disableAll();
         answerHistory.push({ type: challengeData.type, correct: true, errors, pointsEarned: pts });
+        resultats.push(Math.min(errors + 1, 3));
         _renderFeedback(opt, false);
         _acabaPregunta(pts, true);
     } else {
@@ -414,6 +418,7 @@ function checkAnswer(opt, clickedBtn) {
         if (isLast) {
             isAnswered = true;
             _disableAll();
+            resultats.push(4);
             _acabaPregunta(0, false); // la solució es queda a la vista fins a «Següent»
         }
     }
@@ -536,14 +541,32 @@ function _showSummary() {
             </div>
         </div>
         ${errorsHTML}
+        ${FixedSessions ? '' : '<button class="summary-continue-btn" id="btn-copiar">Copiar codi</button>'}
         <button class="summary-continue-btn" id="btn-restart">${TEXTS.summaryRestartBtn}</button>
     `;
     els.summaryScreen.style.display = 'block';
+
+    // Codi de verificació (v2, 'AS'): un sol cop, en acabar; la icona i «Copiar codi» mostren sempre aquest
+    if (!FixedSessions) {
+        codiFinal = generaCodi({
+            exCode: 'AS',
+            dif: GAME_LEVEL,
+            sessions: 1,
+            questions: TOTAL_Q,
+            nota10: (score / maxScore) * 10,
+            resultats,
+        });
+        avisaCodiLlest();
+        document.getElementById('btn-copiar').addEventListener('click', obreFinestraCodi);
+    }
 
     document.getElementById('btn-restart').addEventListener('click', () => {
         currentQ = 0;
         score = 0;
         answerHistory = [];
+        resultats = [];
+        codiFinal = null;
+        avisaCodiLlest(false);
         els.summaryScreen.style.display = 'none';
         els.gameScreen.style.display = 'flex';
         buildLevel();
@@ -554,6 +577,10 @@ function _showSummary() {
 // INICI
 // ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
+    // Icona «Codi» de dalt a la dreta (en sessions fixes no hi ha codi)
+    if (!FixedSessions) {
+        posaIconaCodi(() => (codiFinal ? { codi: codiFinal } : { falten: TOTAL_Q - resultats.length }));
+    }
     if (els.levelDisplay) {
         els.levelDisplay.textContent = TEXTS.levelNames[GAME_LEVEL] || '';
     }
