@@ -1,0 +1,127 @@
+/**
+ * ============================================================================
+ * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+ * FITXER: tests/pissarra-activitat.js
+ * ROL: La bateria comuna de proves de la «Resolució pas a pas» d'una activitat
+ *      (A3 de la revisió del 14/11/2026): una activitat només ha de dir com es
+ *      resol cada exercici, com es llegeix cada línia i què ha de valer.
+ * ARQUITECTURA:
+ * - provaActivitat(nom, opcions) recorre els exercicis (milers, fets amb llavor)
+ *   i fa aquestes comprovacions, cadascuna amb un ok() de harness.js:
+ *     1. el guió sencer de cada exercici (els passos que el controlador envia a
+ *        la pissarra) passa la revisió dels guions (comprova.js comprovaGuio);
+ *     2. cada pas, menys el primer, mou alguna peça (reanomena, fusiona o
+ *        reparteix);
+ *     3. cap pas no en mou més de maxPeces;
+ *     4. cada línia que es veu, a cada pas, és certa: veritat() és un model
+ *        independent del codi que es prova (aritmètica exacta, feta al test);
+ *     5. sense les claus, cada fila de la pissarra és l'HTML de sempre (el que
+ *        pinta l'activitat sense ?pissarra=1), si l'exercici porta «clasic»;
+ *     6. si l'exercici té detall a demanda («vista»), totes les vistes
+ *        (comprova.js comprovaDetall: la compacta, cada pas obert i tots oberts).
+ * - opcions:
+ *     exercicis   iterable (pot ser un generador) d'exercicis { on, passos,
+ *                 clasic?, vista?, … }: on, el nom als missatges; passos, el
+ *                 guió; clasic[i], les files del pas i sense claus; vista, la
+ *                 funció ({ oberts }) → passos del guió amb detall;
+ *     eines       { comprovaGuio, comprovaDetall } (de comprova.js, carregat
+ *                 amb loadModule o import());
+ *     files       les files de la pissarra (1);
+ *     linies      (fila) → les línies que hi ha en una fila (per defecte, la
+ *                 fila sencera si no és buida);
+ *     veritat     (linia, exercici) → '' si la línia és certa, o què falla;
+ *     maxPeces    el màxim de peces que pot moure un pas;
+ *     minExercicis el mínim d'exercicis (perquè la prova no passi buida);
+ *     text        com a comprovaGuio (els historials de les activitats no en tenen).
+ * ÚS: const { provaActivitat } = require('./pissarra-activitat');
+ * ============================================================================
+ */
+'use strict';
+const { ok } = require('./harness');
+
+/** Una fila de la pissarra sense les claus: treu els <span data-k> que només hi són per la clau, i els data-k. */
+const senseClaus = html => html.replace(/<span data-k="[^"]*">([^<]*)<\/span>/g, '$1').replace(/ data-k="[^"]*"/g, '');
+
+/** Quantes peces mou un pas (les que baixen volant o es fusionen en una altra). */
+const pecesMogudes = pas =>
+    Object.keys(pas.reanomena || {}).length +
+    Object.values(pas.fusiona || {}).flat().length +
+    Object.values(pas.reparteix || {}).flat().length;
+
+function provaActivitat(
+    nom,
+    {
+        exercicis,
+        eines,
+        files = 1,
+        linies = fila => (fila ? [fila] : []),
+        veritat,
+        maxPeces,
+        minExercicis = 1,
+        text = false,
+    }
+) {
+    const { comprovaGuio, comprovaDetall } = eines;
+    const errors = { guio: [], buits: [], falses: [], diferents: [], detall: [] };
+    const anota = (llista, t) => llista.length < 5 && llista.push(t);
+    let n = 0,
+        animacions = 0,
+        mesPeces = 0,
+        vistes = 0,
+        ambClasic = 0,
+        ambDetall = 0;
+    for (const ex of exercicis) {
+        n++;
+        const { on, passos } = ex;
+        for (const e of comprovaGuio(passos, files, on, { text })) anota(errors.guio, e);
+        if (ex.clasic) ambClasic++;
+        passos.forEach((pas, i) => {
+            const aqui = `${on}, pas ${i + 1}`;
+            if (i > 0) {
+                animacions++;
+                const peces = pecesMogudes(pas);
+                mesPeces = Math.max(mesPeces, peces);
+                if (!peces) anota(errors.buits, aqui);
+            }
+            for (const fila of pas.files)
+                for (const linia of linies(fila)) {
+                    vistes++;
+                    const falla = veritat(linia, ex);
+                    if (falla) anota(errors.falses, `${aqui}: ${falla}`);
+                }
+            if (ex.clasic && JSON.stringify(pas.files.map(senseClaus)) !== JSON.stringify(ex.clasic[i]))
+                anota(errors.diferents, aqui);
+        });
+        if (ex.vista) {
+            ambDetall++;
+            for (const e of comprovaDetall(ex.vista, files, on, { text })) anota(errors.detall, e);
+        }
+    }
+    const llista = l => l.join('\n      → ');
+    ok(
+        `${nom}: ${animacions} animacions de ${n} exercicis passen la revisió dels guions`,
+        n >= minExercicis && !errors.guio.length,
+        llista(errors.guio)
+    );
+    ok(`${nom}: cada pas mou alguna peça`, !errors.buits.length, llista(errors.buits));
+    ok(
+        `${nom}: cada pas mou poques peces (com a màxim ${mesPeces}; cap pas en mou més de ${maxPeces})`,
+        mesPeces <= maxPeces
+    );
+    ok(
+        `${nom}: les ${vistes} línies que es veuen són certes`,
+        vistes > 0 && !errors.falses.length,
+        llista(errors.falses)
+    );
+    if (ambClasic)
+        ok(`${nom}: sense claus, la pissarra és l’HTML de sempre`, !errors.diferents.length, llista(errors.diferents));
+    if (ambDetall)
+        ok(
+            `${nom}: el detall a demanda de ${ambDetall} exercicis (totes les vistes)`,
+            !errors.detall.length,
+            llista(errors.detall)
+        );
+    return { exercicis: n, animacions, mesPeces, linies: vistes };
+}
+
+module.exports = { provaActivitat, senseClaus, pecesMogudes };

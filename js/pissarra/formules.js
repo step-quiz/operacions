@@ -10,12 +10,16 @@
  * - Un procediment és una funció pura dades → llista de passos. Un pas és
  *     { files: ['TeX', '§text', ''], classes: ['', 'final', ''], text: 'Frase amb $TeX$.',
  *       reanomena?: {nova: 'vella'}, fusiona?: {nova: ['vella1', 'vella2']},
- *       cursor?: {clic: 'k'} | {arrossega: 'k', fins: 'k2'} }
+ *       reparteix?: {vella: ['nova1', 'nova2']}, copia?: {nova: 'vella'},
+ *       cursor?: {clic: 'k'} | {arrossega: 'k', fins: 'k2'}, anunci?: 'text' }
  *   i la pissarra (pissarra.js) anima la diferència entre dos passos seguits.
  * - Cada símbol que s'ha de poder seguir d'un pas al següent porta una CLAU:
  *   \htmlData{k=<clau>}{<símbol>}. Mateixa clau abans i després → el símbol es
- *   desplaça; fusiona → els vells van a parar al nou; la resta s'esvaeix o apareix.
- *   Una clau és única dins d'un pas (sumant totes les files).
+ *   desplaça; fusiona → els vells van a parar al nou; reparteix → el vell vola a
+ *   cada nou; la resta s'esvaeix o apareix. Una clau és única dins d'un pas
+ *   (sumant totes les files).
+ * - historial() (secció 4) escriu les línies que queden escrites, en TeX o amb
+ *   l'HTML d'una activitat, i hi posa les claus, les còpies i el detall a demanda.
  * - Origen: és el motor dels procediments animats del repositori step-quiz/pau
  *   (procediments/formules.js, octubre 2026), passat a mòdul ES. Aquí només hi
  *   ha la part comuna a totes les matèries; els escriptors propis d'una activitat
@@ -241,105 +245,229 @@ export function enLinies(inici, peces, { ample = AMPLE_LINIA, sagnat = '\\qquad 
     return linies.length > 1 ? `\\begin{array}{l} ${linies.join(` \\\\[${espai}] `)} \\end{array}` : linies[0];
 }
 
-// ── 4. LÍNIES QUE QUEDEN ESCRITES ────────────────────────────────────────────
+// ── 4. LÍNIES QUE QUEDEN ESCRITES: L'HISTORIAL ───────────────────────────────
 
 /**
  * Una resolució escrita línia a línia, com a la pissarra de classe: cada pas escriu una línia nova a
  * sota i les d'abans QUEDEN ESCRITES (així ho vol el David: tots els passos intermedis a la vista).
- *   const L = linies(g, 0);                       // la primera línia, a la fila 0 del guió
- *   L.escriu([P('a', '3'), P('s', '+'), P('b', '4')], 'Has de calcular…');
- *   L.escriu([P('r', '7')], 'Suma.', { fusiona: { r: ['a', 's', 'b'] }, final: true });
- * Una línia és una llista de peces: P(id, tex, marca) (id: lletres i xifres, únic dins de la línia;
- * «+», «-», «\cdot» i «:» s'escriuen com a operadors, «=» com a relació), grup(peces, marca) per
- * pintar diverses peces d'un sol color i fraccio(numerador, denominador) (dues llistes de peces).
- * Quan s'escriu una línia nova:
- *   · mou: { idNou: idVell }       la peça de la línia anterior hi baixa volant (i pot canviar,
- *                                   p. ex. «+3» que passa a l'altre membre com a «−3»);
+ * És l'eina comuna de totes les activitats, amb fórmules TeX o amb HTML propi:
+ *   const H = historial(g);                       // TeX: cada línia a la seva fila del guió
+ *   H.escriu([P('a', '3'), P('s', '+'), P('b', '4')], 'Has de calcular…');
+ *   H.escriu([P('r', '7')], 'Suma.', { fusiona: { r: ['a', 's', 'b'] }, final: true });
+ * Una línia de TeX és una llista de peces: P(id, tex, marca) (id: lletres i xifres, únic dins de la
+ * línia; «+», «-», «\cdot» i «:» s'escriuen com a operadors, «=» com a relació), grup(peces, marca)
+ * per pintar diverses peces d'un sol color i fraccio(numerador, denominador) (dues llistes de peces).
+ * Opcions de historial(g, opcions):
+ *   · fila: la primera fila del guió (0); prefix: el de les claus ('L');
+ *   · pinta(linia, clauDe, classe): com es dibuixa una línia (per defecte pintaTex). Una activitat
+ *     amb HTML hi posa el seu: la línia pot ser qualsevol objecte, i clauDe(id) dona la clau de la
+ *     peça id (data-k="…");
+ *   · envolta(textos): totes les línies en una sola fila del guió (p. ex. un <div> amb les línies
+ *     de l'HTML, una pissarra d'una sola fila); sense envolta, la línia r va a la fila fila + r i la
+ *     seva classe és la classe de la fila;
+ *   · oberts: els passos que s'han d'escriure amb detall (vegeu més avall).
+ * escriu(linia, text, opcions) escriu una línia nova i torna el pas del guió:
+ *   · mou: { idNou: idVell }         la peça de la línia anterior hi baixa volant (i pot canviar,
+ *                                     p. ex. «+3» que passa a l'altre membre com a «−3»);
  *   · fusiona: { idNou: [idsVells] } les peces de la línia anterior hi baixen i es fusionen en una;
- *   · la resta de peces de la línia nova hi apareixen al seu lloc;
- *   · a la línia anterior en queda una còpia (no es mou res de les línies que ja estaven escrites);
- *   · anterior: [peces]             la línia anterior canvia alhora (p. ex. s'hi afegeix «=» al final
- *                                   o se n'hi treu una marca);
- *   · final: true                   la línia nova és el resultat (fila ressaltada);
- *   · extra: { reanomena, copia }   per als símbols que vénen de fora de les línies (p. ex. d'un
- *                                   esquema SVG d'una altra fila): s'afegeixen tal qual a les opcions
- *                                   del pas. L.clau(r, id) diu quina clau tindrà la peça id a la línia r.
- * canvia(peces, text) canvia l'última línia sense escriure'n cap de nova (p. ex. per marcar l'operació
- * que es farà). Les claus: peça «id» de la línia r → <P><r>k<id>; la seva còpia, quan ja ha baixat a
- * la línia r + 1 → <P>c<r>k<id>. Cada línia ocupa una fila del guió (primeraFila + r).
+ *   · reparteix: { idVell: [idsNous] } la peça de la línia anterior hi baixa a diversos llocs alhora
+ *                                     (el 2 de 2(x + 3), que va als dos termes);
+ *   · la resta de peces de la línia nova hi apareixen al seu lloc, i a la línia anterior en queda una
+ *     còpia (no es mou res de les línies que ja estaven escrites);
+ *   · anterior: línia                la línia anterior canvia alhora (p. ex. s'hi afegeix «=»);
+ *   · classe / classeAnterior         la classe de la línia nova i, si es diu, la nova classe de
+ *                                     l'anterior; final: true és classe 'final' (el resultat);
+ *   · extra: { reanomena, copia }    per als símbols que vénen de fora de les línies (p. ex. d'un
+ *                                     esquema SVG d'una altra fila): s'afegeixen tal qual al pas;
+ *   · cursor, anunci                 passen tal qual al pas;
+ *   · id, detall                     vegeu el detall a demanda.
+ * canvia(linia, text, { classe }) canvia l'última línia sense escriure'n cap de nova (p. ex. per marcar
+ * l'operació que es farà). clau(r, id) diu quina clau tindrà la peça id a la línia r (mentre no hagi
+ * baixat a la següent); nombre, quantes línies hi ha; ultima, { linia, classe } de l'última; passos,
+ * els del guió. Les claus: peça «id» de la línia r → <prefix><r>k<id>; la seva còpia, quan ja ha
+ * baixat a la línia r + 1 → <prefix>c<r>k<id>.
+ *
+ * DETALL A DEMANDA («Vull més detall», la proposta del David del 14/11). Un pas pot portar detall:
+ *   H.escriu(linia, 'Aplica la distributiva.', { mou: {…}, detall: D => {
+ *       D.escriu(liniaIntermedia, 'Multiplica el 2 per cada terme.', { reparteix: {…} });
+ *       D.acaba('Fes les multiplicacions.', { fusiona: {…} });   // escriu «linia», la del pas tancat
+ *   } });
+ * Si l'id del pas és a «oberts», el pas s'escriu amb els seus subpassos (D.escriu, D.canvia; els
+ * subpassos també poden portar detall) i D.acaba escriu la línia del pas tancat, amb la seva classe:
+ * un pas obert només afegeix línies entremig i la resta del guió no canvia. Si no hi és, el pas
+ * s'escriu sencer i porta teDetall: true. El primer subpas que escriu fa a la línia anterior el
+ * mateix que hi fa el pas (anterior, classeAnterior). Els passos porten unes metadades per a les
+ * proves i per a la interfície: id (el número del pas a la vista compacta, '1', '2'…, o el que digui
+ * l'opció id; els subpassos, '2a', '2b'…, i els seus, '2a1', '2a2'…), pare (el pas que s'ha obert) i
+ * pares (tots els passos oberts on és, del de fora al de dins), tanca (el subpas de D.acaba),
+ * teDetall i estat (les línies escrites després del pas, sense claus:
+ * [{ nivell, signatura }]; les d'un detall són d'un nivell més). comprovaDetall (comprova.js) revisa
+ * la regla amb totes les vistes.
  */
 export const P = (id, tex, marca = '') => ({ id, tex, marca });
 export const grup = (peces, marca) => ({ grup: peces, marca });
 export const fraccio = (numerador, denominador) => ({ fraccio: [numerador, denominador] });
 
-export function linies(g, primeraFila = 0, prefix = 'L') {
-    const escrites = []; // [{ peces, baixades: Set(ids que han baixat a la línia següent) }]
-    const clauDe = (r, id) => (escrites[r].baixades.has(id) ? `${prefix}c${r}k${id}` : `${prefix}${r}k${id}`);
-
-    function texPeca(p, r) {
-        const tros = peces => peces.map(q => texPeca(q, r)).join('');
+/** El pintor TeX de l'historial: una línia (llista de peces P, grup i fraccio), amb la clau de cada peça. */
+export function pintaTex(peces, clauDe) {
+    const tros = ps => ps.map(peca).join('');
+    function peca(p) {
         if (p.grup) return marca(tros(p.grup), p.marca);
         if (p.fraccio) return `\\dfrac{${tros(p.fraccio[0])}}{${tros(p.fraccio[1])}}`;
-        const k = clauDe(r, p.id);
+        const k = clauDe(p.id);
         if (OPERADORS.has(p.tex) || p.tex === ':') return `\\mathbin{${clau(k, p.tex, p.marca)}}`;
         if (RELACIONS.has(p.tex)) return `\\mathrel{${clau(k, p.tex, p.marca)}}`;
         return clau(k, p.tex, p.marca);
     }
-    function pinta() {
-        escrites.forEach((l, r) => {
-            g.files[primeraFila + r] = l.peces.map(p => texPeca(p, r)).join('');
-        });
+    return tros(peces);
+}
+
+const LLETRES = 'abcdefghijklmnopqrstuvwxyz';
+const mapa = (obj, f) => Object.fromEntries(Object.entries(obj).map(([k, v]) => f(k, v)));
+
+export function historial(g, { fila = 0, prefix = 'L', pinta = pintaTex, envolta = null, oberts = new Set() } = {}) {
+    if (!CLAU_VALIDA.test(prefix)) throw new Error(`Prefix no vàlid: «${prefix}»`);
+    // Les línies escrites: { linia, classe, nivell, baixades: Set(ids que han baixat a la línia següent) }
+    const escrites = [];
+    const clauDe = (r, id) => (escrites[r].baixades.has(id) ? `${prefix}c${r}k${id}` : `${prefix}${r}k${id}`);
+    // Una línia sense les claus de la seva fila (la mateixa peça té la mateixa clau a totes les vistes)
+    const signatura = l => `${l.classe}¦${pinta(l.linia, id => 'k' + id, l.classe)}`;
+    let desfase = 0; // els passos de més que han afegit els detalls oberts (els números són els del compacte)
+
+    function pintaTot() {
+        const text = r => pinta(escrites[r].linia, id => clauDe(r, id), escrites[r].classe);
+        if (envolta) g.files[fila] = envolta(escrites.map((_, r) => text(r)));
+        else
+            escrites.forEach((l, r) => {
+                g.files[fila + r] = text(r);
+                g.classes[fila + r] = l.classe;
+            });
     }
 
+    /** Pinta la pissarra, hi afegeix el pas (amb les metadades) i el torna. */
+    function afegeix(text, opcions, meta) {
+        pintaTot();
+        const estat = escrites.map(l => ({ nivell: l.nivell, signatura: signatura(l) }));
+        g.afegeix(text, Object.assign({}, opcions, meta, { estat }));
+        return g.passos[g.passos.length - 1];
+    }
+
+    // pares: els passos oberts on és el pas, del de fora al de dins (el seu pare és l'últim)
+    const meta = (id, pares, { teDetall = false, tanca = null } = {}) =>
+        Object.assign(
+            { id },
+            pares.length ? { pare: pares[pares.length - 1], pares } : {},
+            tanca ? { tanca } : {},
+            teDetall ? { teDetall: true } : {}
+        );
+
+    /** Opcions que passen tal qual al pas: cursor, anunci i extra. */
+    function talQual(op, opcions) {
+        if (op.cursor) opcions.cursor = op.cursor;
+        if (op.anunci) opcions.anunci = op.anunci;
+        if (op.extra)
+            for (const [nom, m] of Object.entries(op.extra)) opcions[nom] = Object.assign({}, opcions[nom], m);
+        return opcions;
+    }
+
+    /** Escriu una línia nova a sota (vegeu la capçalera); nivell: el de la línia; m: les metadades. */
+    function escriuLinia(linia, text, op, classe, nivell, m) {
+        const { mou = {}, fusiona = {}, reparteix = {} } = op;
+        const r = escrites.length;
+        const opcions = {};
+        if (r > 0) {
+            const ant = escrites[r - 1];
+            if (op.anterior !== undefined && op.anterior !== null) ant.linia = op.anterior;
+            if (op.classeAnterior !== undefined) ant.classe = op.classeAnterior;
+            for (const id of [...Object.values(mou), ...Object.values(fusiona).flat(), ...Object.keys(reparteix)])
+                ant.baixades.add(id);
+            const vella = id => `${prefix}${r - 1}k${id}`; // la clau que tenia abans del pas
+            const nova = id => `${prefix}${r}k${id}`;
+            if (Object.keys(mou).length) opcions.reanomena = mapa(mou, (n, v) => [nova(n), vella(v)]);
+            if (Object.keys(fusiona).length) opcions.fusiona = mapa(fusiona, (n, vs) => [nova(n), vs.map(vella)]);
+            if (Object.keys(reparteix).length) opcions.reparteix = mapa(reparteix, (v, ns) => [vella(v), ns.map(nova)]);
+            // La còpia que queda a la línia anterior hi és tota l'estona (no parpelleja)
+            if (ant.baixades.size)
+                opcions.copia = Object.fromEntries(
+                    [...ant.baixades].map(id => [`${prefix}c${r - 1}k${id}`, vella(id)])
+                );
+        }
+        escrites.push({ linia, classe, nivell, baixades: new Set() });
+        return afegeix(text, talQual(op, opcions), m);
+    }
+
+    /**
+     * Les ordres d'un nivell: el de dalt (0) o el d'un pas obert. pares: els passos oberts on s'escriu
+     * ([] a dalt); nouId(): l'id del pas següent; heretat: el que el pas obert fa a la línia anterior,
+     * que fa el primer subpas que escriu (hereta).
+     */
+    function ordres(nivell, pares, nouId, heretat = null) {
+        function hereta(op) {
+            if (!heretat) return op;
+            const amb = Object.assign({}, heretat, op);
+            heretat = null;
+            return amb;
+        }
+        function escriu(linia, text, op = {}) {
+            const id = op.id ?? nouId();
+            op = hereta(op);
+            const classe = op.classe ?? (op.final ? 'final' : '');
+            if (op.detall && oberts.has(id)) return obre(id, linia, op, classe, nivell, pares);
+            return escriuLinia(linia, text, op, classe, nivell, meta(id, pares, { teDetall: !!op.detall }));
+        }
+        function canvia(linia, text, op = {}) {
+            const id = op.id ?? nouId();
+            const l = escrites[escrites.length - 1];
+            if (linia !== undefined && linia !== null) l.linia = linia;
+            if (op.classe !== undefined) l.classe = op.classe;
+            return afegeix(text, talQual(op, {}), meta(id, pares));
+        }
+        return { escriu, canvia, hereta };
+    }
+
+    /** Un pas obert: els seus subpassos i, per acabar, D.acaba(), que escriu la línia del pas tancat. */
+    function obre(id, linia, op, classe, nivell, pares) {
+        const abans = g.passos.length;
+        let k = 0;
+        const fill = () => id + (/\d$/.test(id) ? LLETRES[k++] : String(++k));
+        const heretat = {};
+        if (op.anterior !== undefined && op.anterior !== null) heretat.anterior = op.anterior;
+        if (op.classeAnterior !== undefined) heretat.classeAnterior = op.classeAnterior;
+        const dins = [...pares, id];
+        const D = ordres(nivell + 1, dins, fill, heretat);
+        let acabat = null;
+        // La línia del pas tancat, amb la seva classe i al nivell del pas: la que veu qui no obre el pas
+        const acaba = (text, subop = {}) => {
+            const sid = subop.id ?? fill();
+            acabat = escriuLinia(linia, text, D.hereta(subop), classe, nivell, meta(sid, dins, { tanca: id }));
+            return acabat;
+        };
+        op.detall(Object.freeze({ escriu: D.escriu, canvia: D.canvia, acaba }));
+        if (nivell === 0) desfase += g.passos.length - abans - 1;
+        return acabat || g.passos[g.passos.length - 1];
+    }
+
+    const dalt = ordres(0, [], () => String(g.passos.length + 1 - desfase));
     return Object.freeze({
-        /** Escriu una línia nova a sota de les que ja hi ha (vegeu la capçalera). */
-        escriu(
-            peces,
-            text,
-            { mou = {}, fusiona = {}, anterior = null, final = false, cursor = null, extra = null } = {}
-        ) {
-            const r = escrites.length;
-            const opcions = {};
-            if (r > 0) {
-                const ant = escrites[r - 1];
-                if (anterior) ant.peces = anterior;
-                for (const id of Object.values(mou)) ant.baixades.add(id);
-                for (const ids of Object.values(fusiona)) ids.forEach(id => ant.baixades.add(id));
-                const vella = id => `${prefix}${r - 1}k${id}`; // la clau que tenia abans del pas
-                const nova = id => `${prefix}${r}k${id}`;
-                if (Object.keys(mou).length)
-                    opcions.reanomena = Object.fromEntries(Object.entries(mou).map(([n, v]) => [nova(n), vella(v)]));
-                if (Object.keys(fusiona).length)
-                    opcions.fusiona = Object.fromEntries(
-                        Object.entries(fusiona).map(([n, vs]) => [nova(n), vs.map(vella)])
-                    );
-                // La còpia que queda a la línia anterior hi és tota l'estona (no parpelleja)
-                if (ant.baixades.size)
-                    opcions.copia = Object.fromEntries(
-                        [...ant.baixades].map(id => [`${prefix}c${r - 1}k${id}`, vella(id)])
-                    );
-            }
-            if (cursor) opcions.cursor = cursor;
-            if (extra)
-                for (const [nom, mapa] of Object.entries(extra)) opcions[nom] = Object.assign({}, opcions[nom], mapa);
-            escrites.push({ peces, baixades: new Set() });
-            if (final) g.classes[primeraFila + r] = 'final';
-            pinta();
-            g.afegeix(text, opcions);
-        },
-        /** Canvia l'última línia (p. ex. hi posa una marca) sense escriure'n cap de nova. */
-        canvia(peces, text) {
-            escrites[escrites.length - 1].peces = peces;
-            pinta();
-            g.afegeix(text);
-        },
+        escriu: dalt.escriu,
+        canvia: dalt.canvia,
         /** La clau que té (o tindrà) la peça «id» a la línia r, mentre no hagi baixat a la següent. */
         clau: (r, id) => `${prefix}${r}k${id}`,
         get nombre() {
             return escrites.length;
         },
+        get ultima() {
+            const l = escrites[escrites.length - 1];
+            return l ? { linia: l.linia, classe: l.classe } : null;
+        },
+        get passos() {
+            return g.passos;
+        },
     });
 }
+
+/** La primera manera d'escriure l'historial (TeX, cada línia a la seva fila): historial(g, { fila, prefix }). */
+export const linies = (g, primeraFila = 0, prefix = 'L') => historial(g, { fila: primeraFila, prefix });
 
 // ── 5. GUIÓ ──────────────────────────────────────────────────────────────────
 

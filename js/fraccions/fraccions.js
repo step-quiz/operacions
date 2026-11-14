@@ -72,11 +72,11 @@ let finalResN = 0,
     finalResD = 0;
 let isPenalizing = false;
 
-// «Resolució pas a pas» (?pissarra=1): la pissarra de l'expressió (null si no és actiu) i les línies
-// ({ termes, pas }, vegeu renderer.js). Les pintades van a la cua del motor (pissarra.encua), que no
-// es bloqueja mai.
+// «Resolució pas a pas» (?pissarra=1): la pissarra de l'expressió (null si no és actiu) i l'historial
+// de les línies (formules.js historial(), el fa renderer.js historiaNova). Les pintades van a la cua
+// del motor (pissarra.encua), que no es bloqueja mai.
 const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.exprBox, { files: 1, marc: false }) : null;
-let historia = [];
+let historia = null;
 
 // ---- MENÚ DE SELECCIÓ ----
 function selectMode(mode) {
@@ -192,8 +192,7 @@ function formatFraction(n, d) {
 // termes i pas: la línia per a la pissarra (vegeu renderer.js); sense pissarra, s'afegeix htmlContent
 function appendToExpression(htmlContent, termes, pas) {
     if (pissarra) {
-        historia.push({ termes, pas });
-        pintaHistoria(true);
+        pintaPas(Renderer.escriuPas(historia, termes, pas), true);
         return;
     }
     let line = document.createElement('div');
@@ -203,18 +202,11 @@ function appendToExpression(htmlContent, termes, pas) {
     els.exprBox.appendChild(line);
 }
 
-// «Resolució pas a pas»: l'expressió a la pissarra. anima: la línia nova s'escriu amb animació (un pas
-// que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
+// «Resolució pas a pas»: un pas de l'historial a la pissarra. anima: la línia nova s'escriu amb animació
+// (un pas que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
 // Les pintades van a la cua del motor: una animació sempre acaba abans que comenci la següent, i si
 // una falla, la línia es mostra igualment i el joc continua.
-function pintaHistoria(anima) {
-    const pas = Object.assign(
-        { files: [Renderer.historiaHtml(historia)], classes: ['centrada'], text: '' },
-        anima ? Renderer.animacioUltimaLinia(historia) : {}
-    );
-    if (anima) pas.anunci = `Línia nova: ${Renderer.textLinia(historia[historia.length - 1])}`;
-    return pissarra.encua(pas, { anima, velocitat: 1.6 });
-}
+const pintaPas = (pas, anima) => pissarra.encua(pas, { anima, velocitat: 1.6 });
 
 // Després d'escriure una línia: amb la pissarra, el pas s'amaga mentre la línia s'anima i fn es crida
 // quan l'animació s'acaba; sense pissarra, fn es crida de seguida (com sempre). Mentre el pas és amagat,
@@ -292,8 +284,8 @@ function buildLevel() {
     generateProblem();
 
     if (pissarra) {
-        historia = [{ termes: [F(n1, d1), op, F(n2, d2)], pas: null }];
-        pintaHistoria(false);
+        historia = Renderer.historiaNova([F(n1, d1), op, F(n2, d2)]);
+        pintaPas(historia.passos[0], false);
     } else {
         els.exprBox.innerHTML = `
             <div class="expr-line">

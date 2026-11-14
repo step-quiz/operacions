@@ -88,7 +88,7 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 | `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
 | `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (l'obre el botó «Veure tutorial» de `recta-numerica.html`) |
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
-| `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): quatre exemples (prioritat d'operacions, una equació, una suma de fraccions i el teorema de Pitàgores, on les lletres i els catets volen del triangle a la fórmula); cada pas s'escriu a sota de l'anterior |
+| `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): cinc exemples (prioritat d'operacions, una equació, una suma de fraccions, el teorema de Pitàgores, on les lletres i els catets volen del triangle a la fórmula, i una equació amb parèntesis amb el detall a demanda, on el 2 de fora vola als dos termes); cada pas s'escriu a sota de l'anterior |
 | `s.html` | Fitxa adaptada de la unitat 1 (Nombres reals) |
 | `arbre.html` | Arbres de factorització: l'alumne fa créixer l'arbre de factors primers d'un nombre. Pàgina autònoma, amb l'estil i el JS a dins; no fa servir el motor comú ni dona codi, i encara no l'enllaça l'índex |
 
@@ -204,8 +204,9 @@ A l'estil de Graspable Math: la resolució d'un exercici es veu en una **pissarr
   - Si el pas l'ha fet l'alumne, l'animació és ràpida (uns 1,5 s). Si l'ordinador té activat «reduir el moviment», els símbols no volen: la línia nova apareix fonent-se al seu lloc. La línia nova també s'anuncia en text als lectors de pantalla. Les taules i les zones de treball no canvien de mida mentre l'alumne hi treballa, i si alguna animació fallés, la línia es mostraria igualment i l'activitat continuaria.
   - Les altres activitats s'aniran afegint d'una en una; el pla és a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md).
 - **Per veure-la funcionar:** `pissarra-demo.html`.
+- **Detall a demanda («Vull més detall»).** Un pas es pot obrir en passos més petits (1, 2, 3, 4 → 1, 2a, 2b, 2c, 3, 4): les línies del detall s'escriuen entremig i la resta de la resolució no canvia. El motor ja ho fa i ho comprova; de moment només es veu a la demo de l'equació amb parèntesis, amb la casella provisional «Mostra'l amb tot el detall» (`pissarra-demo.html?demo=parentesis&detall=1`). El botó «Vull més detall» de cada pas, a les activitats, és la propera etapa ([`docs/pissarra/STATE.md`](docs/pissarra/STATE.md)).
 
-El motor és a `js/pissarra/` (estil a `css/pissarra.css`), explicat a [`docs/pissarra/MOTOR.md`](docs/pissarra/MOTOR.md). Les proves comproven, entre altres coses, que **cada línia que es veu a la pissarra és certa** (`tests/pissarra.test.js`).
+El motor és a `js/pissarra/` (estil a `css/pissarra.css`), explicat a [`docs/pissarra/MOTOR.md`](docs/pissarra/MOTOR.md). Les proves comproven, entre altres coses, que **cada línia que es veu a la pissarra és certa** (`tests/pissarra.test.js`, i per a cada activitat la bateria comuna `tests/pissarra-activitat.js`).
 
 ## Mode «Esvaïment» (exemples resolts que es van esvaint)
 

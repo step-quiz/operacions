@@ -65,6 +65,17 @@
             background: var(--primary-light);
             font-weight: 700;
         }
+        /* Provisional (etapa 2): el detall a demanda sencer, fins que hi hagi el botó «Vull més detall» */
+        .detall-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .detall-demo[hidden] { display: none; }
+        .detall-demo input { width: 18px; height: 18px; margin: 0; accent-color: var(--primary); }
     </style>
     <script src="vendor/katex-0.16.11/katex.min.js"></script>
 </head>
@@ -76,6 +87,7 @@
     <main>
         <p class="nota">Així es veurà la resolució pas a pas animada a les activitats que la tinguin. Tria un exemple i fes servir els botons de sota la pissarra (o les fletxes del teclat).</p>
         <div id="demos" role="group" aria-label="Exemples"></div>
+        <label class="detall-demo" id="detall-demo" hidden><input type="checkbox" id="detall-casella"> Mostra'l amb tot el detall</label>
         <div id="demo"></div>
     </main>
     <script type="module" src="js/pissarra/demo-pagina.js"></script>

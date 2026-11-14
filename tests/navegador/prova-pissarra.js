@@ -5,7 +5,9 @@
  * ROL: Prova la «Resolució pas a pas» en un navegador de debò (Chromium amb
  *      Playwright), a la pàgina pissarra-demo.html:
  *   1. cada demo, pas a pas amb animació: en acabar cada pas, la pissarra té
- *      exactament els símbols (claus) d'aquell pas i no queda cap fantasma;
+ *      exactament els símbols (claus) d'aquell pas i no queda cap fantasma; també
+ *      la demo amb detall a demanda amb tots els passos oberts (la casella «Mostra'l
+ *      amb tot el detall», que només surt a les demos que en tenen);
  *   2. a mida de portàtil (1366×700) i de mòbil (375×740): la pàgina no surt
  *      de la pantalla (cap barra horitzontal);
  *   3. el reproductor: «Pas següent», «Pas anterior», «Torna a començar», els
@@ -314,6 +316,42 @@ async function premSeguent(pagina) {
     if (boto) await boto.click();
 }
 
+/**
+ * A la pàgina de les demos: recorre la demo que es veu pas a pas, amb animació, i revisa que en acabar
+ * cada pas la pissarra té exactament els símbols (claus) d'aquell pas i cap fantasma.
+ */
+const RECORRE_DEMO = async () => {
+    const { pissarra } = window.demoPissarra;
+    const claus = tex =>
+        [...tex.matchAll(/\\htmlData\{k=([^},]*)[^}]*\}|\{\{([^|}]+)\||\bdata-k="([^"]+)"/g)].map(
+            m => m[1] || m[2] || m[3]
+        );
+    const dolents = [];
+    const revisa = i => {
+        const esperades = pissarra.passos[i].files.flatMap(claus).sort().join(',');
+        const capa = document.querySelectorAll('.pis-pissarra .pis-capa');
+        const hi = [...document.querySelectorAll('.pis-pissarra .pis-capa [data-k]')]
+            .map(e => e.dataset.k)
+            .sort()
+            .join(',');
+        const fantasmes = document.querySelectorAll('.pis-efectes > *').length;
+        if (capa.length !== 1 || hi !== esperades || fantasmes)
+            dolents.push(`pas ${i + 1}: capes ${capa.length}, claus «${hi}» ≠ «${esperades}», efectes ${fantasmes}`);
+    };
+    revisa(0);
+    while (pissarra.pas < pissarra.total - 1) {
+        await pissarra.seguent();
+        revisa(pissarra.pas);
+    }
+    const ample = document.documentElement.scrollWidth > window.innerWidth + 1;
+    return {
+        total: pissarra.total,
+        dolents,
+        ample,
+        final: !!document.querySelector('.pis-fila.final'),
+    };
+};
+
 /** Engega tools/servidor.js i espera que respongui. */
 function engegaServidor() {
     const p = spawn(process.execPath, [path.join(ROOT, 'tools/servidor.js'), String(PORT)], { stdio: 'ignore' });
@@ -345,42 +383,11 @@ function engegaServidor() {
             await pagina.goto(BASE + '/pissarra-demo.html');
             await pagina.waitForFunction(() => window.demoPissarra);
             const ids = await pagina.$$eval('#demos button', bs => bs.map(b => b.dataset.id));
-            ok(`hi ha quatre demos (${ids.join(', ')})`, ids.length === 4);
+            ok(`hi ha cinc demos (${ids.join(', ')})`, ids.length === 5);
+            const casella = () => pagina.isVisible('#detall-casella');
             for (const id of ids) {
                 await pagina.click(`#demos button[data-id="${id}"]`);
-                const resultat = await pagina.evaluate(async () => {
-                    const { pissarra } = window.demoPissarra;
-                    const claus = tex =>
-                        [...tex.matchAll(/\\htmlData\{k=([^},]*)[^}]*\}|\{\{([^|}]+)\||\bdata-k="([^"]+)"/g)].map(
-                            m => m[1] || m[2] || m[3]
-                        );
-                    const dolents = [];
-                    const revisa = i => {
-                        const esperades = pissarra.passos[i].files.flatMap(claus).sort().join(',');
-                        const capa = document.querySelectorAll('.pis-pissarra .pis-capa');
-                        const hi = [...document.querySelectorAll('.pis-pissarra .pis-capa [data-k]')]
-                            .map(e => e.dataset.k)
-                            .sort()
-                            .join(',');
-                        const fantasmes = document.querySelectorAll('.pis-efectes > *').length;
-                        if (capa.length !== 1 || hi !== esperades || fantasmes)
-                            dolents.push(
-                                `pas ${i + 1}: capes ${capa.length}, claus «${hi}» ≠ «${esperades}», efectes ${fantasmes}`
-                            );
-                    };
-                    revisa(0);
-                    while (pissarra.pas < pissarra.total - 1) {
-                        await pissarra.seguent();
-                        revisa(pissarra.pas);
-                    }
-                    const ample = document.documentElement.scrollWidth > window.innerWidth + 1;
-                    return {
-                        total: pissarra.total,
-                        dolents,
-                        ample,
-                        final: !!document.querySelector('.pis-fila.final'),
-                    };
-                });
+                const resultat = await pagina.evaluate(RECORRE_DEMO);
                 ok(
                     `${id}: ${resultat.total} passos animats, cadascun amb els seus símbols`,
                     !resultat.dolents.length,
@@ -388,7 +395,25 @@ function engegaServidor() {
                 );
                 ok(`${id}: l'últim pas té el resultat ressaltat`, resultat.final);
                 ok(`${id}: la pàgina no surt de la pantalla`, !resultat.ample);
+                eq(`${id}: la casella del detall només surt si la demo en té`, await casella(), id === 'parentesis');
             }
+            // La demo amb detall a demanda, amb tots els passos oberts
+            await pagina.click('#demos button[data-id="parentesis"]');
+            await pagina.check('#detall-casella');
+            const sencer = await pagina.evaluate(RECORRE_DEMO);
+            ok(
+                `parentesis amb tot el detall: ${sencer.total} passos animats, cadascun amb els seus símbols`,
+                sencer.total === 10 && !sencer.dolents.length,
+                sencer.dolents.join('\n      → ')
+            );
+            ok('parentesis amb tot el detall: la pàgina no surt de la pantalla', !sencer.ample);
+            eq("l'adreça recorda el detall", await pagina.evaluate(() => location.search), '?demo=parentesis&detall=1');
+            await pagina.uncheck('#detall-casella');
+            eq(
+                'sense la casella, torna a ser tancada',
+                await pagina.evaluate(() => window.demoPissarra.pissarra.total),
+                6
+            );
             ok('cap error a la consola', !errors.length, errors.join('\n      → '));
             await pagina.close();
         }

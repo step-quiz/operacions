@@ -7,11 +7,14 @@
  * ARQUITECTURA:
  * - Funcions pures: retornen text HTML i no toquen la pàgina (les proven els
  *   tests amb Node, tests/equacions.test.js).
- * - «Resolució pas a pas» (?pissarra=1): l'historial amb les claus de la
- *   pissarra i què mou cada pas (vegeu la secció del final).
- * DEPENDÈNCIES: Cap.
+ * - «Resolució pas a pas» (?pissarra=1): com es dibuixa cada línia de l'historial
+ *   amb les claus de la pissarra i què mou cada pas; l'historial (claus, còpies,
+ *   fusions) el porta formules.js historial(). Vegeu la secció del final.
+ * DEPENDÈNCIES: pissarra/formules.js (guio, historial).
  * ============================================================================
  */
+
+import { guio, historial } from '../pissarra/formules.js';
 
 export const Renderer = (() => {
     // ---- RENDER DE TERMES ----
@@ -79,23 +82,20 @@ export const Renderer = (() => {
 
     // ---- «RESOLUCIÓ PAS A PAS» (?pissarra=1, js/pissarra/) ----
     //
-    // L'historial es pinta dins d'una pissarra: cada pas escriu una línia nova a
-    // sota i les d'abans queden escrites. Els símbols que el pas mou baixen volant
-    // de la línia anterior a la nova (i a l'anterior en queda la còpia, quieta):
-    //   · distributiva: la x i el coeficient de fora baixen al terme amb x, i el
-    //     nombre de dins es fusiona en el terme independent nou;
-    //   · sumar termes d'un costat, passar les x a l'esquerra, passar els nombres a
-    //     la dreta: els termes que s'ajunten es fusionen en el terme nou;
-    //   · aïllar la x: la x baixa, i el coeficient i el nombre de la dreta es
-    //     fusionen en la solució.
-    // Una línia de l'historial és { left, right, inv, classe, pas }: els termes de la
-    // forma canònica; inv, la primera línia de «b = ax» (es mostra amb els costats
-    // girats); classe (eq-original, eq-latest, eq-solved o ''); pas, el pas que l'ha
-    // escrita (null a la primera).
-    // Claus: e<r><costat><i><peça> (r: línia; costat L/R de la forma canònica, encara
-    // que es mostri girat; i: posició del terme; peça s signe, c coeficient, x, n
-    // nombre, a «(», t signe de dins, m nombre de dins, b «)», z el «0» d'un costat
-    // buit); la còpia que queda d'una peça que ha baixat: f<r>…; el «=»: e<r>q.
+    // L'historial es pinta dins d'una pissarra d'una sola fila amb formules.js historial(): cada pas
+    // escriu una línia nova a sota i les d'abans queden escrites. Els símbols que el pas mou baixen
+    // volant de la línia anterior a la nova (i a l'anterior en queda la còpia, quieta):
+    //   · distributiva: la x i el coeficient de fora baixen al terme amb x, i el nombre de dins es
+    //     fusiona en el terme independent nou;
+    //   · sumar termes d'un costat, passar les x a l'esquerra, passar els nombres a la dreta: els
+    //     termes que s'ajunten es fusionen en el terme nou;
+    //   · aïllar la x: la x baixa, i el coeficient i el nombre de la dreta es fusionen en la solució.
+    // Una línia és { left, right, inv }: els termes de la forma canònica; inv, la primera línia de
+    // «b = ax» (es mostra amb els costats girats). La classe de cada línia (eq-original, eq-latest,
+    // eq-solved o res) la porta l'historial.
+    // Peces (els id de l'historial): <costat><i><peça> (costat L/R de la forma canònica, encara que
+    // es mostri girat; i: posició del terme; peça s signe, c coeficient, x, n nombre, a «(», t signe
+    // de dins, m nombre de dins, b «)», z el «0» d'un costat buit); el «=»: q.
 
     const esNul = t => (t.k === 'n' ? t.v === 0 : t.k === 'x' ? t.c === 0 : false);
     const esNegatiu = t => (t.k === 'n' ? t.v < 0 : t.c < 0);
@@ -139,8 +139,8 @@ export const Renderer = (() => {
     const posicions = (arr, k) => arr.map((t, i) => (t.k === k && !esNul(t) ? i : -1)).filter(i => i >= 0);
 
     /**
-     * Què fa un pas a la línia nova: { mou: [[peça nova, peça vella]], fusiona: [[peça nova, [peces velles]]] },
-     * amb les peces escrites «<costat><i><peça>» (forma canònica).
+     * Què fa un pas a la línia nova, en el format de formules.js historial(): { mou: {peça nova: peça
+     * vella}, fusiona: {peça nova: [peces velles]} }, amb les peces escrites «<costat><i><peça>».
      */
     function moviments(pas) {
         const abans = { L: pas.dispLeftBefore, R: pas.dispRightBefore };
@@ -149,33 +149,33 @@ export const Renderer = (() => {
         const pd = { L: pecesCostat(despres.L), R: pecesCostat(despres.R) };
         const totes = (S, i) => (pa[S].get(i) || []).map(p => `${S}${i}${p}`);
         const te = (P, S, i, peca) => (P[S].get(i) || []).includes(peca);
-        const mou = [],
-            fusiona = [];
+        const mou = {},
+            fusiona = {};
         // Uns termes que s'ajunten en un de nou (S, j): si el nou té coeficient, la primera x hi baixa
         // i la resta s'hi fusiona en el coeficient; si no, tot es fusiona en la x
         const ajunta = (fonts, S, j, k) => {
             const peces = fonts.flatMap(([T, i]) => totes(T, i));
             if (!peces.length) return;
             if (k === 'n' || te(pd, S, j, 'n')) {
-                if (te(pd, S, j, 'n')) fusiona.push([`${S}${j}n`, peces]);
+                if (te(pd, S, j, 'n')) fusiona[`${S}${j}n`] = peces;
                 return;
             }
             if (!te(pd, S, j, 'x')) return;
             if (te(pd, S, j, 'c')) {
                 const [T0, i0] = fonts[0];
-                mou.push([`${S}${j}x`, `${T0}${i0}x`]);
-                fusiona.push([`${S}${j}c`, peces.filter(p => p !== `${T0}${i0}x`)]);
-            } else fusiona.push([`${S}${j}x`, peces]);
+                mou[`${S}${j}x`] = `${T0}${i0}x`;
+                fusiona[`${S}${j}c`] = peces.filter(p => p !== `${T0}${i0}x`);
+            } else fusiona[`${S}${j}x`] = peces;
         };
         const t = pas.type;
         if (t === 'distribute_left' || t === 'distribute_right') {
             const S = t === 'distribute_left' ? 'L' : 'R',
                 i = pas.distIdx;
-            mou.push([`${S}${i}x`, `${S}${i}x`]);
-            if (te(pa, S, i, 'c') && te(pd, S, i, 'c')) mou.push([`${S}${i}c`, `${S}${i}c`]);
-            if (te(pa, S, i, 's') && te(pd, S, i, 's')) mou.push([`${S}${i}s`, `${S}${i}s`]);
+            mou[`${S}${i}x`] = `${S}${i}x`;
+            if (te(pa, S, i, 'c') && te(pd, S, i, 'c')) mou[`${S}${i}c`] = `${S}${i}c`;
+            if (te(pa, S, i, 's') && te(pd, S, i, 's')) mou[`${S}${i}s`] = `${S}${i}s`;
             if (te(pd, S, i + 1, 'n'))
-                fusiona.push([`${S}${i + 1}n`, [`${S}${i}t`, `${S}${i}m`].filter(p => te(pa, S, i, p.slice(-1)))]);
+                fusiona[`${S}${i + 1}n`] = [`${S}${i}t`, `${S}${i}m`].filter(p => te(pa, S, i, p.slice(-1)));
         } else if (/^simplify_(left|right)_(x|n)$/.test(t)) {
             const S = t.includes('left') ? 'L' : 'R',
                 k = t.slice(-1);
@@ -203,35 +203,34 @@ export const Renderer = (() => {
             ];
             const peces = fonts.flatMap(([T, i]) => totes(T, i));
             if (pa.R.has(0) && pa.R.get(0).includes('z')) peces.push('R0z'); // el «0» d'un costat buit
-            fusiona.push(['R0n', peces]);
+            fusiona.R0n = peces;
         } else if (t === 'solve') {
             const [ix] = posicions(abans.L, 'x');
-            mou.push(['L0x', `L${ix}x`]);
+            mou.L0x = `L${ix}x`;
             const peces = totes('L', ix).filter(p => p !== `L${ix}x`);
             for (const i of posicions(abans.R, 'n')) peces.push(...totes('R', i));
-            fusiona.push(['R0n', peces]);
+            fusiona.R0n = peces;
         }
         return { mou, fusiona };
     }
 
-    /** Les peces de la línia r que han baixat a la línia r + 1 (Set de «<costat><i><peça>»). */
-    function baixades(historia, r) {
-        const seguent = historia[r + 1];
-        if (!seguent || !seguent.pas) return new Set();
-        const { mou, fusiona } = moviments(seguent.pas);
-        return new Set([...mou.map(([, v]) => v), ...fusiona.flatMap(([, vs]) => vs)]);
-    }
-
-    /** Una línia de l'historial (vegeu més amunt); r: la seva posició. claus: posa les claus de la pissarra. */
-    function liniaHtml(linia, r, { claus = false, fonts = new Set() } = {}) {
-        const clau = S =>
-            claus ? (i, peca) => `${fonts.has(`${S}${i}${peca}`) ? 'f' : 'e'}${r}${S}${i}${peca}` : null;
+    /**
+     * Una línia de l'historial (vegeu més amunt), el pintor de formules.js historial(): clauDe(peça) dona la
+     * clau de cada peça (sense clauDe, l'HTML de sempre); classe: la classe de la línia.
+     */
+    function liniaHtml(linia, clauDe = null, classe = '') {
+        const clau = S => (clauDe ? (i, peca) => clauDe(`${S}${i}${peca}`) : null);
         const [esq, dre] = linia.inv
             ? [costatHtml(linia.right, clau('R')), costatHtml(linia.left, clau('L'))]
             : [costatHtml(linia.left, clau('L')), costatHtml(linia.right, clau('R'))];
-        const igual = claus ? `<span class="eq-sign" data-k="e${r}q">=</span>` : '<span class="eq-sign">=</span>';
-        return `<div class="eq-history-line${linia.classe ? ' ' + linia.classe : ''}">${esq}${igual}${dre}</div>`;
+        const igual = clauDe
+            ? `<span class="eq-sign" data-k="${clauDe('q')}">=</span>`
+            : '<span class="eq-sign">=</span>';
+        return `<div class="eq-history-line${classe ? ' ' + classe : ''}">${esq}${igual}${dre}</div>`;
     }
+
+    /** Totes les línies, a la fila de la pissarra. */
+    const envolta = linies => `<div class="eq-linies">${linies.join('')}</div>`;
 
     /** El text pla d'una línia de l'historial (p. ex. «2x + 6 = 14»), per als lectors de pantalla. */
     function textLinia(linia) {
@@ -240,26 +239,34 @@ export const Renderer = (() => {
         return `${pla(esq)} = ${pla(dre)}`;
     }
 
-    /** Tot l'historial, amb les claus de la pissarra. */
-    function historiaHtml(historia) {
-        const linies = historia.map((l, r) => liniaHtml(l, r, { claus: true, fonts: baixades(historia, r) }));
-        return `<div class="eq-linies">${linies.join('')}</div>`;
+    /**
+     * L'historial d'una equació (math-engine.js generateEquation), amb la primera línia escrita: un
+     * historial d'una sola fila (formules.js). El primer pas de la pissarra és historia.passos[0].
+     */
+    function historiaNova(eq) {
+        const g = guio(1);
+        g.classes[0] = 'centrada';
+        const H = historial(g, { prefix: 'e', pinta: liniaHtml, envolta });
+        H.escriu({ left: eq.dispLeft, right: eq.dispRight, inv: !!eq.swapInitial }, '', { classe: 'eq-original' });
+        return H;
     }
 
-    /** L'animació de l'última línia: { reanomena, fusiona, copia } amb les claus de la pissarra. */
-    function animacioUltimaLinia(historia) {
-        const r = historia.length - 1;
-        if (r < 1 || !historia[r].pas) return {};
-        const { mou, fusiona } = moviments(historia[r].pas);
-        const vella = p => `e${r - 1}${p}`,
-            nova = p => `e${r}${p}`;
-        const fonts = baixades(historia, r - 1);
-        return {
-            reanomena: Object.fromEntries(mou.map(([n, v]) => [nova(n), vella(v)])),
-            fusiona: Object.fromEntries(fusiona.map(([n, vs]) => [nova(n), vs.map(vella)])),
-            copia: Object.fromEntries([...fonts].map(p => [`f${r - 1}${p}`, vella(p)])),
-        };
+    /**
+     * Escriu la línia d'un pas encertat (math-engine.js determineSteps); final: és l'últim. Torna el pas
+     * de la pissarra, que anima la línia nova: la que era l'última deixa de ser-ho.
+     */
+    function escriuPas(H, pas, final) {
+        const linia = { left: pas.dispLeftAfter, right: pas.dispRightAfter, inv: false };
+        return H.escriu(
+            linia,
+            '',
+            Object.assign(moviments(pas), {
+                classe: final ? 'eq-solved' : 'eq-latest',
+                classeAnterior: H.ultima.classe === 'eq-latest' ? '' : undefined,
+                anunci: `Línia nova: ${textLinia(linia)}`,
+            })
+        );
     }
 
-    return { renderOneToken, renderTerms, liniaHtml, historiaHtml, animacioUltimaLinia, moviments, textLinia };
+    return { renderOneToken, renderTerms, liniaHtml, envolta, moviments, textLinia, historiaNova, escriuPas };
 })();

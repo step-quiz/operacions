@@ -11,15 +11,18 @@
  *   s'explica al costat de la constant).
  * - 1b. Cap equació sense una sola solució entera.
  * - 2. «Resolució pas a pas» (?pissarra=1): sobre milers d'equacions de tots els
- *   nivells, l'historial que es va escrivint línia a línia: cada animació passa la
- *   revisió dels guions (js/pissarra/comprova.js), cada línia que es veu és una
- *   equació amb la mateixa solució (recalculada aquí, amb aritmètica exacta), sense
- *   les claus l'HTML de cada línia és el de sempre, i cada pas mou poques peces.
+ *   nivells, l'historial que es va escrivint línia a línia, escrit com ho fa el
+ *   controlador (renderer.js historiaNova i escriuPas), passa la bateria comuna
+ *   (tests/pissarra-activitat.js): el guió passa la revisió (js/pissarra/comprova.js),
+ *   cada pas mou alguna peça i poques, cada línia que es veu és una equació amb la
+ *   mateixa solució (recalculada aquí, amb aritmètica exacta) i, sense les claus, la
+ *   pissarra és l'HTML de sempre.
  * ÚS: node tests/equacions.test.js
  * ============================================================================
  */
 'use strict';
 const { suite, ok, eq, finish, loadModule } = require('./harness');
+const { provaActivitat } = require('./pissarra-activitat');
 
 // e12f22f1 era l'empremta del codi d'abans de moure'l (27/10/2026). El mateix dia es va corregir el mode sense
 // nivell, que de tant en tant generava equacions sense una sola solució («3x + 4 = 3x + 4»): de 60.000
@@ -151,7 +154,6 @@ const textPla = html =>
         .replace(/<[^>]+>/g, '')
         .replace(/−/g, '-')
         .replace(/\s+/g, '');
-const senseClaus = html => html.replace(/<span data-k="[^"]*">([^<]*)<\/span>/g, '$1').replace(/ data-k="[^"]*"/g, '');
 
 suite('2. Resolució pas a pas (?pissarra=1): l’historial línia a línia');
 {
@@ -159,96 +161,59 @@ suite('2. Resolució pas a pas (?pissarra=1): l’historial línia a línia');
         [
             'js/utils.js',
             'js/equacions/math-engine.js',
-            'js/equacions/renderer.js',
             'js/pissarra/formules.js',
             'js/pissarra/comprova.js',
+            'js/equacions/renderer.js',
         ],
         { seed: 20261027 }
     );
-    const { MathEngine, Renderer, comprovaGuio } = w;
-    let equacions = 0,
-        animacions = 0,
-        maxPeces = 0;
-    const dolents = [],
-        falses = [],
-        diferents = [],
-        buides = [];
-    const anota = (llista, text) => llista.length < 5 && llista.push(text);
-    for (const nivell of [0, 1, 2, 3])
-        for (const leftToRight of [false, true])
-            for (let k = 0; k < 250; k++) {
-                const eqn = MathEngine.generateEquation(k % 10, { nivell, leftToRight, totalOperations: 10 });
-                const passos = MathEngine.determineSteps(eqn);
-                equacions++;
-                // L'historial com el fa el controlador: la primera línia (potser girada) i una per pas
-                const historia = [
-                    {
-                        left: eqn.dispLeft,
-                        right: eqn.dispRight,
-                        inv: eqn.swapInitial,
-                        classe: 'eq-original',
-                        pas: null,
-                    },
-                ];
-                const comprovaLinies = (html, on) => {
-                    for (const linia of html.match(/<div class="eq-history-line[^"]*">[\s\S]*?<\/div>/g)) {
-                        try {
-                            const s = solucio(textPla(linia));
-                            if (!s || s.n !== BigInt(eqn.xSol) || s.d !== 1n)
-                                anota(falses, `${on}: ${textPla(linia)} no té solució x = ${eqn.xSol}`);
-                        } catch (e) {
-                            anota(falses, `${on}: ${e.message}`);
-                        }
-                    }
-                };
-                passos.forEach((pas, j) => {
-                    const A = Renderer.historiaHtml(historia);
-                    if (historia.length > 1 && historia[historia.length - 1].classe === 'eq-latest')
-                        historia[historia.length - 1].classe = '';
-                    const fet = j === passos.length - 1;
-                    historia.push({
-                        left: pas.dispLeftAfter,
-                        right: pas.dispRightAfter,
-                        inv: false,
-                        classe: fet ? 'eq-solved' : 'eq-latest',
-                        pas,
-                    });
-                    const B = Renderer.historiaHtml(historia);
-                    const anim = Renderer.animacioUltimaLinia(historia);
-                    const on = `nivell ${nivell}, equació ${k}, pas ${j + 1} (${pas.type})`;
-                    animacions++;
-                    const guio = [
-                        { files: [A], classes: [''], text: 'A.' },
-                        Object.assign({ files: [B], classes: [''], text: 'B.' }, anim),
+    const { MathEngine, Renderer } = w;
+    // L'HTML de sempre d'una línia (el que pinta el joc sense la pissarra), amb la classe que ha de tenir
+    const clasica = (esq, dre, classe) =>
+        `<div class="eq-history-line${classe ? ' ' + classe : ''}">` +
+        `${Renderer.renderTerms(esq)}<span class="eq-sign">=</span>${Renderer.renderTerms(dre)}</div>`;
+    function* exercicis() {
+        for (const nivell of [0, 1, 2, 3])
+            for (const leftToRight of [false, true])
+                for (let k = 0; k < 250; k++) {
+                    const eqn = MathEngine.generateEquation(k % 10, { nivell, leftToRight, totalOperations: 10 });
+                    const passos = MathEngine.determineSteps(eqn);
+                    // Com el controlador: la primera línia (potser girada) i una línia per pas encertat
+                    const H = Renderer.historiaNova(eqn);
+                    passos.forEach((pas, j) => Renderer.escriuPas(H, pas, j === passos.length - 1));
+                    // Les línies de sempre: la primera és l'original; l'última, la més nova (o la resolta)
+                    const linies = [
+                        eqn.swapInitial ? [eqn.dispRight, eqn.dispLeft] : [eqn.dispLeft, eqn.dispRight],
+                        ...passos.map(p => [p.dispLeftAfter, p.dispRightAfter]),
                     ];
-                    for (const e of comprovaGuio(guio, 1, on)) anota(dolents, e);
-                    const peces =
-                        Object.keys(anim.reanomena || {}).length + Object.values(anim.fusiona || {}).flat().length;
-                    maxPeces = Math.max(maxPeces, peces);
-                    if (!peces) anota(buides, on);
-                    comprovaLinies(B, on);
-                });
-                // Sense claus, cada línia és la de sempre (la que pintava el joc abans)
-                historia.forEach((l, r) => {
-                    const [esq, dre] = l.inv ? [l.right, l.left] : [l.left, l.right];
-                    const abans =
-                        `<div class="eq-history-line${l.classe ? ' ' + l.classe : ''}">` +
-                        `${Renderer.renderTerms(esq)}<span class="eq-sign">=</span>${Renderer.renderTerms(dre)}</div>`;
-                    const pla = Renderer.liniaHtml(l, r);
-                    const ambClaus = Renderer.liniaHtml(l, r, { claus: true });
-                    if (pla !== abans || senseClaus(ambClaus) !== abans)
-                        anota(diferents, `${nivell}/${k}, línia ${r + 1}`);
-                });
+                    const classe = (r, i) =>
+                        r === 0 ? 'eq-original' : r < i ? '' : i === passos.length ? 'eq-solved' : 'eq-latest';
+                    const clasic = H.passos.map((_, i) => [
+                        `<div class="eq-linies">${linies
+                            .slice(0, i + 1)
+                            .map(([e, d], r) => clasica(e, d, classe(r, i)))
+                            .join('')}</div>`,
+                    ]);
+                    yield { on: `nivell ${nivell}, equació ${k}`, passos: H.passos, clasic, xSol: eqn.xSol };
+                }
+    }
+    provaActivitat('equacions', {
+        exercicis: exercicis(),
+        eines: w,
+        linies: fila => fila.match(/<div class="eq-history-line[^"]*">[\s\S]*?<\/div>/g) || [],
+        veritat: (linia, ex) => {
+            try {
+                const s = solucio(textPla(linia));
+                return !s || s.n !== BigInt(ex.xSol) || s.d !== 1n
+                    ? `${textPla(linia)} no té solució x = ${ex.xSol}`
+                    : '';
+            } catch (e) {
+                return e.message;
             }
-    ok(
-        `${animacions} animacions de ${equacions} equacions passen la revisió dels guions`,
-        animacions > 3000 && !dolents.length,
-        dolents.join('\n      → ')
-    );
-    ok('cada pas mou alguna peça', !buides.length, buides.join('\n      → '));
-    ok(`cada pas mou poques peces (com a màxim ${maxPeces}; cap pas en mou més de 10)`, maxPeces <= 10);
-    ok('cada línia que es veu té la solució de l’equació', !falses.length, falses.join('\n      → '));
-    ok('sense claus, l’HTML de cada línia és el de sempre', !diferents.length, diferents.join(', '));
+        },
+        maxPeces: 10,
+        minExercicis: 2000,
+    });
 }
 
 finish('TESTS D’EQUACIONS');

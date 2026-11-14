@@ -5,10 +5,20 @@
  * ROL: «Resolució pas a pas» — eines per COMPROVAR els guions (les fan servir
  *      els tests, no les pàgines). Mòdul PUR (sense DOM ni window).
  * ARQUITECTURA:
- * - comprovaGuio(passos, nFiles): la revisió estructural d'un guió (claus
- *   vàlides i úniques a cada pas, fusions, canvis de nom i còpies coherents, el cursor
- *   apunta a símbols que hi són, cap pas idèntic a l'anterior…). Torna la llista
- *   d'errors (buida si tot és correcte).
+ * - comprovaGuio(passos, nFiles, nom, { text }): la revisió estructural d'un guió
+ *   (claus vàlides i úniques a cada pas, fusions, canvis de nom, còpies i
+ *   repartiments coherents, el cursor apunta a símbols que hi són, cap pas idèntic a
+ *   l'anterior…). Torna la llista d'errors (buida si tot és correcte). text: false
+ *   no demana el text de cada pas (els historials de les activitats no en tenen).
+ * - comprovaDetall(fesGuio, nFiles, nom, { text }): la regla del detall a demanda.
+ *   fesGuio({ oberts }) torna els passos d'un guió fet amb historial() (formules.js) amb els
+ *   passos d'«oberts» oberts. Es comproven la vista compacta, cada pas obert d'un en un (els
+ *   subpassos amb detall, dins del seu pare) i tots oberts alhora: cada vista passa
+ *   comprovaGuio, i un pas obert només hi afegeix línies entremig: acaba amb la línia del pas
+ *   tancat (D.acaba), la resta de passos hi són amb el mateix text i, després de cada pas, la
+ *   pissarra és la de la vista tancada sense comptar les línies del detall. Com que obrir un
+ *   pas només canvia el que hi ha entre el seu començament i el seu final, això garanteix
+ *   totes les combinacions.
  * - textPla(tex): una fila TeX de la pissarra convertida en text pla que es pot
  *   llegir i calcular (sense claus ni ordres de presentació): així els tests
  *   poden comprovar que cada línia que veu l'alumne és certa.
@@ -32,7 +42,7 @@ export const clausDe = tex =>
  * Revisió estructural d'un guió. Torna una llista de frases que diuen què falla
  * (buida si tot és correcte). «nom» identifica el guió als missatges.
  */
-export function comprovaGuio(passos, nFiles, nom = 'guió') {
+export function comprovaGuio(passos, nFiles, nom = 'guió', { text = true } = {}) {
     const errors = [];
     const comprova = (condicio, missatge) => {
         if (!condicio) errors.push(missatge());
@@ -46,10 +56,11 @@ export function comprovaGuio(passos, nFiles, nom = 'guió') {
             Array.isArray(pas.files) && pas.files.length === nFiles && pas.classes.length === nFiles,
             () => `${on}: el nombre de files no és ${nFiles}`
         );
-        comprova(
-            typeof pas.text === 'string' && pas.text.trim() && pas.text.split('$').length % 2 === 1,
-            () => `${on}: text buit o amb «$» desaparellats`
-        );
+        if (text)
+            comprova(
+                typeof pas.text === 'string' && pas.text.trim() && pas.text.split('$').length % 2 === 1,
+                () => `${on}: text buit o amb «$» desaparellats`
+            );
         const llista = pas.files.flatMap(clausDe);
         const B = new Set(llista);
         comprova(
@@ -68,10 +79,11 @@ export function comprovaGuio(passos, nFiles, nom = 'guió') {
         }
         const reanomena = Object.entries(pas.reanomena || {});
         const fusiona = Object.entries(pas.fusiona || {});
+        const reparteix = Object.entries(pas.reparteix || {});
         const cursor = pas.cursor || {};
         if (!A) {
             comprova(
-                !reanomena.length && !fusiona.length && !cursor.clic && !cursor.arrossega,
+                !reanomena.length && !fusiona.length && !reparteix.length && !cursor.clic && !cursor.arrossega,
                 () => `${on}: el primer pas no pot animar res`
             );
         } else {
@@ -98,6 +110,26 @@ export function comprovaGuio(passos, nFiles, nom = 'guió') {
                     );
                 }
             }
+            const destins = reparteix.flatMap(([, kbs]) => kbs || []);
+            comprova(new Set(destins).size === destins.length, () => `${on}: un símbol nou surt de dos repartiments`);
+            for (const [ka, kbs] of reparteix) {
+                comprova(
+                    A.has(ka) && !B.has(ka),
+                    () => `${on}: reparteix ${ka}: ha de ser al pas anterior i no al nou`
+                );
+                comprova(Array.isArray(kbs) && kbs.length >= 1, () => `${on}: reparteix ${ka}: cap destí`);
+                for (const kb of kbs || []) {
+                    comprova(B.has(kb) && !A.has(kb), () => `${on}: reparteix ${ka}→${kb}: «${kb}» ha de ser nova`);
+                    comprova(
+                        !reanomena.some(([n]) => n === kb) && !(kb in (pas.copia || {})),
+                        () => `${on}: «${kb}» surt d'un repartiment i d'un canvi de nom o d'una còpia alhora`
+                    );
+                }
+                comprova(
+                    !fonts.includes(ka) && !reanomena.some(([, v]) => v === ka),
+                    () => `${on}: «${ka}» es reparteix i es fusiona o es reanomena alhora`
+                );
+            }
             if (cursor.clic)
                 comprova(A.has(cursor.clic), () => `${on}: el cursor clica «${cursor.clic}», que no hi és`);
             if (cursor.arrossega) {
@@ -113,6 +145,79 @@ export function comprovaGuio(passos, nFiles, nom = 'guió') {
         A = B;
         anterior = pas;
     });
+    return errors;
+}
+
+/**
+ * La regla del detall a demanda (vegeu la capçalera). Torna la llista d'errors.
+ * Els passos els escriu historial() (formules.js), que hi posa les metadades: id, pare i pares (el
+ * pas obert d'un subpas i tots els que l'envolten), tanca (el subpas de D.acaba, que escriu la
+ * línia del pas tancat), teDetall (es pot obrir) i estat (les línies escrites després del pas,
+ * sense claus, amb el seu nivell).
+ * text: com a comprovaGuio.
+ */
+export function comprovaDetall(fesGuio, nFiles, nom = 'guió', { text = true } = {}) {
+    const errors = [];
+    const vista = oberts => fesGuio({ oberts: new Set(oberts) });
+    const nomDe = oberts => `${nom} (${oberts.length ? 'obert: ' + oberts.join(', ') : 'compacte'})`;
+    const compacte = vista([]);
+    errors.push(...comprovaGuio(compacte, nFiles, nomDe([]), { text }));
+    // Cada pas amb detall s'obre dins de la vista on surt (un subpas amb detall, dins del seu pare)
+    const tots = [];
+    const pendents = [{ oberts: [], passos: compacte, pare: null }];
+    while (pendents.length) {
+        const { oberts, passos, pare } = pendents.shift();
+        for (const p of passos) {
+            if (!p.teDetall || (p.pare || null) !== pare) continue;
+            const ara = [...oberts, p.id];
+            tots.push(p.id);
+            const oberta = vista(ara);
+            errors.push(...comprovaGuio(oberta, nFiles, nomDe(ara), { text }));
+            errors.push(...comparaVistes(passos, oberta, new Set([p.id]), oberts.length, nomDe(ara)));
+            pendents.push({ oberts: ara, passos: oberta, pare: p.id });
+        }
+    }
+    if (tots.length > 1) {
+        const oberta = vista(tots);
+        errors.push(...comprovaGuio(oberta, nFiles, nomDe(['tots']), { text }));
+        const primers = new Set(compacte.filter(p => p.teDetall).map(p => p.id));
+        errors.push(...comparaVistes(compacte, oberta, primers, 0, nomDe(['tots'])));
+    }
+    return errors;
+}
+
+/**
+ * Compara una vista amb la mateixa vista amb uns passos més oberts («ara»): cada pas de la tancada hi
+ * és (un pas obert, com el subpas de D.acaba), amb el mateix text, i després de cada pas la pissarra hi
+ * és igual sense comptar les línies dels detalls oberts (les de nivell més gran que «nivell»). Cada
+ * pas obert hi afegeix algun subpas, a més del de D.acaba.
+ */
+function comparaVistes(tancada, oberta, ara, nivell, on) {
+    const errors = [];
+    const estat = p =>
+        (p.estat || [])
+            .filter(l => l.nivell <= nivell)
+            .map(l => l.signatura)
+            .join('\n');
+    for (const p of tancada) {
+        if (p.id === undefined) continue; // un pas que no ha escrit l'historial
+        const obert = ara.has(p.id);
+        const q = oberta.find(s => (obert ? s.tanca === p.id : s.id === p.id));
+        if (!q) {
+            errors.push(
+                obert
+                    ? `${on}: el detall de «${p.id}» no acaba amb D.acaba() (la línia del pas tancat)`
+                    : `${on}: hi falta el pas «${p.id}»`
+            );
+            continue;
+        }
+        if (estat(q) !== estat(p))
+            errors.push(`${on}: després del pas «${p.id}», la pissarra no és la de la vista tancada`);
+        if (!obert && q.text !== p.text) errors.push(`${on}: el text del pas «${p.id}» canvia`);
+    }
+    for (const id of ara)
+        if (oberta.filter(s => (s.pares || []).includes(id)).length < 2)
+            errors.push(`${on}: el detall de «${id}» no hi afegeix cap pas (a més de D.acaba)`);
     return errors;
 }
 
