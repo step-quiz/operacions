@@ -86,6 +86,7 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
 | `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): tres exemples (prioritat d'operacions, una equació i una suma de fraccions); cada pas s'escriu a sota de l'anterior |
 | `s.html` | Fitxa adaptada de la unitat 1 (Nombres reals) |
+| `arbre.html` | Arbres de factorització: l'alumne fa créixer l'arbre de factors primers d'un nombre. Pàgina autònoma, amb l'estil i el JS a dins; no fa servir el motor comú ni dona codi, i encara no l'enllaça l'índex |
 
 El 18/10/2026 es van retirar les pàgines que no enllaçava res (decaleg-pau, meteo, meteo_mobile i descripcio-grafica-inversa) i les còpies antigues d'altres projectes (cb.html, informe-cb.html, informe-cb-refactor.md i les carpetes cb, gem4eso i app, que avui són els repositoris step-quiz/cb, step-quiz/comp4eso i step-quiz/app). Són a l'historial de git si mai calen.
 

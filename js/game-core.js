@@ -338,6 +338,18 @@ export function isTouchDevice() {
 }
 let _kbActiveInput = null;
 let _kbClearOnNext = false;
+let _kbTocDelegat = false;
+
+/**
+ * Casella que pot fer servir el teclat numèric: un <input> de text o de número dins del panell
+ * del joc (.panel). Un joc en pot excloure una amb data-kb="off".
+ */
+function esCasellaTeclat(el) {
+    if (!(el instanceof HTMLInputElement)) return false;
+    if (el.type !== 'text' && el.type !== 'number') return false;
+    if (el.dataset.kb === 'off') return false;
+    return !!el.closest('.panel');
+}
 
 // Opcions: allowNegative (tecla −), allowZero (tecla 0), decimalComma (la tecla − passa a ser la
 // coma decimal «,»: per a activitats amb respostes decimals i sense nombres negatius) i
@@ -408,6 +420,26 @@ export function initCustomKeyboard(options = {}) {
             }
         });
     });
+    // En tàctils, qualsevol casella numèrica que l'alumne toqui passa a rebre el teclat propi,
+    // encara que el joc no l'hagi activada mai amb showCustomKeyboard(). Abans, en tocar la
+    // segona casella d'una pregunta (perímetre, exponent…) s'obria el teclat del sistema i el
+    // propi continuava escrivint a la primera. Un sol listener per a tota la pàgina, en fase de
+    // captura, perquè també valgui per a les caselles que el joc crea a cada pregunta.
+    if (!_kbTocDelegat) {
+        _kbTocDelegat = true;
+        document.addEventListener(
+            'pointerdown',
+            e => {
+                if (!isTouchDevice()) return;
+                const inp = e.target instanceof Element ? e.target.closest('input') : null;
+                if (!inp || !esCasellaTeclat(inp)) return;
+                if (inp.dataset.locked === 'true' || inp.disabled) return;
+                e.preventDefault();
+                showCustomKeyboard(inp);
+            },
+            true
+        );
+    }
     window.addEventListener('orientationchange', () => {
         const kb = document.getElementById('customKeyboard');
         if (!_kbActiveInput || !kb || !kb.classList.contains('kb-visible')) return;
@@ -430,15 +462,6 @@ export function showCustomKeyboard(inp) {
     inp.setAttribute('inputmode', 'none');
     inp.setAttribute('readonly', 'readonly');
     inp.classList.add('kb-active-input');
-    if (!inp._kbDirectTapBound) {
-        inp._kbDirectTapBound = true;
-        inp.addEventListener('pointerdown', e => {
-            if (!isTouchDevice()) return;
-            if (inp.dataset.locked === 'true') return;
-            e.preventDefault();
-            showCustomKeyboard(inp);
-        });
-    }
     const kb = document.getElementById('customKeyboard');
     if (kb) {
         kb.classList.add('kb-visible');
