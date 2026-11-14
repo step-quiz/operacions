@@ -27,6 +27,7 @@ const TESTS = [
     ['Fraccions (resolució pas a pas)', 'tests/fraccions.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
+    ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],
     ['Tests de derivades', 'js/derivades/run-tests.js'],
     ['Documentació ↔ codi', 'tests/docs_vs_codi.py'],
 ];

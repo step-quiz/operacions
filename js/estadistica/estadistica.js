@@ -24,6 +24,9 @@ import {
     validateConfig,
     acabaPregunta,
     puntsAmbErrors,
+    initCustomKeyboard,
+    isTouchDevice,
+    showCustomKeyboard,
 } from '../game-core.js';
 import { MathEngine } from './math-engine.js';
 import { QuestionBank } from './question-bank.js';
@@ -352,7 +355,7 @@ function renderStatInput(title, statId) {
         <div class="stat-question">
             <input class="stat-input" id="stat-input" inputmode="decimal" autocomplete="off" placeholder="Escriu la resposta">
         </div>`;
-    document.getElementById('stat-input').focus();
+    focusCasella(document.getElementById('stat-input'));
 }
 
 // ── FASES ESTADÍSTICS: selecció d'interval ───────────────────────────────
@@ -658,13 +661,22 @@ function showFeedback(msg, type) {
 
 function focusFirst() {
     const first = els.tableWrap.querySelector('.cell-input:not([readonly])');
-    if (first) first.focus();
+    if (first) focusCasella(first);
+}
+
+// En tàctils, el teclat propi (game-core.js / js/teclat.js); a l'ordinador, el cursor a la casella
+function focusCasella(inp) {
+    if (!inp) return;
+    if (isTouchDevice()) showCustomKeyboard(inp);
+    else inp.focus();
 }
 
 // ── ARRENCADA ────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof validateConfig === 'function') validateConfig();
     if (typeof injectSharedHTML === 'function') injectSharedHTML();
+    // Teclat numèric propi en tàctils, amb la coma decimal; la tecla «→» fa el mateix que Enter
+    initCustomKeyboard({ decimalComma: true });
 
     // game-core fa display:'block' via inline style; en desktop necessitem 'flex'
     const _gs = document.getElementById('game-screen');

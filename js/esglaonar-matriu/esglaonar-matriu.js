@@ -8,6 +8,11 @@
  */
 
 import { FixedSessions } from '../fixed-sessions.js';
+import { initCustomKeyboard, injectaTeclat } from '../teclat.js';
+
+// Teclat numèric comú (js/teclat.js) per als aparells tàctils: la tecla «→» fa el mateix que Enter
+injectaTeclat(document.querySelector('.app-card'));
+initCustomKeyboard({ allowNegative: true });
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -115,7 +120,7 @@ function renderManualInput() {
         cell.className = 'cell';
         cell.style.animationDelay = `${i * 0.02}s`;
         if (currentCols === 4 && i % currentCols === 3) cell.classList.add('sep-column');
-        cell.innerHTML = `<input type="number" class="manual-cell" placeholder="?" onfocus="this.select()">`;
+        cell.innerHTML = `<input type="text" inputmode="numeric" class="manual-cell" placeholder="?" onfocus="this.select()">`;
         grid.appendChild(cell);
     }
     wrapper.appendChild(title);
@@ -191,10 +196,10 @@ function renderStep() {
 
     if (order === 'pivotFirst') {
         document.getElementById('opText').innerHTML =
-            `${targetL} ⮕ <input type="number" id="cLeft" class="op-input" onfocus="this.select()"> ${pivotL} + <input type="number" id="cRight" class="op-input" onfocus="this.select()"> ${targetL}`;
+            `${targetL} ⮕ <input type="text" inputmode="numeric" id="cLeft" class="op-input" onfocus="this.select()"> ${pivotL} + <input type="text" inputmode="numeric" id="cRight" class="op-input" onfocus="this.select()"> ${targetL}`;
     } else {
         document.getElementById('opText').innerHTML =
-            `${targetL} ⮕ <input type="number" id="cLeft" class="op-input" onfocus="this.select()"> ${targetL} + <input type="number" id="cRight" class="op-input" onfocus="this.select()"> ${pivotL}`;
+            `${targetL} ⮕ <input type="text" inputmode="numeric" id="cLeft" class="op-input" onfocus="this.select()"> ${targetL} + <input type="text" inputmode="numeric" id="cRight" class="op-input" onfocus="this.select()"> ${pivotL}`;
     }
     document.getElementById('cLeft').addEventListener('input', updateHelp);
     document.getElementById('cRight').addEventListener('input', updateHelp);
@@ -210,7 +215,7 @@ function renderStep() {
             cell.style.animationDelay = `${(i * currentCols + j) * 0.018}s`;
             if (currentCols === 4 && j === 3) cell.classList.add('sep-column');
             if (i === step.tRow) {
-                cell.innerHTML = `<input type="number" id="r${j}" placeholder="?" onfocus="this.select()">`;
+                cell.innerHTML = `<input type="text" inputmode="numeric" id="r${j}" placeholder="?" onfocus="this.select()">`;
             } else {
                 cell.innerText = val;
             }

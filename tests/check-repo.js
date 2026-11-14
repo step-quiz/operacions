@@ -26,6 +26,9 @@
  *  11. Icona «Codi»: les pàgines que donen codi la posen i enllacen
  *      css/codi.css; el codi es genera un sol cop (generaCodi) i les
  *      sessions fixes i l'esvaïment no en donen.
+ *  12. Teclat numèric i peces comunes: un sol teclat (js/teclat.js, amb
+ *      css/teclat.css), la caseta porta a index.html i totes les activitats
+ *      carreguen css/chromebook.css.
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -840,6 +843,74 @@ suite('11. Icona «Codi» (js/codi-finestra.js)');
         'game-core.js no posa la icona en sessions fixes ni en esvaïment',
         /if \(!FixedSessions && !ESVAIMENT\) \{\s*posaIconaCodi\(/.test(core)
     );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+suite('12. Teclat numèric (js/teclat.js), caseta i css/chromebook.css');
+{
+    const sensComentaris = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/[^\n]*/g, '$1');
+    // Un sol teclat: cap altre fitxer en defineix les funcions ni el posa a l'HTML
+    const copies = jsFiles.filter(
+        f =>
+            f.startsWith('js' + path.sep) &&
+            f !== path.join('js', 'teclat.js') &&
+            /function (showCustomKeyboard|hideCustomKeyboard|initCustomKeyboard)\b/.test(sensComentaris(read(f)))
+    );
+    ok('només js/teclat.js defineix les funcions del teclat numèric', !copies.length, copies.join(', '));
+    const ambMarcatge = htmlFiles.filter(f => /id=["']customKeyboard["']/.test(read(f)));
+    ok(
+        "cap pàgina no porta el teclat escrit a l'HTML (el posa injectaTeclat)",
+        !ambMarcatge.length,
+        ambMarcatge.join(', ')
+    );
+
+    // Les pàgines que fan servir el teclat enllacen css/teclat.css
+    const ambTeclat = htmlFiles.filter(h =>
+        graphOf(h)
+            .filter(exists)
+            .some(f => /\binitCustomKeyboard\(/.test(sensComentaris(read(f))) && f !== path.join('js', 'teclat.js'))
+    );
+    const senseCss = ambTeclat.filter(h => !/href=["']css\/teclat\.css["']/.test(read(h)));
+    ok(
+        `les ${ambTeclat.length} pàgines amb teclat numèric enllacen css/teclat.css`,
+        ambTeclat.length >= 22 && !senseCss.length,
+        senseCss.join(', ')
+    );
+    for (const p of [
+        'complexos.html',
+        'ruffini.html',
+        'esglaonar-matriu.html',
+        'inversa-matriu.html',
+        'rectes-plans.html',
+        'estadistica.html',
+    ]) {
+        ok(`${p} té el teclat numèric propi`, ambTeclat.includes(p));
+    }
+
+    // La caseta porta a l'índex del mateix lloc (també al Codespace i a les previsualitzacions)
+    const casetaFora = htmlFiles.filter(h => {
+        const m = read(h).match(/<a[^>]*href=["']([^"']+)["'][^>]*class=["']home-icon-link/);
+        return m && m[1] !== 'index.html';
+    });
+    ok('la caseta de totes les pàgines porta a index.html', !casetaFora.length, casetaFora.join(', '));
+
+    // Ajustos per a Chromebook i tàctils grans a totes les activitats
+    const NO_ACT = new Set([
+        'index.html',
+        'analitzador-stepquiz.html',
+        'arbre.html',
+        's.html',
+        'pissarra-demo.html',
+        'googled9af5cf2562dfba3.html',
+    ]);
+    const senseChromebook = htmlFiles.filter(
+        f =>
+            !f.includes(path.sep) &&
+            !NO_ACT.has(f) &&
+            /class=["']tema-/.test(read(f)) &&
+            !/href=["']css\/chromebook\.css["']/.test(read(f))
+    );
+    ok('totes les activitats carreguen css/chromebook.css', !senseChromebook.length, senseChromebook.join(', '));
 }
 
 finish('COMPROVACIONS DEL REPOSITORI');

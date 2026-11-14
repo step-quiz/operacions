@@ -123,6 +123,7 @@ js/
 ├── punts.js            ← La regla única dels punts: 10 per pregunta, 2 menys per error (pur, amb proves)
 ├── seguent.js          ← La franja del final de pregunta amb el botó «Següent»
 ├── codi-finestra.js    ← La icona «Codi» i la finestra del codi; generaCodi() munta el codi v2
+├── teclat.js           ← El teclat numèric propi dels aparells tàctils (un per a totes les activitats)
 ├── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat; acabaPregunta)
 └── pissarra/           ← «Resolució pas a pas»: la pissarra animada (vegeu més avall)
 css/
@@ -131,6 +132,7 @@ css/
 ├── shared.css          ← Estils globals, teclat numèric, pantalles finals
 ├── seguent.css         ← La franja del final de pregunta (també a les pàgines sense shared.css)
 ├── codi.css            ← La icona «Codi» i la seva finestra
+├── teclat.css          ← El teclat numèric propi
 └── pissarra.css        ← Estil de la pissarra animada
 vendor/                 ← Llibreries externes (KaTeX, SheetJS, ExcelJS), vegeu vendor/README.md
 docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat d'abril de 2026); no descriuen l'estat actual
@@ -139,6 +141,10 @@ docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat 
 **Mòduls antics** (fraccions, etc.): tot el joc en un sol fitxer, `js/<exercici>/<exercici>.js`. Equacions ja té la generació i els passos a `js/equacions/math-engine.js` i l'HTML dels termes a `js/equacions/renderer.js` (mòduls purs, amb proves a `tests/equacions.test.js`). Ja no queda JS d'exercici dins dels HTML (només `window.APP_CONFIG`).
 
 Fraccions ja té, a part, el seu diagnòstic d'errors: `js/fraccions/errors-fraccions.js` (mòdul pur, sense DOM) mira si una resposta incorrecta encaixa amb un error típic (sumar els denominadors, amplificar només el denominador, multiplicar en creu…) i en torna el tipus i un missatge que orienta sense donar la resposta. El joc el mostra sota el pas i l'apunta a l'historial («Incorrecte (sumar els denominadors)»). Si la resposta no encaixa amb cap error conegut, el joc fa com sempre. Les proves són a `tests/modules.test.js`.
+
+## Teclat numèric en tauletes i mòbils
+
+En un aparell tàctil sense ratolí (tauleta, mòbil), les caselles de resposta no obren el teclat del sistema sinó un **teclat numèric propi**, centrat sota l'exercici (`js/teclat.js`, `css/teclat.css`). Qualsevol casella que l'alumne toqui passa a rebre'l, també la segona d'una pregunta. El tenen totes les activitats amb caselles numèriques, també les de Batxillerat (Complexos, Ruffini, Esglaonar, Inversa, Rectes i plans) i Estudi estadístic (amb la coma decimal). En un Chromebook amb teclat físic no surt.
 
 ## Colors
 
@@ -218,7 +224,7 @@ El motor és a [`js/esvaiment.js`](js/esvaiment.js) i les proves a `tests/esvaim
 node tests/run-all.js
 ```
 
-La prova de la pissarra al navegador (`tests/navegador/prova-pissarra.js`) només s'executa si l'ordinador té Playwright; si no, s'omet. GitHub els executa automàticament a cada pujada a `main` i a cada pull request. Vegeu [CONTRIBUTING.md](CONTRIBUTING.md#tests).
+Les proves al navegador (`tests/navegador/prova-pissarra.js`, la pissarra, i `tests/navegador/prova-activitats.js`, que juga les activitats i prova el teclat en una tauleta) només s'executen si l'ordinador té Playwright; si no, s'ometen. GitHub els executa automàticament a cada pujada a `main` i a cada pull request. Vegeu [CONTRIBUTING.md](CONTRIBUTING.md#tests).
 
 ## Tecnologies
 
