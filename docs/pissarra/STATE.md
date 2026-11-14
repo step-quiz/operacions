@@ -79,8 +79,8 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     step and then answers (D3 option (a)); asking is free and marked in the session history, the verification
     code does not change (D4); pilot `equacions`.
 11. Activity notes: P4 reduction first, always the same algorithm (equation 1 times the coefficient of
-    equation 2, equation 2 times the opposite of the coefficient of equation 1, add; open question: is it
-    always x that is eliminated?); P5 one column per step by default, two times (multiply, add) with more
+    equation 2, equation 2 times the opposite of the coefficient of equation 1, add; always x is
+    eliminated, confirmed by David on 14/11); P5 one column per step by default, two times (multiply, add) with more
     detail; P7 the new matrix to the right with «~», algorithm from `js/esglaonar-matriu/esglaonar-matriu.js`;
     X2 both methods (reduction to the unit and a/b = c/x → a·x = b·c); N3 for incomplete equations the student
     chooses the short path or the formula; N4 a separate activity; N6 when a limit ends as k/0, decide the sign
