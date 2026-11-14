@@ -20,11 +20,6 @@ RESPONSIVE STRATEGY:
    VARIABLES
 ══════════════════════════════════════════════ */
 :root {
-    --bg-color: #fafaf7;
-    --primary: #7c3aed;
-    --primary-light: #ede9fe;
-    --primary-hover: #6d28d9;
-    --primary-dark: #4c1d95;
     --radius: 8px;
 }
 
@@ -63,7 +58,7 @@ body {
 h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #3b0764;
+    color: var(--primary-dark);
     font-size: 1.6em;
     margin: 0 0 5px 0;
     text-align: center;
@@ -135,7 +130,7 @@ h1 {
    CAPÇALERA DEL JOC
 ══════════════════════════════════════════════ */
 .header-info {
-    background-color: #f5f3ff;
+    background-color: var(--primary-light);
     padding: 12px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -168,7 +163,7 @@ h1 {
 }
 .level-text {
     font-size: 1.15em;
-    color: #3b0764;
+    color: var(--primary-dark);
 }
 .score-text {
     font-size: 1.15em;
@@ -273,12 +268,12 @@ h1 {
     stroke-dasharray: none;
 }
 .drop-zone.dz-correct rect.dz-bg {
-    fill: #d1fae5;
+    fill: var(--success-light);
     stroke: var(--success);
     stroke-dasharray: none;
 }
 .drop-zone.dz-wrong rect.dz-bg {
-    fill: #fee2e2;
+    fill: var(--danger-light);
     stroke: var(--danger);
     stroke-dasharray: none;
 }
@@ -286,7 +281,7 @@ h1 {
 .drop-zone text.dz-label {
     font-family: 'Segoe UI', sans-serif;
     font-size: 14.3px;
-    fill: #334155;
+    fill: var(--text-main);
     text-anchor: middle;
     dominant-baseline: middle;
     pointer-events: none;
@@ -297,39 +292,39 @@ h1 {
     font-size: 16.5px; /* 15px × 1.10 */
 }
 .drop-zone.dz-correct text.dz-label {
-    fill: #065f46;
+    fill: var(--success-dark);
 }
 .drop-zone.dz-wrong text.dz-label {
-    fill: #991b1b;
+    fill: var(--danger-dark);
 }
 
 /* ── Casella activa (mode B): taronja amb blink-and-shake ── */
 .drop-zone.dz-active rect.dz-bg {
     fill: #fff7ed;
-    stroke: #ea580c;
+    stroke: var(--warning);
     stroke-width: 2.5;
     stroke-dasharray: none;
     animation: dz-blink-shake 1.2s ease;
 }
 .drop-zone.dz-active .dz-connector {
-    stroke: #ea580c;
+    stroke: var(--warning);
 }
 .drop-zone.dz-active text.dz-label {
-    fill: #9a3412;
+    fill: var(--danger-dark);
 }
 
 /* ── Casella activa estàtica (mode B, després d'un error): taronja sense animació ── */
 .drop-zone.dz-active-still rect.dz-bg {
     fill: #fff7ed;
-    stroke: #ea580c;
+    stroke: var(--warning);
     stroke-width: 2;
     stroke-dasharray: none;
 }
 .drop-zone.dz-active-still .dz-connector {
-    stroke: #ea580c;
+    stroke: var(--warning);
 }
 .drop-zone.dz-active-still text.dz-label {
-    fill: #9a3412;
+    fill: var(--danger-dark);
 }
 
 /* ══════════════════════════════════════════════
@@ -386,13 +381,13 @@ h1 {
     color: white;
     border-color: var(--primary-dark);
     transform: scale(1.06);
-    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 45%, transparent);
 }
 @media (hover: hover) {
     .word-chip:not(.used):not(.dragging):hover {
-        background: #e2e8f0;
-        border-color: #94a3b8;
-        color: #1e293b;
+        background: var(--border-light);
+        border-color: var(--border-strong);
+        color: var(--text-main);
     }
 }
 
@@ -483,7 +478,7 @@ h1 {
 #game-area.layout-b .write-prompt {
     font-size: 1.08em;
     text-align: center;
-    color: #ea580c;
+    color: var(--warning);
 }
 
 #game-area.layout-b .write-progress {
@@ -509,8 +504,8 @@ h1 {
 
 /* Botó "Canviar de casella" — estètica paral·lela al btn-submit, taronja molt clar */
 .btn-cycle {
-    background-color: #fed7aa;
-    color: #1e293b;
+    background-color: var(--warning-border);
+    color: var(--text-main);
     border: none;
     padding: 12px 20px;
     min-height: 48px;
@@ -531,7 +526,7 @@ h1 {
 }
 @media (hover: hover) {
     .btn-cycle:hover {
-        background-color: #f97316;
+        background-color: var(--warning);
     }
 }
 
@@ -560,7 +555,7 @@ h1 {
     font-size: 0.95em;
     font-weight: 700;
     font-family: 'Segoe UI', sans-serif;
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 40%, transparent);
     display: none;
     white-space: nowrap;
 }
@@ -580,7 +575,7 @@ h1 {
 .write-prompt {
     font-size: 1.05em;
     font-weight: 700;
-    color: #3b0764;
+    color: var(--primary-dark);
     text-align: center;
     line-height: 1.4;
 }
@@ -621,9 +616,9 @@ h1 {
 
 .typo-warning {
     display: none;
-    background: #fefce8;
-    border: 1.5px solid #fbbf24;
-    color: #92400e;
+    background: var(--warning-light);
+    border: 1.5px solid var(--warning);
+    color: var(--warning-dark);
     border-radius: 8px;
     padding: 8px 14px;
     font-size: 0.9em;
@@ -649,7 +644,7 @@ h1 {
     display: block;
     font-size: 0.9em;
     font-weight: 700;
-    color: #92400e;
+    color: var(--warning-dark);
 }
 
 /* ── Paraula escrita per l'alumne dins el typo-warning ──
@@ -661,16 +656,16 @@ h1 {
     font-size: 1.35em;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: #92400e;
+    color: var(--warning-dark);
 }
 
 /* ── Caràcter problemàtic ──
    Vermell + subratllat ondulat: indica "aquí hi ha quelcom a revisar"
    sense especificar ni la causa ni la solució. */
 .typo-err {
-    color: #dc2626;
+    color: var(--danger);
     background: none;
-    text-decoration: underline wavy #dc2626;
+    text-decoration: underline wavy var(--danger);
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     border-radius: 2px;
@@ -689,7 +684,7 @@ h1 {
 ══════════════════════════════════════════════ */
 #context-instruction {
     font-size: 0.95em;
-    color: #475569;
+    color: var(--text-soft);
     text-align: center;
     font-weight: 600;
     min-height: 20px;
@@ -702,7 +697,7 @@ h1 {
    BOTÓ SUBMIT
 ══════════════════════════════════════════════ */
 .btn-submit {
-    background-color: #475569;
+    background-color: var(--text-soft);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -723,7 +718,7 @@ h1 {
 }
 @media (hover: hover) {
     .btn-submit:hover {
-        background-color: #334155;
+        background-color: var(--text-main);
     }
 }
 .btn-submit.error-shake {
@@ -733,8 +728,8 @@ h1 {
 
 /* Botó OK (mode B) — gris clar, forma quadrada */
 #btn-submit-write {
-    background-color: #cbd5e1;
-    color: #1e293b;
+    background-color: var(--border-heavy);
+    color: var(--text-main);
     width: 52px;
     min-height: 52px;
     padding: 0;
@@ -743,7 +738,7 @@ h1 {
 }
 @media (hover: hover) {
     #btn-submit-write:hover {
-        background-color: #0f172a;
+        background-color: var(--text-main);
         color: white;
     }
 }
@@ -811,16 +806,16 @@ h1 {
 .mini-icon {
     font-size: 2em;
     animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-shadow: 0px 4px 15px rgba(250, 204, 21, 0.6);
+    text-shadow: 0px 4px 15px color-mix(in srgb, var(--warning) 60%, transparent);
 }
 .mini-text {
-    color: #047857;
+    color: var(--success);
     font-size: 1.35em;
     font-weight: bold;
     text-shadow: 0px 2px 5px white;
 }
 .mini-points {
-    color: #059669;
+    color: var(--success);
     font-size: 1em;
     font-weight: bold;
     font-family: monospace;
@@ -868,7 +863,7 @@ h1 {
     background-color: var(--primary) !important;
 }
 .btn-action-copiar {
-    background-color: #a84359 !important;
+    background-color: var(--danger-dark) !important;
     color: white;
 }
 
@@ -912,7 +907,7 @@ h1 {
 }
 
 .btn-restart {
-    background-color: #059669;
+    background-color: var(--success);
     color: white;
     border: none;
     padding: 14px 35px;
@@ -934,7 +929,7 @@ h1 {
 }
 @media (hover: hover) {
     .btn-restart:hover {
-        background-color: #047857;
+        background-color: var(--success);
     }
 }
 

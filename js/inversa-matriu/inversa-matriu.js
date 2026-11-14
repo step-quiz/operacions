@@ -104,7 +104,7 @@ function renderDebug() {
     p.innerHTML = `
         <h3>🐛 Debug</h3>
         <div class="dbsec">Matriu A</div>
-        <pre style="margin:4px 0; color:#e2e8f0">${matrix.map(fmtRow).join('\n')}</pre>
+        <pre style="margin:4px 0; color:var(--border-light)">${matrix.map(fmtRow).join('\n')}</pre>
         <div class="dbsec">Determinant</div>
         <span class="dbk">det(A) = </span><span class="dbv">${computedDet}</span>
         <div class="dbsec">Cofactors C<sub>ij</sub></div>
@@ -986,7 +986,7 @@ function showAnswer(step) {
                     if (!inp || inp.classList.contains('cell-correct')) continue;
                     inp.value = cofMatrix[i][j];
                     inp.classList.add('cell-correct');
-                    inp.style.background = 'rgba(217,119,6,0.10)';
+                    inp.style.background = 'color-mix(in srgb, var(--warning) 10%, transparent)';
                     inp.style.borderColor = 'var(--warning)';
                     inp.style.color = 'var(--warning)';
                     inp.setAttribute('readonly', true);
@@ -1004,7 +1004,7 @@ function showAnswer(step) {
                     if (!inp || inp.classList.contains('cell-correct')) continue;
                     inp.value = adjMatrix[i][j];
                     inp.classList.add('cell-correct');
-                    inp.style.background = 'rgba(217,119,6,0.10)';
+                    inp.style.background = 'color-mix(in srgb, var(--warning) 10%, transparent)';
                     inp.style.borderColor = 'var(--warning)';
                     inp.style.color = 'var(--warning)';
                     inp.setAttribute('readonly', true);

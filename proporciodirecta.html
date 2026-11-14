@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,15 +45,11 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
-        :root {
-            --bg-color:      #f8fafc;
-            --primary:       #0369a1;
-            --primary-light: #e0f2fe;
-            --primary-hover: #2563eb;
-        }
+        
 
         /* ── ZONA DEL PROBLEMA ───────────────────────────────── */
         .problem-display {
@@ -88,20 +84,20 @@
 
         .problem-qty {
             padding: 6px 14px;
-            background: #f1f5f9;
-            border: 2px solid #e2e8f0;
+            background: var(--bg-soft-alt);
+            border: 2px solid var(--border-light);
             border-radius: 10px;
-            color: #334155;
+            color: var(--text-main);
         }
 
-        .problem-arrow { color: #94a3b8; font-size: 0.85em; }
+        .problem-arrow { color: var(--border-strong); font-size: 0.85em; }
 
         .problem-price {
             padding: 6px 14px;
             background: #f0fdf4;
-            border: 2px solid #bbf7d0;
+            border: 2px solid var(--success-border);
             border-radius: 10px;
-            color: #166534;
+            color: var(--success-dark);
         }
 
         .problem-unknown {
@@ -109,19 +105,19 @@
             background: var(--primary-light);
             border: 2px solid var(--primary);
             border-radius: 10px;
-            color: #0c4a6e;
+            color: var(--primary-dark);
             animation: fadeIn 0.3s ease;
         }
 
         /* Fila intermèdia (preu unitari resolt al pas 2) */
         .problem-unit-row {
-            color: #059669;
+            color: var(--success);
             font-size: 1em;
         }
         .problem-unit-qty {
             padding: 5px 12px;
-            background: #dcfce7;
-            border: 2px solid #bbf7d0;
+            background: var(--success-light);
+            border: 2px solid var(--success-border);
             border-radius: 9px;
         }
 
@@ -149,7 +145,7 @@
         .step-prompt {
             font-size: 1.15em;
             font-weight: 700;
-            color: #334155;
+            color: var(--text-main);
             text-align: center;
         }
 
@@ -198,9 +194,9 @@
             min-height: 1.4em;
             font-size: 0.95em;
             font-weight: 600;
-            color: #92400e;
+            color: var(--warning-dark);
             background: #fffbeb;
-            border: 1.5px solid #fde68a;
+            border: 1.5px solid var(--warning-border);
             border-radius: 8px;
             padding: 6px 14px;
             text-align: center;
@@ -228,7 +224,7 @@
         }
         #btn-next-level.visible { display: inline-flex; }
         @media (hover: hover) {
-            #btn-next-level:hover { background: #bae6fd; }
+            #btn-next-level:hover { background: var(--primary-light); }
         }
         #btn-next-level:active { transform: scale(0.96); }
 

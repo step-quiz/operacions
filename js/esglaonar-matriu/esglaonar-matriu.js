@@ -314,7 +314,7 @@ function previewSwap() {
             if (i === rowA || i === rowB) {
                 cell.style.color = 'var(--primary)';
                 cell.style.fontWeight = '700';
-                cell.style.background = 'rgba(37,99,235,0.07)';
+                cell.style.background = 'color-mix(in srgb, var(--primary) 7%, transparent)';
                 cell.style.borderRadius = '6px';
             }
             cell.innerText = val;
@@ -347,7 +347,7 @@ function applySwap() {
             if (i === rowA || i === rowB) {
                 cell.style.color = 'var(--primary)';
                 cell.style.fontWeight = '700';
-                cell.style.background = 'rgba(37,99,235,0.07)';
+                cell.style.background = 'color-mix(in srgb, var(--primary) 7%, transparent)';
                 cell.style.borderRadius = '6px';
             }
             cell.innerText = val;

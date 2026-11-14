@@ -36,7 +36,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS, urlParams } from '../con
 import { shuffle } from '../utils.js';
 import {
     state,
-    bgColors,
     endSession,
     injectSharedHTML,
     isTouchDevice,
@@ -197,8 +196,6 @@ function buildLevel() {
     tokens = ex.toks;
     correctAnswer = ex.val;
 
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
     els.feedback.textContent = '';
     els.solutionBox.style.display = 'none';
     els.solutionBox.innerHTML = '';

@@ -18,7 +18,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { parseStrictInt } from '../utils.js';
 import {
     state,
-    bgColors,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -158,9 +157,6 @@ function buildLevel() {
     equation = generateEquation(state.currentOperation);
     steps = determineSteps(equation);
     currentStepIndex = 0;
-
-    const colorIndex = (state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length;
-    els.body.style.backgroundColor = bgColors[colorIndex];
 
     if (!pissarra) els.eqHistory.innerHTML = '';
     els.eqHistory.style.display = 'flex';

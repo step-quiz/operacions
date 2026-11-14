@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,15 +16,11 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
-        :root {
-            --bg-color:      #f8fafc;
-            --primary:       #0369a1;
-            --primary-light: #e0f2fe;
-            --primary-hover: #2563eb;
-        }
+        
 
         .expression-box {
             padding: 40px 20px; text-align: center; display: flex;
@@ -38,8 +34,8 @@
         .token-num.resolved-num   { color: var(--primary-hover); }
 
         .token-op {
-            background-color: #f1f5f9; border: 2px solid var(--border-heavy);
-            border-radius: 8px; padding: 5px 15px; color: #334155;
+            background-color: var(--bg-soft-alt); border: 2px solid var(--border-heavy);
+            border-radius: 8px; padding: 5px 15px; color: var(--text-main);
             cursor: pointer; transition: all 0.2s ease;
             font-family: 'Courier New', Courier, monospace; font-weight: bold;
             font-size: 1em; touch-action: manipulation;
@@ -47,19 +43,19 @@
         .token-op:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
         @media (hover: hover) {
             .token-op:hover {
-                background-color: var(--primary-hover); border-color: #1e40af;
-                color: white; transform: scale(1.1); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+                background-color: var(--primary-hover); border-color: var(--primary);
+                color: white; transform: scale(1.1); box-shadow: 0 4px 10px color-mix(in srgb, var(--primary) 30%, transparent);
             }
         }
         .token-op:active        { transform: scale(0.95); }
         .token-op.error-shake   { background-color: var(--danger-light) !important; border-color: var(--danger) !important; color: var(--danger) !important; animation: shake 0.2s; }
-        .token-op.auto-selected { background-color: var(--primary-light); border-color: var(--primary); color: #334155; }
+        .token-op.auto-selected { background-color: var(--primary-light); border-color: var(--primary); color: var(--text-main); }
         .token-op.step0-blink   { animation: step0Blink 0.4s linear 5; }
 
-        .op-instruction { display: none; padding: 0 20px 14px 20px; text-align: center; color: #475569; font-weight: 600; font-size: 1em; }
+        .op-instruction { display: none; padding: 0 20px 14px 20px; text-align: center; color: var(--text-soft); font-weight: 600; font-size: 1em; }
         .op-instruction.active { display: block; }
         .op-instruction-line.error { color: var(--danger); font-weight: 700; }
-        .op-instruction-line.hint  { color: #475569; font-weight: 600; margin-top: 6px; }
+        .op-instruction-line.hint  { color: var(--text-soft); font-weight: 600; margin-top: 6px; }
 
         .resolution-panel {
             background-color: var(--bg-color); border-top: 1px solid var(--border-color);
@@ -75,19 +71,19 @@
         .step-container { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s; }
         .step-container.active { display: flex; }
 
-        .step-title { font-size: 1.1em; color: #475569; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; text-align: center; }
+        .step-title { font-size: 1.1em; color: var(--text-soft); margin-bottom: 15px; font-weight: bold; text-transform: uppercase; text-align: center; }
 
         .sign-buttons { display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
 
         .btn-sign {
             padding: 12px 20px; font-size: 1.1em; font-weight: bold; border-radius: 8px;
-            border: 2px solid var(--border-heavy); background: white; color: #334155;
+            border: 2px solid var(--border-heavy); background: white; color: var(--text-main);
             cursor: pointer; transition: 0.2s; text-transform: capitalize;
             flex: 1; min-width: 80px; max-width: 150px; text-align: center; touch-action: manipulation;
         }
         .btn-sign:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
         @media (hover: hover) {
-            .btn-sign:hover { background: var(--primary-light); border-color: #0ea5e9; color: var(--primary); transform: translateY(-2px); }
+            .btn-sign:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
         }
         .btn-sign:active      { transform: scale(0.95); }
         .btn-sign.error-shake { background-color: var(--danger-light); border-color: var(--danger); color: var(--danger); animation: shake 0.2s; }
@@ -99,7 +95,7 @@
             font-weight: bold; padding: 12px; text-align: center;
             border: 2px solid var(--border-heavy); border-radius: 6px; outline: none;
         }
-        input[type="text"]#value-input:focus { border-color: #0ea5e9; }
+        input[type="text"]#value-input:focus { border-color: var(--primary); }
 
         @media (max-width: 480px) {
             .expression-box { font-size: 1.3em; padding: 20px 10px; gap: 6px; min-height: 80px; }
@@ -118,12 +114,12 @@
         }
 
         @keyframes attemptsBlink {
-            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
-            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
+            0%, 100% { background-color: var(--warning-light); border-color: #d1d5db; color: var(--text-main); }
+            50%      { background-color: #e5e7eb; border-color: var(--warning); color: var(--text-main); }
         }
         @keyframes step0Blink {
-            0%, 100% { background-color: #fef3c7; border-color: #d1d5db; color: #334155; }
-            50%      { background-color: #e5e7eb; border-color: #f59e0b; color: #334155; }
+            0%, 100% { background-color: var(--warning-light); border-color: #d1d5db; color: var(--text-main); }
+            50%      { background-color: #e5e7eb; border-color: var(--warning); color: var(--text-main); }
         }
         .attempts-counter.blink { animation: attemptsBlink 0.2s linear 5; }
     </style>

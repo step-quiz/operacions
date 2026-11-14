@@ -6,7 +6,7 @@
  * DEPENDÈNCIES: js/game-core.js (estat global, startGame, endSession,
  *               acabaPregunta, puntsDeLaPregunta, recordAnswerToHistory,
  *               recordResult, sessionScore, currentSession, currentOperation,
- *               attemptsLeft, isTransitioning, bgColors)
+ *               attemptsLeft, isTransitioning)
  *
  * CONVENCIÓ DEL TRIANGLE:
  *   A (baix-esquerra) = angle recte  ·  B (baix-dreta)  ·  C (dalt-esquerra)
@@ -20,7 +20,6 @@
 import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import {
     state,
-    bgColors,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
@@ -30,6 +29,9 @@ import {
     puntsDeLaPregunta,
 } from '../game-core.js';
 
+// Colors del tema (css/temes.css) i d'estat (css/tokens.css) per al dibuix: un canvas o un atribut
+// SVG no entenen var(--x), i així la figura té sempre el mateix color que el text de la pàgina.
+const token = nom => getComputedStyle(document.documentElement).getPropertyValue(nom).trim();
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel) i els onclick de l'HTML.
 // Les crides internes fan servir window.buildLevel() perquè les sessions fixes
@@ -426,7 +428,7 @@ function drawRightTriangle(p) {
 
     // ── Colors
     const COL_KNOWN = '#334155';
-    const COL_UNKNOWN = '#7c3aed';
+    const COL_UNKNOWN = token('--accent');
     const isAUnk = p.find === 'a'; // hipotenusa desconeguda
     const isBUnk = p.find === 'b'; // catet vertical desconegut
     const isCUnk = p.find === 'c'; // catet horitzontal desconegut
@@ -467,7 +469,7 @@ function drawRightTriangle(p) {
     svg.innerHTML = `
         <!-- Ombra interior del triangle -->
         <polygon points="${AX},${AY} ${BX},${BY} ${CX},${CY}"
-                 fill="#ede9fe" stroke="none" opacity="0.55"/>
+                 fill="${token('--accent-light')}" stroke="none" opacity="0.55"/>
 
         <!-- Costat a (AC, catet vertical) -->
         <line x1="${AX}" y1="${AY}" x2="${CX}" y2="${CY}" ${strokeA}/>
@@ -512,9 +514,6 @@ function buildLevel() {
     state.attemptsLeft = MAX_INTENTS;
     isPenalizing = false;
     state.isTransitioning = false;
-
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
 
     currentProblem = selectProblem();
 

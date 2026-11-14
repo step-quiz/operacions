@@ -10,7 +10,6 @@
 import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import {
     state,
-    bgColors,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -514,7 +513,7 @@ function buildStepsRepte3(p) {
                     inp.readOnly = true;
                     inp.style.color = 'var(--success)';
                     inp.style.borderColor = 'var(--success)';
-                    inp.style.background = '#d1fae5';
+                    inp.style.background = 'var(--success-light)';
                     inp.style.fontWeight = 'bold';
                 }
 
@@ -581,9 +580,9 @@ function buildStepsRepte3(p) {
                 const inpEref = document.getElementById('step-input-exp');
 
                 function markRed(inp) {
-                    inp.style.color = '#dc2626';
-                    inp.style.borderColor = '#dc2626';
-                    inp.style.background = '#fee2e2';
+                    inp.style.color = 'var(--danger)';
+                    inp.style.borderColor = 'var(--danger)';
+                    inp.style.background = 'var(--danger-light)';
                     inp.style.fontWeight = 'bold';
                 }
 
@@ -859,8 +858,6 @@ function buildLevel() {
     if (state.currentOperation === 0) usedProblems = new Set();
 
     // Color de fons progressiu
-    const ci = (state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length;
-    els.body.style.backgroundColor = bgColors[ci];
 
     // Genera el problema
     let p, key;

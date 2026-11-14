@@ -12,14 +12,6 @@ ARQUITECTURA:
 */
 
 /* ── TEMA DE COLOR (sobreescriptura del shared.css) ─────────────────────── */
-:root {
-    --bg-color: #f5f3ff;
-    --primary: #7c3aed;
-    --primary-light: #ede9fe;
-    --primary-hover: #6d28d9;
-    --primary-dark: #4c1d95;
-    --accent: #d97706;
-}
 
 /* ── ZONA DEL PROBLEMA (cercle + expressió) ────────────────────────────── */
 .problem-box {
@@ -65,7 +57,7 @@ ARQUITECTURA:
 
 /* ── PANELL DE RESOLUCIÓ ────────────────────────────────────────────────── */
 .resolution-panel {
-    background-color: #f8fafc;
+    background-color: var(--bg-soft);
     border-top: 1px solid var(--border-color);
     padding: 14px 20px 18px;
     display: none;
@@ -76,7 +68,7 @@ ARQUITECTURA:
 
 .step-instruction {
     font-size: 1.15em;
-    color: #334155;
+    color: var(--text-main);
     margin-bottom: 12px;
     font-weight: bold;
     text-align: center;
@@ -111,7 +103,7 @@ ARQUITECTURA:
     border-radius: 8px;
     border: 2px solid var(--border-heavy);
     background: white;
-    color: #334155;
+    color: var(--text-main);
     cursor: pointer;
     transition: 0.2s;
     text-align: center;
@@ -127,7 +119,7 @@ ARQUITECTURA:
         border-color: var(--primary);
         color: var(--primary);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent);
     }
 }
 .btn-value:active {
@@ -165,7 +157,7 @@ ARQUITECTURA:
 @keyframes blinkAttempts {
     0%,
     100% {
-        background-color: #fef3c7;
+        background-color: var(--warning-light);
     }
     50% {
         background-color: white;

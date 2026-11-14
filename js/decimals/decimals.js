@@ -11,7 +11,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { getIntParam, pick, randInt } from '../utils.js';
 import {
     state,
-    bgColors,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -674,9 +673,6 @@ function buildLevel() {
     currentProblem = generateProblem();
     totalSteps = currentProblem.steps.length;
 
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
-
     els.stepsDone.innerHTML = '';
     els.resolutionPanel.style.display = 'none';
 
@@ -705,8 +701,8 @@ function penalize() {
             // on havia d'escriure. Color verd per distingir-ho de l'error.
             els.valueInput.value = fmtMoney(expectedAnswer).replace(' €', '');
             els.valueInput.style.borderColor = 'var(--success)';
-            els.valueInput.style.background = '#dcfce7';
-            els.valueInput.style.color = '#166534';
+            els.valueInput.style.background = 'var(--success-light)';
+            els.valueInput.style.color = 'var(--success-dark)';
 
             finishOperation(false);
         }

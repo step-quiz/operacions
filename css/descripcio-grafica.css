@@ -14,14 +14,6 @@
     padding: 0;
 }
 
-:root {
-    --bg-color: #f0f6ff;
-    --primary: #2563eb;
-    --primary-light: #dbeafe;
-    --primary-dark: #1d4ed8;
-    --primary-hover: #1e40af;
-}
-
 /* ---- BASE ---- */
 html {
     height: 100%;
@@ -86,7 +78,7 @@ body {
 .level-selector {
     display: flex;
     gap: 3px;
-    background: #e2e8f0;
+    background: var(--border-light);
     padding: 3px;
     border-radius: 9px;
 }
@@ -271,7 +263,7 @@ body {
     font-size: 1em;
     color: #111;
     padding: 10px 14px;
-    background: #f0f6ff;
+    background: var(--bg-color);
     border-radius: 10px;
     border: 2px solid var(--border-light);
     overflow-x: auto;

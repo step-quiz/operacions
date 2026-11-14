@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,15 +42,11 @@
         };
     </script>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
-        :root {
-            --bg-color:      #f8fafc;
-            --primary:       #0369a1;
-            --primary-light: #e0f2fe;
-            --primary-hover: #2563eb;
-        }
+        
 
         /* ── BOTIGA: productes + bitllet ─────────────────────── */
         .shop-display {
@@ -88,7 +84,7 @@
             font-size: 1.4em;
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
-            color: #1e293b;
+            color: var(--text-main);
         }
         /* Quantitat (nivell 4) */
         .product-qty {
@@ -100,7 +96,7 @@
         .products-plus {
             font-size: 1.6em;
             font-weight: bold;
-            color: #94a3b8;
+            color: var(--border-strong);
             align-self: center;
         }
 
@@ -111,11 +107,11 @@
             gap: 10px;
             padding: 10px 20px;
             background: #f0fdf4;
-            border: 2px solid #bbf7d0;
+            border: 2px solid var(--success-border);
             border-radius: 12px;
             font-size: 1.1em;
             font-weight: 700;
-            color: #166534;
+            color: var(--success-dark);
         }
         .bill-emoji { font-size: 1.5em; }
 
@@ -144,7 +140,7 @@
         .step-prompt {
             font-size: 1.15em;
             font-weight: 700;
-            color: #334155;
+            color: var(--text-main);
             text-align: center;
         }
 
@@ -212,7 +208,7 @@
             cursor: pointer;
             transition: all 0.15s ease;
             touch-action: manipulation;
-            color: #334155;
+            color: var(--text-main);
         }
         .bill-option-btn:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
         .bill-option-btn:active { transform: scale(0.95); }
@@ -230,9 +226,9 @@
             animation: shake 0.2s;
         }
         .bill-option-btn.correct {
-            background: #dcfce7;
+            background: var(--success-light);
             border-color: var(--success);
-            color: #166534;
+            color: var(--success-dark);
         }
 
         /* ── MISSATGE PEDAGÒGIC D'ERROR (diners-feedback.js) ────
@@ -242,9 +238,9 @@
             min-height: 1.4em;   /* reserva espai per evitar salts de layout */
             font-size: 0.95em;
             font-weight: 600;
-            color: #92400e;
+            color: var(--warning-dark);
             background: #fffbeb;
-            border: 1.5px solid #fde68a;
+            border: 1.5px solid var(--warning-border);
             border-radius: 8px;
             padding: 6px 14px;
             text-align: center;
@@ -298,7 +294,7 @@
         }
         #btn-next-level.visible { display: inline-flex; }
         @media (hover: hover) {
-            #btn-next-level:hover { background: #bae6fd; }
+            #btn-next-level:hover { background: var(--primary-light); }
         }
         #btn-next-level:active { transform: scale(0.96); }
         @media (max-width: 480px) {

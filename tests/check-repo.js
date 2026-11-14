@@ -9,7 +9,8 @@
  *   4. Guardes contra errors ja corregits que no han de tornar:
  *      barrejat esbiaixat, PDF.js sense isEvalSupported:false, zoom bloquejat.
  *   5. Sessions fixes: les pàgines que les ofereixen carreguen fixed-sessions.js.
- *   6. Colors comuns: tothom fa servir css/tokens.css.
+ *   6. Colors comuns: tothom fa servir css/tokens.css; cada activitat té el seu
+ *      tema de css/temes.css i cap fitxer escriu a mà un color d'estat.
  *   7. Mòduls ES: els import existeixen, els onclick troben la seva funció,
  *      els controladors criden window.buildLevel(), tot js/ es carrega com a
  *      mòdul i les pàgines amb joc no tenen JS dins de l'HTML.
@@ -348,6 +349,103 @@ suite('6. Colors comuns (css/tokens.css)');
     }
     ok('les pàgines que fan servir els colors comuns enllacen css/tokens.css', !noLink.length, noLink.join(', '));
     ok('css/tokens.css es carrega abans que cap altre estil', !badOrder.length, badOrder.join(', '));
+
+    // ── Paleta sòbria (css/temes.css): un tema per bloc de continguts i els tons d'estat només de tokens.css
+    const NO_ACTIVITATS = new Set([
+        'index.html',
+        'analitzador-stepquiz.html',
+        'arbre.html',
+        's.html',
+        'setup_vocabulari.html',
+        'pissarra-demo.html',
+        'area-perimetre-tutorial.html',
+        'recta-numerica-tutorial.html',
+        'googled9af5cf2562dfba3.html',
+    ]);
+    const activitats = htmlFiles.filter(f => !f.includes(path.sep) && !NO_ACTIVITATS.has(f));
+    const TEMES = ['nombres', 'algebra', 'geometria', 'estadistica', 'funcions'];
+    const senseTema = activitats.filter(f => {
+        const h = read(f);
+        const m = h.match(/<html[^>]*class="[^"]*\btema-([a-z]+)/);
+        const iTok = h.search(/href=["']css\/tokens\.css["']/);
+        const iTem = h.search(/href=["']css\/temes\.css["']/);
+        const iAltre = h.search(/href=["']css\/(?!tokens\.css|temes\.css)/);
+        return !m || !TEMES.includes(m[1]) || iTem < iTok || (iAltre >= 0 && iAltre < iTem);
+    });
+    ok(
+        `les ${activitats.length} activitats tenen tema (class="tema-…" a <html>) i enllacen css/temes.css just després de tokens.css`,
+        activitats.length >= 36 && !senseTema.length,
+        senseTema.join(', ')
+    );
+    const VARS_TEMA =
+        /(^|[\s;{])--(primary|primary-light|primary-dark|primary-hover|bg-color|accent|accent-light|accent-dark)\s*:/m;
+    const defineixenTema = [...activitats, ...listFiles('css', ['.css'])].filter(
+        f => f !== path.join('css', 'temes.css') && VARS_TEMA.test(read(f))
+    );
+    ok('només css/temes.css defineix les variables de tema', !defineixenTema.length, defineixenTema.join(', '));
+
+    // Verd = encert, vermell = error, ambre = avís: cap fitxer no els escriu a mà (surten de tokens.css).
+    // Fora: el dibuix (canvas, atributs SVG) i aquests fitxers, on el color va lligat a un significat propi:
+    const COLORS_PROPIS = new Set([
+        'grafica-funcio-i-derivada.html', // --func-red: el botó «La Gràfica Vermella» té el color de la corba
+        path.join('js', 'grafica-funcio-i-derivada', 'grafica-funcio-i-derivada.js'), // colors de les corbes
+        path.join('js', 'descripcio-grafica', 'svg-renderer.js'), // creixent/decreixent i signe a la gràfica
+        path.join('js', 'estadistica', 'estadistica.js'), // colors de les barres de l'histograma (dades)
+        path.join('js', 'vocabulari', 'vocabulari-figures.js'), // dibuix de les figures
+        path.join('js', 'pissarra', 'formules.js'), // \\textcolor de KaTeX (ratllat)
+        path.join('js', 'fixed-sessions.js'), // estil d'un missatge de la consola
+    ]);
+    const familia = (r, g, b) => {
+        const mx = Math.max(r, g, b) / 255,
+            mn = Math.min(r, g, b) / 255,
+            l = (mx + mn) / 2,
+            d = mx - mn;
+        if (!d) return null;
+        const sat = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+        if (sat < 0.15 || l > 0.96 || l < 0.08) return null;
+        let h;
+        if (mx === r / 255) h = ((g - b) / 255 / d) % 6;
+        else if (mx === g / 255) h = (b - r) / 255 / d + 2;
+        else h = (r - g) / 255 / d + 4;
+        h = (h * 60 + 360) % 360;
+        if (h >= 85 && h <= 170) return 'verd';
+        if (h <= 15 || h >= 340) return 'vermell';
+        if (h >= 18 && h <= 55) return 'ambre';
+        return null;
+    };
+    const ambit = [
+        ...activitats,
+        ...listFiles('css', ['.css']).filter(f => f !== path.join('css', 'tokens.css')),
+        ...jsFiles.filter(f => f.startsWith('js' + path.sep) && !f.includes('analitzador-stepquiz')),
+    ].filter(f => !COLORS_PROPIS.has(f));
+    const aMa = [];
+    for (const f of ambit) {
+        read(f)
+            .split('\n')
+            .forEach((linia, i) => {
+                if (/(fillStyle|strokeStyle|shadowColor)\s*=|\b(fill|stroke|stop-color)=["']/.test(linia)) return;
+                for (const m of linia.matchAll(/(?<!&)#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b(?![-_])/g)) {
+                    if (/var\(--[\w-]+,\s*$/.test(linia.slice(0, m.index))) continue; // var(--x, #reserva)
+                    const c = m[1].length === 3 ? [...m[1]].map(x => x + x).join('') : m[1];
+                    if (familia(...[0, 2, 4].map(k => parseInt(c.slice(k, k + 2), 16))))
+                        aMa.push(`${f}:${i + 1} ${m[0]}`);
+                }
+                for (const m of linia.matchAll(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/g)) {
+                    if (familia(+m[1], +m[2], +m[3])) aMa.push(`${f}:${i + 1} ${m[0]}`);
+                }
+            });
+    }
+    ok(
+        "cap fitxer escriu a mà un color d'estat (verd, vermell, ambre): surten de css/tokens.css",
+        !aMa.length,
+        aMa.slice(0, 15).join('\n      → ')
+    );
+
+    // Fons fix: cap activitat no canvia el color de fons a cada pregunta
+    const fonsCanviant = jsFiles.filter(
+        f => f.startsWith('js' + path.sep) && /body\.style\.background(Color)?\s*=/.test(read(f))
+    );
+    ok('cap activitat canvia el color de fons a cada pregunta', !fonsCanviant.length, fonsCanviant.join(', '));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

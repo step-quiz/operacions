@@ -161,7 +161,7 @@ function renderWorkspace() {
 
     // Botó Ajuda (Reset a estat inicial)
     btnHelp.disabled = false;
-    btnHelp.style.background = '#F0CB90';
+    btnHelp.style.background = 'var(--warning-border)';
     btnHelp.style.color = '#000';
     btnHelp.style.cursor = 'pointer';
     // El botó d'ajuda apareix si el DESTÍ és implícites O si l'ORIGEN és implícites
@@ -198,8 +198,8 @@ function handleLevel1Help() {
     const [v1, v2, v3] = currentLine.v;
 
     btnHelp.disabled = true;
-    btnHelp.style.background = '#e2e8f0';
-    btnHelp.style.color = '#94a3b8';
+    btnHelp.style.background = 'var(--border-light)';
+    btnHelp.style.color = 'var(--border-strong)';
     btnMore.style.display = 'inline-block';
     hb.style.display = 'block';
 
@@ -246,7 +246,7 @@ function handleLevel2Help() {
         const z_coord = (-D2 / -v2) % 1 === 0 ? -D2 / -v2 : (-D2 / -v2).toFixed(2);
 
         hb.innerHTML = `
-            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid #e2e8f0; line-height: 1.8;">
+            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid var(--border-light); line-height: 1.8;">
                 <strong>Resolució del punt P:</strong><br>
                 ${v2}x ${formatConst(D1)} = 0 &nbsp; ⟹ &nbsp; x = ${x_coord}<br>
                 ${-v2}z ${formatConst(D2)} = 0 &nbsp; ⟹ &nbsp; z = ${z_coord}<br>
@@ -266,7 +266,7 @@ function handleLevel2Help() {
         const d2_p3 = v2 * -p3;
 
         hb.innerHTML = `
-            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid #e2e8f0; line-height: 2;">
+            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid var(--border-light); line-height: 2;">
                 Eq.1: (${v2}) · (${num('x', p1)}) = (${v1}) · (${num('y', p2)}) &nbsp; ⟹ &nbsp; ${cleanMath(d1_x, 'x', true)}${formatConst(d1_p1)} = ${cleanMath(d1_y, 'y', true)}${formatConst(d1_p2)}<br>
                 Eq.2: (${v3}) · (${num('y', p2)}) = (${v2}) · (${num('z', p3)}) &nbsp; ⟹ &nbsp; ${cleanMath(d2_y, 'y', true)}${formatConst(d2_p2)} = ${cleanMath(d2_z, 'z', true)}${formatConst(d2_p3)}
             </div>
@@ -522,7 +522,7 @@ function renderWorkspacePlans() {
     if (errBoxPlans) errBoxPlans.style.display = 'none';
 
     btnHelp.disabled = false;
-    btnHelp.style.background = '#F0CB90';
+    btnHelp.style.background = 'var(--warning-border)';
     btnHelp.style.color = '#000';
 
     const toGeneral = format === 'general';
@@ -562,8 +562,8 @@ function handleLevel1HelpPlans() {
     const v = currentPlane.v;
 
     btnHelp.disabled = true;
-    btnHelp.style.background = '#e2e8f0';
-    btnHelp.style.color = '#94a3b8';
+    btnHelp.style.background = 'var(--border-light)';
+    btnHelp.style.color = 'var(--border-strong)';
     hb.style.display = 'block';
 
     if (targetFormat === 'general') {
@@ -581,7 +581,7 @@ function handleLevel1HelpPlans() {
         btnMore.style.display = 'inline-block';
         hb.innerHTML = `
             Aïlla una variable en funció de les altres dues. Per exemple, les variables lliures poden ser y=λ i z=μ i llavors, aïlla la variable x de l'equació:
-            <div style="margin-top: 0.8rem; font-family: var(--font-math); text-align: center; font-size: 1.2rem; background: white; padding: 0.5rem; border-radius: 0.4rem; border: 1px solid #e2e8f0; width: 100%;">
+            <div style="margin-top: 0.8rem; font-family: var(--font-math); text-align: center; font-size: 1.2rem; background: white; padding: 0.5rem; border-radius: 0.4rem; border: 1px solid var(--border-light); width: 100%;">
                 ${cleanMath(A, 'x', true)} ${cleanMath(B, 'λ')} ${cleanMath(C, 'μ')} ${formatConst(D)} = 0
             </div>
         `;
@@ -602,7 +602,7 @@ function handleLevel2HelpPlans() {
         const v_x = -C / A;
 
         hb.innerHTML = `
-            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid #e2e8f0; line-height: 1.8;">
+            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid var(--border-light); line-height: 1.8;">
                 Tenim l'equació <strong>${cleanMath(A, 'x', true)} ${cleanMath(B, 'λ')} ${cleanMath(C, 'μ')} ${formatConst(D)} = 0</strong>. <br>
                 Aïllem la 'x' i obtenim: <strong>x = ${cleanMath(u_x, 'λ', true)} ${cleanMath(v_x, 'μ')} ${formatConst(p_x)}</strong><br><br>
                 Sabem que <strong>y = λ</strong> i que <strong>z = μ</strong>.<br><br>
@@ -612,7 +612,7 @@ function handleLevel2HelpPlans() {
         `;
     } else {
         hb.innerHTML = `
-            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid #e2e8f0; line-height: 1.8;">
+            <div style="font-family:var(--font-math); background: white; padding: 1rem; border-radius: 0.4rem; border: 1px solid var(--border-light); line-height: 1.8;">
                 <strong>Càlculs realitzats:</strong><br>
                 <span class="vec">n</span> = (${currentPlane.u.join(', ')}) × (${currentPlane.v.join(', ')}) = (${A}, ${B}, ${C})<br>
                 Substituint P(${currentPlane.P}): ${A}(${currentPlane.P[0]}) + ${B}(${currentPlane.P[1]}) + ${C}(${currentPlane.P[2]}) + D = 0<br>

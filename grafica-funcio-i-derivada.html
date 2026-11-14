@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-funcions">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +8,9 @@
 	<link rel="icon" href="icon.png">
     <title>La funció i la seva derivada</title>
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <style>
         :root {
-            --bg-color: #f8fafc;            --primary: #0f766e; --primary-light: #ccfbf1;
-            --primary-hover: #0d9488; --primary-dark: #115e59;
             --func-blue: #3b82f6; --func-blue-hover: #2563eb;
             --func-red: #ef4444; --func-red-hover: #dc2626;
         }
@@ -33,7 +32,7 @@
         h1 {
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #334155;
+            color: var(--text-main);
             font-size: 1.5em;
             margin-bottom: 15px;
             text-align: center;
@@ -50,7 +49,7 @@
             display: flex;
             gap: 5px;
             margin-bottom: 15px;
-            background: #e2e8f0;
+            background: var(--border-light);
             padding: 4px;
             border-radius: 10px;
         }
@@ -71,7 +70,7 @@
         }
 @keyframes blink-attention {
             0%, 100% { background: transparent; }
-            50% { background: #fef08a; } /* Groc d'alerta */
+            50% { background: var(--warning-border); } /* Groc d'alerta */
         }
 .attention-blink {
             animation: blink-attention 0.4s ease-in-out 5; /* 5 cicles de 0.4s = 2 segons */
@@ -99,7 +98,7 @@
         }
         
         .header-info {
-            background-color: #f1f5f9;
+            background-color: var(--bg-soft-alt);
             padding: 10px 20px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -116,7 +115,7 @@
             align-items: baseline;
         }
         .session-text { font-size: 1.05em; color: var(--text-muted); }
-        .level-text   { font-size: 1.05em; color: #334155; }
+        .level-text   { font-size: 1.05em; color: var(--text-main); }
         .score-text   { font-size: 1.15em; color: var(--primary); font-family: monospace; }
         
         .content-row { display: flex; flex-direction: column; width: 100%; }
@@ -127,7 +126,7 @@
             justify-content: flex-start;
             align-items: center;
             padding: 15px;
-            background-color: #f8fafc;
+            background-color: var(--bg-color);
             border-bottom: 1px solid var(--border-color);
         }
         #graph-canvas {
@@ -140,9 +139,9 @@
         }
 
         #debug-info {
-            background-color: #fef08a;
-            color: #854d0e;
-            border: 1px dashed #ca8a04;
+            background-color: var(--warning-border);
+            color: var(--warning-dark);
+            border: 1px dashed var(--warning);
             border-radius: 6px;
             padding: 8px;
             font-family: monospace;
@@ -173,7 +172,7 @@
         
         .question-text {
             font-size: 1.3em;
-            color: #334155;
+            color: var(--text-main);
             margin-bottom: 20px;
             font-weight: normal;
             line-height: 1.4;
@@ -200,14 +199,14 @@ border-radius: 8px;
 
 .btn-neutral {
     background-color: white;
-    color: #334155;
+    color: var(--text-main);
     border-color: var(--border-heavy);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     line-height: 1.9;
     transition: background-color 0.15s;
 }
 .btn-neutral:hover {
-    background-color: #f1f5f9;
+    background-color: var(--bg-soft-alt);
 }        
         .correct-flash { background-color: var(--success) !important; color: white !important; }
         .error-shake { animation: shake 0.3s; }

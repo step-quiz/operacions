@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-algebra">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,22 +19,17 @@
 
     <!-- 3. Estils compartits -->
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
 
     <style>
         /* ---- Paleta de color: càlida (ambre/terracota), pròpia del material manipulatiu ---- */
-        :root {
-            --bg-color:      #fefce8;   /* groc càlid */
-            --primary:       #b45309;   /* amber-700 */
-            --primary-light: #fef3c7;
-            --primary-hover: #92400e;
-            --primary-dark:  #451a03;
-            --accent:        #d97706;   /* taronja accent per parèntesis nivell 4 */
+        :root {   /* groc càlid */   /* amber-700 */   /* taronja accent per parèntesis nivell 4 */
         }
 
         /* ---- Overrides específics de la capçalera ---- */
         h1 { color: var(--primary-dark); }
-        .header-info { background-color: #fff7ed; }
+        .header-info { background-color: var(--primary-light); }
         .level-text  { color: var(--primary-dark); }
         .score-text  { color: var(--primary); }
 
@@ -62,26 +57,26 @@
             fill: var(--primary-dark);
         }
         .chip-circle {
-            fill: #dc2626;
-            stroke: #7f1d1d;
+            fill: var(--danger);
+            stroke: var(--danger-dark);
             stroke-width: 1.5;
         }
         .chip-inside {
-            fill: #dc2626;
-            stroke: #7f1d1d;
+            fill: var(--danger);
+            stroke: var(--danger-dark);
             stroke-width: 1;
             opacity: 0;
         }
         .table-line {
-            stroke: #78350f;
+            stroke: var(--primary-dark);
             stroke-width: 2;
             stroke-linecap: round;
         }
         .plate-ellipse {
-            fill: #fff7ed;
+            fill: var(--primary-light);
             stroke: var(--accent);
             stroke-width: 2.5;
-            filter: drop-shadow(0 2px 3px rgba(120, 53, 15, 0.18));
+            filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--primary) 18%, transparent));
         }
 
         /* Transicions */
@@ -107,7 +102,7 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 1.36em;    /* ~80% de #equation-display */
             font-weight: bold;
-            color: #94a3b8;       /* gris suau */
+            color: var(--border-strong);       /* gris suau */
             padding: 6px 14px 0;
             min-height: 1.3em;
             transition: opacity 0.25s;
@@ -147,7 +142,7 @@
             text-align: center;
             font-size: 1.05em;
             font-weight: 600;
-            color: #334155;
+            color: var(--text-main);
             padding: 6px 18px 12px;
             min-height: 2.6em;
             line-height: 1.35;

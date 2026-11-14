@@ -11,7 +11,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { parseStrictInt, pick } from '../utils.js';
 import {
     state,
-    bgColors,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -416,9 +415,6 @@ function buildLevel() {
 
     // Resetejar problemes usats a l'inici de cada sessió
     if (state.currentOperation === 0) usedProblems = new Set();
-
-    const ci = (state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length;
-    els.body.style.backgroundColor = bgColors[ci];
 
     if (els.intermediateBox) els.intermediateBox.innerHTML = '';
 

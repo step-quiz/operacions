@@ -36,6 +36,10 @@ Object.assign(window, {
     copiaCodiPla,
 });
 
+// Colors del tema (css/temes.css) i d'estat (css/tokens.css) per al dibuix: un canvas o un atribut
+// SVG no entenen var(--x), i així la figura té sempre el mateix color que el text de la pàgina.
+const token = nom => getComputedStyle(document.documentElement).getPropertyValue(nom).trim();
+
 // ============================================================
 // CODI ESPECÍFIC DE FUNCIONS I GRÀFIQUES
 // NOTA: game-core.js carregat NOMÉS pel teclat custom.
@@ -73,20 +77,6 @@ const els = {
     finalSummary: document.getElementById('final-summary'),
 };
 const ctx = els.canvas.getContext('2d');
-
-// [BUGFIX] bgColors ja declarat per game-core.js — usem pcBgColors per evitar conflicte de let/const
-const pcBgColors = [
-    '#f0f4ff',
-    '#eff6ff',
-    '#f0fdf4',
-    '#fefce8',
-    '#fff1f2',
-    '#f5f3ff',
-    '#ecfeff',
-    '#fdf4ff',
-    '#fffbeb',
-    '#faf5ff',
-];
 
 // ---- ESTAT ----
 let currentSection = '3a',
@@ -133,7 +123,6 @@ function showScreen(id) {
 // ---- SECCIÓ I DIFICULTAT ----
 function goToSections() {
     showScreen('section-screen');
-    els.body.style.backgroundColor = '#f0f4ff';
 }
 
 function selectSection(s) {
@@ -399,7 +388,7 @@ function buildExerciseSitua() {
         updateWrapHeight();
         document.querySelector('.canvas-wrap').scrollTo({ top: 0 });
     } else {
-        drawPoint(targetX, targetY, '#4f46e5', pointLabel, 9);
+        drawPoint(targetX, targetY, token('--primary'), pointLabel, 9);
         els.gamePrompt.innerHTML = 'Quines són les coordenades del punt <strong>' + pointLabel + '</strong>?';
         els.coordInputArea.classList.add('active');
         els.inputX.value = '';
@@ -415,7 +404,6 @@ function buildExerciseSitua() {
             scrollCanvasToPoint(targetX, targetY);
         }, 150);
     }
-    els.body.style.backgroundColor = pcBgColors[state.currentOperation % pcBgColors.length];
 }
 
 // ---- 3a — ELS 4 QUADRANTS ----
@@ -469,7 +457,7 @@ function buildExerciseQuadrants() {
     els.btnOrigen.classList.toggle('hidden-btn', !showAxis);
 
     if (exerciseMode === 'quadrant-pick') {
-        drawPoint(targetX, targetY, '#4f46e5', pointLabel, 9);
+        drawPoint(targetX, targetY, token('--primary'), pointLabel, 9);
         var prompt3a =
             difficultyLevel === 3
                 ? 'Situa el punt <strong>' + pointLabel + "</strong> en un quadrant, o bé sobre un eix, o bé a l'origen"
@@ -504,7 +492,6 @@ function buildExerciseQuadrants() {
         updateWrapHeight();
         document.querySelector('.canvas-wrap').scrollTo({ top: 0 });
     }
-    els.body.style.backgroundColor = pcBgColors[state.currentOperation % pcBgColors.length];
 }
 
 function updateGameUI() {
@@ -554,13 +541,13 @@ function handleClick(e) {
 
     drawGrid();
     if (gx2 === targetX && gy2 === targetY) {
-        drawPoint(gx2, gy2, '#10b981', pointLabel, 9);
+        drawPoint(gx2, gy2, token('--success'), pointLabel, 9);
         els.feedbackBar.innerText = '✓ Correcte! ' + pointLabel + '(' + targetX + ', ' + targetY + ')';
         els.feedbackBar.className = 'feedback-bar correct';
         answered = true;
         finalizeProblem();
     } else {
-        drawPoint(gx2, gy2, '#ef4444', '', 6);
+        drawPoint(gx2, gy2, token('--danger'), '', 6);
         els.feedbackBar.innerText = '✗ Això és (' + gx2 + ', ' + gy2 + ')';
         els.feedbackBar.className = 'feedback-bar wrong';
         penalize();
@@ -580,7 +567,7 @@ function checkQuadrant(chosen, btnEl) {
     if (chosen === targetQuadrant) {
         btnEl.classList.add('correct-flash');
         drawGrid();
-        drawPoint(targetX, targetY, '#10b981', pointLabel, 9);
+        drawPoint(targetX, targetY, token('--success'), pointLabel, 9);
         els.feedbackBar.innerText =
             '✓ Correcte! ' + pointLabel + '(' + targetX + ', ' + targetY + ') està ' + quadrantPrep(targetQuadrant);
         els.feedbackBar.className = 'feedback-bar correct';
@@ -615,7 +602,7 @@ function checkCoordInput() {
             drawGrid();
             var fitsInGrid = ux >= GX_MIN && ux <= GX_MAX && uy >= GY_MIN && uy <= GY_MAX;
             if (fitsInGrid) {
-                drawPoint(ux, uy, '#10b981', pointLabel, 9);
+                drawPoint(ux, uy, token('--success'), pointLabel, 9);
                 scrollCanvasToPoint(ux, uy);
             }
             els.feedbackBar.innerText = '✓ Correcte! (' + ux + ', ' + uy + ') està ' + quadrantPrep(targetQuadrant);
@@ -648,7 +635,7 @@ function checkCoordInput() {
 
     if (ux === targetX && uy === targetY) {
         drawGrid();
-        drawPoint(targetX, targetY, '#10b981', pointLabel, 9);
+        drawPoint(targetX, targetY, token('--success'), pointLabel, 9);
         els.feedbackBar.innerText = '✓ Correcte! ' + pointLabel + '(' + targetX + ', ' + targetY + ')';
         els.feedbackBar.className = 'feedback-bar correct';
         answered = true;
@@ -842,9 +829,9 @@ window.addEventListener('resize', function () {
         resizeCanvas();
         drawGrid();
         if ((exerciseMode === 'identify' || exerciseMode === 'quadrant-pick') && !answered) {
-            drawPoint(targetX, targetY, '#4f46e5', pointLabel, 9);
+            drawPoint(targetX, targetY, token('--primary'), pointLabel, 9);
         }
-        if (answered) drawPoint(targetX, targetY, '#10b981', pointLabel, 9);
+        if (answered) drawPoint(targetX, targetY, token('--success'), pointLabel, 9);
     }
 });
 

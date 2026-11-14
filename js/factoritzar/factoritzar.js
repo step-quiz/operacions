@@ -11,7 +11,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { parseStrictInt, randInt } from '../utils.js';
 import {
     state,
-    bgColors,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -172,8 +171,6 @@ function buildLevel() {
     numberA = generateNumber(state.currentOperation);
     factorsA = primeFactorization(numberA);
 
-    els.body.style.backgroundColor =
-        bgColors[(state.currentSession * TOTAL_OPERATIONS + state.currentOperation) % bgColors.length];
     startPhase();
 }
 

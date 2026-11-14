@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-algebra">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,18 +11,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-light: #3b82f6;
-            --primary-dark: #1d4ed8;
-            --gris-fosc: #64748b;
-            --gris-text: #334155;
-            --bg: #f0f4ff;
+            --gris-fosc: var(--text-muted);
+            --gris-text: var(--text-main);
+            --bg: var(--primary-light);
             --cell-size: 55px;
             --cols: 4;
             --card-bg: rgba(255,255,255,0.85);
-            --border: #e2e8f0;
+            --border: var(--border-light);
         }
 
         .home-icon-link { display:block; width:80px; height:80px; flex-shrink:0; opacity:.7; transition:opacity .2s ease; }
@@ -34,9 +32,9 @@
             font-family: 'DM Sans', system-ui, sans-serif;
             background-color: var(--bg);
             background-image:
-                radial-gradient(circle at 20% 20%, rgba(99,102,241,0.10) 0%, transparent 55%),
-                radial-gradient(circle at 80% 80%, rgba(37,99,235,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 55% 5%, rgba(139,92,246,0.07) 0%, transparent 45%);
+                radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--primary) 10%, transparent) 0%, transparent 55%),
+                radial-gradient(circle at 80% 80%, color-mix(in srgb, var(--primary) 8%, transparent) 0%, transparent 50%),
+                radial-gradient(ellipse at 55% 5%, color-mix(in srgb, var(--primary) 7%, transparent) 0%, transparent 45%);
             margin: 0;
             display: flex;
             justify-content: center;
@@ -57,8 +55,8 @@
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.7);
             box-shadow:
-                0 4px 6px rgba(37,99,235,0.04),
-                0 20px 60px rgba(37,99,235,0.10),
+                0 4px 6px color-mix(in srgb, var(--primary) 4%, transparent),
+                0 20px 60px color-mix(in srgb, var(--primary) 10%, transparent),
                 0 1px 0 rgba(255,255,255,0.8) inset;
             width: 100%;
             max-width: 1350px;
@@ -98,10 +96,10 @@
         }
         .toolbar select:focus {
             outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            border-color: var(--primary-hover);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
         }
-        .toolbar select:hover { border-color: #94a3b8; }
+        .toolbar select:hover { border-color: var(--border-strong); }
 
         /* ── LAYOUT ── */
         .gauss-container {
@@ -129,8 +127,8 @@
             grid-template-columns: repeat(var(--cols), var(--cell-size));
             gap: 7px;
             padding: 16px;
-            border-left: 3px solid #1e293b;
-            border-right: 3px solid #1e293b;
+            border-left: 3px solid var(--text-main);
+            border-right: 3px solid var(--text-main);
             border-radius: 22px;
             background: rgba(255,255,255,0.7);
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -155,7 +153,7 @@
         }
 
         .cell.sep-column {
-            border-left: 1.5px dashed #94a3b8;
+            border-left: 1.5px dashed var(--border-strong);
             margin-left: -3px;
         }
 
@@ -165,13 +163,13 @@
             border-radius: 6px;
             font-weight: 700;
             color: var(--primary);
-            background: rgba(37,99,235,0.06);
+            background: color-mix(in srgb, var(--primary) 6%, transparent);
         }
 
         .cell input {
             width: 85%; height: 85%;
             text-align: center;
-            border: 1.5px solid #cbd5e1;
+            border: 1.5px solid var(--border-heavy);
             border-radius: 10px;
             font-size: 1.15rem;
             font-weight: 600;
@@ -182,9 +180,9 @@
         }
         .cell input:focus {
             outline: none;
-            border-color: var(--primary-light);
+            border-color: var(--primary-hover);
             background: white;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
         }
 
         /* ── PANELL CENTRAL ── */
@@ -208,26 +206,26 @@
         .op-input {
             width: 48px; height: 48px;
             text-align: center;
-            border: 1.5px solid var(--primary-light);
+            border: 1.5px solid var(--primary-hover);
             border-radius: 10px;
             font-size: 1.2rem;
             font-weight: 700;
             font-family: 'DM Mono', monospace;
             color: var(--primary);
-            background: rgba(37,99,235,0.05);
+            background: color-mix(in srgb, var(--primary) 5%, transparent);
             transition: border-color 0.15s, box-shadow 0.15s;
         }
         .op-input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
             background: white;
         }
         @media (hover: hover) {
             .op-input:hover:not(:focus) {
                 border-color: #000;
-                background: #cbd5e1;
-                color: #1e293b;
+                background: var(--border-heavy);
+                color: var(--text-main);
             }
         }
 
@@ -235,11 +233,11 @@
         .dashed-box {
             position: relative;
             border: 1.5px solid var(--border);
-            border-left: 3px solid var(--primary-light);
+            border-left: 3px solid var(--primary-hover);
             padding: 12px 14px;
             border-radius: 10px;
             background: rgba(248,250,255,0.9);
-            box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 6%, transparent);
             width: 240px;
             min-height: 60px;
             font-family: 'DM Mono', 'Courier New', monospace;
@@ -258,7 +256,7 @@
             color: var(--success);
             font-size: 1.5rem;
             display: none;
-            filter: drop-shadow(0 0 4px rgba(22,163,74,0.35));
+            filter: drop-shadow(0 0 4px color-mix(in srgb, var(--success) 35%, transparent));
         }
 
         /* ── BOTÓ PRINCIPAL ── */
@@ -272,7 +270,7 @@
 
         .btn-check {
             padding: 14px 26px;
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -281,7 +279,7 @@
             font-weight: 700;
             cursor: pointer;
             box-shadow:
-                0 4px 14px rgba(37,99,235,0.35),
+                0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent),
                 0 1px 0 rgba(255,255,255,0.25) inset;
             transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
             white-space: nowrap;
@@ -289,12 +287,12 @@
         }
         .btn-check:hover {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            box-shadow: 0 6px 20px rgba(37,99,235,0.40);
+            box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 40%, transparent);
             transform: translateY(-1px);
         }
         .btn-check:active {
             transform: translateY(1px);
-            box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 25%, transparent);
         }
 
         /* ── FEEDBACK ── */
@@ -330,7 +328,7 @@
             margin-top: 10px;
             transition: background 0.15s, transform 0.1s;
         }
-        .btn-mini:hover { background: #1e293b; transform: translateY(-1px); }
+        .btn-mini:hover { background: var(--text-main); transform: translateY(-1px); }
 
         /* ── CHECKBOX ── */
         #helpToggle {

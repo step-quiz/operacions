@@ -1,0 +1,104 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/temes.css
+ROL: Els colors de TEMA de les activitats: un per bloc de continguts, el
+     mateix a ESO i a Batxillerat (l'alumne reconeix el bloc pel color).
+ARQUITECTURA:
+- Cinc tons apagats i sobris, cap de verd, ambre ni vermell: aquests tres
+  volen dir encert, avís i error (css/tokens.css) i no es poden confondre
+  amb un botó normal.
+- Cada pàgina tria el seu amb una classe a l'element <html>:
+      <html lang="ca" class="tema-nombres">
+  Va a <html> (i no a <body>) perquè qualsevol variable de la pàgina que en
+  depengui es resolgui amb el tema bo.
+- Cada tema defineix les mateixes variables:
+      --primary         botons, vores destacades, títols
+      --primary-hover   el mateix, en passar-hi el ratolí
+      --primary-dark    text sobre fons clar
+      --primary-light   fons suau (xips, capçaleres)
+      --bg-color        fons de la pàgina (fix: no canvia a cada pregunta)
+      --accent, --accent-dark, --accent-light
+                        un segon to, per distingir dues coses (MCD i MCM,
+                        l'incògnita d'un triangle…): un altre to de la paleta
+- El text blanc sobre --primary i --accent compleix el contrast WCAG AA.
+- Cap altre fitxer no defineix aquestes variables (tests/check-repo.js).
+DEPENDÈNCIES: Cap. Es carrega just després de css/tokens.css.
+============================================================================
+*/
+
+/* Per defecte (una pàgina sense classe de tema): el de Nombres */
+:root {
+    --primary: #2f5f8a;
+    --primary-hover: #264e72;
+    --primary-dark: #1d3c58;
+    --primary-light: #e6eef6;
+    --bg-color: #f5f8fb;
+    --accent: #6b4c7f;
+    --accent-dark: #443051;
+    --accent-light: #f0eaf3;
+}
+
+/* Nombres i operacions: blau acer */
+.tema-nombres {
+    --primary: #2f5f8a;
+    --primary-hover: #264e72;
+    --primary-dark: #1d3c58;
+    --primary-light: #e6eef6;
+    --bg-color: #f5f8fb;
+    --accent: #6b4c7f;
+    --accent-dark: #443051;
+    --accent-light: #f0eaf3;
+}
+
+/* Àlgebra: indi */
+.tema-algebra {
+    --primary: #4b4f9a;
+    --primary-hover: #3e4182;
+    --primary-dark: #2f3163;
+    --primary-light: #eaebf6;
+    --bg-color: #f6f6fb;
+    --accent: #23677e;
+    --accent-dark: #15414f;
+    --accent-light: #e3f0f3;
+}
+
+/* Geometria i mesura: petroli */
+.tema-geometria {
+    --primary: #23677e;
+    --primary-hover: #1c5568;
+    --primary-dark: #15414f;
+    --primary-light: #e3f0f3;
+    --bg-color: #f4f8f9;
+    --accent: #4b4f9a;
+    --accent-dark: #2f3163;
+    --accent-light: #eaebf6;
+}
+
+/* Estadística i probabilitat: pruna */
+.tema-estadistica {
+    --primary: #6b4c7f;
+    --primary-hover: #593f6a;
+    --primary-dark: #443051;
+    --primary-light: #f0eaf3;
+    --bg-color: #f8f6f9;
+    --accent: #2f5f8a;
+    --accent-dark: #1d3c58;
+    --accent-light: #e6eef6;
+}
+
+/* Funcions i gràfiques: pissarra */
+.tema-funcions {
+    --primary: #475569;
+    --primary-hover: #3a4657;
+    --primary-dark: #2c3542;
+    --primary-light: #e9ecf0;
+    --bg-color: #f6f7f9;
+    --accent: #2f5f8a;
+    --accent-dark: #1d3c58;
+    --accent-light: #e6eef6;
+}
+
+body {
+    background-color: var(--bg-color);
+}

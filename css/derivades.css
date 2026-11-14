@@ -17,13 +17,6 @@ ARQUITECTURA:
 DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 ============================================================================
 */
-:root {
-    --bg-color: #fdf4ff;
-    --primary: #9333ea;
-    --primary-light: #f3e8ff;
-    --primary-dark: #6b21a8;
-    --primary-hover: #7e22ce;
-}
 
 /* ---- CONTENIDOR DE L'ENUNCIAT ---- */
 .function-box {
@@ -196,9 +189,9 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     margin-top: 8px;
     padding: 10px 16px;
     background-color: #fffbeb;
-    border-left: 4px solid #f59e0b;
+    border-left: 4px solid var(--warning);
     border-radius: 0 8px 8px 0;
-    color: #78350f;
+    color: var(--warning-dark);
     font-size: 0.92em;
     font-weight: normal;
     line-height: 1.5;
@@ -214,16 +207,16 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     padding: 3px 10px;
     font-size: 0.78em;
     font-weight: 600;
-    color: #92400e;
-    background: #fef3c7;
-    border: 1px solid #f59e0b;
+    color: var(--warning-dark);
+    background: var(--warning-light);
+    border: 1px solid var(--warning);
     border-radius: 99px;
     cursor: pointer;
     transition: background 0.15s ease;
     user-select: none;
 }
 .hint-toggle-btn:hover {
-    background: #fde68a;
+    background: var(--warning-border);
 }
 
 @keyframes fadeInDown {
@@ -247,13 +240,13 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     margin-top: 12px;
     padding: 10px 16px;
     background-color: #f0fdf4;
-    border: 2px solid #bbf7d0;
+    border: 2px solid var(--success-border);
     border-radius: 8px;
     animation: fadeInDown 0.4s ease;
 }
 
 .solution-label {
-    color: #047857;
+    color: var(--success);
     font-size: 0.9em;
     font-weight: 600;
     text-transform: uppercase;
@@ -262,7 +255,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 }
 
 .solution-formula {
-    color: #065f46;
+    color: var(--success-dark);
     font-size: 1.1em;
 }
 
@@ -298,14 +291,14 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 @keyframes attemptsBlink {
     0%,
     100% {
-        background-color: #fef3c7;
+        background-color: var(--warning-light);
         border-color: #d1d5db;
-        color: #334155;
+        color: var(--text-main);
     }
     50% {
         background-color: #e5e7eb;
-        border-color: #f59e0b;
-        color: #334155;
+        border-color: var(--warning);
+        color: var(--text-main);
     }
 }
 
@@ -362,15 +355,15 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 }
 .summary-stat--ok {
     background: #f0fdf4;
-    border-color: #bbf7d0;
+    border-color: var(--success-border);
 }
 .summary-stat--warn {
     background: #fffbeb;
-    border-color: #fde68a;
+    border-color: var(--warning-border);
 }
 .summary-stat--err {
     background: #fef2f2;
-    border-color: #fecaca;
+    border-color: var(--danger-border);
 }
 
 .summary-stat-num {
@@ -379,13 +372,13 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
     line-height: 1;
 }
 .summary-stat--ok .summary-stat-num {
-    color: #047857;
+    color: var(--success);
 }
 .summary-stat--warn .summary-stat-num {
-    color: #b45309;
+    color: var(--warning-dark);
 }
 .summary-stat--err .summary-stat-num {
-    color: #b91c1c;
+    color: var(--danger-dark);
 }
 
 .summary-stat-desc {
@@ -415,7 +408,7 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 }
 .summary-error-item {
     background: #fffbeb;
-    border-left: 4px solid #f59e0b;
+    border-left: 4px solid var(--warning);
     border-radius: 0 8px 8px 0;
     padding: 10px 14px;
     animation: fadeInDown 0.3s ease;
@@ -430,30 +423,30 @@ DEPENDÈNCIES: S'ha de carregar DESPRÉS de shared.css.
 .summary-error-type {
     font-weight: 700;
     font-size: 0.92em;
-    color: #78350f;
+    color: var(--warning-dark);
 }
 .summary-error-count {
     font-size: 0.78em;
-    color: #92400e;
+    color: var(--warning-dark);
     white-space: nowrap;
-    background: #fef3c7;
+    background: var(--warning-light);
     padding: 1px 8px;
     border-radius: 99px;
 }
 .summary-error-hint {
     font-size: 0.88em;
-    color: #78350f;
+    color: var(--warning-dark);
     line-height: 1.5;
 }
 
 /* Missatge quan no hi ha errors */
 .summary-no-errors {
     text-align: center;
-    color: #047857;
+    color: var(--success);
     font-weight: 600;
     font-size: 1em;
     background: #f0fdf4;
-    border: 2px solid #bbf7d0;
+    border: 2px solid var(--success-border);
     border-radius: 10px;
     padding: 14px;
     margin-bottom: 24px;

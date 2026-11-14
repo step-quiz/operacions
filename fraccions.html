@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="tema-nombres">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,19 +19,15 @@
 
     <!-- 3. Estils compartits -->
     <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/pissarra.css">
 
     <style>
         /* ---- Variables de color específiques de fraccions ---- */
-        :root {
-            --bg-color:      #f8fafc;
-            --primary:       #0369a1;
-            --primary-light: #e0f2fe;
-            --primary-dark:  #0f172a;
-        }
+        
 
-        .panel { border-top-color: #475569; }
+        .panel { border-top-color: var(--text-soft); }
 
         /* ---- MENÚ DE SELECCIÓ ---- */
         #menu-screen {
@@ -80,13 +76,13 @@
             87.5% { transform: translateX(-2px); }
         }
         @keyframes levelSelectBlink {
-            0%   { background-color: #facc15; }
-            16%  { background-color: #e2e8f0; }
-            32%  { background-color: #facc15; }
-            48%  { background-color: #e2e8f0; }
-            64%  { background-color: #facc15; }
-            80%  { background-color: #e2e8f0; }
-            100% { background-color: #facc15; }
+            0%   { background-color: var(--warning); }
+            16%  { background-color: var(--border-light); }
+            32%  { background-color: var(--warning); }
+            48%  { background-color: var(--border-light); }
+            64%  { background-color: var(--warning); }
+            80%  { background-color: var(--border-light); }
+            100% { background-color: var(--warning); }
         }
         .level-select.level-attention {
             animation: levelSelectShake 0.8s ease-in-out, levelSelectBlink 1.7s ease-in-out;
@@ -203,7 +199,7 @@
                       font-size: 0.95rem; line-height: 1.4; text-align: left; }
         .step-title {
             font-size: 1.1em;
-            color: #475569;
+            color: var(--text-soft);
             margin-bottom: 15px;
             font-weight: bold;
             text-align: center;
@@ -223,11 +219,11 @@
 
         /* ---- Animacions específiques ---- */
         @keyframes attemptsBlink {
-            0%   { background-color: #facc15; }
+            0%   { background-color: var(--warning); }
             25%  { background-color: white; }
-            50%  { background-color: #facc15; }
+            50%  { background-color: var(--warning); }
             75%  { background-color: white; }
-            100% { background-color: #facc15; }
+            100% { background-color: var(--warning); }
         }
         .attempts-counter.blink { animation: attemptsBlink 0.4s ease-in-out; }
 

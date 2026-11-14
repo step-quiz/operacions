@@ -811,7 +811,7 @@ function showFeedback(text, type) {
         .attempts-counter.blink-warning { animation: blinkAttempts 0.7s ease-in-out; }
         @keyframes blinkAttempts {
             0%, 100% { background-color: var(--primary-light); }
-            50%      { background-color: #facc15; }
+            50%      { background-color: var(--primary); }
         }
     `;
     const style = document.createElement('style');
