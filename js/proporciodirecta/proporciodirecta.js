@@ -12,7 +12,6 @@ import { getIntParam, pick, randInt } from '../utils.js';
 import {
     state,
     bgColors,
-    endSession,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -23,6 +22,8 @@ import {
     showCustomKeyboard,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -60,7 +61,6 @@ const els = {
     answerRow: document.getElementById('answer-row'),
     valueInput: document.getElementById('value-input'),
     btnSubmitVal: document.getElementById('btn-submit-val'),
-    inlineFeedback: document.getElementById('inline-feedback'),
     btnNextLevel: document.getElementById('btn-next-level'),
     stepHint: document.getElementById('step-hint'),
 };
@@ -381,7 +381,7 @@ function buildLevel() {
     currentStep = 1;
     stepsDoneList = [];
 
-    hideInlineFeedback();
+    desbloquejaEntrada();
     els.stepHint.textContent = '';
     els.stepHint.classList.remove('visible');
     els.valueInput.classList.remove('error-val');
@@ -432,27 +432,14 @@ function penalize() {
     }, 400);
 }
 
-function showInlineFeedback(levelPoints) {
-    state.isTransitioning = true;
+// Bloqueja l'entrada en acabar la pregunta (el resultat el mostra la franja comuna
+// d'acabaPregunta()); desbloquejaEntrada() ho desfà a la pregunta següent.
+function bloquejaEntrada() {
     els.btnSubmitVal.disabled = true;
     if (els.valueInput) els.valueInput.disabled = true;
-
-    const fb = els.inlineFeedback;
-    fb.classList.remove('success', 'failure', 'visible');
-
-    if (levelPoints > 0) {
-        fb.innerHTML = `⭐ Molt bé! <span style="opacity:0.75;font-size:0.9em">+${levelPoints}</span>`;
-        fb.classList.add('success', 'visible');
-    } else {
-        fb.innerHTML = '❌ Intents esgotats';
-        fb.classList.add('failure', 'visible');
-    }
 }
 
-function hideInlineFeedback() {
-    const fb = els.inlineFeedback;
-    fb.classList.remove('visible', 'success', 'failure');
-    fb.innerHTML = '';
+function desbloquejaEntrada() {
     els.btnSubmitVal.disabled = false;
     if (els.valueInput) {
         els.valueInput.disabled = false;
@@ -464,22 +451,8 @@ function hideInlineFeedback() {
 
 function finishOperation(success) {
     recordResult(success ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
-    const fails = MAX_INTENTS - state.attemptsLeft;
-    const levelPoints = success ? Math.max(0, 10 - fails * 2) : 0;
-    state.sessionScore += levelPoints;
-
-    const waitTime = success ? 1200 : 2800;
-    showInlineFeedback(levelPoints);
-
-    setTimeout(() => {
-        hideInlineFeedback();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    bloquejaEntrada();
+    acabaPregunta(success ? puntsDeLaPregunta() : 0);
 }
 
 // ── Teclat físic ────────────────────────────────────────────

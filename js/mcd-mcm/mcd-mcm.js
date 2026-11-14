@@ -11,17 +11,16 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { parseStrictInt, randInt } from '../utils.js';
 import {
     state,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
     recordResult,
     showCustomKeyboard,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -186,7 +185,11 @@ function startPhase() {
     els.resolutionPanel.style.display = 'none';
     els.errorMsg.textContent = '';
     els.phaseBanner.style.display = 'none';
-    if (currentPhase === 'mcd') els.mcdMcmZone.innerHTML = '';
+    if (currentPhase === 'mcd') {
+        // Pregunta nova: buida la zona del MCD i el MCM de la pregunta anterior
+        els.mcdMcmZone.innerHTML = '';
+        els.mcdMcmZone.style.display = 'none';
+    }
     updateHeader();
 
     if (currentPhase === 'mcd') {
@@ -213,7 +216,7 @@ function advancePhase() {
         currentPhase = 'mcm';
         startPhase();
     } else if (currentPhase === 'mcm') {
-        finishExercise(Math.max(0, 10 - (MAX_INTENTS - state.attemptsLeft)));
+        finishExercise(puntsDeLaPregunta());
     }
 }
 
@@ -290,25 +293,10 @@ function checkMcdMcm(answer, label) {
 
 function finishExercise(levelPoints) {
     recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
-    state.isTransitioning = true;
-    hideCustomKeyboard(); // [CANVI 5] Tanca el teclat custom en finalitzar
+    // El MCD i el MCM calculats es queden a la vista fins que l'alumne prem «Següent»
     els.resolutionPanel.style.display = 'none';
-    els.mcdMcmZone.style.display = 'none';
     els.phaseBanner.style.display = 'none';
-
-    state.sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
-    const waitTime = showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
-    setTimeout(() => {
-        hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    acabaPregunta(levelPoints);
 }
 
 // ============================================================

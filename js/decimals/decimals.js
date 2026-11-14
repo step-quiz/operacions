@@ -12,7 +12,6 @@ import { getIntParam, pick, randInt } from '../utils.js';
 import {
     state,
     bgColors,
-    endSession,
     hideCustomKeyboard,
     initCustomKeyboard,
     injectSharedHTML,
@@ -22,6 +21,9 @@ import {
     showCustomKeyboard,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
+    recordResult,
 } from '../game-core.js';
 import { DinersFeedback } from './diners-feedback.js';
 import { PRODUCTS_DINERS } from './products-diners.js';
@@ -64,8 +66,6 @@ const els = {
     valueInput: document.getElementById('value-input'),
     btnSubmitVal: document.getElementById('btn-submit-val'),
     billOptions: document.getElementById('bill-options'),
-    // CANVI UX: element de feedback inline (substitueix el mini-overlay)
-    inlineFeedback: document.getElementById('inline-feedback'),
     // CANVI UX: botó per pujar de nivell (esquerra dels intents)
     btnNextLevel: document.getElementById('btn-next-level'),
     // Missatge pedagògic d'error (diners-feedback.js)
@@ -665,8 +665,8 @@ function buildLevel() {
     // Reseteja el registre anti-repetició al principi de cada sessió
     if (state.currentOperation === 0) _resetChangeTracking();
 
-    // CANVI UX: netejem el feedback inline, el missatge pedagògic i l'estat error-val
-    hideInlineFeedback();
+    // CANVI UX: netejem el missatge pedagògic i l'estat error-val
+    desbloquejaEntrada();
     els.stepHint.textContent = '';
     els.stepHint.classList.remove('visible');
     els.valueInput.classList.remove('error-val');
@@ -715,41 +715,15 @@ function penalize() {
     }, 400);
 }
 
-// ── Feedback inline ──────────────────────────────────────────
-// CANVI UX: En lloc del mini-overlay de game-core (que apareixia
-// fora del viewport en pantalles petites), mostrem el resultat
-// directament al costat del botó OK, dins el panell visible.
-//
-// showInlineFeedback():
-//   - Mostra el missatge (èxit o fracàs) al costat del botó OK.
-//   - Bloqueja qualsevol entrada d'usuari via isTransitioning = true.
-//   - Deshabilita visualment el botó OK i l'input.
-// hideInlineFeedback():
-//   - Restaura el botó OK i l'input al seu estat normal.
-//   - (isTransitioning es torna false a buildLevel, no aquí)
-
-function showInlineFeedback(levelPoints) {
-    // Bloquem entrada immediatament (alumnes nerviosos, clics múltiples)
-    state.isTransitioning = true;
+// ── Bloqueig de l'entrada en acabar la pregunta ───────────────
+// Bloqueja l'entrada en acabar la pregunta (el resultat el mostra la franja comuna
+// d'acabaPregunta()); desbloquejaEntrada() ho desfà a la pregunta següent.
+function bloquejaEntrada() {
     els.btnSubmitVal.disabled = true;
     if (els.valueInput) els.valueInput.disabled = true;
-
-    const fb = els.inlineFeedback;
-    fb.classList.remove('success', 'failure', 'visible');
-
-    if (levelPoints > 0) {
-        fb.innerHTML = `⭐ Molt bé! <span style="opacity:0.75;font-size:0.9em">+${levelPoints}</span>`;
-        fb.classList.add('success', 'visible');
-    } else {
-        fb.innerHTML = '❌ Intents esgotats';
-        fb.classList.add('failure', 'visible');
-    }
 }
 
-function hideInlineFeedback() {
-    const fb = els.inlineFeedback;
-    fb.classList.remove('visible', 'success', 'failure');
-    fb.innerHTML = '';
+function desbloquejaEntrada() {
     els.btnSubmitVal.disabled = false;
     if (els.valueInput) {
         els.valueInput.disabled = false;
@@ -761,23 +735,9 @@ function hideInlineFeedback() {
 }
 
 function finishOperation(success) {
-    const fails = MAX_INTENTS - state.attemptsLeft;
-    const levelPoints = success ? Math.max(0, 10 - fails * 2) : 0;
-    state.sessionScore += levelPoints;
-
-    // CANVI UX: feedback inline en lloc de showMiniOverlay (voir showInlineFeedback)
-    const waitTime = success ? 1200 : 2800;
-    showInlineFeedback(levelPoints);
-
-    setTimeout(() => {
-        hideInlineFeedback();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    recordResult(success ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
+    bloquejaEntrada();
+    acabaPregunta(success ? puntsDeLaPregunta() : 0);
 }
 
 // ── Teclat físic ────────────────────────────────────────────

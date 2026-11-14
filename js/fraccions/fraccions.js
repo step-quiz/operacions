@@ -15,7 +15,6 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import { randInt } from '../utils.js';
 import {
     state,
-    endSession,
     getKbActiveInput,
     hideCustomKeyboard,
     initCustomKeyboard,
@@ -29,6 +28,8 @@ import {
     showScreen,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 import { diagnostica } from './errors-fraccions.js';
 import { Renderer } from './renderer.js';
@@ -693,59 +694,19 @@ function finishSuccess() {
         recordAnswerToHistory('Problema de fraccions (Mode: ' + currentMode + ')', 'Correcte', true);
     }
 
-    const fails = MAX_INTENTS - state.attemptsLeft;
-    const levelPoints = Math.max(0, 10 - fails);
-    triggerMiniVictory(true, levelPoints);
+    triggerMiniVictory(true, puntsDeLaPregunta());
 }
 
 function triggerMiniVictory(isSuccess, points) {
     recordResult(isSuccess ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
-    state.isTransitioning = true;
-    hideCustomKeyboard();
     document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));
-
-    if (isSuccess) state.sessionScore += points;
-
-    const vicText = document.getElementById('mini-vic-text');
-    const vicIcon = document.getElementById('mini-vic-icon');
-    const vicPoints = document.getElementById('mini-vic-points');
-
-    let waitTime = 1500;
-
     if (isSuccess) {
-        vicText.innerText = 'Correcte!';
-        vicText.style.color = 'var(--success)';
-        vicIcon.innerText = '⭐';
-        vicPoints.innerText = `+${points} punts`;
-        vicPoints.style.color = 'var(--success)';
+        acabaPregunta(points, { encert: true });
     } else {
-        vicText.innerText = 'Sense intents!';
-        vicText.style.color = 'var(--danger)';
-        vicIcon.innerText = '❌';
-        let formattedSol = finalResD === 1 ? finalResN : `${finalResN}/${finalResD}`;
-        vicPoints.innerText = `Solució: ${formattedSol}`;
-        vicPoints.style.color = 'var(--danger)';
-        waitTime = 3500;
+        // Sense intents: la franja diu la solució (abans la deia la finestra)
+        const solucio = finalResD === 1 ? `${finalResN}` : `${finalResN}/${finalResD}`;
+        acabaPregunta(0, { titol: `Intents esgotats. Solució: ${solucio}` });
     }
-
-    const overlay = document.getElementById('mini-victory-overlay');
-    overlay.style.display = 'flex';
-    overlay.setAttribute('aria-hidden', 'false');
-
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
-    setTimeout(() => {
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden', 'true');
-        state.isTransitioning = false;
-
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
 }
 
 // ---- TECLAT FÍSIC ----

@@ -20,6 +20,7 @@ import { FixedSessions } from '../fixed-sessions.js';
 import { FunctionEngine } from './function-engine.js';
 import { QuestionBank } from './question-bank.js';
 import { SvgRenderer } from './svg-renderer.js';
+import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunta amb «Següent»
 
 (function () {
     'use strict';
@@ -35,11 +36,6 @@ import { SvgRenderer } from './svg-renderer.js';
     let currentPhaseIdx = 0;
     let currentSpec = null;
     let showColoredGraphs = true; // preferència de l'usuari
-    let _countdownTimer = null; // referència al setTimeout actiu
-    let _advanceFn = null; // funció de pas guardada per skipCountdown
-    let _countdownPaused = false; // estat de pausa (tecla espai)
-    let _countdownStartTs = 0; // ms en què s'ha (re)iniciat el tram actual
-    let _countdownLeft = 0; // ms restants quan es pausa
 
     const els = {
         gameScreen: document.getElementById('game-screen'),
@@ -52,8 +48,6 @@ import { SvgRenderer } from './svg-renderer.js';
         label: document.getElementById('q-label'),
         graphCanvas: document.getElementById('graph-canvas'),
         graphLegend: document.getElementById('graph-legend'),
-        graphFooter: document.getElementById('graph-footer'),
-        countdownBar: document.getElementById('countdown-bar'),
     };
 
     // ------------------------------------------------------------------ //
@@ -77,7 +71,7 @@ import { SvgRenderer } from './svg-renderer.js';
         if (currentSpec) {
             els.graphCanvas.innerHTML = SvgRenderer.renderFuncSVG(currentSpec);
         }
-        _clearCountdown(); // amaga llegenda i barra si quedaven visibles
+        _amagaLlegenda(); // amaga la llegenda si quedava visible
         els.feedback.style.opacity = '0';
         els.feedback.innerHTML = '';
         els.lvlDisplay.textContent = `Funció ${currentRound + 1} de ${TOTAL_ROUNDS}`;
@@ -117,7 +111,7 @@ import { SvgRenderer } from './svg-renderer.js';
 
             const phase = PHASES[currentPhaseIdx];
             const advance = () => {
-                _clearCountdown();
+                _amagaLlegenda();
                 const nextIdx = _nextPhaseIdx(currentPhaseIdx);
                 if (nextIdx !== null) {
                     currentPhaseIdx = nextIdx;
@@ -139,10 +133,10 @@ import { SvgRenderer } from './svg-renderer.js';
                         .map(e => `<span class="legend-pill" style="--pill-color:${e.color}">${e.label}</span>`)
                         .join('');
                     els.graphLegend.style.display = 'flex';
-                    _startCountdown(5000, advance);
+                    _acabaPregunta(advance);
                 }, 400);
             } else {
-                setTimeout(advance, 1400);
+                _acabaPregunta(advance);
             }
         } else {
             btn.classList.add('wrong');
@@ -152,69 +146,24 @@ import { SvgRenderer } from './svg-renderer.js';
     }
 
     // ------------------------------------------------------------------ //
-    //  COUNTDOWN (barra de progrés + boto skip)
-    //  La tecla ESPAI pausa/reprèn (per si el docent vol explicar alguna cosa)
+    //  FINAL DE CADA PREGUNTA: franja «Molt bé!» i botó «Següent», com a
+    //  totes les activitats (js/seguent.js). Mai no es passa de pregunta sol:
+    //  l'alumne (o el docent) té tot el temps per mirar la gràfica.
     // ------------------------------------------------------------------ //
-    function _startCountdown(duration, callback) {
-        _advanceFn = callback;
-        _countdownPaused = false;
-        _countdownLeft = duration;
-        _countdownStartTs = Date.now();
-
-        // Treu el focus del botó de resposta perquè ESPAI no el reactivi
-        if (document.activeElement && document.activeElement.blur) {
-            try {
-                document.activeElement.blur();
-            } catch (e) {
-                /* no-op */
-            }
-        }
-
-        els.graphFooter.style.display = 'flex';
-        const bar = els.countdownBar;
-        bar.classList.remove('paused');
-        bar.style.animation = 'none';
-        bar.style.animationPlayState = '';
-        bar.offsetWidth; // reflow
-        bar.style.animation = `drainBar ${duration}ms linear forwards`;
-        _countdownTimer = setTimeout(callback, duration);
+    function _acabaPregunta(advance) {
+        const ultima = _nextPhaseIdx(currentPhaseIdx) === null && currentRound + 1 >= TOTAL_ROUNDS;
+        mostraSeguent({
+            punts: null, // aquesta activitat no compta punts
+            ultima,
+            lloc: document.querySelector('.game-left') || undefined,
+            onSeguent: advance,
+        });
     }
 
-    function _pauseCountdown() {
-        if (!_countdownTimer || _countdownPaused) return;
-        clearTimeout(_countdownTimer);
-        _countdownTimer = null;
-        _countdownLeft -= Date.now() - _countdownStartTs;
-        if (_countdownLeft < 0) _countdownLeft = 0;
-        els.countdownBar.style.animationPlayState = 'paused';
-        els.countdownBar.classList.add('paused');
-        _countdownPaused = true;
-    }
-
-    function _resumeCountdown() {
-        if (!_countdownPaused || !_advanceFn) return;
-        _countdownPaused = false;
-        _countdownStartTs = Date.now();
-        els.countdownBar.classList.remove('paused');
-        els.countdownBar.style.animationPlayState = 'running';
-        _countdownTimer = setTimeout(_advanceFn, _countdownLeft);
-    }
-
-    function _clearCountdown() {
-        if (_countdownTimer) {
-            clearTimeout(_countdownTimer);
-            _countdownTimer = null;
-        }
-        _advanceFn = null;
-        _countdownPaused = false;
-        if (els.graphFooter) els.graphFooter.style.display = 'none';
+    function _amagaLlegenda() {
         if (els.graphLegend) {
             els.graphLegend.style.display = 'none';
             els.graphLegend.innerHTML = '';
-        }
-        if (els.countdownBar) {
-            els.countdownBar.style.animationPlayState = '';
-            els.countdownBar.classList.remove('paused');
         }
     }
 
@@ -248,7 +197,7 @@ import { SvgRenderer } from './svg-renderer.js';
             currentRound = 0;
             currentPhaseIdx = 0;
             currentSpec = null;
-            _clearCountdown();
+            _amagaLlegenda();
             els.summary.style.display = 'none';
             els.gameScreen.style.display = 'flex';
             buildFunction();
@@ -264,14 +213,6 @@ import { SvgRenderer } from './svg-renderer.js';
         if (btn) btn.className = 'colored-toggle' + (showColoredGraphs ? ' active' : '');
     };
 
-    window.skipCountdown = function () {
-        if (_advanceFn) {
-            const fn = _advanceFn;
-            _clearCountdown();
-            fn();
-        }
-    };
-
     // ------------------------------------------------------------------ //
     //  CANVI DE NIVELL (cridat des dels botons onclick del HTML)
     // ------------------------------------------------------------------ //
@@ -284,24 +225,9 @@ import { SvgRenderer } from './svg-renderer.js';
         currentRound = 0;
         currentPhaseIdx = 0;
         currentSpec = null;
-        _clearCountdown();
+        _amagaLlegenda();
         buildFunction();
     };
-
-    // ------------------------------------------------------------------ //
-    //  TECLA ESPAI — pausa/reprèn el countdown si està actiu
-    // ------------------------------------------------------------------ //
-    document.addEventListener('keydown', e => {
-        if (e.code !== 'Space' && e.key !== ' ') return;
-        const tg = e.target || {};
-        const tn = (tg.tagName || '').toLowerCase();
-        if (tn === 'input' || tn === 'textarea' || tg.isContentEditable) return;
-        // Només actuem si hi ha un countdown actiu (després de respondre correctament)
-        if (!_advanceFn) return;
-        e.preventDefault();
-        if (_countdownPaused) _resumeCountdown();
-        else _pauseCountdown();
-    });
 
     // ------------------------------------------------------------------ //
     //  INICI

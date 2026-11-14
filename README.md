@@ -1,6 +1,8 @@
 # Step Quiz: Matemàtiques Interactives
 
-Conjunt d'activitats interactives en format web per practicar operacions matemàtiques d'ESO i Batxillerat. Cada exercici inclou feedback pedagògic pas a pas i un sistema de puntuació per sessions. Tots els d'ESO (menys el pla cartesià) i els de derivades i integrals donen, en acabar, un **codi de verificació** que l'alumne lliura al professor.
+Conjunt d'activitats interactives en format web per practicar operacions matemàtiques d'ESO i Batxillerat. Cada exercici inclou feedback pedagògic pas a pas i un sistema de puntuació per sessions.
+
+**Totes les activitats acaben cada pregunta igual:** a sota de l'exercici surt una franja «Molt bé! +8 punts» (o «Intents esgotats · 0 punts», amb la solució a la vista) i el botó **«Següent»** («Veure resultats» a l'última). Mai no es passa de pregunta sol: l'alumne decideix quan ha entès la resolució (també amb la tecla Enter). **Cada pregunta val 10 punts i cada error en treu 2**, fins a 0, i la nota final és sobre 10. Estudi estadístic en treu 1 per cada casella errònia de les taules, i Vocabulari, quan s'esgoten els intents, dona 1 punt per etiqueta encertada (vegeu [CONTRIBUTING.md](CONTRIBUTING.md#final-de-cada-pregunta-i-punts)). Tots els d'ESO (menys el pla cartesià) i els de derivades i integrals donen, en acabar, un **codi de verificació** que l'alumne lliura al professor.
 
 Web: https://step-quiz.net
 
@@ -116,10 +118,13 @@ js/
 ├── utils.js            ← Funcions pures: randInt, pick, shuffle, parseStrictInt
 ├── config.js           ← Lectura de paràmetres URL
 ├── exercise-codes.js   ← Taula única de codis d'exercici (joc i analitzador)
-├── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat)
+├── punts.js            ← La regla única dels punts: 10 per pregunta, 2 menys per error (pur, amb proves)
+├── seguent.js          ← La franja del final de pregunta amb el botó «Següent»
+├── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat; acabaPregunta)
 └── pissarra/           ← «Resolució pas a pas»: la pissarra animada (vegeu més avall)
 css/
 ├── shared.css          ← Estils globals, teclat numèric, pantalles finals
+├── seguent.css         ← La franja del final de pregunta (també a les pàgines sense shared.css)
 └── pissarra.css        ← Estil de la pissarra animada
 vendor/                 ← Llibreries externes (KaTeX, SheetJS, ExcelJS), vegeu vendor/README.md
 docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat d'abril de 2026); no descriuen l'estat actual

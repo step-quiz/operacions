@@ -4,7 +4,7 @@
  * FITXER: js/trigonometria/teorema-sin-cos.js
  * ROL: Lògica específica del joc "Triangles — Sinus i Cosinus".
  * DEPENDÈNCIES: js/game-core.js (estat global, startGame, endSession,
- *               showMiniOverlay, hideMiniOverlay, recordAnswerToHistory,
+ *               acabaPregunta, puntsDeLaPregunta, recordAnswerToHistory,
  *               recordResult, sessionScore, currentSession, currentOperation,
  *               attemptsLeft, isTransitioning, bgColors)
  * ============================================================================
@@ -14,14 +14,13 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import {
     state,
     bgColors,
-    endSession,
-    hideMiniOverlay,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -727,7 +726,6 @@ function buildLevel() {
 
     buildValueButtons();
 
-    hideMiniOverlay();
     els.problemBox.style.display = 'flex';
     els.resolutionPanel.style.display = 'flex';
     els.stepValue.classList.add('active');
@@ -763,23 +761,12 @@ function penalize(btn) {
    ================================================================ */
 function _finishOp(points) {
     const p = currentProblem;
-    state.sessionScore += points;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
 
     const typeLabel = p.find.type === 'side' ? 'costat' : 'angle';
     recordAnswerToHistory(`${typeLabel} ${p.find.name} del triangle`, p.answer, points > 0);
     recordResult(points > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
 
-    const waitTime = showMiniOverlay(points);
-    setTimeout(() => {
-        hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    acabaPregunta(points);
 }
 
 /* ================================================================
@@ -966,8 +953,7 @@ function checkValue(val, btn) {
     }
     els.stepValue.classList.remove('active');
     state.isTransitioning = true;
-    // 10 punts per pregunta, 2 menys per cada error (la nota de game-core.js en compta 10 per pregunta)
-    _finishOp(Math.max(0, 10 - (MAX_INTENTS - state.attemptsLeft) * 2));
+    _finishOp(puntsDeLaPregunta()); // 10 punts, 2 menys per cada error
 }
 
 /* ================================================================

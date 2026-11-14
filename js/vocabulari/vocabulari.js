@@ -10,6 +10,8 @@
 import { VocabEngine } from './vocabulari-engine.js';
 import { VocabFigures } from './vocabulari-figures.js';
 import { construeixCodiV2 } from '../codi-verificacio.js';
+import { puntsAmbErrors, validaPunts } from '../punts.js'; // la regla única dels punts
+import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunta amb «Següent»
 
 (function () {
     'use strict';
@@ -33,12 +35,6 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
         INSTR_HINT: 'Escriu el nom de la figura',
         PARAULA_X_DE_Y: (w, t) => `Paraula ${w} de ${t}`,
         // Mini overlay
-        OVERLAY_OK_ICON: '⭐',
-        OVERLAY_OK_TEXT: 'Molt bé!',
-        OVERLAY_OK_PTS: p => `+${p} punts`,
-        OVERLAY_KO_ICON: '❌',
-        OVERLAY_KO_TEXT: 'Intents esgotats',
-        OVERLAY_KO_PTS: '0 punts',
         // Pantalla final
         SUMMARY_TITOL: '🎉 Activitat completada!',
         SUMMARY_TROFEU: '🏆',
@@ -47,7 +43,6 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
         SUMMARY_ENCERTS: 'encerts',
         SUMMARY_ERRADES: 'errades',
         BTN_RESTART: '🔄 Tornar a jugar',
-        BTN_NEXT_FIGURE: 'Figura següent',
         BTN_CYCLE: 'Canviar de casella',
         BTN_INFORME: '📋 Veure informe',
         BTN_COPIAR: '📝 Copiar codi',
@@ -170,7 +165,6 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
             miniIcon: document.getElementById('mini-icon'),
             miniText: document.getElementById('mini-text'),
             miniPoints: document.getElementById('mini-points'),
-            btnNextFigure: document.getElementById('btn-next-figure'),
             btnCycle: document.getElementById('btn-cycle'),
             writePrompt: document.querySelector('#write-panel .write-prompt'),
             dragGhost: document.getElementById('drag-ghost'),
@@ -287,7 +281,6 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
         els.typoWarning.classList.remove('visible');
         els.contextInstr.innerText = '';
         els.contextInstr.classList.remove('error');
-        if (els.btnNextFigure) els.btnNextFigure.style.display = 'none';
 
         _updateHeader();
         _renderFigura();
@@ -309,10 +302,11 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
             _resultats.push(Math.min(errors + 1, 3));
         }
 
-        // [CANVI 2] Puntuació nova:
-        //   - Figura completada → sempre +10 punts (bonus per completar)
-        //   - Intents esgotats  → els punts parcials guanyats etiqueta a etiqueta
-        const points = exhausted ? _puntsFiguraActual : 10;
+        // Punts (js/punts.js):
+        //   - Figura completada → 10 punts, 2 menys per cada error (la regla de totes les activitats)
+        //   - Intents esgotats  → excepció declarada: els punts guanyats etiqueta a etiqueta
+        //     (1 per etiqueta encertada), que mai no arriben a 10
+        const points = validaPunts(exhausted ? _puntsFiguraActual : puntsAmbErrors(MAX_INTENTS - _intents)).punts;
         _punts += points;
         _puntsFiguraActual = 0;
         els.scoreDisplay.innerText = TEXTS.PUNTS_X(_punts);
@@ -327,26 +321,17 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
             });
         }
 
-        _showMiniOverlay(points, exhausted);
-
-        if (exhausted) {
-            if (_op + 1 >= TOTAL_OPS) {
-                // Última figura: avenç directe (sense botó) després d'un delay
-                setTimeout(() => _advanceToNext(), 3000);
-            } else {
-                // L'alumne ha de prémer "Figura següent" per avançar
-                if (els.btnNextFigure) els.btnNextFigure.style.display = 'block';
-            }
-        } else {
-            // Avenç automàtic després d'uns segons
-            const wait = points > 0 ? 1500 : 3000;
-            setTimeout(() => _advanceToNext(), wait);
-        }
+        // Franja «Molt bé! +N punts» / «Intents esgotats» i botó «Següent», com a totes les
+        // activitats (js/seguent.js): la figura es queda a la vista fins que l'alumne el prem
+        mostraSeguent({
+            punts: points,
+            encert: !exhausted,
+            ultima: _op + 1 >= TOTAL_OPS && _sessio + 1 >= TOTAL_SESS,
+            onSeguent: _advanceToNext,
+        });
     }
 
     function _advanceToNext() {
-        _hideMiniOverlay();
-        if (els.btnNextFigure) els.btnNextFigure.style.display = 'none';
         if (_op + 1 >= TOTAL_OPS) {
             _endSession();
         } else {
@@ -920,7 +905,7 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
     }
 
     // =========================================================================
-    // FEEDBACK "INCORRECTE" (1 segon, mateixa posició que el mini-overlay final)
+    // FEEDBACK "INCORRECTE" (1 segon, al mig de la figura)
     // =========================================================================
     function _showIncorrecte() {
         if (!els.miniOverlay) return;
@@ -930,38 +915,8 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
         els.miniPoints.innerText = '';
         els.miniOverlay.style.display = 'flex';
         setTimeout(() => {
-            // Amaguem només si no ha pres el control el mini-overlay de fi de nivell
-            if (els.miniText.innerText === 'Incorrecte') {
-                els.miniOverlay.style.display = 'none';
-            }
+            els.miniOverlay.style.display = 'none';
         }, 1000);
-    }
-
-    // =========================================================================
-    // MINI OVERLAY
-    // =========================================================================
-    function _showMiniOverlay(points, exhausted = false) {
-        if (!els.miniOverlay) return;
-        if (!exhausted) {
-            // Figura completada: celebració amb els punts bonus (sempre 10)
-            els.miniIcon.innerText = TEXTS.OVERLAY_OK_ICON;
-            els.miniText.innerText = TEXTS.OVERLAY_OK_TEXT;
-            els.miniText.style.color = '#047857';
-            els.miniPoints.innerText = TEXTS.OVERLAY_OK_PTS(points);
-            els.miniPoints.style.color = '#059669';
-        } else {
-            // Intents esgotats: missatge KO + punts parcials (si n'hi ha)
-            els.miniIcon.innerText = TEXTS.OVERLAY_KO_ICON;
-            els.miniText.innerText = TEXTS.OVERLAY_KO_TEXT;
-            els.miniText.style.color = 'var(--danger)';
-            els.miniPoints.innerText = points > 0 ? TEXTS.OVERLAY_OK_PTS(points) : TEXTS.OVERLAY_KO_PTS;
-            els.miniPoints.style.color = points > 0 ? '#059669' : 'var(--danger)';
-        }
-        els.miniOverlay.style.display = 'flex';
-    }
-
-    function _hideMiniOverlay() {
-        if (els.miniOverlay) els.miniOverlay.style.display = 'none';
     }
 
     // =========================================================================
@@ -1322,9 +1277,6 @@ import { construeixCodiV2 } from '../codi-verificacio.js';
     };
     window._vocabCycleWrite = function () {
         _cycleWriteTarget();
-    };
-    window._vocabNextFigure = function () {
-        _advanceToNext();
     };
     window._vocabShowInforme = function () {
         _showInforme();

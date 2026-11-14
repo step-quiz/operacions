@@ -192,18 +192,6 @@
         }
 
         /* Feedback inline ⭐/❌ */
-        #inline-feedback {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.55em;
-            font-weight: 700;
-            white-space: nowrap;
-            animation: fadeIn 0.2s ease;
-        }
-        #inline-feedback.visible { display: flex; }
-        #inline-feedback.success { color: var(--success); }
-        #inline-feedback.failure { color: var(--danger); }
 
         /* Missatge pedagògic */
         #step-hint {
@@ -262,6 +250,7 @@
         }
     </style>
     <link rel="stylesheet" href="css/chromebook.css">
+    <link rel="stylesheet" href="css/seguent.css">
 </head>
 <body>
 
@@ -302,7 +291,6 @@
                        aria-label="Escriu la resposta">
                 <span class="answer-unit">€</span>
                 <button class="btn-submit" id="btn-submit-val" onclick="checkValue()">OK</button>
-                <div id="inline-feedback" aria-live="assertive"></div>
             </div>
 
             <!-- Missatge pedagògic d'error -->

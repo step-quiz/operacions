@@ -12,9 +12,7 @@ import { randInt, shuffle } from '../utils.js';
 import {
     state,
     bgColors,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -22,9 +20,10 @@ import {
     recordAnswerToHistory,
     recordResult,
     showCustomKeyboard,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -238,17 +237,7 @@ function penalize() {
 
 function _finishOp(levelPoints) {
     recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
-    if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
-    const waitTime = showMiniOverlay(levelPoints);
-    setTimeout(() => {
-        hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    acabaPregunta(levelPoints);
 }
 
 function checkRepte1(selectedSign, btnElement) {
@@ -394,11 +383,7 @@ function checkRepte3() {
 
 function successEnd() {
     state.isTransitioning = true;
-    const fails = MAX_INTENTS - state.attemptsLeft;
-    const levelPoints = Math.max(0, 10 - fails * 2);
-    state.sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-    _finishOp(levelPoints);
+    _finishOp(puntsDeLaPregunta());
 }
 
 document.addEventListener('keydown', e => {

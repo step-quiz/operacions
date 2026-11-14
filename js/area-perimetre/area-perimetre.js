@@ -12,10 +12,8 @@ import { parseStrictInt, randInt } from '../utils.js';
 import {
     state,
     bgColors,
-    endSession,
     getKbActiveInput,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -23,9 +21,10 @@ import {
     recordAnswerToHistory,
     recordResult,
     showCustomKeyboard,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -775,22 +774,9 @@ function penalize() {
 // ── Fi d'operació ────────────────────────────────────────────
 function finishOperation(success) {
     const fails = MAX_INTENTS - state.attemptsLeft;
-    const pts = success ? Math.max(0, 10 - fails * 2) : 0;
-    state.sessionScore += pts;
-
     // [FIX A1] Registre v2 de resultats per pregunta
     recordResult(success ? Math.min(fails + 1, 3) : 4);
-
-    const wt = showMiniOverlay(pts);
-    setTimeout(() => {
-        hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, wt);
+    acabaPregunta(success ? puntsDeLaPregunta() : 0);
 }
 
 // ── Enter (teclat físic) ─────────────────────────────────────

@@ -38,14 +38,14 @@ import {
     state,
     bgColors,
     endSession,
-    hideMiniOverlay,
     injectSharedHTML,
     isTouchDevice,
     recordAnswerToHistory,
     recordResult,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 import { ESVAIMENT } from '../esvaiment.js';
 import { PISSARRA_ACTIVA } from '../pissarra/mode.js';
@@ -88,7 +88,6 @@ const els = {
 // ============================================================
 // ESTAT DEL JOC
 // ============================================================
-const PUNTS = [10, 5, 2, 1]; // punts segons el nombre de fallades abans d'encertar
 
 let _finished = false; // l'exercici actual ja s'ha tancat
 let tokens = [];
@@ -685,7 +684,7 @@ function penalize() {
 }
 
 // ============================================================
-// FI DE L'EXERCICI: resolució + overlay + botó "Següent"
+// FI DE L'EXERCICI: resolució + franja amb el botó «Següent»
 // (sense temporitzador: l'alumne decideix quan ha entès la resolució)
 // ============================================================
 function finishOperation(ok) {
@@ -694,10 +693,8 @@ function finishOperation(ok) {
     state.isTransitioning = true;
 
     const fails = MAX_INTENTS - state.attemptsLeft;
-    const levelPoints = ok ? PUNTS[Math.min(fails, PUNTS.length - 1)] : 0;
-    state.sessionScore += levelPoints;
+    const levelPoints = ok ? puntsDeLaPregunta() : 0; // 10 punts, 2 menys per cada error
     recordResult(ok ? Math.min(fails + 1, 3) : 4);
-    updateHeader();
 
     if (_selectedChip) {
         _selectedChip.classList.remove('chip-selected');
@@ -723,11 +720,12 @@ function finishOperation(ok) {
         }
         renderSolution(ok);
     }
-    showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)' });
-    afegeixBotoSeguent();
+    // Punts, franja i botó «Següent» (game-core.js), dins del requadre de la resolució
+    acabaPregunta(levelPoints, { encert: ok, lloc: els.solutionBox });
+    updateHeader();
 }
 
-// El botó «Següent» (o «Veure resultats») al final de la resolució
+// Mode esvaïment (sense punts): el botó «Següent» (o «Veure resultats») al final de l'exemple
 function afegeixBotoSeguent() {
     const isLast = state.currentOperation + 1 >= TOTAL_OPERATIONS;
     const btn = document.createElement('button');
@@ -744,7 +742,6 @@ function goNext() {
     const btn = document.getElementById('btn-next');
     if (!btn || btn.disabled) return;
     btn.disabled = true;
-    hideMiniOverlay();
     if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
         endSession();
     } else {

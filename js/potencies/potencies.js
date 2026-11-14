@@ -11,9 +11,7 @@ import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
 import {
     state,
     bgColors,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -21,10 +19,11 @@ import {
     recordResult,
     registerScreens,
     showCustomKeyboard,
-    showMiniOverlay,
     showScreen,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -939,24 +938,12 @@ function finalizeProblem(forcedPoints) {
     els.currentStep.classList.remove('active');
     els.resolutionPanel.style.display = 'none';
 
-    const pts = forcedPoints !== null ? forcedPoints : Math.max(0, 10 - (MAX_INTENTS - state.attemptsLeft) * 2);
+    const pts = forcedPoints !== null ? forcedPoints : puntsDeLaPregunta();
 
     // [ROUND 4 — si intents esgotats (pts=0), mostra la solució correcta en verd]
     if (pts === 0) showCorrectAnswer(currentProblem);
 
-    state.sessionScore += pts;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
-    const waitTime = showMiniOverlay(pts);
-    setTimeout(() => {
-        hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    acabaPregunta(pts, { encert: forcedPoints !== 0 });
 }
 
 // ================================================================

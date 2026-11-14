@@ -12,8 +12,8 @@
  *     3. Resposta correcta: visible quan s'esgoten tots els intents.
  * - errorHistory[]: registre paral·lel d'errorType per construir el resum
  *   pedagògic al final de sessió.
- * - game-core.js és INTOCABLE: la resposta correcta i el resum s'injecten
- *   al feedback container propi, no al mini-overlay de game-core.js.
+ * - La resposta correcta i el resum s'injecten al feedback container propi; a
+ *   sota hi surt la franja comuna amb el botó «Següent» (acabaPregunta de game-core.js).
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa distractor-lib i
  *   question-bank (que al seu torn importen math-engine i strings), i la base
  *   compartida: config.js, utils.js i game-core.js (estat de la partida a `state`).
@@ -25,12 +25,13 @@ import { shuffle } from '../utils.js';
 import {
     state,
     endSession,
-    hideMiniOverlay,
     injectSharedHTML,
     recordAnswerToHistory,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
+    recordResult,
 } from '../game-core.js';
 import { DistractorLib } from './distractor-lib.js';
 import { QuestionBank } from './question-bank.js';
@@ -169,12 +170,9 @@ function checkAnswer(opt, clickedBtn) {
         });
 
         const fails = MAX_INTENTS - state.attemptsLeft;
-        const levelPoints = Math.max(0, 10 - fails * 2);
-        state.sessionScore += levelPoints;
-        els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
+        recordResult(Math.min(fails + 1, 3));
         Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
-        _finishOp(levelPoints);
+        _finishOp(puntsDeLaPregunta());
     } else {
         state.attemptsLeft--;
         els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
@@ -205,8 +203,9 @@ function checkAnswer(opt, clickedBtn) {
         if (isLastAttempt) {
             state.isTransitioning = true;
             recordAnswerToHistory(challengeData.promptTex, opt.tex, false);
-            // Petit retard per deixar que l'alumne llegeixi la solució
-            setTimeout(() => _finishOp(0), 1200);
+            recordResult(4);
+            Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
+            _finishOp(0); // la solució es queda a la vista fins que l'alumne prem «Següent»
         }
     }
 }
@@ -215,18 +214,8 @@ function checkAnswer(opt, clickedBtn) {
 // 4. Finalitza l'operació actual
 // =========================================================================
 function _finishOp(levelPoints) {
-    const waitTime = showMiniOverlay(levelPoints);
-
-    setTimeout(() => {
-        hideMiniOverlay();
-        state.currentOperation++;
-
-        if (state.currentOperation >= TOTAL_OPERATIONS) {
-            showSessionSummary();
-        } else {
-            window.buildLevel();
-        }
-    }, waitTime);
+    // Punts, franja i botó «Següent»; després de l'última, el resum pedagògic
+    acabaPregunta(levelPoints, { alFinal: showSessionSummary });
 }
 
 // =========================================================================

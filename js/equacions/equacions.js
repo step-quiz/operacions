@@ -19,9 +19,7 @@ import { parseStrictInt } from '../utils.js';
 import {
     state,
     bgColors,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -29,9 +27,10 @@ import {
     recordAnswerToHistory,
     recordResult,
     showCustomKeyboard,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 import { PISSARRA_ACTIVA } from '../pissarra/mode.js';
 import { creaPissarra } from '../pissarra/pissarra.js';
@@ -200,9 +199,7 @@ function updateHeader() {
 
 function showCurrentStep() {
     if (currentStepIndex >= steps.length) {
-        const fails = MAX_INTENTS - state.attemptsLeft;
-        const levelPoints = Math.max(0, 10 - fails);
-        finishEquation(levelPoints);
+        finishEquation(puntsDeLaPregunta());
         return;
     }
 
@@ -440,32 +437,10 @@ function advanceStep() {
 // ---- FINALITZAR EQUACIÓ I AVANÇAR ----
 function finishEquation(levelPoints) {
     recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
-    state.isTransitioning = true;
-    if (typeof hideCustomKeyboard === 'function') hideCustomKeyboard();
     els.resolutionPanel.style.display = 'none';
     els.stepHint.style.display = 'none';
-
-    // Sumem els punts a la variable global i actualitzem marcador
-    state.sessionScore += levelPoints;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
-    // Mostrem l'overlay de "Molt bé" o "Intents esgotats"
-    const waitTime =
-        typeof showMiniOverlay === 'function'
-            ? showMiniOverlay(levelPoints, { successColor: 'var(--primary-dark)', pointsColor: 'var(--success)' })
-            : 1500;
-
-    // Passem a la següent equació o acabem la sessió
-    setTimeout(() => {
-        if (typeof hideMiniOverlay === 'function') hideMiniOverlay();
-
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            if (typeof endSession === 'function') endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    // Punts, franja «Molt bé!» / «Intents esgotats» i botó «Següent» (game-core.js)
+    acabaPregunta(levelPoints);
 }
 
 // ---- TECLAT FÍSIC ----

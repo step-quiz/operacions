@@ -15,9 +15,7 @@
 import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
 import {
     state,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -25,9 +23,10 @@ import {
     recordAnswerToHistory,
     recordResult,
     showCustomKeyboard,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 import { MathEngine } from './math-engine.js';
 import { QuestionBank } from './question-bank.js';
@@ -189,9 +188,7 @@ function checkAnswer() {
         lockInput(inp);
 
         const fails = MAX_INTENTS - state.attemptsLeft;
-        const levelPoints = Math.max(0, 10 - fails * 2);
-        state.sessionScore += levelPoints;
-        els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
+        const levelPoints = puntsDeLaPregunta();
         recordResult(Math.min(fails + 1, 3));
         recordAnswerToHistory(
             challengeData.type === 'weighted' ? S.History.weighted : S.History.simple,
@@ -226,7 +223,7 @@ function checkAnswer() {
             // Mostra la solució i expandeix l'ajuda automàticament
             showFeedback(S.Feedback.exhausted(ME.fmt(correct, 2)), 'err');
             expandHelp();
-            setTimeout(() => _finishOp(0), 4000);
+            _finishOp(0); // la solució i l'ajuda es queden a la vista fins a «Següent»
         } else {
             // Encara té intents
             let msg;
@@ -266,16 +263,7 @@ function expandHelp() {
 // 6. FINALITZA L'OPERACIÓ ACTUAL
 // =========================================================================
 function _finishOp(levelPoints) {
-    const waitTime = showMiniOverlay(levelPoints);
-    setTimeout(() => {
-        hideMiniOverlay();
-        state.currentOperation++;
-        if (state.currentOperation >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            window.buildLevel();
-        }
-    }, waitTime);
+    acabaPregunta(levelPoints); // punts, franja i botó «Següent» (game-core.js)
 }
 
 // =========================================================================

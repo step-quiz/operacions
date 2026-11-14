@@ -10,9 +10,8 @@
  *      conceptual del tipus d'error, visible en bloc separat sota el feedback.
  *      Només apareix si existeix entrada a FeedbackHints per aquell errorType.
  *   3. Resposta correcta: visible quan s'esgoten tots els intents, renderitzada
- *      amb KaTeX dins el feedback container. game-core.js és intocable, de
- *      manera que la resposta correcta s'injecta al feedback container propi
- *      de derivades.js, no al mini-overlay de game-core.js.
+ *      amb KaTeX dins el feedback container propi de derivades.js. A sota hi
+ *      surt la franja comuna amb el botó «Següent» (acabaPregunta de game-core.js).
  * - errorHistory[]: registre paral·lel d'errorType iniciat a la Fase 3,
  *   ara usat per construir el resum final d'errors conceptuals.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa distractor-lib i
@@ -23,7 +22,17 @@
 
 import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
 import { shuffle } from '../utils.js';
-import { state, endSession, injectSharedHTML, recordAnswerToHistory, startGame, validateConfig } from '../game-core.js';
+import {
+    state,
+    endSession,
+    injectSharedHTML,
+    recordAnswerToHistory,
+    startGame,
+    validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
+    recordResult,
+} from '../game-core.js';
 import { DistractorLib } from './distractor-lib.js';
 import { QuestionBank } from './question-bank.js';
 
@@ -159,12 +168,9 @@ function checkAnswer(opt, clickedBtn) {
         });
 
         const fails = MAX_INTENTS - state.attemptsLeft;
-        const levelPoints = Math.max(0, 10 - fails * 2);
-        state.sessionScore += levelPoints;
-        els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
+        recordResult(Math.min(fails + 1, 3));
         Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
-        _showNextButton(levelPoints);
+        _finishOp(puntsDeLaPregunta());
     } else {
         state.attemptsLeft--;
         els.attemptsDisplay.innerText = `Intents: ${state.attemptsLeft}`;
@@ -187,9 +193,10 @@ function checkAnswer(opt, clickedBtn) {
         if (isLastAttempt) {
             state.isTransitioning = true;
             recordAnswerToHistory(challengeData.promptTex, opt.tex, false);
-            // Sense temporitzador: l'alumne llegeix la solució i clica «Següent →»
+            recordResult(4);
+            // Sense temporitzador: l'alumne llegeix la solució i clica «Següent»
             Array.from(els.optionsContainer.children).forEach(b => (b.style.pointerEvents = 'none'));
-            _showNextButton(0);
+            _finishOp(0);
         }
     }
 }
@@ -198,48 +205,11 @@ function checkAnswer(opt, clickedBtn) {
 // 4. Finalitza l'operació actual
 // =========================================================================
 /**
- * Final d'exercici (encert o intents esgotats): no hi ha temporitzador.
- * Mostra els punts (si n'hi ha) i el botó «Següent →» dins el bloc de feedback;
- * l'alumne decideix quan passar a l'exercici següent.
+ * Final d'exercici (encert o intents esgotats): punts, franja i botó «Següent»
+ * (acabaPregunta de game-core.js); després de l'última, el resum pedagògic.
  */
-function _showNextButton(levelPoints) {
-    const fc = els.feedback;
-
-    const points = document.createElement('div');
-    if (levelPoints > 0) {
-        points.className = 'correct-points';
-        points.innerText = `⭐ +${levelPoints} punts`;
-    }
-
-    const btn = document.createElement('button');
-    btn.className = 'btn-next';
-    btn.id = 'btn-next';
-    btn.type = 'button';
-    btn.textContent = state.currentOperation + 1 >= TOTAL_OPERATIONS ? 'Acabar →' : 'Següent →';
-    btn.addEventListener(
-        'click',
-        () => {
-            btn.disabled = true;
-            _advance();
-        },
-        { once: true }
-    );
-
-    fc.appendChild(points);
-    fc.appendChild(btn);
-    btn.focus({ preventScroll: true });
-    btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-}
-
-/** Passa a l'exercici següent o, si ja són tots, al resum de sessió. */
-function _advance() {
-    state.currentOperation++;
-
-    if (state.currentOperation >= TOTAL_OPERATIONS) {
-        showSessionSummary(); // resum pedagògic → crida endSession() intern
-    } else {
-        window.buildLevel();
-    }
+function _finishOp(levelPoints) {
+    acabaPregunta(levelPoints, { alFinal: showSessionSummary });
 }
 
 // =========================================================================

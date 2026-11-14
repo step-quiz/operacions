@@ -12,9 +12,7 @@ import { parseStrictInt, pick } from '../utils.js';
 import {
     state,
     bgColors,
-    endSession,
     hideCustomKeyboard,
-    hideMiniOverlay,
     initCustomKeyboard,
     injectSharedHTML,
     isTouchDevice,
@@ -22,10 +20,11 @@ import {
     recordResult,
     registerScreens,
     showCustomKeyboard,
-    showMiniOverlay,
     showScreen,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -488,27 +487,8 @@ function finalizeProblem(forcedPoints) {
     hideCustomKeyboard(); // [CANVI 6] Tanca el teclat custom en finalitzar
     els.resolutionPanel.style.display = 'none';
 
-    let pts;
-    if (forcedPoints !== null) {
-        pts = forcedPoints;
-    } else {
-        const fails = MAX_INTENTS - state.attemptsLeft;
-        pts = Math.max(0, 10 - fails * 2);
-    }
-
-    state.sessionScore += pts;
-    els.scoreDisplay.innerText = `Punts: ${state.sessionScore}`;
-
-    const waitTime = showMiniOverlay(pts);
-    setTimeout(() => {
-        hideMiniOverlay();
-        if (state.currentOperation + 1 >= TOTAL_OPERATIONS) {
-            endSession();
-        } else {
-            state.currentOperation++;
-            window.buildLevel();
-        }
-    }, waitTime);
+    const pts = forcedPoints !== null ? forcedPoints : puntsDeLaPregunta();
+    acabaPregunta(pts, { encert: forcedPoints !== 0 });
 }
 
 // ============================================================

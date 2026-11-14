@@ -21,15 +21,14 @@
 import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
 import {
     state,
-    endSession,
-    hideMiniOverlay,
     injectSharedHTML,
     recordAnswerToHistory,
     recordResult,
     showHistorySummary,
-    showMiniOverlay,
     startGame,
     validateConfig,
+    acabaPregunta,
+    puntsDeLaPregunta,
 } from '../game-core.js';
 import { CloudEngine } from './cloud-engine.js';
 import { QuestionBank } from './question-bank.js';
@@ -45,8 +44,6 @@ Object.assign(window, { buildLevel });
 // ============================================================================
 const _params = new URLSearchParams(window.location.search);
 const GAME_LEVEL = Math.min(3, Math.max(1, parseInt(_params.get('nivell') || '2', 10)));
-const PTS_FIRST = 10; // punts si s'encerta al primer intent
-const PTS_SECOND = 5; // punts si s'encerta a partir del segon intent
 
 // ============================================================================
 // ESTAT DEL JOC (específic d'aquest controlador)
@@ -247,13 +244,10 @@ function checkAnswer(opt, btn) {
 
     if (opt.isCorrect) {
         isAnswered = true;
-        const pts = state.attemptsLeft === MAX_INTENTS ? PTS_FIRST : PTS_SECOND;
-        state.sessionScore += pts;
-
+        const pts = puntsDeLaPregunta(); // 10 punts, 2 menys per cada error
         btn.classList.add('correct');
         _disableAllButtons();
         _showFeedback(opt.feedback, 'correct');
-        els.scoreDisplay.textContent = `Punts: ${state.sessionScore}`;
 
         recordAnswerToHistory(challengeData.prompt, opt.text, true);
         // [FIX m3] Formula estàndard: 1=1r intent, 2=2n, 3=3r o posterior
@@ -286,24 +280,11 @@ function checkAnswer(opt, btn) {
 }
 
 /**
- * Mostra el mini overlay (èxit o intents esgotats) i avança a la pregunta següent.
- * Segueix el mateix patró que _finishOp() d'enters.html.
+ * Final de la pregunta: punts, franja i botó «Següent» (acabaPregunta de game-core.js),
+ * a la columna de la pregunta, sota el feedback.
  */
 function _finishQuestion(levelPoints) {
-    const waitTime = showMiniOverlay(levelPoints);
-    setTimeout(() => {
-        hideMiniOverlay();
-        _nextQuestion();
-    }, waitTime);
-}
-
-function _nextQuestion() {
-    state.currentOperation++;
-    if (state.currentOperation >= TOTAL_OPERATIONS) {
-        endSession(); // game-core gestiona sessions i pantalla final
-    } else {
-        window.buildLevel();
-    }
+    acabaPregunta(levelPoints, { lloc: document.querySelector('.game-left') || undefined });
 }
 
 function _disableAllButtons() {
@@ -357,7 +338,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Injecta mini overlay, session-end-screen i final-screen al DOM;
+    // Injecta el teclat, session-end-screen i final-screen al DOM;
     // valida la configuració; i arrenca el joc.
     injectSharedHTML();
     validateConfig();

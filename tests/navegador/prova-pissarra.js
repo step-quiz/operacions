@@ -46,6 +46,12 @@ const PORT = 8700 + Math.floor(Math.random() * 200);
 const BASE = `http://localhost:${PORT}`;
 
 /** Engega tools/servidor.js i espera que respongui. */
+/** Espera la franja del final de pregunta i prem «Següent» (tota pregunta s'acaba així). */
+async function premSeguent(pagina) {
+    const boto = await pagina.waitForSelector('.franja-final #btn-next', { timeout: 6000 }).catch(() => null);
+    if (boto) await boto.click();
+}
+
 function engegaServidor() {
     const p = spawn(process.execPath, [path.join(ROOT, 'tools/servidor.js'), String(PORT)], { stdio: 'ignore' });
     return new Promise((resol, rebutja) => {
@@ -465,11 +471,8 @@ function engegaServidor() {
                         // L'equació s'acaba quan surt la solució (en verd)
                         if (await pagina.$('#eq-history .pis-capa .eq-solved')) break;
                     }
-                    await pagina
-                        .waitForFunction(() => !document.querySelector('#eq-history .pis-capa .eq-solved'), null, {
-                            timeout: 6000,
-                        })
-                        .catch(() => {});
+                    // Al final de cada equació, la franja amb el botó «Següent» (no es passa sola)
+                    await premSeguent(pagina);
                 }
                 const punts = await pagina.textContent('#score-display');
                 ok(
@@ -610,16 +613,10 @@ function engegaServidor() {
                             if (torna && avis) mitges++;
                             else if (torna) malament.push(`${pas}: torna a sortir però sense l'avís`);
                         }
-                        // L'operació s'acaba quan surt el «Correcte!»
-                        if (await pagina.isVisible('#mini-victory-overlay')) break;
+                        // L'operació s'acaba quan surt la franja «Molt bé!» amb el botó «Següent»
+                        if (await pagina.isVisible('.franja-final #btn-next')) break;
                     }
-                    await pagina
-                        .waitForFunction(
-                            () => getComputedStyle(document.getElementById('mini-victory-overlay')).display === 'none',
-                            null,
-                            { timeout: 6000 }
-                        )
-                        .catch(() => {});
+                    await premSeguent(pagina);
                 }
                 const punts = await pagina.textContent('#score-display');
                 ok(

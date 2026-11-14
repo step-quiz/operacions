@@ -830,30 +830,6 @@ h1 {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Botó "Figura següent" dins el mini-overlay */
-.btn-next-figure {
-    margin-top: 10px;
-    background-color: #475569;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 0.9em;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    text-transform: uppercase;
-    touch-action: manipulation;
-    animation: fadeIn 0.5s;
-}
-.btn-next-figure:active {
-    transform: scale(0.95);
-}
-@media (hover: hover) {
-    .btn-next-figure:hover {
-        background-color: #334155;
-    }
-}
-
 /* ══════════════════════════════════════════════
    PANTALLA FINAL
 ══════════════════════════════════════════════ */

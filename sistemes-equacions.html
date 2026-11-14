@@ -496,24 +496,6 @@
     .method-desc { font-size: .88em; color: var(--text-muted); margin-top: 2px; }
 
     /* ── Mini overlay (sobreescriu shared.css) ─────────── */
-    #mini-victory-overlay {
-        position: absolute;
-        bottom: 0; left: 0;
-        width: 100%; height: auto;
-        background: transparent;
-        z-index: 100;
-        justify-content: center;
-        align-items: flex-end;
-        padding: 0 20px 24px;
-        pointer-events: none;
-        border-radius: 0 0 10px 10px;
-        border-top: none;
-    }
-    .mini-vic-text { font-size: 1.8em; }
-    .mini-vic-points {
-        border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,.08);
-    }
 
     /* ── Pantalles finals (sobreescriuen shared.css) ──── */
     #session-end-screen h2 { color: var(--primary); }
@@ -605,6 +587,7 @@
     }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
+    <link rel="stylesheet" href="css/seguent.css">
 </head>
 <body>
 
@@ -691,8 +674,6 @@
         </div>
     </div>
 
-    <!-- #mini-victory-overlay, #customKeyboard, #session-end-screen, #final-screen
-         → injectats per injectSharedHTML() de game-core.js -->
 </div>
 
 <script type="module" src="js/sistemes-equacions/sistemes-equacions.js"></script>
