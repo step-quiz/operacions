@@ -233,6 +233,13 @@ export const Renderer = (() => {
         return `<div class="eq-history-line${linia.classe ? ' ' + linia.classe : ''}">${esq}${igual}${dre}</div>`;
     }
 
+    /** El text pla d'una línia de l'historial (p. ex. «2x + 6 = 14»), per als lectors de pantalla. */
+    function textLinia(linia) {
+        const pla = arr => renderTerms(arr).replace(/<[^>]+>/g, '');
+        const [esq, dre] = linia.inv ? [linia.right, linia.left] : [linia.left, linia.right];
+        return `${pla(esq)} = ${pla(dre)}`;
+    }
+
     /** Tot l'historial, amb les claus de la pissarra. */
     function historiaHtml(historia) {
         const linies = historia.map((l, r) => liniaHtml(l, r, { claus: true, fonts: baixades(historia, r) }));
@@ -254,5 +261,5 @@ export const Renderer = (() => {
         };
     }
 
-    return { renderOneToken, renderTerms, liniaHtml, historiaHtml, animacioUltimaLinia, moviments };
+    return { renderOneToken, renderTerms, liniaHtml, historiaHtml, animacioUltimaLinia, moviments, textLinia };
 })();

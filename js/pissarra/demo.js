@@ -2,10 +2,12 @@
  * ============================================================================
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/pissarra/demo.js
- * ROL: Tres guions de mostra de la «Resolució pas a pas» (pàgina
+ * ROL: Quatre guions de mostra de la «Resolució pas a pas» (pàgina
  *      pissarra-demo.html): una expressió amb prioritat d'operacions, una
- *      equació de primer grau i una suma de fraccions. Serveixen per veure la
- *      pissarra funcionant i de model per als procediments de les activitats.
+ *      equació de primer grau, una suma de fraccions i el teorema de Pitàgores
+ *      (on les lletres i els nombres volen del triangle, un esquema SVG, a la
+ *      fórmula). Serveixen per veure la pissarra funcionant i de model per als
+ *      procediments de les activitats.
  * ARQUITECTURA:
  * - Mòdul PUR: cada demo és { id, nom, files, passos() } i passos() torna la
  *   llista de passos (formules.js guio()). tests/pissarra.test.js comprova que
@@ -106,8 +108,83 @@ function passosFraccions() {
     return g.passos;
 }
 
+/**
+ * El triangle rectangle de la demo de Pitàgores, en SVG. Les lletres (a, b, c) i els catets (6, 8) són
+ * <text> amb clau: volen cap a la fórmula com els símbols. Quan un ha volat, al triangle en queda la
+ * còpia (la mateixa clau amb una «c» al final).
+ *   lletres, nombres: 'originals' o 'copies'
+ */
+function triangle({ lletres = 'originals', nombres = 'originals' } = {}) {
+    const k = (clau, quines) => (quines === 'copies' ? clau + 'c' : clau);
+    const lletra = (x, y, clau, t, ancora = 'start') =>
+        `<text x="${x}" y="${y}" font-family="KaTeX_Math, 'Times New Roman', serif" font-style="italic" ` +
+        `font-size="20" text-anchor="${ancora}" data-k="${k(clau, lletres)}">${t}</text>`;
+    const nombre = (x, y, clau, t, ancora) =>
+        `<text x="${x}" y="${y}" font-family="KaTeX_Main, 'Times New Roman', serif" font-size="20" ` +
+        `text-anchor="${ancora}" data-k="${k(clau, nombres)}">${t}</text>`;
+    return (
+        '<svg viewBox="0 0 240 152" role="img" aria-label="Triangle rectangle amb els catets b = 6 i c = 8 i la hipotenusa a">' +
+        '<path d="M48 22 L48 122 L198 122 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>' +
+        '<path d="M48 108 L62 108 L62 122" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+        lletra(56, 80, 'fb', 'b') +
+        lletra(123, 115, 'fc', 'c', 'middle') +
+        lletra(132, 62, 'fa', 'a') +
+        nombre(38, 80, 'f6', '6', 'end') +
+        nombre(123, 146, 'f8', '8', 'middle') +
+        '</svg>'
+    );
+}
+
+/** Pitàgores: primer la fórmula sola (les lletres volen del triangle), després els catets hi volen. */
+function passosPitagores() {
+    const g = guio(6);
+    const L = linies(g, 1); // fila 0: el triangle; files 1-5: les línies
+    const igual = P('q', '=');
+    g.files[0] = triangle();
+    g.afegeix('El triangle és rectangle: calcula la hipotenusa, $a$.');
+    // Les lletres volen del triangle a la fórmula; al triangle en queden les còpies
+    g.files[0] = triangle({ lletres: 'copies' });
+    let r = L.nombre;
+    const linia0 = [P('a', 'a^2'), igual, P('b', 'b^2'), P('s', '+'), P('c', 'c^2')];
+    L.escriu(
+        linia0,
+        'Escriu el teorema de Pitàgores: el quadrat de la hipotenusa és la suma dels quadrats dels catets.',
+        {
+            extra: {
+                reanomena: { [L.clau(r, 'a')]: 'fa', [L.clau(r, 'b')]: 'fb', [L.clau(r, 'c')]: 'fc' },
+                copia: { fac: 'fa', fbc: 'fb', fcc: 'fc' },
+            },
+        }
+    );
+    // Els catets volen del triangle a la fórmula
+    g.files[0] = triangle({ lletres: 'copies', nombres: 'copies' });
+    r = L.nombre;
+    const linia1 = [P('a', 'a^2'), igual, P('b', '6^2'), P('s', '+'), P('c', '8^2')];
+    L.escriu(linia1, 'Substitueix els catets: $b = 6$ i $c = 8$.', {
+        mou: { a: 'a', q: 'q', s: 's' },
+        extra: {
+            reanomena: { [L.clau(r, 'b')]: 'f6', [L.clau(r, 'c')]: 'f8' },
+            copia: { f6c: 'f6', f8c: 'f8' },
+        },
+    });
+    const linia2 = [P('a', 'a^2'), igual, P('n36', '36'), P('s', '+'), P('n64', '64')];
+    L.escriu(linia2, 'Calcula els quadrats: $6^2 = 36$ i $8^2 = 64$.', {
+        mou: { a: 'a', q: 'q', s: 's' },
+        fusiona: { n36: ['b'], n64: ['c'] },
+    });
+    const linia3 = [P('a', 'a^2'), igual, P('n', '100')];
+    L.escriu(linia3, 'Suma: $36 + 64 = 100$.', { mou: { a: 'a', q: 'q' }, fusiona: { n: ['n36', 's', 'n64'] } });
+    L.escriu(
+        [P('a', 'a'), igual, P('r', '\\sqrt{100}'), P('q2', '='), P('v', '10', 'solucio')],
+        "Fes l'arrel quadrada (la hipotenusa és positiva): $a = 10$.",
+        { mou: { a: 'a', q: 'q', r: 'n' }, final: true }
+    );
+    return g.passos;
+}
+
 export const DEMOS = Object.freeze([
     Object.freeze({ id: 'prioritat', nom: "Prioritat d'operacions", files: 3, passos: passosPrioritat }),
     Object.freeze({ id: 'equacio', nom: 'Equació de primer grau', files: 5, passos: passosEquacio }),
     Object.freeze({ id: 'fraccions', nom: 'Suma de fraccions', files: 5, passos: passosFraccions }),
+    Object.freeze({ id: 'pitagores', nom: 'Teorema de Pitàgores', files: 6, passos: passosPitagores }),
 ]);

@@ -53,12 +53,27 @@ const quocient = (a, b) => Q(a.n * b.d, a.d * b.n);
 const igualQ = (a, b) => a.n === b.n && a.d === b.d;
 const textQ = a => (a.d === 1n ? String(a.n) : `${a.n}/${a.d}`);
 
+/** Arrel quadrada exacta d'un racional (null si no és un quadrat perfecte). */
+function arrelQ(a) {
+    const isqrt = n => {
+        if (n < 0n) return null;
+        let r = BigInt(Math.floor(Math.sqrt(Number(n))));
+        while (r * r > n) r--;
+        while ((r + 1n) * (r + 1n) <= n) r++;
+        return r * r === n ? r : null;
+    };
+    const n = isqrt(a.n),
+        d = isqrt(a.d);
+    return n === null || d === null ? null : Q(n, d);
+}
+
 /**
  * Valor exacte d'una expressió en text pla (la sortida de textPla): enters,
- * x (la variable, amb el valor «x»), + - * : / ^ (exponent enter), parèntesis i
- * producte implícit (2x, 3(x+1), (a)(b)).
+ * x (la variable, amb el valor «x»), les lletres de «vars» (p. ex. { a: Q(10) }),
+ * + - * : / ^ (exponent enter), sqrt(…) exacta, parèntesis i producte implícit
+ * (2x, 3(x+1), (a)(b)).
  */
-function avalua(text, x = null) {
+function avalua(text, x = null, vars = {}) {
     let i = 0;
     const mira = () => text[i];
     function primari() {
@@ -70,10 +85,21 @@ function avalua(text, x = null) {
             i++;
             return v;
         }
+        if (text.startsWith('sqrt(', i)) {
+            i += 4;
+            const v = primari();
+            const r = arrelQ(v);
+            if (!r) throw new Error(`arrel no exacta a ${text}`);
+            return r;
+        }
         if (c === 'x') {
             i++;
             if (x === null) throw new Error(`hi ha una x a ${text}`);
             return x;
+        }
+        if (c && Object.prototype.hasOwnProperty.call(vars, c)) {
+            i++;
+            return vars[c];
         }
         const m = /^\d+/.exec(text.slice(i));
         if (!m) throw new Error(`no s'entén «${text.slice(i)}» a ${text}`);
@@ -111,7 +137,7 @@ function avalua(text, x = null) {
                 i++;
                 const w = unari();
                 v = c === '*' ? producte(v, w) : quocient(v, w);
-            } else if (c === '(' || c === 'x' || /\d/.test(c || '')) {
+            } else if (c === '(' || c === 'x' || /\d/.test(c || '') || (c && c in vars)) {
                 v = producte(v, potencia()); // producte implícit
             } else return v;
         }
@@ -239,6 +265,24 @@ function solucioLineal(text) {
             '{"Lc0ka":"L0ka","Lc0ks":"L0ks","Lc0kb":"L0kb"}'
         );
         eq('linies(): un guió correcte', C.comprovaGuio(h.passos, 3).length, 0);
+
+        // Un símbol que ve de fora de les línies (p. ex. d'un esquema SVG d'una altra fila)
+        const e = F.guio(2);
+        const M = F.linies(e, 1);
+        e.files[0] = '<svg viewBox="0 0 10 10"><text data-k="f6">6</text></svg>';
+        e.afegeix('Mira el triangle.');
+        e.files[0] = '<svg viewBox="0 0 10 10"><text data-k="f6c">6</text></svg>';
+        eq('linies(): L.clau dona la clau que tindrà una peça', M.clau(0, 'b'), 'L0kb');
+        M.escriu([F.P('b', '6^2')], 'Substitueix.', {
+            extra: { reanomena: { [M.clau(0, 'b')]: 'f6' }, copia: { f6c: 'f6' } },
+        });
+        eq(
+            'linies(): «extra» afegeix els canvis de nom i les còpies de fora',
+            JSON.stringify([e.passos[1].reanomena, e.passos[1].copia]),
+            '[{"L0kb":"f6"},{"f6c":"f6"}]'
+        );
+        eq("linies(): el guió amb un símbol de l'esquema és correcte", C.comprovaGuio(e.passos, 2).length, 0);
+        eq("clausDe() troba les claus d'un esquema SVG", C.clausDe(e.files[0]).join(), 'f6c');
         eq(
             'linies(): «=» és una relació i «+» un operador',
             /\\mathrel\{\\htmlData\{k=L0kq\}/.test(p1.files[0]) && /\\mathbin/.test(p0.files[0]),
@@ -336,6 +380,15 @@ function solucioLineal(text) {
         eq('l’avaluador de la prova: 3 + 4 · 2 = 11', textQ(avalua('3+4*2')), '11');
         eq('l’avaluador de la prova: (1·3)/(2·3) + 1/3 = 5/6', textQ(avalua('((1*3)/(2*3))+((1)/(3))')), '5/6');
         eq('l’avaluador de la prova: 2x + 3 = 11 → x = 4', textQ(solucioLineal('2x+3=11')), '4');
+        eq('l’avaluador de la prova: sqrt(100) = 10', textQ(avalua('sqrt(100)')), '10');
+        eq('l’avaluador de la prova: a^(2) amb a = 10', textQ(avalua('a^(2)', null, { a: Q(10) })), '100');
+        let noExacta = false;
+        try {
+            avalua('sqrt(2)');
+        } catch (e) {
+            noExacta = /no exacta/.test(e.message);
+        }
+        ok('l’avaluador de la prova: una arrel no exacta fa fallar la prova', noExacta);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -364,6 +417,7 @@ function solucioLineal(text) {
             prioritat: { expressio: Q(11) },
             equacio: { equacio: Q(4) },
             fraccions: { expressio: Q(5, 6) },
+            pitagores: { valors: { a: Q(10), b: Q(6), c: Q(8) } },
         }[d.id],
     }));
 
@@ -418,7 +472,12 @@ function solucioLineal(text) {
                     const on = `${g.nom}, pas ${i + 1}, fila ${j + 1}`;
                     try {
                         const pla = C.textPla(tex).replace(/=$/, ''); // «3 + 8 =»: la línia continua a sota
-                        if (g.veritat.expressio) {
+                        if (g.veritat.valors) {
+                            // Una cadena d'igualtats amb lletres que tenen valor: tots els membres valen igual
+                            const membres = pla.split('=').map(m => avalua(m, null, g.veritat.valors));
+                            if (membres.some(m => !igualQ(m, membres[0])))
+                                falses.push(`${on}: ${pla} no és cert amb ${JSON.stringify(g.veritat.valors)}`);
+                        } else if (g.veritat.expressio) {
                             const v = avalua(pla);
                             if (!igualQ(v, g.veritat.expressio))
                                 falses.push(`${on}: ${pla} val ${textQ(v)}, no ${textQ(g.veritat.expressio)}`);
@@ -459,14 +518,14 @@ function solucioLineal(text) {
         const liniesDeTaula = html =>
             [...html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map(m =>
                 m[1]
-                    .replace(/<td class="(igual|nota-pas)">[\s\S]*?<\/td>/g, '')
+                    .replace(/<td class="(igual|nota-pas)[^"]*">[\s\S]*?<\/td>/g, '')
                     .replace(/<sup>/g, '^')
                     .replace(/<[^>]+>/g, '')
                     .replace(/−/g, '-')
                     .replace(/·/g, '*')
                     .replace(/\s+/g, '')
             );
-        const senseClaus = html => html.replace(/<span data-k="[^"]*">/g, '').replace(/<\/span>/g, '');
+        const senseClaus = html => html.replace(/<span data-k="[^"]*">((?:(?!<\/?span)[\s\S])*?)<\/span>/g, '$1');
 
         let exercicis = 0,
             animacions = 0;

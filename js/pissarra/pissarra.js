@@ -15,16 +15,21 @@
  *     salta(i)         mostra el pas i, sense animació
  *     repeteix()       torna a animar l'arribada al pas actual («Torna-ho a veure»)
  *   · PAS A PAS LLIURE (l'activitat decideix cada pas segons el que fa l'alumne):
- *     mostraPas(pas)   mostra aquest pas, sense animació
- *     animaPas(pas)    anima el canvi del pas que es veu a aquest (Promise)
+ *     encua(pas, {anima, velocitat})  el mostra (o l'anima) quan acaba el que hi ha a la cua; la cua
+ *                      no es bloqueja mai: si una animació falla, el pas es mostra sense animació
+ *     enAcabar()       Promise que es resol quan s'ha pintat tot el que hi ha a la cua
+ *     mostraPas(pas)   mostra aquest pas, sense animació (sense cua)
+ *     animaPas(pas)    anima el canvi del pas que es veu a aquest (Promise; sense cua)
  *   i, per a totes dues: velocitat(v) (0.6 lenta, 1 normal, 1.6 ràpida),
- *   escolta(f), pas, total, ocupat, passos, element.
+ *   escolta(f), pas, total, ocupat, passos, element. Si un pas porta «anunci» (text), una regió
+ *   aria-live el llegeix quan el pas ja es veu (p. ex. la línia nova, per als lectors de pantalla).
  *   marc: false treu la vora i el fons de punts (la pissarra queda invisible i
  *   només es veuen les animacions: serveix per animar la zona de treball que
  *   l'activitat ja tenia, amb el seu aspecte de sempre).
- * - Tipus de fila: TeX (KaTeX), text («§…»), esquema SVG («<svg…», només es fon)
- *   i HTML («<…», qualsevol altre element: l'HTML de l'activitat, inserit tal
- *   qual; els seus elements amb data-k="clau" es mouen com els símbols).
+ * - Tipus de fila: TeX (KaTeX), text («§…»), esquema SVG («<svg…»: es fon, però els seus
+ *   elements amb data-k="clau", p. ex. un <text>, viatgen com els símbols) i HTML («<…»,
+ *   qualsevol altre element: l'HTML de l'activitat, inserit tal qual; els seus elements amb
+ *   data-k="clau" es mouen com els símbols).
  * - Què passa amb cada símbol amb clau (vegeu formules.js):
  *     · mateixa clau abans i després, o pas.reanomena = {nova: vella}: és el
  *       mateix símbol i es desplaça; si el contingut canvia, es fon;
@@ -34,8 +39,13 @@
  *       d'on surt un símbol continua escrita, sense parpellejar);
  *     · la resta de símbols vells s'esvaeixen, i els nous apareixen.
  *   Si el pas no arrossega cap símbol, abans de moure res uns requadres blaus
- *   assenyalen què canviarà o desapareixerà, i després el segueixen. Totes les
- *   posicions es mesuren sobre el que ha dibuixat KaTeX: res no es col·loca a mà.
+ *   assenyalen què canviarà o desapareixerà, i després el segueixen: un per cada tros
+ *   de símbols seguits, i cap no en tapa un que no s'hi mou. Totes les posicions es
+ *   mesuren sobre el que ha dibuixat el navegador: res no es col·loca a mà. Cada símbol que
+ *   es mou és un «fantasma» (una còpia) amb els estils de caixa de l'original, perquè fora
+ *   del seu lloc es dibuixi exactament igual.
+ * - Moviment reduït (prefers-reduced-motion): cap símbol no viatja; el pas nou es fon al
+ *   seu lloc i les files que no canvien no es toquen.
  * - La mida de la lletra s'ajusta perquè la fila més ampla de tots els passos hi
  *   càpiga. Si la pissarra té una alçada màxima (CSS), té la seva pròpia barra de
  *   desplaçament i abans de cada animació es mou fins a la fila que canvia.
@@ -68,12 +78,14 @@ export const TEMPS = Object.freeze({
     clic: 120, // durada d'un clic
     aparta: 230, // el cursor s'aparta del símbol
     agafa: 180, // el cursor agafa un símbol abans d'arrossegar-lo
+    fos: 320, // amb moviment reduït: el pas nou es fon al seu lloc
 });
 /** Corba de moviment (acceleració i frenada suaus). */
 const CORBA = 'cubic-bezier(.45,.05,.25,1)';
 /** Mida de la lletra de la pissarra (px). Es redueix si la fila més ampla no hi cap. */
 export const MIDA = Object.freeze({ gran: 30, petita: 22, minima: 12, pantallaPetita: '(max-width: 520px)' });
 
+const NS_SVG = 'http://www.w3.org/2000/svg';
 const KATEX_JS = new URL('../../vendor/katex-0.16.11/katex.min.js', import.meta.url).href;
 const KATEX_CSS = new URL('../../vendor/katex-0.16.11/katex.min.css', import.meta.url).href;
 const CURSOR =
@@ -166,8 +178,80 @@ function unio(rs) {
  * Contingut d'un símbol, sense l'espai que KaTeX hi afegeix a dins quan va seguit
  * d'un operador: serveix per saber si el símbol canvia.
  */
-const signatura = el => el.className + '|' + el.innerHTML.replace(/<span class="mspace"[^>]*><\/span>/g, '');
-const midaLletra = el => parseFloat(getComputedStyle(el).fontSize);
+const signatura = el =>
+    (el.getAttribute('class') || '') + '|' + el.innerHTML.replace(/<span class="mspace"[^>]*><\/span>/g, '');
+
+/** Un element d'un esquema SVG (no l'<svg> mateix): un <text>, un <g>… */
+const esSvg = el => typeof SVGElement !== 'undefined' && el instanceof SVGElement && el.localName !== 'svg';
+
+/**
+ * Mida de la lletra tal com es veu (px). En un SVG, la de l'element multiplicada per l'escala
+ * amb què es dibuixa l'esquema (viewBox): així un símbol que vola d'un esquema a una fórmula
+ * canvia de mida el que toca.
+ */
+function midaVisual(el) {
+    const mida = parseFloat(getComputedStyle(el).fontSize);
+    if (esSvg(el) && typeof el.getScreenCTM === 'function') {
+        const m = el.getScreenCTM();
+        if (m) return mida * Math.hypot(m.a, m.b);
+    }
+    return mida;
+}
+
+/**
+ * Estils de caixa que decideixen on es dibuixa la lletra dins d'un símbol. Fora del seu lloc, el
+ * fantasma perdria els que li dona un selector contextual (p. ex. el farciment de l'«=» a
+ * equacions): per això el fantasma els copia de l'original.
+ */
+const ESTILS_CAIXA = [
+    'display',
+    'boxSizing',
+    'lineHeight',
+    'verticalAlign',
+    'textAlign',
+    'textTransform',
+    'whiteSpace',
+    'alignItems',
+    'justifyContent',
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+    'paddingLeft',
+    'borderTopWidth',
+    'borderRightWidth',
+    'borderBottomWidth',
+    'borderLeftWidth',
+    'borderTopStyle',
+    'borderRightStyle',
+    'borderBottomStyle',
+    'borderLeftStyle',
+    'borderTopColor',
+    'borderRightColor',
+    'borderBottomColor',
+    'borderLeftColor',
+    'borderTopLeftRadius',
+    'borderTopRightRadius',
+    'borderBottomRightRadius',
+    'borderBottomLeftRadius',
+    'backgroundColor',
+];
+/** Estils de presentació d'un element SVG que el fantasma copia (poden venir del CSS de la pàgina). */
+const ESTILS_SVG = [
+    'fill',
+    'stroke',
+    'strokeWidth',
+    'fontFamily',
+    'fontSize',
+    'fontStyle',
+    'fontWeight',
+    'letterSpacing',
+    'textAnchor',
+    'dominantBaseline',
+];
+
+/** Dos rectangles es tapen (amb marge: un rectangle es pot fer més gran o més petit). */
+const tapa = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+const amplia = (q, d) => ({ x: q.x - d, y: q.y - d, w: q.w + 2 * d, h: q.h + 2 * d });
 
 /**
  * Carrega KaTeX (vendor/) si la pàgina no l'ha carregat encara. Torna una Promise
@@ -262,18 +346,20 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         pissarra: element('div', { class: 'pis-pissarra' }),
         efectes: element('div', { 'class': 'pis-efectes', 'aria-hidden': 'true' }),
         cursor: element('div', { 'class': 'pis-cursor', 'aria-hidden': 'true', 'html': CURSOR }),
+        anunci: element('div', { 'class': 'pis-anunci', 'aria-live': 'polite' }),
     };
     const classe = 'pis-escenari' + (marc ? '' : ' pis-sense-marc');
     r.escenari = element('div', { 'class': classe, 'role': 'group', 'aria-label': etiqueta }, [
         r.pissarra,
         r.efectes,
         r.cursor,
+        r.anunci,
     ]);
     contenidor.append(r.escenari);
 
     let velocitat = 1;
     const reduit = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const temps = ms => Math.max(60, (ms / velocitat) * (reduit ? 0.35 : 1));
+    const temps = ms => Math.max(60, ms / velocitat);
     const cursor = creaCursor(r.escenari, r.cursor, temps);
 
     let capa = null; // capa visible: les files del pas actual
@@ -399,6 +485,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
     function fantasma(el, q) {
         const estil = getComputedStyle(el);
         const f = element('div', { 'class': 'katex pis-fantasma', 'data-de': el.dataset.k });
+        if (esSvg(el)) return fantasmaSvg(el, q, estil, f);
         f.style.fontSize = estil.fontSize;
         f.style.color = estil.color;
         f.style.fontFamily = estil.fontFamily; // una frase de text no ha de canviar de lletra
@@ -410,14 +497,82 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         // KaTeX pot posar a l'element mateix una classe de mida relativa al pare: fora del
         // seu lloc es tornaria a aplicar i el fantasma sortiria massa gran.
         copia.style.fontSize = estil.fontSize;
+        // Fora del seu lloc, el símbol perdria els estils que li donen els selectors contextuals de
+        // l'activitat (el farciment, les vores…): se li copien els que decideixen on va la lletra.
+        for (const p of ESTILS_CAIXA) copia.style[p] = estil[p];
         copia.querySelectorAll('[data-k]').forEach(n => n.removeAttribute('data-k'));
         f.append(copia);
         r.efectes.append(f);
-        const o = rectangle(copia, r.efectes);
+        let o = rectangle(copia, r.efectes);
+        // Una caixa que fa la mida que li dona el seu lloc (no la del contingut, p. ex. una cel·la
+        // estirada amb el text centrat) es copia amb la mateixa mida. Les de text en línia ja hi
+        // coincideixen, i fer-les inline-block les mouria de la línia de base.
+        if (estil.display !== 'inline' && (Math.abs(o.w - q.w) > 0.5 || Math.abs(o.h - q.h) > 0.5)) {
+            copia.style.boxSizing = 'border-box';
+            copia.style.width = q.w + 'px';
+            copia.style.height = q.h + 'px';
+            o = rectangle(copia, r.efectes);
+        }
         f.style.left = q.x - o.x + 'px';
         f.style.top = q.y - o.y + 'px';
         f.style.transformOrigin = `${o.x + o.w / 2}px ${o.y + o.h / 2}px`;
-        return { el: f, mida: parseFloat(estil.fontSize), color: estil.color };
+        return { el: f, mida: midaVisual(el), color: estil.color };
+    }
+
+    /**
+     * Fantasma d'un element d'un esquema SVG (un <text>…): fora del seu <svg> no es dibuixaria, així
+     * que en porta un de propi que fa exactament la mida del rectangle «q» i té com a viewBox la caixa
+     * de l'element en les seves coordenades: la lletra queda al mateix lloc i a la mateixa escala.
+     */
+    function fantasmaSvg(el, q, estil, f) {
+        // Sense la classe «katex»: el CSS de KaTeX (.katex svg) posaria l'svg en absolut i d'amplada 100 %
+        f.className = 'pis-fantasma';
+        const caixa = el.getBBox();
+        const svg = document.createElementNS(NS_SVG, 'svg');
+        svg.setAttribute('width', String(q.w));
+        svg.setAttribute('height', String(q.h));
+        svg.setAttribute('viewBox', `${caixa.x} ${caixa.y} ${caixa.width || 1} ${caixa.height || 1}`);
+        svg.setAttribute('preserveAspectRatio', 'none');
+        Object.assign(svg.style, {
+            display: 'block',
+            position: 'static',
+            width: q.w + 'px',
+            height: q.h + 'px',
+            overflow: 'visible',
+        });
+        const copia = el.cloneNode(true);
+        copia.removeAttribute('data-k');
+        copia.removeAttribute('transform'); // la caixa ja és en les coordenades de l'element
+        copia.querySelectorAll('[data-k]').forEach(n => n.removeAttribute('data-k'));
+        for (const p of ESTILS_SVG) copia.style[p] = estil[p];
+        svg.append(copia);
+        f.append(svg);
+        r.efectes.append(f);
+        const o = rectangle(svg, r.efectes);
+        f.style.left = q.x - o.x + 'px';
+        f.style.top = q.y - o.y + 'px';
+        f.style.transformOrigin = `${o.x + o.w / 2}px ${o.y + o.h / 2}px`;
+        return { el: f, mida: midaVisual(el), color: estil.color };
+    }
+
+    /**
+     * Les fonts d'una fusió, en trossos que es poden marcar amb un sol requadre: dues fonts van al
+     * mateix requadre si el requadre que les envolta no tapa cap altre símbol amb clau (un que no es
+     * fusiona aquí). Així «3x + 3 = 6x» no surt en un sol requadre si només es mouen 3x i 6x.
+     */
+    function trossosDeFusio(kas, RA) {
+        const propies = new Set(kas);
+        const alienes = [...RA].filter(([k, q]) => !propies.has(k) && q.w > 0.5 && q.h > 0.5).map(([, q]) => q);
+        const lliure = u => !alienes.some(q => tapa(amplia(u, VORA), amplia(q, -1)));
+        const ordre = [...kas].sort((a, b) => RA.get(a).y - RA.get(b).y || RA.get(a).x - RA.get(b).x);
+        const trossos = [];
+        for (const k of ordre) {
+            const q = RA.get(k);
+            const t = trossos.find(t => lliure(unio([...t, q])));
+            if (t) t.push(q);
+            else trossos.push([q]);
+        }
+        return trossos;
     }
 
     /** Requadre blau clar que envolta un rectangle, i apareix en «durada» ms. */
@@ -434,6 +589,58 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         r.efectes.append(e);
         e.animate([{ opacity: 0 }, { opacity: 1 }], { duration: durada, fill: 'forwards' });
         return e;
+    }
+
+    /**
+     * Una fila que no canvia d'un pas a l'altre (mateix contingut sense comptar les claus, mateixa
+     * classe, mateix lloc): es queda quieta, perquè les parts sense clau (la ratlla d'una fracció, un
+     * text) no parpellegin. Una fila que només ha canviat les claus (p. ex. la còpia que queda d'un
+     * símbol que baixa) també compta com a igual.
+     */
+    const senseClaus = html => html.replace(/ data-k="[^"]*"/g, '');
+    const filaIgual = (v, f) =>
+        !!v &&
+        senseClaus(v.innerHTML) === senseClaus(f.innerHTML) &&
+        v.className === f.className &&
+        Math.abs(v.getBoundingClientRect().top - f.getBoundingClientRect().top) < 0.5 &&
+        Math.abs(v.offsetHeight - f.offsetHeight) < 0.5;
+
+    /** Al final d'una transició queda la capa nova, sense res de l'animació. */
+    function acabaCapa(vella, nova) {
+        vella.remove();
+        nova.classList.remove('pis-nova', 'pis-amaga-claus');
+        nova.querySelectorAll('.pis-sense-fantasma').forEach(e => e.classList.remove('pis-sense-fantasma'));
+        nova.style.visibility = '';
+        r.pissarra.style.minHeight = '';
+        aturaAnimacions(nova);
+        for (const f of nova.children) {
+            aturaAnimacions(f);
+            f.style.opacity = '';
+        }
+        capa = nova;
+    }
+
+    /**
+     * Moviment reduït: cap símbol no viatja. Les files que no canvien no es toquen; les altres es fonen
+     * al seu lloc, per damunt de les velles, que es treuen quan la nova ja es veu.
+     */
+    async function fonAlLloc(vella, nova) {
+        nova.style.visibility = 'visible';
+        const velles = [...vella.children];
+        const feines = [];
+        [...nova.children].forEach((f, i) => {
+            if (filaIgual(velles[i], f)) f.style.opacity = '0';
+            else
+                feines.push(
+                    anima(f, [{ opacity: 0 }, { opacity: 1 }], {
+                        duration: Math.max(120, TEMPS.fos / velocitat),
+                        easing: 'ease-out',
+                    })
+                );
+        });
+        await Promise.all(feines);
+        acabaCapa(vella, nova);
+        r.efectes.replaceChildren();
     }
 
     const QUIET = 'translate(0px, 0px) scale(1)';
@@ -453,6 +660,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             r.pissarra.style.minHeight = nova.offsetHeight - marge + 'px';
         }
         fesVisible(vella, nova);
+        if (reduit) return fonAlLloc(vella, nova);
 
         const A = ambClau(vella),
             B = ambClau(nova);
@@ -482,7 +690,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         const velles = [...A.keys()].filter(ka => !aparellades.has(ka));
         const noves = [...B.keys()].filter(kb => !parelles.has(kb));
         const igual = (ka, kb) => signatura(A.get(ka)) === signatura(B.get(kb));
-        const canvia = (ka, kb) => !igual(ka, kb) || Math.abs(midaLletra(A.get(ka)) - midaLletra(B.get(kb))) > 0.5;
+        const canvia = (ka, kb) => !igual(ka, kb) || Math.abs(midaVisual(A.get(ka)) - midaVisual(B.get(kb))) > 0.5;
 
         /* Símbols partits en més d'una línia (vegeu trossos): sense fantasma, es fonen amb la seva capa. */
         const TA = new Map([...A].map(([k, e]) => [k, trossos(e)]));
@@ -539,14 +747,16 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
                 const [ta, tb] = [TA.get(ka), TB.get(kb)];
                 ta.forEach((q, j) => avisos.push({ r0: q, r1: ta.length === tb.length ? tb[j] : null }));
             }
-            const grups = new Map(); // els símbols que es fusionen en un, en un sol requadre
+            const grups = new Map(); // destí → els símbols que s'hi fusionen
             for (const ka of velles) {
                 const kb = desti.get(ka);
-                if (RB.has(kb)) grups.set(kb, (grups.get(kb) || []).concat([RA.get(ka)]));
+                if (RB.has(kb)) grups.set(kb, (grups.get(kb) || []).concat([ka]));
                 else if (partitA(ka)) for (const q of TA.get(ka)) avisos.push({ r0: q, r1: null });
                 else avisos.push({ r0: RA.get(ka), r1: null });
             }
-            for (const [kb, rs] of grups) avisos.push({ r0: unio(rs), r1: RB.get(kb) });
+            // Un requadre per cada tros de fonts seguides, que segueix el tros fins al destí
+            for (const [kb, kas] of grups)
+                for (const rs of trossosDeFusio(kas, RA)) avisos.push({ r0: unio(rs), r1: RB.get(kb) });
             for (const a of avisos) a.el = requadre(a.r0, temps(TEMPS.avis));
             if (avisos.length) await espera(temps(TEMPS.avis + TEMPS.lectura));
         }
@@ -557,24 +767,14 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         vella.classList.add('pis-amaga-claus');
         nova.classList.add('pis-amaga-claus');
         nova.style.visibility = 'visible';
-        // Cada fila es fon amb la seva nova versió, menys les que no canvien (mateix contingut, mateix
-        // lloc): es queden quietes, perquè les parts sense clau (la ratlla d'una fracció, un text) no
-        // parpellegin. Així les línies que ja estaven escrites no es mouen gens.
-        // Una fila que només ha canviat les claus (p. ex. la còpia que queda d'un símbol que baixa)
-        // també compta com a igual. Les altres es fonen sense enfosquir-se a mig camí: la nova
-        // apareix abans que la vella se'n vagi.
-        const senseClaus = html => html.replace(/ data-k="[^"]*"/g, '');
+        // Cada fila es fon amb la seva nova versió, menys les que no canvien (filaIgual): es queden
+        // quietes, i així les línies que ja estaven escrites no es mouen gens. Les altres es fonen
+        // sense enfosquir-se a mig camí: la nova apareix abans que la vella se'n vagi.
         const filesVelles = [...vella.children],
             filesNoves = [...nova.children];
         filesNoves.forEach((f, i) => {
             const v = filesVelles[i];
-            const igual =
-                v &&
-                senseClaus(v.innerHTML) === senseClaus(f.innerHTML) &&
-                v.className === f.className &&
-                Math.abs(v.getBoundingClientRect().top - f.getBoundingClientRect().top) < 0.5 &&
-                Math.abs(v.offsetHeight - f.offsetHeight) < 0.5;
-            if (igual) {
+            if (filaIgual(v, f)) {
                 f.style.opacity = '0'; // fins al final es veu la vella, que és igual
                 return;
             }
@@ -611,7 +811,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
                 b = RB.get(kb),
                 elB = B.get(kb);
             const vell = fantasma(A.get(ka), a);
-            const escala = midaLletra(elB) / vell.mida;
+            const escala = midaVisual(elB) / vell.mida;
             if (igual(ka, kb)) {
                 feines.push(
                     anima(
@@ -709,17 +909,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         await Promise.all(feines);
 
         /* 4. Queda la capa nova, i el cursor deixa anar el símbol arrossegat. */
-        vella.remove();
-        nova.classList.remove('pis-nova', 'pis-amaga-claus');
-        nova.querySelectorAll('.pis-sense-fantasma').forEach(e => e.classList.remove('pis-sense-fantasma'));
-        nova.style.visibility = '';
-        r.pissarra.style.minHeight = '';
-        aturaAnimacions(nova);
-        for (const f of nova.children) {
-            aturaAnimacions(f);
-            f.style.opacity = '';
-        }
-        capa = nova;
+        acabaCapa(vella, nova);
         for (const e of [...r.efectes.children]) if (!arrossegat || e !== arrossegat.el) e.remove();
         if (arrossegat) {
             const { r1, el } = arrossegat;
@@ -793,6 +983,11 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
     addEventListener('resize', enCanviarMida);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(reajusta);
 
+    /** Si el pas porta un anunci (text), la regió aria-live el llegeix (lectors de pantalla). */
+    function anuncia(pas) {
+        if (typeof pas.anunci === 'string' && pas.anunci) r.anunci.textContent = pas.anunci;
+    }
+
     /** Pas a pas lliure: mostra un pas sense animació (torna false si hi ha una animació en marxa). */
     function mostraPas(pas) {
         if (ocupat) return false;
@@ -802,6 +997,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         mostra(pas);
         cursor.amaga();
         avisa();
+        anuncia(pas);
         return true;
     }
 
@@ -826,12 +1022,45 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             ocupat = false;
         }
         avisa();
+        anuncia(pas);
         return true;
+    }
+
+    /**
+     * Pas a pas lliure amb cua: les activitats hi encuen cada pas, i una pintada sempre acaba abans que
+     * comenci la següent. La cua no es bloqueja mai: si una animació falla (un error inesperat del
+     * navegador o d'una mesura), ho escriu a la consola i mostra el pas sense animació, i l'activitat
+     * continua. opcions: { anima (per defecte, cert), velocitat }. Torna una Promise que es resol quan
+     * el pas ja es veu (no es rebutja mai).
+     */
+    let cua = Promise.resolve();
+    function encua(pas, { anima = true, velocitat: v } = {}) {
+        const feina = async () => {
+            if (v > 0) velocitat = v;
+            try {
+                if (anima) await animaPas(pas);
+                else mostraPas(pas);
+            } catch (e) {
+                console.error("Pissarra: l'animació ha fallat; es mostra el pas sense animació.", e);
+                try {
+                    ocupat = false;
+                    r.pissarra.style.minHeight = '';
+                    mostraPas(pas);
+                } catch (e2) {
+                    console.error("Pissarra: no s'ha pogut mostrar el pas.", e2);
+                }
+            }
+        };
+        cua = cua.then(feina, feina);
+        return cua;
     }
 
     return Object.freeze({
         mostraPas,
         animaPas,
+        encua,
+        /** Promise que es resol quan s'ha pintat tot el que hi ha a la cua (encua). */
+        enAcabar: () => cua,
         /** Passos nous: torna al primer. No es pot cridar durant una animació. */
         carrega(nous) {
             if (ocupat) return false;
