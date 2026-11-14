@@ -72,11 +72,11 @@ let finalResN = 0,
     finalResD = 0;
 let isPenalizing = false;
 
-// «Resolució pas a pas» (?pissarra=1): la pissarra de l'expressió (null si no és actiu), les línies
-// ({ termes, pas }, vegeu renderer.js) i la cua d'animacions
+// «Resolució pas a pas» (?pissarra=1): la pissarra de l'expressió (null si no és actiu) i les línies
+// ({ termes, pas }, vegeu renderer.js). Les pintades van a la cua del motor (pissarra.encua), que no
+// es bloqueja mai.
 const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.exprBox, { files: 1, marc: false }) : null;
 let historia = [];
-let cuaPissarra = Promise.resolve();
 
 // ---- MENÚ DE SELECCIÓ ----
 function selectMode(mode) {
@@ -205,27 +205,30 @@ function appendToExpression(htmlContent, termes, pas) {
 
 // «Resolució pas a pas»: l'expressió a la pissarra. anima: la línia nova s'escriu amb animació (un pas
 // que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
-// Les pintades van en cua: una animació sempre acaba abans que comenci la següent.
+// Les pintades van a la cua del motor: una animació sempre acaba abans que comenci la següent, i si
+// una falla, la línia es mostra igualment i el joc continua.
 function pintaHistoria(anima) {
     const pas = Object.assign(
         { files: [Renderer.historiaHtml(historia)], classes: ['centrada'], text: '' },
         anima ? Renderer.animacioUltimaLinia(historia) : {}
     );
-    cuaPissarra = cuaPissarra.then(() => {
-        if (!anima) return pissarra.mostraPas(pas);
-        pissarra.velocitat(1.6);
-        return pissarra.animaPas(pas);
-    });
-    return cuaPissarra;
+    if (anima) pas.anunci = `Línia nova: ${Renderer.textLinia(historia[historia.length - 1])}`;
+    return pissarra.encua(pas, { anima, velocitat: 1.6 });
 }
 
 // Després d'escriure una línia: amb la pissarra, el pas s'amaga mentre la línia s'anima i fn es crida
-// quan l'animació s'acaba; sense pissarra, fn es crida de seguida (com sempre).
+// quan l'animació s'acaba; sense pissarra, fn es crida de seguida (com sempre). Mentre el pas és amagat,
+// la zona dels passos no s'encongeix: cap finestra no canvia de mida (i el que hi ha a sota no salta).
 function quanAcabi(fn) {
     if (!pissarra) return fn();
+    const zona = document.getElementById('resolution-panel');
+    if (zona) zona.style.minHeight = zona.offsetHeight + 'px';
     document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));
     hideCustomKeyboard();
-    cuaPissarra.then(fn);
+    pissarra.enAcabar().then(() => {
+        fn();
+        if (zona) zona.style.minHeight = '';
+    });
 }
 
 const F = (n, d) => ({ n, d });

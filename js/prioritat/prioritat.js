@@ -102,12 +102,12 @@ let rows = []; // les línies fetes [{ line, op, auto, marca }]; l'última és l
 let phase = 'op'; // 'op': cal tocar l'operació · 'result': cal triar-ne el resultat · 'esv': cal tocar el botó
 // «Esvaïment»: { passos, nPassos, nAlumne, nExemple, revelats, errors } de l'exercici actual
 let esv = null;
-// «Resolució pas a pas» (?pissarra=1): la pissarra on es pinta la taula (null si no és actiu),
-// quantes línies tenia l'última taula que s'hi ha enviat i la cua de pintades (cada animació
-// acaba abans que comenci la següent)
+// «Resolució pas a pas» (?pissarra=1): la pissarra on es pinta la taula (null si no és actiu) i
+// quantes línies tenia l'última taula que s'hi ha enviat. Les pintades van a la cua del motor
+// (pissarra.encua): cada animació acaba abans que comenci la següent, i si una falla, la taula es
+// mostra igualment i el joc continua.
 const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.stepsBox, { files: 1, marc: false }) : null;
 let liniesPissarra = 0;
-let cuaPissarra = Promise.resolve();
 
 // El nivell es reparteix al llarg de la sessió: sigui quin sigui el nombre
 // d'operacions, la primera és del nivell 0 i l'última del nivell 9.
@@ -531,22 +531,18 @@ function pintaPissarra(html, tornaFocus) {
     };
     const anima = liniesPissarra > 0 && rows.length === liniesPissarra + 1;
     liniesPissarra = rows.length;
+    // La línia nova, en text, per als lectors de pantalla
+    if (anima) pas.anunci = `Línia nova: ${Strings.toText(rows[rows.length - 1].line)}`;
     // Un pas que ha fet l'alumne (ja sap quina operació és) va més de pressa que un pas
     // d'un exemple resolt o el pas bo després d'un error, que l'alumne ha de mirar
     const velocitat = rows[rows.length - 1].marca ? 1 : 1.6;
-    cuaPissarra = cuaPissarra
-        .then(() => {
-            if (!anima) return pissarra.mostraPas(pas);
-            pissarra.velocitat(velocitat);
-            return pissarra.animaPas(pas);
-        })
-        .then(() => {
-            tornaFocus();
-            // Amb teclat, després d'una animació el focus va a la primera operació de la línia nova
-            const enTaula = els.stepsBox.contains(document.activeElement);
-            if (anima && !enTaula && phase === 'op' && !_finished && !isTouchDevice())
-                els.stepsBox.querySelector('.tok-btn')?.focus({ preventScroll: true });
-        });
+    pissarra.encua(pas, { anima, velocitat }).then(() => {
+        tornaFocus();
+        // Amb teclat, després d'una animació el focus va a la primera operació de la línia nova
+        const enTaula = els.stepsBox.contains(document.activeElement);
+        if (anima && !enTaula && phase === 'op' && !_finished && !isTouchDevice())
+            els.stepsBox.querySelector('.tok-btn')?.focus({ preventScroll: true });
+    });
 }
 
 function askOp() {

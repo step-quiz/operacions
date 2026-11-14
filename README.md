@@ -88,7 +88,7 @@ Els codis de les activitats que ara no en donen es mantenen reservats perquè l'
 | `area-perimetre-tutorial.html` | Tutorial d'Àrea i perímetre (enllaçat des de l'índex) |
 | `recta-numerica-tutorial.html` | Tutorial de lectura de gràfiques (l'obre el botó «Veure tutorial» de `recta-numerica.html`) |
 | `setup_vocabulari.html` | Editor de coordenades de les figures de `vocabulari.html` (eina interna) |
-| `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): tres exemples (prioritat d'operacions, una equació i una suma de fraccions); cada pas s'escriu a sota de l'anterior |
+| `pissarra-demo.html` | Demostració de la **resolució pas a pas** animada (vegeu més avall): quatre exemples (prioritat d'operacions, una equació, una suma de fraccions i el teorema de Pitàgores, on les lletres i els catets volen del triangle a la fórmula); cada pas s'escriu a sota de l'anterior |
 | `s.html` | Fitxa adaptada de la unitat 1 (Nombres reals) |
 | `arbre.html` | Arbres de factorització: l'alumne fa créixer l'arbre de factors primers d'un nombre. Pàgina autònoma, amb l'estil i el JS a dins; no fa servir el motor comú ni dona codi, i encara no l'enllaça l'índex |
 
@@ -201,7 +201,8 @@ A l'estil de Graspable Math: la resolució d'un exercici es veu en una **pissarr
   - **Prioritat d'operacions** (`prioritat.html?pissarra=1`). Sempre és «Pas a pas» i la taula és la de sempre, però quan s'hi escriu una línia nova (un pas que l'alumne encerta, un pas d'un exemple resolt o el pas bo després d'un error), els nombres de l'operació baixen a la línia nova i es fusionen en el resultat. Es pot combinar amb l'esvaïment.
   - **Equacions de 1r grau** (`equacions.html?pissarra=1`). Quan l'alumne encerta un pas, l'equació nova s'escriu a sota de les anteriors i els termes que el pas mou hi baixen volant: a la distributiva, el nombre de fora i la x baixen al terme amb x i el nombre de dins es converteix en el terme independent; quan se sumen termes o es passen d'un costat a l'altre, els termes s'ajunten en el nou; i en aïllar la x, el coeficient i el nombre de l'altre costat es fusionen en la solució.
   - **Fraccions** (`fraccions.html?pissarra=1`), suma i resta i també producte i divisió. Cada pas encertat escriu una línia nova a sota: en ampliar, cada fracció baixa i es converteix en l'equivalent amb el denominador comú; en passar la divisió a producte, el «:» es converteix en «·» i el numerador i el denominador de la segona fracció es creuen; en operar, els numeradors i el signe es fusionen en el numerador del resultat i els denominadors en el denominador; i en simplificar, la fracció baixa i es converteix en la simplificada.
-  - Si el pas l'ha fet l'alumne, l'animació és ràpida (uns 1,5 s). Les altres activitats s'aniran afegint d'una en una; el pla és a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md).
+  - Si el pas l'ha fet l'alumne, l'animació és ràpida (uns 1,5 s). Si l'ordinador té activat «reduir el moviment», els símbols no volen: la línia nova apareix fonent-se al seu lloc. La línia nova també s'anuncia en text als lectors de pantalla. Les taules i les zones de treball no canvien de mida mentre l'alumne hi treballa, i si alguna animació fallés, la línia es mostraria igualment i l'activitat continuaria.
+  - Les altres activitats s'aniran afegint d'una en una; el pla és a [`docs/pissarra/STATE.md`](docs/pissarra/STATE.md).
 - **Per veure-la funcionar:** `pissarra-demo.html`.
 
 El motor és a `js/pissarra/` (estil a `css/pissarra.css`), explicat a [`docs/pissarra/MOTOR.md`](docs/pissarra/MOTOR.md). Les proves comproven, entre altres coses, que **cada línia que es veu a la pissarra és certa** (`tests/pissarra.test.js`).

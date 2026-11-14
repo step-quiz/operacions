@@ -255,6 +255,18 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 .pis-cursor.visible {
     opacity: 1;
 }
+/* La línia nova, en text, per als lectors de pantalla (aria-live): no es veu */
+.pis-anunci {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
 
 /* ── REPRODUCTOR ──────────────────────────────────────────────────────────── */
 .pis-controls {

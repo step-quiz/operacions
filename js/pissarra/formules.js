@@ -260,7 +260,10 @@ export function enLinies(inici, peces, { ample = AMPLE_LINIA, sagnat = '\\qquad 
  *   · a la línia anterior en queda una còpia (no es mou res de les línies que ja estaven escrites);
  *   · anterior: [peces]             la línia anterior canvia alhora (p. ex. s'hi afegeix «=» al final
  *                                   o se n'hi treu una marca);
- *   · final: true                   la línia nova és el resultat (fila ressaltada).
+ *   · final: true                   la línia nova és el resultat (fila ressaltada);
+ *   · extra: { reanomena, copia }   per als símbols que vénen de fora de les línies (p. ex. d'un
+ *                                   esquema SVG d'una altra fila): s'afegeixen tal qual a les opcions
+ *                                   del pas. L.clau(r, id) diu quina clau tindrà la peça id a la línia r.
  * canvia(peces, text) canvia l'última línia sense escriure'n cap de nova (p. ex. per marcar l'operació
  * que es farà). Les claus: peça «id» de la línia r → <P><r>k<id>; la seva còpia, quan ja ha baixat a
  * la línia r + 1 → <P>c<r>k<id>. Cada línia ocupa una fila del guió (primeraFila + r).
@@ -290,7 +293,11 @@ export function linies(g, primeraFila = 0, prefix = 'L') {
 
     return Object.freeze({
         /** Escriu una línia nova a sota de les que ja hi ha (vegeu la capçalera). */
-        escriu(peces, text, { mou = {}, fusiona = {}, anterior = null, final = false, cursor = null } = {}) {
+        escriu(
+            peces,
+            text,
+            { mou = {}, fusiona = {}, anterior = null, final = false, cursor = null, extra = null } = {}
+        ) {
             const r = escrites.length;
             const opcions = {};
             if (r > 0) {
@@ -313,6 +320,8 @@ export function linies(g, primeraFila = 0, prefix = 'L') {
                     );
             }
             if (cursor) opcions.cursor = cursor;
+            if (extra)
+                for (const [nom, mapa] of Object.entries(extra)) opcions[nom] = Object.assign({}, opcions[nom], mapa);
             escrites.push({ peces, baixades: new Set() });
             if (final) g.classes[primeraFila + r] = 'final';
             pinta();
@@ -324,6 +333,8 @@ export function linies(g, primeraFila = 0, prefix = 'L') {
             pinta();
             g.afegeix(text);
         },
+        /** La clau que té (o tindrà) la peça «id» a la línia r, mentre no hagi baixat a la següent. */
+        clau: (r, id) => `${prefix}${r}k${id}`,
         get nombre() {
             return escrites.length;
         },

@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-10-27)
+## Status (2026-11-14)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -17,7 +17,21 @@ How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file win
 | 7 | Optional: `mcd-mcm`, `inversa-matriu`, `derivades`/`integrals` («Mira com es fa») | PENDING |
 
 After wave 1, David tests it with a 1r ESO group before the next waves. Waves 2 and 3 done at his request
-(27/10/2026). Next: wave 4 (`potencies` and `enters`), when David says so.
+(27/10/2026).
+
+**Since 14/11/2026 the plan goes by the stages of the engine review** (David answered 42 points in the review
+artifact; decisions below). David asked to go **step by step and human-in-the-loop**: before each stage the agent
+says what it will do, after it shows how it turned out, and David tries it before the next one.
+
+| Stage | Points | Status |
+|---|---|---|
+| 1 | Robustness and visual fidelity: R1 queue with recovery, R2 faithful ghosts, R3 warning boxes per run, R4 nothing changes size, R5 reduced motion and announcement | DONE (2026-11-14) |
+| — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
+| 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | NEXT, when David says so |
+| 3 | «Vull més detall» on the current activities: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3 option (a), D4 free | PENDING |
+| 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
+| 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
+| 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
 
 ## Decisions approved by the user
 
@@ -48,6 +62,29 @@ After wave 1, David tests it with a 1r ESO group before the next waves. Waves 2 
    only get a mark or the trailing «=» when the next line is written; never transform a line in place.
    This is a general rule for every procedure of this repository (the demo was rewritten; `prioritat`'s
    table already worked this way). Tool: `formules.js` `linies()`.
+
+2026-11-14 (engine review artifact, 42 points; letters = groups R robustness, A architecture, U use in class,
+C new capabilities, P planned activities, X existing activities, N new activities, D detail on demand):
+7. **Approved**: R1–R5, A1–A4, U1, U3, C1–C3, P1–P9, X1–X3, N1–N6, D1–D4, D6. **Rejected**: U2 adaptive speed
+   (fixed speed), U4 generic «Mira com es fa» after an error (this cancels plan item (c) of 27/10), C5 dragging
+   symbols, D5 automatic opening of the detail (**detail only on demand**). P9 (derivatives and integrals,
+   «Mira com es fa») stays approved and will use the teacher-mode player and scripts (U3), not U4.
+8. **No resizing** (R4): «no m'agrada que la taula o cap subfinestra s'eixampli i canviï la mida, perquè per a un
+   humà és un mareig». General rule for every activity.
+9. **Colour with restraint** (C3): colours only where they mean something, few marks at a time, no «festa de
+   colors» that makes students think they are watching cartoons.
+10. **Detail on demand** («Vull més detall», David's proposal of 14/11): a step can open into sub-steps
+    (1, 2, 3, 4 → 1, 2a, 2b, 2c, 3, 4) with the same start and end; the accordion sits on a grey background with
+    a small 3D effect (D2; mock-up in the review artifact); in the activities the student watches the detailed
+    step and then answers (D3 option (a)); asking is free and marked in the session history, the verification
+    code does not change (D4); pilot `equacions`.
+11. Activity notes: P4 reduction first, always the same algorithm (equation 1 times the coefficient of
+    equation 2, equation 2 times the opposite of the coefficient of equation 1, add; always x is
+    eliminated, confirmed by David on 14/11); P5 one column per step by default, two times (multiply, add) with more
+    detail; P7 the new matrix to the right with «~», algorithm from `js/esglaonar-matriu/esglaonar-matriu.js`;
+    X2 both methods (reduction to the unit and a/b = c/x → a·x = b·c); N3 for incomplete equations the student
+    chooses the short path or the formula; N4 a separate activity; N6 when a limit ends as k/0, decide the sign
+    of each one-sided limit; A4 David will give access to `step-quiz/pau`.
 
 ## Technical decisions (agent)
 
@@ -146,7 +183,31 @@ After wave 1, David tests it with a 1r ESO group before the next waves. Waves 2 
 - The board reserves the height of all the lines of a script from the first step (rows used later keep
   their height, as in `pau`): nothing jumps while lines are added.
 
+## Stage 1 and C4: how they were done (2026-11-14)
+
+- **R1** `encua(pas, {anima, velocitat})` + `enAcabar()` in `pissarra.js`; the controllers of `prioritat`,
+  `equacions` and `fraccions` lost their own `cuaPissarra`. Before, one rejected promise blocked the chain for
+  good (verified: one injected exception left `equacions` with the work line hidden forever).
+- **R2** `fantasma()` copies `ESTILS_CAIXA` from the computed style; a box that is not `inline` and whose size
+  comes from its place gets the original's width and height (inline boxes are left alone: making them
+  inline-block would move them off the baseline).
+- **R3** `trossosDeFusio()`: the sources of a fusion go into one box only if the union (with its 4 px margin)
+  covers no other keyed symbol.
+- **R4** `prioritat`: every operator and power sits in a box the size of a button (`span.tok-lloc` vs
+  `button.tok-btn`, same min-width/padding/border; note `font: inherit` resets `line-height`, so it is set again
+  after it) and the last line has an invisible «=» cell (`td.igual.reserva`), so the table width never changes
+  (it went 155 → 114 → 167 px in one step). `equacions` and `fraccions` keep the work panel's height while the
+  line animates (`min-height`, released when the next step shows).
+- **R5** reduced motion → `fonAlLloc()` (no ghosts; changed rows fade in over the old ones); `pas.anunci` →
+  `.pis-anunci` (aria-live, visually hidden); the three controllers send «Línia nova: …» (`Strings.toText`,
+  `Renderer.textLinia`).
+- **C4** an element of an SVG row with `data-k` gets a ghost that carries its own `<svg>` (viewBox = its bbox,
+  same size as its screen rect, no `katex` class); sizes compare by `midaVisual()` (font size × screen CTM scale).
+  `linies()` gained `extra` and `L.clau(r, id)` for symbols from outside the lines; demo `pitagores`.
+
 ## Known limits
 
-- Figure rows (SVG) only cross-fade (as in `pau`).
+- An SVG element that travels must not be rotated or skewed (its ghost maps the bbox with a uniform scale).
 - A keyed phrase in a text row that wraps over two lines cross-fades in place (no ghost).
+- `fraccions`' steps have different heights: the work panel keeps its height during an animation, but it
+  still changes from one kind of step to another.

@@ -20,7 +20,9 @@
  * - «Destaca»: a cada línia, l'operació que es fa a la línia següent va en
  *   blau fosc i subratllada (classe dest), també com al projecte combinades.
  * - Modalitat «Pas a pas»: a la línia de treball (l'última), els signes i les
- *   potències són botons (data-i = posició del token a la línia).
+ *   potències són botons (data-i = posició del token a la línia). A les altres
+ *   línies van dins d'un <span class="tok-lloc">, que ocupa la mateixa caixa que
+ *   un botó: així la taula no canvia d'amplada quan els botons hi són o no.
  * - «Resolució pas a pas» (?pissarra=1, js/pissarra/): amb l'opció claus, cada
  *   token, cada «=» i cada nota porten una clau (data-k) perquè la pissarra els
  *   pugui seguir d'una taula a la següent. Quan s'escriu una línia nova, els
@@ -139,18 +141,24 @@ export const Renderer = (() => {
                     if (o.red && o.red.has(i)) mark = ' hl-red';
                     else if (o.green && o.green.has(i)) mark = ' hl-green';
                     inner = `<button type="button" class="tok-btn${mark}" data-i="${i}" aria-label="${opLabel(t)}">${inner}</button>`;
+                } else if (t.k === 'op' || t.k === 'pow') {
+                    // La mateixa caixa que un botó: la taula no s'eixampla quan apareixen els botons
+                    inner = `<span class="tok-lloc">${inner}</span>`;
                 }
                 const cls = CLS[t.k] + (i >= p && i <= q ? ' dest' : '');
                 const span = t.c1 - t.c0;
                 return `<td class="${cls}"${span > 1 ? ` colspan="${span}"` : ''}>${inner}</td>`;
             });
-            const eq = k < last ? `<td class="igual">${ambClau(`e${k}`, '=')}</td>` : '';
+            // L'última línia també té la columna de l'«=», buida (un «=» invisible): quan s'hi escriu la
+            // línia següent, la taula no s'eixampla
+            const eq =
+                k < last ? `<td class="igual">${ambClau(`e${k}`, '=')}</td>` : '<td class="igual reserva">=</td>';
             // Mode «Esvaïment»: marca 'exemple' (pas resolt, en gris) o 'ajuda' (pas fet amb ajuda),
             // amb una nota al final de la línia. La línia de treball no la porta (encara s'hi treballa).
             const marca = row.marca && !active ? row.marca : '';
             const cls = [row.auto || marca === 'exemple' ? 'auto' : '', marca].filter(Boolean).join(' ');
             const nota = marca
-                ? `${k < last ? '' : '<td class="igual"></td>'}<td class="nota-pas">${ambClau(`n${k}`, marca === 'ajuda' ? Esv.notaAjuda : Esv.notaExemple)}</td>`
+                ? `<td class="nota-pas">${ambClau(`n${k}`, marca === 'ajuda' ? Esv.notaAjuda : Esv.notaExemple)}</td>`
                 : '';
             return `<tr${cls ? ` class="${cls}"` : ''}>${tds.join('')}${eq}${nota}</tr>`;
         });

@@ -94,6 +94,12 @@ export const Renderer = (() => {
         return `<div class="expr-line${linia.classe ? ' ' + linia.classe : ''}">${dins.join('')}</div>`;
     }
 
+    /** El text pla d'una línia (p. ex. «= 14/18 + 81/18»), per als lectors de pantalla. */
+    function textLinia(linia) {
+        const termes = linia.termes.map(t => (typeof t === 'string' ? t : esEnter(t) ? String(t.n) : `${t.n}/${t.d}`));
+        return (linia.pas ? ['=', ...termes] : [...termes, '=']).join(' ');
+    }
+
     /** Totes les línies, amb les claus de la pissarra. */
     function historiaHtml(historia) {
         const linies = historia.map((l, r) => liniaHtml(l, r, { claus: true, fonts: baixades(historia, r) }));
@@ -119,5 +125,5 @@ export const Renderer = (() => {
         };
     }
 
-    return { fraccioHtml, liniaHtml, historiaHtml, animacioUltimaLinia, moviments };
+    return { fraccioHtml, liniaHtml, historiaHtml, animacioUltimaLinia, moviments, textLinia };
 })();

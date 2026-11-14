@@ -93,11 +93,11 @@ let equation = null;
 let steps = [];
 let currentStepIndex = 0;
 let isPenalizing = false;
-// «Resolució pas a pas» (?pissarra=1): la pissarra de l'historial (null si no és actiu), les línies de
-// l'historial ({ left, right, inv, classe, pas }, vegeu renderer.js) i la cua d'animacions
+// «Resolució pas a pas» (?pissarra=1): la pissarra de l'historial (null si no és actiu) i les línies de
+// l'historial ({ left, right, inv, classe, pas }, vegeu renderer.js). Les pintades van a la cua del
+// motor (pissarra.encua), que no es bloqueja mai.
 const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.eqHistory, { files: 1, marc: false }) : null;
 let historia = [];
-let cuaPissarra = Promise.resolve();
 
 // La matemàtica és a math-engine.js; l'HTML dels termes, a renderer.js
 const { xT, nT, determineSteps } = MathEngine;
@@ -135,18 +135,15 @@ function addEquationToHistory(leftArr, rightArr, extraClass) {
 
 // «Resolució pas a pas»: l'historial a la pissarra. anima: la línia nova s'escriu amb animació (un pas
 // que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
-// Les pintades van en cua: una animació sempre acaba abans que comenci la següent.
+// Les pintades van a la cua del motor: una animació sempre acaba abans que comenci la següent, i si
+// una falla, la línia es mostra igualment i el joc continua.
 function pintaHistoria(anima) {
     const pas = Object.assign(
         { files: [Renderer.historiaHtml(historia)], classes: ['centrada'], text: '' },
         anima ? Renderer.animacioUltimaLinia(historia) : {}
     );
-    cuaPissarra = cuaPissarra.then(() => {
-        if (!anima) return pissarra.mostraPas(pas);
-        pissarra.velocitat(1.6);
-        return pissarra.animaPas(pas);
-    });
-    return cuaPissarra;
+    if (anima) pas.anunci = `Línia nova: ${Renderer.textLinia(historia[historia.length - 1])}`;
+    return pissarra.encua(pas, { anima, velocitat: 1.6 });
 }
 
 // ---- BUILD LEVEL (cridat per game-core) ----
@@ -407,6 +404,10 @@ function advanceStep() {
             classe: isFinal ? 'eq-solved' : 'eq-latest',
             pas: step,
         });
+        // La zona de treball s'amaga però no s'encongeix: cap finestra no canvia de mida mentre baixen
+        // els termes (i el que hi ha a sota no salta)
+        const zona = els.stepValue.parentElement;
+        zona.style.minHeight = zona.offsetHeight + 'px';
         els.stepValue.classList.remove('active');
         if (els.valueInput) els.valueInput.value = '';
         hideCustomKeyboard();
@@ -414,6 +415,7 @@ function advanceStep() {
         currentStepIndex++;
         pintaHistoria(true).then(() => {
             if (!state.isTransitioning) showCurrentStep();
+            zona.style.minHeight = '';
         });
         return;
     }

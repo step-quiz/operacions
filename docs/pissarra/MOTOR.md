@@ -12,14 +12,18 @@ Living state, decisions and the rollout plan: [`STATE.md`](STATE.md) (it wins ov
 > between two consecutive states, using *keys* as the identity of each symbol.**
 
 - A **board state** (a *pas*) is N rows. A row is TeX (rendered by KaTeX), a text paragraph (starts with
-  `§`), an SVG sketch (starts with `<svg`, only cross-fades) or **HTML** (starts with any other `<`: the
+  `§`), an SVG sketch (starts with `<svg`: it cross-fades, but its elements with `data-k`, e.g. a `<text>`,
+  travel like symbols, so a number can fly from a figure into a formula) or **HTML** (starts with any other `<`: the
   activity's own markup, inserted as is; its elements with `data-k="KEY"` move like symbols — this is how
   an activity animates the work area it already had, e.g. `prioritat`'s table). Every symbol that must be *followed* from one step to the next
   is wrapped `\htmlData{k=KEY}{…}` (helpers `clau`, `op`, `rel` in `js/pissarra/formules.js`).
 - From state A to state B the board finds every key in both, measures where KaTeX drew it, and moves it
   there. Same key → the symbol travels (and cross-fades if its content changed); keys declared in
   `fusiona: {new: ['old1', 'old2']}` fly into the new one; unmatched → fade out / fade in. Light-blue boxes
-  first mark what will change. Nothing is positioned by hand.
+  first mark what will change: one box per run of adjacent sources, and a box never covers a symbol that
+  stays. Nothing is positioned by hand. Each travelling symbol is a *ghost* (a clone) that copies the
+  computed box styles of the original (padding, borders, line-height…), so a style that came from a
+  contextual selector of the activity is not lost (it used to move the «=» of `equacions` 6 px).
 - So **the author never programs animation**: they write, like a teacher at the blackboard, *what the board
   looks like after each step* plus one short caption, and choose keys well.
 - **David's rule (27/10/2026): all intermediate steps stay written.** Each step writes a new line below;
@@ -34,12 +38,12 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 
 | File | What it is |
 |---|---|
-| `js/pissarra/formules.js` | Pure. Keys (`clau`, `marca`, `op`, `rel`, `marcat`, `tatxa`, `MARQUES`), text rows (`filaText`, `frase`), long rows (`ampleTex`, `enLinies`), **lines that stay written** (`linies`, pieces `P`, `grup`, `fraccio`), the step builder `guio(n)`. |
+| `js/pissarra/formules.js` | Pure. Keys (`clau`, `marca`, `op`, `rel`, `marcat`, `tatxa`, `MARQUES`), text rows (`filaText`, `frase`), long rows (`ampleTex`, `enLinies`), **lines that stay written** (`linies`, pieces `P`, `grup`, `fraccio`; `extra: {reanomena, copia}` and `L.clau(r, id)` for symbols that come from outside the lines, e.g. an SVG figure), the step builder `guio(n)`. |
 | `js/pissarra/comprova.js` | Pure, for tests. `comprovaGuio(passos, nFiles, nom)` → list of structural errors; `textPla(tex)` → plain text that can be evaluated; `clausDe(tex)`. |
-| `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files, marc})` → controller. Script mode: `carrega(passos)`, `seguent()`, `salta(i)`, `repeteix()`. Free mode (the activity decides each state from what the student does): `mostraPas(pas)`, `animaPas(pas)`. Both: `velocitat(v)`, `escolta(f)`, `pas`, `total`, `ocupat`, `passos`, `element`. `marc: false` hides the frame and dotted background (only the animations show). Also `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once), `textAmbFormules(text)` (captions), `element()`. |
+| `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files, marc})` → controller. Script mode: `carrega(passos)`, `seguent()`, `salta(i)`, `repeteix()`. Free mode (the activity decides each state from what the student does): **`encua(pas, {anima, velocitat})`** (the queue: one paint at a time; it never blocks — if an animation throws, it logs, shows the step without animation and the activity goes on) and `enAcabar()` (a Promise for everything queued so far); `mostraPas(pas)` / `animaPas(pas)` are the unqueued primitives. Both modes: `velocitat(v)`, `escolta(f)`, `pas`, `total`, `ocupat`, `passos`, `element`; `pas.anunci` (text) is read by an aria-live region once the step shows. `marc: false` hides the frame and dotted background (only the animations show). With `prefers-reduced-motion` no symbol travels: changed rows fade in place. Also `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once), `textAmbFormules(text)` (captions), `element()`. |
 | `js/pissarra/reproductor.js` | DOM. `creaReproductor(container, pissarra, {reprodueix, punts, velocitat, teclat})`: restart / previous / play / next buttons, one dot per step, speed, step caption. |
 | `js/pissarra/mode.js` | `SUPORTA_PISSARRA` (pages that have it), `pissarraActiva(search, page, list)` (pure), `PISSARRA_ACTIVA` (current page). |
-| `js/pissarra/demo.js`, `demo-pagina.js`, `pissarra-demo.html` | Three model scripts (order of operations, a linear equation, a sum of fractions) and the demo page. |
+| `js/pissarra/demo.js`, `demo-pagina.js`, `pissarra-demo.html` | Four model scripts (order of operations, a linear equation, a sum of fractions, and Pythagoras: the letters and the legs fly from an SVG triangle into the formula) and the demo page. |
 | `css/pissarra.css` | All the look. Every class starts with `pis-`; row classes from procedures (`final`, `separat`, `destacat`, `text`, `figura`) only apply inside `.pis-fila`. Colour = the activity's `--primary` / `--primary-light`. |
 | `tests/pissarra.test.js` | Node tests (see §6). |
 | `tests/navegador/prova-pissarra.js` | Playwright test of the demo page and of the index button (skipped when Playwright is missing). |
@@ -84,8 +88,13 @@ listed in `SUPORTA_PISSARRA`). **Reference implementation: `prioritat`** (`js/pr
 `STATE.md` «Wave 1»). Two ways:
 
 - **Animate the activity's own work area** (best for ESO: same notation as always): free mode, `marc: false`,
-  one HTML row with the activity's markup where every visible symbol has a `data-k`; call `animaPas` when a
-  new line is written and `mostraPas` for any other change; queue the calls so animations do not overlap.
+  one HTML row with the activity's markup where every visible symbol has a `data-k`; call
+  `pissarra.encua(pas, { anima: true, velocitat })` when a new line is written and `encua(pas, { anima: false })`
+  for any other change (the engine queue keeps animations from overlapping and never blocks), and
+  `pissarra.enAcabar()` to wait for it. Give an animated step an `anunci` («Línia nova: …», the new line in
+  plain text) for screen readers. **Nothing may change size while the student works** (David, 14/11/2026):
+  no table that widens when buttons appear, no work panel that collapses while a line animates (keep its
+  height).
 - **A TeX board** (like `pau`, e.g. a worked example with captions): script mode with `carrega`/`seguent`:
 
 ```js
@@ -144,7 +153,12 @@ a value, a sign, a fusion source or a caption to first person each makes a test 
 
 `tests/navegador/prova-pissarra.js` (Playwright; skipped without it): every demo step ends with exactly
 the step's keys and no leftover ghosts, at 1366×700 and 375×740, no horizontal overflow, player buttons and
-keyboard, `carregaKatex()` on a page without KaTeX, and the index button (with an activity simulated).
+keyboard, `carregaKatex()` on a page without KaTeX, the index button (with an activity simulated), the three
+activities solved by clicking, and since 14/11/2026: an injected animation failure does not stop the activity
+(§9); at the start of a movement every ghost covers its original within 0.75 px, SVG `<text>` included, and no
+warning box covers a symbol that stays (§10, with animations slowed ×25 and frozen at t = 0); `prioritat`'s
+table keeps its width and `equacions`' work panel its height (§11); reduced motion creates no ghost and the
+new line is announced (§12).
 
 ## 7. Differences from the `pau` engine (keep them in mind when syncing)
 
@@ -160,7 +174,11 @@ Source: `step-quiz/pau` `procediments/` at commit `945968a` (October 2026).
 - Added here (not in `pau`): HTML rows; free mode (`mostraPas`/`animaPas`); `marc: false`; `pas.copia`;
   rows equal except for their keys stay still, and changed rows cross-fade without the mid-way dip (in `pau`
   the whole layer fades, so unkeyed parts such as fraction bars dim at mid-transition); the board grows
-  before a taller step; `linies()` (lines that stay written). These are candidates to port back to `pau`.
+  before a taller step; `linies()` (lines that stay written). Since 14/11/2026 also: the free-mode queue
+  `encua`/`enAcabar` with failure recovery, ghosts that copy the original's box styles, warning boxes per run
+  of adjacent sources, reduced motion as a fade in place, `pas.anunci` (aria-live) and keyed SVG elements
+  (the ghost carries its own `<svg>` with the element's bbox as viewBox; it must not keep the `katex` class,
+  whose CSS makes any inner `svg` absolute and 100 % wide). These are candidates to port back to `pau`.
 - Maths writers (`mates.js`, polynomials, equation solvers, matrices) are **not** ported yet: port each one
   with the first activity that needs it (fractions → `Fraccio`; Batxillerat matrices → `matrius.js`).
 
