@@ -8,6 +8,11 @@
  */
 
 import { FixedSessions } from '../fixed-sessions.js';
+import { initCustomKeyboard, injectaTeclat } from '../teclat.js';
+
+// Teclat numèric comú (js/teclat.js) per als aparells tàctils: la tecla «→» fa el mateix que Enter
+injectaTeclat(document.querySelector('.app-card'));
+initCustomKeyboard({ allowNegative: true });
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -195,7 +200,7 @@ function renderManualInput() {
     for (let i = 0; i < 3; i++)
         for (let j = 0; j < 3; j++) {
             const cell = el('div', 'cell');
-            cell.innerHTML = `<input type="number" id="m${i}${j}" placeholder="?" onfocus="this.select()">`;
+            cell.innerHTML = `<input type="text" inputmode="numeric" id="m${i}${j}" placeholder="?" onfocus="this.select()">`;
             grid.appendChild(cell);
         }
     block.appendChild(grid);
@@ -348,7 +353,7 @@ function renderDet(c) {
     const area = el('div', 'det-area');
     area.innerHTML = `
         <div class="det-label">det(A) =</div>
-        <input type="number" id="detInput" class="det-input" placeholder="?" onfocus="this.select()">`;
+        <input type="text" inputmode="numeric" id="detInput" class="det-input" placeholder="?" onfocus="this.select()">`;
     right.appendChild(area);
     c.appendChild(right);
     c.appendChild(actionBtn());
@@ -405,7 +410,7 @@ function renderCofactors(c) {
         for (let j = 0; j < 3; j++) {
             const cell = el('div', 'cell');
             cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
-            cell.innerHTML = `<input type="number" id="cof${i}${j}" placeholder="?"
+            cell.innerHTML = `<input type="text" inputmode="numeric" id="cof${i}${j}" placeholder="?"
             onfocus="hlCofactor(${i},${j}); this.select()" onblur="clrHl()">`;
             gridC.appendChild(cell);
         }
@@ -436,7 +441,7 @@ function renderTranspose(c) {
         for (let j = 0; j < 3; j++) {
             const cell = el('div', 'cell');
             cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
-            cell.innerHTML = `<input type="number" id="tr${i}${j}" placeholder="?" onfocus="this.select()">`;
+            cell.innerHTML = `<input type="text" inputmode="numeric" id="tr${i}${j}" placeholder="?" onfocus="this.select()">`;
             gridT.appendChild(cell);
         }
     right.appendChild(gridT);
@@ -526,7 +531,7 @@ function renderCofactorsB(c) {
             const cell = el('div', 'cell');
             cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
             // id="cof…" per reutilitzar checkCofactors i showAnswer
-            cell.innerHTML = `<input type="number" id="cof${i}${j}" placeholder="?"
+            cell.innerHTML = `<input type="text" inputmode="numeric" id="cof${i}${j}" placeholder="?"
             onfocus="hlCofactor(${i},${j}); this.select()" onblur="clrHl()">`;
             gridC.appendChild(cell);
         }
@@ -608,7 +613,7 @@ function renderAdjugate(c) {
         for (let j = 0; j < 3; j++) {
             const cell = el('div', 'cell');
             cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
-            cell.innerHTML = `<input type="number" id="adj${i}${j}" placeholder="?" onfocus="this.select()">`;
+            cell.innerHTML = `<input type="text" inputmode="numeric" id="adj${i}${j}" placeholder="?" onfocus="this.select()">`;
             gridAdj.appendChild(cell);
         }
     right.appendChild(gridAdj);
@@ -640,7 +645,7 @@ function renderInverse(c) {
             for (let j = 0; j < 3; j++) {
                 const cell = el('div', 'cell');
                 cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
-                cell.innerHTML = `<input type="number" id="inv${i}${j}" placeholder="?" onfocus="this.select()">`;
+                cell.innerHTML = `<input type="text" inputmode="numeric" id="inv${i}${j}" placeholder="?" onfocus="this.select()">`;
                 gridInv.appendChild(cell);
             }
         right.appendChild(gridInv);
@@ -672,9 +677,9 @@ function renderInverse(c) {
         // fracció p/q inline
         const frac = el('div', 'inline-frac');
         frac.innerHTML = `
-            <input type="number" id="scalarNum" class="frac-num-inp" placeholder="p" onfocus="this.select()">
+            <input type="text" inputmode="numeric" id="scalarNum" class="frac-num-inp" placeholder="p" onfocus="this.select()">
             <div class="frac-hbar"></div>
-            <input type="number" id="scalarDen" class="frac-den-inp" placeholder="q" onfocus="this.select()">`;
+            <input type="text" inputmode="numeric" id="scalarDen" class="frac-den-inp" placeholder="q" onfocus="this.select()">`;
         row.appendChild(frac);
 
         // punt de multiplicació ·
@@ -688,7 +693,7 @@ function renderInverse(c) {
             for (let j = 0; j < 3; j++) {
                 const cell = el('div', 'cell');
                 cell.style.animationDelay = `${(i * 3 + j) * 0.022}s`;
-                cell.innerHTML = `<input type="number" id="inv${i}${j}" placeholder="?" onfocus="this.select()">`;
+                cell.innerHTML = `<input type="text" inputmode="numeric" id="inv${i}${j}" placeholder="?" onfocus="this.select()">`;
                 gridInv.appendChild(cell);
             }
         row.appendChild(gridInv);

@@ -8,6 +8,14 @@
  */
 
 import { FixedSessions } from '../fixed-sessions.js';
+import {
+    hideCustomKeyboard,
+    initCustomKeyboard,
+    injectaTeclat,
+    isTouchDevice,
+    kbMarkForOverwrite,
+    showCustomKeyboard,
+} from '../teclat.js'; // el teclat numèric comú
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -423,9 +431,6 @@ function buildTable(r) {
     setTimeout(() => autoFillFirst(), T_AUTOFILL_DELAY);
 }
 
-// ─── DETECCIÓ TÀCTIL ─────────────────────────────────────────────────────
-const isTouchDevice = () => window.matchMedia('(pointer: coarse) and (hover: none)').matches;
-
 function makeInput(dIdx, j) {
     const inp = document.createElement('input');
     inp.type = 'text';
@@ -461,7 +466,6 @@ function activateNextCell() {
     inp.removeAttribute('readonly');
     inp.value = '';
     inp.classList.remove('confirmed', 'confirmed-root', 'anim-pop', 'kb-selected');
-    kbClearOnNext = false;
 
     if (isTouchDevice()) {
         inp.setAttribute('readonly', true);
@@ -480,53 +484,8 @@ function onKeyDown(e) {
     }
 }
 
-// ─── TECLAT CUSTOM ───────────────────────────────────────────────────────
-let activeKbInput = null;
-let kbClearOnNext = false; // quan true, el proper dígit sobreescriu el valor (simula "tot seleccionat")
-
-function showCustomKeyboard(inp) {
-    activeKbInput = inp;
-    document.getElementById('customKeyboard').classList.add('kb-visible');
-    inp.focus();
-    // Scroll suau per assegurar que la cel·la activa és visible per sobre del teclat
-    setTimeout(() => inp.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
-}
-
-function hideCustomKeyboard() {
-    document.getElementById('customKeyboard').classList.remove('kb-visible');
-    activeKbInput = null;
-}
-
-function initCustomKeyboard() {
-    document.querySelectorAll('#customKeyboard .kb-btn').forEach(btn => {
-        btn.addEventListener('pointerdown', e => {
-            e.preventDefault();
-            if (!activeKbInput) return;
-            const key = btn.dataset.key;
-            if (key === 'del') {
-                kbClearOnNext = false;
-                activeKbInput.classList.remove('kb-selected');
-                activeKbInput.value = activeKbInput.value.slice(0, -1);
-            } else if (key === 'enter') {
-                checkCurrentCell();
-            } else if (key === '-') {
-                kbClearOnNext = false;
-                activeKbInput.classList.remove('kb-selected');
-                if (activeKbInput.value === '' || activeKbInput.value === '-')
-                    activeKbInput.value = activeKbInput.value === '-' ? '' : '-';
-            } else {
-                // Dígit
-                if (kbClearOnNext) {
-                    activeKbInput.value = '';
-                    kbClearOnNext = false;
-                    activeKbInput.classList.remove('kb-selected');
-                }
-                if (activeKbInput.value === '-0') activeKbInput.value = '-';
-                activeKbInput.value += key;
-            }
-        });
-    });
-}
+// ─── TECLAT ──────────────────────────────────────────────────────────────
+// El teclat numèric comú (js/teclat.js); la tecla «→» comprova la cel·la activa.
 
 // ─── COMPROVACIÓ D'UNA CEL·LA ────────────────────────────────────────────
 function checkCurrentCell() {
@@ -549,8 +508,7 @@ function checkCurrentCell() {
         errorCount++;
         updateErrorsBtn();
         if (isTouchDevice()) {
-            kbClearOnNext = true;
-            inp.classList.add('kb-selected');
+            kbMarkForOverwrite(inp);
         } else {
             inp.select();
         }
@@ -742,6 +700,7 @@ function polyToHTMLShort(coeffs) {
 
 // ─── ARRENCADA ───────────────────────────────────────────────────────────
 window.onload = () => {
-    initCustomKeyboard();
+    injectaTeclat(document.getElementById('lloc-teclat'));
+    initCustomKeyboard({ allowNegative: true, onEnter: checkCurrentCell });
     initApp();
 };

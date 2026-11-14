@@ -71,6 +71,7 @@ import { FixedSessions } from './fixed-sessions.js';
 import { ESVAIMENT } from './esvaiment.js'; // mode «Esvaïment» (?esvaiment=1): no dona codi
 import { PUNTS_MAX, puntsAmbErrors, validaPunts } from './punts.js'; // la regla única dels punts
 import { mostraSeguent } from './seguent.js'; // la franja del final de pregunta amb el botó «Següent»
+import { hideCustomKeyboard, injectaTeclat } from './teclat.js'; // el teclat numèric propi
 
 // ── NOMBRE MÀXIM DE RESULTATS AL CODI ────────────────────────────────────────
 // El generador d'enllaços permet fins a 5 sessions × 10 preguntes = 50.
@@ -311,11 +312,8 @@ export function injectSharedHTML() {
     const panel = document.querySelector('.panel');
     if (!gameScreen || !panel) return;
 
-    // 1. Teclat numeric
-    const kb = document.createElement('div');
-    kb.id = 'customKeyboard';
-    kb.innerHTML = `<div class="kb-grid"><button class="kb-btn" data-key="7">7</button><button class="kb-btn" data-key="8">8</button><button class="kb-btn" data-key="9">9</button><button class="kb-btn kb-del" data-key="del">⌫</button><button class="kb-btn" data-key="4">4</button><button class="kb-btn" data-key="5">5</button><button class="kb-btn" data-key="6">6</button><button class="kb-btn kb-minus" data-key="-">−</button><button class="kb-btn" data-key="1">1</button><button class="kb-btn" data-key="2">2</button><button class="kb-btn" data-key="3">3</button><button class="kb-btn kb-enter" data-key="enter">→</button><button class="kb-btn kb-zero" data-key="0">0</button></div>`;
-    panel.appendChild(kb);
+    // 1. Teclat numèric (js/teclat.js)
+    injectaTeclat(panel);
 
     // 2. Fi de sessio
     const sessionEnd = document.createElement('div');
@@ -339,177 +337,18 @@ export function injectSharedHTML() {
     }
 }
 
-// ── TECLAT NUMERIC CUSTOM ────────────────────────────────────────────────────
-export function isTouchDevice() {
-    return window.matchMedia('(pointer: coarse) and (hover: none)').matches;
-}
-let _kbActiveInput = null;
-let _kbClearOnNext = false;
-let _kbTocDelegat = false;
-
-/**
- * Casella que pot fer servir el teclat numèric: un <input> de text o de número dins del panell
- * del joc (.panel). Un joc en pot excloure una amb data-kb="off".
- */
-function esCasellaTeclat(el) {
-    if (!(el instanceof HTMLInputElement)) return false;
-    if (el.type !== 'text' && el.type !== 'number') return false;
-    if (el.dataset.kb === 'off') return false;
-    return !!el.closest('.panel');
-}
-
-// Opcions: allowNegative (tecla −), allowZero (tecla 0), decimalComma (la tecla − passa a ser la
-// coma decimal «,»: per a activitats amb respostes decimals i sense nombres negatius) i
-// respectMaxLength (el teclat no escriu més caràcters que el maxlength de l'input).
-export function initCustomKeyboard(options = {}) {
-    const allowNeg = options.allowNegative ?? false;
-    const allowZero = options.allowZero ?? true;
-    const respectMaxLength = options.respectMaxLength ?? false;
-    const grid = document.querySelector('#customKeyboard .kb-grid');
-    if (grid) {
-        if (!allowNeg) grid.classList.add('kb-no-minus');
-        else grid.classList.remove('kb-no-minus');
-        if (!allowZero) grid.classList.add('kb-no-zero');
-        else grid.classList.remove('kb-no-zero');
-    }
-    if (options.decimalComma) {
-        const minusBtn = document.querySelector('#customKeyboard .kb-minus');
-        if (minusBtn) {
-            minusBtn.dataset.key = ',';
-            minusBtn.textContent = ',';
-            minusBtn.classList.remove('kb-minus');
-        }
-    }
-    document.querySelectorAll('#customKeyboard .kb-btn').forEach(btn => {
-        btn.addEventListener('pointerdown', e => {
-            e.preventDefault();
-            if (!_kbActiveInput) return;
-            const key = btn.dataset.key;
-            if (key === 'del') {
-                if (_kbClearOnNext) {
-                    _kbActiveInput.value = '';
-                    _kbClearOnNext = false;
-                    _kbActiveInput.classList.remove('kb-selected');
-                } else _kbActiveInput.value = _kbActiveInput.value.slice(0, -1);
-            } else if (key === 'enter') {
-                if (typeof window.checkCurrentCell === 'function') window.checkCurrentCell();
-            } else if (key === ',') {
-                if (_kbClearOnNext) {
-                    _kbActiveInput.value = '';
-                    _kbClearOnNext = false;
-                    _kbActiveInput.classList.remove('kb-selected');
-                }
-                const v = _kbActiveInput.value;
-                if (v.includes(',')) return; // una sola coma decimal
-                _kbActiveInput.value = v === '' || v === '-' ? v + '0,' : v + ',';
-            } else if (key === '-') {
-                if (_kbClearOnNext) {
-                    _kbActiveInput.value = '-';
-                    _kbClearOnNext = false;
-                    _kbActiveInput.classList.remove('kb-selected');
-                } else {
-                    const v = _kbActiveInput.value;
-                    if (v === '') _kbActiveInput.value = '-';
-                    else if (v === '-') _kbActiveInput.value = '';
-                }
-            } else {
-                if (_kbClearOnNext) {
-                    _kbActiveInput.value = '';
-                    _kbClearOnNext = false;
-                    _kbActiveInput.classList.remove('kb-selected');
-                }
-                if (_kbActiveInput.value === '-0') _kbActiveInput.value = '-';
-                if (respectMaxLength) {
-                    const maxLen = _kbActiveInput.maxLength;
-                    if (maxLen > 0 && _kbActiveInput.value.length >= maxLen) return;
-                }
-                _kbActiveInput.value += key;
-            }
-        });
-    });
-    // En tàctils, qualsevol casella numèrica que l'alumne toqui passa a rebre el teclat propi,
-    // encara que el joc no l'hagi activada mai amb showCustomKeyboard(). Abans, en tocar la
-    // segona casella d'una pregunta (perímetre, exponent…) s'obria el teclat del sistema i el
-    // propi continuava escrivint a la primera. Un sol listener per a tota la pàgina, en fase de
-    // captura, perquè també valgui per a les caselles que el joc crea a cada pregunta.
-    if (!_kbTocDelegat) {
-        _kbTocDelegat = true;
-        document.addEventListener(
-            'pointerdown',
-            e => {
-                if (!isTouchDevice()) return;
-                const inp = e.target instanceof Element ? e.target.closest('input') : null;
-                if (!inp || !esCasellaTeclat(inp)) return;
-                if (inp.dataset.locked === 'true' || inp.disabled) return;
-                e.preventDefault();
-                showCustomKeyboard(inp);
-            },
-            true
-        );
-    }
-    window.addEventListener('orientationchange', () => {
-        const kb = document.getElementById('customKeyboard');
-        if (!_kbActiveInput || !kb || !kb.classList.contains('kb-visible')) return;
-        setTimeout(() => kb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
-    });
-    // [FIX C3] En tàctils, pre-establir inputmode="none" a tots els inputs
-    if (isTouchDevice()) {
-        document.querySelectorAll('#game-screen input[type="text"], #game-screen input[type="number"]').forEach(inp => {
-            inp.setAttribute('inputmode', 'none');
-        });
-    }
-}
-
-// Un input amb data-locked="true" (resposta ja encertada) no s'activa mai.
-export function showCustomKeyboard(inp) {
-    if (inp && inp.dataset.locked === 'true') return;
-    if (_kbActiveInput) _kbActiveInput.classList.remove('kb-active-input');
-    _kbActiveInput = inp;
-    _kbClearOnNext = false;
-    inp.setAttribute('inputmode', 'none');
-    inp.setAttribute('readonly', 'readonly');
-    inp.classList.add('kb-active-input');
-    const kb = document.getElementById('customKeyboard');
-    if (kb) {
-        kb.classList.add('kb-visible');
-        setTimeout(() => kb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-    }
-    inp.focus();
-}
-
-export function hideCustomKeyboard() {
-    const kb = document.getElementById('customKeyboard');
-    if (kb) kb.classList.remove('kb-visible');
-    if (_kbActiveInput) {
-        _kbActiveInput.classList.remove('kb-active-input');
-        // Un input bloquejat (data-locked="true") es queda en només lectura
-        if (_kbActiveInput.dataset.locked !== 'true') {
-            _kbActiveInput.removeAttribute('readonly');
-            // [FIX C3] En tàctils, mantenim inputmode="none"
-            if (!isTouchDevice()) _kbActiveInput.removeAttribute('inputmode');
-        }
-    }
-    _kbActiveInput = null;
-    _kbClearOnNext = false;
-}
-
-/** Input on escriu ara el teclat numèric (null si no n'hi ha cap). */
-export function getKbActiveInput() {
-    return _kbActiveInput;
-}
-
-/** Si `inp` és l'input actiu del teclat, el deixa de ser (sense amagar el teclat). */
-export function kbReleaseInput(inp) {
-    if (_kbActiveInput === inp) {
-        inp.classList.remove('kb-active-input');
-        _kbActiveInput = null;
-    }
-}
-
-export function kbMarkForOverwrite(inp) {
-    _kbClearOnNext = true;
-    inp.classList.add('kb-selected');
-}
+// ── TECLAT NUMÈRIC ───────────────────────────────────────────────────────────
+// És a js/teclat.js (el fan servir també les pàgines sense aquest motor); els jocs
+// el continuen important d'aquí.
+export {
+    getKbActiveInput,
+    hideCustomKeyboard,
+    initCustomKeyboard,
+    isTouchDevice,
+    kbMarkForOverwrite,
+    kbReleaseInput,
+    showCustomKeyboard,
+} from './teclat.js';
 
 // ── HISTORIAL (resum textual pantalla final) ─────────────────────────────────
 export function escapeHtml(unsafe) {

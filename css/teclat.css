@@ -1,0 +1,148 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/teclat.css
+ROL: El teclat numèric propi (js/teclat.js), per als aparells tàctils.
+ARQUITECTURA:
+- Un sol teclat per a totes les activitats que en tenen, amb el motor comú o
+  sense (Complexos, Ruffini, Esglaonar, Inversa, Rectes i plans).
+- Graella de 4 columnes (3 dígits + acció), centrada sota l'exercici.
+- Va després de shared.css (si la pàgina el carrega) i abans del CSS propi.
+DEPENDÈNCIES: css/tokens.css, css/temes.css.
+============================================================================
+*/
+
+#customKeyboard {
+    display: none;
+    background: var(--bg-soft-alt);
+    border: 2px solid var(--border-heavy);
+    border-radius: 12px;
+    padding: 12px 12px 16px;
+    margin: 12px auto 0; /* centrat sota l'exercici */
+    width: 100%;
+    max-width: 700px;
+    box-sizing: border-box;
+}
+#customKeyboard.kb-visible {
+    display: block;
+}
+
+.kb-grid {
+    display: grid;
+    grid-template-columns: 58px 58px 58px 80px;
+    gap: 8px;
+    justify-content: center;
+}
+
+.kb-btn {
+    height: 52px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-heavy);
+    background: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main);
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--border-heavy);
+    transition: 0.08s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    user-select: none;
+}
+.kb-btn:active {
+    transform: translateY(2px);
+    box-shadow: none;
+}
+
+.kb-btn.kb-enter {
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: white;
+    box-shadow: 0 2px 0 var(--primary-dark);
+    font-size: 1.5rem;
+}
+.kb-btn.kb-minus {
+    background: var(--bg-color);
+    color: var(--primary);
+}
+.kb-btn.kb-del {
+    background: #fff1f2;
+    border-color: var(--danger-border);
+    color: var(--danger-dark);
+    font-size: 1.1rem;
+}
+
+/* Quan el joc no necessita negatius, el − queda invisible però manté l'espai al grid */
+.kb-grid.kb-no-minus .kb-minus {
+    visibility: hidden;
+}
+/* Quan el joc no necessita el zero */
+.kb-grid.kb-no-zero .kb-zero {
+    visibility: hidden;
+}
+
+/* Estil d'input "seleccionat" pel teclat custom (simula text seleccionat) */
+.kb-selected {
+    background: var(--primary-light) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+/* Input actiu del teclat custom: fons blau clar per indicar on s'escriu */
+.kb-active-input {
+    background-color: var(--primary-light) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent) !important;
+    transition:
+        background-color 0.15s,
+        border-color 0.15s,
+        box-shadow 0.15s !important;
+}
+
+/* Tauletes en vertical (601-819 px): tecles més grans */
+@media (min-width: 601px) and (max-width: 819px) and (pointer: coarse) {
+    .kb-grid {
+        grid-template-columns: 66px 66px 66px 88px;
+        gap: 8px;
+    }
+    .kb-btn {
+        height: 54px;
+        font-size: 1.35rem;
+        border-radius: 11px;
+    }
+    .kb-btn.kb-enter {
+        font-size: 1.5rem;
+    }
+}
+
+/* Mòbil apaïsat: teclat compacte; amb el motor comú (.panel), a la columna de la dreta */
+@media (orientation: landscape) and (max-height: 600px) {
+    .kb-grid {
+        grid-template-columns: 48px 48px 48px 64px;
+        gap: 5px;
+    }
+    .kb-btn {
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    .kb-btn.kb-enter {
+        font-size: 1.2rem;
+    }
+
+    /* Columna dreta: el teclat fixat al mínim imprescindible.
+       243px = 3×48 + 64 (botons) + 3×5 (gaps) + 2×10 (padding).   */
+    .panel > #customKeyboard {
+        flex: 0 0 243px;
+        width: 243px;
+        margin-top: 0;
+        padding: 10px 10px 12px;
+        border-top: none;
+        border-left: 2px solid var(--border-heavy);
+        border-right: none;
+        border-bottom: none;
+        border-radius: 0;
+        align-self: center;
+    }
+}

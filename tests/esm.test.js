@@ -31,6 +31,7 @@ const BASE = [
     'js/punts.js',
     'js/seguent.js',
     'js/codi-finestra.js',
+    'js/teclat.js',
     'js/game-core.js',
 ];
 const modules = listFiles('js', ['.js'])

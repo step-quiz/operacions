@@ -6,6 +6,7 @@
     <title>Nombres Complexos</title>
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/temes.css">
+    <link rel="stylesheet" href="css/teclat.css">
     <style>
         :root {
             --gris: var(--text-muted);
@@ -148,15 +149,6 @@
         /* ── TECLAT CUSTOM ────────────────────────────────────── */
         input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
         input[type=number]{-moz-appearance:textfield}
-        #customKeyboard{display:none;background:var(--bg-soft-alt);border:2px solid var(--border-heavy);border-radius:12px;padding:12px 12px 16px;margin-top:12px}
-        #customKeyboard.kb-visible{display:block}
-        .kb-grid{display:grid;grid-template-columns:58px 58px 58px 80px;gap:8px;justify-content:center}
-        .kb-btn{height:52px;border-radius:10px;border:1.5px solid var(--border-heavy);background:white;font-size:1.3rem;font-weight:700;color:var(--text-main);cursor:pointer;box-shadow:0 2px 0 var(--border-heavy);transition:.08s;display:flex;align-items:center;justify-content:center}
-        .kb-btn:active{transform:translateY(2px);box-shadow:none}
-        .kb-btn.kb-enter{background:var(--primary);border-color:var(--primary-dark);color:white;box-shadow:0 2px 0 var(--primary-dark);font-size:1.5rem}
-        .kb-btn.kb-minus{background:var(--bg-soft);color:var(--primary)}
-        .kb-btn.kb-del{background:#fff1f2;border-color:var(--danger-border);color:var(--danger-dark);font-size:1.1rem}
-        .kb-btn.kb-zero{grid-column:1}
 
         /* ── RESPONSIVE ───────────────────────────────────────── */
         @media(max-width:600px){
@@ -189,9 +181,7 @@
             h1{font-size:1.1rem;margin:4px 0 8px} .app-card{padding:10px 14px}
             .hint-box{padding:6px 12px;font-size:.78rem;margin-bottom:10px}
             .ops-tab{padding:8px 4px;font-size:.75rem}
-            .kb-grid{grid-template-columns:48px 48px 48px 64px;gap:5px}
-            .kb-btn{height:40px;font-size:1.1rem} .kb-btn.kb-enter{font-size:1.2rem}
-            #customKeyboard{padding:7px 10px 10px;margin-top:8px}
+
         }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
@@ -199,7 +189,7 @@
 <body>
 
 <div class="title-row">
-    <a href="https://step-quiz.net" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
+    <a href="index.html" class="home-icon-link" title="Tornar a l'inici" aria-label="Tornar a l'inici">
         <img src="icon.png" alt="Inici">
     </a>
     <h1>Nombres Complexos</h1>
@@ -276,24 +266,7 @@
         </div>
     </div>
 
-    <!-- ═══ TECLAT COMPARTIT ════════════════════════════════ -->
-    <div id="customKeyboard">
-        <div class="kb-grid">
-            <button class="kb-btn" data-key="7">7</button>
-            <button class="kb-btn" data-key="8">8</button>
-            <button class="kb-btn" data-key="9">9</button>
-            <button class="kb-btn kb-del" data-key="del">⌫</button>
-            <button class="kb-btn" data-key="4">4</button>
-            <button class="kb-btn" data-key="5">5</button>
-            <button class="kb-btn" data-key="6">6</button>
-            <button class="kb-btn kb-minus" data-key="-">−</button>
-            <button class="kb-btn" data-key="1">1</button>
-            <button class="kb-btn" data-key="2">2</button>
-            <button class="kb-btn" data-key="3">3</button>
-            <button class="kb-btn kb-enter" data-key="enter">→</button>
-            <button class="kb-btn kb-zero" data-key="0">0</button>
-        </div>
-    </div>
+    <div id="lloc-teclat"></div><!-- el teclat numèric (js/teclat.js) es posa aquí -->
 </div>
 
 <script type="module" src="js/complexos/complexos.js"></script>

@@ -758,14 +758,8 @@ function checkCurrentCell() {
 injectSharedHTML();
 validateConfig();
 
-// Teclat custom: tecla ',' en lloc de '−' (no hi ha imports negatius)
-initCustomKeyboard({ allowNegative: true });
-const minusBtn = document.querySelector('.kb-btn.kb-minus');
-if (minusBtn) {
-    minusBtn.dataset.key = ',';
-    minusBtn.textContent = ',';
-    minusBtn.classList.remove('kb-minus');
-}
+// Teclat custom: la coma decimal en lloc del − (no hi ha imports negatius)
+initCustomKeyboard({ decimalComma: true });
 
 // ── Botó "Passar al nivell X" ────────────────────────────────
 // CANVI UX: permet pujar de nivell (mai baixar) en qualsevol moment.

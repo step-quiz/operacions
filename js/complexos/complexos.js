@@ -9,6 +9,15 @@
 
 import { FixedSessions } from '../fixed-sessions.js';
 import { parseStrictInt, randInt } from '../utils.js';
+import {
+    getKbActiveInput,
+    hideCustomKeyboard,
+    initCustomKeyboard,
+    injectaTeclat,
+    isTouchDevice,
+    kbMarkForOverwrite,
+    showCustomKeyboard,
+} from '../teclat.js'; // el teclat numèric comú (la part imaginària porta el signe a part: data-sign-id)
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -106,7 +115,6 @@ function htmlFrac(num, den, extraClass) {
     const cls = 'frac' + (extraClass ? ' ' + extraClass : '');
     return `<span class="${cls}"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
 }
-const isTouchDevice = () => window.matchMedia('(pointer: coarse) and (hover: none)').matches;
 
 // ─── TABS ─────────────────────────────────────────────────────────
 function switchOp(op, btn) {
@@ -128,19 +136,8 @@ function setupInput(inp) {
     inp.removeEventListener('keydown', onKeyDown);
     inp.addEventListener('keydown', onKeyDown);
     if (isTouchDevice()) {
-        inp.setAttribute('readonly', true);
+        // El teclat comú (js/teclat.js) s'encarrega dels tocs: la casella tocada passa a rebre'l
         inp.inputMode = 'none';
-        inp.addEventListener('pointerdown', function () {
-            if (!inp.disabled) {
-                activeKbInput = inp;
-                kbClearOnNext = false;
-                setTimeout(() => {
-                    const kb = document.getElementById('customKeyboard');
-                    if (kb.classList.contains('kb-visible'))
-                        kb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 50);
-            }
-        });
     } else {
         inp.removeAttribute('readonly');
         inp.inputMode = 'numeric';
@@ -164,11 +161,8 @@ function tabToNext(current) {
     if (!inputs.length) return;
     const idx = inputs.indexOf(current);
     const next = inputs[(idx + 1) % inputs.length];
-    next.focus();
-    if (isTouchDevice()) {
-        activeKbInput = next;
-        kbClearOnNext = false;
-    }
+    if (isTouchDevice()) showCustomKeyboard(next);
+    else next.focus();
 }
 function onEnterPressed() {
     if (currentOp === 'sumaresta') enterSR();
@@ -177,16 +171,16 @@ function onEnterPressed() {
 }
 function focusInput(inp) {
     if (isTouchDevice()) {
-        activeKbInput = inp;
-        if (!document.getElementById('customKeyboard').classList.contains('kb-visible')) showCustomKeyboard(inp);
+        const sobreescriu = inp.classList.contains('kb-selected');
+        showCustomKeyboard(inp);
+        if (sobreescriu) kbMarkForOverwrite(inp); // la tecla següent en substitueix el contingut
     } else {
         setTimeout(() => inp.focus(), T_FOCUS_DELAY);
     }
 }
 function selectInputContent(inp) {
     if (isTouchDevice()) {
-        kbClearOnNext = true;
-        inp.classList.add('kb-selected');
+        kbMarkForOverwrite(inp);
     } else {
         setTimeout(() => {
             inp.focus();
@@ -236,13 +230,12 @@ function genericEnter2(panelId) {
     const panel = document.getElementById(panelId);
     const inputs = [...panel.querySelectorAll('.step-input:not(:disabled)')];
     if (!inputs.length) return 'check';
-    const cur = activeKbInput || document.activeElement;
+    const cur = getKbActiveInput() || document.activeElement;
     const hasVal = v => v.trim() !== '' && v.trim() !== '-';
     if (cur && hasVal(cur.value)) {
         const empty = inputs.find(i => i !== cur && !hasVal(i.value));
         if (empty) {
             focusInput(empty);
-            if (isTouchDevice()) activeKbInput = empty;
             return 'jumped';
         }
     }
@@ -564,13 +557,12 @@ function enterDV1() {
         checkDV1();
         return;
     }
-    const cur = activeKbInput || document.activeElement;
+    const cur = getKbActiveInput() || document.activeElement;
     const hasVal = v => v.trim() !== '' && v.trim() !== '-';
     if (cur && hasVal(cur.value)) {
         const empty = inputs.find(i => i !== cur && !hasVal(i.value));
         if (empty) {
             focusInput(empty);
-            if (isTouchDevice()) activeKbInput = empty;
             return;
         }
     }
@@ -733,13 +725,12 @@ function enterDV2() {
         checkDV2();
         return;
     }
-    const cur = activeKbInput || document.activeElement;
+    const cur = getKbActiveInput() || document.activeElement;
     const hasVal = v => v.trim() !== '' && v.trim() !== '-';
     if (cur && hasVal(cur.value)) {
         const empty = inputs.find(i => i !== cur && !hasVal(i.value));
         if (empty) {
             focusInput(empty);
-            if (isTouchDevice()) activeKbInput = empty;
             return;
         }
     }
@@ -887,72 +878,9 @@ function checkDV2() {
     }
     if (firstWrong) focusInput(firstWrong);
 }
-// ════════════════════════════════════════════════════════════════════
-// TECLAT CUSTOM
-// ════════════════════════════════════════════════════════════════════
-let activeKbInput = null,
-    kbClearOnNext = false;
-function showCustomKeyboard(inp) {
-    activeKbInput = inp;
-    const kb = document.getElementById('customKeyboard');
-    kb.classList.add('kb-visible');
-    inp.focus();
-    setTimeout(() => kb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-}
-function hideCustomKeyboard() {
-    document.getElementById('customKeyboard').classList.remove('kb-visible');
-    activeKbInput = null;
-}
-function initCustomKeyboard() {
-    document.querySelectorAll('#customKeyboard .kb-btn').forEach(btn => {
-        btn.addEventListener('pointerdown', e => {
-            e.preventDefault();
-            if (!activeKbInput) return;
-            const key = btn.dataset.key;
-            if (key === 'del') {
-                if (kbClearOnNext) {
-                    activeKbInput.value = '';
-                    kbClearOnNext = false;
-                    activeKbInput.classList.remove('kb-selected');
-                } else {
-                    activeKbInput.value = activeKbInput.value.slice(0, -1);
-                }
-            } else if (key === 'enter') {
-                onEnterPressed();
-            } else if (key === '-') {
-                /* [ROUND 1] Im fields: commuta el span de signe en lloc d'escriure '-' */
-                if (activeKbInput.dataset.signId) {
-                    const span = document.getElementById(activeKbInput.dataset.signId);
-                    if (span) span.textContent = span.textContent.trim() === '−' ? '+' : '−';
-                } else {
-                    if (kbClearOnNext) {
-                        activeKbInput.value = '-';
-                        kbClearOnNext = false;
-                        activeKbInput.classList.remove('kb-selected');
-                    } else {
-                        if (activeKbInput.value === '' || activeKbInput.value === '-')
-                            activeKbInput.value = activeKbInput.value === '-' ? '' : '-';
-                    }
-                }
-            } else {
-                if (kbClearOnNext) {
-                    activeKbInput.value = '';
-                    kbClearOnNext = false;
-                    activeKbInput.classList.remove('kb-selected');
-                    /* [ROUND 1] Reset signe a '+' quan s'esborral contingut per sobreescriure */
-                    if (activeKbInput.dataset.signId) {
-                        const s = document.getElementById(activeKbInput.dataset.signId);
-                        if (s) s.textContent = '+';
-                    }
-                }
-                if (activeKbInput.value === '-0') activeKbInput.value = '-';
-                activeKbInput.value += key;
-            }
-        });
-    });
-}
-
 window.onload = () => {
-    initCustomKeyboard();
+    // El teclat numèric comú (js/teclat.js); la tecla «→» fa el mateix que Enter
+    injectaTeclat(document.getElementById('lloc-teclat'));
+    initCustomKeyboard({ allowNegative: true, onEnter: onEnterPressed });
     initSumaResta();
 };

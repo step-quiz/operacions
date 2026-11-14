@@ -45,13 +45,13 @@ try {
 const PORT = 8700 + Math.floor(Math.random() * 200);
 const BASE = `http://localhost:${PORT}`;
 
-/** Engega tools/servidor.js i espera que respongui. */
 /** Espera la franja del final de pregunta i prem «Següent» (tota pregunta s'acaba així). */
 async function premSeguent(pagina) {
     const boto = await pagina.waitForSelector('.franja-final #btn-next', { timeout: 6000 }).catch(() => null);
     if (boto) await boto.click();
 }
 
+/** Engega tools/servidor.js i espera que respongui. */
 function engegaServidor() {
     const p = spawn(process.execPath, [path.join(ROOT, 'tools/servidor.js'), String(PORT)], { stdio: 'ignore' });
     return new Promise((resol, rebutja) => {

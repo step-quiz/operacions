@@ -8,6 +8,11 @@
  */
 
 import { FixedSessions } from '../fixed-sessions.js';
+import { initCustomKeyboard, injectaTeclat, vesACasellaSeguent } from '../teclat.js';
+
+// Teclat numèric comú (js/teclat.js) per als aparells tàctils: la tecla «→» passa a la casella següent
+injectaTeclat(document.querySelector('.container'));
+initCustomKeyboard({ allowNegative: true, onEnter: vesACasellaSeguent });
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -172,19 +177,19 @@ function renderWorkspace() {
 
     // APLICACIÓ DE CLASSES FLEX (eq-row, eq-col) PER EVITAR SALTS DE LÍNIA EN MÒBIL
     if (format === 'vectorial') {
-        ws.innerHTML = `<div class="eq-row">(x,y,z) = (<input type="number" step="any" id="vp1" class="math-input">, <input type="number" step="any" id="vp2" class="math-input">, <input type="number" step="any" id="vp3" class="math-input">) + λ(<input type="number" step="any" id="vv1" class="math-input">, <input type="number" step="any" id="vv2" class="math-input">, <input type="number" step="any" id="vv3" class="math-input">)</div>`;
+        ws.innerHTML = `<div class="eq-row">(x,y,z) = (<input type="text" inputmode="numeric" id="vp1" class="math-input">, <input type="text" inputmode="numeric" id="vp2" class="math-input">, <input type="text" inputmode="numeric" id="vp3" class="math-input">) + λ(<input type="text" inputmode="numeric" id="vv1" class="math-input">, <input type="text" inputmode="numeric" id="vv2" class="math-input">, <input type="text" inputmode="numeric" id="vv3" class="math-input">)</div>`;
     } else if (format === 'parametriques') {
         ws.innerHTML = `<div class="system-brace lines-3"><div class="eq-col">
-            <div class="eq-row">x = <input type="number" step="any" id="pp1" class="math-input"> ${getSignSelect('ps1')} <input type="number" step="any" id="pv1" class="math-input"> λ</div>
-            <div class="eq-row">y = <input type="number" step="any" id="pp2" class="math-input"> ${getSignSelect('ps2')} <input type="number" step="any" id="pv2" class="math-input"> λ</div>
-            <div class="eq-row">z = <input type="number" step="any" id="pp3" class="math-input"> ${getSignSelect('ps3')} <input type="number" step="any" id="pv3" class="math-input"> λ</div>
+            <div class="eq-row">x = <input type="text" inputmode="numeric" id="pp1" class="math-input"> ${getSignSelect('ps1')} <input type="text" inputmode="numeric" id="pv1" class="math-input"> λ</div>
+            <div class="eq-row">y = <input type="text" inputmode="numeric" id="pp2" class="math-input"> ${getSignSelect('ps2')} <input type="text" inputmode="numeric" id="pv2" class="math-input"> λ</div>
+            <div class="eq-row">z = <input type="text" inputmode="numeric" id="pp3" class="math-input"> ${getSignSelect('ps3')} <input type="text" inputmode="numeric" id="pv3" class="math-input"> λ</div>
         </div></div>`;
     } else if (format === 'continues') {
-        ws.innerHTML = `<div class="eq-row"><div class="fraction"><span>x ${getSignSelect('cs1')} <input type="number" step="any" id="cp1" class="math-input"></span><div class="fraction-line"></div><input type="number" step="any" id="cv1" class="math-input"></div> <span style="font-size:1.5rem; margin:0 0.2rem">=</span><div class="fraction"><span>y ${getSignSelect('cs2')} <input type="number" step="any" id="cp2" class="math-input"></span><div class="fraction-line"></div><input type="number" step="any" id="cv2" class="math-input"></div> <span style="font-size:1.5rem; margin:0 0.2rem">=</span><div class="fraction"><span>z ${getSignSelect('cs3')} <input type="number" step="any" id="cp3" class="math-input"></span><div class="fraction-line"></div><input type="number" step="any" id="cv3" class="math-input"></div></div>`;
+        ws.innerHTML = `<div class="eq-row"><div class="fraction"><span>x ${getSignSelect('cs1')} <input type="text" inputmode="numeric" id="cp1" class="math-input"></span><div class="fraction-line"></div><input type="text" inputmode="numeric" id="cv1" class="math-input"></div> <span style="font-size:1.5rem; margin:0 0.2rem">=</span><div class="fraction"><span>y ${getSignSelect('cs2')} <input type="text" inputmode="numeric" id="cp2" class="math-input"></span><div class="fraction-line"></div><input type="text" inputmode="numeric" id="cv2" class="math-input"></div> <span style="font-size:1.5rem; margin:0 0.2rem">=</span><div class="fraction"><span>z ${getSignSelect('cs3')} <input type="text" inputmode="numeric" id="cp3" class="math-input"></span><div class="fraction-line"></div><input type="text" inputmode="numeric" id="cv3" class="math-input"></div></div>`;
     } else if (format === 'implicites') {
         ws.innerHTML = `<div class="system-brace lines-2"><div class="eq-col">
-            <div class="eq-row"><input type="number" step="any" id="ia1" class="math-input">x ${getSignSelect('is1')} <input type="number" step="any" id="ib1" class="math-input">y ${getSignSelect('is2')} <input type="number" step="any" id="id1" class="math-input"> = 0</div>
-            <div class="eq-row"><input type="number" step="any" id="ib2" class="math-input">y ${getSignSelect('is3')} <input type="number" step="any" id="ic2" class="math-input">z ${getSignSelect('is4')} <input type="number" step="any" id="id2" class="math-input"> = 0</div>
+            <div class="eq-row"><input type="text" inputmode="numeric" id="ia1" class="math-input">x ${getSignSelect('is1')} <input type="text" inputmode="numeric" id="ib1" class="math-input">y ${getSignSelect('is2')} <input type="text" inputmode="numeric" id="id1" class="math-input"> = 0</div>
+            <div class="eq-row"><input type="text" inputmode="numeric" id="ib2" class="math-input">y ${getSignSelect('is3')} <input type="text" inputmode="numeric" id="ic2" class="math-input">z ${getSignSelect('is4')} <input type="text" inputmode="numeric" id="id2" class="math-input"> = 0</div>
         </div></div>`;
     }
 }
@@ -291,7 +296,7 @@ function isZeroVector(v) {
 
 function checkAnswer() {
     const format = document.getElementById('target-format').value;
-    const getV = id => parseFloat(document.getElementById(id).value) || 0;
+    const getV = id => parseFloat(document.getElementById(id).value.replace(',', '.')) || 0;
     const getS = id => (document.getElementById(id).value === '+' ? 1 : -1);
 
     let isCorrect = false;
@@ -539,15 +544,15 @@ function renderWorkspacePlans() {
 
     // APLICACIÓ DE CLASSES FLEX (eq-row, eq-col) PER EVITAR SALTS DE LÍNIA EN MÒBIL (CAPTURA DE PANTALLA)
     if (format === 'vectorial') {
-        ws.innerHTML = `<div class="eq-row">(x,y,z) = (<input type="number" step="any" id="pp1" class="math-input">, <input type="number" step="any" id="pp2" class="math-input">, <input type="number" step="any" id="pp3" class="math-input">) + λ(<input type="number" step="any" id="pu1" class="math-input">, <input type="number" step="any" id="pu2" class="math-input">, <input type="number" step="any" id="pu3" class="math-input">) + μ(<input type="number" step="any" id="pv1" class="math-input">, <input type="number" step="any" id="pv2" class="math-input">, <input type="number" step="any" id="pv3" class="math-input">)</div>`;
+        ws.innerHTML = `<div class="eq-row">(x,y,z) = (<input type="text" inputmode="numeric" id="pp1" class="math-input">, <input type="text" inputmode="numeric" id="pp2" class="math-input">, <input type="text" inputmode="numeric" id="pp3" class="math-input">) + λ(<input type="text" inputmode="numeric" id="pu1" class="math-input">, <input type="text" inputmode="numeric" id="pu2" class="math-input">, <input type="text" inputmode="numeric" id="pu3" class="math-input">) + μ(<input type="text" inputmode="numeric" id="pv1" class="math-input">, <input type="text" inputmode="numeric" id="pv2" class="math-input">, <input type="text" inputmode="numeric" id="pv3" class="math-input">)</div>`;
     } else if (format === 'parametriques') {
         ws.innerHTML = `<div class="system-brace lines-3"><div class="eq-col">
-            <div class="eq-row">x = <input type="number" step="any" id="pp1" class="math-input"> ${getSignSelect('ps1')} <input type="number" step="any" id="pu1" class="math-input"> λ ${getSignSelect('ps2')} <input type="number" step="any" id="pv1" class="math-input"> μ</div>
-            <div class="eq-row">y = <input type="number" step="any" id="pp2" class="math-input"> ${getSignSelect('ps3')} <input type="number" step="any" id="pu2" class="math-input"> λ ${getSignSelect('ps4')} <input type="number" step="any" id="pv2" class="math-input"> μ</div>
-            <div class="eq-row">z = <input type="number" step="any" id="pp3" class="math-input"> ${getSignSelect('ps5')} <input type="number" step="any" id="pu3" class="math-input"> λ ${getSignSelect('ps6')} <input type="number" step="any" id="pv3" class="math-input"> μ</div>
+            <div class="eq-row">x = <input type="text" inputmode="numeric" id="pp1" class="math-input"> ${getSignSelect('ps1')} <input type="text" inputmode="numeric" id="pu1" class="math-input"> λ ${getSignSelect('ps2')} <input type="text" inputmode="numeric" id="pv1" class="math-input"> μ</div>
+            <div class="eq-row">y = <input type="text" inputmode="numeric" id="pp2" class="math-input"> ${getSignSelect('ps3')} <input type="text" inputmode="numeric" id="pu2" class="math-input"> λ ${getSignSelect('ps4')} <input type="text" inputmode="numeric" id="pv2" class="math-input"> μ</div>
+            <div class="eq-row">z = <input type="text" inputmode="numeric" id="pp3" class="math-input"> ${getSignSelect('ps5')} <input type="text" inputmode="numeric" id="pu3" class="math-input"> λ ${getSignSelect('ps6')} <input type="text" inputmode="numeric" id="pv3" class="math-input"> μ</div>
         </div></div>`;
     } else if (format === 'general') {
-        ws.innerHTML = `<div class="eq-row"><input type="number" step="any" id="ga" class="math-input"> x ${getSignSelect('gs1')} <input type="number" step="any" id="gb" class="math-input"> y ${getSignSelect('gs2')} <input type="number" step="any" id="gc" class="math-input"> z ${getSignSelect('gs3')} <input type="number" step="any" id="gd" class="math-input"> = 0</div>`;
+        ws.innerHTML = `<div class="eq-row"><input type="text" inputmode="numeric" id="ga" class="math-input"> x ${getSignSelect('gs1')} <input type="text" inputmode="numeric" id="gb" class="math-input"> y ${getSignSelect('gs2')} <input type="text" inputmode="numeric" id="gc" class="math-input"> z ${getSignSelect('gs3')} <input type="text" inputmode="numeric" id="gd" class="math-input"> = 0</div>`;
     }
 }
 
@@ -627,7 +632,7 @@ function checkAnswerPlans() {
     const format = document.getElementById('target-format-plans').value;
     if (!format) return;
 
-    const getV = id => parseFloat(document.getElementById(id).value) || 0;
+    const getV = id => parseFloat(document.getElementById(id).value.replace(',', '.')) || 0;
     const getS = id => {
         const el = document.getElementById(id);
         return el && el.value === '-' ? -1 : 1;
