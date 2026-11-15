@@ -3,14 +3,14 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-15: two scenarios, B for `equacions` on the branch)
+## Status (2026-11-15: two scenarios; B for `equacions` published, B for `fraccions` on the branch)
 
 | Wave | Part | Status |
 |---|---|---|
 | 0 | Engine ported (`js/pissarra/`, `css/pissarra.css`), demo page `pissarra-demo.html`, tests (`tests/pissarra.test.js`, `tests/navegador/prova-pissarra.js`, `check-repo.js` §9), index button | DONE |
 | 1 | Pilot `prioritat` (1r–2n ESO), with the fading mode that is already there | DONE (2026-10-27) as a board inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B is PENDING |
 | 2 | `equacions` (1r grau) | DONE (2026-10-27) inside the activity; since 2026-11-15 scenario B (`resolucio.html`) instead. Its fading mode is still pending (see «Wave 2») |
-| 3 | `fraccions`: addition/subtraction and product/division | DONE (2026-10-27) inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B is PENDING |
+| 3 | `fraccions`: addition/subtraction and product/division | DONE (2026-10-27) inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B DONE 2026-11-15 (decision 18) |
 | 4 | `potencies` and `enters` (reuse the pilot) | PENDING |
 | 5 | `sistemes-equacions` and `radicals` (3r–4t ESO) | PENDING |
 | 6 | Batxillerat: `esglaonar-matriu` → `ruffini` → `complexos` (port `pau`'s `matrius.js` as needed) | PENDING |
@@ -28,7 +28,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | 1 | Robustness and visual fidelity: R1 queue with recovery, R2 faithful ghosts, R3 warning boxes per run, R4 nothing changes size, R5 reduced motion and announcement | DONE (2026-11-14) |
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
-| 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE on the branch `claude/festive-babbage-dnmtjg`, not published («Encara no»: David decides when). Next, when David says so: scenario B for `fraccions` and `prioritat` |
+| 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). Next: scenario B for `prioritat` (ask David its decisions first) |
 | 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
@@ -104,7 +104,11 @@ C new capabilities, P planned activities, X existing activities, N new activitie
 15. **Detail in B, after seeing the step** (D2 as approved): «Vull més detall» next to the caption; the step's
     line goes down in grey as the target and the sub-steps are written above it in the drawer, one per «Pas
     següent»; «Menys detall» folds it.
-16. `prioritat` and `fraccions` lose the board now; until they have their B, the index offers only `equacions`.
+16. `prioritat` and `fraccions` lose the board now; until they have their B, the index offers only `equacions`
+    (since decision 18, also `fraccions`).
+18. **Scenario B for `fraccions`** (2026-11-15, dialog): `fraccions` before `prioritat`; the board in TeX like
+    `equacions` (not the activity's HTML); «Vull més detall» on the common denominator, simplifying and dividing
+    (not on operating); the lcm is found by **trying the multiples of the larger denominator** (6 and 9: 9, 18).
 17. The name «Resolució pas a pas» belongs to B only (2026-11-15). In A, the `equacions.html` subtitle is
     «Resol-la pas a pas» (it was «Resolució pas a pas» since 2026-10-18 and read as if A had the board) and
     the `prioritat.html` steps box is labelled «Passos de l'operació» for screen readers.
@@ -311,7 +315,8 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   (`#mira-com`, `target="_blank"`): level = `?nivell=` if 1–3, otherwise the one that fits the session progress
   (1 + ⌊3 · operation / total⌋). Kept, unused, for the future B of those activities: `js/prioritat/renderer.js`
   keyed table (`claus`, `fusioUltimaLinia`, `copiesUltimaLinia`) and `js/fraccions/renderer.js` (HTML history),
-  with their tests. `js/equacions/renderer.js` is back to `renderOneToken`/`renderTerms`.
+  with their tests. `js/equacions/renderer.js` is back to `renderOneToken`/`renderTerms`. (The fractions HTML
+  renderer was deleted when B for `fraccions` chose TeX, decision 18.)
 - **B, `resolucio.html?activitat=equacions&nivell=n`** (`js/resolucio/resolucio.js`): lilac page (the index's
   palette with the button on), level buttons (the URL keeps the level), «Un altre exercici», «Ara fes-ho tu»
   (`equacions.html?nivell=n`), board `files: 40` with its own scroll bar (`max-height: min(64vh, 620px)`), player
@@ -335,6 +340,26 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   KaTeX, second person, `final`); `pissarra.test.js` (permanent keys, copies of sources that stay, merge ghosts,
   the grey target, registry); browser suites rewritten (6 A, 7 B, 8 queue failure on the demo, 9 faithful ghosts
   in B and when a detail opens, 10 prioritat table, 11 reduced motion in B).
+
+## Scenario B for `fraccions`: how it was built (2026-11-15, decision 18)
+
+- `js/fraccions/resolucio.js` (pure): its own generator copying the activity's levels (irreducible fractions
+  a/b, 1 ≤ a ≤ 9, 2 ≤ b ≤ 9; level 2 re-checks irreducibility after multiplying a denominator; a subtraction
+  with equal fractions becomes a sum, so the result is never 0). `etapes(ex)` = the compact steps
+  (`comu`, `opera`, `divideix`, `simplifica`) with their moves and detail; `passos(ex, { oberts })` writes them
+  with `historial(g, { prefix: 'F', pinta: pintaTex, oberts, objectiu: true })`.
+- Lines are lists of `{ id, t }` and `{ fr: [num, den] }`; chain ids `an ad o bn bd` (operation), `rn rd`
+  (operated), `sn sd` (simplified), `q` (the leading «=»). The activity's `fraccions.js` is untouched apart
+  from the «Mira com es resol» link (level = the add/sub level 1–3, or 4 for product/division).
+- Detail lines that are side computations (`mcm(6, 9) = 18`, `5/6 = (5·3)/(6·3) = 15/18`, `mcd(24, 36) = 12`)
+  take numbers from the statement 2–3 lines above: engine extension `'id@k'` in `historial()` (only the
+  mapping of old ids changed; `comprovaGuio` already accepted any visible source).
+- The inverse in the division detail is always a fraction (1/5 → 5/1), so its denominator has a key to fly to.
+- Captions use `\frac` (a `\dfrac` made the caption line too tall); the board uses `\dfrac`. «mcm»/«mcd» are
+  `\text{…}` (`textPla` reads them; `\operatorname` is not in its list).
+- Tests: `tests/fraccions.test.js` rewritten (levels; 2,400 exercises with every detail view; an exact-rational
+  model checks every visible row; a hand-made 5/6 + 7/9 example). Browser: suite 6 checks the link levels,
+  suite 7 runs B for both activities on laptop and phone, suite 9 checks faithful ghosts for `id@k` flights.
 
 ## Known limits
 

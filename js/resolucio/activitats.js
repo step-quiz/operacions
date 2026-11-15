@@ -27,4 +27,15 @@ export const ACTIVITATS = Object.freeze({
         ]),
         carrega: () => import('../equacions/resolucio.js').then(m => m.Resolucio),
     }),
+    fraccions: Object.freeze({
+        nom: 'Operacions amb fraccions',
+        pagina: 'fraccions.html',
+        nivells: Object.freeze([
+            [1, 'Mateix denominador'],
+            [2, 'Denominador múltiple'],
+            [3, 'Denominadors diferents'],
+            [4, 'Producte i divisió'],
+        ]),
+        carrega: () => import('../fraccions/resolucio.js').then(m => m.Resolucio),
+    }),
 });

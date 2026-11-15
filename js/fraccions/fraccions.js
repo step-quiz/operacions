@@ -51,6 +51,7 @@ const els = {
     attemptsDisplay: document.getElementById('attempts-display'),
     exprBox: document.getElementById('expression-box'),
     mainSubtitle: document.getElementById('main-subtitle'),
+    miraCom: document.getElementById('mira-com'), // «Mira com es resol» (resolucio.html)
 };
 
 // Estat específic de fraccions
@@ -74,6 +75,11 @@ function selectMode(mode) {
         els.mainSubtitle.innerText = 'Suma o resta de fraccions pas a pas';
     } else {
         els.mainSubtitle.innerText = 'Producte o divisió de fraccions pas a pas';
+    }
+    // «Mira com es resol»: el nivell de la resolució pas a pas (1–3, els de la suma i la resta; 4, producte o divisió)
+    if (els.miraCom) {
+        const nivell = mode === 'addsub' ? currentLevelSelection : 4;
+        els.miraCom.href = `resolucio.html?activitat=fraccions&nivell=${nivell}`;
     }
     startGame();
 }

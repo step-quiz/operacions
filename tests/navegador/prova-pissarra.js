@@ -568,19 +568,40 @@ function engegaServidor() {
             );
             await nova.close();
             await p.close();
+            // Fraccions: el nivell de la resolució és el de la suma i la resta triat al menú (o 4, producte i divisió)
+            const f = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await f.goto(BASE + '/fraccions.html?totaloperations=3');
+            await f.selectOption('#addsub-level', '2');
+            await f.click('button[onclick="selectMode(\'addsub\')"]');
+            eq(
+                'fraccions: suma o resta del nivell 2 → «Mira com es resol» del nivell 2',
+                await f.getAttribute('#mira-com', 'href'),
+                'resolucio.html?activitat=fraccions&nivell=2'
+            );
+            await f.goto(BASE + '/fraccions.html?totaloperations=3');
+            await f.click('button[onclick="selectMode(\'muldiv\')"]');
+            eq(
+                'fraccions: producte o divisió → «Mira com es resol» del nivell 4',
+                await f.getAttribute('#mira-com', 'href'),
+                'resolucio.html?activitat=fraccions&nivell=4'
+            );
+            await f.close();
         }
 
         suite('7. Escenari B: resolucio.html (mirar com es resol)');
         {
-            for (const [nom, viewport] of [
-                ['portàtil', { width: 1366, height: 768 }],
-                ['mòbil', { width: 375, height: 740 }],
+            for (const [act, lloc, viewport] of [
+                ['equacions', 'portàtil', { width: 1366, height: 768 }],
+                ['equacions', 'mòbil', { width: 375, height: 740 }],
+                ['fraccions', 'portàtil', { width: 1366, height: 768 }],
+                ['fraccions', 'mòbil', { width: 375, height: 740 }],
             ]) {
+                const nom = `${act}, ${lloc}`;
                 const p = await navegador.newPage({ viewport });
                 const errors = [];
                 p.on('pageerror', e => errors.push(String(e)));
                 p.on('console', m => m.type() === 'error' && errors.push(m.text()));
-                await p.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
+                await p.goto(`${BASE}/resolucio.html?activitat=${act}&nivell=3`);
                 await p.waitForFunction(() => window.resolucio);
                 const r = await p.evaluate(RECORRE_DEMO, 'resolucio');
                 ok(
@@ -597,12 +618,12 @@ function engegaServidor() {
                 eq(
                     `${nom}: el nivell queda a l'adreça`,
                     await p.evaluate(() => location.search),
-                    '?activitat=equacions&nivell=1'
+                    `?activitat=${act}&nivell=1`
                 );
                 eq(
                     `${nom}: «Ara fes-ho tu» porta a l'activitat, amb el nivell`,
                     await p.getAttribute('#fes-ho-tu', 'href'),
-                    'equacions.html?nivell=1'
+                    `${act}.html?nivell=1`
                 );
                 eq(
                     `${nom}: un exercici nou comença pel primer pas`,
@@ -618,7 +639,8 @@ function engegaServidor() {
             await p.goto(BASE + '/resolucio.html');
             ok(
                 'sense activitat, la pàgina diu quines en tenen',
-                await p.isVisible('a[href="resolucio.html?activitat=equacions"]')
+                (await p.isVisible('a[href="resolucio.html?activitat=equacions"]')) &&
+                    (await p.isVisible('a[href="resolucio.html?activitat=fraccions"]'))
             );
             await p.close();
         }
@@ -681,6 +703,29 @@ function engegaServidor() {
             await provaPasCongelat(p, '#pissarra', 'resolució, obrir el detall', () => p.click('.pis-detall-boto'));
             await lliure();
             await provaPasCongelat(p, '#pissarra', 'resolució, un subpas', () =>
+                p.evaluate(() => {
+                    window.resolucio.pissarra.seguent();
+                })
+            );
+            await p.close();
+
+            // Fraccions: el detall del comú denominador fa volar nombres d'una línia de més amunt (id@k)
+            p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await p.goto(BASE + '/resolucio.html?activitat=fraccions&nivell=3');
+            await p.waitForFunction(() => window.resolucio);
+            const lliureF = () => p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
+            await p.evaluate(() => window.resolucio.pissarra.salta(1)); // el pas 2: el comú denominador
+            await p.click('.pis-detall-boto'); // 2a: el mcm
+            await lliureF();
+            await provaPasCongelat(p, '#pissarra', 'fraccions, ampliar la primera fracció (de dues línies amunt)', () =>
+                p.evaluate(() => {
+                    window.resolucio.pissarra.seguent();
+                })
+            );
+            await lliureF();
+            await p.evaluate(() => window.resolucio.pissarra.seguent()); // 2c: la segona fracció
+            await lliureF();
+            await provaPasCongelat(p, '#pissarra', 'fraccions, tancar el detall (de diverses línies amunt)', () =>
                 p.evaluate(() => {
                     window.resolucio.pissarra.seguent();
                 })
