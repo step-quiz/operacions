@@ -851,7 +851,7 @@ function garden() {
   const shown = S.list.slice(0, GARDEN_MAX), total = U(S.n);
   $('gardenTitle').textContent = `El jardí de ${fmt(S.n)}`;
   $('grid').innerHTML = shown.map((t, i) => `<button class="mini" data-i="${i}" title="Arbre ${i + 1}">${svgFor(t, { up: S.up, anim: false, mini: true })}</button>`).join('');
-  $('more').textContent = total > GARDEN_MAX ? `… i ${fmt(total - GARDEN_MAX)} arbres més` : (total === 1 ? 'Només hi creix un arbre.' : `${total} arbres diferents, les mateixes ${ST === 'flors' ? 'flors' : 'fulles'}.`);
+  $('more').textContent = total > GARDEN_MAX ? `… i ${fmt(total - GARDEN_MAX)} arbres més` : (total === 1 ? (isPrime(S.n) ? `Només hi creix directament ${ST === 'flors' ? 'el bolet' : 'la fulla'}.` : 'Només hi creix un arbre.') : `${total} arbres diferents, les mateixes ${ST === 'flors' ? 'flors' : 'fulles'}.`);
   markGarden();
 }
 function markGarden() { const cur = S.mode === 'look' ? S.idx.get(S.tree.k) : -1; document.querySelectorAll('.mini').forEach(b => b.classList.toggle('on', +b.dataset.i === cur)); }
@@ -923,7 +923,7 @@ function sheet() {
   const t = Bd.sel === null ? null : bget(Bd.sel);
   if (!t) { sh.innerHTML = `<div class="msg">Toca un nus o una fulla de l'arbre.</div>`; return; }
   if (t.st === 'bud') {
-    sh.innerHTML = `<h3>Expressa ${fmt(t.v)} com a producte d'enters majors que 1</h3>
+    sh.innerHTML = `<h3>Descompon ${fmt(t.v)} com a producte d'enters majors que 1 (si és possible)</h3>
       <div class="eq"><span>${t.v} =</span><input id="fa" inputmode="numeric" pattern="[0-9]*" aria-label="primer factor"><span>·</span><input id="fb" inputmode="numeric" pattern="[0-9]*" aria-label="segon factor"></div>
       <div class="acts"><button class="pill" data-act="split">Descompon</button><button class="pill" data-act="leaf">És un nombre primer</button></div>
       <div class="msg" id="msg"></div>`;
@@ -1086,7 +1086,7 @@ $('lgCol').innerHTML = `<span><svg viewBox="-50 -46 100 84">${potSVG(12, 1)}</sv
   + `<span><svg viewBox="0 0 20 20"><path d="M4 17C9 13 9 8 16 4" stroke="${INK}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M4 17C9 13 9 8 16 4" stroke="${GRN}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>tija</span>`
   + `<span><svg viewBox="-24 -22 48 44">${tagSVG(6, 3)}</svg>nus</span>`
   + `<span><span class="lgl">${[2, 3, 5, 7].map(q => `<svg viewBox="-34 -34 68 68">${flowerSVG(q, 32)}</svg>`).join('')}</span>flor: cada nombre primer té la seva</span>`
-  + `<span><svg viewBox="-66 -66 132 110">${MUSH[0]('')}</svg>bolet: la llavor ja és primera</span>`;
+  + `<span><svg viewBox="-66 -66 132 110">${MUSH[0]('')}</svg>bolet: la llavor ja és un nombre primer</span>`;
 { const sp = document.querySelector('.lg-ink span:last-child'); const ic = sp.querySelector('svg'); ic.outerHTML = `<span class="lgl">${[2, 3, 5, 7].map((q, i) => `<svg viewBox="-13 -15 26 28">${leafSVG(11, 0, q * 7 + i, false, q)}</svg>`).join('')}</span>`; }
 applyStyle();
 $('flip').onclick = () => {
