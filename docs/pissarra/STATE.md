@@ -105,6 +105,9 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     line goes down in grey as the target and the sub-steps are written above it in the drawer, one per «Pas
     següent»; «Menys detall» folds it.
 16. `prioritat` and `fraccions` lose the board now; until they have their B, the index offers only `equacions`.
+17. The name «Resolució pas a pas» belongs to B only (2026-11-15). In A, the `equacions.html` subtitle is
+    «Resol-la pas a pas» (it was «Resolució pas a pas» since 2026-10-18 and read as if A had the board) and
+    the `prioritat.html` steps box is labelled «Passos de l'operació» for screen readers.
 
 ## Technical decisions (agent)
 

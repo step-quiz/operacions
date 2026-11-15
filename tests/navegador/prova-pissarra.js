@@ -100,9 +100,11 @@ const PAS_PRIORITAT = () => {
 };
 
 // ── Per congelar una animació: s'alenteixen les animacions i els temporitzadors de la pàgina ──
+// (a cada crida torna a alentir: provaPasCongelat la deixa a 1 en acabar, i els embolcalls només es posen un cop)
 const ALENTEIX = k => `(() => {
-    if (window.__lent) return;
+    const posats = window.__lent !== undefined;
     window.__lent = ${k};
+    if (posats) return;
     const ot = window.setTimeout.bind(window);
     window.setTimeout = (f, ms, ...a) => ot(f, (ms || 0) * window.__lent, ...a);
     const oa = Element.prototype.animate;
