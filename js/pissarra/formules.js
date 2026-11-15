@@ -274,6 +274,8 @@ export function enLinies(inici, peces, { ample = AMPLE_LINIA, sagnat = '\\qquad 
  *   · fusiona: { idNou: [idsVells] } les peces de la línia anterior hi baixen i es fusionen en una;
  *   · reparteix: { idVell: [idsNous] } la peça de la línia anterior hi baixa a diversos llocs alhora
  *                                     (el 2 de 2(x + 3), que va als dos termes);
+ *   · un id vell «id@k» és la peça id d'una línia escrita k línies més amunt (id@1 = id): p. ex. un
+ *     subpas que fa un càlcul al marge i després torna a agafar nombres de la línia de l'enunciat;
  *   · la resta de peces de la línia nova hi apareixen al seu lloc, i a la línia anterior en queda una
  *     còpia (no es mou res de les línies que ja estaven escrites);
  *   · anterior: línia                la línia anterior canvia alhora (p. ex. s'hi afegeix «=»);
@@ -467,8 +469,14 @@ export function historial(
             const ant = escrites[r - 1];
             if (op.anterior !== undefined && op.anterior !== null) ant.linia = op.anterior;
             if (op.classeAnterior !== undefined) ant.classe = op.classeAnterior;
-            // De la línia anterior (que es queda) vola una còpia de cada peça que baixa
-            const vella = id => clauLinia(ant.idLinia, id);
+            // De la línia anterior (que es queda) vola una còpia de cada peça que baixa; «id@k»: la peça id de
+            // la línia escrita k línies més amunt (p. ex. «0n@2», de la de just abans de l'anterior)
+            const vella = ref => {
+                const [id, k = '1'] = String(ref).split('@');
+                const l = escrites[r - Number(k)];
+                if (!l || !(Number(k) >= 1)) throw new Error(`No hi ha cap línia escrita ${k} línies amunt («${ref}»)`);
+                return clauLinia(l.idLinia, id);
+            };
             const nova = id => clauLinia(idLinia, id);
             if (Object.keys(mou).length) opcions.reanomena = mapa(mou, (n, v) => [nova(n), vella(v)]);
             if (Object.keys(fusiona).length) opcions.fusiona = mapa(fusiona, (n, vs) => [nova(n), vs.map(vella)]);

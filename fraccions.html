@@ -231,6 +231,19 @@
             .operator { font-size: 1.3rem; }
             .expr-line { gap: 8px; }
         }
+
+        /* «Mira com es resol»: la resolució pas a pas d'una operació semblant (resolucio.html) */
+        .mira-com {
+            display: block;
+            width: fit-content;
+            margin: 14px auto 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
+        }
+        .mira-com:hover { color: var(--primary-dark); border-bottom-style: solid; }
     </style>
 <link rel="stylesheet" href="css/chromebook.css">
     <link rel="stylesheet" href="css/seguent.css">
@@ -401,7 +414,8 @@
 
             <!-- Diagnòstic de l'error (js/fraccions/errors-fraccions.js) -->
             <p class="error-diag" id="error-diag" role="status" aria-live="polite" hidden></p>
-        </div>        
+        </div>
+        <a class="mira-com" id="mira-com" href="resolucio.html?activitat=fraccions" target="_blank" rel="noopener">Mira com es resol una operació com aquesta ↗</a>
     </div>
 </div>    
 <!-- 4. game-core DESPRÉS del body -->

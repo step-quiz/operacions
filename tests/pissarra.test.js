@@ -330,6 +330,28 @@ function solucioLineal(text) {
             'estat: les línies escrites amb el seu nivell, sense les claus de la fila',
             p3.estat.length === 3 && p3.estat.every(l => l.nivell === 0) && p3.estat[2].signatura.includes('k=kr')
         );
+        // «id@k»: una peça d'una línia de més amunt (un càlcul al marge, i després es torna a l'enunciat)
+        const gm = F.guio(3);
+        const M = F.historial(gm);
+        M.escriu([P('a', '6'), P('s', '+'), P('b', '9')], 'U.');
+        M.escriu([P('m', '18')], 'Al marge.');
+        const m3 = M.escriu([P('a', '6'), P('s', '+'), P('r', '18')], 'Torna.', {
+            mou: { a: 'a@2', s: 's@2' },
+            fusiona: { r: ['m', 'b@2'] },
+        });
+        eq(
+            'id@k: la peça de la línia k línies amunt',
+            JSON.stringify([m3.reanomena, m3.fusiona]),
+            '[{"L3ka":"L1ka","L3ks":"L1ks"},{"L3kr":["L2km","L1kb"]}]'
+        );
+        eq('id@k: un guió correcte (les fonts es queden a la seva línia)', C.comprovaGuio(gm.passos, 3).length, 0);
+        let senseLinia = false;
+        try {
+            M.escriu([P('z', '0')], 'Massa amunt.', { mou: { z: 'a@9' } });
+        } catch (e) {
+            senseLinia = /9 línies amunt/.test(e.message);
+        }
+        ok('id@k sense cap línia tan amunt → error', senseLinia);
         const p4 = H.canvia([P('r', '6', 'solucio')], 'Marca la solució.');
         eq('canvia(): la mateixa línia, amb la marca nova', /marca=solucio/.test(p4.files[2]) && p4.id, '4');
 
@@ -793,11 +815,14 @@ function solucioLineal(text) {
             Object.keys(M).join(),
             'SUPORTA_PISSARRA'
         );
-        const procediment = await ACTIVITATS.equacions.carrega();
-        ok(
-            'el procediment d’equacions té el que fa servir resolucio.html',
-            ['NIVELLS', 'exercici', 'passos'].every(k => k in procediment)
-        );
+        for (const [nom, a] of Object.entries(ACTIVITATS)) {
+            const procediment = await a.carrega();
+            ok(
+                `el procediment «${nom}» té el que fa servir resolucio.html, i els nivells del registre són els seus`,
+                ['NIVELLS', 'exercici', 'passos', 'files'].every(k => k in procediment) &&
+                    a.nivells.map(([v]) => v).join() === procediment.NIVELLS.join()
+            );
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
