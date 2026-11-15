@@ -915,8 +915,9 @@ function sheet() {
   const sh = $('sheet');
   if (Bd.done) {
     const k = bkey(Bd.root), i = S.idx.get(k), u = U(S.n);
-    sh.innerHTML = `<h3>Fet. L'arbre de ${fmt(S.n)} ja té totes les ${ST === 'flors' ? 'flors' : 'fulles'}.</h3>
-      <div class="msg good">${u === 1 ? 'Aquest nombre només té aquest arbre.' : `El teu és l'arbre ${fmt((i ?? 0) + 1)} de ${fmt(u)}. Prova de fer-ne un altre de diferent: les ${ST === 'flors' ? 'flors' : 'fulles'} seran les mateixes!`}</div>
+    const pr = isPrime(S.n);
+    sh.innerHTML = `<h3>${pr ? `Fet. El ${fmt(S.n)} és un nombre primer: no es pot descompondre.` : `Fet. L'arbre de ${fmt(S.n)} ja té totes les ${ST === 'flors' ? 'flors' : 'fulles'}.`}</h3>
+      <div class="msg good">${pr ? `Per això hi creix directament ${ST === 'flors' ? 'el bolet' : 'la fulla'}.` : u === 1 ? 'Aquest nombre només té aquest arbre.' : `El teu és l'arbre ${fmt((i ?? 0) + 1)} de ${fmt(u)}. Prova de fer-ne un altre de diferent: les ${ST === 'flors' ? 'flors' : 'fulles'} seran les mateixes!`}</div>
       <div class="acts"><button class="pill pri" data-act="again">Fes-ne un altre</button><button class="pill" data-act="newseed">Llavor sorpresa</button></div>`;
     return;
   }
