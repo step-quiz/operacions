@@ -28,7 +28,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | 1 | Robustness and visual fidelity: R1 queue with recovery, R2 faithful ghosts, R3 warning boxes per run, R4 nothing changes size, R5 reduced motion and announcement | DONE (2026-11-14) |
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
-| 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). Next: scenario B for `prioritat` (ask David its decisions first) |
+| 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). B for `fraccions` published (PR #21). Next: scenario B for `prioritat`, decisions already taken (decision 19) |
 | 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
@@ -112,6 +112,15 @@ C new capabilities, P planned activities, X existing activities, N new activitie
 17. The name «Resolució pas a pas» belongs to B only (2026-11-15). In A, the `equacions.html` subtitle is
     «Resol-la pas a pas» (it was «Resolució pas a pas» since 2026-10-18 and read as if A had the board) and
     the `prioritat.html` steps box is labelled «Passos de l'operació» for screen readers.
+19. **Scenario B for `prioritat`** (2026-11-15, dialog; NOT built yet — next task): the board is the activity's
+    **centred table** (`js/prioritat/renderer.js` with `claus`, `fusioUltimaLinia`, `copiesUltimaLinia`: an
+    HTML row via `historial({ pinta, envolta })`), **one operation per step** with a caption that says why it
+    goes first («Primer el parèntesi: 3 + 4 = 7.»); «Vull més detall» = **«per què aquesta operació»**: one
+    sub-step that marks the operation due (class `dest`/a mark) and states the rule (parentheses → powers →
+    · : → + −, left to right), then `D.acaba` computes it (no detail for powers); **5 levels**: products and
+    sums (generator levels 0–2), left to right (3), powers (4–5), parentheses (6–8), everything (9). Same
+    pattern as `fraccions`: `js/prioritat/resolucio.js`, registry, `SUPORTA_PISSARRA`, `pissarra: true`,
+    «Mira com es resol» in `prioritat.html` (agent A may extend `prioritat` in its delivery 14: only add).
 
 ## Technical decisions (agent)
 
