@@ -364,6 +364,14 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     background: var(--pis-cat);
     border-color: var(--pis-cat);
 }
+/* Els subpassos d'un pas obert (detall a demanda): punts més petits */
+.pis-punt.sub {
+    width: 14px;
+}
+.pis-punt.sub::before {
+    width: 8px;
+    height: 8px;
+}
 
 .pis-velocitat {
     display: flex;
@@ -381,6 +389,38 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     padding: 4px 6px;
 }
 
+/* El text del pas i, al costat, «Vull més detall» / «Menys detall» (si el reproductor té detall) */
+.pis-explicacio-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px 14px;
+}
+.pis-explicacio-fila .pis-explicacio {
+    flex: 1 1 18em;
+}
+.pis-detall-boto {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--pis-cat);
+    background: var(--panel-bg, #fff);
+    border: 1.5px solid var(--pis-cat);
+    border-radius: 999px;
+    padding: 4px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.pis-detall-boto:hover:not(:disabled) {
+    background: var(--pis-cat-fons);
+}
+.pis-detall-boto:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+.pis-detall-boto[hidden] {
+    display: none;
+}
 .pis-explicacio {
     margin: 0;
     min-height: 3.4em;
@@ -487,10 +527,16 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     text-align: center;
     white-space: normal;
 }
+/* La línia d'un pas obert, mentre es fan els subpassos: en gris, com a objectiu (historial amb objectiu) */
+.pis-fila.objectiu,
+.pis-objectiu {
+    color: var(--pis-objectiu, #9aa5b8);
+}
 /* A les files TeX, les files .detall seguides fan el calaix */
 .pis-fila.detall {
     margin-inline: -10px;
     padding-inline: 13px 10px;
+    border-radius: 0;
     background: var(--pis-calaix-fons);
     box-shadow: inset 3px 0 0 var(--pis-cat);
 }

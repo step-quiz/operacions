@@ -14,7 +14,13 @@
  *     velocitat   lenta / normal / ràpida
  *     teclat      espai = reprodueix, fletxes ← → = pas anterior o següent
  *                 (per defecte false: dins d'una activitat el teclat és de l'alumne)
- * - Torna { reprodueix(), atura(), element }.
+ *     detall      (oberts) → passos: el guió amb els passos d'«oberts» oberts (formules.js
+ *                 historial amb detall i objectiu). Amb aquesta opció, al costat del text
+ *                 del pas surt «Vull més detall» quan el pas en té: la línia del pas baixa en
+ *                 gris com a objectiu i els subpassos s'escriuen a sobre, dins del calaix, un a
+ *                 cada «Pas següent»; mentre s'és dins del detall, «Menys detall» el plega.
+ * - Torna { reprodueix(), atura(), carrega(passos o detall), element }: carrega() posa un
+ *   guió nou (o, amb una funció, el guió d'un exercici nou amb el detall tancat).
  * - L'alumne sempre marca el ritme: res no avança sol si no prem «Reprodueix».
  * - Origen: el reproductor de motor.js de step-quiz/pau (octubre 2026).
  * DEPENDÈNCIES: pissarra.js.
@@ -60,7 +66,10 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         velocitat: o.velocitat ? element('select', { id }) : null,
         numPas: element('span', { class: 'pis-num-pas' }),
         textPas: element('span', { class: 'pis-text-pas' }),
+        detall: element('button', { class: 'pis-detall-boto', type: 'button', hidden: '' }),
     };
+    let detall = typeof o.detall === 'function' ? o.detall : null; // (oberts) → passos
+    let oberts = new Set();
     if (r.velocitat) {
         for (const [valor, nom] of [
             ['0.6', 'lenta'],
@@ -79,7 +88,10 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
                 ? element('label', { class: 'pis-velocitat', for: id, text: 'Velocitat ' }, [r.velocitat])
                 : null,
         ]),
-        element('p', { 'class': 'pis-explicacio', 'aria-live': 'polite' }, [r.numPas, r.textPas]),
+        element('div', { class: 'pis-explicacio-fila' }, [
+            element('p', { 'class': 'pis-explicacio', 'aria-live': 'polite' }, [r.numPas, r.textPas]),
+            r.detall,
+        ]),
     ]);
     contenidor.append(bloc);
 
@@ -95,11 +107,11 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         if (r.punts && nPunts !== passos.length) {
             nPunts = passos.length;
             r.punts.replaceChildren(
-                ...passos.map((_, i) => {
+                ...passos.map((pas, i) => {
                     const p = element('button', {
                         'class': 'pis-punt',
                         'type': 'button',
-                        'aria-label': `Pas ${i + 1}`,
+                        'aria-label': `Pas ${pas.id || i + 1}`,
                     });
                     p.addEventListener('click', () => {
                         atura();
@@ -109,14 +121,21 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
                 })
             );
         }
-        r.numPas.textContent = `Pas ${idx + 1} de ${passos.length}`;
-        r.textPas.innerHTML = textAmbFormules(passos[idx].text);
+        // Amb el detall, els passos es compten com a la vista tancada: «Pas 2b de 6»
+        const pas = passos[idx];
+        const tancats = passos.filter(p => !p.pare || (p.tanca && p.pares.length === 1)).length;
+        r.numPas.textContent = `Pas ${pas.id || idx + 1} de ${detall ? tancats : passos.length}`;
+        r.textPas.innerHTML = textAmbFormules(pas.text);
         if (r.punts) {
             [...r.punts.children].forEach((p, i) => {
-                p.className = 'pis-punt' + (i === idx ? ' actual' : i < idx ? ' fet' : '');
+                p.className =
+                    'pis-punt' + (passos[i].pare ? ' sub' : '') + (i === idx ? ' actual' : i < idx ? ' fet' : '');
                 p.setAttribute('aria-current', i === idx ? 'step' : 'false');
             });
         }
+        r.detall.hidden = !detall || !(pas.teDetall || pas.pare);
+        r.detall.textContent = pas.teDetall ? 'Vull més detall' : 'Menys detall';
+        r.detall.disabled = pissarra.ocupat;
         r.anterior.disabled = idx === 0;
         r.reinicia.disabled = idx === 0;
         r.seguent.disabled = idx === darrer;
@@ -156,7 +175,48 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         if (meu === torn) marcaReproduccio(false);
     }
 
+    /** Els passos oberts dins de «id» (els seus id comencen per «id» i hi afegeixen una lletra o una xifra). */
+    const dins = (x, id) => x === id || (x.startsWith(id) && /\d$/.test(id) === /^[a-z]/i.test(x.slice(id.length)));
+
+    /** «Vull més detall»: obre el pas que es veu; «Menys detall»: plega el detall on s'és. */
+    async function canviaDetall() {
+        const pas = pissarra.passos[pissarra.pas];
+        if (!detall || pissarra.ocupat || !pas) return;
+        atura();
+        if (pas.teDetall) {
+            oberts.add(pas.id);
+            const nous = detall(new Set(oberts));
+            await pissarra.canviaGuio(
+                nous,
+                nous.findIndex(p => p.pare === pas.id)
+            );
+        } else if (pas.pare) {
+            const id = pas.pare;
+            oberts = new Set([...oberts].filter(x => !dins(x, id)));
+            const nous = detall(new Set(oberts));
+            await pissarra.canviaGuio(
+                nous,
+                nous.findIndex(p => p.id === id),
+                { senseVols: true }
+            );
+        }
+        r.detall.focus();
+    }
+
+    /** Un guió nou (una llista de passos) o, amb una funció (oberts) → passos, un exercici nou amb el detall. */
+    function carrega(guio) {
+        atura();
+        if (typeof guio === 'function') {
+            detall = guio;
+            oberts = new Set();
+            return pissarra.carrega(detall(new Set()));
+        }
+        detall = null;
+        return pissarra.carrega(guio);
+    }
+
     pissarra.escolta(pinta);
+    r.detall.addEventListener('click', canviaDetall);
     if (r.reprodueix) r.reprodueix.addEventListener('click', reprodueix);
     r.seguent.addEventListener('click', () => {
         atura();
@@ -193,5 +253,5 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
     }
 
     pinta();
-    return Object.freeze({ reprodueix, atura, element: bloc });
+    return Object.freeze({ reprodueix, atura, carrega, element: bloc });
 }

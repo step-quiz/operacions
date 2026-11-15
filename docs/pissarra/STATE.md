@@ -3,14 +3,14 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-15, stage 3 in progress)
+## Status (2026-11-15: two scenarios, B for `equacions` on the branch)
 
 | Wave | Part | Status |
 |---|---|---|
 | 0 | Engine ported (`js/pissarra/`, `css/pissarra.css`), demo page `pissarra-demo.html`, tests (`tests/pissarra.test.js`, `tests/navegador/prova-pissarra.js`, `check-repo.js` §9), index button | DONE |
-| 1 | Pilot `prioritat` (1r–2n ESO), with the fading mode that is already there | DONE (2026-10-27); David tests it with a 1r ESO group |
-| 2 | `equacions` (1r grau) | DONE (2026-10-27). Its fading mode is still pending (see «Wave 2») |
-| 3 | `fraccions`: addition/subtraction and product/division | DONE (2026-10-27). Its fading mode is still pending (see «Wave 3») |
+| 1 | Pilot `prioritat` (1r–2n ESO), with the fading mode that is already there | DONE (2026-10-27) as a board inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B is PENDING |
+| 2 | `equacions` (1r grau) | DONE (2026-10-27) inside the activity; since 2026-11-15 scenario B (`resolucio.html`) instead. Its fading mode is still pending (see «Wave 2») |
+| 3 | `fraccions`: addition/subtraction and product/division | DONE (2026-10-27) inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B is PENDING |
 | 4 | `potencies` and `enters` (reuse the pilot) | PENDING |
 | 5 | `sistemes-equacions` and `radicals` (3r–4t ESO) | PENDING |
 | 6 | Batxillerat: `esglaonar-matriu` → `ruffini` → `complexos` (port `pau`'s `matrius.js` as needed) | PENDING |
@@ -28,7 +28,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | 1 | Robustness and visual fidelity: R1 queue with recovery, R2 faithful ghosts, R3 warning boxes per run, R4 nothing changes size, R5 reduced motion and announcement | DONE (2026-11-14) |
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
-| 3 | «Vull més detall» on the current activities: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3 option (a), D4 free | IN PROGRESS: part 1 (`equacions` + the drawer) DONE 2026-11-15; next the player's button, then `fraccions` and `prioritat` |
+| 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE on the branch `claude/festive-babbage-dnmtjg`, not published («Encara no»: David decides when). Next, when David says so: scenario B for `fraccions` and `prioritat` |
 | 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
@@ -92,6 +92,19 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     and then the step's line is written from the last line of the detail.
 13. The player's «Vull més detall» button comes **after** `equacions` (the demo keeps its provisional
     checkbox until then).
+
+2026-11-15 (after seeing «Vull més detall» inside the activity: «no ens hem entès»):
+14. **Two independent scenarios.** **A**: the student does the exercise — the activity as always, with **no
+    board** (also with an old `?pissarra=1` link). **B**: the student watches an exercise being solved, step by
+    step («com si fos graspable-math però sense interactuar»): `resolucio.html?activitat=…`. The index button
+    «Activar la resolució pas a pas» leads to B. Links between them: A → B «Mira com es resol» (a new tab, same
+    level, a similar exercise) and B → A «Ara fes-ho tu». This **supersedes** decision 3 (the animation inside
+    the activity: worked examples, the student's correct steps) and decisions 12–13 (detail inside the
+    activity; the player's button after `equacions`): the work of stage 3 part 1 was reused for B.
+15. **Detail in B, after seeing the step** (D2 as approved): «Vull més detall» next to the caption; the step's
+    line goes down in grey as the target and the sub-steps are written above it in the drawer, one per «Pas
+    següent»; «Menys detall» folds it.
+16. `prioritat` and `fraccions` lose the board now; until they have their B, the index offers only `equacions`.
 
 ## Technical decisions (agent)
 
@@ -251,7 +264,11 @@ C new capabilities, P planned activities, X existing activities, N new activitie
   `comprovaGuio` caught the script error, as intended; and «a detail adds a step» has to count all
   descendants (`pares`), not only direct children, when nested details are open.
 
-## Stage 3, part 1: «Vull més detall» in `equacions` (2026-11-15)
+## Stage 3, part 1: «Vull més detall» in `equacions` (2026-11-15) — SUPERSEDED the same day
+
+Kept for the record: it was never published (commit `3a56563` on the branch). Decision 14 removed the board from
+the activity; the engine pieces (`obre()`, the drawer) and the detail generators moved to scenario B (next section).
+
 
 - Engine: `H.obre(line, op)` opens a step now and returns `{ escriu, canvia, obre, acaba }` (`acaba` when the
   student answers; the step numbering is settled there); the drawer of an opened step (D2: grey, sunken,
@@ -282,6 +299,39 @@ C new capabilities, P planned activities, X existing activities, N new activitie
   true lines, at most 7 moved pieces per step); the evaluator reads `·` and `:`. `pissarra.test.js` §4c tests
   `obre()` and the drawer. Browser §7: «Vull més detall» on every step of two level-3 equations at mobile size
   (one sub-line per click inside the drawer, the button hides, the answer adds one top-level line, full points).
+
+## Two scenarios: how B was built (2026-11-15)
+
+- **A, the activities**: `prioritat.js`, `equacions.js` and `fraccions.js` no longer import `js/pissarra/`
+  (check-repo §9 forbids it); `?pissarra=1` is ignored (prioritat no longer forces «Pas a pas» with it). The pages
+  no longer link `css/pissarra.css`. `equacions.html` has «Mira com es resol una equació com aquesta ↗»
+  (`#mira-com`, `target="_blank"`): level = `?nivell=` if 1–3, otherwise the one that fits the session progress
+  (1 + ⌊3 · operation / total⌋). Kept, unused, for the future B of those activities: `js/prioritat/renderer.js`
+  keyed table (`claus`, `fusioUltimaLinia`, `copiesUltimaLinia`) and `js/fraccions/renderer.js` (HTML history),
+  with their tests. `js/equacions/renderer.js` is back to `renderOneToken`/`renderTerms`.
+- **B, `resolucio.html?activitat=equacions&nivell=n`** (`js/resolucio/resolucio.js`): lilac page (the index's
+  palette with the button on), level buttons (the URL keeps the level), «Un altre exercici», «Ara fes-ho tu»
+  (`equacions.html?nivell=n`), board `files: 40` with its own scroll bar (`max-height: min(64vh, 620px)`), player
+  with keyboard. Without an activity: the list. Registry `js/resolucio/activitats.js` = `SUPORTA_PISSARRA` =
+  `pissarra: true` in the index (only `equacions`); index links `resolucio.html?activitat=<page>`.
+- **The procedure** `js/equacions/resolucio.js` (pure): `exercici(nivell)` = `MathEngine.generateEquation(0,
+  { nivell })`; `passos(eq, { oberts })` = `historial(g, { prefix: 'E', pinta: pintaTex, oberts, objectiu: true })`
+  with one TeX line per row; captions «Resol l'equació …», the activity's instructions for distributive and
+  simplify steps, «Passa els termes amb x a l'esquerra», «Passa els nombres a la dreta», «Aïlla la x: divideix b
+  entre a», and «La solució és x = …» on the last step; the closing sub-step of a detail says the computation
+  («Fes la multiplicació: (−2) · 3 = −6», «Fes la suma…», «Fes el càlcul…», «Fes la divisió…»). `files(eq)` = all
+  lines with every step opened (at most 22 seen).
+- **Engine**: permanent line keys `<prefix><ID>k<piece>` (no more copy keys `…c<r>k…`); `planifica` treats a
+  source that stays as a copy flight and gives merge ghosts (`volades`) for fusions from sources that stay and for
+  moves into a key that was already there; `transicio` animates `volades` (and includes them in the warning
+  boxes); `comprovaGuio` rules relaxed accordingly (sources in A, targets in B; a disappearing source used once);
+  `historial({ objectiu })`: the grey target; `pissarra.canviaGuio(nous, i, { senseVols })`; the player's
+  `detall` option and `carrega()`; CSS `.pis-fila.objectiu`, `.pis-detall-boto`, smaller dots for sub-steps,
+  TeX drawer rows with square inner corners (`.pis-fila` has a 10 px radius).
+- **Tests**: `equacions.test.js` §2 = scenario B (1,800 equations, ≈200,000 true rows with every detail view,
+  KaTeX, second person, `final`); `pissarra.test.js` (permanent keys, copies of sources that stay, merge ghosts,
+  the grey target, registry); browser suites rewritten (6 A, 7 B, 8 queue failure on the demo, 9 faithful ghosts
+  in B and when a detail opens, 10 prioritat table, 11 reduced motion in B).
 
 ## Known limits
 

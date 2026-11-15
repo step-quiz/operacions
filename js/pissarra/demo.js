@@ -192,7 +192,7 @@ function passosPitagores() {
  */
 function passosParentesis({ oberts = new Set() } = {}) {
     const g = guio(10);
-    const H = historial(g, { oberts });
+    const H = historial(g, { oberts, objectiu: true });
     const [c, x, q, d] = [P('c', '2'), P('x', 'x'), P('q', '='), P('d', '14')];
     H.escriu([c, P('a', '('), x, P('s', '+'), P('t', '3'), P('b', ')'), q, d], "Resol l'equació $2(x + 3) = 14$.");
     H.escriu(

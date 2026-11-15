@@ -23,7 +23,7 @@
  *   potències són botons (data-i = posició del token a la línia). A les altres
  *   línies van dins d'un <span class="tok-lloc">, que ocupa la mateixa caixa que
  *   un botó: així la taula no canvia d'amplada quan els botons hi són o no.
- * - «Resolució pas a pas» (?pissarra=1, js/pissarra/): amb l'opció claus, cada
+ * - Per a la futura «Resolució pas a pas» (escenari B; avui cap pàgina no la fa servir): amb l'opció claus, cada
  *   token, cada «=» i cada nota porten una clau (data-k) perquè la pissarra els
  *   pugui seguir d'una taula a la següent. Quan s'escriu una línia nova, els
  *   tokens de l'operació (i els parèntesis que cauen) baixen i es fusionen en el
@@ -70,7 +70,7 @@ export const Renderer = (() => {
             .join('');
     }
 
-    // ── Claus per a la pissarra (?pissarra=1) ──
+    // ── Claus per a la pissarra (per a la futura resolució pas a pas de prioritat) ──
     const columnes = t => `c${t.c0}x${t.c1}`;
     // Un token és «el mateix» a la línia següent si hi ocupa les mateixes columnes i no ha canviat
     // (una potència calculada ocupa les mateixes columnes que el seu resultat, però no és el mateix)

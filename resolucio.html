@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Resolució pas a pas animada d'un exercici (Step Quiz): mira com es resol, i demana més detall dels passos que no entenguis.">
+    <link rel="icon" href="icon.png">
+    <title>Resolució pas a pas</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="vendor/katex-0.16.11/katex.min.css">
+    <link rel="stylesheet" href="css/pissarra.css">
+    <style>
+        /* El lila de la resolució pas a pas (el mateix de l'índex amb el botó activat) */
+        :root {
+            --primary: #7c3aed;
+            --primary-light: #f5f3ff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #f8fafc;
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+        }
+        header {
+            background: #2e1065;
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+        header h1 { margin: 0; font-size: 1.1rem; }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 6px 11px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+        main {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+        .nota { margin: 0 0 14px; color: var(--text-muted); max-width: 70ch; }
+        .barra {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 14px;
+            margin-bottom: 14px;
+        }
+        #nivells { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tria, .accio {
+            font: inherit;
+            font-size: 15px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border-heavy);
+            background: #fff;
+            color: var(--text-main);
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .tria[aria-pressed="true"] {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            font-weight: 700;
+        }
+        .accio.principal {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+        }
+        .accions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+        /* La pissarra té la seva barra quan la resolució és llarga (es veu sempre l'última línia) */
+        #pissarra .pis-escenari { max-height: min(64vh, 620px); }
+        .avis { padding: 14px 16px; border: 1px solid var(--border-heavy); border-radius: 10px; background: #fff; }
+        .avis ul { margin: 8px 0 0; }
+    </style>
+    <script src="vendor/katex-0.16.11/katex.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1 id="titol">Resolució pas a pas</h1>
+        <a href="index.html">← Step Quiz</a>
+    </header>
+    <main>
+        <p class="nota">Mira com es resol, pas a pas: fes servir els botons de sota la pissarra (o les fletxes del teclat). Si un pas no l'entens, prem «Vull més detall».</p>
+        <div class="barra" id="barra" hidden>
+            <div id="nivells" role="group" aria-label="Nivell"></div>
+            <div class="accions">
+                <button type="button" class="accio" id="un-altre">Un altre exercici</button>
+                <a class="accio principal" id="fes-ho-tu" href="index.html">Ara fes-ho tu</a>
+            </div>
+        </div>
+        <div id="pissarra"></div>
+    </main>
+    <script type="module" src="js/resolucio/resolucio.js"></script>
+</body>
+</html>

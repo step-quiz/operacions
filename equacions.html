@@ -22,7 +22,6 @@
     <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/teclat.css">
-    <link rel="stylesheet" href="css/pissarra.css">
 
     <style>
         /* ---- Variables de color específiques d'equacions ---- */
@@ -138,33 +137,18 @@
         .eq-history-line.eq-solved .eq-sign      { color: var(--success); }
         .eq-history-line.eq-solved .eq-var       { color: var(--success); }
 
-        /* «Resolució pas a pas» (?pissarra=1): l'historial dins d'una pissarra sense marc (js/pissarra/).
-           Les línies no tornen a fer el fadeIn cada cop que la pissarra les redibuixa. */
-        .eq-history .pis-escenari { align-self: stretch; }
-        .eq-linies { display: flex; flex-direction: column; align-items: center; width: 100%; }
-        .pis-escenari .eq-history-line { animation: none; }
-        /* Detall a demanda: les línies del calaix (css/pissarra.css .pis-calaix), amb una mica menys de
-           lletra; mentre el pas és obert (el calaix és l'últim), es llegeixen com la línia de treball, i
-           quan l'alumne ja l'ha contestat, com la resta de l'historial */
-        .pis-calaix .eq-history-line { font-size: 1.1em; padding: 4px 0 2px; }
-        .eq-linies > .pis-calaix:last-child .eq-history-line          { color: var(--text-main); }
-        .eq-linies > .pis-calaix:last-child .eq-history-line .eq-sign { color: var(--primary); }
-        .eq-linies > .pis-calaix:last-child .eq-history-line .eq-var  { color: var(--primary-dark); }
-        .btn-detall {
-            font: inherit;
+        /* «Mira com es resol»: la resolució pas a pas d'una equació semblant (resolucio.html) */
+        .mira-com {
+            display: block;
+            width: fit-content;
+            margin: 14px auto 4px;
             font-size: 0.9em;
-            font-weight: 700;
+            font-weight: 600;
             color: var(--primary);
-            background: #fff;
-            border: 1.5px solid var(--primary);
-            border-radius: 999px;
-            padding: 5px 14px;
-            margin: -8px 0 16px;
-            cursor: pointer;
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
         }
-        .btn-detall:hover:not(:disabled) { background: var(--primary-light, #eff6ff); }
-        .btn-detall:disabled { opacity: 0.55; cursor: default; }
-        .btn-detall[hidden] { display: none; }
+        .mira-com:hover { color: var(--primary-dark); border-bottom-style: solid; }
 
         /* ---- ZONA DE RESOLUCIÓ PAS A PAS ---- */
         .resolution-panel {
@@ -282,7 +266,6 @@
         <div class="resolution-panel" id="resolution-panel">
             <div class="step-counter" id="step-counter">Pas 1 de 3</div>
             <div class="step-instruction" id="step-instruction"></div>
-            <button type="button" class="btn-detall" id="btn-detall" hidden>Vull més detall</button>
 
             <div class="step-container" id="step-value">
                 <div class="value-input-group">
@@ -290,6 +273,7 @@
                 </div>
             </div>
         </div>
+        <a class="mira-com" id="mira-com" href="resolucio.html?activitat=equacions" target="_blank" rel="noopener">Mira com es resol una equació com aquesta ↗</a>
     </div>
 </div>
     <!-- 4. game-core DESPRÉS del body perquè pot referenciar DOM -->

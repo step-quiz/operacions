@@ -352,14 +352,29 @@ const ambNota = (html, text) =>
 
 export function historial(
     g,
-    { fila = 0, prefix = 'L', pinta = pintaTex, envolta = null, calaix = calaixHtml, oberts = new Set() } = {}
+    {
+        fila = 0,
+        prefix = 'L',
+        pinta = pintaTex,
+        envolta = null,
+        calaix = calaixHtml,
+        oberts = new Set(),
+        objectiu = false,
+    } = {}
 ) {
     if (!CLAU_VALIDA.test(prefix)) throw new Error(`Prefix no vàlid: «${prefix}»`);
-    // Les línies escrites: { linia, classe, nivell, dins, text, baixades: Set(ids que han baixat a la línia
-    // següent) }; dins: els passos oberts dins el calaix dels quals és la línia (del de fora al de dins);
-    // text: la frase del pas que l'ha escrita.
+    // Les línies escrites: { linia, classe, nivell, dins, text, idLinia }; dins: els passos oberts dins el calaix
+    // dels quals és la línia (del de fora al de dins); text: la frase del pas que l'ha escrita; idLinia: l'id
+    // del pas que l'ha escrita (el del pas tancat, si és la línia d'un D.acaba).
     const escrites = [];
-    const clauDe = (r, id) => (escrites[r].baixades.has(id) ? `${prefix}c${r}k${id}` : `${prefix}${r}k${id}`);
+    // La clau d'una peça és per sempre: <prefix><id de la línia, en majúscules>k<id de la peça>. Així la mateixa
+    // línia té les mateixes claus a totes les vistes (amb un pas obert o tancat) i cap línia escrita no les
+    // canvia: el que baixa a la línia nova és una còpia que hi vola.
+    const clauLinia = (idLinia, id) => `${prefix}${idLinia.toUpperCase()}k${id}`;
+    const clauDe = (r, id) => clauLinia(mostrades[r].idLinia, id);
+    // Els passos oberts que encara no s'han acabat, amb la línia del pas tancat (objectiu: es veu en gris)
+    const pendents = [];
+    let mostrades = escrites; // les línies que es pinten: les escrites i, amb objectiu, les dels passos oberts
     // Una línia sense les claus de la seva fila (la mateixa peça té la mateixa clau a totes les vistes)
     const signatura = l => `${l.classe}¦${pinta(l.linia, id => 'k' + id, l.classe, l)}`;
     let desfase = 0; // els passos de més que han afegit els detalls oberts (els números són els del compacte)
@@ -368,34 +383,48 @@ export function historial(
     let nou = null; // el pas obert el calaix del qual apareix en aquest pas
 
     const pintaLinia = r => {
-        const l = escrites[r];
+        const l = mostrades[r];
         return pinta(l.linia, id => clauDe(r, id), l.classe, { nivell: l.nivell, text: l.text });
     };
     /** Les línies r0…r1 − 1, les dels detalls dins dels seus calaixos (n: els calaixos que hi ha a fora). */
     function agrupa(r0, r1, n) {
         const out = [];
         for (let r = r0; r < r1;) {
-            const id = escrites[r].dins[n];
+            const id = mostrades[r].dins[n];
             if (id === undefined) {
-                out.push(n ? ambNota(pintaLinia(r), escrites[r].text) : pintaLinia(r));
+                out.push(n ? ambNota(pintaLinia(r), mostrades[r].text) : pintaLinia(r));
                 r++;
                 continue;
             }
             let fi = r;
-            while (fi < r1 && escrites[fi].dins[n] === id) fi++;
+            while (fi < r1 && mostrades[fi].dins[n] === id) fi++;
             out.push(calaix(agrupa(r, fi, n + 1), { id, titol: titols.get(id) || '', nou: nou === id }));
             r = fi;
         }
         return out;
     }
-    // Una fila per línia: les d'un detall porten la classe «detall» (el calaix, css/pissarra.css)
+    // Una fila per línia: les d'un detall porten la classe «detall» (el calaix, css/pissarra.css) i la
+    // línia del pas obert que encara no s'ha acabat, «objectiu» (en gris)
     function pintaTot() {
-        if (envolta) g.files[fila] = envolta(agrupa(0, escrites.length, 0));
-        else
-            escrites.forEach((l, r) => {
+        const objectius = pendents
+            .slice()
+            .reverse()
+            .map(p =>
+                Object.assign({}, p, { classe: [p.classe, envolta ? 'pis-objectiu' : 'objectiu'].join(' ').trim() })
+            );
+        mostrades = escrites.concat(objectius);
+        if (envolta) g.files[fila] = envolta(agrupa(0, mostrades.length, 0));
+        else {
+            mostrades.forEach((l, r) => {
                 g.files[fila + r] = pintaLinia(r);
                 g.classes[fila + r] = [l.classe, l.dins.length ? 'detall' : ''].filter(Boolean).join(' ');
             });
+            for (let r = mostrades.length; r + fila < g.files.length; r++) {
+                g.files[fila + r] = '';
+                g.classes[fila + r] = '';
+            }
+        }
+        mostrades = escrites;
     }
 
     /** Pinta la pissarra, hi afegeix el pas (amb les metadades) i el torna. */
@@ -432,25 +461,20 @@ export function historial(
     function escriuLinia(linia, text, op, classe, nivell, dins, m) {
         const { mou = {}, fusiona = {}, reparteix = {} } = op;
         const r = escrites.length;
+        const idLinia = m.tanca || m.id;
         const opcions = {};
         if (r > 0) {
             const ant = escrites[r - 1];
             if (op.anterior !== undefined && op.anterior !== null) ant.linia = op.anterior;
             if (op.classeAnterior !== undefined) ant.classe = op.classeAnterior;
-            for (const id of [...Object.values(mou), ...Object.values(fusiona).flat(), ...Object.keys(reparteix)])
-                ant.baixades.add(id);
-            const vella = id => `${prefix}${r - 1}k${id}`; // la clau que tenia abans del pas
-            const nova = id => `${prefix}${r}k${id}`;
+            // De la línia anterior (que es queda) vola una còpia de cada peça que baixa
+            const vella = id => clauLinia(ant.idLinia, id);
+            const nova = id => clauLinia(idLinia, id);
             if (Object.keys(mou).length) opcions.reanomena = mapa(mou, (n, v) => [nova(n), vella(v)]);
             if (Object.keys(fusiona).length) opcions.fusiona = mapa(fusiona, (n, vs) => [nova(n), vs.map(vella)]);
             if (Object.keys(reparteix).length) opcions.reparteix = mapa(reparteix, (v, ns) => [vella(v), ns.map(nova)]);
-            // La còpia que queda a la línia anterior hi és tota l'estona (no parpelleja)
-            if (ant.baixades.size)
-                opcions.copia = Object.fromEntries(
-                    [...ant.baixades].map(id => [`${prefix}c${r - 1}k${id}`, vella(id)])
-                );
         }
-        escrites.push({ linia, classe, nivell, dins, text, baixades: new Set() });
+        escrites.push({ linia, classe, nivell, dins, text, idLinia });
         const calaixNou = dins[dins.length - 1];
         if (calaixNou !== undefined && !ambLinies.has(calaixNou)) {
             ambLinies.add(calaixNou);
@@ -511,11 +535,15 @@ export function historial(
         if (op.classeAnterior !== undefined) heretat.classeAnterior = op.classeAnterior;
         const dins = [...pares, id];
         titols.set(id, op.titol || '');
+        // Amb objectiu, la línia del pas tancat es veu en gris a sota del calaix mentre es fan els subpassos
+        const pendent = { linia, classe, nivell, dins: pares, text: '', idLinia: id };
+        if (objectiu) pendents.push(pendent);
         const D = ordres(nivell + 1, dins, fill, heretat);
         let acabat = false;
         const acaba = (text, subop = {}) => {
             if (acabat) throw new Error(`El detall de «${id}» ja s'ha acabat`);
             acabat = true;
+            if (pendents.includes(pendent)) pendents.splice(pendents.indexOf(pendent), 1);
             const sid = subop.id ?? fill();
             const pas = escriuLinia(
                 linia,
@@ -532,13 +560,14 @@ export function historial(
         return Object.freeze({ escriu: D.escriu, canvia: D.canvia, obre: D.obre, acaba });
     }
 
-    const dalt = ordres(0, [], () => String(g.passos.length + 1 - desfase));
+    const idSeguent = () => String(g.passos.length + 1 - desfase);
+    const dalt = ordres(0, [], idSeguent);
     return Object.freeze({
         escriu: dalt.escriu,
         canvia: dalt.canvia,
         obre: dalt.obre,
-        /** La clau que té (o tindrà) la peça «id» a la línia r, mentre no hagi baixat a la següent. */
-        clau: (r, id) => `${prefix}${r}k${id}`,
+        /** La clau de la peça «id» a la línia r (r = nombre: la de la línia que escriurà el pas següent). */
+        clau: (r, id) => clauLinia(r < escrites.length ? escrites[r].idLinia : idSeguent(), id),
         get nombre() {
             return escrites.length;
         },

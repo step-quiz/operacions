@@ -16,7 +16,7 @@
  *      mòdul i les pàgines amb joc no tenen JS dins de l'HTML.
  *   8. Mode «Esvaïment» (?esvaiment=1): no genera mai el codi de verificació, i
  *      la llista de pàgines que l'admeten quadra amb index.html i amb el codi.
- *   9. Mode «Resolució pas a pas» (?pissarra=1): la llista de pàgines que
+ *   9. «Resolució pas a pas» (resolucio.html): la llista de pàgines que
  *      l'admeten quadra amb index.html (botó «Activar la resolució pas a pas»)
  *      i amb el codi; no canvia les sessions fixes ni els codis.
  *  10. Final de pregunta i punts: cap activitat suma punts pel seu compte
@@ -361,6 +361,7 @@ suite('6. Colors comuns (css/tokens.css)');
         's.html',
         'setup_vocabulari.html',
         'pissarra-demo.html',
+        'resolucio.html',
         'area-perimetre-tutorial.html',
         'recta-numerica-tutorial.html',
         'googled9af5cf2562dfba3.html',
@@ -693,7 +694,7 @@ suite('8. Mode «Esvaïment» (?esvaiment=1)');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-suite('9. Mode «Resolució pas a pas» (?pissarra=1)');
+suite('9. «Resolució pas a pas» (resolucio.html, l’escenari B)');
 {
     const src = read('js/pissarra/mode.js');
     const llista = src.match(/export const SUPORTA_PISSARRA\s*=\s*\[([^\]]*)\]/);
@@ -719,26 +720,46 @@ suite('9. Mode «Resolució pas a pas» (?pissarra=1)');
         `index.html: ${ambPissarra.join(', ') || '—'} · SUPORTA_PISSARRA: ${suporta.join(', ') || '—'}`
     );
     ok(
-        'index.html té el botó «Activar la resolució pas a pas» i aleshores l’enllaç és «activitat?pissarra=1»',
+        'index.html té el botó «Activar la resolució pas a pas» i aleshores l’enllaç és «resolucio.html?activitat=…»',
         /id="btn-pissarra"/.test(idx) &&
             /Activar la resolució pas a pas/.test(idx) &&
-            /if \(resolucioPasAPas\) \{\s*els\.link\.textContent = `\$\{BASE_URL\}\$\{file\}\?pissarra=1`;/.test(idx)
+            /if \(resolucioPasAPas\) \{\s*els\.link\.textContent = `\$\{BASE_URL\}resolucio\.html\?activitat=\$\{file\.replace\(/.test(
+                idx
+            )
     );
 
-    // Cada pàgina que l'admet existeix, carrega l'estil de la pissarra i el controlador importa PISSARRA_ACTIVA
-    const malament = suporta.filter(p => {
+    // L'escenari B: resolucio.html, el registre js/resolucio/activitats.js (les mateixes activitats) i el
+    // procediment de cada una (js/<activitat>/resolucio.js)
+    const reg = exists('js/resolucio/activitats.js') ? read('js/resolucio/activitats.js') : '';
+    const registrades = [...reg.matchAll(/^ {4}(\w+): Object\.freeze\(\{/gm)].map(m => m[1]).sort();
+    ok(
+        'resolucio.html carrega js/resolucio/resolucio.js i css/pissarra.css',
+        exists('resolucio.html') &&
+            /src="js\/resolucio\/resolucio\.js"/.test(read('resolucio.html')) &&
+            /href=["']css\/pissarra\.css["']/.test(read('resolucio.html'))
+    );
+    ok(
+        'js/resolucio/activitats.js registra les mateixes activitats que SUPORTA_PISSARRA',
+        JSON.stringify(registrades) === JSON.stringify(suporta),
+        `activitats.js: ${registrades.join(', ') || '—'} · SUPORTA_PISSARRA: ${suporta.join(', ') || '—'}`
+    );
+    const senseProcediment = suporta.filter(p => !exists(`${p}.html`) || !exists(path.join('js', p, 'resolucio.js')));
+    ok(
+        'cada activitat amb resolució té la seva pàgina i el seu procediment (js/<activitat>/resolucio.js)',
+        !senseProcediment.length,
+        senseProcediment.join(', ')
+    );
+
+    // L'escenari A és independent: cap controlador d'activitat no fa servir la pissarra
+    const activitats = [...idx.matchAll(/\{\s*file:\s*'([^']+)\.html'/g)].map(m => m[1]);
+    const ambPissarraA = activitats.filter(p => {
         const ctrl = path.join('js', p, `${p}.js`);
-        return (
-            !exists(`${p}.html`) ||
-            !/href=["']css\/pissarra\.css["']/.test(read(`${p}.html`)) ||
-            !exists(ctrl) ||
-            !/import\s*\{[^}]*\bPISSARRA_ACTIVA\b[^}]*\}\s*from\s*'\.\.\/pissarra\/mode\.js'/.test(read(ctrl))
-        );
+        return exists(ctrl) && /from\s*'\.\.\/pissarra\//.test(read(ctrl));
     });
     ok(
-        "cada pàgina que l'admet existeix, enllaça css/pissarra.css i el controlador importa PISSARRA_ACTIVA",
-        !malament.length,
-        malament.join(', ')
+        'cap activitat (escenari A) no importa js/pissarra/: la resolució pas a pas és a resolucio.html',
+        !ambPissarraA.length,
+        ambPissarraA.join(', ')
     );
 
     // És només visual: l'analitzador i la lletra de control no en saben res

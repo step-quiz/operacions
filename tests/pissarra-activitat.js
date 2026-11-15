@@ -23,9 +23,10 @@
  *        i 4 (cada línia del detall és certa).
  * - opcions:
  *     exercicis   iterable (pot ser un generador) d'exercicis { on, passos,
- *                 clasic?, vista?, … }: on, el nom als missatges; passos, el
- *                 guió; clasic[i], les files del pas i sense claus; vista, la
- *                 funció ({ oberts }) → passos del guió amb detall;
+ *                 files?, clasic?, vista?, … }: on, el nom als missatges; passos,
+ *                 el guió; files, les seves files (si cada exercici en té unes);
+ *                 clasic[i], les files del pas i sense claus; vista, la funció
+ *                 ({ oberts }) → passos del guió amb detall;
  *     eines       { comprovaGuio, comprovaDetall } (de comprova.js, carregat
  *                 amb loadModule o import());
  *     files       les files de la pissarra (1);
@@ -75,7 +76,8 @@ function provaActivitat(
     for (const ex of exercicis) {
         n++;
         const { on, passos } = ex;
-        for (const e of comprovaGuio(passos, files, on, { text })) anota(errors.guio, e);
+        const nFiles = ex.files ?? files;
+        for (const e of comprovaGuio(passos, nFiles, on, { text })) anota(errors.guio, e);
         if (ex.clasic) ambClasic++;
         // Les comprovacions 2, 3 i 4 dels passos d'una vista
         const revisa = (llista, nomVista) =>
@@ -102,7 +104,7 @@ function provaActivitat(
             });
         if (ex.vista) {
             ambDetall++;
-            for (const e of comprovaDetall(ex.vista, files, on, { text })) anota(errors.detall, e);
+            for (const e of comprovaDetall(ex.vista, nFiles, on, { text })) anota(errors.detall, e);
             const oberts = new Set(passos.filter(p => p.teDetall).map(p => p.id));
             if (oberts.size) revisa(ex.vista({ oberts }), ' (tot el detall)');
         }

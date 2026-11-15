@@ -2,7 +2,7 @@
  * ============================================================================
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: tests/fraccions.test.js
- * ROL: Tests de la «Resolució pas a pas» (?pissarra=1) d'«Operacions amb
+ * ROL: Tests de la futura «Resolució pas a pas» (escenari B) d'«Operacions amb
  *      Fraccions» (js/fraccions/renderer.js).
  * ARQUITECTURA:
  * - Es resolen milers d'operacions com les de l'activitat (sumes i restes amb
@@ -123,7 +123,7 @@ function resolucio(mode) {
     return linies;
 }
 
-suite('Resolució pas a pas (?pissarra=1): les línies de l’expressió');
+suite('Resolució pas a pas (per a l’escenari B): les línies de l’expressió');
 {
     const w = loadModule(['js/pissarra/formules.js', 'js/pissarra/comprova.js', 'js/fraccions/renderer.js']);
     const { Renderer } = w;

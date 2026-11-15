@@ -21,12 +21,12 @@
       { file: 'recta-numerica.html', label: 'Recta numèrica', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'potencies.html', label: 'Potències', yt: '', fixed: true },
-      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true, pissarra: true },
+      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true },
       { file: 'factoritzar.html', label: 'Descompondre en factors primers', yt: 'https://youtu.be/s2LGUllVMfM', fixed: true },
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ', fixed: true },
       { separator: true },
       { file: 'proporciodirecta.html', label: 'Proporció directa', yt: 'https://a.step-quiz.net/a-proporciodirecta-tutorial.html', difficulty: true, fixed: true },
-      { file: 'fraccions.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI', difficulty: true, fixed: true, pissarra: true },
+      { file: 'fraccions.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI', difficulty: true, fixed: true },
       { file: 'decimals.html', label: 'Nombres decimals', yt: 'https://a.step-quiz.net/a-decimals-tutorial.html', difficulty: true, fixed: true },
       { separator: true },
       { file: 'llenguatge-algebraic.html', label: 'Llenguatge algebraic', yt: '', fixed: true },
@@ -237,7 +237,8 @@
 
     /* ── Botó «Activar la resolució pas a pas» ──
        Desactivat (per defecte): tot com sempre. Activat: els menús només ofereixen les
-       activitats amb resolució pas a pas animada (pissarra: true) i l'enllaç porta ?pissarra=1. */
+       activitats amb resolució pas a pas (pissarra: true) i l'enllaç porta a resolucio.html, on
+       l'alumne mira com es resol un exercici (l'escenari B; l'activitat de sempre és l'A). */
     .pissarra-toggle {
       display: flex; align-items: center; gap: 8px;
       margin: 0 auto 16px; height: 38px; padding: 0 18px;
@@ -258,7 +259,7 @@
 
     /* Amb la resolució pas a pas activada (body.resolucio-pas-a-pas):
        1. tots els blaus passen a ser els lila equivalents (els de prioritat.html: #7c3aed, #6d28d9…);
-       2. les opcions de configuració desapareixen: l'enllaç és només «activitat?pissarra=1». */
+       2. les opcions de configuració desapareixen: l'enllaç és «resolucio.html?activitat=…». */
     .sub-panel, .title-row-2 { transition: background-color 0.3s, color 0.3s; }
     body.resolucio-pas-a-pas {
       --bg-body: #faf9fd;
@@ -716,9 +717,9 @@
           els.link.textContent = '';
           return;
         }
-        // Amb la resolució pas a pas activada no hi ha opcions: només l'activitat i pissarra=1
+        // Amb la resolució pas a pas activada no hi ha opcions: l'enllaç és la resolució de l'activitat
         if (resolucioPasAPas) {
-          els.link.textContent = `${BASE_URL}${file}?pissarra=1`;
+          els.link.textContent = `${BASE_URL}resolucio.html?activitat=${file.replace(/\.html$/, '')}`;
           return;
         }
         if (suffix === 'batx') {
@@ -827,7 +828,7 @@
       });
 
       // El botó «Activar la resolució pas a pas»: el menú ofereix només les activitats amb
-      // pissarra: true (o totes, si es desactiva) i l'enllaç és «activitat?pissarra=1».
+      // pissarra: true (o totes, si es desactiva) i l'enllaç és «resolucio.html?activitat=…».
       function setResolucioPasAPas() {
         dropdown.setActivities(resolucioPasAPas ? activities.filter(a => a.pissarra) : activities);
         refresh();
@@ -838,7 +839,7 @@
 
     // «Activar la resolució pas a pas» (desactivat per defecte: tot com sempre). Les activitats
     // que la tenen porten «pissarra: true» a la llista i han de coincidir amb SUPORTA_PISSARRA
-    // de js/pissarra/mode.js (tests/check-repo.js ho comprova).
+    // de js/pissarra/mode.js i amb js/resolucio/activitats.js (tests/check-repo.js ho comprova).
     let resolucioPasAPas = false;
 
     const dropdownEso = initPanel('eso',  ACTIVITIES_ESO,  DEFAULT_ESO, ESO_LLISTA_FINS);

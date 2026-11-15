@@ -10,19 +10,20 @@
  *   es veuen les equacions: només s'ha d'actualitzar si el canvi és volgut (i
  *   s'explica al costat de la constant).
  * - 1b. Cap equació sense una sola solució entera.
- * - 2. «Resolució pas a pas» (?pissarra=1): sobre milers d'equacions de tots els
- *   nivells, l'historial que es va escrivint línia a línia, escrit com ho fa el
- *   controlador (renderer.js historiaNova i escriuPas), passa la bateria comuna
- *   (tests/pissarra-activitat.js): el guió passa la revisió (js/pissarra/comprova.js),
- *   cada pas mou alguna peça i poques, cada línia que es veu és una equació amb la
- *   mateixa solució (recalculada aquí, amb aritmètica exacta) i, sense les claus, la
- *   pissarra és l'HTML de sempre. Amb el detall a demanda («Vull més detall»), totes
- *   les vistes (cada pas obert i tots oberts) i cada línia del detall.
+ * - 2. «Resolució pas a pas» (resolucio.html, js/equacions/resolucio.js): sobre
+ *   milers d'equacions dels nivells 1, 2 i 3, el guió de la pissarra passa la
+ *   bateria comuna (tests/pissarra-activitat.js): el guió passa la revisió
+ *   (js/pissarra/comprova.js), cada pas mou alguna peça i poques, cada línia que es
+ *   veu és una equació amb la mateixa solució (recalculada aquí, amb aritmètica
+ *   exacta) i el detall a demanda compleix la seva regla a totes les vistes (cada
+ *   pas obert i tots oberts). I KaTeX dibuixa totes les fórmules, les frases són en
+ *   segona persona i l'últim pas té el resultat ressaltat.
  * ÚS: node tests/equacions.test.js
  * ============================================================================
  */
 'use strict';
-const { suite, ok, eq, finish, loadModule } = require('./harness');
+const path = require('path');
+const { ROOT, suite, ok, eq, finish, loadModule } = require('./harness');
 const { provaActivitat } = require('./pissarra-activitat');
 
 // e12f22f1 era l'empremta del codi d'abans de moure'l (27/10/2026). El mateix dia es va corregir el mode sense
@@ -124,9 +125,13 @@ function avalua(text, x) {
     function terme() {
         let v = primari();
         for (;;) {
-            if (text[i] === '·') (i++, (v = producte(v, primari())));
-            else if (text[i] === ':') (i++, (v = quocient(v, primari())));
-            else if (text[i] === '(' || text[i] === 'x')
+            if (text[i] === '·' || text[i] === '*') {
+                i++;
+                v = producte(v, primari());
+            } else if (text[i] === ':') {
+                i++;
+                v = quocient(v, primari());
+            } else if (text[i] === '(' || text[i] === 'x')
                 v = producte(v, primari()); // implícit: 3x, 3(x-2)
             else return v;
         }
@@ -155,77 +160,83 @@ function solucio(linia) {
     if (c.n !== lineal.n || c.d !== lineal.d) throw new Error(`no és lineal: ${linia}`);
     return a.n === 0n ? null : quocient(producte(b, Q(-1)), a);
 }
-const textPla = html =>
-    html
-        .replace(/<[^>]+>/g, '')
-        .replace(/−/g, '-')
-        .replace(/\s+/g, '');
-
-suite('2. Resolució pas a pas (?pissarra=1): l’historial línia a línia');
+suite('2. Resolució pas a pas (resolucio.html): el guió de cada equació');
 {
+    const katex = require(path.join(ROOT, 'vendor/katex-0.16.11/katex.min.js'));
     const w = loadModule(
         [
             'js/utils.js',
             'js/equacions/math-engine.js',
             'js/pissarra/formules.js',
             'js/pissarra/comprova.js',
-            'js/equacions/renderer.js',
+            'js/equacions/resolucio.js',
         ],
-        { seed: 20261027 }
+        { seed: 20261115 }
     );
-    const { MathEngine, Renderer } = w;
-    // L'HTML de sempre d'una línia (el que pinta el joc sense la pissarra), amb la classe que ha de tenir
-    const clasica = (esq, dre, classe) =>
-        `<div class="eq-history-line${classe ? ' ' + classe : ''}">` +
-        `${Renderer.renderTerms(esq)}<span class="eq-sign">=</span>${Renderer.renderTerms(dre)}</div>`;
+    const { Resolucio, textPla } = w;
+    const PLURAL = /\b(calculem|fem|tenim|sabem|passem|sumem|restem|dividim|multipliquem|aïllem|resolem)\b/i;
+    const errorsKatex = [],
+        plurals = [],
+        senseFinal = [];
+    const anota = (llista, t) => llista.length < 5 && llista.push(t);
+    let revisades = 0;
+    // KaTeX ha de dibuixar cada fórmula (files i textos) dels primers exercicis, tancats i amb tot el detall
+    const revisa = (passos, on) => {
+        const formules = new Set();
+        for (const p of passos) {
+            p.files.filter(Boolean).forEach(f => formules.add(f));
+            for (const m of p.text.matchAll(/\$([^$]+)\$/g)) formules.add(m[1]);
+            if (PLURAL.test(p.text)) anota(plurals, `${on}: «${p.text}»`);
+        }
+        for (const f of formules) {
+            const html = katex.renderToString(f, {
+                throwOnError: false,
+                strict: 'ignore',
+                trust: c => c.command === '\\htmlData',
+            });
+            if (/katex-error/.test(html)) anota(errorsKatex, `${on}: ${f}`);
+        }
+        if (!passos[passos.length - 1].classes.includes('final')) anota(senseFinal, on);
+    };
     function* exercicis() {
-        for (const nivell of [0, 1, 2, 3])
-            for (const leftToRight of [false, true])
-                for (let k = 0; k < 250; k++) {
-                    const eqn = MathEngine.generateEquation(k % 10, { nivell, leftToRight, totalOperations: 10 });
-                    const passos = MathEngine.determineSteps(eqn);
-                    // Com el controlador: la primera línia (potser girada) i una línia per pas encertat
-                    const H = Renderer.historiaNova(eqn);
-                    passos.forEach((pas, j) => Renderer.escriuPas(H, pas, j === passos.length - 1));
-                    // Les línies de sempre: la primera és l'original; l'última, la més nova (o la resolta)
-                    const linies = [
-                        eqn.swapInitial ? [eqn.dispRight, eqn.dispLeft] : [eqn.dispLeft, eqn.dispRight],
-                        ...passos.map(p => [p.dispLeftAfter, p.dispRightAfter]),
-                    ];
-                    const classe = (r, i) =>
-                        r === 0 ? 'eq-original' : r < i ? '' : i === passos.length ? 'eq-solved' : 'eq-latest';
-                    const clasic = H.passos.map((_, i) => [
-                        `<div class="eq-linies">${linies
-                            .slice(0, i + 1)
-                            .map(([e, d], r) => clasica(e, d, classe(r, i)))
-                            .join('')}</div>`,
-                    ]);
-                    // Amb el detall a demanda: l'historial amb els passos d'«oberts» oberts
-                    const vista = ({ oberts }) => {
-                        const V = Renderer.historiaNova(eqn, { oberts });
-                        passos.forEach((pas, j) => Renderer.escriuPas(V, pas, j === passos.length - 1));
-                        return V.passos;
-                    };
-                    yield { on: `nivell ${nivell}, equació ${k}`, passos: H.passos, clasic, vista, xSol: eqn.xSol };
+        for (const nivell of Resolucio.NIVELLS)
+            for (let k = 0; k < 600; k++) {
+                const eqn = Resolucio.exercici(nivell);
+                const on = `nivell ${nivell}, equació ${k}`;
+                const passos = Resolucio.passos(eqn);
+                const vista = ({ oberts }) => Resolucio.passos(eqn, { oberts });
+                if (k < 60) {
+                    revisades++;
+                    revisa(passos, on);
+                    const oberts = new Set(passos.filter(p => p.teDetall).map(p => p.id));
+                    revisa(vista({ oberts }), `${on} (tot el detall)`);
                 }
+                yield { on, passos, vista, files: Resolucio.files(eqn), xSol: eqn.xSol };
+            }
     }
     provaActivitat('equacions', {
         exercicis: exercicis(),
         eines: w,
-        linies: fila => fila.match(/<div class="eq-history-line[^"]*">[\s\S]*?<\/div>/g) || [],
-        veritat: (linia, ex) => {
+        text: true,
+        veritat: (fila, ex) => {
+            const pla = textPla(fila);
             try {
-                const s = solucio(textPla(linia));
-                return !s || s.n !== BigInt(ex.xSol) || s.d !== 1n
-                    ? `${textPla(linia)} no té solució x = ${ex.xSol}`
-                    : '';
+                const s = solucio(pla);
+                return !s || s.n !== BigInt(ex.xSol) || s.d !== 1n ? `${pla} no té solució x = ${ex.xSol}` : '';
             } catch (e) {
                 return e.message;
             }
         },
         maxPeces: 10,
-        minExercicis: 2000,
+        minExercicis: 1800,
     });
+    ok(
+        `KaTeX dibuixa totes les fórmules (${revisades} equacions, tancades i amb tot el detall)`,
+        !errorsKatex.length,
+        errorsKatex.join('\n      → ')
+    );
+    ok('les frases són en segona persona', !plurals.length, plurals.join('\n      → '));
+    ok('l’últim pas té el resultat ressaltat (classe «final»)', !senseFinal.length, senseFinal.join(', '));
 }
 
 finish('TESTS D’EQUACIONS');
