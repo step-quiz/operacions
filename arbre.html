@@ -368,7 +368,6 @@ footer a{color:inherit;white-space:nowrap;text-underline-offset:3px}
         <button class="link" id="prev">‹ anterior</button>
         <span class="counter" id="counter"></span>
         <button class="link" id="next">següent ›</button>
-        <button class="link" id="shuffle">un altre a l'atzar</button>
       </div>
       <div class="cd" id="cd" hidden>
         <div class="ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="2"/><circle id="cdArc" cx="32" cy="32" r="28" fill="none" stroke="var(--pen)" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg><b id="cdNum">5</b></div>
@@ -813,7 +812,7 @@ function drawLook(anim = 'all') {
   if (i !== undefined) S.i = i;
   const one = total === 1;
   $('nav').hidden = false;
-  ['prev', 'next', 'shuffle'].forEach(id => $(id).hidden = one);
+  ['prev', 'next'].forEach(id => $(id).hidden = one);
   $('prev').disabled = S.i <= 0; $('next').disabled = S.i >= S.list.length - 1;
   $('counter').textContent = !S.tree.c ? (ST === 'flors' ? 'només hi ha un bolet' : 'només hi ha una fulla') : one ? 'només hi ha 1 arbre' : `Fig. ${fmt(S.i + 1)} de ${fmt(total)}`;
   $('hint').textContent = !S.tree.c ? `El ${fmt(S.n)} és un nombre primer: la llavor ja és ${ST === 'flors' ? 'un bolet' : 'fulla'}` : (one ? 'Aquest nombre només té un arbre possible' : '');
@@ -1062,7 +1061,6 @@ function closeDrawer() { $('drawer').classList.remove('open'); $('drawerHead').s
 $('drawerHead').onclick = () => { const o = $('drawer').classList.toggle('open'); $('drawerHead').setAttribute('aria-expanded', o); };
 $('prev').onclick = () => go(-1);
 $('next').onclick = () => go(1);
-$('shuffle').onclick = () => { if (S.list.length < 2) return; let j; do j = Math.floor(Math.random() * S.list.length); while (j === S.i); S.i = j; S.tree = S.list[j]; drawLook(); };
 $('cdPause').onclick = () => { CD.run = !CD.run; CD.last = performance.now(); $('cdPause').textContent = CD.run ? 'Pausa' : 'Continua'; $('cdTxt').textContent = CD.run ? 'Pensa com es descompon… la planta creixerà sola.' : 'En pausa. Pren-te el temps que calgui.'; };
 $('cdNow').onclick = growNow;
 function redrawAll() {
