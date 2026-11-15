@@ -8,7 +8,10 @@
  *      «Resolució pas a pas» (?pissarra=1, js/pissarra/): l'historial es pinta dins
  *      d'una pissarra sense marc i cada línia nova s'anima (els termes que el pas
  *      mou baixen de la línia anterior i s'hi fusionen; les d'abans queden
- *      escrites). No canvia res més: preguntes, punts ni codi.
+ *      escrites). Abans de contestar un pas, «Vull més detall» escriu a la pissarra,
+ *      dins d'un calaix, uns subpassos que porten fins just abans de la resposta
+ *      (renderer.js obreDetall): és gratuït i queda marcat a l'historial de la sessió.
+ *      No canvia res més: preguntes, punts ni codi.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa game-core.js, utils.js, config.js,
  *      pissarra/mode.js, pissarra/pissarra.js, math-engine.js i renderer.js.
  * ============================================================================
@@ -75,6 +78,7 @@ const els = {
     stepValue: document.getElementById('step-value'),
     valueInput: null, // es crea dinàmicament a renderStepHint
     btnSubmitVal: document.getElementById('btn-submit-val'),
+    btnDetall: document.getElementById('btn-detall'), // «Vull més detall» (només amb ?pissarra=1)
 };
 
 // Estat específic d'equacions
@@ -98,6 +102,9 @@ let isPenalizing = false;
 // (pissarra.encua), que no es bloqueja mai.
 const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.eqHistory, { files: 1, marc: false }) : null;
 let historia = null;
+// El detall del pas que l'alumne té per contestar, si l'ha demanat (renderer.js obreDetall): { passos,
+// acaba, vistos }; vistos: els subpassos que ja s'han enviat a la pissarra.
+let detall = null;
 
 // La matemàtica és a math-engine.js; l'HTML dels termes, a renderer.js
 const { xT, nT, determineSteps } = MathEngine;
@@ -137,7 +144,42 @@ function addEquationToHistory(leftArr, rightArr, extraClass) {
 // (un pas que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
 // Les pintades van a la cua del motor: una animació sempre acaba abans que comenci la següent, i si
 // una falla, la línia es mostra igualment i el joc continua.
-const pintaPas = (pas, anima) => pissarra.encua(pas, { anima, velocitat: 1.6 });
+const pintaPas = (pas, anima, velocitat = 1.6) => pissarra.encua(pas, { anima, velocitat });
+
+// «Vull més detall» (detall a demanda, docs/pissarra/STATE.md): cada clic escriu el subpas següent del pas
+// que l'alumne té per contestar, a la velocitat dels exemples (1: és una explicació). És gratuït: no costa
+// intents ni punts. Quan ja s'han vist tots els subpassos, el botó s'amaga i l'alumne contesta.
+// Amb la pissarra, el botó sempre ocupa el seu lloc (quan no toca, és invisible): el panell del pas no
+// canvia de mida d'un pas a l'altre ni mentre s'anima una línia. Sense la pissarra, no hi és.
+const amagaDetall = amaga => {
+    if (els.btnDetall) els.btnDetall.style.visibility = amaga ? 'hidden' : '';
+};
+function preparaDetall(step) {
+    detall = null;
+    if (!els.btnDetall) return;
+    els.btnDetall.hidden = !pissarra;
+    amagaDetall(!(pissarra && Renderer.detallPas(step)));
+    els.btnDetall.disabled = false;
+    els.btnDetall.textContent = 'Vull més detall';
+}
+function demanaDetall() {
+    if (!pissarra || state.isTransitioning || currentStepIndex >= steps.length) return;
+    if (!detall) {
+        detall = Renderer.obreDetall(historia, steps[currentStepIndex], currentStepIndex === steps.length - 1);
+        if (!detall) return;
+        detall.vistos = 0;
+    }
+    if (detall.vistos >= detall.passos.length) return;
+    els.btnDetall.disabled = true;
+    pintaPas(detall.passos[detall.vistos++], true, 1).then(() => {
+        const queden = detall && detall.vistos < detall.passos.length;
+        els.btnDetall.disabled = false;
+        els.btnDetall.textContent = 'Continua el detall';
+        if (!queden) amagaDetall(true);
+        if (els.valueInput && !isTouchDevice()) els.valueInput.focus();
+    });
+}
+if (els.btnDetall) els.btnDetall.addEventListener('click', demanaDetall);
 
 // ---- BUILD LEVEL (cridat per game-core) ----
 function buildLevel() {
@@ -188,6 +230,7 @@ function showCurrentStep() {
     els.stepInstruction.innerHTML = step.instruction;
 
     renderStepHint(step);
+    preparaDetall(step);
 
     els.stepValue.classList.add('active');
     els.valueInput = document.getElementById('value-input');
@@ -337,7 +380,7 @@ function checkValue() {
     if (isNaN(userAnswer)) return;
 
     // Nom neutre de la pregunta per a l'informe
-    const stepQuestion = 'Pas ' + (currentStepIndex + 1) + " de l'equació";
+    const stepQuestion = 'Pas ' + (currentStepIndex + 1) + " de l'equació" + (detall ? ' (amb detall)' : '');
 
     // CORRECCIÓ: Comparem amb step.answer (on tens guardada la solució numèrica)
     if (userAnswer !== step.answer) {
@@ -379,8 +422,15 @@ function advanceStep() {
     const isFinal = currentStepIndex === steps.length - 1;
     if (pissarra) {
         // La línia nova s'anima; mentre baixen els termes, la línia de treball s'amaga i el pas
-        // següent surt quan l'animació s'acaba
-        const pas = Renderer.escriuPas(historia, step, isFinal);
+        // següent surt quan l'animació s'acaba. Si l'alumne ha demanat detall, la línia surt de l'última
+        // línia del detall (si no els ha vist tots, abans es mostren els que falten, sense animació).
+        let pas;
+        if (detall) {
+            if (detall.vistos < detall.passos.length) pintaPas(detall.passos[detall.passos.length - 1], false);
+            pas = detall.acaba();
+            detall = null;
+        } else pas = Renderer.escriuPas(historia, step, isFinal);
+        amagaDetall(true);
         // La zona de treball s'amaga però no s'encongeix: cap finestra no canvia de mida mentre baixen
         // els termes (i el que hi ha a sota no salta)
         const zona = els.stepValue.parentElement;
@@ -412,6 +462,8 @@ function advanceStep() {
 // ---- FINALITZAR EQUACIÓ I AVANÇAR ----
 function finishEquation(levelPoints) {
     recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
+    detall = null;
+    amagaDetall(true);
     els.resolutionPanel.style.display = 'none';
     els.stepHint.style.display = 'none';
     // Punts, franja «Molt bé!» / «Intents esgotats» i botó «Següent» (game-core.js)

@@ -428,6 +428,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         r.efectes.replaceChildren();
         const vella = capa;
         capa = dibuixaCapa(pas);
+        capa.classList.add('pis-vista'); // es veu ara (el calaix d'un detall nou s'obre: css/pissarra.css)
         r.pissarra.replaceChildren(capa);
         fesVisible(vella, capa);
     }
@@ -632,6 +633,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
      */
     async function fonAlLloc(vella, nova) {
         nova.style.visibility = 'visible';
+        nova.classList.add('pis-vista');
         const velles = [...vella.children];
         const feines = [];
         [...nova.children].forEach((f, i) => {
@@ -758,6 +760,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         vella.classList.add('pis-amaga-claus');
         nova.classList.add('pis-amaga-claus');
         nova.style.visibility = 'visible';
+        nova.classList.add('pis-vista'); // a partir d'ara es veu (el calaix d'un detall nou s'obre ara)
         // Cada fila es fon amb la seva nova versió, menys les que no canvien (filaIgual): es queden
         // quietes, i així les línies que ja estaven escrites no es mouen gens. Les altres es fonen
         // sense enfosquir-se a mig camí: la nova apareix abans que la vella se'n vagi.

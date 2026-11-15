@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-14, stage 2 done)
+## Status (2026-11-15, stage 3 in progress)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -28,7 +28,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | 1 | Robustness and visual fidelity: R1 queue with recovery, R2 faithful ghosts, R3 warning boxes per run, R4 nothing changes size, R5 reduced motion and announcement | DONE (2026-11-14) |
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
-| 3 | «Vull més detall» on the current activities: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3 option (a), D4 free | NEXT, when David says so |
+| 3 | «Vull més detall» on the current activities: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3 option (a), D4 free | IN PROGRESS: part 1 (`equacions` + the drawer) DONE 2026-11-15; next the player's button, then `fraccions` and `prioritat` |
 | 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
@@ -85,6 +85,13 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     X2 both methods (reduction to the unit and a/b = c/x → a·x = b·c); N3 for incomplete equations the student
     chooses the short path or the formula; N4 a separate activity; N6 when a limit ends as k/0, decide the sign
     of each one-sided limit; A4 David will give access to `step-quiz/pau`.
+
+2026-11-15 (start of stage 3):
+12. **D3, how far the detail goes in an activity: up to just before the answer.** The sub-steps are written
+    but not the line with the answer: the student still does the last computation (e.g. 2·3 = 6), answers,
+    and then the step's line is written from the last line of the detail.
+13. The player's «Vull més detall» button comes **after** `equacions` (the demo keeps its provisional
+    checkbox until then).
 
 ## Technical decisions (agent)
 
@@ -243,6 +250,38 @@ C new capabilities, P planned activities, X existing activities, N new activitie
 - Lesson: the first nested-detail test failed because a sub-step both merged and moved the same piece —
   `comprovaGuio` caught the script error, as intended; and «a detail adds a step» has to count all
   descendants (`pares`), not only direct children, when nested details are open.
+
+## Stage 3, part 1: «Vull més detall» in `equacions` (2026-11-15)
+
+- Engine: `H.obre(line, op)` opens a step now and returns `{ escriu, canvia, obre, acaba }` (`acaba` when the
+  student answers; the step numbering is settled there); the drawer of an opened step (D2: grey, sunken,
+  activity colour on the left edge, 3D tilt on `::before` when it first appears and the layer becomes
+  visible, class `pis-vista`); the caption of each sub-step under its line. TeX rows: class `detall`.
+- `js/equacions/renderer.js` `detallPas(pas)` (pure): distributive → `c·x + c·n` with negative factors in
+  parentheses, `(−2)·x + (−2)·3` (the outer number is spread to both products, its «−» goes with the first);
+  joining x terms → `(3 + 2)x`; moving the x terms → «Resta 2x als dos membres» (the 2x spread to its place
+  and both new terms), `2x − 2x = 0`, «Sumar 0 no canvia res» (only if something else is on that side);
+  moving the numbers → the same with the left number; isolating x → `3x : 3 = 6 : 3` (the divisor spread from
+  the coefficient; with −x, from the «−»), `3x : 3 = x`. Joining numbers has no detail. Each generator also
+  gives the closing moves (from the last sub-line to the step's line). As in the closed steps, only the
+  symbols that do the change fly; the rest of the new line appears. Titles «Detall: …» (the step
+  instructions of `group_x`, `group_num`, `solve` are questions, so the drawer gets its own title).
+- `escriuPas` carries the detail (`teDetall`; opened when the id is in `oberts`, which only the tests use),
+  `obreDetall(H, pas, final)` is what the controller calls when the student asks: all sub-steps are written
+  to the history at once and the controller shows them one per click (speed 1); if the student answers
+  before seeing them all, the last sub-step is shown without animation and the closing line animates from it.
+- Controller: the button «Vull més detall» (then «Continua el detall», hidden when none are left) under the
+  step instruction, only with `?pissarra=1` and when the step has detail. With the board on, the button
+  always keeps its place (`visibility: hidden` when not available), so the step panel never changes size
+  (the first browser run caught it shrinking 37 px during the line animation); free (no attempt or point lost);
+  the session history records «Pas k de l'equació (amb detall)»; the verification code is unchanged.
+  `.eq-linies > .pis-calaix:last-child` lines read like the work line; once the step is answered, the drawer
+  lines turn grey like the rest of the history.
+- Tests: `equacions.test.js` §2 gives the common battery a `vista` (`historiaNova(eq, { oberts })`), so it
+  checks every detail view with `comprovaDetall` and the all-opened view's lines (2,000 equations, ≈181,000
+  true lines, at most 7 moved pieces per step); the evaluator reads `·` and `:`. `pissarra.test.js` §4c tests
+  `obre()` and the drawer. Browser §7: «Vull més detall» on every step of two level-3 equations at mobile size
+  (one sub-line per click inside the drawer, the button hides, the answer adds one top-level line, full points).
 
 ## Known limits
 

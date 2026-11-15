@@ -45,14 +45,14 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 
 | File | What it is |
 |---|---|
-| `js/pissarra/formules.js` | Pure. Keys (`clau`, `marca`, `op`, `rel`, `marcat`, `tatxa`, `MARQUES`), text rows (`filaText`, `frase`), long rows (`ampleTex`, `enLinies`), **lines that stay written**: `historial(g, {fila, prefix, pinta, envolta, oberts})` (TeX by default with `pintaTex`, or the activity's HTML; detail on demand), pieces `P`, `grup`, `fraccio`; `linies(g, fila, prefix)` is the older name of the TeX case. The step builder `guio(n)`. |
+| `js/pissarra/formules.js` | Pure. Keys (`clau`, `marca`, `op`, `rel`, `marcat`, `tatxa`, `MARQUES`), text rows (`filaText`, `frase`), long rows (`ampleTex`, `enLinies`), **lines that stay written**: `historial(g, {fila, prefix, pinta, envolta, calaix, oberts})` (TeX by default with `pintaTex`, or the activity's HTML; detail on demand, `H.obre()`, the drawer `calaixHtml`), pieces `P`, `grup`, `fraccio`; `linies(g, fila, prefix)` is the older name of the TeX case. The step builder `guio(n)`. |
 | `js/pissarra/pla.js` | Pure. `planifica(keysA, keysB, pas)` → `{parelles, copies, repartides, desti, velles, noves}`: which new symbol is which old one (same key, `reanomena`, `copia`, `reparteix`), where each old symbol merges, what fades and what appears. Used by `pissarra.js`, unit-tested in Node. |
 | `js/pissarra/comprova.js` | Pure, for tests. `comprovaGuio(passos, nFiles, nom, {text})` → list of structural errors; `comprovaDetall(fesGuio, nFiles, nom, {text})` → the detail-on-demand rule over every view; `textPla(tex)` → plain text that can be evaluated; `clausDe(tex)`. |
 | `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files, marc})` → controller. Script mode: `carrega(passos)`, `seguent()`, `salta(i)`, `repeteix()`. Free mode (the activity decides each state from what the student does): **`encua(pas, {anima, velocitat})`** (the queue: one paint at a time; it never blocks — if an animation throws, it logs, shows the step without animation and the activity goes on) and `enAcabar()` (a Promise for everything queued so far); `mostraPas(pas)` / `animaPas(pas)` are the unqueued primitives. Both modes: `velocitat(v)`, `escolta(f)`, `pas`, `total`, `ocupat`, `passos`, `element`; `pas.anunci` (text) is read by an aria-live region once the step shows. `marc: false` hides the frame and dotted background (only the animations show). With `prefers-reduced-motion` no symbol travels: changed rows fade in place. Also `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once), `textAmbFormules(text)` (captions), `element()`. |
 | `js/pissarra/reproductor.js` | DOM. `creaReproductor(container, pissarra, {reprodueix, punts, velocitat, teclat})`: restart / previous / play / next buttons, one dot per step, speed, step caption. |
 | `js/pissarra/mode.js` | `SUPORTA_PISSARRA` (pages that have it), `pissarraActiva(search, page, list)` (pure), `PISSARRA_ACTIVA` (current page). |
 | `js/pissarra/demo.js`, `demo-pagina.js`, `pissarra-demo.html` | Five model scripts (order of operations, a linear equation, a sum of fractions, Pythagoras: the letters and the legs fly from an SVG triangle into the formula, and 2(x + 3) = 14 with `reparteix` and detail on demand on steps 2, 3 and 5) and the demo page (a provisional checkbox «Mostra'l amb tot el detall», `?detall=1`, opens every step until the stage-3 button exists). |
-| `css/pissarra.css` | All the look. Every class starts with `pis-`; row classes from procedures (`final`, `separat`, `destacat`, `text`, `figura`) only apply inside `.pis-fila`. Colour = the activity's `--primary` / `--primary-light`. |
+| `css/pissarra.css` | All the look. Every class starts with `pis-`; row classes from procedures (`final`, `separat`, `destacat`, `text`, `figura`, `detall`) only apply inside `.pis-fila`. Colour = the activity's `--primary` / `--primary-light`. The detail drawer: `.pis-calaix*` and `.pis-fila.detall`. |
 | `tests/pissarra.test.js` | Node tests (see §6). |
 | `tests/pissarra-activitat.js` | The common test battery of an activity's board (`provaActivitat`, see §6). |
 | `tests/navegador/prova-pissarra.js` | Playwright test of the demo page and of the index button (skipped when Playwright is missing). |
@@ -151,8 +151,24 @@ function passos({ oberts = new Set() } = {}) {
 - `comprovaDetall(passos, nFiles, nom)` opens each step with detail (sub-steps inside their parent) and all at
   once, and checks every view with `comprovaGuio`, that each opened step ends with `D.acaba()`, adds at least
   one sub-step, and that every step of the closed view is there with the same caption and the same board
-  (ignoring the detail's lines). The provisional demo checkbox opens every step; the real interface (a
-  «Vull més detall» button per step, accordion) is stage 3 (`STATE.md`).
+  (ignoring the detail's lines).
+- **Opening now, closing later** (an activity waiting for the student's answer): `const D = H.obre(line,
+  { titol, classe, classeAnterior })` opens a step with the next id and returns `{ escriu, canvia, obre,
+  acaba }`; write the sub-steps when the student asks, and call `D.acaba(text, moves)` when they answer
+  (numbering is fixed at `acaba`). `escriu(…, { detall })` with the id in `oberts` is the same thing in one go.
+- **The drawer (D2).** The lines of an opened step are drawn in a grey, sunken drawer with the activity
+  colour on its left edge, which opens with a small 3D tilt the first time it appears. One HTML row
+  (`envolta`): the history groups them into `calaix(lines, { id, titol, nou })` (default `calaixHtml`:
+  `.pis-calaix` › `.pis-calaix-titol` + one `.pis-calaix-pas` per line, holding the line and its caption
+  `.pis-calaix-nota`); the title is the step's text or `op.titol`. One row per line (TeX): the rows get the
+  class `detall` and the adjacent ones form the drawer (CSS sibling selectors, so a row's class does not
+  change when a line is added below it). The background and the tilt live on `::before`, so measured
+  symbol positions are never transformed; the tilt starts when the layer becomes visible (`pis-vista`,
+  added by `pissarra.js` in `mostra`, `transicio` and `fonAlLloc`) and is off with reduced motion. The
+  painter receives `{ nivell, text }` as a 4th argument.
+- Where it is used: the demo (provisional checkbox, every step opened) and `equacions` (stage 3: the
+  «Vull més detall» button, see `STATE.md`). The player's own button («Vull més detall» next to the
+  caption, the step's line in grey as the target, «Menys detall») is the next part of stage 3.
 
 Marks (coloured backgrounds; meanings never change): `mes` green = chosen/positive, `menys` red =
 removed/negative, `tria` yellow = added/being checked, `actual` lilac = being computed now, `solucio` lilac =

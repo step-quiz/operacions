@@ -18,7 +18,9 @@
  *     5. sense les claus, cada fila de la pissarra és l'HTML de sempre (el que
  *        pinta l'activitat sense ?pissarra=1), si l'exercici porta «clasic»;
  *     6. si l'exercici té detall a demanda («vista»), totes les vistes
- *        (comprova.js comprovaDetall: la compacta, cada pas obert i tots oberts).
+ *        (comprova.js comprovaDetall: la compacta, cada pas obert i tots oberts),
+ *        i la vista amb tots els passos oberts passa també les comprovacions 2, 3
+ *        i 4 (cada línia del detall és certa).
  * - opcions:
  *     exercicis   iterable (pot ser un generador) d'exercicis { on, passos,
  *                 clasic?, vista?, … }: on, el nom als missatges; passos, el
@@ -75,26 +77,34 @@ function provaActivitat(
         const { on, passos } = ex;
         for (const e of comprovaGuio(passos, files, on, { text })) anota(errors.guio, e);
         if (ex.clasic) ambClasic++;
-        passos.forEach((pas, i) => {
-            const aqui = `${on}, pas ${i + 1}`;
-            if (i > 0) {
-                animacions++;
-                const peces = pecesMogudes(pas);
-                mesPeces = Math.max(mesPeces, peces);
-                if (!peces) anota(errors.buits, aqui);
-            }
-            for (const fila of pas.files)
-                for (const linia of linies(fila)) {
-                    vistes++;
-                    const falla = veritat(linia, ex);
-                    if (falla) anota(errors.falses, `${aqui}: ${falla}`);
+        // Les comprovacions 2, 3 i 4 dels passos d'una vista
+        const revisa = (llista, nomVista) =>
+            llista.forEach((pas, i) => {
+                const aqui = `${on}${nomVista}, pas ${pas.id || i + 1}`;
+                if (i > 0) {
+                    animacions++;
+                    const peces = pecesMogudes(pas);
+                    mesPeces = Math.max(mesPeces, peces);
+                    if (!peces) anota(errors.buits, aqui);
                 }
-            if (ex.clasic && JSON.stringify(pas.files.map(senseClaus)) !== JSON.stringify(ex.clasic[i]))
-                anota(errors.diferents, aqui);
-        });
+                for (const fila of pas.files)
+                    for (const linia of linies(fila)) {
+                        vistes++;
+                        const falla = veritat(linia, ex);
+                        if (falla) anota(errors.falses, `${aqui}: ${falla}`);
+                    }
+            });
+        revisa(passos, '');
+        if (ex.clasic)
+            passos.forEach((pas, i) => {
+                if (JSON.stringify(pas.files.map(senseClaus)) !== JSON.stringify(ex.clasic[i]))
+                    anota(errors.diferents, `${on}, pas ${i + 1}`);
+            });
         if (ex.vista) {
             ambDetall++;
             for (const e of comprovaDetall(ex.vista, files, on, { text })) anota(errors.detall, e);
+            const oberts = new Set(passos.filter(p => p.teDetall).map(p => p.id));
+            if (oberts.size) revisa(ex.vista({ oberts }), ' (tot el detall)');
         }
     }
     const llista = l => l.join('\n      → ');

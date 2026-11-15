@@ -16,7 +16,8 @@
  *   (tests/pissarra-activitat.js): el guió passa la revisió (js/pissarra/comprova.js),
  *   cada pas mou alguna peça i poques, cada línia que es veu és una equació amb la
  *   mateixa solució (recalculada aquí, amb aritmètica exacta) i, sense les claus, la
- *   pissarra és l'HTML de sempre.
+ *   pissarra és l'HTML de sempre. Amb el detall a demanda («Vull més detall»), totes
+ *   les vistes (cada pas obert i tots oberts) i cada línia del detall.
  * ÚS: node tests/equacions.test.js
  * ============================================================================
  */
@@ -101,7 +102,7 @@ const suma = (a, b) => Q(a.n * b.d + b.n * a.d, a.d * b.d);
 const resta = (a, b) => Q(a.n * b.d - b.n * a.d, a.d * b.d);
 const producte = (a, b) => Q(a.n * b.n, a.d * b.d);
 const quocient = (a, b) => Q(a.n * b.d, a.d * b.n);
-/** Valor d'un costat en text pla («3(x-2)+4x-1»), amb x = un valor exacte. */
+/** Valor d'un costat en text pla («3(x-2)+4x-1», també «(-3)·x», «-20:4»), amb x = un valor exacte. */
 function avalua(text, x) {
     let i = 0;
     function primari() {
@@ -122,8 +123,13 @@ function avalua(text, x) {
     }
     function terme() {
         let v = primari();
-        while (text[i] === '(' || text[i] === 'x') v = producte(v, primari()); // producte implícit: 3x, 3(x-2)
-        return v;
+        for (;;) {
+            if (text[i] === '·') (i++, (v = producte(v, primari())));
+            else if (text[i] === ':') (i++, (v = quocient(v, primari())));
+            else if (text[i] === '(' || text[i] === 'x')
+                v = producte(v, primari()); // implícit: 3x, 3(x-2)
+            else return v;
+        }
     }
     function expressio() {
         let v = text[i] === '-' ? (i++, producte(Q(-1), terme())) : terme();
@@ -194,7 +200,13 @@ suite('2. Resolució pas a pas (?pissarra=1): l’historial línia a línia');
                             .map(([e, d], r) => clasica(e, d, classe(r, i)))
                             .join('')}</div>`,
                     ]);
-                    yield { on: `nivell ${nivell}, equació ${k}`, passos: H.passos, clasic, xSol: eqn.xSol };
+                    // Amb el detall a demanda: l'historial amb els passos d'«oberts» oberts
+                    const vista = ({ oberts }) => {
+                        const V = Renderer.historiaNova(eqn, { oberts });
+                        passos.forEach((pas, j) => Renderer.escriuPas(V, pas, j === passos.length - 1));
+                        return V.passos;
+                    };
+                    yield { on: `nivell ${nivell}, equació ${k}`, passos: H.passos, clasic, vista, xSol: eqn.xSol };
                 }
     }
     provaActivitat('equacions', {

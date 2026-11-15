@@ -608,6 +608,67 @@ function solucioLineal(text) {
             /el text del pas «3» canvia/.test(errors('text'))
         );
 
+        // Obrir un pas ara i tancar-lo després (una activitat que espera la resposta): H.obre() i el calaix
+        const pintaHtml = (linia, clauDe, classe) =>
+            `<p class="${classe}">${linia.map(([i, t]) => `<span data-k="${clauDe(i)}">${t}</span>`).join('')}</p>`;
+        const h = F.guio(1);
+        const E = F.historial(h, { prefix: 'e', pinta: pintaHtml, envolta: ls => `<div>${ls.join('')}</div>` });
+        E.escriu(
+            [
+                ['a', '2'],
+                ['m', '·'],
+                ['b', '3'],
+            ],
+            ''
+        );
+        const D = E.obre([['r', '6']], { titol: 'Multiplica <a> poc a poc' });
+        const s1 = D.escriu(
+            [
+                ['s', '3'],
+                ['p', '+'],
+                ['t', '3'],
+            ],
+            'El 3, dues vegades.',
+            { reparteix: { b: ['s', 't'] } }
+        );
+        ok(
+            'obre(): el subpas va dins d’un calaix nou, amb el títol (escapat) i la seva frase',
+            s1.files[0].includes(
+                '<div class="pis-calaix pis-calaix-nou"><div class="pis-calaix-titol">Multiplica &lt;a&gt; poc a poc</div>'
+            ) && s1.files[0].includes('<p class="pis-calaix-nota">El 3, dues vegades.</p>')
+        );
+        eq('obre(): el subpas és el 2a, fill del 2', `${s1.id}<${s1.pare}`, '2a<2');
+        const s2 = D.canvia(null, 'Mira-ho bé.');
+        ok('el calaix només s’obre amb el gir al pas on apareix', !s2.files[0].includes('pis-calaix-nou'));
+        const tancat = D.acaba('Suma: 3 + 3 = 6.', { fusiona: { r: ['s', 'p', 't'] } });
+        ok(
+            'acaba(): la línia del pas tancat va a sota del calaix, fora',
+            /<\/div><p class=""><span data-k="e2kr">6<\/span><\/p><\/div>$/.test(tancat.files[0])
+        );
+        eq('acaba(): tanca el pas 2 i és el subpas 2c', `${tancat.id}<${tancat.pare}!${tancat.tanca}`, '2c<2!2');
+        eq('després del detall, els números continuen com a la vista compacta', E.escriu([['z', '6']], '').id, '3');
+        let dosCops = false;
+        try {
+            D.acaba('Un altre cop.');
+        } catch (e) {
+            dosCops = /ja s'ha acabat/.test(e.message);
+        }
+        ok('acaba() dues vegades → error', dosCops);
+        eq(
+            'el guió amb un pas obert és correcte',
+            C.comprovaGuio(h.passos, 1, 'obre', { text: false }).join(' | '),
+            ''
+        );
+        // A les files TeX, les línies d'un detall porten la classe «detall» (el calaix); la del pas tancat, no
+        const ple = DEMOS.find(x => x.id === 'parentesis');
+        const tot = ple.passos({ oberts: new Set(['2', '3', '5']) });
+        const ultim = tot[tot.length - 1];
+        eq(
+            'files TeX: les del detall són .detall i la resta no',
+            ultim.classes.map(c => (c.split(' ').includes('detall') ? 'd' : '·')).join(''),
+            '·d·dd··d··'
+        );
+
         // La bateria comuna de les activitats, amb el detall: la demo de l'equació amb parèntesis
         const d = DEMOS.find(x => x.id === 'parentesis');
         provaActivitat('demo parentesis', {

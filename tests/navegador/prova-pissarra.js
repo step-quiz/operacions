@@ -20,7 +20,10 @@
  *      l'esvaïment; i sense el paràmetre, prioritat no té cap pissarra;
  *   7. equacions.html amb ?pissarra=1: 5 equacions resoltes (sense nivell, a mida
  *      de portàtil, i de nivell 3, a mida de mòbil): cada pas s'anima i afegeix una
- *      línia a l'historial; sense el paràmetre, cap pissarra;
+ *      línia a l'historial; amb «Vull més detall» a cada pas que en té (nivell 3, a
+ *      mida de mòbil), cada clic escriu un subpas dins del calaix, el botó s'amaga
+ *      quan ja no en queden, la resposta escriu la línia del pas a sota i no es perd
+ *      cap punt; sense el paràmetre, cap pissarra;
  *   8. fraccions.html amb ?pissarra=1: sumes i restes (nivell 3, a mida de portàtil)
  *      i productes i divisions (a mida de mòbil) resoltes pas a pas; cada pas
  *      encertat s'anima i afegeix una línia, també una simplificació a mitges (i
@@ -106,7 +109,8 @@ const PAS_PRIORITAT = () => {
 
 /** Equacions: la resposta del pas actual, a partir de l'última línia de l'historial i de la pregunta. */
 const RESPOSTA_EQUACIO = () => {
-    const linies = [...document.querySelectorAll('#eq-history .pis-capa .eq-history-line')];
+    // Les línies de l'historial, sense les dels calaixos del detall a demanda
+    const linies = [...document.querySelectorAll('#eq-history .pis-capa .eq-linies > .eq-history-line')];
     const text = linies[linies.length - 1].textContent.replace(/−/g, '-').replace(/\s+/g, '');
     const pregunta = document.getElementById('step-instruction').textContent;
     const termes = costat => {
@@ -693,11 +697,102 @@ function engegaServidor() {
                 ok(`${nom}: cap error a la consola`, !errors.length, errors.join('\n      → '));
                 await pagina.close();
             }
+            // «Vull més detall» a cada pas que en té (D3: fins abans de la resposta; D4: gratuït)
+            {
+                const pagina = await navegador.newPage({ viewport: { width: 375, height: 740 } });
+                const errors = [];
+                pagina.on('pageerror', e => errors.push(String(e)));
+                pagina.on('console', m => m.type() === 'error' && errors.push(m.text()));
+                await pagina.goto(BASE + '/equacions.html?pissarra=1&totaloperations=2&nivell=3');
+                await pagina.waitForSelector('#value-input');
+                const compta = () =>
+                    pagina.evaluate(() => ({
+                        linies: document.querySelectorAll('#eq-history .pis-capa .eq-linies > .eq-history-line').length,
+                        detall: document.querySelectorAll('#eq-history .pis-capa .pis-calaix .eq-history-line').length,
+                        calaixos: document.querySelectorAll('#eq-history .pis-capa .pis-calaix').length,
+                    }));
+                const acaba = () => pagina.waitForFunction(() => !document.querySelector('#eq-history .pis-nova'));
+                let oberts = 0,
+                    subpassos = 0,
+                    ample = false;
+                const malament = [];
+                for (let e = 0; e < 2; e++) {
+                    for (let g = 0; g < 12; g++) {
+                        const actiu = await pagina
+                            .waitForFunction(
+                                () => document.getElementById('step-value').classList.contains('active'),
+                                null,
+                                {
+                                    timeout: 6000,
+                                }
+                            )
+                            .then(() => true)
+                            .catch(() => false);
+                        if (!actiu) break;
+                        const pregunta = await pagina.textContent('#step-instruction');
+                        const v = await pagina.evaluate(RESPOSTA_EQUACIO);
+                        const visible = await pagina.isVisible('#btn-detall');
+                        if (/termes independents/.test(pregunta) && visible)
+                            malament.push(`«${pregunta}»: no hauria de tenir detall`);
+                        if (visible) {
+                            oberts++;
+                            const abans = await compta();
+                            for (let clic = 1; clic <= 5 && (await pagina.isVisible('#btn-detall')); clic++) {
+                                await pagina.click('#btn-detall');
+                                await pagina.waitForFunction(
+                                    () =>
+                                        !document.getElementById('btn-detall').disabled ||
+                                        document.getElementById('btn-detall').hidden
+                                );
+                                await acaba();
+                                const ara = await compta();
+                                subpassos++;
+                                if (
+                                    ara.detall !== abans.detall + clic ||
+                                    ara.calaixos !== abans.calaixos + 1 ||
+                                    ara.linies !== abans.linies
+                                )
+                                    malament.push(
+                                        `«${pregunta}», clic ${clic}: ${JSON.stringify(abans)} → ${JSON.stringify(ara)}`
+                                    );
+                            }
+                            if (await pagina.isVisible('#btn-detall'))
+                                malament.push(`«${pregunta}»: el botó no s'amaga`);
+                        }
+                        const abans = await compta();
+                        await pagina.fill('#value-input', String(v));
+                        await pagina.keyboard.press('Enter');
+                        await pagina
+                            .waitForFunction(() => document.querySelector('.pis-fantasma'), null, { timeout: 2500 })
+                            .catch(() => {});
+                        await acaba();
+                        const ara = await compta();
+                        if (ara.linies !== abans.linies + 1 || ara.detall !== abans.detall)
+                            malament.push(`«${pregunta}», resposta: ${JSON.stringify(abans)} → ${JSON.stringify(ara)}`);
+                        ample =
+                            ample ||
+                            (await pagina.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1));
+                        if (await pagina.$('#eq-history .pis-capa .eq-solved')) break;
+                    }
+                    await premSeguent(pagina);
+                }
+                const punts = await pagina.textContent('#score-display');
+                ok(
+                    `detall a demanda: ${oberts} passos oberts, ${subpassos} subpassos, cadascun al seu calaix`,
+                    oberts >= 4 && !malament.length,
+                    malament.join('\n      → ')
+                );
+                eq('detall a demanda: és gratuït (les 2 equacions, amb tots els punts)', punts.trim(), 'Punts: 20');
+                ok('detall a demanda: la pàgina no surt de la pantalla (mòbil)', !ample);
+                ok('detall a demanda: cap error a la consola', !errors.length, errors.join('\n      → '));
+                await pagina.close();
+            }
             // Sense ?pissarra=1, equacions és com sempre: cap pissarra
             const p = await navegador.newPage();
             await p.goto(BASE + '/equacions.html');
             await p.waitForSelector('#eq-history .eq-history-line');
             eq('equacions.html (sense paràmetres): cap pissarra', await p.$$eval('.pis-escenari', es => es.length), 0);
+            ok('equacions.html (sense paràmetres): cap botó «Vull més detall»', !(await p.isVisible('#btn-detall')));
             await p.close();
         }
 
