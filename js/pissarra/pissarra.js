@@ -37,6 +37,8 @@
  *     · pas.copia = {nova: vella}: la nova és una còpia de la vella que es queda
  *       al seu lloc tota l'estona, mentre la vella baixa o es fusiona (la línia
  *       d'on surt un símbol continua escrita, sense parpellejar);
+ *     · pas.reparteix = {vella: [nova1, nova2…]}: la vella vola a tots els destins
+ *       alhora (p. ex. el 2 de 2·(x + 3), que va als dos termes);
  *     · la resta de símbols vells s'esvaeixen, i els nous apareixen.
  *   Si el pas no arrossega cap símbol, abans de moure res uns requadres blaus
  *   assenyalen què canviarà o desapareixerà, i després el segueixen: un per cada tros
@@ -53,9 +55,13 @@
  *   (així una activitat només el carrega quan fa servir la pissarra).
  * - Origen: motor.js dels procediments animats de step-quiz/pau (octubre 2026),
  *   passat a mòdul ES i separat de la pàgina. Vegeu docs/pissarra/MOTOR.md.
- * DEPENDÈNCIES: KaTeX (global katex, vendor/katex-0.16.11), css/pissarra.css.
+ * - El pla de cada transició (quin símbol és quin) el fa planifica(), de pla.js
+ *   (pur, provat amb Node); aquí només es mesura i es dibuixa.
+ * DEPENDÈNCIES: pla.js, KaTeX (global katex, vendor/katex-0.16.11), css/pissarra.css.
  * ============================================================================
  */
+
+import { planifica } from './pla.js';
 
 // ── 1. CONFIGURACIÓ ──────────────────────────────────────────────────────────
 
@@ -666,29 +672,13 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             B = ambClau(nova);
         const RA = posicions(A),
             RB = posicions(B);
-        const reanomena = new Map(Object.entries(pas.reanomena || {}));
         const fusiona = new Map(Object.entries(pas.fusiona || {}));
-        const copia = new Map(Object.entries(pas.copia || {}));
 
-        /* Parelles: cada símbol nou amb el símbol vell que és el mateix. Una còpia fa parella amb
-           el seu original sense gastar-lo: l'original també pot baixar o fusionar-se. */
-        const parelles = new Map(); // clau nova → clau vella
-        const aparellades = new Set();
-        for (const kb of B.keys()) {
-            if (copia.has(kb)) {
-                if (A.has(copia.get(kb))) parelles.set(kb, copia.get(kb));
-                continue;
-            }
-            const ka = reanomena.get(kb) || kb;
-            if (A.has(ka) && !aparellades.has(ka)) {
-                parelles.set(kb, ka);
-                aparellades.add(ka);
-            }
-        }
-        const desti = new Map(); // clau vella → clau nova on es fusiona
-        for (const [kb, kas] of fusiona) for (const ka of kas) desti.set(ka, kb);
-        const velles = [...A.keys()].filter(ka => !aparellades.has(ka));
-        const noves = [...B.keys()].filter(kb => !parelles.has(kb));
+        /* El pla (pla.js, pur): quin símbol nou és quin de vell (parelles: la mateixa clau, reanomena,
+           còpies i repartiments), on es fusiona cada símbol vell (desti), quins s'esvaeixen (velles) i
+           quins apareixen (noves). Un símbol que es reparteix fa parella amb cada destí: en surten tants
+           fantasmes com destins. */
+        const { parelles, desti, velles, noves } = planifica(A.keys(), B.keys(), pas);
         const igual = (ka, kb) => signatura(A.get(ka)) === signatura(B.get(kb));
         const canvia = (ka, kb) => !igual(ka, kb) || Math.abs(midaVisual(A.get(ka)) - midaVisual(B.get(kb))) > 0.5;
 
@@ -704,7 +694,8 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             A.get(ka).classList.add('pis-sense-fantasma');
             B.get(kb).classList.add('pis-sense-fantasma');
         }
-        for (const [k, e] of A) if (!aparellades.has(k) && partitA(k)) e.classList.add('pis-sense-fantasma');
+        const senseParella = new Set(velles);
+        for (const [k, e] of A) if (senseParella.has(k) && partitA(k)) e.classList.add('pis-sense-fantasma');
         for (const [k, e] of B) if (!parelles.has(k) && partitB(k)) e.classList.add('pis-sense-fantasma');
         /** On s'apunta un símbol: si està partit, el primer tros. */
         const lloc = (R, T, k) => (T.has(k) && T.get(k).length > 1 ? T.get(k)[0] : R.get(k));

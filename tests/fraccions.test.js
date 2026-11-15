@@ -8,15 +8,18 @@
  * - Es resolen milers d'operacions com les de l'activitat (sumes i restes amb
  *   denominadors iguals o diferents i un denominador comú qualsevol, productes,
  *   divisions; simplificacions d'un cop, en dos cops o fins a un nombre enter, o
- *   el resultat irreductible de cop), línia a línia com fa el controlador:
- *   cada animació passa la revisió dels guions (js/pissarra/comprova.js), cada
- *   línia que es veu val el resultat (aritmètica exacta, calculada aquí), sense
- *   les claus l'HTML de cada línia és el de sempre, i cada pas mou poques peces.
+ *   el resultat irreductible de cop), línia a línia com fa el controlador
+ *   (renderer.js historiaNova i escriuPas), amb la bateria comuna
+ *   (tests/pissarra-activitat.js): el guió passa la revisió dels guions
+ *   (js/pissarra/comprova.js), cada pas mou alguna peça i poques, cada línia que
+ *   es veu val el resultat (aritmètica exacta, calculada aquí) i, sense les
+ *   claus, la pissarra és l'HTML de sempre. I hi surten tots els passos.
  * ÚS: node tests/fraccions.test.js
  * ============================================================================
  */
 'use strict';
 const { suite, ok, finish, loadModule } = require('./harness');
+const { provaActivitat } = require('./pissarra-activitat');
 
 const mcd = (a, b) => (b ? mcd(b, a % b) : Math.abs(a));
 const mcm = (a, b) => (a * b) / mcd(a, b);
@@ -37,8 +40,6 @@ const htmlVell = linia => {
     const igual = '<span class="operator">=</span>';
     return (linia.pas ? [igual, ...termes] : [...termes, igual]).join('');
 };
-const espais = html => html.replace(/>\s+</g, '><').trim();
-const senseClaus = html => html.replace(/ data-k="[^"]*"/g, '');
 
 // El valor d'una línia, llegit de l'HTML: [n, d] irreductible
 function valor(html) {
@@ -124,69 +125,57 @@ function resolucio(mode) {
 
 suite('Resolució pas a pas (?pissarra=1): les línies de l’expressió');
 {
-    const w = loadModule(['js/fraccions/renderer.js', 'js/pissarra/formules.js', 'js/pissarra/comprova.js']);
-    const { Renderer, comprovaGuio } = w;
-    let operacions = 0,
-        animacions = 0,
-        maxPeces = 0;
-    const dolents = [],
-        falses = [],
-        diferents = [],
-        buides = [],
-        vistos = new Set();
-    const anota = (llista, text) => llista.length < 5 && llista.push(text);
-    for (const mode of ['addsub', 'muldiv'])
-        for (let k = 0; k < 3000; k++) {
-            const linies = resolucio(mode);
-            operacions++;
-            const esperat = valor(htmlVell(linies[0]));
-            const historia = [linies[0]];
-            for (let j = 1; j < linies.length; j++) {
-                const A = Renderer.historiaHtml(historia);
-                historia.push(linies[j]);
-                const B = Renderer.historiaHtml(historia);
-                const anim = Renderer.animacioUltimaLinia(historia);
-                const on = `${mode} ${k}, pas ${j} (${linies[j].pas}): ${JSON.stringify(linies.map(l => l.termes))}`;
-                animacions++;
-                vistos.add(
-                    `${linies[j].pas}${linies[j].termes.length === 1 && linies[j].termes[0].d === 1 ? ' (enter)' : ''}`
-                );
-                const guio = [
-                    { files: [A], classes: [''], text: 'A.' },
-                    Object.assign({ files: [B], classes: [''], text: 'B.' }, anim),
-                ];
-                for (const e of comprovaGuio(guio, 1, on)) anota(dolents, e);
-                const peces =
-                    Object.keys(anim.reanomena || {}).length + Object.values(anim.fusiona || {}).flat().length;
-                maxPeces = Math.max(maxPeces, peces);
-                if (!peces) anota(buides, on);
+    const w = loadModule(['js/pissarra/formules.js', 'js/pissarra/comprova.js', 'js/fraccions/renderer.js']);
+    const { Renderer } = w;
+    const vistos = new Set();
+    function* exercicis() {
+        for (const mode of ['addsub', 'muldiv'])
+            for (let k = 0; k < 3000; k++) {
+                const linies = resolucio(mode);
+                // Com el controlador: la primera línia i una línia per pas encertat
+                const H = Renderer.historiaNova(linies[0].termes);
+                for (const l of linies.slice(1)) {
+                    Renderer.escriuPas(H, l.termes, l.pas);
+                    vistos.add(`${l.pas}${l.termes.length === 1 && l.termes[0].d === 1 ? ' (enter)' : ''}`);
+                }
+                const clasic = H.passos.map((_, i) => [
+                    `<div class="fr-linies">${linies
+                        .slice(0, i + 1)
+                        .map(l => `<div class="expr-line">${htmlVell(l)}</div>`)
+                        .join('')}</div>`,
+                ]);
+                yield {
+                    on: `${mode} ${k}: ${JSON.stringify(linies.map(l => l.termes))}`,
+                    passos: H.passos,
+                    clasic,
+                    esperat: valor(htmlVell(linies[0])),
+                };
             }
-            historia.forEach((l, r) => {
-                const v = valor(Renderer.liniaHtml(l, r));
-                if (v[0] !== esperat[0] || v[1] !== esperat[1])
-                    anota(falses, `${mode} ${k}, línia ${r + 1}: val ${v.join('/')} i no ${esperat.join('/')}`);
-                const pla = Renderer.liniaHtml(l, r);
-                const ambClaus = Renderer.liniaHtml(l, r, { claus: true });
-                const vell = `<div class="expr-line">${htmlVell(l)}</div>`;
-                if (espais(pla) !== espais(vell) || senseClaus(ambClaus) !== pla)
-                    anota(diferents, `${mode} ${k}, línia ${r + 1}`);
-            });
-        }
-    ok(
-        `${animacions} animacions de ${operacions} operacions passen la revisió dels guions`,
-        animacions > 6000 && !dolents.length,
-        dolents.join('\n      → ')
-    );
+    }
+    provaActivitat('fraccions', {
+        exercicis: exercicis(),
+        eines: w,
+        // Les línies de la fila: el que hi ha entre un <div class="expr-line"> i el següent (hi ha <div> niats)
+        linies: fila =>
+            fila
+                .replace(/^<div class="fr-linies">|<\/div>$/g, '')
+                .split(/(?=<div class="expr-line)/)
+                .filter(Boolean),
+        veritat: (linia, ex) => {
+            const v = valor(linia);
+            return v[0] !== ex.esperat[0] || v[1] !== ex.esperat[1]
+                ? `val ${v.join('/')} i no ${ex.esperat.join('/')}`
+                : '';
+        },
+        maxPeces: 5,
+        minExercicis: 6000,
+    });
     const tots = ['amplia', 'inverteix', 'opera', 'opera (enter)', 'simplifica', 'simplifica (enter)'];
     ok(
         'hi surten tots els passos (amplia, inverteix, opera, simplifica; també amb resultat enter)',
         tots.every(t => vistos.has(t)),
         tots.filter(t => !vistos.has(t)).join(', ')
     );
-    ok('cada pas mou alguna peça', !buides.length, buides.join('\n      → '));
-    ok(`cada pas mou poques peces (com a màxim ${maxPeces}; cap pas en mou més de 5)`, maxPeces <= 5);
-    ok('cada línia que es veu val el resultat de l’operació', !falses.length, falses.join('\n      → '));
-    ok('sense claus, l’HTML de cada línia és el de sempre', !diferents.length, diferents.join(', '));
 }
 
 finish('TESTS DE FRACCIONS');

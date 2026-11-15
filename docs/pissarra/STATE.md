@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-14)
+## Status (2026-11-14, stage 2 done)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -27,8 +27,8 @@ says what it will do, after it shows how it turned out, and David tries it befor
 |---|---|---|
 | 1 | Robustness and visual fidelity: R1 queue with recovery, R2 faithful ghosts, R3 warning boxes per run, R4 nothing changes size, R5 reduced motion and announcement | DONE (2026-11-14) |
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
-| 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | NEXT, when David says so |
-| 3 | «Vull més detall» on the current activities: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3 option (a), D4 free | PENDING |
+| 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
+| 3 | «Vull més detall» on the current activities: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3 option (a), D4 free | NEXT, when David says so |
 | 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
@@ -61,7 +61,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
    step writes a NEW line below and the previous lines stay, as on the classroom board. An existing line may
    only get a mark or the trailing «=» when the next line is written; never transform a line in place.
    This is a general rule for every procedure of this repository (the demo was rewritten; `prioritat`'s
-   table already worked this way). Tool: `formules.js` `linies()`.
+   table already worked this way). Tool: `formules.js` `historial()` (formerly `linies()`, still an alias).
 
 2026-11-14 (engine review artifact, 42 points; letters = groups R robustness, A architecture, U use in class,
 C new capabilities, P planned activities, X existing activities, N new activities, D detail on demand):
@@ -131,10 +131,12 @@ C new capabilities, P planned activities, X existing activities, N new activitie
   activity then asked for «the solution» after «4 = 4» and «0 = 0»). It happened in 0.56 % of the questions;
   comparing 60,000 questions seeded one by one (as fixed sessions do), only those 335 changed. New fingerprint
   `98bae53`; `tests/equacions.test.js` also checks that no equation lacks a single integer solution.
-- The history is one HTML row of a frameless board (`Renderer.historiaHtml`): every correct step appends a
-  line and animates (speed 1.6); the work line (with the input) hides during the animation and the next step
-  appears when it ends. Keys: `e<r><side><i><piece>` (canonical side even when the first line of «b = ax» is
-  shown swapped; pieces s c x n a t m b z), copies `f…`, «=» `e<r>q`. What moves (`Renderer.moviments`):
+- The history is one HTML row of a frameless board, written since stage 2 with `formules.js` `historial()`
+  (`Renderer.historiaNova(eq)`, `Renderer.escriuPas(H, pas, final)`, painter `Renderer.liniaHtml`): every
+  correct step appends a line and animates (speed 1.6); the work line (with the input) hides during the
+  animation and the next step appears when it ends. Piece ids: `<side><i><piece>` (canonical side even when the
+  first line of «b = ax» is shown swapped; pieces s c x n a t m b z), «=» `q`; keys `e<r>k<id>`, copies
+  `ec<r>k<id>`. What moves (`Renderer.moviments`, in the `historial()` format):
   distributive → the outer coefficient and the x travel to the x term, the inner number merges into the new
   constant; simplify / group → the joined terms merge into the new one (the first x travels when the new term
   has a coefficient); solve → the x travels, the coefficient and the right number merge into the solution.
@@ -150,13 +152,15 @@ C new capabilities, P planned activities, X existing activities, N new activitie
   and the pure `js/fraccions/renderer.js` turns the lines into HTML with keys and says what moves. Without
   `?pissarra=1` the controller writes the lines exactly as before (old code path untouched); fixed sessions
   cannot change (no new `Math.random`, generator untouched).
-- The expression is one HTML row of a frameless board (`Renderer.historiaHtml`), speed 1.6; while a line
+- The expression is one HTML row of a frameless board, written since stage 2 with `formules.js` `historial()`
+  (`Renderer.historiaNova(termes)`, `Renderer.escriuPas(H, termes, pas)`), speed 1.6; while a line
   animates the step panel hides (`quanAcabi`) and the next step (or the «Correcte!» overlay) appears when it
   ends; the first step of an operation also waits until its expression is drawn. Browser-test lesson: the
   activity focuses the first input 50 ms after a step appears, so a test that types at once can put a digit
   in the wrong box (`prova-pissarra.js` §8 waits 100 ms). A line is `{ termes, pas }`: fractions `{n, d}` (`fr: true` writes «n/1» as a fraction, as the old
-  inverse did) and signs; the first line ends with «=», the others start with it. Keys `e<r><i><piece>`
-  (pieces n, d, o), copies `f…`, «=» `e<r>q`. What moves (`Renderer.moviments`): `amplia` → each fraction
+  inverse did) and signs; the first line ends with «=», the others start with it. Piece ids `<i><piece>`
+  (pieces n, d, o), «=» `q`; keys `e<r>k<id>`, copies `ec<r>k<id>`. What moves (`Renderer.moviments`, in the
+  `historial()` format: one old piece → `mou`, several → `fusiona`): `amplia` → each fraction
   travels and changes into its equivalent; `inverteix` → the first fraction travels, «:» becomes «·», the
   numerator and denominator of the second cross; `opera` (sum, difference or product) → numerators and sign
   merge into the new numerator, denominators into the new denominator; `simplifica` → the fraction travels and
@@ -164,13 +168,15 @@ C new capabilities, P planned activities, X existing activities, N new activitie
 - `tests/fraccions.test.js`: 6,000 operations solved along random paths (equal or different denominators, any
   common multiple, product, division, simplification in one or two goes, integer results, the irreducible
   result at once): about 14,800 animations pass the script check, every line shown has the value of the
-  operation, without keys the HTML of each line is the old one.
+  operation, without keys the HTML of each line is the old one (since stage 2 with the common battery
+  `tests/pissarra-activitat.js`).
 - The fading mode for `fraccions` (planned in `docs/esvaiment/STATE.md`) is NOT done, for the same reason as
   `equacions` (decision 5).
 
 ## Accumulating lines (2026-10-27, after decision 6)
 
-- `linies(g, primeraFila)` writes line r in row `primeraFila + r`. Pieces `P(id, tex, marca)`,
+- `linies(g, primeraFila)` (since stage 2 an alias of `historial(g, {fila})`) writes line r in row
+  `primeraFila + r`. Pieces `P(id, tex, marca)`,
   `grup(peces, marca)`, `fraccio(num, den)`. A new line declares what comes from the previous one:
   `mou` (travels, may change, e.g. «+3» → «−3»), `fusiona` (several fly into one). Keys:
   `L<r>k<id>`; once a piece has gone down, its copy in line r is `Lc<r>k<id>`.
@@ -204,6 +210,39 @@ C new capabilities, P planned activities, X existing activities, N new activitie
 - **C4** an element of an SVG row with `data-k` gets a ghost that carries its own `<svg>` (viewBox = its bbox,
   same size as its screen rect, no `katex` class); sizes compare by `midaVisual()` (font size × screen CTM scale).
   `linies()` gained `extra` and `L.clau(r, id)` for symbols from outside the lines; demo `pitagores`.
+
+## Stage 2: how it was done (2026-11-14)
+
+- **A2** `js/pissarra/pla.js` `planifica(keysA, keysB, pas)` (pure): the pairing that used to live inside
+  `transicio()`. `transicio()` only measures and draws the plan; no visible change. Unit tests in Node
+  (`pissarra.test.js` §4b).
+- **C1** `pas.reparteix = {old: [news]}`: each new key pairs with the old one, so `transicio()` makes one
+  ghost per destination with no other change (the loop over `parelles` already cloned the old element per
+  pair). The old symbol is used up (it cannot also merge or be renamed) but a copy of it (`copia`) can stay.
+  Rules in `comprovaGuio`. A destination may also be a fusion target (in the demo the 2 flies to the 6 while
+  the 3 merges into it).
+- **A1** `formules.js` `historial(g, {fila, prefix, pinta, envolta, oberts})`: one engine for the lines that stay
+  written. `pintaTex` is the default painter (what `linies()` did); an activity passes its own HTML painter
+  `(line, clauDe, classe) → html` and `envolta` (all lines in one row). Line classes belong to the history
+  (`classe`, `classeAnterior`, `final`). `escriu` returns the step, so the controllers of `equacions` and
+  `fraccions` only queue it (`pintaPas`). Their renderers lost `baixades`, `historiaHtml` and
+  `animacioUltimaLinia` (≈60 lines each); `moviments` now returns `{mou, fusiona}`. Without keys the HTML is
+  byte-identical (tested on 2,000 equations and 6,000 operations). Keys changed from `e<r>L0x`/`f<r>…` to
+  `e<r>kL0x`/`ec<r>k…` (nothing outside the renderers depends on them).
+- **D1** detail on demand in `historial()` (MOTOR.md §3b): `detall: D => {…}` on a step, `D.acaba()` writes the
+  closed line (so the invariant holds by construction), ids numbered as in the closed view, metadata `id`,
+  `pare`, `pares`, `tanca`, `teDetall`, `estat`. `comprovaDetall` (comprova.js) opens each step (nested ones
+  inside their parent) and all at once and compares the boards level by level. Demo `parentesis`
+  (2(x + 3) = 14): 6 steps closed, 10 with details on steps 2 (distributive, the 2 spread to both terms),
+  3 (subtract 6 from both sides, 6 − 6 = 0, adding 0 changes nothing) and 5 (divide both sides by 2, simplify);
+  provisional checkbox «Mostra'l amb tot el detall» (`?detall=1`) on the demo page until stage 3.
+- **A3** `tests/pissarra-activitat.js` `provaActivitat`: the common battery (script check, at least one and at
+  most `maxPeces` moved pieces per step, truth of every line of every step, classic HTML without keys, every
+  detail view). `equacions.test.js` §2 and `fraccions.test.js` use it; `pissarra.test.js` §4c runs it on the
+  demo with detail.
+- Lesson: the first nested-detail test failed because a sub-step both merged and moved the same piece —
+  `comprovaGuio` caught the script error, as intended; and «a detail adds a step» has to count all
+  descendants (`pares`), not only direct children, when nested details are open.
 
 ## Known limits
 

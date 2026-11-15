@@ -2,23 +2,26 @@
  * ============================================================================
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/pissarra/demo.js
- * ROL: Quatre guions de mostra de la «Resolució pas a pas» (pàgina
+ * ROL: Cinc guions de mostra de la «Resolució pas a pas» (pàgina
  *      pissarra-demo.html): una expressió amb prioritat d'operacions, una
- *      equació de primer grau, una suma de fraccions i el teorema de Pitàgores
+ *      equació de primer grau, una suma de fraccions, el teorema de Pitàgores
  *      (on les lletres i els nombres volen del triangle, un esquema SVG, a la
- *      fórmula). Serveixen per veure la pissarra funcionant i de model per als
- *      procediments de les activitats.
+ *      fórmula) i una equació amb parèntesis amb el detall a demanda (el 2 de
+ *      fora es reparteix als dos termes). Serveixen per veure la pissarra
+ *      funcionant i de model per als procediments de les activitats.
  * ARQUITECTURA:
- * - Mòdul PUR: cada demo és { id, nom, files, passos() } i passos() torna la
- *   llista de passos (formules.js guio()). tests/pissarra.test.js comprova que
- *   cada guió és correcte i que cada línia que es veu és certa.
+ * - Mòdul PUR: cada demo és { id, nom, files, passos(opcions), detall? } i
+ *   passos({ oberts }) torna la llista de passos (formules.js guio()), amb els
+ *   passos d'«oberts» escrits amb detall (detall: true si la demo en té).
+ *   tests/pissarra.test.js comprova que cada guió és correcte, que cada línia
+ *   que es veu és certa i, amb detall, totes les vistes (comprovaDetall).
  * - Una idea per pas; el text diu què es fa i per què, en segona persona.
- * - Cada pas escriu una línia nova a sota i les d'abans queden escrites (formules.js linies()): els
- *   símbols que canvien baixen volant de la línia d'abans a la nova.
+ * - Cada pas escriu una línia nova a sota i les d'abans queden escrites (formules.js historial()):
+ *   els símbols que canvien baixen volant de la línia d'abans a la nova.
  * DEPENDÈNCIES: formules.js.
  * ============================================================================
  */
-import { guio, linies, P, grup, fraccio } from './formules.js';
+import { guio, linies, historial, P, grup, fraccio } from './formules.js';
 
 /** 3 + 4 · 2: primer la multiplicació, després la suma. */
 function passosPrioritat() {
@@ -182,9 +185,96 @@ function passosPitagores() {
     return g.passos;
 }
 
+/**
+ * 2(x + 3) = 14, amb el detall a demanda: la distributiva (el 2 es reparteix als dos termes), passar el
+ * +6 a l'altre membre (restar 6 als dos membres) i passar el 2 dividint (dividir els dos membres per 2).
+ * Tancada fa 6 línies; amb tot el detall, 10.
+ */
+function passosParentesis({ oberts = new Set() } = {}) {
+    const g = guio(10);
+    const H = historial(g, { oberts });
+    const [c, x, q, d] = [P('c', '2'), P('x', 'x'), P('q', '='), P('d', '14')];
+    H.escriu([c, P('a', '('), x, P('s', '+'), P('t', '3'), P('b', ')'), q, d], "Resol l'equació $2(x + 3) = 14$.");
+    H.escriu(
+        [c, x, P('s', '+'), P('n', '6'), q, d],
+        'Aplica la propietat distributiva: el $2$ multiplica cada terme del parèntesi.',
+        {
+            mou: { x: 'x', s: 's', q: 'q', d: 'd' },
+            reparteix: { c: ['c', 'n'] },
+            fusiona: { n: ['t'] },
+            detall: D => {
+                D.escriu(
+                    [
+                        P('c1', '2'),
+                        P('m1', '\\cdot'),
+                        x,
+                        P('s', '+'),
+                        P('c2', '2'),
+                        P('m2', '\\cdot'),
+                        P('t', '3'),
+                        q,
+                        d,
+                    ],
+                    'Multiplica el $2$ per cada terme del parèntesi: $2 \\cdot x + 2 \\cdot 3$.',
+                    { mou: { x: 'x', s: 's', t: 't', q: 'q', d: 'd' }, reparteix: { c: ['c1', 'c2'] } }
+                );
+                D.acaba('Fes les multiplicacions: $2 \\cdot x = 2x$ i $2 \\cdot 3 = 6$.', {
+                    mou: { c: 'c1', x: 'x', s: 's', q: 'q', d: 'd' },
+                    fusiona: { n: ['c2', 'm2', 't'] },
+                });
+            },
+        }
+    );
+    H.escriu([c, x, q, d, P('s', '-'), P('n', '6')], "El $+6$ passa a l'altre membre restant: $-6$.", {
+        mou: { c: 'c', x: 'x', q: 'q', d: 'd', s: 's', n: 'n' },
+        detall: D => {
+            D.escriu(
+                [c, x, P('s', '+'), P('n', '6'), P('s1', '-'), P('n1', '6'), q, d, P('s2', '-'), P('n2', '6')],
+                'Resta $6$ als dos membres: la igualtat es manté.',
+                { mou: { c: 'c', x: 'x', s: 's', q: 'q', d: 'd' }, reparteix: { n: ['n', 'n1', 'n2'] } }
+            );
+            D.escriu([c, x, P('s', '+'), P('z', '0'), q, d, P('s2', '-'), P('n2', '6')], '$6 - 6 = 0$.', {
+                mou: { c: 'c', x: 'x', s: 's', q: 'q', d: 'd', s2: 's2', n2: 'n2' },
+                fusiona: { z: ['n', 's1', 'n1'] },
+            });
+            D.acaba('Sumar $0$ no canvia res.', { mou: { c: 'c', x: 'x', q: 'q', d: 'd', s: 's2', n: 'n2' } });
+        },
+    });
+    H.escriu([c, x, q, P('e', '8')], '$14 - 6 = 8$.', {
+        mou: { c: 'c', x: 'x', q: 'q' },
+        fusiona: { e: ['d', 's', 'n'] },
+    });
+    H.escriu([x, q, fraccio([P('e', '8')], [c])], "El $2$ que multiplica la $x$ passa a l'altre membre dividint.", {
+        mou: { x: 'x', q: 'q', e: 'e', c: 'c' },
+        detall: D => {
+            D.escriu(
+                [fraccio([c, x], [P('c1', '2')]), q, fraccio([P('e', '8')], [P('c2', '2')])],
+                'Divideix els dos membres per $2$.',
+                { mou: { x: 'x', q: 'q', e: 'e' }, reparteix: { c: ['c', 'c1', 'c2'] } }
+            );
+            D.acaba("A l'esquerra, el $2$ de dalt i el de baix se simplifiquen: queda $x$.", {
+                mou: { x: 'x', q: 'q', e: 'e', c: 'c2' },
+            });
+        },
+    });
+    H.escriu([x, q, P('v', '4', 'solucio')], '$8 : 2 = 4$. La solució és $x = 4$.', {
+        mou: { x: 'x', q: 'q' },
+        fusiona: { v: ['e', 'c'] },
+        final: true,
+    });
+    return g.passos;
+}
+
 export const DEMOS = Object.freeze([
     Object.freeze({ id: 'prioritat', nom: "Prioritat d'operacions", files: 3, passos: passosPrioritat }),
     Object.freeze({ id: 'equacio', nom: 'Equació de primer grau', files: 5, passos: passosEquacio }),
     Object.freeze({ id: 'fraccions', nom: 'Suma de fraccions', files: 5, passos: passosFraccions }),
     Object.freeze({ id: 'pitagores', nom: 'Teorema de Pitàgores', files: 6, passos: passosPitagores }),
+    Object.freeze({
+        id: 'parentesis',
+        nom: 'Equació amb parèntesis',
+        files: 10,
+        passos: passosParentesis,
+        detall: true,
+    }),
 ]);

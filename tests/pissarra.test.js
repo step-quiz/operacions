@@ -5,10 +5,11 @@
  * ROL: Tests de la «Resolució pas a pas» (la pissarra animada, js/pissarra/).
  * ARQUITECTURA:
  * - Les parts pures es carreguen com a mòduls de debò (import() de Node):
- *   formules.js (claus, guió, files llargues), comprova.js (revisió dels guions
- *   i text pla de cada fila) i mode.js (?pissarra=1).
- * - La revisió dels guions es prova amb guions bons i amb guions dolents fets a
- *   mà: cada error ha de sortir.
+ *   formules.js (claus, guió, historial, files llargues), pla.js (el pla de cada
+ *   transició), comprova.js (revisió dels guions, regla del detall a demanda i
+ *   text pla de cada fila) i mode.js (?pissarra=1).
+ * - La revisió dels guions i la del detall es proven amb guions bons i amb
+ *   guions dolents fets a mà: cada error ha de sortir.
  * - REGLES DE TOTS ELS GUIONS (secció 5): cada guió registrat a GUIONS (avui,
  *   els de mostra de demo.js; després, els de cada activitat) passa la revisió,
  *   KaTeX dibuixa totes les fórmules sense errors, el text és en segona persona
@@ -23,6 +24,7 @@
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { ROOT, suite, ok, eq, finish } = require('./harness');
+const { provaActivitat } = require('./pissarra-activitat');
 
 // Entorn mínim: mode.js llegeix window.location en carregar-se
 globalThis.window = globalThis;
@@ -178,6 +180,7 @@ function solucioLineal(text) {
     const F = await importa('js/pissarra/formules.js');
     const C = await importa('js/pissarra/comprova.js');
     const M = await importa('js/pissarra/mode.js');
+    const PL = await importa('js/pissarra/pla.js');
     const { DEMOS } = await importa('js/pissarra/demo.js');
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -291,6 +294,89 @@ function solucioLineal(text) {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    suite('2b. Historial (formules.js historial): TeX, HTML, repartiments i classes');
+    {
+        const { P } = F;
+        const g = F.guio(3);
+        const H = F.historial(g);
+        const p1 = H.escriu([P('c', '2'), P('a', '('), P('x', 'x'), P('s', '+'), P('t', '3'), P('b', ')')], 'Primer.');
+        eq('escriu() torna el pas que ha afegit', p1, g.passos[0]);
+        eq('el primer pas és el número 1', p1.id, '1');
+        const p2 = H.escriu([P('c', '2'), P('x', 'x'), P('s', '+'), P('n', '6')], 'Distributiva.', {
+            mou: { x: 'x', s: 's' },
+            reparteix: { c: ['c', 'n'] },
+            fusiona: { n: ['t'] },
+            classe: 'destacat',
+        });
+        eq(
+            'reparteix: de la clau de la línia anterior a les de la nova',
+            JSON.stringify(p2.reparteix),
+            '{"L0kc":["L1kc","L1kn"]}'
+        );
+        eq(
+            'la peça repartida també deixa la seva còpia a la línia anterior',
+            JSON.stringify(p2.copia),
+            '{"Lc0kx":"L0kx","Lc0ks":"L0ks","Lc0kt":"L0kt","Lc0kc":"L0kc"}'
+        );
+        eq('classe: la classe de la fila de la línia nova', p2.classes[1], 'destacat');
+        eq('ultima: la línia i la classe de l’última', H.ultima.classe, 'destacat');
+        const p3 = H.escriu([P('r', '6')], 'Fi.', {
+            fusiona: { r: ['c', 'x', 's', 'n'] },
+            classeAnterior: '',
+            final: true,
+        });
+        eq('classeAnterior: la línia anterior canvia de classe', p3.classes[1], '');
+        eq('final: la línia nova és el resultat', p3.classes[2], 'final');
+        eq('un guió correcte', C.comprovaGuio(g.passos, 3).length, 0);
+        eq('nombre: les línies escrites', H.nombre, 3);
+        eq('passos: els del guió', H.passos, g.passos);
+        ok(
+            'estat: les línies escrites amb el seu nivell, sense les claus de la fila',
+            p3.estat.length === 3 && p3.estat.every(l => l.nivell === 0) && p3.estat[2].signatura.includes('k=kr')
+        );
+        const p4 = H.canvia([P('r', '6', 'solucio')], 'Marca la solució.');
+        eq('canvia(): la mateixa línia, amb la marca nova', /marca=solucio/.test(p4.files[2]) && p4.id, '4');
+
+        // HTML en una sola fila (com equacions i fraccions)
+        const pintaHtml = (linia, clauDe, classe) =>
+            `<p class="${classe}">${linia.map(([id, t]) => `<span data-k="${clauDe(id)}">${t}</span>`).join('')}</p>`;
+        const h = F.guio(1);
+        h.classes[0] = 'centrada';
+        const E = F.historial(h, { prefix: 'e', pinta: pintaHtml, envolta: ls => `<div>${ls.join('')}</div>` });
+        E.escriu(
+            [
+                ['a', '3'],
+                ['s', '+'],
+                ['b', '4'],
+            ],
+            '',
+            { classe: 'primera' }
+        );
+        const q2 = E.escriu([['r', '7']], '', { fusiona: { r: ['a', 's', 'b'] }, anunci: 'Línia nova: 7' });
+        eq(
+            'HTML: totes les línies a la mateixa fila, dins d’envolta',
+            q2.files[0],
+            '<div><p class="primera"><span data-k="ec0ka">3</span><span data-k="ec0ks">+</span>' +
+                '<span data-k="ec0kb">4</span></p><p class=""><span data-k="e1kr">7</span></p></div>'
+        );
+        eq('HTML: la classe de la fila no canvia', q2.classes[0], 'centrada');
+        eq('anunci: passa tal qual al pas', q2.anunci, 'Línia nova: 7');
+        eq('HTML: un guió correcte (sense text)', C.comprovaGuio(h.passos, 1, 'html', { text: false }).length, 0);
+
+        // linies() és l'historial TeX: historial(g, { fila, prefix })
+        const k = F.guio(2);
+        F.linies(k, 1, 'M').escriu([P('a', '1')], 'U.');
+        eq('linies(g, fila, prefix) = historial(g, { fila, prefix })', C.clausDe(k.passos[0].files[1]).join(), 'M0ka');
+        let peta = false;
+        try {
+            F.historial(F.guio(1), { prefix: '1x' });
+        } catch (e) {
+            peta = /Prefix no vàlid/.test(e.message);
+        }
+        ok('un prefix que no pot començar una clau → error', peta);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     suite('3. Files llargues (ampleTex, enLinies)');
     {
         ok('ampleTex creix amb el text', F.ampleTex('1+2+3+4') > F.ampleTex('1+2'));
@@ -355,6 +441,190 @@ function solucioLineal(text) {
             errorDe([pas([K('a', '1')]), pas([K('b', '2')], 'T.', { cursor: { clic: 'z' } })], /cursor clica/)
         );
         ok('dos passos idèntics', errorDe([pas([K('a', '1')]), pas([K('a', '1')])], /idèntic/));
+        // Repartiments (pas.reparteix = { vella: [noves] })
+        const rep = (extra, files2 = [K('c1', '2') + K('c2', '2')]) => [pas([K('c', '2')]), pas(files2, 'T.', extra)];
+        eq('un repartiment bo', C.comprovaGuio(rep({ reparteix: { c: ['c1', 'c2'] } }), 1).length, 0);
+        ok(
+            'repartiment: la vella ha de ser al pas anterior i no al nou',
+            errorDe(
+                rep({ reparteix: { c: ['c1'] } }, [K('c', '2') + K('c1', '2')]),
+                /reparteix c: ha de ser al pas anterior/
+            )
+        );
+        ok(
+            'repartiment: cada destí ha de ser nou',
+            errorDe(rep({ reparteix: { c: ['c1', 'z'] } }), /«z» ha de ser nova/)
+        );
+        ok('repartiment sense destins', errorDe(rep({ reparteix: { c: [] } }), /cap destí/));
+        ok(
+            'un símbol nou que surt de dos repartiments',
+            errorDe(
+                [pas([K('a', '1') + K('b', '2')]), pas([K('n', '3')], 'T.', { reparteix: { a: ['n'], b: ['n'] } })],
+                /dos repartiments/
+            )
+        );
+        ok(
+            'repartir i reanomenar alhora',
+            errorDe(rep({ reparteix: { c: ['c1', 'c2'] }, reanomena: { c1: 'c' } }), /alhora/)
+        );
+        ok(
+            'el primer pas no pot repartir',
+            errorDe([pas([K('c', '2')], 'T.', { reparteix: { c: ['c'] } })], /primer pas/)
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    suite('4b. El pla de cada transició (pla.js planifica)');
+    {
+        const pla = (A, B, pas) => {
+            const r = PL.planifica(A, B, pas);
+            return {
+                parelles: [...r.parelles].map(([b, a]) => `${b}←${a}`).join(' '),
+                desti: [...r.desti].map(([a, b]) => `${a}→${b}`).join(' '),
+                velles: r.velles.join(' '),
+                noves: r.noves.join(' '),
+                copies: [...r.copies].join(' '),
+                repartides: [...r.repartides].join(' '),
+            };
+        };
+        const r0 = pla(['a', 'b'], ['a', 'c']);
+        eq('la mateixa clau fa parella', r0.parelles, 'a←a');
+        eq('sense parella: les velles s’esvaeixen i les noves apareixen', `${r0.velles}|${r0.noves}`, 'b|c');
+        eq('reanomena', pla(['a'], ['b'], { reanomena: { b: 'a' } }).parelles, 'b←a');
+        eq(
+            'una vella només fa parella amb una nova (la primera)',
+            pla(['a'], ['a2', 'a3'], { reanomena: { a2: 'a', a3: 'a' } }).parelles,
+            'a2←a'
+        );
+        const r1 = pla(['a'], ['ac', 'b'], { copia: { ac: 'a' }, reanomena: { b: 'a' } });
+        eq('una còpia fa parella sense gastar l’original', `${r1.parelles}|${r1.copies}`, 'ac←a b←a|ac');
+        const r2 = pla(['c', 't'], ['cc', 'c1', 'c2', 'n'], {
+            copia: { cc: 'c' },
+            reparteix: { c: ['c1', 'c2'] },
+            fusiona: { n: ['t'] },
+        });
+        eq('reparteix: cada destí fa parella amb la vella', r2.parelles, 'cc←c c1←c c2←c');
+        eq('reparteix: les noves que en surten', r2.repartides, 'c1 c2');
+        eq('la vella repartida no s’esvaeix; la fusionada va al seu destí', `${r2.velles}|${r2.desti}`, 't|t→n');
+        eq('el resultat de la fusió apareix', r2.noves, 'n');
+        eq(
+            'un repartiment d’una vella que no hi és no fa parella',
+            pla(['a'], ['b'], { reparteix: { z: ['b'] } }).noves,
+            'b'
+        );
+        eq('sense pas, només les claus', pla([], ['a']).noves, 'a');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    suite('4c. Detall a demanda (historial amb detall, comprova.js comprovaDetall)');
+    {
+        const { P } = F;
+        const linia0 = [P('a', '2'), P('m1', '\\cdot'), P('b', '3'), P('m2', '\\cdot'), P('c', '4')];
+        const linia2a = [P('s', '6'), P('m2', '\\cdot'), P('c', '4')];
+        const igual = P('q', '=');
+        /*
+         * 2 · 3 · 4 = 24. El pas 2 es pot obrir (2a: 6 · 4; 2b: 24) i el 2a també (2a1: el 3 es reparteix,
+         * (3 + 3) · 4, per provar un detall dins d'un detall; 2a2: 6 · 4).
+         * dolent: 'sense-acaba', 'nomes-acaba', 'anterior' (el primer subpas no fa el que fa el pas a la
+         * línia anterior) o 'text' (el text d'un altre pas canvia quan s'obre el detall).
+         */
+        const guio =
+            (dolent = '') =>
+            ({ oberts }) => {
+                const g = F.guio(6);
+                const H = F.historial(g, { oberts });
+                H.escriu(linia0, 'Calcula $2 \\cdot 3 \\cdot 4$.');
+                H.escriu([P('r', '24')], 'Multiplica.', {
+                    fusiona: { r: ['a', 'm1', 'b', 'm2', 'c'] },
+                    anterior: [...linia0, igual],
+                    detall: D => {
+                        if (dolent !== 'nomes-acaba')
+                            D.escriu(linia2a, '$2 \\cdot 3 = 6$.', {
+                                fusiona: { s: ['a', 'm1', 'b'] },
+                                mou: { m2: 'm2', c: 'c' },
+                                ...(dolent === 'anterior' ? { anterior: linia0 } : {}),
+                                detall: E => {
+                                    E.escriu(
+                                        [
+                                            P('o', '('),
+                                            P('t', '3'),
+                                            P('u', '+'),
+                                            P('v', '3'),
+                                            P('t2', ')'),
+                                            P('m2', '\\cdot'),
+                                            P('c', '4'),
+                                        ],
+                                        '$2 \\cdot 3 = 3 + 3$.',
+                                        {
+                                            reparteix: { b: ['t', 'v'] },
+                                            fusiona: { u: ['a', 'm1'] },
+                                            mou: { m2: 'm2', c: 'c' },
+                                        }
+                                    );
+                                    E.acaba('$3 + 3 = 6$.', {
+                                        fusiona: { s: ['o', 't', 'u', 'v', 't2'] },
+                                        mou: { m2: 'm2', c: 'c' },
+                                    });
+                                },
+                            });
+                        if (dolent !== 'sense-acaba')
+                            D.acaba('$6 \\cdot 4 = 24$.', {
+                                fusiona: { r: ['s', 'm2', 'c'] },
+                                anterior: [...linia2a, igual],
+                            });
+                    },
+                });
+                H.canvia(
+                    [P('r', '24', 'solucio')],
+                    dolent === 'text' && oberts.size ? 'Ja està.' : 'El resultat és $24$.'
+                );
+                return g.passos;
+            };
+        const ids = (oberts, dolent) =>
+            guio(dolent)({ oberts: new Set(oberts) })
+                .map(p => p.id + (p.pare ? `<${p.pare}` : '') + (p.tanca ? '!' : '') + (p.teDetall ? '+' : ''))
+                .join(' ');
+        eq('tancat: tres passos, el 2 es pot obrir', ids([]), '1 2+ 3');
+        eq('el 2 obert: 2a (que es pot obrir) i 2b (la línia del pas tancat)', ids(['2']), '1 2a<2+ 2b<2! 3');
+        eq('el 2 i el 2a oberts: els subpassos del 2a, 2a1 i 2a2', ids(['2', '2a']), '1 2a1<2a 2a2<2a! 2b<2! 3');
+        eq('obrir un subpas sense obrir el seu pare no fa res', ids(['2a']), '1 2+ 3');
+        const obert = guio()({ oberts: new Set(['2']) });
+        eq(
+            'el primer subpas fa a la línia anterior el que hi fa el pas (hi afegeix el «=»)',
+            C.textPla(obert[1].files[0]),
+            '2*3*4='
+        );
+        eq('l’últim subpas escriu la línia del pas tancat, amb la seva classe', C.textPla(obert[2].files[2]), '24');
+        eq('un detall ben fet: cap error a cap vista', C.comprovaDetall(guio(), 6, 'bo').join(' | '), '');
+        const errors = dolent => C.comprovaDetall(guio(dolent), 6, dolent).join(' | ');
+        ok('un detall que no acaba amb D.acaba() → error', /no acaba amb D\.acaba\(\)/.test(errors('sense-acaba')));
+        ok('un detall que només té D.acaba() → error', /no hi afegeix cap pas/.test(errors('nomes-acaba')));
+        ok(
+            'un subpas que canvia la línia anterior d’una altra manera → error',
+            /la pissarra no és la de la vista tancada/.test(errors('anterior'))
+        );
+        ok(
+            'el text d’un altre pas canvia en obrir el detall → error',
+            /el text del pas «3» canvia/.test(errors('text'))
+        );
+
+        // La bateria comuna de les activitats, amb el detall: la demo de l'equació amb parèntesis
+        const d = DEMOS.find(x => x.id === 'parentesis');
+        provaActivitat('demo parentesis', {
+            exercicis: [{ on: 'demo parentesis', passos: d.passos(), vista: d.passos }],
+            eines: C,
+            files: d.files,
+            text: true,
+            maxPeces: 10,
+            veritat: linia => {
+                try {
+                    const sol = solucioLineal(C.textPla(linia));
+                    return sol && igualQ(sol, Q(4)) ? '' : `${C.textPla(linia)} no té solució x = 4`;
+                } catch (e) {
+                    return e.message;
+                }
+            },
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -409,17 +679,27 @@ function solucioLineal(text) {
     // Tots els guions que pot veure un alumne. Cada activitat que tingui
     // «Resolució pas a pas» hi afegirà els seus (amb molts exercicis i un model).
     // valor: què ha de valdre cada fila (expressió) o quina solució té (equació).
-    const GUIONS = DEMOS.map(d => ({
-        nom: `demo ${d.id}`,
-        files: d.files,
-        passos: d.passos(),
-        veritat: {
+    // Una demo amb detall a demanda hi és dues vegades: tancada i amb tot el detall.
+    const GUIONS = DEMOS.flatMap(d => {
+        const veritat = {
             prioritat: { expressio: Q(11) },
             equacio: { equacio: Q(4) },
             fraccions: { expressio: Q(5, 6) },
             pitagores: { valors: { a: Q(10), b: Q(6), c: Q(8) } },
-        }[d.id],
-    }));
+            parentesis: { equacio: Q(4) },
+        }[d.id];
+        const guions = [{ nom: `demo ${d.id}`, files: d.files, passos: d.passos(), veritat }];
+        if (d.detall) {
+            const oberts = new Set(
+                d
+                    .passos()
+                    .filter(p => p.teDetall)
+                    .map(p => p.id)
+            );
+            guions.push({ nom: `demo ${d.id} (tot el detall)`, files: d.files, passos: d.passos({ oberts }), veritat });
+        }
+        return guions;
+    });
 
     suite(`7. Regles de tots els guions (${GUIONS.length} guions)`);
     {
