@@ -7,8 +7,9 @@
  * ARQUITECTURA:
  * - comprovaGuio(passos, nFiles, nom, { text }): la revisió estructural d'un guió
  *   (claus vàlides i úniques a cada pas, fusions, canvis de nom, còpies i
- *   repartiments coherents, el cursor apunta a símbols que hi són, cap pas idèntic a
- *   l'anterior…). Torna la llista d'errors (buida si tot és correcte). text: false
+ *   repartiments coherents: les velles eren al pas anterior i les noves són al
+ *   nou; una vella que desapareix no es fa servir dues vegades; el cursor apunta
+ *   a símbols que hi són, cap pas idèntic a l'anterior…). Torna la llista d'errors (buida si tot és correcte). text: false
  *   no demana el text de cada pas (els historials de les activitats no en tenen).
  * - comprovaDetall(fesGuio, nFiles, nom, { text }): la regla del detall a demanda.
  *   fesGuio({ oberts }) torna els passos d'un guió fet amb historial() (formules.js) amb els
@@ -87,9 +88,12 @@ export function comprovaGuio(passos, nFiles, nom = 'guió', { text = true } = {}
                 () => `${on}: el primer pas no pot animar res`
             );
         } else {
+            // Una vella que també és al pas nou es queda (les línies d'un historial): el que vola és una còpia,
+            // i es pot moure, fusionar o repartir alhora. Una que desapareix només pot fer una d'aquestes coses.
+            const desapareix = ka => A.has(ka) && !B.has(ka);
             for (const [kb, ka] of reanomena) {
-                comprova(B.has(kb) && !A.has(kb), () => `${on}: reanomena ${kb}←${ka}: «${kb}» ha de ser nova`);
-                comprova(A.has(ka) && !B.has(ka), () => `${on}: reanomena ${kb}←${ka}: «${ka}» ha de ser vella`);
+                comprova(B.has(kb), () => `${on}: reanomena ${kb}←${ka}: «${kb}» no és al pas nou`);
+                comprova(A.has(ka), () => `${on}: reanomena ${kb}←${ka}: «${ka}» no era al pas anterior`);
             }
             for (const [kb, ka] of Object.entries(pas.copia || {})) {
                 comprova(B.has(kb) && !A.has(kb), () => `${on}: còpia ${kb}←${ka}: «${kb}» ha de ser nova`);
@@ -100,12 +104,9 @@ export function comprovaGuio(passos, nFiles, nom = 'guió', { text = true } = {}
             for (const [kb, kas] of fusiona) {
                 comprova(B.has(kb), () => `${on}: fusiona ${kb}: no és al pas nou`);
                 for (const ka of kas) {
+                    comprova(A.has(ka), () => `${on}: fusiona ${kb}←${ka}: «${ka}» ha de ser al pas anterior`);
                     comprova(
-                        A.has(ka) && !B.has(ka),
-                        () => `${on}: fusiona ${kb}←${ka}: «${ka}» ha de ser al pas anterior i no al nou`
-                    );
-                    comprova(
-                        !reanomena.some(([, v]) => v === ka),
+                        !desapareix(ka) || !reanomena.some(([, v]) => v === ka),
                         () => `${on}: «${ka}» es fusiona i es reanomena alhora`
                     );
                 }
@@ -113,20 +114,17 @@ export function comprovaGuio(passos, nFiles, nom = 'guió', { text = true } = {}
             const destins = reparteix.flatMap(([, kbs]) => kbs || []);
             comprova(new Set(destins).size === destins.length, () => `${on}: un símbol nou surt de dos repartiments`);
             for (const [ka, kbs] of reparteix) {
-                comprova(
-                    A.has(ka) && !B.has(ka),
-                    () => `${on}: reparteix ${ka}: ha de ser al pas anterior i no al nou`
-                );
+                comprova(A.has(ka), () => `${on}: reparteix ${ka}: ha de ser al pas anterior`);
                 comprova(Array.isArray(kbs) && kbs.length >= 1, () => `${on}: reparteix ${ka}: cap destí`);
                 for (const kb of kbs || []) {
-                    comprova(B.has(kb) && !A.has(kb), () => `${on}: reparteix ${ka}→${kb}: «${kb}» ha de ser nova`);
+                    comprova(B.has(kb), () => `${on}: reparteix ${ka}→${kb}: «${kb}» no és al pas nou`);
                     comprova(
                         !reanomena.some(([n]) => n === kb) && !(kb in (pas.copia || {})),
                         () => `${on}: «${kb}» surt d'un repartiment i d'un canvi de nom o d'una còpia alhora`
                     );
                 }
                 comprova(
-                    !fonts.includes(ka) && !reanomena.some(([, v]) => v === ka),
+                    !desapareix(ka) || (!fonts.includes(ka) && !reanomena.some(([, v]) => v === ka)),
                     () => `${on}: «${ka}» es reparteix i es fusiona o es reanomena alhora`
                 );
             }

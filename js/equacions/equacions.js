@@ -5,12 +5,11 @@
  * ROL: Joc «Equacions de 1r Grau» (equacions.html). Abans era dins de l'HTML.
  * ARQUITECTURA: la generació de les equacions i els passos són a math-engine.js
  *      (pur); l'HTML dels termes, a renderer.js; aquí, el joc (DOM).
- *      «Resolució pas a pas» (?pissarra=1, js/pissarra/): l'historial es pinta dins
- *      d'una pissarra sense marc i cada línia nova s'anima (els termes que el pas
- *      mou baixen de la línia anterior i s'hi fusionen; les d'abans queden
- *      escrites). No canvia res més: preguntes, punts ni codi.
+ *      L'enllaç «Mira com es resol» obre en una pestanya nova la resolució pas a pas
+ *      d'una equació del mateix nivell (resolucio.html, l'escenari B: l'alumne mira com
+ *      es resol); aquí l'alumne la fa ell (l'escenari A).
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa game-core.js, utils.js, config.js,
- *      pissarra/mode.js, pissarra/pissarra.js, math-engine.js i renderer.js.
+ *      math-engine.js i renderer.js.
  * ============================================================================
  */
 
@@ -31,8 +30,6 @@ import {
     acabaPregunta,
     puntsDeLaPregunta,
 } from '../game-core.js';
-import { PISSARRA_ACTIVA } from '../pissarra/mode.js';
-import { creaPissarra } from '../pissarra/pissarra.js';
 import { MathEngine } from './math-engine.js';
 import { Renderer } from './renderer.js';
 
@@ -75,6 +72,7 @@ const els = {
     stepValue: document.getElementById('step-value'),
     valueInput: null, // es crea dinàmicament a renderStepHint
     btnSubmitVal: document.getElementById('btn-submit-val'),
+    miraCom: document.getElementById('mira-com'), // «Mira com es resol» (resolucio.html)
 };
 
 // Estat específic d'equacions
@@ -93,12 +91,6 @@ let equation = null;
 let steps = [];
 let currentStepIndex = 0;
 let isPenalizing = false;
-// «Resolució pas a pas» (?pissarra=1): la pissarra de l'historial (null si no és actiu) i l'historial
-// (formules.js historial(), el fa renderer.js historiaNova). Les pintades van a la cua del motor
-// (pissarra.encua), que no es bloqueja mai.
-const pissarra = PISSARRA_ACTIVA ? creaPissarra(els.eqHistory, { files: 1, marc: false }) : null;
-let historia = null;
-
 // La matemàtica és a math-engine.js; l'HTML dels termes, a renderer.js
 const { xT, nT, determineSteps } = MathEngine;
 const { renderTerms } = Renderer;
@@ -133,11 +125,17 @@ function addEquationToHistory(leftArr, rightArr, extraClass) {
     els.eqHistory.appendChild(div);
 }
 
-// «Resolució pas a pas»: un pas de l'historial a la pissarra. anima: la línia nova s'escriu amb animació
-// (un pas que l'alumne ha encertat, i va de pressa: ja sap què ha calculat); si no, es mostra tal qual.
-// Les pintades van a la cua del motor: una animació sempre acaba abans que comenci la següent, i si
-// una falla, la línia es mostra igualment i el joc continua.
-const pintaPas = (pas, anima) => pissarra.encua(pas, { anima, velocitat: 1.6 });
+// «Mira com es resol»: la resolució pas a pas d'una equació del mateix nivell (resolucio.html, en una
+// pestanya nova). Sense ?nivell=, el de les equacions que toquen ara (la sessió va de les fàcils a les difícils).
+function actualitzaMiraCom() {
+    if (!els.miraCom) return;
+    const triat = typeof state.currentDifficulty === 'number' ? state.currentDifficulty : 0;
+    const nivell =
+        triat >= 1 && triat <= 3
+            ? triat
+            : Math.min(3, 1 + Math.floor((3 * state.currentOperation) / Math.max(1, TOTAL_OPERATIONS)));
+    els.miraCom.href = `resolucio.html?activitat=equacions&nivell=${nivell}`;
+}
 
 // ---- BUILD LEVEL (cridat per game-core) ----
 function buildLevel() {
@@ -148,7 +146,7 @@ function buildLevel() {
     steps = determineSteps(equation);
     currentStepIndex = 0;
 
-    if (!pissarra) els.eqHistory.innerHTML = '';
+    els.eqHistory.innerHTML = '';
     els.eqHistory.style.display = 'flex';
     els.stepHint.style.display = 'none';
 
@@ -156,10 +154,8 @@ function buildLevel() {
     // primera línia visual; la resta del joc treballa en forma canònica.
     const origLeft = equation.swapInitial ? equation.dispRight : equation.dispLeft;
     const origRight = equation.swapInitial ? equation.dispLeft : equation.dispRight;
-    if (pissarra) {
-        historia = Renderer.historiaNova(equation);
-        pintaPas(historia.passos[0], false);
-    } else addEquationToHistory(origLeft, origRight, 'eq-original');
+    addEquationToHistory(origLeft, origRight, 'eq-original');
+    actualitzaMiraCom();
 
     updateHeader();
     showCurrentStep();
@@ -377,25 +373,6 @@ function advanceStep() {
     const step = steps[currentStepIndex];
 
     const isFinal = currentStepIndex === steps.length - 1;
-    if (pissarra) {
-        // La línia nova s'anima; mentre baixen els termes, la línia de treball s'amaga i el pas
-        // següent surt quan l'animació s'acaba
-        const pas = Renderer.escriuPas(historia, step, isFinal);
-        // La zona de treball s'amaga però no s'encongeix: cap finestra no canvia de mida mentre baixen
-        // els termes (i el que hi ha a sota no salta)
-        const zona = els.stepValue.parentElement;
-        zona.style.minHeight = zona.offsetHeight + 'px';
-        els.stepValue.classList.remove('active');
-        if (els.valueInput) els.valueInput.value = '';
-        hideCustomKeyboard();
-        els.stepHint.style.display = 'none';
-        currentStepIndex++;
-        pintaPas(pas, true).then(() => {
-            if (!state.isTransitioning) showCurrentStep();
-            zona.style.minHeight = '';
-        });
-        return;
-    }
     addEquationToHistory(step.dispLeftAfter, step.dispRightAfter, isFinal ? 'eq-solved' : 'eq-latest');
 
     els.stepValue.classList.remove('active');

@@ -1,0 +1,30 @@
+/**
+ * ============================================================================
+ * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+ * FITXER: js/resolucio/activitats.js
+ * ROL: Les activitats que tenen «Resolució pas a pas» (l'escenari B: l'alumne
+ *      mira com es resol un exercici a resolucio.html, sense fer-lo).
+ * ARQUITECTURA:
+ * - ACTIVITATS: { clau: { nom, pagina, nivells, carrega } }. clau: el nom del fitxer
+ *   de l'activitat sense «.html» (el de resolucio.html?activitat=…); pagina: on es fa
+ *   l'exercici (l'escenari A, «Ara fes-ho tu»); nivells: [[valor, nom]]; carrega():
+ *   el procediment pur de l'activitat ({ NIVELLS, exercici(nivell), passos(exercici,
+ *   { oberts }), files(exercici) }), carregat només quan cal.
+ * - Les claus són les de SUPORTA_PISSARRA (js/pissarra/mode.js) i les de «pissarra:
+ *   true» a index.html (tests/check-repo.js ho comprova).
+ * DEPENDÈNCIES: el procediment de cada activitat (p. ex. js/equacions/resolucio.js).
+ * ============================================================================
+ */
+
+export const ACTIVITATS = Object.freeze({
+    equacions: Object.freeze({
+        nom: 'Equacions de 1r grau',
+        pagina: 'equacions.html',
+        nivells: Object.freeze([
+            [1, 'Nivell 1'],
+            [2, 'Nivell 2'],
+            [3, 'Nivell 3'],
+        ]),
+        carrega: () => import('../equacions/resolucio.js').then(m => m.Resolucio),
+    }),
+});

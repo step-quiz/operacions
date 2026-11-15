@@ -22,7 +22,6 @@
     <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/teclat.css">
-    <link rel="stylesheet" href="css/pissarra.css">
 
     <style>
         /* ---- Variables de color específiques d'equacions ---- */
@@ -138,11 +137,18 @@
         .eq-history-line.eq-solved .eq-sign      { color: var(--success); }
         .eq-history-line.eq-solved .eq-var       { color: var(--success); }
 
-        /* «Resolució pas a pas» (?pissarra=1): l'historial dins d'una pissarra sense marc (js/pissarra/).
-           Les línies no tornen a fer el fadeIn cada cop que la pissarra les redibuixa. */
-        .eq-history .pis-escenari { align-self: stretch; }
-        .eq-linies { display: flex; flex-direction: column; align-items: center; width: 100%; }
-        .pis-escenari .eq-history-line { animation: none; }
+        /* «Mira com es resol»: la resolució pas a pas d'una equació semblant (resolucio.html) */
+        .mira-com {
+            display: block;
+            width: fit-content;
+            margin: 14px auto 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
+        }
+        .mira-com:hover { color: var(--primary-dark); border-bottom-style: solid; }
 
         /* ---- ZONA DE RESOLUCIÓ PAS A PAS ---- */
         .resolution-panel {
@@ -235,7 +241,7 @@
     </a>
     <h1>Equacions de 1r Grau</h1>
 </div>
-<div class="subtitle">Resolució pas a pas</div>
+<div class="subtitle">Resol-la pas a pas</div>
 
 <div class="panel" id="main-panel">
 
@@ -267,6 +273,7 @@
                 </div>
             </div>
         </div>
+        <a class="mira-com" id="mira-com" href="resolucio.html?activitat=equacions" target="_blank" rel="noopener">Mira com es resol una equació com aquesta ↗</a>
     </div>
 </div>
     <!-- 4. game-core DESPRÉS del body perquè pot referenciar DOM -->

@@ -6,6 +6,8 @@
  *      amb KaTeX, files de text) i anima el canvi al pas següent a l'estil de
  *      Graspable Math: els símbols viatgen, es fusionen o s'esvaeixen.
  * ARQUITECTURA:
+ * - canviaGuio(nous, i, { senseVols }) canvia de guió i anima fins al pas i (el
+ *   detall a demanda del reproductor: obrir o plegar un pas).
  * - creaPissarra(contenidor, { files, marc }) posa la pissarra dins d'un element
  *   de la pàgina d'una activitat i torna un controlador. Dues maneres de fer-la
  *   servir:
@@ -428,6 +430,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         r.efectes.replaceChildren();
         const vella = capa;
         capa = dibuixaCapa(pas);
+        capa.classList.add('pis-vista'); // es veu ara (el calaix d'un detall nou s'obre: css/pissarra.css)
         r.pissarra.replaceChildren(capa);
         fesVisible(vella, capa);
     }
@@ -632,6 +635,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
      */
     async function fonAlLloc(vella, nova) {
         nova.style.visibility = 'visible';
+        nova.classList.add('pis-vista');
         const velles = [...vella.children];
         const feines = [];
         [...nova.children].forEach((f, i) => {
@@ -675,10 +679,11 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         const fusiona = new Map(Object.entries(pas.fusiona || {}));
 
         /* El pla (pla.js, pur): quin símbol nou és quin de vell (parelles: la mateixa clau, reanomena,
-           còpies i repartiments), on es fusiona cada símbol vell (desti), quins s'esvaeixen (velles) i
-           quins apareixen (noves). Un símbol que es reparteix fa parella amb cada destí: en surten tants
-           fantasmes com destins. */
-        const { parelles, desti, velles, noves } = planifica(A.keys(), B.keys(), pas);
+           còpies i repartiments), on es fusiona cada símbol vell (desti), quins fantasmes volen fins a un
+           símbol i s'hi fonen (volades: d'un símbol que es queda escrit, o cap a un que ja hi era), quins
+           s'esvaeixen (velles) i quins apareixen (noves). Un símbol que es reparteix fa parella amb cada
+           destí: en surten tants fantasmes com destins. */
+        const { parelles, desti, volades, velles, noves } = planifica(A.keys(), B.keys(), pas);
         const igual = (ka, kb) => signatura(A.get(ka)) === signatura(B.get(kb));
         const canvia = (ka, kb) => !igual(ka, kb) || Math.abs(midaVisual(A.get(ka)) - midaVisual(B.get(kb))) > 0.5;
 
@@ -739,6 +744,8 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
                 ta.forEach((q, j) => avisos.push({ r0: q, r1: ta.length === tb.length ? tb[j] : null }));
             }
             const grups = new Map(); // destí → els símbols que s'hi fusionen
+            for (const [ka, kb] of volades)
+                if (RA.has(ka) && RB.has(kb)) grups.set(kb, (grups.get(kb) || []).concat([ka]));
             for (const ka of velles) {
                 const kb = desti.get(ka);
                 if (RB.has(kb)) grups.set(kb, (grups.get(kb) || []).concat([ka]));
@@ -758,6 +765,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         vella.classList.add('pis-amaga-claus');
         nova.classList.add('pis-amaga-claus');
         nova.style.visibility = 'visible';
+        nova.classList.add('pis-vista'); // a partir d'ara es veu (el calaix d'un detall nou s'obre ara)
         // Cada fila es fon amb la seva nova versió, menys les que no canvien (filaIgual): es queden
         // quietes, i així les línies que ja estaven escrites no es mouen gens. Les altres es fonen
         // sense enfosquir-se a mig camí: la nova apareix abans que la vella se'n vagi.
@@ -865,6 +873,25 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             );
         }
 
+        // Els fantasmes que volen fins a un símbol i s'hi fonen (el símbol de sortida es queda on era).
+        for (const [ka, kb] of volades) {
+            if (partitA(ka) || !RB.has(kb)) continue;
+            const a = RA.get(ka),
+                vell = fantasma(A.get(ka), a),
+                t = RB.get(kb);
+            feines.push(
+                anima(
+                    vell.el,
+                    [
+                        { transform: QUIET, opacity: 1 },
+                        { offset: 0.7, opacity: 0.85 },
+                        { transform: trasllat(a, t, 0.55), opacity: 0 },
+                    ],
+                    { duration: D * 0.8 }
+                )
+            );
+        }
+
         // Els símbols nous apareixen; el resultat d'una fusió, amb una empenta.
         for (const kb of noves) {
             if (partitB(kb)) continue;
@@ -942,6 +969,50 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         }
         if (idx === passos.length - 1) cursor.amaga();
         avisa();
+    }
+
+    /**
+     * Canvia de guió (p. ex. el mateix exercici amb un pas obert o tancat, el detall a demanda) i anima el pas
+     * que es veu fins al pas «i» del guió nou. Les claus que hi ha als dos es desplacen (la línia d'un pas que
+     * s'obre baixa, i torna a pujar quan es plega); el pas d'arribada fa volar el que diu (reanomena, fusiona,
+     * reparteix), menys amb senseVols (per plegar un detall: només es desplaça el que hi ha als dos).
+     */
+    async function canviaGuio(nous, i, { senseVols = false } = {}) {
+        if (ocupat || !nous.length) return false;
+        const j = Math.max(0, Math.min(nous.length - 1, i));
+        const actual = passos[idx];
+        if (!capa || !actual) {
+            passos = nous;
+            ajusta(passos);
+            salta(j);
+            return true;
+        }
+        ocupat = true;
+        try {
+            ajusta([actual, ...nous]);
+            mostra(actual);
+            passos = nous;
+            idx = j;
+            avisa();
+            const arribada = senseVols
+                ? Object.assign({}, nous[j], {
+                      reanomena: null,
+                      fusiona: null,
+                      reparteix: null,
+                      copia: null,
+                      cursor: null,
+                  })
+                : nous[j];
+            await transicio(arribada);
+        } finally {
+            ocupat = false;
+        }
+        // Les files que només feia servir el guió d'abans ja no ocupen lloc
+        ajusta(passos);
+        mostra(passos[idx]);
+        cursor.amaga();
+        avisa();
+        return true;
     }
 
     /* Si canvia l'amplada, o quan acaben de carregar les lletres, es torna a ajustar la mida. */
@@ -1063,6 +1134,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         },
         seguent: () => animaFins(idx, idx + 1),
         salta,
+        canviaGuio,
         repeteix: () => animaFins(idx - 1, idx),
         reajusta,
         velocitat(v) {

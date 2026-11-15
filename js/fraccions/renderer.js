@@ -2,15 +2,15 @@
  * ============================================================================
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/fraccions/renderer.js
- * ROL: «Resolució pas a pas» (?pissarra=1) d'«Operacions amb Fraccions»: les
- *      línies de l'expressió amb les claus de la pissarra i què mou cada pas.
+ * ROL: Per a la futura «Resolució pas a pas» d'«Operacions amb Fraccions» (l'escenari
+ *      B, resolucio.html): les línies de l'expressió amb les claus de la pissarra i què
+ *      mou cada pas. Avui no el fa servir cap pàgina (des del 15/11/2026 l'activitat no
+ *      té pissarra); el proven els tests.
  * ARQUITECTURA:
  * - Funcions pures: retornen text HTML i no toquen la pàgina (les proven els
  *   tests amb Node, tests/fraccions.test.js). L'historial (claus, còpies,
  *   fusions) el porta formules.js historial(); aquí, com es dibuixa cada línia
  *   i què mou cada pas.
- * - Sense ?pissarra=1, el joc pinta les línies com sempre (fraccions.js) i no
- *   fa servir aquest fitxer.
  * DEPENDÈNCIES: pissarra/formules.js (guio, historial).
  * ============================================================================
  */

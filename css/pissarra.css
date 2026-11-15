@@ -13,6 +13,9 @@ ARQUITECTURA:
 - Els colors de les marques volen dir sempre el mateix: verd = triat/positiu,
   vermell = eliminat/negatiu, groc = afegit/el que es comprova, lila = el que
   es calcula ara/solució.
+- El detall a demanda («Vull més detall») va en un calaix gris, enfonsat, que
+  s'obre amb un petit gir 3D (.pis-calaix a les files HTML, .pis-fila.detall a
+  les files TeX).
 - Origen: estil.css dels procediments animats de step-quiz/pau (octubre 2026).
 DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 ============================================================================
@@ -25,6 +28,8 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     --pis-ma-vora: rgba(59, 130, 246, 0.55);
     --pis-ona: rgba(59, 130, 246, 0.45);
     --pis-graella: #e3e8ef; /* punts de la pissarra */
+    --pis-calaix-fons: #e8ebf1; /* el calaix del detall a demanda */
+    --pis-calaix-vora: #d3d9e3;
 
     position: relative;
     overflow-x: hidden;
@@ -359,6 +364,14 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     background: var(--pis-cat);
     border-color: var(--pis-cat);
 }
+/* Els subpassos d'un pas obert (detall a demanda): punts més petits */
+.pis-punt.sub {
+    width: 14px;
+}
+.pis-punt.sub::before {
+    width: 8px;
+    height: 8px;
+}
 
 .pis-velocitat {
     display: flex;
@@ -376,6 +389,38 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     padding: 4px 6px;
 }
 
+/* El text del pas i, al costat, «Vull més detall» / «Menys detall» (si el reproductor té detall) */
+.pis-explicacio-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px 14px;
+}
+.pis-explicacio-fila .pis-explicacio {
+    flex: 1 1 18em;
+}
+.pis-detall-boto {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--pis-cat);
+    background: var(--panel-bg, #fff);
+    border: 1.5px solid var(--pis-cat);
+    border-radius: 999px;
+    padding: 4px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.pis-detall-boto:hover:not(:disabled) {
+    background: var(--pis-cat-fons);
+}
+.pis-detall-boto:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+.pis-detall-boto[hidden] {
+    display: none;
+}
 .pis-explicacio {
     margin: 0;
     min-height: 3.4em;
@@ -411,9 +456,111 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
         white-space: normal;
     }
 }
+/* ── EL CALAIX DEL DETALL A DEMANDA ─────────────────────────────────────────
+   Les línies d'un pas obert («Vull més detall»): un calaix gris, enfonsat, amb la vora del color de
+   l'activitat a l'esquerra, que s'obre amb un petit gir 3D (el David, 14/11/2026: «per poder fer
+   èmfasi en què són subpassos»). El fons i el gir són al ::before, perquè el contingut no es mogui
+   mentre la pissarra mesura on van els símbols; el gir comença quan la capa es veu (.pis-vista). */
+.pis-calaix {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 100%;
+    margin: 6px 0 8px;
+    padding: 4px 16px 8px 19px;
+}
+.pis-calaix::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: 1px solid var(--pis-calaix-vora);
+    border-left: 3px solid var(--pis-cat);
+    border-radius: 10px;
+    background: var(--pis-calaix-fons);
+    box-shadow:
+        inset 0 3px 7px rgba(15, 23, 42, 0.16),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6),
+        0 1px 0 rgba(255, 255, 255, 0.9);
+    transform-origin: top center;
+}
+.pis-vista .pis-calaix-nou::before {
+    animation: pis-calaix 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
+}
+@keyframes pis-calaix {
+    from {
+        transform: perspective(700px) rotateX(-28deg);
+        opacity: 0;
+    }
+    to {
+        transform: none;
+        opacity: 1;
+    }
+}
+.pis-calaix-titol {
+    align-self: flex-start;
+    padding: 3px 0 2px;
+    font:
+        700 0.72rem/1.3 'Segoe UI',
+        system-ui,
+        -apple-system,
+        sans-serif;
+    letter-spacing: 0.02em;
+    color: var(--pis-cat);
+}
+.pis-calaix-pas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.pis-calaix-nota {
+    max-width: 34em;
+    margin: -2px 0 4px;
+    font:
+        600 0.8rem/1.35 'Segoe UI',
+        system-ui,
+        -apple-system,
+        sans-serif;
+    color: var(--text-muted, #64748b);
+    text-align: center;
+    white-space: normal;
+}
+/* La línia d'un pas obert, mentre es fan els subpassos: en gris, com a objectiu (historial amb objectiu) */
+.pis-fila.objectiu,
+.pis-objectiu {
+    color: var(--pis-objectiu, #9aa5b8);
+}
+/* A les files TeX, les files .detall seguides fan el calaix */
+.pis-fila.detall {
+    margin-inline: -10px;
+    padding-inline: 13px 10px;
+    border-radius: 0;
+    background: var(--pis-calaix-fons);
+    box-shadow: inset 3px 0 0 var(--pis-cat);
+}
+.pis-fila.detall:first-child,
+.pis-fila:not(.detall) + .pis-fila.detall {
+    margin-top: 6px;
+    border-radius: 10px 10px 0 0;
+    box-shadow:
+        inset 3px 0 0 var(--pis-cat),
+        inset 0 3px 6px -2px rgba(15, 23, 42, 0.16);
+}
+.pis-fila.detall:last-child,
+.pis-fila.detall:has(+ .pis-fila:not(.detall)) {
+    margin-bottom: 6px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .pis-cursor,
     .pis-boto {
         transition: none;
+    }
+    .pis-vista .pis-calaix-nou::before {
+        animation: none;
     }
 }
