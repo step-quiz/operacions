@@ -33,7 +33,9 @@
  *                 recta (o, amb previa: 'parabola', amb tres punts la paràbola que hi passa).
  *     camps, solucio, parell, proporcional   vegeu correccio.js
  *     opcions     [[valor, text, svg?], …] dels camps 'tria' (es pinten com a botons; amb svg,
- *                 el botó és el dibuix, amb el text a sota: p. ex. «Gràfica B»)
+ *                 el botó és el dibuix, amb el text a sota: p. ex. «Gràfica B»). La primera lletra
+ *                 del text es veu en majúscula, si el pas no porta literal: true (p. ex. les
+ *                 lletres dels segments d'una figura, «b = 6 cm», o les unitats, «cm²»)
  *     nota        text d'ajuda sota les caselles (opcional)
  *     dades       el que necessita el diagnòstic
  *     linia       TeX del pas resolt: queda escrit a la resolució
@@ -447,6 +449,7 @@ export function iniciaJocPassos(config) {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'jp-opcio';
+                if (pas.literal) btn.classList.add('jp-opcio-literal');
                 if (svg) {
                     // Una opció que és un dibuix (p. ex. una gràfica), amb el seu nom a sota
                     btn.classList.add('jp-opcio-svg');

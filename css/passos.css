@@ -195,6 +195,10 @@ h1 {
 .jp-opcio::first-letter {
     text-transform: uppercase;
 }
+/* Opcions que es veuen tal com són (lletres de segments, unitats): pas.literal */
+.jp-opcio.jp-opcio-literal::first-letter {
+    text-transform: none;
+}
 .jp-opcio:focus-visible {
     outline: 3px solid var(--primary-dark);
     outline-offset: 2px;
