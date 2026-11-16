@@ -13,6 +13,10 @@
  *   Sense activitat (o una que no en té), la pàgina diu quines en tenen.
  * - Cada exercici és nou (el procediment de l'activitat el genera); el nivell
  *   queda a l'adreça per poder-la enllaçar.
+ * - Mode professor (per al projector; el David, 16/11/2026): el botó «Mode
+ *   professor» (o ?professor=1) fa la pissarra gran (--pis-escala) i amaga la
+ *   capçalera, els nivells i les frases; amb el botó, pantalla completa. Els
+ *   passos es passen amb les fletxes, l'espai o un comandament (Re Pàg / Av Pàg).
  * DEPENDÈNCIES: pissarra.js, reproductor.js, activitats.js (i el procediment de
  *      cada activitat). KaTeX el carrega la pàgina.
  * ============================================================================
@@ -26,6 +30,8 @@ const barra = document.getElementById('barra');
 const nivells = document.getElementById('nivells');
 const unAltre = document.getElementById('un-altre');
 const fesHoTu = document.getElementById('fes-ho-tu');
+const botoProfessor = document.getElementById('professor');
+const botoPantalla = document.getElementById('pantalla');
 const titol = document.getElementById('titol');
 
 const parametres = new URLSearchParams(location.search);
@@ -72,8 +78,13 @@ async function inicia() {
         reproductor.carrega(oberts => procediment.passos(exercici, { oberts }));
         for (const b of nivells.children) b.setAttribute('aria-pressed', String(Number(b.dataset.nivell) === nivell));
         fesHoTu.href = `${activitat.pagina}?nivell=${nivell}`;
+        posaAdreca();
+    }
+    /** L'adreça diu l'activitat, el nivell i, si hi és, el mode professor (per poder-la enllaçar). */
+    function posaAdreca() {
+        const professor = document.body.classList.contains('professor') ? '&professor=1' : '';
         try {
-            history.replaceState(null, '', `${location.pathname}?activitat=${clau}&nivell=${nivell}`);
+            history.replaceState(null, '', `${location.pathname}?activitat=${clau}&nivell=${nivell}${professor}`);
         } catch (e) {
             /* alguns visors no deixen canviar l'adreça */
         }
@@ -90,7 +101,33 @@ async function inicia() {
     unAltre.addEventListener('click', () => {
         if (!pissarra.ocupat) nouExercici();
     });
+
+    // Mode professor (per al projector): la pissarra gran, sense les frases. En entrar-hi amb el botó,
+    // pantalla completa (el navegador només la deixa demanar després d'un clic); amb ?professor=1, el botó
+    // «Pantalla completa». Esc surt de la pantalla completa; el botó, del mode.
+    const enPantalla = () => Boolean(document.fullscreenElement);
+    function posaProfessor(actiu, { pantalla = false } = {}) {
+        document.body.classList.toggle('professor', actiu);
+        botoProfessor.setAttribute('aria-pressed', String(actiu));
+        botoProfessor.textContent = actiu ? 'Surt del mode professor' : 'Mode professor';
+        if (pantalla && actiu && !enPantalla() && document.documentElement.requestFullscreen)
+            document.documentElement.requestFullscreen().catch(() => {});
+        if (!actiu && enPantalla() && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        botoPantalla.hidden = !actiu || enPantalla() || !document.documentElement.requestFullscreen;
+        posaAdreca();
+        pissarra.reajusta();
+    }
+    botoProfessor.addEventListener('click', () =>
+        posaProfessor(!document.body.classList.contains('professor'), { pantalla: true })
+    );
+    botoPantalla.addEventListener('click', () => posaProfessor(true, { pantalla: true }));
+    document.addEventListener('fullscreenchange', () => {
+        botoPantalla.hidden = !document.body.classList.contains('professor') || enPantalla();
+        pissarra.reajusta();
+    });
+
     nouExercici();
+    if (parametres.get('professor') === '1') posaProfessor(true);
     // Per a les proves amb el navegador (tests/navegador/prova-pissarra.js)
     window.resolucio = Object.freeze({ pissarra, reproductor, nouExercici });
 }

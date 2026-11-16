@@ -421,6 +421,30 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 .pis-detall-boto[hidden] {
     display: none;
 }
+/* ↺ «Torna a veure aquest pas», al costat de «Pas 3 de 5» */
+.pis-repeteix {
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    color: var(--pis-cat);
+    background: var(--panel-bg, #fff);
+    border: 1.5px solid var(--pis-cat);
+    border-radius: 50%;
+    cursor: pointer;
+}
+.pis-repeteix:hover:not(:disabled) {
+    background: var(--pis-cat-fons);
+}
+.pis-repeteix:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+.pis-repeteix[hidden] {
+    display: none;
+}
 .pis-explicacio {
     margin: 0;
     min-height: 3.4em;
