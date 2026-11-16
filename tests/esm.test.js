@@ -37,8 +37,10 @@ const BASE = [
 const modules = listFiles('js', ['.js'])
     .filter(f => f.split(path.sep).length === 3) // js/<activitat>/<fitxer>.js
     .filter(f => isESM(fs.readFileSync(path.join(ROOT, f), 'utf8')));
-// Controladors: fan servir el DOM en carregar-se (s'importen des d'una pàgina)
-const isController = src => /Object\.assign\(window|document\.(getElementById|querySelector)/.test(src);
+// Controladors: fan servir el DOM en carregar-se (s'importen des d'una pàgina), directament o
+// arrencant el joc de passos comú (js/passos/joc-passos.js)
+const isController = src =>
+    /Object\.assign\(window|document\.(getElementById|querySelector)|\biniciaJocPassos\(/.test(src);
 
 (async () => {
     suite(`Mòduls ES carregats amb import() natiu`);

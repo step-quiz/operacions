@@ -85,3 +85,24 @@ export function parseStrictInt(str) {
     if (!/^-?\d+$/.test(str)) return NaN;
     return parseInt(str, 10);
 }
+
+/**
+ * Nivell (1..maxim) d'una pregunta: el fix de ?nivell= o, si és 0, progressiu al llarg de
+ * la sessió (el primer terç de preguntes, nivell 1; el segon, 2; l'últim, 3).
+ * @param {number} dificultat  0 = progressiu
+ * @param {number} index       pregunta actual (0, 1, …)
+ * @param {number} total       preguntes de la sessió
+ */
+export function nivellProgressiu(dificultat, index, total, maxim = 3) {
+    if (dificultat >= 1) return Math.min(maxim, dificultat);
+    const f = total > 0 ? index / total : 0;
+    return Math.min(maxim, 1 + Math.floor(f * maxim));
+}
+
+/**
+ * L'element d'una llista que toca a la pregunta `index` de `total`, repartint la sessió en
+ * trams iguals, un per element i en ordre (p. ex. 8 preguntes i 4 tipus: 2 de cada, un rere l'altre).
+ */
+export function triaProgressiva(llista, index, total) {
+    return llista[Math.min(llista.length - 1, Math.floor((index * llista.length) / Math.max(1, total)))];
+}

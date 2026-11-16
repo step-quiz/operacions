@@ -9,7 +9,8 @@
  *      la franja diu els punts que toquen (10 menys 2 per cada error, o 0 si
  *      s'esgoten els intents) i s'hi prem «Següent». En acabar, la nota és la
  *      suma dels punts sobre 10, la icona «Codi» és a punt i l'analitzador
- *      llegeix el codi (exercici, nota i resultat de cada pregunta).
+ *      llegeix el codi (exercici, nota i resultat de cada pregunta). Derivades
+ *      i integrals (Batxillerat, senseCodi) no en donen: ni icona ni «Copiar codi».
  *   2. El teclat numèric propi en una tauleta: a totes les activitats que en
  *      tenen, cada casella que es toca rep el que s'escriu (també la segona
  *      casella d'una pregunta, i el signe a part de Complexos).
@@ -108,8 +109,8 @@ async function juga(pagina, selector) {
             ['raons-trigonometria', '.btn-value', 'RT'],
             ['triangle-rectangle', '.btn-value', 'TR'],
             ['teorema-sin-cos', '.btn-value', 'TC'],
-            ['derivades', '#options-container .btn-option', 'DV'],
-            ['integrals', '#options-container .btn-option', 'IT'],
+            ['derivades', '#options-container .btn-option', null], // Batxillerat: sense codi (senseCodi)
+            ['integrals', '#options-container .btn-option', null], // Batxillerat: sense codi (senseCodi)
             ['probabilitat', '#options-container .btn-option', 'PB'],
             ['llenguatge-algebraic', '#options-grid .btn-option', 'LA'],
             ['recta-numerica', '#options-container .btn-option', 'RN'],
@@ -170,6 +171,25 @@ async function juga(pagina, selector) {
                 textFinal.includes(`${nota} / 10`),
                 textFinal.replace(/\s+/g, ' ').slice(0, 120)
             );
+
+            // Batxillerat del motor comú (senseCodi): ni icona «Codi» ni botó «Copiar codi»
+            if (!ex) {
+                const res = await pagina.evaluate(() => {
+                    const copiar = document.getElementById('btn-copiar');
+                    return {
+                        icona: !!document.getElementById('codi-icona'),
+                        copiar: !!copiar && getComputedStyle(copiar).display !== 'none',
+                    };
+                });
+                ok(
+                    `${nom}: no dona codi (ni icona «Codi» ni botó «Copiar codi»)`,
+                    !res.icona && !res.copiar,
+                    JSON.stringify(res)
+                );
+                ok(`${nom}: cap error a la consola`, !errorsJs.length, errorsJs.join('\n      → '));
+                await pagina.close();
+                continue;
+            }
 
             // La icona «Codi» és a punt i l'analitzador llegeix el codi
             const llest = await pagina.evaluate(() =>
