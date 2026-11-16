@@ -23,7 +23,8 @@ https://claude.ai/artifact/TpqHeTWA7N9HrBMpeNCx6s, holds David's answers of 14/1
 | 10 | Shared statistics chart + Gràfics estadístics | `grafics-estadistics.html`, `GE`; `js/passos/grafic-estadistic.js`, `css/grafic-estadistic.css` | DONE |
 | 11 | Shared context graph + Gràfiques en context | `grafiques-context.html`, `GX`; `js/passos/grafica-context.js` | DONE |
 | 12 | Canvi d'unitats (E13) + shared unit ladder | `canvi-unitats.html`, `CU`; `js/passos/escala-unitats.js`, `css/escala-unitats.css` | DONE (2026-11-16) |
-| 13–22 | See «Pending items» | — | PENDING |
+| 13 | Àrees i volums (E14) + shared measurement figures | `arees-volums.html`, `AV`; `js/passos/figures-mesura.js`, `css/figures-mesura.css` | DONE (2026-11-16) |
+| 14–22 | See «Pending items» | — | PENDING |
 
 Deliveries 1–11 reached `main` on 2026-11-16 through B's 3-way merge: base `7f79b4b` (the snapshot A worked on),
 A's delivery ZIP committed on top of it as `555ff07`, merged with B's work up to stage 5 of «Resolució pas a pas».
@@ -39,12 +40,16 @@ Conflicts were only textual (`tests/run-all.js`, `CONTRIBUTING.md`, the changelo
   `decimal` (comma; optional period), `pintat`, `fitxa`, `punts` (grid), `tria`. `tria` options may be
   `[valor, text, svg]` (graph cards). Warnings (`NO_ENTER`, `NO_DECIMAL`, …) cost no attempt.
 - **Shared drawing modules** in `js/passos/`: `quadricula.js` (cartesian grid, points field), `grafic-estadistic.js`
-  (bars, pie, histogram, pictogram), `grafica-context.js` (magnitude over time, curved trams), `figura-fraccio.js`.
+  (bars, pie, histogram, pictogram), `grafica-context.js` (magnitude over time, curved trams), `figura-fraccio.js`,
+  `escala-unitats.js` (unit ladder), `figures-mesura.js` (plane, composite and solid figures with lettered segments,
+  dashed heights and right-angle marks; labels carry `data-segment` and `data-mesura` so tests re-read the drawing).
 - **Shared widgets still missing** (accepted in X2 with the grid and the statistics chart): a **number line with
   intervals** (E12, B10) and a **sign table** (B3, B10). Build each once, pure and tested, in `js/passos/`.
-  Built since: `escala-unitats.js` (the unit ladder; E14 «Àrees i volums» may reuse it for cm vs cm²).
+  Built since: `escala-unitats.js` (the unit ladder) and `figures-mesura.js` (E14).
 - **Long answers:** a `decimal` field of the step player holds 6 characters unless its template piece says
-  `llarg: n` (Canvi d'unitats uses 11).
+  `llarg: n` (Canvi d'unitats uses 11, Àrees i volums 8).
+- **Option text case:** the player shows the first letter of a `tria` option in upper case; a step with
+  `literal: true` shows its options as written (segment letters «b = 6 cm», units «cm²»; Àrees i volums).
 - **Per-activity options** (teacher's choices): add them to `OPCIONS_ACTIVITAT` in `index.html` and read them with
   `urlParams.get(...)`; `tests/check-repo.js` suite 13 checks both. Never declare the generic parameters
   (`totalsessions`, `totaloperations`, `maxintents`, `maxenllocmitjana`, `nivell`, `fixed`, `esvaiment`, `inici`,
@@ -77,7 +82,8 @@ Conflicts were only textual (`tests/run-all.js`, `CONTRIBUTING.md`, the changelo
   `{ data, label, unit, intervalOptions? }`; grouped values must lie inside their `limits`.
 - `js/teclat.js`: on touch devices the active input becomes `readonly` with `inputmode="none"`; a capture-phase
   `pointerdown` routes taps to the keyboard; «→» calls `window.checkCurrentCell()`.
-- Themes: `tema-algebra` (SG, EA, IN), `tema-nombres` (FD, PE), `tema-funcions` (RC, PA, GX), `tema-estadistica` (GE);
+- Themes: `tema-algebra` (SG, EA, IN), `tema-nombres` (FD, PE), `tema-funcions` (RC, PA, GX), `tema-estadistica` (GE),
+  `tema-geometria` (CU, AV);
   the CSS uses theme variables and tokens only (no hard-coded state colours).
 
 ## Pending items (in the order David accepted; his quotes are binding)
@@ -85,7 +91,7 @@ Conflicts were only textual (`tests/run-all.js`, `CONTRIBUTING.md`, the changelo
 | # | Item | David's decision | Spec (trimmed to the decision) |
 |---|------|------------------|--------------------------------|
 | 12 | **E13 Canvi d'unitats** (1r–3r ESO), new page — **DONE 2026-11-16** | «només l'escala»; 16/11 (dialog): no time or compound units; the ladder as stairs (km top-left, mm bottom-right) with source and target marked; three steps (jumps and direction, operation, result); 3 levels + option `magnitud` | Built as specified: `js/canvi-unitats/` (`math-engine.js`, `errors.js` with 6 types: SENTIT, COMPTA_UNITATS, SALTS, DEU_PER_GRAO, COMA, EQUIVALENCIA; `strings.js`; controller), level 1 ×10 magnitudes, 2 area and volume, 3 volume ↔ capacity (equivalence step first) and everything; results with at most 6 decimals and below 10⁹; factors and results grouped in threes (1 000 000). |
-| 13 | **E14 Àrees i volums** (1r–3r ESO), new page | «fes-ho tot. amb un paràmetre per poder escollir si volem 2D, 3D, o tot»; 16/11 (dialog): base and height are marked by choosing the letter of a segment of the drawing (the slanted side is the trap); π ≈ 3,14 (exact decimals, no calculator); solids: total area (base, lateral, total) and volume, step by step; 3 levels (1 plane, 2 harder plane and composite, 3 solids) + option `dim` (2 or 3 keeps one block) | Three blocks: (1) triangle, parallelogram, trapezium, rhombus, circle: choose the formula, mark which segment is base and which is height (a slanted side as a trap), compute with units; (2) composite figures by adding or subtracting; (3) area and volume of prisms, cylinders, pyramids, cones, spheres. Option `dim` = '' (all) · `2` · `3`. Errors: slanted side as height; forgetting ÷2; radius ↔ diameter; area ↔ perimeter; cm vs cm². |
+| 13 | **E14 Àrees i volums** (1r–3r ESO), new page — **DONE 2026-11-16** | «fes-ho tot. amb un paràmetre per poder escollir si volem 2D, 3D, o tot»; 16/11 (dialog): base and height are marked by choosing the letter of a segment of the drawing (the slanted side is the trap); π ≈ 3,14 (exact decimals, no calculator); solids: total area (base, lateral, total) and volume, step by step; 3 levels (1 plane, 2 harder plane and composite, 3 solids) + option `dim` (2 or 3 keeps one block) | Built as specified: `js/arees-volums/` (`math-engine.js`, `errors.js` with 24 types, `strings.js`, controller) on the new shared `js/passos/figures-mesura.js` (+ `css/figures-mesura.css`). Plane (triangle, parallelogram, rhombus, right trapezium, circle): formula (tria), base/height letters (or diagonals / bases as a pair), radius from the diameter, area (decimal), unit (u, u², u³). Composite (house, rectangle with a hole, door, L): add or subtract, each part, total, unit. Solids (cuboid, cylinder, square pyramid, cone, sphere): height letter (pyramid, cone), base, lateral, total area (unit written), volume, volume unit; sphere: area, volume formula, volume, unit. Integer lengths; slanted sides from Pythagorean triples (one leg is a multiple of 3, so pyramid/cone volumes are exact); sphere radius 6, 9 or 12. Levels: `dim=''` 1 triangle/parallelogram/rhombus, 2 trapezium/circle/composite, 3 solids; `dim=2` 3 = composite; `dim=3` 1 cuboid/cylinder, 2 pyramid/cone, 3 all + sphere. Distractor values with a repeating decimal are dropped (the field cannot hold them). `tests/arees-volums.test.js` re-reads each drawing and recomputes every step with exact fractions. |
 | 14 | **E2 Operacions combinades** (1r–3r ESO) | «parlem»: «fes només operacions combinades amb enters, no facis operacions combinades amb fraccions» | Integers only, with parentheses and powers with a negative base. Proposed as a new block in the «Pas a pas» mode of `prioritat` (the student picks the operation that comes first and solves it; the result stays centred below), but `prioritat` works with naturals (results ≤ 200, never negative). **Ask David** whether it goes inside `prioritat` or on a new page. Reuse `prioritat`'s `blockers()` errors. Note that `prioritat` also has scenario B («Resolució pas a pas», `js/prioritat/resolucio.js`). |
 | 15 | **E4 Potències** (2n–4t ESO), extends `potencies` | «només aquests: A potencies: exponent zero i negatiu (2⁻³ = 1/8, a³ : a⁵ = a⁻²) i operar en notació científica» | Two new challenges in `potencies` only (**no radicals**): (a) zero and negative exponents, including the quotient of powers giving a negative exponent; (b) operating in scientific notation (×, ÷ and maybe ± with exponent adjustment). Errors: 2⁻³ = −8 or −6. |
 | 16 | **E11 Aïllar una lletra** (3r–4t ESO), new page | «busca en el currículum català del departament d'ensenyament de la generalitat de catalunya, busca les matèries "Física" i "Tecnologia"» | Real formulas from the Catalan curriculum of Física and Tecnologia (search it; e.g. v = e/t, d = m/V, V = I·R, P = F/S, A = b·h/2, E = ½mv², F = 9/5·C + 32). Isolate the requested letter, deciding at each step which operation to undo. Levels: one step; two steps; letter in a denominator; squares and roots. Errors: subtracting instead of dividing; v = e/t → t = v/e or t = e·v; root of only one part. The step player fits (a `tria` for the operation + the rewritten formula). |

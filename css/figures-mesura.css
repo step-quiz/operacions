@@ -1,0 +1,85 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/figures-mesura.css
+ROL: Estils de les figures de mesura comunes (js/passos/figures-mesura.js):
+     figures planes, compostes i cossos, amb les altures discontínues, la marca
+     d'angle recte i les etiquetes dels segments. Les fa servir Àrees i volums.
+ARQUITECTURA:
+- Colors del tema de la pàgina (css/temes.css) i de css/tokens.css: la figura,
+  --primary; les altures i els segments que s'han de triar, --accent.
+DEPENDÈNCIES: Es carrega després de tokens.css, temes.css i shared.css.
+============================================================================
+*/
+
+.fm {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    overflow: visible;
+}
+.fm-figura {
+    fill: var(--primary-light);
+    stroke: var(--primary);
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+.fm-costat {
+    fill: var(--bg-soft);
+}
+.fm-dalt {
+    fill: white;
+}
+.fm-forat {
+    fill: white;
+    stroke: var(--primary);
+    stroke-width: 2;
+}
+.fm-falta {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+}
+.fm-amagada {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 4;
+    opacity: 0.6;
+}
+.fm-altura,
+.fm-apotema {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+}
+.fm-diagonal,
+.fm-divisio {
+    stroke: var(--accent);
+    stroke-width: 1.6;
+    stroke-dasharray: 6 4;
+}
+.fm-divisio {
+    stroke: var(--primary);
+    opacity: 0.6;
+}
+.fm-recte {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.4;
+}
+.fm-punt {
+    fill: var(--accent);
+}
+.fm-etiqueta {
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--accent-dark);
+    /* Un halo del color del fons: l'etiqueta es llegeix encara que toqui una línia */
+    paint-order: stroke;
+    stroke: var(--panel-bg);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+}

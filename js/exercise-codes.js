@@ -30,6 +30,7 @@ export const EXERCISE_CODES = {
     'fraccio-decimal-percentatge': 'FD',
     'percentatges': 'PE',
     'canvi-unitats': 'CU',
+    'arees-volums': 'AV',
     'recta': 'RC',
     'parabola': 'PA',
     'grafiques-context': 'GX',
