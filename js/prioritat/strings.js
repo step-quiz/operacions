@@ -5,33 +5,52 @@
  * ROL: Textos de «Prioritat d'operacions»: l'expressió en text pla (informe)
  *      i tots els missatges de feedback, els dels errors típics (modalitat
  *      «Resultat final») i els de la modalitat «Pas a pas».
- * DEPENDÈNCIES: math-engine.js (evaluate, diagnose, nodeRange, N).
+ *      Amb enters (?nombres=enters): els negatius s'escriuen amb el signe «−»
+ *      (U+2212) i, darrere d'un signe, entre parèntesis: «5 − (−3)»; els missatges
+ *      dels errors dels signes (feedbackFor, pistaSigne) i el pas «treure el
+ *      parèntesi» de −(−3).
+ * DEPENDÈNCIES: math-engine.js (evaluate, diagnose, nodeRange, N, powValue).
  * ============================================================================
  */
 import { MathEngine } from './math-engine.js';
 
 export const Strings = (() => {
-    const { N, evaluate, diagnose, nodeRange } = MathEngine;
+    const { N, evaluate, diagnose, nodeRange, powValue } = MathEngine;
 
-    const SUP = { 2: '²', 3: '³' };
+    const SUP = { 2: '²', 3: '³', 4: '⁴', 5: '⁵' };
     const OP_SHOW = { '+': '+', '-': '−', '·': '·', ':': ':' };
+    const MENYS = OP_SHOW['-'];
+
+    /** Un enter amb el signe menys de veritat: −3. */
+    const fmt = v => (v < 0 ? `${MENYS}${-v}` : String(v));
+    /** Un enter darrere d'un signe: els negatius, entre parèntesis: (−3). */
+    const fmtDins = v => (v < 0 ? `(${fmt(v)})` : String(v));
+    /** Una potència en text: 3², (−2)³, −2². */
+    const powText = t => `${t.opp ? MENYS : ''}${t.b < 0 ? `(${fmt(t.b)})` : t.b}${SUP[t.e]}`;
 
     function toText(toks) {
         return toks
-            .map(t => {
-                if (t.k === 'num') return String(t.v);
+            .map((t, i) => {
+                const prev = toks[i - 1];
+                if (t.k === 'num') return prev && prev.k !== 'lp' ? fmtDins(t.v) : fmt(t.v);
                 if (t.k === 'op') return OP_SHOW[t.v];
-                if (t.k === 'pow') return `${t.b}${SUP[t.e]}`;
+                if (t.k === 'neg') return MENYS;
+                if (t.k === 'pow') return powText(t);
                 return t.k === 'lp' ? '(' : ')';
             })
             .join(' ')
             .replace(/\( /g, '(')
-            .replace(/ \)/g, ')');
+            .replace(/ \)/g, ')')
+            .replace(/(^|\() *− \(/g, '$1−('); // −(4 − 7): el menys de davant, enganxat al parèntesi
     }
 
-    // Ex.: "3² = 3·3 = 9, no 3·2 = 6."
+    // Ex.: "3² = 3·3 = 9, no 3·2 = 6."   "(−2)³ = (−2)·(−2)·(−2) = −8, no (−2)·3 = −6."
     function powHint(pw) {
-        return `${pw.b}${SUP[pw.e]} = ${Array(pw.e).fill(pw.b).join('·')} = ${Math.pow(pw.b, pw.e)}, no ${pw.b}·${pw.e} = ${pw.b * pw.e}.`;
+        const base = pw.b < 0 ? `(${fmt(pw.b)})` : String(pw.b);
+        const producte = Array(pw.e).fill(base).join('·');
+        const mal = pw.b * pw.e * (pw.opp ? -1 : 1);
+        const desenvolupa = pw.opp ? `${MENYS}(${producte})` : producte;
+        return `${powText(pw)} = ${desenvolupa} = ${fmt(powValue(pw))}, no ${pw.opp ? MENYS : ''}${base}·${pw.e} = ${fmt(mal)}.`;
     }
 
     const NOM = { '+': 'suma', '-': 'resta', '·': 'multiplicació', ':': 'divisió' };
@@ -112,12 +131,12 @@ export const Strings = (() => {
                         );
                         if (baseVal !== null)
                             return (
-                                `En l'operació ${compact(toText(sub))}, l'exponent afecta només la base (que val ${p.b}), ` +
-                                `per tant has de calcular ${p.b}${SUP[p.e]} en lloc de ${baseVal}${SUP[p.e]}.`
+                                `En l'operació ${compact(toText(sub))}, l'exponent afecta només la base (que val ${fmt(p.b)}), ` +
+                                `per tant has de calcular ${powText(p)} en lloc de ${fmtDins(baseVal)}${SUP[p.e]}.`
                             );
                     }
                 }
-                return pw ? `L'exponent afecta només la base: a ${pw.b}${SUP[pw.e]}, només el ${pw.b}.` : '';
+                return pw ? `L'exponent afecta només la base: a ${powText(pw)}, només el ${fmt(pw.b)}.` : '';
             }
 
             case 'powmult':
@@ -126,25 +145,101 @@ export const Strings = (() => {
             case 'lrpowmult':
                 return orderMsg(toks, diag) + (pw ? ' A més, ' + powHint(pw) : '');
 
+            // Errors dels signes (enters): amb l'operació on el signe surt malament (diag.cas), si n'hi ha
+            case 'signesuma':
+            case 'restaneg':
+            case 'signeprod':
+            case 'powsigne':
+            case 'powopp':
+            case 'negpar':
+                return missatgeSigne(id, diag && diag.cas);
+
             default:
                 return 'Revisa els càlculs pas a pas.';
         }
     }
 
     // ------------------------------------------------------------
+    // ERRORS DELS SIGNES (enters)
+    // cas (math-engine.js diagnose): l'operació on el signe surt malament, amb els seus nombres:
+    //   { k: 'op', a, op, b, ok, mal } · { k: 'pow', t, ok, mal } · { k: 'neg', v, ok, mal }
+    // Sense cas, el missatge porta un exemple.
+    // ------------------------------------------------------------
+    const potenciaDesenvolupada = t => Array(t.e).fill(fmtDins(t.b)).join('·');
+    function missatgeSigne(id, cas) {
+        if (!cas) cas = EXEMPLES_SIGNE[id];
+        const opera = c => `${fmtDins(c.a)} ${OP_SHOW[c.op]} ${fmtDins(c.b)}`;
+        switch (id) {
+            case 'signesuma': {
+                const text = `${fmt(cas.a)} ${OP_SHOW[cas.op]} ${fmtDins(cas.b)}`;
+                const resta = cas.op === '-' ? ` (restar és sumar l'oposat: ${fmt(cas.a)} + ${fmtDins(-cas.b)})` : '';
+                return (
+                    `Compte amb el signe del resultat: ${text} = ${fmt(cas.ok)}, no ${fmt(cas.mal)}${resta}. ` +
+                    'El resultat porta el signe del nombre que té el valor absolut més gran.'
+                );
+            }
+            case 'restaneg':
+                return (
+                    `Restar un nombre negatiu és sumar el seu oposat: ${fmt(cas.a)} ${MENYS} ${fmtDins(cas.b)} = ` +
+                    `${fmt(cas.a)} + ${-cas.b} = ${fmt(cas.ok)}.`
+                );
+            case 'signeprod':
+                return (
+                    'Regla dels signes: signes iguals donen positiu i signes diferents, negatiu (menys per menys ' +
+                    `fa més; menys per més fa menys). ${opera(cas)} = ${fmt(cas.ok)}.`
+                );
+            case 'powsigne':
+                return (
+                    "Una potència de base negativa és positiva si l'exponent és parell i negativa si és senar: " +
+                    `${powText(cas.t)} = ${potenciaDesenvolupada(cas.t)} = ${fmt(cas.ok)}.`
+                );
+            case 'powopp': {
+                const t = cas.t;
+                const positiva = { k: 'pow', b: -t.b, e: t.e };
+                return (
+                    `Sense parèntesi, l'exponent afecta només el nombre, no el signe: ${powText(t)} = ` +
+                    `${MENYS}(${Array(t.e).fill(t.b).join('·')}) = ${fmt(cas.ok)}; en canvi, ${powText(positiva)} = ` +
+                    `${fmt(powValue(positiva))}.`
+                );
+            }
+            case 'negpar':
+                return (
+                    'El signe menys de davant del parèntesi canvia el signe del que hi ha a dins: ' +
+                    `${MENYS}(${fmt(cas.v)}) = ${fmt(cas.ok)}.`
+                );
+            default:
+                return '';
+        }
+    }
+    // Els exemples dels missatges quan no hi ha l'operació de l'exercici
+    const EXEMPLES_SIGNE = {
+        signesuma: { k: 'op', a: 3, op: '-', b: 8, ok: -5, mal: 5 },
+        restaneg: { k: 'op', a: 5, op: '-', b: -3, ok: 8, mal: 2 },
+        signeprod: { k: 'op', a: -3, op: '·', b: -2, ok: 6, mal: -6 },
+        powsigne: { k: 'pow', t: { k: 'pow', b: -2, e: 3 }, ok: -8, mal: 8 },
+        powopp: { k: 'pow', t: { k: 'pow', b: 2, e: 2, opp: true }, ok: -4, mal: 4 },
+        negpar: { k: 'neg', v: -3, ok: 3, mal: -3 },
+    };
+
+    // ------------------------------------------------------------
     // MODALITAT «PAS A PAS»
     // ------------------------------------------------------------
 
-    // L'operació de la posició i d'una línia, en text: "4 · 5", "3²"
+    // L'operació de la posició i d'una línia, en text: "4 · 5", "3²", "5 − (−3)", "(−3) · (−2)", "−(−3)"
     function opText(line, i) {
         const t = line[i];
-        if (t.k === 'pow') return `${t.b}${SUP[t.e]}`;
-        return `${line[i - 1].v} ${OP_SHOW[t.v]} ${line[i + 1].v}`;
+        if (t.k === 'pow') return powText(t);
+        if (t.k === 'neg') return `${MENYS}(${fmt(line[i + 2].v)})`;
+        const a = line[i - 1].v;
+        // El primer nombre, entre parèntesis si és negatiu i l'operació és un producte o un quocient
+        const primer = t.v === '·' || t.v === ':' ? fmtDins(a) : fmt(a);
+        return `${primer} ${OP_SHOW[t.v]} ${fmtDins(line[i + 1].v)}`;
     }
 
     // El nom d'un signe o d'una potència, per als lectors de pantalla: "multiplicació", "potència 3²"
     function opLabel(t) {
-        return t.k === 'pow' ? `potència ${t.b}${SUP[t.e]}` : NOM[t.v];
+        if (t.k === 'neg') return 'treure el parèntesi amb el signe menys';
+        return t.k === 'pow' ? `potència ${powText(t)}` : NOM[t.v];
     }
 
     // Per què encara no es pot fer l'operació triada (bl = MathEngine.blockers(line, i))
@@ -153,6 +248,8 @@ export const Strings = (() => {
         switch (bl.reason) {
             case 'par':
                 return 'Primer cal fer el que hi ha dins del parèntesi.';
+            case 'neg':
+                return 'Abans cal treure el parèntesi que té un signe menys davant.';
             case 'pow': {
                 const n = greenOps.filter(t => t.k === 'pow').length;
                 return `Abans cal calcular ${n > 1 ? 'les potències' : 'la potència'}.`;
@@ -167,9 +264,34 @@ export const Strings = (() => {
         }
     }
 
-    // "No: 4 · 5 no fa 9."
+    // Amb enters, si el resultat triat només té el signe malament: la regla del signe, amb aquesta operació
+    // (si no, '')
+    function pistaSigne(line, i, val) {
+        const t = line[i];
+        if (t.k === 'neg') {
+            const v = line[i + 2].v;
+            return val === v && v !== 0 ? missatgeSigne('negpar', { k: 'neg', v, ok: -v, mal: v }) : '';
+        }
+        if (t.k === 'pow') {
+            const ok = powValue(t);
+            if (val !== -ok || ok === 0) return '';
+            if (t.opp) return missatgeSigne('powopp', { k: 'pow', t, ok, mal: val });
+            return t.b < 0 ? missatgeSigne('powsigne', { k: 'pow', t, ok, mal: val }) : '';
+        }
+        const [a, b] = [line[i - 1].v, line[i + 1].v];
+        const ok = evaluate([N(a), t, N(b)], { enters: true });
+        if (ok === null) return '';
+        const cas = { k: 'op', a, op: t.v, b, ok, mal: val };
+        if (t.v === '-' && b < 0 && val === a + b) return missatgeSigne('restaneg', cas);
+        if (val !== -ok || ok === 0) return '';
+        if (t.v === '·' || t.v === ':') return missatgeSigne('signeprod', cas);
+        return missatgeSigne('signesuma', cas);
+    }
+
+    // "No: 4 · 5 no fa 9."   Amb enters: "No: 5 − (−3) no fa 2. Restar un nombre negatiu és sumar…"
     function wrongResultMsg(line, i, val) {
-        return `No: ${opText(line, i)} no fa ${val}.`;
+        const pista = pistaSigne(line, i, val);
+        return `No: ${opText(line, i)} no fa ${fmt(val)}.${pista ? ' ' + pista : ''}`;
     }
 
     const Step = {
@@ -194,9 +316,10 @@ export const Strings = (() => {
         prio: 'Les multiplicacions i les divisions van abans que les sumes i les restes',
         lr: 'D’esquerra a dreta',
         sola: 'Només queda una operació',
+        neg: 'El signe menys de davant del parèntesi canvia el signe',
     };
     function exemplePas(pas) {
-        return `${MOTIU[pas.motiu]}: ${opText(pas.line, pas.op)} = ${pas.resposta}.`;
+        return `${MOTIU[pas.motiu]}: ${opText(pas.line, pas.op)} = ${fmt(pas.resposta)}.`;
     }
 
     const Esv = {
@@ -207,9 +330,9 @@ export const Strings = (() => {
         teu: n => (n === 1 ? 'Ara fes tu l’últim pas.' : `Ara fes tu els ${n} últims passos.`),
         exemple: pas => `Exemple. ${exemplePas(pas)}`,
         // L'alumne ha triat el resultat equivocat: es mostra el bo
-        resultatBo: (line, i, val, ok) => `${opText(line, i)} no fa ${val}: fa ${ok}. Fixa-t’hi i continua.`,
+        resultatBo: (line, i, val, ok) => `${opText(line, i)} no fa ${fmt(val)}: fa ${fmt(ok)}. Fixa-t’hi i continua.`,
         // L'alumne ha triat una operació que encara no es pot fer: es fa la bona
-        ferAixi: (line, i, ok) => `Es fa així: ${opText(line, i)} = ${ok}.`,
+        ferAixi: (line, i, ok) => `Es fa així: ${opText(line, i)} = ${fmt(ok)}.`,
         capcalera: (nAlumne, nPassos) => `Fas tu: ${nAlumne} de ${nPassos}`,
         fetSencer: 'Has vist l’exemple sencer.',
         totSol: 'Ja ho fas tot sol!',
@@ -225,11 +348,16 @@ export const Strings = (() => {
     return {
         SUP,
         OP_SHOW,
+        fmt,
+        fmtDins,
+        powText,
         toText,
         feedbackFor,
         opText,
         opLabel,
         blockerMsg,
+        missatgeSigne,
+        pistaSigne,
         wrongResultMsg,
         Step,
         exemplePas,

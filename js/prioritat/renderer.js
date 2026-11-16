@@ -25,7 +25,10 @@
  *   un botó: així la taula no canvia d'amplada quan els botons hi són o no.
  * - La «Resolució pas a pas» (escenari B, js/prioritat/resolucio.js) pinta la
  *   mateixa taula, fila a fila, amb les claus de la pissarra (fa servir tokText).
- * DEPENDÈNCIES: math-engine.js (opRange), strings.js (OP_SHOW, opLabel).
+ * - Enters: un negatiu darrere d'un signe s'escriu entre parèntesis, «5 − (−3)»
+ *   (tokText rep el token d'abans); el menys davant d'un parèntesi, «−(», és una
+ *   operació (un botó, a «Pas a pas»: treure el parèntesi de −(−3)).
+ * DEPENDÈNCIES: math-engine.js (opRange), strings.js (OP_SHOW, opLabel, fmt, fmtDins).
  * ============================================================================
  */
 import { MathEngine } from './math-engine.js';
@@ -33,20 +36,31 @@ import { Strings } from './strings.js';
 
 export const Renderer = (() => {
     const { opRange } = MathEngine;
-    const { OP_SHOW, opLabel, Esv } = Strings;
+    const { OP_SHOW, opLabel, Esv, fmt, fmtDins } = Strings;
 
-    const CLS = { num: 'tok-num', op: 'tok-op', pow: 'tok-pow', lp: 'tok-paren tok-lp', rp: 'tok-paren tok-rp' };
+    const CLS = {
+        num: 'tok-num',
+        op: 'tok-op',
+        neg: 'tok-op tok-neg',
+        pow: 'tok-pow',
+        lp: 'tok-paren tok-lp',
+        rp: 'tok-paren tok-rp',
+    };
+    /** Els tokens que són una operació (botons a «Pas a pas»): els signes, les potències i el −( … ). */
+    const esOperacio = t => t.k === 'op' || t.k === 'pow' || t.k === 'neg';
 
-    // El contingut d'un token: 12, −, 3<sup>2</sup>, (
-    function tokText(t) {
-        if (t.k === 'num') return String(t.v);
+    // El contingut d'un token: 12, −, 3<sup>2</sup>, (, i amb enters (−3), (−2)<sup>3</sup>, −2<sup>2</sup>.
+    // prev: el token d'abans (un negatiu darrere d'un signe va entre parèntesis)
+    function tokText(t, prev) {
+        if (t.k === 'num') return prev && prev.k !== 'lp' ? fmtDins(t.v) : fmt(t.v);
         if (t.k === 'op') return OP_SHOW[t.v];
-        if (t.k === 'pow') return `${t.b}<sup>${t.e}</sup>`;
+        if (t.k === 'neg') return OP_SHOW['-'];
+        if (t.k === 'pow') return `${t.opp ? OP_SHOW['-'] : ''}${fmtDins(t.b)}<sup>${t.e}</sup>`;
         return t.k === 'lp' ? '(' : ')';
     }
 
-    function tokHtml(t, extra) {
-        return `<span class="${CLS[t.k]}${extra ? ' ' + extra : ''}">${tokText(t)}</span>`;
+    function tokHtml(t, extra, prev) {
+        return `<span class="${CLS[t.k]}${extra ? ' ' + extra : ''}">${tokText(t, prev)}</span>`;
     }
 
     // L'expressió de la modalitat «Resultat final».
@@ -57,7 +71,7 @@ export const Renderer = (() => {
                 let cls = '';
                 if (diag && diag.red.has(i)) cls = 'hl-red';
                 else if (diag && diag.green.has(i)) cls = 'hl-green';
-                return tokHtml(t, cls);
+                return tokHtml(t, cls, toks[i - 1]);
             })
             .join('');
     }
@@ -78,13 +92,13 @@ export const Renderer = (() => {
             const [p, q] = op >= 0 ? opRange(line, op) : [-1, -2];
             const active = !!o.active && k === last;
             const tds = line.map((t, i) => {
-                let inner = tokText(t);
-                if (active && (t.k === 'op' || t.k === 'pow')) {
+                let inner = tokText(t, line[i - 1]);
+                if (active && esOperacio(t)) {
                     let mark = '';
                     if (o.red && o.red.has(i)) mark = ' hl-red';
                     else if (o.green && o.green.has(i)) mark = ' hl-green';
                     inner = `<button type="button" class="tok-btn${mark}" data-i="${i}" aria-label="${opLabel(t)}">${inner}</button>`;
-                } else if (t.k === 'op' || t.k === 'pow') {
+                } else if (esOperacio(t)) {
                     // La mateixa caixa que un botó: la taula no s'eixampla quan apareixen els botons
                     inner = `<span class="tok-lloc">${inner}</span>`;
                 }
@@ -107,5 +121,5 @@ export const Renderer = (() => {
         return `<table class="centrat">${trs.join('')}</table>`;
     }
 
-    return { tokText, tokHtml, expressionHtml, tableHtml };
+    return { CLS, esOperacio, tokText, tokHtml, expressionHtml, tableHtml };
 })();

@@ -38,6 +38,7 @@ const TESTS = [
     ['Gràfiques en context (gràfica comuna, històries i errors)', 'tests/grafiques-context.test.js'],
     ["Canvi d'unitats (escala, passos i errors)", 'tests/canvi-unitats.test.js'],
     ['Àrees i volums (figures, passos i errors)', 'tests/arees-volums.test.js'],
+    ["Prioritat d'operacions amb enters (signes, passos i errors)", 'tests/prioritat-enters.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],

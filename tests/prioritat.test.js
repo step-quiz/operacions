@@ -5,15 +5,16 @@
  * ROL: Tests de la «Resolució pas a pas» de «Prioritat d'operacions» (l'escenari
  *      B, resolucio.html?activitat=prioritat: js/prioritat/resolucio.js).
  * ARQUITECTURA:
- * - 1. Els nivells de la pàgina B són grups dels de l'activitat (0–2, 3, 4–5, 6–8, 9)
- *   i cada exercici és d'un nivell del seu grup.
+ * - 1. Els nivells de la pàgina B són grups dels de l'activitat (0–2, 3, 4–5, 6–8, 9;
+ *   i amb enters, 0–1, 2–3, 4–5) i cada exercici és d'un nivell del seu grup.
  * - 2. Milers d'expressions de tots els nivells, amb la bateria comuna
  *   (tests/pissarra-activitat.js): el guió (i totes les vistes del detall) passa la
  *   revisió dels guions, cada pas que escriu una fila mou alguna peça i poques, i
  *   cada fila de la taula que es veu val el resultat (aritmètica exacta, feta aquí).
  *   I: una operació per pas, el detall «per què aquesta operació» només destaca
  *   l'operació que toca (no escriu cap fila), les frases són en segona persona i
- *   l'última fila és el resultat.
+ *   l'última fila és el resultat. Amb enters, l'aritmètica d'aquí també entén el
+ *   menys de davant (−3, −(4 − 7), −2² = −4, (−2)³ = −8).
  * ÚS: node tests/prioritat.test.js
  * ============================================================================
  */
@@ -35,6 +36,12 @@ function avalua(text) {
     const err = () => new Error(`no s'entén «${s}» (a la posició ${i})`);
     function primari() {
         let v;
+        // El menys de davant (al principi o darrere d'un parèntesi): −3, −(4 − 7), −2² = −(2²)
+        if (s[i] === '-') {
+            i++;
+            const w = primari();
+            return fr(-w.n, w.d);
+        }
         if (s[i] === '(') {
             i++;
             v = expr();
@@ -104,23 +111,47 @@ const { Resolucio, MathEngine } = w;
 
 suite('1. Els nivells de la pàgina B (grups dels de l’activitat)');
 {
-    const tots = Object.values(Resolucio.GRUPS).flat();
-    eq('els 5 grups cobreixen els 10 nivells de l’activitat, cadascun un cop', tots.join(), '0,1,2,3,4,5,6,7,8,9');
-    eq('els nivells de la pàgina són 1–5', Resolucio.NIVELLS.join(), '1,2,3,4,5');
+    const grups = ns => ns.flatMap(n => Resolucio.GRUPS[n]).join();
+    eq(
+        'els grups 1–5 cobreixen els 10 nivells de l’activitat, cadascun un cop',
+        grups([1, 2, 3, 4, 5]),
+        '0,1,2,3,4,5,6,7,8,9'
+    );
+    eq('els grups 6–8 cobreixen els 6 nivells d’enters, cadascun un cop', grups([6, 7, 8]), '0,1,2,3,4,5');
+    eq('els nivells de la pàgina són 1–8', Resolucio.NIVELLS.join(), '1,2,3,4,5,6,7,8');
     const dolents = [];
     for (const n of Resolucio.NIVELLS)
         for (let k = 0; k < 300; k++) {
             const ex = Resolucio.exercici(n);
             const potencies = ex.toks.some(t => t.k === 'pow'),
-                parentesis = ex.toks.some(t => t.k === 'lp');
-            if ((n <= 2 && (potencies || parentesis)) || (n === 3 && parentesis) || (n === 4 && !parentesis))
+                parentesis = ex.toks.some(t => t.k === 'lp'),
+                productes = ex.toks.some(t => t.k === 'op' && (t.v === '·' || t.v === ':'));
+            if (
+                (n <= 2 && (potencies || parentesis)) ||
+                (n === 3 && parentesis) ||
+                (n === 4 && !parentesis) ||
+                (n === 6 && (potencies || productes)) ||
+                (n === 7 && (potencies || !productes)) ||
+                (n === 8 && !potencies)
+            )
                 dolents.length < 5 && dolents.push(`nivell ${n}: ${w.Strings.toText(ex.toks)}`);
-            if (MathEngine.evaluate(ex.toks, {}) !== ex.val) dolents.length < 5 && dolents.push(`valor de ${ex.val}`);
+            if (MathEngine.evaluate(ex.toks, { enters: n >= 6 }) !== ex.val)
+                dolents.length < 5 && dolents.push(`valor de ${ex.val}`);
         }
     ok(
-        'cada nivell té el que li toca (sense potències ni parèntesis als primers, parèntesis al 4…)',
+        'cada nivell té el que li toca (sense potències ni parèntesis als primers, parèntesis al 4; enters: ' +
+            'sumes i restes al 6, productes al 7, potències al 8)',
         !dolents.length,
         dolents.join('\n      → ')
+    );
+    // Hi ha negatius de veritat a tots els nivells d'enters
+    const ambNegatius = n =>
+        Array.from({ length: 200 }, () => Resolucio.exercici(n)).filter(ex =>
+            ex.toks.some(t => (t.k === 'num' && t.v < 0) || t.k === 'neg' || (t.k === 'pow' && (t.b < 0 || t.opp)))
+        ).length;
+    ok(
+        'als nivells 6–8 gairebé tots els exercicis tenen negatius',
+        [6, 7, 8].every(n => ambNegatius(n) >= 150)
     );
 }
 
@@ -139,7 +170,8 @@ suite('2. Resolució pas a pas (resolucio.html): el guió de cada expressió');
                 const on = `nivell ${nivell}, ${w.Strings.toText(ex.toks)}`;
                 const passos = Resolucio.passos(ex);
                 const vista = ({ oberts }) => Resolucio.passos(ex, { oberts });
-                const ops = ex.toks.filter(t => t.k === 'op' || t.k === 'pow').length;
+                // Una operació per signe, per potència i per menys de davant d'un parèntesi (treure'l)
+                const ops = ex.toks.filter(t => t.k === 'op' || t.k === 'pow' || t.k === 'neg').length;
                 if (passos.length !== ops + 1)
                     anota(operacions, `${on}: ${passos.length - 1} passos, ${ops} operacions`);
                 const oberts = new Set(passos.filter(p => p.teDetall).map(p => p.id));
@@ -199,6 +231,28 @@ suite('2. Resolució pas a pas (resolucio.html): el guió de cada expressió');
         'el parèntesi i el que hi ha dins volen i es fusionen en el resultat',
         Object.values(ps[1].fusiona)[0].length === 5,
         JSON.stringify(ps[1].fusiona)
+    );
+    // Amb enters, a mà: −(4 − 7) + 2 i (−2)³ + 5 · (−1)
+    const { NEG, P } = MathEngine;
+    const e1 = { nivell: 6, toks: [NEG(), L(), N(4), O('-'), N(7), R(), O('+'), N(2)], val: 5 };
+    const p1 = Resolucio.passos(e1);
+    eq(
+        '−(4 − 7) + 2: el parèntesi es queda fins que es treu amb el menys',
+        filesDeTaula(p1.at(-1).files[0]).join(' | '),
+        '-(4-7)+2 | -(-3)+2 | 3+2 | 5'
+    );
+    eq(
+        'i les frases',
+        p1.map(p => p.text).join(' / '),
+        'Calcula −(4 − 7) + 2. / Primer, el que hi ha dins del parèntesi: 4 − 7 = −3. / ' +
+            'El signe menys de davant del parèntesi canvia el signe: −(−3) = 3. / ' +
+            'Només queda una operació: 3 + 2 = 5. El resultat és 5.'
+    );
+    const e2 = { nivell: 8, toks: [P(-2, 3), O('+'), N(5), O('·'), N(-1)], val: -13 };
+    eq(
+        '(−2)³ + 5 · (−1): els negatius, darrere d’un signe, entre parèntesis',
+        filesDeTaula(Resolucio.passos(e2).at(-1).files[0]).join(' | '),
+        '(-2)^3+5*(-1) | -8+5*(-1) | -8+(-5) | -13'
     );
 }
 

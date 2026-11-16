@@ -22,8 +22,12 @@
  *   Un subpas destaca a la taula l'operació que toca (sense escriure cap fila) i
  *   explica l'ordre de les operacions i per què és aquesta; després, D.acaba() la
  *   calcula. L'última operació (la sola que queda) no en té.
- * - Nivells (5): productes i sumes (els nivells 0–2 de l'activitat), esquerra a
- *   dreta (3), potències (4–5), parèntesis (6–8) i tot combinat (9).
+ * - Nivells (8): productes i sumes (els nivells 0–2 de l'activitat), esquerra a
+ *   dreta (3), potències (4–5), parèntesis (6–8) i tot combinat (9); i amb enters
+ *   (?nombres=enters de l'activitat, decisió del David, 16/11/2026): sumes i restes
+ *   (els nivells d'enters 0–1), regla dels signes (2–3), potències de base negativa
+ *   i tot (4–5). Els negatius, darrere d'un signe, entre parèntesis: 5 − (−3); treure
+ *   el parèntesi de −(−3) és un pas més, amb la seva frase.
  * - tests/prioritat.test.js comprova milers d'expressions de tots els nivells: el
  *   guió és correcte, cada fila que es veu val el resultat i el detall compleix la
  *   seva regla.
@@ -38,29 +42,31 @@ import { Strings } from './strings.js';
 import { guio, historial } from '../pissarra/formules.js';
 
 export const Resolucio = (() => {
-    const { startLine, solve, opRange, opValue, motiuPas, generateExercise } = MathEngine;
-    const { tokText } = Renderer;
-    const { opText, toText, exemplePas } = Strings;
+    const { startLine, solve, opRange, opValue, motiuPas, generateExercise, generateExerciseEnters } = MathEngine;
+    const { tokText, CLS, esOperacio } = Renderer;
+    const { opText, toText, exemplePas, fmt } = Strings;
 
-    /** Els nivells de la pàgina B → els nivells dels generadors de l'activitat. */
-    const GRUPS = { 1: [0, 1, 2], 2: [3], 3: [4, 5], 4: [6, 7, 8], 5: [9] };
+    /** Els nivells de la pàgina B → els nivells dels generadors de l'activitat (6–8: els d'enters). */
+    const GRUPS = { 1: [0, 1, 2], 2: [3], 3: [4, 5], 4: [6, 7, 8], 5: [9], 6: [0, 1], 7: [2, 3], 8: [4, 5] };
+    const ENTERS = new Set([6, 7, 8]);
 
     // ---- LA TAULA ----
     // Una línia és { line, op, igual }: line, els tokens amb les columnes que ocupen (math-engine.js); op, la
     // posició de l'operació que es fa per passar a la línia següent (-1: cap), destacada; igual, si la fila
     // acaba amb «=» (totes menys l'última, que el té invisible perquè la taula no s'eixampli).
 
-    const CLS = { num: 'tok-num', op: 'tok-op', pow: 'tok-pow', lp: 'tok-paren tok-lp', rp: 'tok-paren tok-rp' };
     const columnes = t => `c${t.c0}x${t.c1}`;
+    /** Un token i les columnes que ocupa (sense dependre de com s'escriu: −3 o (−3)). */
+    const identitat = t => `${columnes(t)}:${t.k}:${t.v ?? ''}:${t.b ?? ''}:${t.e ?? ''}:${t.opp ? 1 : 0}`;
 
     /** El pintor de l'historial: una fila de la taula, amb la clau de cada cel·la; classe, la de la fila. */
     function pinta(linia, clauDe, classe) {
         const { line, op, igual } = linia;
         const [p, q] = op >= 0 ? opRange(line, op) : [-1, -2];
         const tds = line.map((t, i) => {
-            let dins = `<span data-k="${clauDe(columnes(t))}">${tokText(t)}</span>`;
+            let dins = `<span data-k="${clauDe(columnes(t))}">${tokText(t, line[i - 1])}</span>`;
             // Els signes i les potències, dins de la mateixa caixa que a l'activitat (tok-lloc)
-            if (t.k === 'op' || t.k === 'pow') dins = `<span class="tok-lloc">${dins}</span>`;
+            if (esOperacio(t)) dins = `<span class="tok-lloc">${dins}</span>`;
             const span = t.c1 - t.c0;
             const cls = CLS[t.k] + (i >= p && i <= q ? ' dest' : '');
             return `<td class="${cls}"${span > 1 ? ` colspan="${span}"` : ''}>${dins}</td>`;
@@ -78,8 +84,8 @@ export const Resolucio = (() => {
 
     /** Què fa l'operació de la posició i de la línia: { fusiona: { resultat: [tokens que s'hi fusionen] } }. */
     function moviments(abans, despres) {
-        const vells = new Set(abans.map(t => `${columnes(t)}:${tokText(t)}`));
-        const res = despres.find(t => !vells.has(`${columnes(t)}:${tokText(t)}`));
+        const vells = new Set(abans.map(identitat));
+        const res = despres.find(t => !vells.has(identitat(t)));
         const fonts = abans.filter(t => t.c0 >= res.c0 && t.c1 <= res.c1);
         return { fusiona: { [columnes(res)]: fonts.map(columnes) } };
     }
@@ -94,6 +100,7 @@ export const Resolucio = (() => {
         const t = line[i];
         const nom = t.k === 'pow' ? 'una potència' : { '·': 'una multiplicació', ':': 'una divisió' }[t.v];
         const quina = {
+            neg: `el parèntesi ja només té un nombre, i el signe menys de davant li canvia el signe`,
             par: `és dins del parèntesi, i el parèntesi va primer`,
             pow: `és una potència, i no queda cap parèntesi per fer`,
             prio: `és ${nom}, i no queda cap parèntesi ni cap potència per fer`,
@@ -129,7 +136,7 @@ export const Resolucio = (() => {
         const llista = etapes(ex);
         llista.forEach((e, j) => {
             const final = j === llista.length - 1;
-            const fi = final ? ` El resultat és ${e.resposta}.` : '';
+            const fi = final ? ` El resultat és ${fmt(e.resposta)}.` : '';
             const anterior = { line: e.abans, op: e.i, igual: true };
             const op = Object.assign(moviments(e.abans, e.despres), { anterior, final });
             if (e.motiu !== 'sola')
@@ -137,7 +144,7 @@ export const Resolucio = (() => {
                     titol: 'Detall: per què aquesta operació',
                     detall: D => {
                         D.canvia(anterior, perQue(e.abans, e.i, e.motiu));
-                        D.acaba(`${opText(e.abans, e.i)} = ${e.resposta}.${fi}`, moviments(e.abans, e.despres));
+                        D.acaba(`${opText(e.abans, e.i)} = ${fmt(e.resposta)}.${fi}`, moviments(e.abans, e.despres));
                     },
                 });
             const frase = exemplePas({ line: e.abans, op: e.i, motiu: e.motiu, resposta: e.resposta });
@@ -146,11 +153,12 @@ export const Resolucio = (() => {
         return g.passos;
     }
 
-    /** Una expressió nova del nivell (1–5): un dels nivells de l'activitat del grup. */
+    /** Una expressió nova del nivell (1–8): un dels nivells de l'activitat del grup (6–8: amb enters). */
     function exercici(nivell) {
-        const { toks, val } = generateExercise(pick(GRUPS[nivell]));
+        const genera = ENTERS.has(nivell) ? generateExerciseEnters : generateExercise;
+        const { toks, val } = genera(pick(GRUPS[nivell]));
         return { nivell, toks, val };
     }
 
-    return Object.freeze({ NIVELLS: [1, 2, 3, 4, 5], GRUPS, exercici, passos, files, etapes, pinta, perQue });
+    return Object.freeze({ NIVELLS: [1, 2, 3, 4, 5, 6, 7, 8], GRUPS, exercici, passos, files, etapes, pinta, perQue });
 })();

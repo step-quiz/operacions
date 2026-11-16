@@ -77,7 +77,7 @@ async function inicia() {
         const exercici = procediment.exercici(nivell);
         reproductor.carrega(oberts => procediment.passos(exercici, { oberts }));
         for (const b of nivells.children) b.setAttribute('aria-pressed', String(Number(b.dataset.nivell) === nivell));
-        fesHoTu.href = `${activitat.pagina}?nivell=${nivell}`;
+        fesHoTu.href = activitat.enllac ? activitat.enllac(nivell) : `${activitat.pagina}?nivell=${nivell}`;
         posaAdreca();
     }
     /** L'adreça diu l'activitat, el nivell i, si hi és, el mode professor (per poder-la enllaçar). */

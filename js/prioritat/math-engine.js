@@ -21,6 +21,18 @@
  *   d'esquerra a dreta. A la modalitat «Pas a pas», l'alumne pot fer qualsevol
  *   operació que ja es pugui fer (readyOps: les dues dades ja són nombres);
  *   si en tria una que encara no, blockers() diu quines calia fer abans i per què.
+ * - ENTERS (?nombres=enters, decisió del David, 16/11/2026): nombres negatius
+ *   ({k:'num', v:-3}, que s'escriu «(−3)» darrere d'un signe), el signe menys davant
+ *   d'un parèntesi ({k:'neg'}, «−(4 − 7)»: després de fer el de dins queda «−(−3)», i
+ *   treure el parèntesi és una operació més), les potències de base negativa
+ *   ({k:'pow', b:-2, e:3}, «(−2)³») i l'oposat d'una potència ({k:'pow', b:2, e:2,
+ *   opp:true}, «−2²» = −4: només al principi o darrere d'un parèntesi). Amb
+ *   cfg.enters, evaluate() accepta resultats negatius. Errors típics dels signes
+ *   (MISCONCEPTIONS_ENTERS): el signe del resultat d'una suma, restar un negatiu,
+ *   menys per menys, el signe d'una potència de base negativa, −2² com (−2)², el
+ *   menys davant del parèntesi oblidat. LEVELS_ENTERS: 6 nivells interns (2 per a
+ *   cadascun dels 3 del David: sumes i restes amb parèntesis, la regla dels signes,
+ *   les potències de base negativa i de tot). El camí dels naturals no canvia.
  * - Fa servir Math.random (randInt, pick, shuffle), que amb ?fixed=A/B/C està
  *   sembrat per a cada pregunta (js/fixed-sessions.js). Si canvia l'ordre en
  *   què es demanen nombres a l'atzar, canvien les preguntes de les sessions
@@ -33,9 +45,10 @@ import { pick, randInt, shuffle } from '../utils.js';
 export const MathEngine = (() => {
     const N = v => ({ k: 'num', v });
     const O = v => ({ k: 'op', v });
-    const P = (b, e) => ({ k: 'pow', b, e });
+    const P = (b, e, opp) => (opp ? { k: 'pow', b, e, opp: true } : { k: 'pow', b, e });
     const L = () => ({ k: 'lp' });
     const R = () => ({ k: 'rp' });
+    const NEG = () => ({ k: 'neg' }); // el signe menys davant d'un parèntesi: −( … )
 
     const PREC_OK = { '+': 1, '-': 1, '·': 2, ':': 2 }; // regla correcta
     const PREC_FLAT = { '+': 1, '-': 1, '·': 1, ':': 1 }; // tot igual → esquerra a dreta
@@ -43,7 +56,15 @@ export const MathEngine = (() => {
     const POST_PREC = 1.5; // "l'exponent afecta tot el producte" (entre + i ·)
 
     const MAX_RESULT = 200; // resultat correcte màxim (càlcul mental a 1r ESO)
+    const MAX_RESULT_ENTERS = 100; // amb enters: |resultat| ≤ 100
     const MAX_DISTRACTOR = 999;
+
+    /** El valor d'una potència: (−2)³ = −8; amb opp, l'oposat: −2² = −4. cfg: els errors dels signes. */
+    function powValue(t, cfg = {}) {
+        const b = cfg.powsigne && t.b < 0 ? -t.b : t.b; // (−2)³ = 8: el signe de la base, oblidat
+        const v = Math.pow(b, t.e);
+        return t.opp && !cfg.powopp ? -v : v; // −2² = 4: com si fos (−2)²
+    }
 
     // ============================================================
     // AVALUACIÓ (correcta i amb els errors típics)
@@ -57,15 +78,27 @@ export const MathEngine = (() => {
     function toRPN(toks, cfg) {
         const prec = cfg.prec || PREC_OK;
         const stream = [];
+        // Sense parèntesis (error 'nopar'), el menys de −(4 − 7) només afecta el primer nombre: −4 − 7
+        let menysSeguent = false;
+        const signe = v => {
+            if (!menysSeguent) return v;
+            menysSeguent = false;
+            return -v;
+        };
         toks.forEach((t, i) => {
             if (t.k === 'pow') {
-                if (cfg.pow === 'mult') stream.push({ k: 'num', v: t.b * t.e, idx: i });
-                else if (cfg.pow === 'postfix') {
-                    stream.push({ k: 'num', v: t.b, idx: i });
+                if (cfg.pow === 'mult') stream.push({ k: 'num', v: signe(t.b * t.e * (t.opp ? -1 : 1)), idx: i });
+                else if (cfg.pow === 'postfix' && !t.opp) {
+                    stream.push({ k: 'num', v: signe(t.b), idx: i });
                     stream.push({ k: 'post', e: t.e, idx: i });
-                } else stream.push({ k: 'num', v: Math.pow(t.b, t.e), idx: i });
+                } else stream.push({ k: 'num', v: signe(powValue(t, cfg)), idx: i });
             } else if (t.k === 'lp' || t.k === 'rp') {
                 if (cfg.parens !== false) stream.push({ k: t.k, idx: i });
+            } else if (t.k === 'neg') {
+                if (cfg.parens === false) menysSeguent = true;
+                else stream.push({ k: 'neg', idx: i });
+            } else if (t.k === 'num') {
+                stream.push(Object.assign({ idx: i }, t, { v: signe(t.v) }));
             } else {
                 stream.push(Object.assign({ idx: i }, t));
             }
@@ -89,11 +122,13 @@ export const MathEngine = (() => {
                 while (st.length && st[st.length - 1].k === 'op' && prec[st[st.length - 1].v] > POST_PREC)
                     out.push(st.pop());
                 out.push(t);
-            } else if (t.k === 'lp') st.push(t);
+            } else if (t.k === 'lp' || t.k === 'neg') st.push(t);
             else if (t.k === 'rp') {
                 while (st.length && st[st.length - 1].k !== 'lp') out.push(st.pop());
                 if (!st.length) return null;
                 st.pop();
+                // El menys de davant del parèntesi s'aplica al que en surt
+                if (st.length && st[st.length - 1].k === 'neg') out.push(st.pop());
             }
         }
         while (st.length) {
@@ -119,21 +154,35 @@ export const MathEngine = (() => {
                 vs.push(Math.pow(vs.pop(), t.e));
                 continue;
             }
+            if (t.k === 'neg') {
+                if (!vs.length) return null;
+                const v = vs.pop();
+                vs.push(cfg.negpar ? v : -v); // −(−3) = −3: el menys de davant, oblidat
+                continue;
+            }
             if (vs.length < 2) return null;
             const b = vs.pop(),
                 a = vs.pop();
-            let r;
-            if (t.v === '+') r = a + b;
-            else if (t.v === '-') r = a - b;
-            else if (t.v === '·') r = a * b;
-            else {
-                if (b === 0) return null;
-                r = a / b;
-            }
-            if (!Number.isInteger(r) || r < 0) return null;
+            if ((t.v === ':' && b === 0) || (t.v === ':' && !Number.isInteger(a / b))) return null;
+            const r = binValue(a, t.v, b, cfg);
+            if (!Number.isInteger(r) || (r < 0 && !cfg.enters)) return null;
             vs.push(r);
         }
         return vs.length === 1 ? vs[0] : null;
+    }
+
+    /** El resultat de a op b; cfg: els errors dels signes (només amb enters). */
+    function binValue(a, op, b, cfg = {}) {
+        let r;
+        if (op === '+') r = a + b;
+        else if (op === '-')
+            r = cfg.restaneg && b < 0 ? a + b : a - b; // 5 − (−3) = 2
+        else if (op === '·') r = a * b;
+        else r = a / b;
+        if (cfg.signeprod && (op === '·' || op === ':') && a < 0 && b < 0) r = -r; // (−3)·(−2) = −6
+        // −4 + 7 = −3, 3 − 8 = 5: el resultat amb el signe del primer nombre
+        if (cfg.signesuma && (op === '+' || op === '-') && a !== 0 && r !== 0 && Math.sign(r) !== Math.sign(a)) r = -r;
+        return r;
     }
 
     // Errors típics, per ordre de prioritat a l'hora de triar distractors
@@ -148,24 +197,38 @@ export const MathEngine = (() => {
         { id: 'lrpowmult', cfg: { prec: PREC_FLAT, pow: 'mult' } }, // esquerra a dreta + 3² = 3·2
     ];
 
-    // Retorna Map(valor → id de l'error) amb els errors que donen un valor vàlid i diferent del correcte
-    function misconceptionMap(toks, correct) {
+    // Amb enters, primer els errors dels signes (signe: el diagnòstic marca l'operació on s'equivoca el signe)
+    const MISCONCEPTIONS_ENTERS = [
+        { id: 'signesuma', cfg: { signesuma: true }, signe: true }, // −4 + 7 = −3, 3 − 8 = 5
+        { id: 'restaneg', cfg: { restaneg: true }, signe: true }, // 5 − (−3) = 2
+        { id: 'signeprod', cfg: { signeprod: true }, signe: true }, // (−3)·(−2) = −6
+        { id: 'powsigne', cfg: { powsigne: true }, signe: true }, // (−2)³ = 8
+        { id: 'powopp', cfg: { powopp: true }, signe: true }, // −2² = 4
+        { id: 'negpar', cfg: { negpar: true }, signe: true }, // −(4 − 7) = −3
+    ];
+    const MISCONCEPTIONS_TOTS = [...MISCONCEPTIONS_ENTERS, ...MISCONCEPTIONS];
+    const errorTipic = id => MISCONCEPTIONS_TOTS.find(x => x.id === id);
+
+    // Retorna Map(valor → id de l'error) amb els errors que donen un valor vàlid i diferent del correcte.
+    // enters: també els errors dels signes, i s'accepten valors negatius.
+    function misconceptionMap(toks, correct, enters = false) {
         const map = new Map();
-        for (const m of MISCONCEPTIONS) {
-            const v = evaluate(toks, m.cfg);
-            if (v === null || v === correct || v > MAX_DISTRACTOR) continue;
+        for (const m of enters ? MISCONCEPTIONS_TOTS : MISCONCEPTIONS) {
+            const v = evaluate(toks, enters ? Object.assign({ enters: true }, m.cfg) : m.cfg);
+            if (v === null || v === correct || Math.abs(v) > MAX_DISTRACTOR) continue;
             if (!map.has(v)) map.set(v, m.id);
         }
         return map;
     }
 
-    // 3 distractors: primer els que surten d'errors de prioritat; si no n'hi ha prou,
-    // valors propers (a la correcta i al primer distractor, per no delatar la resposta)
-    function buildDistractors(toks, correct) {
-        const chosen = [...misconceptionMap(toks, correct).entries()].slice(0, 3).map(([v, id]) => ({ v, id }));
+    // 3 distractors: primer els que surten d'errors de prioritat (amb enters, també dels signes); si no
+    // n'hi ha prou, valors propers (a la correcta i al primer distractor, per no delatar la resposta)
+    function buildDistractors(toks, correct, enters = false) {
+        const chosen = [...misconceptionMap(toks, correct, enters).entries()].slice(0, 3).map(([v, id]) => ({ v, id }));
         const used = new Set([correct, ...chosen.map(c => c.v)]);
         const anchor = chosen.length ? chosen[0].v : correct;
         const pool = shuffle([
+            ...(enters ? [-correct, -anchor] : []),
             correct + 1,
             correct - 1,
             correct + 2,
@@ -178,7 +241,7 @@ export const MathEngine = (() => {
         ]);
         for (const v of pool) {
             if (chosen.length >= 3) break;
-            if (v < 0 || used.has(v)) continue;
+            if ((v < 0 && !enters) || used.has(v)) continue;
             used.add(v);
             chosen.push({ v, id: 'calc' });
         }
@@ -205,7 +268,7 @@ export const MathEngine = (() => {
                 continue;
             }
             const kids =
-                t.k === 'post'
+                t.k === 'post' || t.k === 'neg'
                     ? [stack.pop()]
                     : (() => {
                           const b = stack.pop(),
@@ -224,10 +287,55 @@ export const MathEngine = (() => {
         return node.kids.flatMap(leavesOf);
     }
 
+    /**
+     * Amb un error dels signes, la primera operació (en l'ordre bo) on el signe surt malament: es fa cada
+     * operació amb les dades bones, amb la regla bona i amb l'error, i es compara.
+     * Torna { i: la posició del token, cas } o null. cas, per al missatge: { k: 'op', a, op, b, ok, mal } ·
+     * { k: 'pow', t, ok, mal } · { k: 'neg', v, ok, mal }.
+     */
+    function primerErrorSigne(toks, cfg) {
+        const out = toRPN(toks, {});
+        if (!out) return null;
+        const vs = [];
+        for (const t of out) {
+            if (t.k === 'num') {
+                const tok = toks[t.idx];
+                if (tok.k === 'pow' && powValue(tok, cfg) !== powValue(tok))
+                    return { i: t.idx, cas: { k: 'pow', t: tok, ok: powValue(tok), mal: powValue(tok, cfg) } };
+                vs.push(t.v);
+                continue;
+            }
+            if (t.k === 'neg') {
+                const v = vs.pop();
+                if (cfg.negpar && v !== 0) return { i: t.idx, cas: { k: 'neg', v, ok: -v, mal: v } };
+                vs.push(-v);
+                continue;
+            }
+            const b = vs.pop(),
+                a = vs.pop();
+            const r = binValue(a, t.v, b);
+            const mal = binValue(a, t.v, b, cfg);
+            if (mal !== r) return { i: t.idx, cas: { k: 'op', a, op: t.v, b, ok: r, mal } };
+            vs.push(r);
+        }
+        return null;
+    }
+
     function diagnose(toks, id) {
-        const m = MISCONCEPTIONS.find(x => x.id === id);
+        const m = errorTipic(id);
         if (!m) return null;
         const res = { red: new Set(), green: new Set(), powRed: -1 };
+
+        // Error dels signes: es marca l'operació (o la potència) on el signe surt malament
+        if (m.signe) {
+            const e = primerErrorSigne(toks, m.cfg);
+            if (!e) return null;
+            res.red.add(e.i);
+            res.signe = true;
+            res.cas = e.cas; // l'operació on surt malament, per al missatge (strings.js missatgeSigne)
+            if (toks[e.i].k === 'pow') res.powRed = e.i;
+            return res;
+        }
 
         // Error de potència (3² = 3·2): es marca la potència
         if (m.cfg.pow === 'mult') {
@@ -488,6 +596,114 @@ export const MathEngine = (() => {
         ],
     ];
 
+    // ------------------------------------------------------------
+    // GENERADORS AMB ENTERS (?nombres=enters): 6 nivells interns, 2 per a cada nivell del David
+    //   0–1 sumes i restes amb parèntesis · 2–3 la regla dels signes · 4–5 potències de base negativa i de tot
+    // Els negatius s'escriuen N(-3); el menys davant d'un parèntesi, NEG(); −2², P(2, 2, true).
+    // ------------------------------------------------------------
+    const LEVELS_ENTERS = [
+        // 0 · Sumes i restes d'enters                                  ex: −4 + 7 − 5   ·   5 − (−3) + (−4)
+        [
+            () => [N(-r(2, 9)), O('+'), N(r(2, 12)), O('-'), N(r(2, 9))],
+            () => [N(r(2, 9)), O('-'), N(r(5, 15)), O('+'), N(r(2, 9))],
+            () => [N(r(2, 12)), O('-'), N(-r(2, 9)), O('+'), N(-r(2, 9))],
+            () => [N(-r(2, 9)), O('-'), N(r(2, 9)), O('-'), N(-r(2, 9))],
+        ],
+        // 1 · Sumes i restes amb parèntesis                            ex: 5 − (3 − 9)   ·   −(4 − 7) + 2
+        [
+            () => {
+                const b = r(2, 9);
+                return [N(r(2, 12)), O('-'), L(), N(b), O('-'), N(b + r(2, 8)), R()];
+            },
+            () => {
+                const a = r(2, 9);
+                return [NEG(), L(), N(a), O('-'), N(a + r(2, 8)), R(), O('+'), N(r(2, 9))];
+            },
+            () => [L(), N(r(2, 9)), O('-'), N(r(5, 15)), R(), O('-'), N(-r(2, 9))],
+            () => [N(-r(2, 9)), O('-'), L(), N(r(2, 9)), O('-'), N(r(5, 15)), R()],
+            () => [NEG(), L(), N(-r(2, 9)), O('+'), N(r(2, 9)), R(), O('-'), N(-r(2, 9))],
+        ],
+        // 2 · La regla dels signes                                     ex: −3 · (−2) + 5   ·   12 : (−4) − 2
+        [
+            () => [N(-r(2, 9)), O('·'), N(-r(2, 9)), O('+'), N(r(2, 12))],
+            () => {
+                const b = r(2, 6);
+                return [N(b * r(2, 6)), O(':'), N(-b), O('-'), N(r(2, 9))];
+            },
+            () => [N(-r(2, 9)), O('+'), N(r(2, 6)), O('·'), N(-r(2, 6))],
+            () => {
+                const b = r(2, 5);
+                return [N(-b * r(2, 5)), O(':'), N(b), O('·'), N(-r(2, 4))];
+            },
+            () => [N(r(2, 9)), O('-'), N(-r(2, 6)), O('·'), N(r(2, 6))],
+        ],
+        // 3 · La regla dels signes amb parèntesis                      ex: −2 · (3 − 7)   ·   (5 − 11) : (−3) + 1
+        [
+            () => [N(-r(2, 6)), O('·'), L(), N(r(2, 9)), O('-'), N(r(5, 12)), R()],
+            () => {
+                const c = r(2, 4),
+                    a = r(2, 9);
+                return [L(), N(a), O('-'), N(a + c * r(1, 4)), R(), O(':'), N(-c), O('+'), N(r(2, 9))];
+            },
+            () => {
+                const d = r(2, 4);
+                return [N(r(2, 9)), O('-'), N(-d * r(2, 5)), O(':'), N(-d)];
+            },
+            () => [L(), N(-r(2, 6)), O('+'), N(r(2, 9)), R(), O('·'), N(-r(2, 5)), O('-'), N(-r(2, 9))],
+            () => [NEG(), L(), N(r(2, 6)), O('·'), N(r(2, 4)), O('-'), N(r(10, 30)), R(), O('+'), N(-r(2, 9))],
+        ],
+        // 4 · Potències de base negativa                               ex: (−2)³ + 5   ·   −2² + (−3)²
+        [
+            () => [P(-r(2, 4), 3), O('+'), N(r(2, 12))],
+            () => [P(r(2, 5), 2, true), O('+'), P(-r(2, 5), 2)],
+            () => [P(-1, r(4, 5)), O('·'), N(r(2, 9)), O('-'), P(-r(2, 4), 2)],
+            () => [N(r(2, 5)), O('·'), P(-r(2, 4), 2), O('-'), N(r(5, 20))],
+            () => [P(r(2, 4), 2, true), O('-'), N(-r(2, 9)), O('·'), N(r(2, 4))],
+        ],
+        // 5 · Tot combinat                                             ex: −3² + (4 − 6) · (−5)
+        [
+            () => [P(-2, 3), O(':'), N(-pick([2, 4])), O('+'), N(r(2, 5)), O('·'), N(-r(2, 5))],
+            () => [P(r(2, 4), 2, true), O('+'), L(), N(r(2, 6)), O('-'), N(r(5, 9)), R(), O('·'), N(-r(2, 5))],
+            () => [
+                P(-r(2, 3), 2),
+                O('·'),
+                L(),
+                N(r(1, 4)),
+                O('-'),
+                N(r(4, 8)),
+                R(),
+                O('+'),
+                N(r(2, 12)),
+                O(':'),
+                N(-r(2, 4)),
+            ],
+            () => [NEG(), L(), P(-r(2, 3), 3), O('+'), N(r(2, 9)), R(), O('·'), N(r(2, 4))],
+            () => [N(-r(2, 9)), O('-'), N(r(2, 4)), O('·'), P(-r(2, 3), 2), O(':'), N(-r(2, 3))],
+        ],
+    ];
+
+    // Com generateExercise, amb enters: el resultat, |r| ≤ 100; els distractors, també dels errors dels signes
+    function generateExerciseEnters(level) {
+        const variants = LEVELS_ENTERS[Math.max(0, Math.min(level, LEVELS_ENTERS.length - 1))];
+        for (let v = 0; v < 6; v++) {
+            const gen = pick(variants);
+            let best = null;
+            for (let tries = 0; tries < 200; tries++) {
+                const toks = gen();
+                const val = evaluate(toks, { enters: true });
+                if (val === null || Math.abs(val) > MAX_RESULT_ENTERS) continue;
+                const nMis = misconceptionMap(toks, val, true).size;
+                if (nMis === 0) continue;
+                if (!best || nMis > best.nMis) best = { toks, val, nMis };
+                if (nMis >= 3) break;
+            }
+            if (best) return best;
+        }
+        // Salvaguarda: −a + b · (−c) sempre és vàlida i discriminant
+        const toks = [N(-r(2, 9)), O('+'), N(r(2, 6)), O('·'), N(-r(2, 6))];
+        return { toks, val: evaluate(toks, { enters: true }), nMis: 1 };
+    }
+
     // Tria una variant del nivell i en genera nombres fins que l'expressió sigui vàlida
     // i "discriminant" (almenys 1 error de prioritat, preferiblement 2 o més).
     function generateExercise(level) {
@@ -536,6 +752,9 @@ export const MathEngine = (() => {
     // L'operació següent en l'ordre «de llibre» (parèntesis → potències → · : → + −, d'esquerra a dreta)
     function nextStep(toks) {
         const rg = innermostParen(toks);
+        // −(−3): el parèntesi ja només té un nombre i té un menys davant; ara toca treure'l
+        if (rg && rg[1] - rg[0] === 2 && toks[rg[0] - 1] && toks[rg[0] - 1].k === 'neg')
+            return { kind: 'neg', i: rg[0] - 1 };
         const s = rg ? rg[0] + 1 : 0;
         const e = rg ? rg[1] - 1 : toks.length - 1;
         for (let i = s; i <= e; i++) if (toks[i].k === 'pow') return { kind: 'pow', i };
@@ -551,15 +770,19 @@ export const MathEngine = (() => {
     }
 
     // Les posicions [p, q] dels tokens d'una operació que ja es pot fer: una
-    // potència és ella sola; una operació, el signe i els dos nombres del costat
+    // potència és ella sola; una operació, el signe i els dos nombres del costat;
+    // el menys davant d'un parèntesi, −(−3): el menys, el parèntesi i el nombre
     function opRange(line, i) {
-        return line[i].k === 'pow' ? [i, i] : [i - 1, i + 1];
+        if (line[i].k === 'pow') return [i, i];
+        if (line[i].k === 'neg') return [i, i + 3];
+        return [i - 1, i + 1];
     }
 
     // El resultat de l'operació de la posició i (ja s'ha de poder fer)
     function opValue(line, i) {
         const t = line[i];
-        if (t.k === 'pow') return Math.pow(t.b, t.e);
+        if (t.k === 'pow') return powValue(t);
+        if (t.k === 'neg') return -line[i + 2].v;
         const a = line[i - 1].v,
             b = line[i + 1].v;
         return t.v === '+' ? a + b : t.v === '-' ? a - b : t.v === '·' ? a * b : a / b;
@@ -571,7 +794,9 @@ export const MathEngine = (() => {
         const [p, q] = opRange(line, i);
         const num = { k: 'num', v: opValue(line, i), c0: line[p].c0, c1: line[q].c1 };
         const out = line.slice(0, p).concat([num], line.slice(q + 1));
-        if (out[p - 1] && out[p - 1].k === 'lp' && out[p + 1] && out[p + 1].k === 'rp') {
+        // Amb un menys davant, el parèntesi es queda: −(−3) (treure'l és l'operació següent)
+        const menysDavant = out[p - 2] && out[p - 2].k === 'neg';
+        if (out[p - 1] && out[p - 1].k === 'lp' && out[p + 1] && out[p + 1].k === 'rp' && !menysDavant) {
             num.c0 = out[p - 1].c0;
             num.c1 = out[p + 1].c1;
             out.splice(p - 1, 3, num);
@@ -615,6 +840,7 @@ export const MathEngine = (() => {
         line.forEach((t, i) => {
             if (t.k === 'num') out.push({ t: 'num', i });
             else if (t.k === 'pow') out.push({ t: 'pow', i });
+            else if (t.k === 'neg') st.push({ k: 'neg', i });
             else if (t.k === 'op') {
                 while (st.length && st[st.length - 1].k === 'op' && PREC_OK[st[st.length - 1].v] >= PREC_OK[t.v])
                     reduce();
@@ -624,14 +850,18 @@ export const MathEngine = (() => {
                 while (st[st.length - 1].k !== 'lp') reduce();
                 st.pop();
                 out[out.length - 1].par = true;
+                // −( … ): un node 'neg' amb el parèntesi a dins (x)
+                if (st.length && st[st.length - 1].k === 'neg') out.push({ t: 'neg', i: st.pop().i, x: out.pop() });
             }
         });
         while (st.length) reduce();
         return out[0];
     }
 
-    const nodesOf = n => (n.t === 'bin' ? [n, ...nodesOf(n.l), ...nodesOf(n.r)] : [n]);
-    const isReady = n => n.t === 'pow' || (n.t === 'bin' && n.l.t === 'num' && n.r.t === 'num');
+    const nodesOf = n =>
+        n.t === 'bin' ? [n, ...nodesOf(n.l), ...nodesOf(n.r)] : n.t === 'neg' ? [n, ...nodesOf(n.x)] : [n];
+    const isReady = n =>
+        n.t === 'pow' || (n.t === 'bin' && n.l.t === 'num' && n.r.t === 'num') || (n.t === 'neg' && n.x.t === 'num');
 
     // Les posicions (d'esquerra a dreta) de les operacions que ja es poden fer
     function readyOps(line) {
@@ -650,14 +880,16 @@ export const MathEngine = (() => {
     //           'pow'  → abans, la potència
     //           'prio' → · i : abans que + i −
     //           'lr'   → les del mateix nivell, d'esquerra a dreta
+    //           'neg'  → abans, treure el parèntesi que té un menys davant: −(−3)
     function blockers(line, i) {
         const x = nodesOf(lineTree(line)).find(n => n.i === i && n.t !== 'num');
         if (!x || isReady(x)) return null;
-        const inside = [...nodesOf(x.l), ...nodesOf(x.r)];
+        const inside = x.t === 'neg' ? nodesOf(x.x) : [...nodesOf(x.l), ...nodesOf(x.r)];
         const green = inside.filter(isReady);
         const inParens = new Set(inside.filter(n => n.par).flatMap(nodesOf));
         let reason;
         if (green.some(g => inParens.has(g))) reason = 'par';
+        else if (green.some(g => g.t === 'neg')) reason = 'neg';
         else if (green.some(g => g.t === 'pow')) reason = 'pow';
         else if (PREC_OK[x.op] === 1 && green.some(g => PREC_OK[g.op] === 2)) reason = 'prio';
         else reason = 'lr';
@@ -669,8 +901,26 @@ export const MathEngine = (() => {
     function stepDistractors(line, i) {
         const t = line[i],
             ok = opValue(line, i);
+        // Amb enters (algun negatiu a l'operació o al resultat): primer, el resultat amb el signe girat
+        const enters =
+            ok < 0 ||
+            t.k === 'neg' ||
+            (t.k === 'pow' && (t.b < 0 || t.opp)) ||
+            (t.k === 'op' && (line[i - 1].v < 0 || line[i + 1].v < 0));
         let cands;
-        if (t.k === 'pow') cands = [t.b * t.e, t.b + t.e, ok + t.b, ok - t.b, ok + 1, ok - 1];
+        if (enters) {
+            if (t.k === 'neg') cands = [-ok, ok + 1, ok - 1, ok + 10];
+            else if (t.k === 'pow') cands = [-ok, t.b * t.e * (t.opp ? -1 : 1), ok + 1, ok - 1];
+            else {
+                const a = line[i - 1].v,
+                    b = line[i + 1].v;
+                const resta = t.v === '-' && b < 0 ? a + b : a - b; // 5 − (−3) = 2
+                if (t.v === '+') cands = [-ok, a - b, ok + 1, ok - 1, ok + 10];
+                else if (t.v === '-') cands = [resta, -ok, ok + 1, ok - 1, ok + 10];
+                else if (t.v === '·') cands = [-ok, a + b, ok + a, ok - b, ok + 1];
+                else cands = [-ok, a - b, ok + 1, ok - 1, ok * 2];
+            }
+        } else if (t.k === 'pow') cands = [t.b * t.e, t.b + t.e, ok + t.b, ok - t.b, ok + 1, ok - 1];
         else {
             const a = line[i - 1].v,
                 b = line[i + 1].v;
@@ -683,7 +933,7 @@ export const MathEngine = (() => {
         const out = [];
         for (const v of cands) {
             if (out.length >= 3) break;
-            if (Number.isInteger(v) && v >= 0 && v !== ok && !out.includes(v)) out.push(v);
+            if (Number.isInteger(v) && (v >= 0 || enters) && v !== ok && !out.includes(v)) out.push(v);
         }
         return out;
     }
@@ -695,10 +945,11 @@ export const MathEngine = (() => {
     // motiu diu per què es fa aquella operació en aquell moment:
     //   'par'  → és dins d'un parèntesi        'pow' → és una potència
     //   'prio' → · i : abans que + i −         'lr'  → d'esquerra a dreta
-    //   'sola' → és l'única operació que queda
+    //   'sola' → és l'única operació que queda 'neg' → treure −(…) quan a dins ja hi ha un nombre
     // No fa servir Math.random.
     // ------------------------------------------------------------
     function motiuPas(line, i) {
+        if (line[i].k === 'neg') return 'neg';
         let depth = 0;
         for (let j = 0; j < i; j++) {
             if (line[j].k === 'lp') depth++;
@@ -706,7 +957,7 @@ export const MathEngine = (() => {
         }
         if (depth > 0) return 'par';
         if (line[i].k === 'pow') return 'pow';
-        const ops = line.filter(t => t.k === 'op' || t.k === 'pow');
+        const ops = line.filter(t => t.k === 'op' || t.k === 'pow' || t.k === 'neg');
         if (ops.length === 1) return 'sola';
         const esProducte = line[i].v === '·' || line[i].v === ':';
         if (esProducte && line.some(t => t.k === 'op' && (t.v === '+' || t.v === '-'))) return 'prio';
@@ -731,15 +982,21 @@ export const MathEngine = (() => {
         P,
         L,
         R,
+        NEG,
         MAX_RESULT,
+        MAX_RESULT_ENTERS,
         LEVELS,
+        LEVELS_ENTERS,
         MISCONCEPTIONS,
+        MISCONCEPTIONS_ENTERS,
+        powValue,
         evaluate,
         misconceptionMap,
         buildDistractors,
         diagnose,
         nodeRange,
         generateExercise,
+        generateExerciseEnters,
         nextStep,
         startLine,
         opRange,
