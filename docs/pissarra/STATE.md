@@ -120,7 +120,7 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     · : → + −, left to right), then `D.acaba` computes it (no detail for powers); **5 levels**: products and
     sums (generator levels 0–2), left to right (3), powers (4–5), parentheses (6–8), everything (9). Same
     pattern as `fraccions`: `js/prioritat/resolucio.js`, registry, `SUPORTA_PISSARRA`, `pissarra: true`,
-    «Mira com es resol» in `prioritat.html` (agent A may extend `prioritat` in its delivery 14: only add).
+    «Mira com es resol» in `prioritat.html` (roadmap item 14, E2, may extend `prioritat`: see `docs/activitats/STATE.md`).
 20. **Stage 5, class use** (2026-11-16, dialog): U1 = tapping the board (or Space) while a step animates
     **finishes it at once** (`pissarra.afanya()`: pending waits resolve, running animations `finish()`, the rest
     of the phases last 1 ms); a small **↺ next to «Pas 3 de 5»** replays the current step (`repeteix()`).

@@ -151,6 +151,7 @@ css/
 └── pissarra.css        ← Estil de la pissarra animada
 vendor/                 ← Llibreries externes (KaTeX, SheetJS, ExcelJS), vegeu vendor/README.md
 docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat d'abril de 2026); no descriuen l'estat actual
+docs/activitats/        ← L'estat del full de ruta d'activitats noves (STATE.md: el que hi ha fet i el que falta, amb les decisions del David)
 ```
 
 **Mòduls antics** (fraccions, etc.): tot el joc en un sol fitxer, `js/<exercici>/<exercici>.js`. Equacions ja té la generació i els passos a `js/equacions/math-engine.js` i l'HTML dels termes a `js/equacions/renderer.js` (mòduls purs, amb proves a `tests/equacions.test.js`). Ja no queda JS d'exercici dins dels HTML (només `window.APP_CONFIG`).
