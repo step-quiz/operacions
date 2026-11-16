@@ -19,4 +19,4 @@
  */
 
 /** Activitats amb resolució pas a pas (nom del fitxer HTML sense «.html»). */
-export const SUPORTA_PISSARRA = ['equacions', 'fraccions'];
+export const SUPORTA_PISSARRA = ['equacions', 'fraccions', 'prioritat'];

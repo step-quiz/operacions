@@ -11,7 +11,8 @@
  *     1. el guió sencer de cada exercici (els passos que el controlador envia a
  *        la pissarra) passa la revisió dels guions (comprova.js comprovaGuio);
  *     2. cada pas, menys el primer, mou alguna peça (reanomena, fusiona o
- *        reparteix);
+ *        reparteix), si escriu alguna línia (un pas que només destaca, com el
+ *        detall de prioritat, no);
  *     3. cap pas no en mou més de maxPeces;
  *     4. cada línia que es veu, a cada pas, és certa: veritat() és un model
  *        independent del codi que es prova (aritmètica exacta, feta al test);
@@ -83,7 +84,9 @@ function provaActivitat(
         const revisa = (llista, nomVista) =>
             llista.forEach((pas, i) => {
                 const aqui = `${on}${nomVista}, pas ${pas.id || i + 1}`;
-                if (i > 0) {
+                // Un pas que no escriu cap línia (només destaca, p. ex. el detall de prioritat) no ha de moure res
+                const nomesMarca = i > 0 && pas.estat && pas.estat.length === llista[i - 1].estat.length;
+                if (i > 0 && !nomesMarca) {
                     animacions++;
                     const peces = pecesMogudes(pas);
                     mesPeces = Math.max(mesPeces, peces);

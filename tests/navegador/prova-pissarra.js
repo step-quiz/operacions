@@ -261,7 +261,7 @@ const RECORRE_DEMO = async (on = 'demoPissarra') => {
         total: pissarra.total,
         dolents,
         ample,
-        final: !!document.querySelector('.pis-fila.final'),
+        final: !!document.querySelector('.pis-fila.final, .pis-fila tr.final'),
     };
 };
 
@@ -303,8 +303,12 @@ async function provaDetall(pagina, on, nom) {
                 id: pissarra.passos[pissarra.pas].id,
                 boto: b.hidden ? '' : b.textContent,
                 num: document.querySelector('.pis-num-pas').textContent,
-                detall: document.querySelectorAll('.pis-capa .pis-fila.detall').length,
-                objectiu: document.querySelectorAll('.pis-capa .pis-fila.objectiu').length,
+                // El detall: les files del calaix o, a la taula de prioritat (sense calaix), l'operació
+                // destacada just a sobre de la fila de l'objectiu
+                detall: document.querySelectorAll(
+                    '.pis-capa .pis-fila.detall, .pis-capa .pis-calaix-pas, .pis-capa tr:has(+ tr.pis-objectiu) td.dest'
+                ).length,
+                objectiu: document.querySelectorAll('.pis-capa .pis-fila.objectiu, .pis-capa tr.pis-objectiu').length,
             };
         }, on);
     const espera = () => pagina.waitForFunction(o => !window[o].pissarra.ocupat, on);
@@ -586,6 +590,16 @@ function engegaServidor() {
                 'resolucio.html?activitat=fraccions&nivell=4'
             );
             await f.close();
+            // Prioritat: la primera expressió de la sessió és del nivell 0 → el grup 1 de la resolució
+            const q = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await q.goto(BASE + '/prioritat.html?totaloperations=3');
+            await q.waitForSelector('#mira-com');
+            eq(
+                'prioritat: la primera expressió (nivell 0) → «Mira com es resol» del grup 1',
+                await q.getAttribute('#mira-com', 'href'),
+                'resolucio.html?activitat=prioritat&nivell=1'
+            );
+            await q.close();
         }
 
         suite('7. Escenari B: resolucio.html (mirar com es resol)');
@@ -595,6 +609,8 @@ function engegaServidor() {
                 ['equacions', 'mòbil', { width: 375, height: 740 }],
                 ['fraccions', 'portàtil', { width: 1366, height: 768 }],
                 ['fraccions', 'mòbil', { width: 375, height: 740 }],
+                ['prioritat', 'portàtil', { width: 1366, height: 768 }],
+                ['prioritat', 'mòbil', { width: 375, height: 740 }],
             ]) {
                 const nom = `${act}, ${lloc}`;
                 const p = await navegador.newPage({ viewport });
@@ -640,7 +656,8 @@ function engegaServidor() {
             ok(
                 'sense activitat, la pàgina diu quines en tenen',
                 (await p.isVisible('a[href="resolucio.html?activitat=equacions"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=fraccions"]'))
+                    (await p.isVisible('a[href="resolucio.html?activitat=fraccions"]')) &&
+                    (await p.isVisible('a[href="resolucio.html?activitat=prioritat"]'))
             );
             await p.close();
         }
@@ -726,6 +743,17 @@ function engegaServidor() {
             await p.evaluate(() => window.resolucio.pissarra.seguent()); // 2c: la segona fracció
             await lliureF();
             await provaPasCongelat(p, '#pissarra', 'fraccions, tancar el detall (de diverses línies amunt)', () =>
+                p.evaluate(() => {
+                    window.resolucio.pissarra.seguent();
+                })
+            );
+            await p.close();
+
+            // Prioritat: a la taula, els tokens de l'operació volen de la seva cel·la i es fusionen en el resultat
+            p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await p.goto(BASE + '/resolucio.html?activitat=prioritat&nivell=4');
+            await p.waitForFunction(() => window.resolucio);
+            await provaPasCongelat(p, '#pissarra', 'prioritat, pas 2 (la taula)', () =>
                 p.evaluate(() => {
                     window.resolucio.pissarra.seguent();
                 })

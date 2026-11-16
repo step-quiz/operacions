@@ -249,6 +249,18 @@
             margin-left: 1px;
         }
         table.centrat td.dest   { color: var(--dest); border-bottom: 0.09em solid currentColor; }
+        /* «Mira com es resol»: la resolució pas a pas d'una expressió semblant (resolucio.html) */
+        .mira-com {
+            display: block;
+            width: fit-content;
+            margin: 14px auto 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
+        }
+        .mira-com:hover { color: var(--primary-dark); border-bottom-style: solid; }
         /* Les línies que no ha fet l'alumne (Pas a pas, sense intents) */
         table.centrat tr.auto td { color: var(--text-muted); }
         .solution-box table.centrat { font-size: 1.25em; }
@@ -425,6 +437,7 @@
 
         <div class="solution-box" id="solution-box" aria-live="polite"></div>
         <div class="hint-text" id="hint-text"></div>
+        <a class="mira-com" id="mira-com" href="resolucio.html?activitat=prioritat" target="_blank" rel="noopener">Mira com es resol una expressió com aquesta ↗</a>
     </div>
 </div>
 
