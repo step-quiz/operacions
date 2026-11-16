@@ -16,6 +16,7 @@
  *     seguent()        anima el pas següent (Promise: acaba quan acaba l'animació)
  *     salta(i)         mostra el pas i, sense animació
  *     repeteix()       torna a animar l'arribada al pas actual («Torna-ho a veure»)
+ *     afanya()         acaba de cop l'animació que s'està fent (tocar la pissarra): el pas queda escrit
  *   · PAS A PAS LLIURE (l'activitat decideix cada pas segons el que fa l'alumne):
  *     encua(pas, {anima, velocitat})  el mostra (o l'anima) quan acaba el que hi ha a la cua; la cua
  *                      no es bloqueja mai: si una animació falla, el pas es mostra sense animació
@@ -116,7 +117,6 @@ export function element(etiqueta, atributs = {}, fills = []) {
     return e;
 }
 
-const espera = ms => new Promise(resol => setTimeout(resol, ms));
 const escapa = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /** «Text amb $fórmules$» → HTML (el text d'un pas, un enunciat). */
@@ -367,8 +367,35 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
 
     let velocitat = 1;
     const reduit = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const temps = ms => Math.max(60, ms / velocitat);
+    // «Acaba ara» (afanya): mentre presa és cert, cada fase que queda dura un instant
+    let presa = false;
+    const temps = ms => (presa ? 1 : Math.max(60, ms / velocitat));
     const cursor = creaCursor(r.escenari, r.cursor, temps);
+    // Les esperes d'una transició (requadres d'avís, el cursor): afanya() les acaba totes de cop
+    const esperes = new Set();
+    const esperaP = ms =>
+        new Promise(resol => {
+            const acaba = () => {
+                clearTimeout(t);
+                esperes.delete(acaba);
+                resol();
+            };
+            const t = setTimeout(acaba, ms);
+            esperes.add(acaba);
+        });
+    /** Acaba de cop el pas que s'està animant (tocar la pissarra o l'espai): torna fals si no n'hi ha cap. */
+    function afanya() {
+        if (!ocupat) return false;
+        presa = true;
+        [...esperes].forEach(f => f());
+        for (const a of r.escenari.getAnimations({ subtree: true }))
+            try {
+                a.finish();
+            } catch (e) {
+                /* una animació infinita no es pot acabar: es deixa */
+            }
+        return true;
+    }
 
     let capa = null; // capa visible: les files del pas actual
     let usades = null; // les files que fa servir algun pas del guió (les altres no ocupen lloc)
@@ -448,7 +475,9 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
                 if (tex) usades.add(i);
             });
         const petita = typeof matchMedia === 'function' && matchMedia(MIDA.pantallaPetita).matches;
-        const base = petita ? MIDA.petita : MIDA.gran;
+        // --pis-escala (CSS de la pàgina, p. ex. el mode professor de resolucio.html) fa la lletra més grossa
+        const escala = parseFloat(getComputedStyle(r.escenari).getPropertyValue('--pis-escala')) || 1;
+        const base = Math.round((petita ? MIDA.petita : MIDA.gran) * escala);
         const posaMida = px => r.pissarra.style.setProperty('--pis-mida', px + 'px');
         posaMida(base);
         const prova = element('div', { class: 'pis-fila pis-prova' });
@@ -719,13 +748,13 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             await cursor.va(r0.cx, r0.cy + r0.h * 0.15);
             arrossegat = { r0, r1, el: requadre(r0, temps(TEMPS.agafa)) };
             cursor.prem(true);
-            await espera(temps(TEMPS.agafa));
+            await esperaP(temps(TEMPS.agafa));
         } else if (c.clic && RA.has(c.clic)) {
             const q = lloc(RA, TA, c.clic);
             await cursor.va(q.cx, q.cy + q.h * 0.15);
             cursor.prem(true);
             cursor.ona(q.cx, q.cy);
-            await espera(temps(TEMPS.clic));
+            await esperaP(temps(TEMPS.clic));
             cursor.prem(false);
             await cursor.va(q.x + q.w + 10, q.y + q.h + 8, temps(TEMPS.aparta));
         }
@@ -756,7 +785,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             for (const [kb, kas] of grups)
                 for (const rs of trossosDeFusio(kas, RA)) avisos.push({ r0: unio(rs), r1: RB.get(kb) });
             for (const a of avisos) a.el = requadre(a.r0, temps(TEMPS.avis));
-            if (avisos.length) await espera(temps(TEMPS.avis + TEMPS.lectura));
+            if (avisos.length) await esperaP(temps(TEMPS.avis + TEMPS.lectura));
         }
 
         /* 3. El moviment. La capa nova apareix sense els símbols amb clau, que fan de fantasmes. */
@@ -959,6 +988,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
     async function animaFins(de, i) {
         if (ocupat || i < 1 || i >= passos.length) return;
         ocupat = true;
+        presa = false;
         if (de !== idx) mostra(passos[de]);
         idx = i;
         avisa();
@@ -988,6 +1018,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
             return true;
         }
         ocupat = true;
+        presa = false;
         try {
             ajusta([actual, ...nous]);
             mostra(actual);
@@ -1073,6 +1104,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         if (!capa || !passos.length) return mostraPas(pas);
         const actual = passos[idx];
         ocupat = true;
+        presa = false;
         try {
             ajusta([actual, pas]);
             mostra(actual); // amb la mida de lletra que serveix per als dos passos
@@ -1136,6 +1168,7 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
         salta,
         canviaGuio,
         repeteix: () => animaFins(idx - 1, idx),
+        afanya,
         reajusta,
         velocitat(v) {
             if (v > 0) velocitat = v;

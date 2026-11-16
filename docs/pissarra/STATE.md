@@ -30,7 +30,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
 | 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). B for `fraccions` published (PR #21). Scenario B for `prioritat` DONE on the branch (decision 19): stage 3 complete |
 | 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
-| 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
+| 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | DONE 2026-11-16 on the branch (decision 20) |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
 
 ## Decisions approved by the user
@@ -121,6 +121,13 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     sums (generator levels 0–2), left to right (3), powers (4–5), parentheses (6–8), everything (9). Same
     pattern as `fraccions`: `js/prioritat/resolucio.js`, registry, `SUPORTA_PISSARRA`, `pissarra: true`,
     «Mira com es resol» in `prioritat.html` (agent A may extend `prioritat` in its delivery 14: only add).
+20. **Stage 5, class use** (2026-11-16, dialog): U1 = tapping the board (or Space) while a step animates
+    **finishes it at once** (`pissarra.afanya()`: pending waits resolve, running animations `finish()`, the rest
+    of the phases last 1 ms); a small **↺ next to «Pas 3 de 5»** replays the current step (`repeteix()`).
+    U3 = **«Mode professor» button** in `resolucio.html` (also `?professor=1`): big board (`--pis-escala: 1.8`
+    read by `ajusta()`), no header, levels or captions; fullscreen when entered with the button (a URL entry
+    shows «Pantalla completa»); arrows, Space and a presenter remote (PageUp/PageDown; while a step animates,
+    «next» finishes it first). Not chosen: the teacher typing the exercise.
 
 ## Technical decisions (agent)
 

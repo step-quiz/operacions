@@ -82,6 +82,14 @@
         .accions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
         /* La pissarra té la seva barra quan la resolució és llarga (es veu sempre l'última línia) */
         #pissarra .pis-escenari { max-height: min(64vh, 620px); }
+        /* Mode professor (per al projector): la pissarra gran, sense les frases (el professor ho explica de
+           paraula); es passen els passos amb les fletxes, l'espai o un comandament (Re Pàg / Av Pàg) */
+        .tria[aria-pressed="true"], .accio[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-light); font-weight: 700; }
+        body.professor header, body.professor .nota, body.professor #nivells { display: none; }
+        body.professor main { max-width: none; padding: 10px 24px 16px; }
+        body.professor .barra { margin-bottom: 8px; }
+        body.professor #pissarra .pis-escenari { --pis-escala: 1.8; font-size: 1.8em; max-height: calc(100vh - 175px); }
+        body.professor #pissarra .pis-text-pas { display: none; }
         .avis { padding: 14px 16px; border: 1px solid var(--border-heavy); border-radius: 10px; background: #fff; }
         .avis ul { margin: 8px 0 0; }
     </style>
@@ -97,6 +105,8 @@
         <div class="barra" id="barra" hidden>
             <div id="nivells" role="group" aria-label="Nivell"></div>
             <div class="accions">
+                <button type="button" class="accio" id="professor" aria-pressed="false">Mode professor</button>
+                <button type="button" class="accio" id="pantalla" hidden>Pantalla completa</button>
                 <button type="button" class="accio" id="un-altre">Un altre exercici</button>
                 <a class="accio principal" id="fes-ho-tu" href="index.html">Ara fes-ho tu</a>
             </div>

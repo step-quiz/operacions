@@ -839,6 +839,84 @@ function engegaServidor() {
                 await p.close();
             }
         }
+
+        suite('12. A classe: tocar per acabar el pas, ↺ i el mode professor');
+        {
+            const p = await navegador.newPage({ viewport: { width: 1280, height: 800 } });
+            const errors = [];
+            p.on('pageerror', e => errors.push(String(e)));
+            p.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            await p.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
+            await p.waitForFunction(() => window.resolucio);
+            const lliure = () => p.waitForFunction(() => !window.resolucio.pissarra.ocupat, null, { timeout: 8000 });
+            const pas = () => p.evaluate(() => window.resolucio.pissarra.pas);
+            ok('al primer pas, el ↺ no hi és', !(await p.isVisible('.pis-repeteix')));
+            // Tocar la pissarra mentre s'anima: el pas queda escrit de seguida
+            await p.evaluate(() => {
+                window.resolucio.pissarra.seguent();
+            });
+            await p.waitForTimeout(120);
+            const t0 = Date.now();
+            await p.click('#pissarra .pis-escenari');
+            await lliure();
+            ok(
+                `tocar la pissarra acaba el pas de cop (${Date.now() - t0} ms)`,
+                Date.now() - t0 < 900 && (await pas()) === 1
+            );
+            const r = await p.evaluate(REVISA, 'resolucio');
+            ok('el pas acabat de cop té els seus símbols i cap resta de l’animació', !r, r);
+            // ↺: torna a animar el mateix pas
+            ok('després del primer pas, el ↺ hi és', await p.isVisible('.pis-repeteix'));
+            await p.click('.pis-repeteix');
+            const anima = await p.evaluate(() => window.resolucio.pissarra.ocupat);
+            await lliure();
+            ok('↺ torna a animar el mateix pas', anima && (await pas()) === 1);
+            // L'espai acaba el pas que s'anima; Av Pàg i Re Pàg passen els passos
+            await p.keyboard.press('PageDown');
+            await p.waitForTimeout(100);
+            await p.keyboard.press('Space');
+            await lliure();
+            eq('Av Pàg passa al pas següent i l’espai l’acaba de cop', await pas(), 2);
+            await p.keyboard.press('PageUp');
+            await lliure();
+            eq('Re Pàg torna al pas anterior', await pas(), 1);
+            // Mode professor
+            await p.click('#professor');
+            await p.waitForTimeout(500);
+            const dins = await p.evaluate(() => ({
+                classe: document.body.classList.contains('professor'),
+                adreca: location.search,
+                frase: getComputedStyle(document.querySelector('.pis-text-pas')).display,
+                mida: parseFloat(getComputedStyle(document.querySelector('.pis-pissarra')).fontSize),
+                capcalera: getComputedStyle(document.querySelector('header')).display,
+            }));
+            ok(
+                `mode professor: pissarra gran (${dins.mida}px), sense frases ni capçalera, i a l’adreça`,
+                dins.classe &&
+                    dins.adreca.endsWith('&professor=1') &&
+                    dins.frase === 'none' &&
+                    dins.capcalera === 'none' &&
+                    dins.mida > 40,
+                JSON.stringify(dins)
+            );
+            await p.click('#professor');
+            await p.waitForTimeout(300);
+            const fora = await p.evaluate(() => [document.body.classList.contains('professor'), location.search]);
+            ok(
+                'en sortir, tot torna a ser com abans',
+                !fora[0] && !fora[1].includes('professor'),
+                JSON.stringify(fora)
+            );
+            await p.goto(BASE + '/resolucio.html?activitat=prioritat&nivell=4&professor=1');
+            await p.waitForFunction(() => window.resolucio);
+            ok(
+                '?professor=1 obre en mode professor, amb el botó «Pantalla completa»',
+                (await p.evaluate(() => document.body.classList.contains('professor'))) &&
+                    (await p.isVisible('#pantalla'))
+            );
+            ok('cap error a la consola', !errors.length, errors.join('\n      → '));
+            await p.close();
+        }
     } finally {
         await navegador.close();
         servidor.kill();

@@ -12,7 +12,8 @@
  *     reprodueix  botó per reproduir tots els passos seguits
  *     punts       un punt per pas (es pot clicar per anar-hi)
  *     velocitat   lenta / normal / ràpida
- *     teclat      espai = reprodueix, fletxes ← → = pas anterior o següent
+ *     teclat      espai = reprodueix (o acaba el pas que s'anima), fletxes ← → i Re Pàg / Av Pàg (un
+ *                 comandament de presentacions) = pas anterior o següent
  *                 (per defecte false: dins d'una activitat el teclat és de l'alumne)
  *     detall      (oberts) → passos: el guió amb els passos d'«oberts» oberts (formules.js
  *                 historial amb detall i objectiu). Amb aquesta opció, al costat del text
@@ -65,6 +66,14 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         punts: o.punts ? element('div', { 'class': 'pis-punts', 'role': 'group', 'aria-label': 'Passos' }) : null,
         velocitat: o.velocitat ? element('select', { id }) : null,
         numPas: element('span', { class: 'pis-num-pas' }),
+        // ↺ «Torna-ho a veure»: torna a animar el pas que es veu
+        repeteix: element('button', {
+            'class': 'pis-repeteix',
+            'type': 'button',
+            'title': 'Torna a veure aquest pas',
+            'aria-label': 'Torna a veure aquest pas',
+            'text': '↺',
+        }),
         textPas: element('span', { class: 'pis-text-pas' }),
         detall: element('button', { class: 'pis-detall-boto', type: 'button', hidden: '' }),
     };
@@ -89,6 +98,7 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
                 : null,
         ]),
         element('div', { class: 'pis-explicacio-fila' }, [
+            r.repeteix,
             element('p', { 'class': 'pis-explicacio', 'aria-live': 'polite' }, [r.numPas, r.textPas]),
             r.detall,
         ]),
@@ -136,6 +146,8 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         r.detall.hidden = !detall || !(pas.teDetall || pas.pare);
         r.detall.textContent = pas.teDetall ? 'Vull més detall' : 'Menys detall';
         r.detall.disabled = pissarra.ocupat;
+        r.repeteix.hidden = idx === 0;
+        r.repeteix.disabled = pissarra.ocupat;
         r.anterior.disabled = idx === 0;
         r.reinicia.disabled = idx === 0;
         r.seguent.disabled = idx === darrer;
@@ -230,24 +242,41 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         atura();
         pissarra.salta(0);
     });
+    r.repeteix.addEventListener('click', () => {
+        atura();
+        if (!pissarra.ocupat && pissarra.pas > 0) pissarra.repeteix();
+    });
+    // Tocar la pissarra mentre un pas s'anima l'acaba de cop (el pas queda escrit)
+    if (pissarra.element) pissarra.element.addEventListener('click', () => pissarra.afanya());
+
+    /** Pas següent; si un pas s'està animant, primer l'acaba (un comandament de presentacions no espera). */
+    function endavant() {
+        atura();
+        if (!pissarra.afanya()) pissarra.seguent();
+    }
+    function endarrere() {
+        atura();
+        pissarra.afanya();
+        pissarra.salta(pissarra.pas - 1);
+    }
 
     if (o.teclat) {
         document.addEventListener('keydown', e => {
             if (e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented || !bloc.isConnected) return;
             const t = e.target instanceof Element ? e.target : document.body;
             if (t.closest('input, select, textarea, [role="spinbutton"]')) return;
-            if (e.key === ' ' && r.reprodueix) {
+            if (e.key === ' ') {
                 if (t.closest('button, a')) return; // l'espai ja prem el botó enfocat
                 e.preventDefault();
-                reprodueix();
-            } else if (e.key === 'ArrowRight') {
+                // L'espai: atura la reproducció; si no, acaba el pas que s'anima; si no, reprodueix
+                if (reproduint) atura();
+                else if (!pissarra.afanya() && r.reprodueix) reprodueix();
+            } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
                 e.preventDefault();
-                atura();
-                pissarra.seguent();
-            } else if (e.key === 'ArrowLeft') {
+                endavant();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
                 e.preventDefault();
-                atura();
-                pissarra.salta(pissarra.pas - 1);
+                endarrere();
             }
         });
     }
