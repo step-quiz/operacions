@@ -111,7 +111,8 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     (not on operating); the lcm is found by **trying the multiples of the larger denominator** (6 and 9: 9, 18).
 17. The name «Resolució pas a pas» belongs to B only (2026-11-15). In A, the `equacions.html` subtitle is
     «Resol-la pas a pas» (it was «Resolució pas a pas» since 2026-10-18 and read as if A had the board) and
-    the `prioritat.html` steps box is labelled «Passos de l'operació» for screen readers.
+    the `prioritat.html` steps box is labelled «Passos de l'operació» for screen readers. On 2026-11-16 (David)
+    the same for agent A's `equacions-segon-grau.html`: its subtitle is «Resol-la pas a pas».
 19. **Scenario B for `prioritat`** (2026-11-15, dialog; built 2026-11-16): the board is the activity's
     **centred table** (`js/prioritat/renderer.js` with `claus`, `fusioUltimaLinia`, `copiesUltimaLinia`: an
     HTML row via `historial({ pinta, envolta })`), **one operation per step** with a caption that says why it
@@ -392,6 +393,9 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   `tableHtml` is unchanged apart from that. Table CSS for the board: `css/pissarra.css` (`.pis-fila
   table.centrat`, `tr.final`, `tr.pis-objectiu`). Browser: suites 6 (link), 7 (B, laptop and phone, `provaDetall`
   counts the marked operation above the grey row as the detail), 9 (faithful ghosts in the table).
+- Fixed 2026-11-16: the ghost of a power (3²) started 1.9 px too high, because the board rule for `<sup>` was
+  scoped to `.pis-fila table.centrat` and the ghost flies outside the table; `.pis-fantasma sup` now shares it.
+  Suite 9 picks an exercise whose first step is a power, so the check no longer depends on chance.
 
 ## Known limits
 

@@ -29,6 +29,7 @@ export const EXERCISE_CODES = {
     'identitats-notables': 'IN',
     'fraccio-decimal-percentatge': 'FD',
     'percentatges': 'PE',
+    'canvi-unitats': 'CU',
     'recta': 'RC',
     'parabola': 'PA',
     'grafiques-context': 'GX',

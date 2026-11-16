@@ -50,6 +50,7 @@ La columna **Codi** és el camp `EE` del codi de verificació. La taula completa
 | Nombres decimals | DI | `decimals.html` | sí |
 | Fracció, decimal i percentatge | FD | `fraccio-decimal-percentatge.html` | sí |
 | Percentatges | PE | `percentatges.html` | sí |
+| Canvi d'unitats | CU | `canvi-unitats.html` | sí |
 | Llenguatge algebraic | LA | `llenguatge-algebraic.html` | sí |
 | Expressions algebraiques | EA | `expressions-algebraiques.html` | sí |
 | Identitats notables | IN | `identitats-notables.html` | sí |
@@ -135,7 +136,7 @@ js/
 ├── codi-finestra.js    ← La icona «Codi» i la finestra del codi; generaCodi() munta el codi v2
 ├── teclat.js           ← El teclat numèric propi dels aparells tàctils (un per a totes les activitats)
 ├── game-core.js        ← Motor de joc (sessions, puntuació, codi v2, teclat; acabaPregunta)
-├── passos/             ← Joc de passos comú (joc-passos.js), correcció dels passos (correccio.js, pur), textos, figures de fraccions, quadrícula cartesiana i gràfic estadístic (figura-fraccio.js, quadricula.js, grafic-estadistic.js, grafica-context.js, purs)
+├── passos/             ← Joc de passos comú (joc-passos.js), correcció dels passos (correccio.js, pur), textos, figures de fraccions, quadrícula cartesiana, gràfic estadístic i escala de les unitats (figura-fraccio.js, quadricula.js, grafic-estadistic.js, grafica-context.js, escala-unitats.js, purs)
 ├── algebra/            ← racionals.js i polinomis.js (purs): fraccions i decimals (amb període); monomis, polinomis i expressions (escriure, multiplicar, reduir)
 └── pissarra/           ← «Resolució pas a pas»: la pissarra animada (vegeu més avall)
 css/
@@ -148,6 +149,7 @@ css/
 ├── passos.css          ← Estil del joc de passos comú (els colors, del tema de la pàgina: cap activitat del joc de passos no té CSS propi)
 ├── quadricula.css      ← La quadrícula comuna (La recta, La paràbola i «Mira-ho a la gràfica» de Sistemes)
 ├── grafic-estadistic.css ← Els gràfics comuns: l'estadístic (barres, sectors, histogrames, pictogrames) i la gràfica amb context
+├── escala-unitats.css  ← L'escala de les unitats comuna (Canvi d'unitats)
 └── pissarra.css        ← Estil de la pissarra animada
 vendor/                 ← Llibreries externes (KaTeX, SheetJS, ExcelJS), vegeu vendor/README.md
 docs/historic/          ← Documents històrics (p. ex. el registre d'un pegat d'abril de 2026); no descriuen l'estat actual
@@ -182,6 +184,8 @@ La paleta és sòbria perquè l'alumne es concentri en les matemàtiques:
 **Fracció, decimal i percentatge** (`fraccio-decimal-percentatge.html`): el mateix nombre de quatre maneres (fracció irreductible, decimal, percentatge i dibuix); se'n dona una i cal trobar les altres. Dos nivells, com a vocabulari (`?modalitat=a|b`): **a**, arrossegar targetes (o tocar-ne una i després la casella), on les falses són errors típics (1/4 = 0,4, 4 % o 0,25 %; 0,4 = 1/4; el període tallat…); **b**, escriure la fracció, el decimal i el percentatge (amb una casella per al període) i pintar les parts del dibuix. Les dues modalitats comparteixen els 11 errors de `errors.js`. Nivells: fraccions de referència; decimals exactes, més del 100 % i menys de l'1 %; decimals periòdics (sovint es dona el decimal i cal la fracció generatriu). Les targetes, els decimals amb període i les figures per pintar són tipus de camp del joc de passos comú, a punt per a altres activitats. Proves a `tests/fraccio-decimal-percentatge.test.js`.
 
 **Percentatges** (`percentatges.html`): problemes pas a pas, amb l'enunciat a dalt (botiga, classe, enquesta…): el tant per cent d'una quantitat (abans, el percentatge en decimal o, a 1r, en fracció); augments i rebaixes amb l'índex de variació (× 1,21, × 0,7); els inversos (la quantitat d'abans, dividint per l'índex, i quin tant per cent representa una part); i dos canvis seguits (es multipliquen els índexs). `?tipus=` en tria un; sense tipus, van segons el nivell. Cada pas porta els valors que donen els errors típics, i `errors.js` (17 errors) en diu el perquè: 5 % = 0,5, l'índex sense l'1, desfer una rebaixa del 20 % amb un augment del 20 %, sumar percentatges encadenats… El diagnòstic per valors equivocats (`errorPerDistractors`) és del joc de passos comú, i també el fa servir «Fracció, decimal i percentatge». Proves a `tests/percentatges.test.js`.
+
+**Canvi d'unitats** (`canvi-unitats.html`): passar d'una unitat a una altra amb **l'escala de les unitats** (`js/passos/escala-unitats.js`): els graons d'una magnitud, de la unitat més gran a la més petita, amb la unitat de partida i la d'arribada marcades i la regla del graó a sota. Cada canvi té tres passos: quants graons hi ha i cap on (s'escull), multiplicar o dividir i per quant (s'escull: × 1000, : 100…) i el resultat (amb coma decimal). Nivells: 1 longitud, massa i capacitat (cada graó × 10); 2 superfície (× 100) i volum (× 1000); 3 volum ↔ capacitat (abans, a quina unitat de volum equival: 1 dm³ = 1 l) i de tot. `?magnitud=` en tria una. Només l'escala: ni temps ni unitats compostes (decisió del David). Cada opció dolenta i cada valor equivocat porten el seu error, i `errors.js` (6 errors) en diu el perquè: el sentit girat, un graó de més (comptar unitats en lloc de salts), × 10 per graó a les unitats de superfície o volum, la coma desplaçada, l'equivalència entre volum i capacitat.
 
 **La recta** (`recta.html`): pendent, ordenada a l'origen i y = mx + n, amb la **quadrícula comuna** (`js/passos/quadricula.js`: eixos, rectes, punts i el triangle del pendent). Quatre tipus (`?tipus=`, o tots un rere l'altre): llegir n i m a la gràfica (avanço 1, pujo m); dibuixar la recta d'una equació (taula de dos punts i situar-los tocant la quadrícula: amb dos punts ja es veu la recta, i qualsevol parell de punts de la recta és correcte); recta per dos punts; i classificar (proporcional, afí o constant; creixent o decreixent). Nivells: pendent enter, de denominador 2, de denominador 3. 14 errors típics: el pendent girat (Δx/Δy), el signe del pendent, n com a tall amb l'eix X, les coordenades girades… Dona codi de verificació. Les seccions 3a i 3b de `pla-cartesia` es queden com eren. Proves a `tests/recta.test.js`.
 

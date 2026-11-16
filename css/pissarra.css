@@ -616,7 +616,10 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 .pis-fila table.centrat td.tok-paren {
     color: var(--text-soft, #475569);
 }
-.pis-fila table.centrat sup {
+/* El superíndex d'una potència (3²), també al fantasma que vola fora de la taula: si no, el fantasma
+   comença 1,9 px més amunt que el seu original */
+.pis-fila table.centrat sup,
+.pis-fantasma sup {
     font-size: 0.62em;
     line-height: 0;
     position: relative;
