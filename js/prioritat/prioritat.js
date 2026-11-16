@@ -71,6 +71,7 @@ const els = {
     chipPool: document.getElementById('chip-pool'),
     solutionBox: document.getElementById('solution-box'),
     hintText: document.getElementById('hint-text'),
+    miraCom: document.getElementById('mira-com'), // «Mira com es resol» (resolucio.html)
     dragGhost: document.getElementById('drag-ghost'),
     esvAccions: document.getElementById('esv-accions'),
 };
@@ -177,8 +178,14 @@ function buildLevel() {
     _finished = false;
     _selectedChip = null;
 
-    const ex = MathEngine.generateExercise(levelFor(state.currentOperation));
+    const nivell = levelFor(state.currentOperation);
+    const ex = MathEngine.generateExercise(nivell);
     tokens = ex.toks;
+    // «Mira com es resol»: el grup de la resolució pas a pas (1: nivells 0–2, 2: 3, 3: 4–5, 4: 6–8, 5: 9)
+    if (els.miraCom) {
+        const grup = nivell <= 2 ? 1 : nivell === 3 ? 2 : nivell <= 5 ? 3 : nivell <= 8 ? 4 : 5;
+        els.miraCom.href = `resolucio.html?activitat=prioritat&nivell=${grup}`;
+    }
     correctAnswer = ex.val;
 
     els.feedback.textContent = '';

@@ -3,12 +3,12 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-15: two scenarios; B for `equacions` published, B for `fraccions` on the branch)
+## Status (2026-11-16: two scenarios; B for `equacions` and `fraccions` published, B for `prioritat` on the branch)
 
 | Wave | Part | Status |
 |---|---|---|
 | 0 | Engine ported (`js/pissarra/`, `css/pissarra.css`), demo page `pissarra-demo.html`, tests (`tests/pissarra.test.js`, `tests/navegador/prova-pissarra.js`, `check-repo.js` §9), index button | DONE |
-| 1 | Pilot `prioritat` (1r–2n ESO), with the fading mode that is already there | DONE (2026-10-27) as a board inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B is PENDING |
+| 1 | Pilot `prioritat` (1r–2n ESO), with the fading mode that is already there | DONE (2026-10-27) as a board inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B DONE 2026-11-16 (decision 19) |
 | 2 | `equacions` (1r grau) | DONE (2026-10-27) inside the activity; since 2026-11-15 scenario B (`resolucio.html`) instead. Its fading mode is still pending (see «Wave 2») |
 | 3 | `fraccions`: addition/subtraction and product/division | DONE (2026-10-27) inside the activity; REMOVED 2026-11-15 (decision 14); its scenario B DONE 2026-11-15 (decision 18) |
 | 4 | `potencies` and `enters` (reuse the pilot) | PENDING |
@@ -28,7 +28,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | 1 | Robustness and visual fidelity: R1 queue with recovery, R2 faithful ghosts, R3 warning boxes per run, R4 nothing changes size, R5 reduced motion and announcement | DONE (2026-11-14) |
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
-| 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). B for `fraccions` published (PR #21). Next: scenario B for `prioritat`, decisions already taken (decision 19) |
+| 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). B for `fraccions` published (PR #21). Scenario B for `prioritat` DONE on the branch (decision 19): stage 3 complete |
 | 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | PENDING |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
@@ -112,7 +112,7 @@ C new capabilities, P planned activities, X existing activities, N new activitie
 17. The name «Resolució pas a pas» belongs to B only (2026-11-15). In A, the `equacions.html` subtitle is
     «Resol-la pas a pas» (it was «Resolució pas a pas» since 2026-10-18 and read as if A had the board) and
     the `prioritat.html` steps box is labelled «Passos de l'operació» for screen readers.
-19. **Scenario B for `prioritat`** (2026-11-15, dialog; NOT built yet — next task): the board is the activity's
+19. **Scenario B for `prioritat`** (2026-11-15, dialog; built 2026-11-16): the board is the activity's
     **centred table** (`js/prioritat/renderer.js` with `claus`, `fusioUltimaLinia`, `copiesUltimaLinia`: an
     HTML row via `historial({ pinta, envolta })`), **one operation per step** with a caption that says why it
     goes first («Primer el parèntesi: 3 + 4 = 7.»); «Vull més detall» = **«per què aquesta operació»**: one
@@ -369,6 +369,22 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 - Tests: `tests/fraccions.test.js` rewritten (levels; 2,400 exercises with every detail view; an exact-rational
   model checks every visible row; a hand-made 5/6 + 7/9 example). Browser: suite 6 checks the link levels,
   suite 7 runs B for both activities on laptop and phone, suite 9 checks faithful ghosts for `id@k` flights.
+
+## Scenario B for `prioritat`: how it was built (2026-11-16, decision 19)
+
+- `js/prioritat/resolucio.js` (pure): `etapes(ex)` from `MathEngine.solve(startLine(toks))`, one per operation;
+  `passos()` uses `historial(g, { prefix: 'P', pinta, envolta, calaix, oberts, objectiu: true })` with one board
+  row (`files() = 1`): `pinta` draws a `<tr>` (keys `c<c0>x<c1>` per cell, `e` for «=»), `envolta` the
+  `<table class="centrat">`. Each step writes the next row and, with `anterior`, gives the previous row its «=»
+  and highlights (`dest`) the operation done. The tokens of the operation (and dropped parentheses) fuse into
+  the result; the rest of the row appears.
+- Detail: `D.canvia(anterior, perQue(...))` (no new row; the grey target row appears below) then `D.acaba` with
+  the same fusion. The last operation («Només queda una operació») has no detail. `tests/pissarra-activitat.js`
+  exempts such mark-only steps (same `estat` length as the previous step) from «every step moves a piece».
+- The old keyed-table helpers of `renderer.js` were deleted (B uses `historial` keys); the activity's
+  `tableHtml` is unchanged apart from that. Table CSS for the board: `css/pissarra.css` (`.pis-fila
+  table.centrat`, `tr.final`, `tr.pis-objectiu`). Browser: suites 6 (link), 7 (B, laptop and phone, `provaDetall`
+  counts the marked operation above the grey row as the detail), 9 (faithful ghosts in the table).
 
 ## Known limits
 

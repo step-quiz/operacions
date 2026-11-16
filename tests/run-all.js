@@ -25,6 +25,7 @@ const TESTS = [
     ['Mode esvaïment', 'tests/esvaiment.test.js'],
     ['Equacions de 1r grau (empremta i resolució pas a pas)', 'tests/equacions.test.js'],
     ['Fraccions (resolució pas a pas)', 'tests/fraccions.test.js'],
+    ["Prioritat d'operacions (resolució pas a pas)", 'tests/prioritat.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],

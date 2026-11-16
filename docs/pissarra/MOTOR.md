@@ -58,6 +58,7 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 | `js/pissarra/mode.js` | `SUPORTA_PISSARRA`: the activities that have scenario B (= the keys of `js/resolucio/activitats.js` = `pissarra: true` in `index.html`). Activities import nothing from `js/pissarra/`. |
 | `resolucio.html`, `js/resolucio/resolucio.js`, `js/resolucio/activitats.js` | Scenario B: watch an exercise being solved (§4). |
 | `js/equacions/resolucio.js` | The pure procedure of `equacions` for scenario B (TeX script, captions, detail of each step). |
+| `js/prioritat/resolucio.js` | The pure procedure of `prioritat` for scenario B: the activity's centred table as one HTML row (`historial` with `pinta` = one `<tr>` per line, keys = the statement columns `c<c0>x<c1>`, `e` for «=»), one operation per step with the reason (`motiuPas`); detail «per què aquesta operació» = a mark-only sub-step (`D.canvia`, class `dest`) and `D.acaba`; 5 levels grouping the generator's 10. |
 | `js/fraccions/resolucio.js` | The pure procedure of `fraccions` for scenario B: a chain of equalities in TeX (common denominator, operate, simplify; levels 1–4), with detail for the common denominator (lcm by multiples of the larger denominator, then each fraction amplified on its own line), simplifying (gcd, then both divisions) and dividing (invert the second fraction). Side computations (lcm, gcd, amplifying) do not start with «=». |
 | `js/pissarra/demo.js`, `demo-pagina.js`, `pissarra-demo.html` | Five model scripts (order of operations, a linear equation, a sum of fractions, Pythagoras: the letters and the legs fly from an SVG triangle into the formula, and 2(x + 3) = 14 with `reparteix` and detail on demand on steps 2, 3 and 5, opened with the player's button) and the demo page. |
 | `css/pissarra.css` | All the look. Every class starts with `pis-`; row classes from procedures (`final`, `separat`, `destacat`, `text`, `figura`, `detall`) only apply inside `.pis-fila`. Colour = the activity's `--primary` / `--primary-light`. The detail drawer: `.pis-calaix*` and `.pis-fila.detall`. |
@@ -101,9 +102,10 @@ HTML row) with its final keys, so `D.acaba()` turns it normal while the sub-line
 
 **An HTML row** (all the lines in one row of the board): give the painter `(linia, clauDe, classe, {nivell,
 text}) → html` (any line object; `clauDe(id)` the key for `data-k`, null for the classic HTML) and
-`envolta(textos) → html`; the lines of an opened step go into `calaix(linies, {id, titol, nou})`. No page uses it
-since the two scenarios (15/11/2026): scenario B of `equacions` and `fraccions` writes TeX (`pintaTex` in each
-`js/<activity>/resolucio.js`); `tests/pissarra.test.js` §2b keeps an HTML example.
+`envolta(textos) → html`; the lines of an opened step go into `calaix(linies, {id, titol, nou})`. Scenario B of
+`prioritat` uses it: each line is a `<tr>` of the centred table and `envolta` wraps them in the `<table>`; its
+detail writes no line (`D.canvia` highlights the operation, then `D.acaba`), so the drawer stays empty. Scenario B
+of `equacions` and `fraccions` writes TeX (`pintaTex` in each `js/<activity>/resolucio.js`).
 
 Low level (what `historial()` writes for you): set `g.files[i]` to keyed TeX (`clau`, `op`, `rel`) and call
 `g.afegeix(text, {fusiona, reanomena, reparteix, copia, cursor})`; `g.classes[i] = 'final'` highlights the

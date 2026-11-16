@@ -38,4 +38,16 @@ export const ACTIVITATS = Object.freeze({
         ]),
         carrega: () => import('../fraccions/resolucio.js').then(m => m.Resolucio),
     }),
+    prioritat: Object.freeze({
+        nom: "Prioritat d'operacions",
+        pagina: 'prioritat.html',
+        nivells: Object.freeze([
+            [1, 'Productes i sumes'],
+            [2, "D'esquerra a dreta"],
+            [3, 'Potències'],
+            [4, 'Parèntesis'],
+            [5, 'Tot combinat'],
+        ]),
+        carrega: () => import('../prioritat/resolucio.js').then(m => m.Resolucio),
+    }),
 });
