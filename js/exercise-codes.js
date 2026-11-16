@@ -24,6 +24,14 @@ export const EXERCISE_CODES = {
     'enters-ordenar': 'EO',
     'fraccions': 'FR',
     'equacions': 'EQ',
+    'equacions-segon-grau': 'SG',
+    'expressions-algebraiques': 'EA',
+    'identitats-notables': 'IN',
+    'fraccio-decimal-percentatge': 'FD',
+    'percentatges': 'PE',
+    'recta': 'RC',
+    'parabola': 'PA',
+    'grafiques-context': 'GX',
     'sistemes-equacions': 'SE',
     'mcd-mcm': 'MC',
     'potencies': 'PT',
@@ -39,6 +47,7 @@ export const EXERCISE_CODES = {
     'estadistica': 'ED',
     'mitjana': 'MJ',
     'estadistica-inversa': 'EI',
+    'grafics-estadistics': 'GE',
     'gots-fitxes': 'GC',
     'prioritat': 'PO',
     'llenguatge-algebraic': 'LA',
@@ -46,11 +55,12 @@ export const EXERCISE_CODES = {
     'raons-trigonometria': 'RT',
     'teorema-sin-cos': 'TC',
     // Batxillerat
-    'derivades': 'DV',
-    'integrals': 'IT',
     'asimptotes': 'AS', // asimptotes.js genera el codi pel seu compte (no fa servir game-core.js)
     // Batxillerat (codis reservats: aquestes activitats ara no generen codi,
-    // però es mantenen perquè l'analitzador pugui llegir codis antics)
+    // però es mantenen perquè l'analitzador pugui llegir codis antics;
+    // derivades i integrals en van donar fins al 14/11/2026)
+    'derivades': 'DV',
+    'integrals': 'IT',
     'complexos': 'CX',
     'ruffini': 'RU',
     'grafica-i-funcio': 'GF',

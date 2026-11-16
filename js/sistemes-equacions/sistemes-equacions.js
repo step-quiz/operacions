@@ -30,6 +30,7 @@ import {
     validateConfig,
     acabaPregunta,
 } from '../game-core.js';
+import { posaBotoGrafica } from './grafica.js'; // botó «Mira-ho a la gràfica» en acabar cada sistema
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel, checkCurrentCell) i els onclick de l'HTML.
@@ -1678,6 +1679,7 @@ function finalizeProblem(forcedPoints) {
 
     var pts = forcedPoints !== null ? forcedPoints : stepPoints;
     if (pts === 0) showCorrectAnswer(currentProblem);
+    posaBotoGrafica(currentProblem, els.expressionBox); // les dues rectes i el punt de tall
 
     acabaPregunta(pts, { encert: forcedPoints !== 0 });
 }

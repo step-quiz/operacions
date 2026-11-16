@@ -23,23 +23,33 @@
       { file: 'potencies.html', label: 'Potències', yt: '', fixed: true },
       { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true },
       { file: 'factoritzar.html', label: 'Descompondre en factors primers', yt: 'https://youtu.be/s2LGUllVMfM', fixed: true },
+      { file: 'arbre.html', label: 'Arbres de factorització', yt: '', autonoma: true },
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ', fixed: true },
       { separator: true },
       { file: 'proporciodirecta.html', label: 'Proporció directa', yt: 'https://a.step-quiz.net/a-proporciodirecta-tutorial.html', difficulty: true, fixed: true },
       { file: 'fraccions.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI', difficulty: true, fixed: true },
       { file: 'decimals.html', label: 'Nombres decimals', yt: 'https://a.step-quiz.net/a-decimals-tutorial.html', difficulty: true, fixed: true },
+      { file: 'fraccio-decimal-percentatge.html', label: 'Fracció, decimal i percentatge', yt: '', difficulty: true, fixed: true },
+      { file: 'percentatges.html', label: 'Percentatges', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'llenguatge-algebraic.html', label: 'Llenguatge algebraic', yt: '', fixed: true },
+      { file: 'expressions-algebraiques.html', label: 'Expressions algebraiques', yt: '', difficulty: true, fixed: true },
+      { file: 'identitats-notables.html', label: 'Identitats notables', yt: '', difficulty: true, fixed: true },
       { file: 'equacions.html', label: 'Equacions de 1r grau', yt: 'https://youtu.be/Ad9BBLqYgyc', fixed: true, pissarra: true },
       { file: 'gots-fitxes.html', label: 'Gots i fitxes (equacions)', yt: '', difficulty: true, fixed: true },
       { file: 'sistemes-equacions.html', label: "Sistemes d'equacions", yt: '', fixed: true },
+      { file: 'equacions-segon-grau.html', label: 'Equacions de 2n grau', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'radicals.html', label: 'Simplificació de radicals', yt: '', fixed: true },
       { file: 'pla-cartesia.html', label: 'Pla cartesià', yt: '', difficulty: true, fixed: true },
+      { file: 'recta.html', label: 'La recta', yt: '', difficulty: true, fixed: true },
+      { file: 'parabola.html', label: 'La paràbola', yt: '', difficulty: true, fixed: true },
+      { file: 'grafiques-context.html', label: 'Gràfiques en context', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'estadistica.html', label: 'Estudi estadístic', yt: '', fixed: true },
       { file: 'mitjana.html', label: 'Mitjana aritmètica', yt: '', fixed: true },
       { file: 'estadistica-inversa.html', label: 'Paràmetres estadístics', yt: '', difficulty: true, fixed: true },
+      { file: 'grafics-estadistics.html', label: 'Gràfics estadístics', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'probabilitat.html', label: 'Probabilitat', yt: '', difficulty: true, fixed: true },
       { separator: true },
@@ -72,6 +82,54 @@
     // Menú d'activitats d'ESO: es desplega només fins a aquesta activitat i deixa veure
     // el principi de la següent (així es nota que el menú continua) sense tapar el botó «Obre».
     const ESO_LLISTA_FINS = 'prioritat.html';
+
+    // Opcions pròpies de cada activitat. Cada opció és una fila del panell (un desplegable) i,
+    // si el valor triat no és '', afegeix «param=valor» a l'enllaç. Es declaren aquí, un sol cop:
+    // el panell crea les files a partir d'aquesta taula. La pàgina de l'activitat ha de llegir
+    // el paràmetre (tests/check-repo.js comprova que el seu codi l'anomena).
+    //   'activitat.html': [{ param, label, valors: [[valor, text], …], title }]
+    // Una activitat amb «autonoma: true» a la seva llista no fa servir el motor comú: l'enllaç
+    // és només la pàgina, i les files de sessions, preguntes, errors i criteri s'amaguen.
+    const OPCIONS_ACTIVITAT = {
+      'vocabulari.html': [
+        { param: 'dim', label: 'Dimensió', valors: [['', 'Totes'], ['2', '2: figures al pla'], ['3', "3: cossos a l'espai"]] },
+        { param: 'modalitat', label: 'Nivell', valors: [['a', 'Fàcil (arrossegar)'], ['b', 'Difícil (escriure)']] }
+      ],
+      'expressions-algebraiques.html': [
+        { param: 'tipus', label: 'Tipus', valors: [['', "Totes, una rere l'altra"], ['reduir', 'Reduir termes semblants'], ['monomis', 'Producte de monomis'], ['distributiva', 'Treure parèntesis'], ['binomis', 'Producte de binomis']] },
+        { param: 'lletres', label: 'Lletres', valors: [['', 'Una (x)'], ['2', 'Dues (x i y)']] }
+      ],
+      'parabola.html': [
+        { param: 'tipus', label: 'Tipus', valors: [['', 'Dibuixar i després llegir'], ['dibuixar', "De l'expressió a la gràfica"], ['llegir', "De la gràfica a l'expressió"]] }
+      ],
+      'recta.html': [
+        { param: 'tipus', label: 'Tipus', valors: [['', "Tots, un rere l'altre"], ['llegir', 'Llegir m i n a la gràfica'], ['dibuixar', "Dibuixar-la a partir de l'equació"], ['dos-punts', 'Recta per dos punts'], ['classificar', 'Classificar']] }
+      ],
+      'percentatges.html': [
+        { param: 'tipus', label: 'Tipus', valors: [['', 'Segons el nivell'], ['calcul', "El tant per cent d'una quantitat"], ['variacio', 'Augments i rebaixes'], ['invers', 'Problemes inversos'], ['encadenats', 'Dos canvis seguits']] }
+      ],
+      'fraccio-decimal-percentatge.html': [
+        { param: 'modalitat', label: 'Nivell', valors: [['a', 'Fàcil (arrossegar)'], ['b', 'Difícil (escriure)']] }
+      ],
+      'identitats-notables.html': [
+        { param: 'tipus', label: 'Tipus', valors: [['', 'Desenvolupar i després factoritzar'], ['desenvolupar', 'Desenvolupar'], ['factoritzar', 'Factoritzar (i decidir si ho és)']] },
+        { param: 'lletres', label: 'Lletres', valors: [['', 'Una (x)'], ['2', 'Dues (x i y)']] },
+        { param: 'fraccions', label: 'Coeficients', valors: [['', 'Enters'], ['1', 'També fraccions']] }
+      ],
+      'equacions-segon-grau.html': [
+        { param: 'tipus', label: 'Tipus', valors: [['', 'Totes (sense biquadrades)'], ['incompletes', 'Incompletes'], ['completes', 'Completes'], ['ordenar', 'Per ordenar'], ['biquadrades', 'Biquadrades']] }
+      ],
+      'grafics-estadistics.html': [
+        { param: 'grafics', label: 'Gràfics', valors: [['', "Tots, un rere l'altre"], ['1r-2n', '1r i 2n: barres, sectors i pictogrames'], ['3r-4t', '3r i 4t: barres, sectors, histogrames i polígons'], ['barres', 'Diagrames de barres'], ['sectors', 'Diagrames de sectors'], ['pictogrames', 'Pictogrames'], ['histogrames', 'Histogrames i polígons']] },
+        { param: 'preguntes', label: 'Preguntes', valors: [['', 'Segons el nivell'], ['llegir', 'Llegir el gràfic'], ['calcular', 'Percentatges i paràmetres'], ['afirmacions', 'Quina afirmació és certa?'], ['enganys', 'Gràfics que enganyen']] },
+        { param: 'opcions', label: 'Opcions per triar', valors: [['', '4 opcions'], ['3', '3 opcions'], ['5', '5 opcions']] }
+      ],
+      'grafiques-context.html': [
+        { param: 'grafiques', label: 'Gràfiques', valors: [['', 'De segments i corbes'], ['segments', 'Només de segments'], ['corbes', 'Només corbes']] },
+        { param: 'preguntes', label: 'Preguntes', valors: [['', 'Segons el nivell'], ['llegir', 'Llegir valors'], ['descriure', 'Descriure (creix, més de pressa…)'], ['relat', 'Quina gràfica correspon al relat?']] },
+        { param: 'opcions', label: 'Opcions per triar', valors: [['', '4 opcions'], ['3', '3 opcions'], ['5', '5 opcions']] }
+      ]
+    };
   </script>
 
   <link rel="stylesheet" href="css/tokens.css">
@@ -127,6 +185,9 @@
 
     .row { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 10px; padding: 4px 8px; }
     .row label { font-size: 14px; font-weight: 600; text-align: left; }
+    /* Files de les opcions pròpies de cada activitat (OPCIONS_ACTIVITAT): es creen amb JS */
+    .rows-opc { display: contents; }
+    #rows-opc-batx:not(:empty) + .link-block { margin-top: 8px !important; }
 
     /* Selects natius (sessions, preguntes, errors, criteri) — sense canvis */
     select {
@@ -402,8 +463,7 @@
       <div class="sub-panel sub-panel-params">
         <div class="row" id="row-diff-eso" style="display:none"><label for="d-eso">Dificultat</label><select id="d-eso"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
         <div class="row" id="row-fixed-eso" style="display:none"><label for="fix-eso">Sessió fixa</label><select id="fix-eso"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
-        <div class="row" id="row-dim-eso" style="display:none"><label for="dim-eso">Dimensió</label><select id="dim-eso"><option value="">Totes</option><option value="2">2: figures al pla</option><option value="3">3: cossos a l'espai</option></select></div>
-        <div class="row" id="row-nivell-eso" style="display:none"><label for="nivell-eso">Nivell</label><select id="nivell-eso"><option value="a">Fàcil (arrossegar)</option><option value="b">Difícil (escriure)</option></select></div>
+        <div class="rows-opc" id="rows-opc-eso"></div>
         <div class="row" id="row-esv-eso" style="display:none" title="Exemples resolts que es van esvaint: l'alumne comença mirant un exercici resolt i cada cop en fa més passos ell. No dona codi."><label for="esv-eso">Esvaïment</label><select id="esv-eso"><option value="">No</option><option value="0">Sí, amb un exemple sencer</option><option value="1">Sí, l'alumne fa l'últim pas</option><option value="2">Sí, l'alumne fa els 2 últims</option><option value="3">Sí, l'alumne fa els 3 últims</option></select></div>
         <div class="row" id="row-mod-eso" style="display:none"><label for="mod-eso">Modalitat</label><select id="mod-eso"><option value="">Resultat final</option><option value="passos">Pas a pas</option></select></div>
         <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
@@ -436,6 +496,7 @@
         <div class="row" id="row-fixed-batx" style="display:none"><label for="fix-batx">Sessió fixa</label><select id="fix-batx"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
       </div>
       <div class="sub-panel sub-panel-params">
+        <div class="rows-opc" id="rows-opc-batx"></div>
         <div class="link-block" style="margin-top:0">
           <div class="btn-row">
             <button id="c-batx" class="copy-btn">Copia</button>
@@ -645,10 +706,7 @@
         rowD:     document.getElementById('row-diff-' + suffix),
         fix:      document.getElementById('fix-' + suffix),
         rowFix:   document.getElementById('row-fixed-' + suffix),
-        dim:      document.getElementById('dim-' + suffix),
-        rowDim:   document.getElementById('row-dim-' + suffix),
-        nivell:   document.getElementById('nivell-' + suffix),
-        rowNivell:document.getElementById('row-nivell-' + suffix),
+        rowsOpc:  document.getElementById('rows-opc-' + suffix),
         mod:      document.getElementById('mod-' + suffix),
         rowMod:   document.getElementById('row-mod-' + suffix),
         esv:      document.getElementById('esv-' + suffix),
@@ -680,14 +738,37 @@
         if (!(selected && selected.fixed) && els.fix) els.fix.value = '';
       }
 
-      function manageDimRow() {
-        if (!els.rowDim) return;
-        els.rowDim.style.display = (dropdown.getValue() === 'vocabulari.html') ? '' : 'none';
+      // Opcions pròpies de l'activitat triada (OPCIONS_ACTIVITAT): una fila per opció.
+      // Es tornen a crear cada cop que canvia l'activitat, amb el primer valor triat.
+      const opcSel = new Map();   // param → <select>
+      function manageOpcions() {
+        if (!els.rowsOpc) return;
+        els.rowsOpc.textContent = '';
+        opcSel.clear();
+        for (const o of OPCIONS_ACTIVITAT[dropdown.getValue()] || []) {
+          const row = document.createElement('div');
+          row.className = 'row';
+          if (o.title) row.title = o.title;
+          const lab = document.createElement('label');
+          const sel = document.createElement('select');
+          sel.id = `opc-${suffix}-${o.param}`;
+          lab.htmlFor = sel.id;
+          lab.textContent = o.label;
+          for (const [valor, text] of o.valors) sel.add(new Option(text, valor));
+          sel.addEventListener('change', build);
+          row.append(lab, sel);
+          els.rowsOpc.appendChild(row);
+          opcSel.set(o.param, sel);
+        }
       }
 
-      function manageNivellRow() {
-        if (!els.rowNivell) return;
-        els.rowNivell.style.display = (dropdown.getValue() === 'vocabulari.html') ? '' : 'none';
+      // Pàgines autònomes (autonoma: true): sense sessions, preguntes, errors ni criteri
+      function manageAutonoma() {
+        const selected = activities.find(a => a.file === dropdown.getValue());
+        const amaga = !!(selected && selected.autonoma);
+        [els.s, els.o, els.i, els.m].filter(Boolean).forEach(el => {
+          el.closest('.row').style.display = amaga ? 'none' : '';
+        });
       }
 
       // Activitats amb modalitats (modalitat: true), p. ex. prioritat.html: «Resultat final» o «Pas a pas»
@@ -722,13 +803,18 @@
           els.link.textContent = `${BASE_URL}resolucio.html?activitat=${file.replace(/\.html$/, '')}`;
           return;
         }
+        const selected = activities.find(a => a.file === file);
+        if (selected && selected.autonoma) {
+          els.link.textContent = `${BASE_URL}${file}`;
+          return;
+        }
         if (suffix === 'batx') {
           const qs = new URLSearchParams();
           if (els.fix && els.fix.value) qs.set('fixed', els.fix.value);
+          opcSel.forEach((sel, param) => { if (sel.value) qs.append(param, sel.value); });
           const q = qs.toString();
           els.link.textContent = `${BASE_URL}${file}` + (q ? '?' + q : '');
         } else {
-          const selected = activities.find(a => a.file === file);
           const qs = new URLSearchParams({
             totalsessions:    els.s.value,
             totaloperations:  els.o.value,
@@ -741,12 +827,7 @@
           if (els.fix && els.fix.value) {
             qs.set('fixed', els.fix.value);
           }
-          if (file === 'vocabulari.html' && els.dim && els.dim.value) {
-            qs.append('dim', els.dim.value);
-          }
-          if (file === 'vocabulari.html' && els.nivell) {
-            qs.append('modalitat', els.nivell.value);
-          }
+          opcSel.forEach((sel, param) => { if (sel.value) qs.append(param, sel.value); });
           const ambEsv = selected && selected.esvaiment && els.esv && els.esv.value !== '';
           if (selected && selected.modalitat && els.mod && els.mod.value && !ambEsv) {
             qs.append('modalitat', els.mod.value);
@@ -780,8 +861,8 @@
       function refresh() {
         manageDifficultyRow();
         manageFixedRow();
-        manageDimRow();
-        manageNivellRow();
+        manageOpcions();
+        manageAutonoma();
         manageEsvRow();
         manageModRow();
         build();
@@ -789,16 +870,16 @@
       }
       const dropdown = makeCustomDropdown('cd-' + suffix, activities, defaultFile, refresh, stopAfterFile);
 
-      build();
       manageDifficultyRow();
       manageFixedRow();
-      manageDimRow();
-      manageNivellRow();
+      manageOpcions();
+      manageAutonoma();
       manageEsvRow();
       manageModRow();
+      build();
       manageHelpButton(true);
 
-      [els.d, els.fix, els.s, els.o, els.i, els.m, els.dim, els.nivell, els.mod].filter(Boolean).forEach(el => el.addEventListener('change', build));
+      [els.d, els.fix, els.s, els.o, els.i, els.m, els.mod].filter(Boolean).forEach(el => el.addEventListener('change', build));
       if (els.esv) els.esv.addEventListener('change', () => { manageModRow(); build(); });
 
       els.copy.addEventListener('click', async () => {
