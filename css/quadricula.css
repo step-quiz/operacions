@@ -1,0 +1,155 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/quadricula.css
+ROL: Estils de la quadrícula comuna (js/passos/quadricula.js): eixos, rectes,
+     paràboles, punts i el triangle del pendent. La fan servir el joc de passos
+     (La recta, La paràbola) i el botó «Mira-ho a la gràfica» de Sistemes
+     d'equacions.
+ARQUITECTURA:
+- Colors del tema de la pàgina (css/temes.css) i de css/tokens.css.
+- .jp-q-recta pinta amb --primary; .jp-q-segona, amb --accent (la segona recta
+  d'un sistema). El camp 'punts' del joc de passos (.jp-quadricula) és a
+  css/passos.css.
+- .qg-*: el botó i la llegenda de «Mira-ho a la gràfica»
+  (js/sistemes-equacions/grafica.js).
+DEPENDÈNCIES: Es carrega després de tokens.css, temes.css i shared.css.
+============================================================================
+*/
+
+.jp-q {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    background: white;
+    border-radius: 8px;
+}
+.jp-q-linia {
+    stroke: var(--border-light);
+    stroke-width: 1;
+}
+.jp-q-eix {
+    stroke: var(--text-soft);
+    stroke-width: 1.6;
+}
+.jp-q-num {
+    font-size: 10px;
+    fill: var(--text-muted);
+}
+.jp-q-nom {
+    font-size: 13px;
+    font-weight: bold;
+    fill: var(--text-main);
+}
+.jp-q-recta {
+    stroke: var(--primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+.jp-q-corba {
+    fill: none;
+    stroke-linejoin: round;
+}
+.jp-q-recta.jp-q-previa {
+    stroke: var(--primary);
+    stroke-dasharray: 8 6;
+    opacity: 0.7;
+}
+.jp-q-triangle {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-dasharray: 5 4;
+}
+.jp-q-mida {
+    font-size: 13px;
+    font-weight: bold;
+    fill: var(--accent);
+}
+.jp-q-punt {
+    fill: var(--primary-dark);
+    stroke: white;
+    stroke-width: 2;
+}
+.jp-q-etiqueta {
+    font-size: 14px;
+    font-weight: bold;
+    fill: var(--primary-dark);
+    /* contorn blanc: es llegeix encara que una recta hi passi per sota */
+    paint-order: stroke;
+    stroke: white;
+    stroke-width: 4px;
+    stroke-linejoin: round;
+}
+.jp-q-fons {
+    fill: transparent;
+    cursor: crosshair;
+}
+.jp-q-recta.jp-q-segona {
+    stroke: var(--accent);
+}
+
+/* ---- «Mira-ho a la gràfica» (js/sistemes-equacions/grafica.js) ---- */
+.qg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+.qg-boto {
+    background-color: var(--primary);
+}
+@media (hover: hover) {
+    .qg-boto:hover {
+        background-color: var(--primary-hover);
+    }
+}
+.qg-dibuix {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 380px;
+    animation: fadeIn 0.3s;
+}
+.qg-dibuix[hidden] {
+    display: none;
+}
+.qg-llegenda {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+    font-size: 0.95em;
+    color: var(--text-main);
+}
+.qg-llegenda span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.qg-mostra {
+    display: inline-block;
+    width: 22px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--primary);
+}
+.qg-mostra.qg-segona {
+    background: var(--accent);
+}
+.qg-mostra.qg-punt {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary-dark);
+}
+.qg-text {
+    max-width: 30em;
+    text-align: center;
+    line-height: 1.4;
+    color: var(--text-main);
+}

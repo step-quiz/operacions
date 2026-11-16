@@ -29,6 +29,10 @@
  *  12. Teclat numèric i peces comunes: un sol teclat (js/teclat.js, amb
  *      css/teclat.css), la caseta porta a index.html i totes les activitats
  *      carreguen css/chromebook.css.
+ *  13. Generador d'enllaços (index.html): les opcions pròpies de cada activitat
+ *      (OPCIONS_ACTIVITAT) són d'activitats de la llista i la pàgina les llegeix;
+ *      les pàgines autònomes no fan servir el motor comú; i les activitats de
+ *      Batxillerat del motor comú no donen codi (APP_CONFIG.senseCodi).
  * ÚS: node tests/check-repo.js
  * ============================================================================
  */
@@ -680,7 +684,7 @@ suite('8. Mode «Esvaïment» (?esvaiment=1)');
     eq('copiarResultats() comença amb «if (ESVAIMENT) return;»', primera, 'if (ESVAIMENT) return;');
     ok(
         'el botó «Copiar codi» s’amaga en mode esvaïment',
-        /if \(FixedSessions \|\| ESVAIMENT\) finalScreen\.querySelector\('#btn-copiar'\)/.test(core)
+        /if \(FixedSessions \|\| ESVAIMENT( \|\| SENSE_CODI)?\) finalScreen\.querySelector\('#btn-copiar'\)/.test(core)
     );
 
     // L'analitzador i la lletra de control no en saben res (no hi ha codis «d'esvaïment»)
@@ -861,8 +865,8 @@ suite('11. Icona «Codi» (js/codi-finestra.js)');
         )
     );
     ok(
-        'game-core.js no posa la icona en sessions fixes ni en esvaïment',
-        /if \(!FixedSessions && !ESVAIMENT\) \{\s*posaIconaCodi\(/.test(core)
+        'game-core.js no posa la icona en sessions fixes, en esvaïment ni a les activitats sense codi',
+        /if \(!FixedSessions && !ESVAIMENT && !SENSE_CODI\) \{\s*posaIconaCodi\(/.test(core)
     );
 }
 
@@ -932,6 +936,148 @@ suite('12. Teclat numèric (js/teclat.js), caseta i css/chromebook.css');
             !/href=["']css\/chromebook\.css["']/.test(read(f))
     );
     ok('totes les activitats carreguen css/chromebook.css', !senseChromebook.length, senseChromebook.join(', '));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+suite("13. Generador d'enllaços: opcions pròpies, pàgines autònomes i Batxillerat sense codi");
+{
+    // El primer <script> d'index.html només té dades (les llistes d'activitats i la taula
+    // d'opcions): s'executa en un context aïllat per llegir-les tal com les veu el navegador.
+    const idx = stripNoise(read('index.html'));
+    const dades = idx.match(/<script>([\s\S]*?)<\/script>/)[1];
+    let llistes = null;
+    try {
+        llistes = vm.runInNewContext(`${dades}\n({ ACTIVITIES_ESO, ACTIVITIES_BATX, OPCIONS_ACTIVITAT });`);
+    } catch (e) {
+        ok(
+            "el primer <script> d'index.html defineix ACTIVITIES_ESO, ACTIVITIES_BATX i OPCIONS_ACTIVITAT",
+            false,
+            e.message
+        );
+    }
+    if (llistes) {
+        const { ACTIVITIES_ESO, ACTIVITIES_BATX, OPCIONS_ACTIVITAT } = llistes;
+        const eso = ACTIVITIES_ESO.filter(a => !a.separator);
+        const batx = ACTIVITIES_BATX.filter(a => !a.separator);
+        const totes = [...eso, ...batx];
+
+        // DRY: cada activitat es declara un sol cop (mai repetida, tampoc entre els dos menús)
+        const vistes = new Set(),
+            repetides = [];
+        for (const a of totes) {
+            if (vistes.has(a.file)) repetides.push(a.file);
+            vistes.add(a.file);
+        }
+        ok(
+            `cap de les ${totes.length} activitats surt repetida a les llistes`,
+            !repetides.length,
+            repetides.join(', ')
+        );
+
+        // Opcions pròpies: d'una activitat de la llista, ben formades, i llegides per la pàgina
+        const GENERICS = [
+            'totalsessions',
+            'totaloperations',
+            'maxintents',
+            'maxenllocmitjana',
+            'nivell',
+            'fixed',
+            'esvaiment',
+            'inici',
+            'pissarra',
+        ];
+        const malament = [];
+        let nOpcions = 0;
+        for (const [file, opcions] of Object.entries(OPCIONS_ACTIVITAT)) {
+            if (!vistes.has(file)) {
+                malament.push(`${file}: no és a cap llista d'activitats`);
+                continue;
+            }
+            if (!Array.isArray(opcions) || !opcions.length) {
+                malament.push(`${file}: la llista d'opcions és buida`);
+                continue;
+            }
+            const codi = scriptsOf(file)
+                .map(x => x.src)
+                .join('\n');
+            const params = new Set();
+            for (const o of opcions) {
+                nOpcions++;
+                const on = `${file} · ${o.param}`;
+                if (!/^[a-z]+$/.test(o.param || ''))
+                    malament.push(`${on}: el paràmetre ha de ser en minúscules, sense espais`);
+                if (GENERICS.includes(o.param)) malament.push(`${on}: és un paràmetre comú del generador d'enllaços`);
+                if (params.has(o.param)) malament.push(`${on}: paràmetre repetit`);
+                params.add(o.param);
+                if (!o.label) malament.push(`${on}: falta el text de la fila (label)`);
+                const valors = Array.isArray(o.valors) ? o.valors : [];
+                const benFets = valors.every(
+                    v =>
+                        Array.isArray(v) &&
+                        v.length === 2 &&
+                        typeof v[0] === 'string' &&
+                        typeof v[1] === 'string' &&
+                        v[1]
+                );
+                if (valors.length < 2 || !benFets)
+                    malament.push(`${on}: calen dos valors o més, cadascun [valor, text]`);
+                if (new Set(valors.map(v => v[0])).size !== valors.length)
+                    malament.push(`${on}: hi ha valors repetits`);
+                if (!new RegExp(`['"\`]${o.param}['"\`]`).test(codi))
+                    malament.push(`${on}: la pàgina no llegeix aquest paràmetre`);
+            }
+        }
+        ok(
+            `${nOpcions} opcions pròpies (OPCIONS_ACTIVITAT): ben formades i llegides per la seva pàgina`,
+            nOpcions > 0 && !malament.length,
+            malament.join('\n      → ')
+        );
+        ok(
+            'index.html crea les files a partir de la taula i afegeix «param=valor» a l’enllaç',
+            /for \(const o of OPCIONS_ACTIVITAT\[dropdown\.getValue\(\)\] \|\| \[\]\)/.test(idx) &&
+                /opcSel\.forEach\(\(sel, param\) => \{ if \(sel\.value\) qs\.append\(param, sel\.value\); \}\);/.test(
+                    idx
+                )
+        );
+
+        // Pàgines autònomes: l'enllaç no porta sessions ni intents, o sigui que no poden dependre del motor comú
+        const autonomes = totes.filter(a => a.autonoma).map(a => a.file);
+        const ambMotor = autonomes.filter(f => graphOf(f).includes(GAME_CORE) || totes.find(a => a.file === f).fixed);
+        ok(
+            `les pàgines autònomes (${autonomes.join(', ') || '—'}) no fan servir game-core.js ni ofereixen sessió fixa`,
+            !ambMotor.length,
+            ambMotor.join(', ')
+        );
+
+        // Batxillerat sense codi: les pàgines que mostren la pantalla final comuna porten senseCodi: true
+        // (asimptotes, que no fa servir el motor comú, genera el seu codi AS pel seu compte: suite 11)
+        const ambPantallaFinal = f =>
+            scriptsOf(f).some(x => x.name !== GAME_CORE && /\binjectSharedHTML\(\)/.test(x.src));
+        const senseCodi = f => /window\.APP_CONFIG\s*=\s*\{[^}]*\bsenseCodi:\s*true\b[^}]*\}/.test(stripNoise(read(f)));
+        const batxAmbCodi = batx.map(a => a.file).filter(f => ambPantallaFinal(f) && !senseCodi(f));
+        ok(
+            'les activitats de Batxillerat del motor comú no donen codi (porten senseCodi: true)',
+            !batxAmbCodi.length,
+            batxAmbCodi.join(', ')
+        );
+        const esoSenseCodi = eso.map(a => a.file).filter(senseCodi);
+        ok("cap activitat d'ESO porta senseCodi: true", !esoSenseCodi.length, esoSenseCodi.join(', '));
+        const core = read('js/game-core.js');
+        ok(
+            'game-core.js: amb senseCodi no hi ha icona «Codi» ni botó «Copiar codi» i no es genera cap codi',
+            /if \(FixedSessions \|\| ESVAIMENT \|\| SENSE_CODI\) finalScreen\.querySelector\('#btn-copiar'\)\.style\.display = 'none';/.test(
+                core
+            ) &&
+                /if \(!FixedSessions && !ESVAIMENT && !SENSE_CODI\) \{\s*posaIconaCodi\(/.test(core) &&
+                /export function codiFinal\(\)\s*\{\s*if \(FixedSessions \|\| ESVAIMENT \|\| SENSE_CODI\) return null;/.test(
+                    core
+                ) &&
+                /if \(SENSE_CODI\) return;/.test(core) &&
+                /if \(FixedSessions \|\| ESVAIMENT \|\| SENSE_CODI\) \{\s*const b = document\.getElementById\('btn-copiar-hist'\);/.test(
+                    core
+                )
+        );
+    }
 }
 
 finish('COMPROVACIONS DEL REPOSITORI');

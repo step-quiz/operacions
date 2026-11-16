@@ -53,6 +53,10 @@
  * ── MODE «ESVAÏMENT» (?esvaiment=1, js/esvaiment.js) ────────────────────────
  *   No es genera mai el codi (copiarResultats() surt de seguida i el botó
  *   s'amaga) i la pantalla final mostra estrelles en lloc de la nota.
+ * ── ACTIVITATS SENSE CODI (APP_CONFIG.senseCodi: true, js/config.js) ───────
+ *   Les de Batxillerat que fan servir aquest motor: no hi ha icona «Codi», el
+ *   botó «Copiar codi» no surt (ni a la pantalla final ni a l'informe) i
+ *   codiFinal() no en genera cap. La nota es veu com sempre.
  *
  * ── COM S'USA (mòdul ES) ────────────────────────────────────────────────────
  *   import { state, startGame, recordResult } from '../game-core.js';
@@ -64,7 +68,7 @@
  * ============================================================================
  */
 
-import { TOTAL_SESSIONS, TOTAL_OPERATIONS, MAX_ENLLOC_MITJANA, MAX_INTENTS } from './config.js';
+import { TOTAL_SESSIONS, TOTAL_OPERATIONS, MAX_ENLLOC_MITJANA, MAX_INTENTS, SENSE_CODI } from './config.js';
 import { EXERCISE_CODES } from './exercise-codes.js'; // taula única compartida amb l'analitzador
 import { avisaCodiLlest, generaCodi, obreFinestraCodi, posaIconaCodi } from './codi-finestra.js'; // icona i finestra del codi
 import { FixedSessions } from './fixed-sessions.js';
@@ -301,7 +305,12 @@ export function renderFinalSummary() {
 
 // [FIX A3] Confirmació abans de recarregar
 export function finalitzar() {
-    if (confirm("Segur que vols tornar a començar? Perdràs el codi si no l'has copiat.")) {
+    // Només es parla del codi si aquesta partida en dona
+    const donaCodi = !(FixedSessions || ESVAIMENT || SENSE_CODI);
+    const avis = donaCodi
+        ? "Segur que vols tornar a començar? Perdràs el codi si no l'has copiat."
+        : 'Segur que vols tornar a començar?';
+    if (confirm(avis)) {
         window.location.reload();
     }
 }
@@ -327,10 +336,11 @@ export function injectSharedHTML() {
     finalScreen.style.display = 'none';
     finalScreen.innerHTML = `<div id="final-results"><h2>Resum</h2><div class="final-layout"><div id="final-summary" class="final-summary"></div><div class="trophy-icon">🏆</div></div><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:25px;"><button class="btn-submit" onclick="if(typeof showHistorySummary==='function')showHistorySummary();" style="background-color:var(--primary);">📋 Informe</button><button id="btn-copiar" class="btn-submit" onclick="if(typeof copiarResultats==='function')copiarResultats();" style="background-color:var(--text-main);">📝 Copiar codi</button><button class="btn-submit" onclick="finalitzar()" style="background-color:var(--text-muted);">🔄 Tornar a jugar</button></div></div>`;
     panel.appendChild(finalScreen);
-    if (FixedSessions || ESVAIMENT) finalScreen.querySelector('#btn-copiar').style.display = 'none';
+    if (FixedSessions || ESVAIMENT || SENSE_CODI) finalScreen.querySelector('#btn-copiar').style.display = 'none';
 
-    // 4. Icona «Codi» de dalt a la dreta (no en sessions fixes ni en esvaïment, que no donen codi)
-    if (!FixedSessions && !ESVAIMENT) {
+    // 4. Icona «Codi» de dalt a la dreta (no en sessions fixes, en esvaïment ni a les activitats
+    //    sense codi, que no en donen)
+    if (!FixedSessions && !ESVAIMENT && !SENSE_CODI) {
         posaIconaCodi(() =>
             _codiFinal ? { codi: _codiFinal } : { falten: TOTAL_SESSIONS * TOTAL_OPERATIONS - state.preguntesFetes }
         );
@@ -432,7 +442,7 @@ export function showHistorySummary() {
     </div>`;
     // [FIX m9] El botó crida copiarResultats() que ja gestiona el feedback visual internament
     sc.style.display = 'block';
-    if (FixedSessions || ESVAIMENT) {
+    if (FixedSessions || ESVAIMENT || SENSE_CODI) {
         const b = document.getElementById('btn-copiar-hist');
         if (b) b.style.display = 'none';
     }
@@ -452,7 +462,7 @@ let _codiFinal = null;
 
 /** El codi de la partida (el genera la primera vegada), o null si aquesta modalitat no en dona. */
 export function codiFinal() {
-    if (FixedSessions || ESVAIMENT) return null;
+    if (FixedSessions || ESVAIMENT || SENSE_CODI) return null;
     if (!_codiFinal) {
         const nomFitxer = window.location.pathname.split('/').pop().replace('.html', '');
         _codiFinal = generaCodi({
@@ -473,6 +483,7 @@ export function codiFinal() {
 export async function copiarResultats() {
     if (ESVAIMENT) return;
     if (FixedSessions) return;
+    if (SENSE_CODI) return; // activitats sense codi (les de Batxillerat del motor comú)
     codiFinal();
     obreFinestraCodi();
 }

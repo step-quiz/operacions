@@ -8,6 +8,7 @@
  * (ex: ?totalsessions=3&maxintents=2).
  * - Inclou mecanismes de seguretat defensiva i fallbacks (límits min/max) per
  * evitar comportaments anòmals si l'usuari manipula la URL.
+ * - També llegeix de window.APP_CONFIG si la pàgina no dona codi (senseCodi).
  * - Mòdul ES. Importa primer fixed-sessions.js: si la URL porta ?fixed=A/B/C,
  *   aquest afegeix paràmetres a la URL (5 preguntes, 1 sessió…) i s'ha
  *   d'executar ABANS que aquí es llegeixin.
@@ -21,6 +22,10 @@ const DEFAULT_TOTAL_SESSIONS = window.APP_CONFIG?.defaultSessions ?? 1;
 const DEFAULT_TOTAL_OPERATIONS = window.APP_CONFIG?.defaultOperations ?? 3;
 const DEFAULT_MAX_INTENTS = window.APP_CONFIG?.defaultIntents ?? 4;
 const DEFAULT_MAX_ENLLOC_MITJANA = window.APP_CONFIG?.defaultEnllocMitjana ?? 1;
+
+// Activitats que no donen codi de verificació (APP_CONFIG.senseCodi: true): totes les de
+// Batxillerat. game-core.js no hi mostra «Copiar codi» ni en genera cap.
+export const SENSE_CODI = window.APP_CONFIG?.senseCodi === true;
 
 // Els màxims de sessions i preguntes coincideixen amb el que pot representar
 // el codi de verificació v2 (S = 1-5, QQ = 01-10) i amb el que ofereix index.html.

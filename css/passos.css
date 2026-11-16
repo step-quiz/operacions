@@ -1,0 +1,460 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/passos.css
+ROL: Estils del joc de passos comú (js/passos/joc-passos.js): Equacions de 2n
+     grau, Expressions algebraiques…  Els colors surten del tema de la pàgina
+     (css/temes.css, class="tema-…" a <html>) i de css/tokens.css; cap activitat
+     del joc de passos no té CSS propi.
+ARQUITECTURA:
+- .jp-resolucio  la pregunta i les línies ja resoltes (KaTeX), una sota l'altra
+- .jp-pas        el pas que toca: consigna, plantilla amb caselles o opcions,
+                 diagnòstic de l'error i botons
+- .jp-frac       fracció feta amb caselles (numerador, barra i denominador)
+- .jp-sup        casella d'exponent
+DEPENDÈNCIES: S'ha de carregar DESPRÉS de tokens.css, temes.css i shared.css.
+============================================================================
+*/
+
+/* ---- CAPÇALERA: el títol i el marcador amb el color del tema ---- */
+h1 {
+    color: var(--primary-dark);
+}
+.header-info {
+    background-color: var(--bg-color);
+}
+.level-text {
+    color: var(--primary-dark);
+}
+.score-text {
+    color: var(--primary);
+}
+
+/* ---- RESOLUCIÓ: l'equació i els passos fets ---- */
+.jp-resolucio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 14px 16px 12px;
+}
+.jp-linia {
+    font-size: 1.15em;
+    color: var(--text-muted);
+    /* marge de dalt i de baix perquè les fraccions de KaTeX no quedin escapçades */
+    padding: 9px 2px;
+    line-height: 1.5;
+    text-align: center;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    animation: fadeIn 0.3s;
+}
+.jp-linia.jp-original {
+    font-size: 1.6em;
+    color: var(--text-main);
+    padding-bottom: 10px;
+}
+.jp-linia.jp-final {
+    font-size: 1.35em;
+    color: var(--success);
+    padding-top: 8px;
+}
+/* Línies que el joc escriu quan s'esgoten els intents */
+.jp-linia.jp-donada {
+    color: var(--danger);
+}
+
+/* ---- EL PAS QUE TOCA ---- */
+.jp-pas {
+    background-color: var(--bg-soft);
+    border-top: 1px solid var(--border-color);
+    padding: 22px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+.jp-pas[hidden],
+.jp-pas [hidden],
+.jp-camp[hidden] {
+    display: none;
+}
+.jp-comptador {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.jp-enunciat {
+    font-size: 1.12em;
+    font-weight: bold;
+    color: var(--text-main);
+    text-align: center;
+    line-height: 1.4;
+    max-width: 34em;
+}
+
+.jp-plantilla {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 10px;
+    font-size: 1.25em;
+    animation: fadeIn 0.3s;
+}
+.jp-tex {
+    white-space: nowrap;
+}
+
+.jp-camp {
+    width: 68px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1em;
+    font-weight: bold;
+    text-align: center;
+    color: var(--primary-dark);
+    background: white;
+    border: 3px solid var(--primary);
+    border-radius: 6px;
+    outline: none;
+}
+.jp-camp:focus,
+.jp-camp.kb-active-input {
+    border-color: var(--primary-dark);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+.jp-camp.jp-malament {
+    border-color: var(--danger);
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+/* Casella d'exponent, enlairada al costat de la lletra */
+.jp-camp.jp-sup {
+    width: 44px;
+    height: 34px;
+    font-size: 0.75em;
+    align-self: flex-start;
+    margin-left: -6px;
+    border-width: 2px;
+}
+
+/* Fracció amb caselles */
+.jp-frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+    vertical-align: middle;
+}
+.jp-frac-num,
+.jp-frac-den {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 5px 6px;
+}
+.jp-frac-num {
+    border-bottom: 3px solid var(--text-main);
+}
+.jp-racional .jp-camp {
+    width: 60px;
+    height: 40px;
+}
+
+/* Opcions d'un pas d'escollir */
+.jp-opcions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    max-width: 26em;
+}
+.jp-opcio {
+    font: inherit;
+    font-size: 1.05em;
+    font-weight: bold;
+    color: var(--primary-dark);
+    background: white;
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.jp-opcio::first-letter {
+    text-transform: uppercase;
+}
+.jp-opcio:focus-visible {
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
+}
+@media (hover: hover) {
+    .jp-opcio:not(:disabled):hover {
+        background: var(--primary-light);
+    }
+}
+.jp-opcio.jp-malament {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--danger-light);
+    cursor: default;
+    text-decoration: line-through;
+}
+/* Opcions que són dibuixos (p. ex. «quina gràfica correspon al relat?»): en graella */
+.jp-opcions.jp-opcions-svg {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 40em;
+}
+.jp-opcio.jp-opcio-svg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 0 1 15em;
+    padding: 6px 6px 8px;
+}
+.jp-opcio-svg svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.jp-opcio.jp-opcio-svg.jp-malament {
+    text-decoration: none;
+    opacity: 0.6;
+}
+
+.jp-nota {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Diagnòstic de l'error (vermell) o avís que no resta cap intent (ambre) */
+.jp-diag {
+    max-width: 34em;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border-left: 5px solid var(--danger);
+    background: var(--danger-light);
+    color: var(--danger-dark);
+    line-height: 1.4;
+    animation: fadeIn 0.3s;
+}
+.jp-diag.jp-avis {
+    border-left-color: var(--warning);
+    background: var(--warning-light);
+    color: var(--warning-dark);
+}
+
+.attempts-counter.blink-warning {
+    animation: jp-intents 1s ease-in-out;
+}
+@keyframes jp-intents {
+    0%,
+    50%,
+    100% {
+        background-color: var(--warning-border);
+    }
+    25%,
+    75% {
+        background-color: white;
+    }
+}
+
+@media (max-width: 480px) {
+    .jp-linia {
+        font-size: 1em;
+    }
+    .jp-linia.jp-original {
+        font-size: 1.3em;
+    }
+    .jp-linia.jp-final {
+        font-size: 1.15em;
+    }
+    .jp-plantilla {
+        font-size: 1.05em;
+    }
+    .jp-camp {
+        width: 56px;
+        height: 40px;
+    }
+    .jp-pas {
+        padding: 18px 12px;
+    }
+}
+
+/* L'enunciat d'un problema, a sobre de la resolució */
+.jp-problema {
+    max-width: 36em;
+    margin: 0 0 6px;
+    font-size: 1.08em;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--text-main);
+}
+
+/* Sense pregunta a dalt (la pregunta és dins de la plantilla), no ocupa lloc */
+.jp-resolucio:empty {
+    display: none;
+}
+
+/* ---- COLUMNES (trossos { grup, titol }) ---- */
+.jp-grup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 96px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: white;
+}
+.jp-grup-titol {
+    font-size: 0.6em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.jp-grup-cos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 92px;
+}
+
+/* ---- FIGURES DE FRACCIONS (js/passos/figura-fraccio.js) ---- */
+.jp-figura {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+.jp-figura .jp-part {
+    fill: white;
+    stroke: var(--text-main);
+    stroke-width: 1.5;
+}
+.jp-figura .jp-part.jp-ple {
+    fill: var(--primary);
+}
+.jp-dibuix .jp-part {
+    cursor: pointer;
+}
+@media (hover: hover) {
+    .jp-dibuix .jp-part:not(.jp-ple):hover {
+        fill: var(--primary-light);
+    }
+}
+.jp-dibuix.jp-malament {
+    border-radius: 8px;
+    outline: 3px solid var(--danger);
+    outline-offset: 2px;
+}
+
+/* ---- DECIMAL AMB PERÍODE ---- */
+.jp-decimal {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 2px;
+}
+.jp-decimal .jp-camp {
+    width: 92px;
+}
+/* El període: casella petita amb la ratlla de dalt */
+.jp-decimal .jp-camp.jp-periode {
+    width: 44px;
+    height: 34px;
+    font-size: 0.75em;
+    border-width: 2px;
+    border-top-width: 5px;
+}
+
+/* ---- TARGETES PER ARROSSEGAR (camps 'fitxa') ---- */
+.jp-fitxes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 40em;
+    padding: 10px;
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+}
+.jp-fitxa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    min-height: 52px;
+    padding: 6px 10px;
+    font-size: 1.15em;
+    color: var(--text-main);
+    background: white;
+    border: 2px solid var(--primary);
+    border-radius: 10px;
+    box-shadow: 0 2px 0 var(--primary-light);
+    cursor: grab;
+    touch-action: manipulation;
+}
+.jp-fitxa .jp-figura {
+    width: 58px;
+    height: auto;
+}
+.jp-fitxa.jp-triada {
+    background: var(--primary-light);
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
+}
+.jp-fitxa:focus-visible {
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
+}
+.jp-forat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    min-height: 64px;
+    border: 3px dashed var(--primary);
+    border-radius: 10px;
+    background: var(--primary-light);
+    cursor: pointer;
+}
+.jp-forat:empty::before {
+    content: attr(data-buit);
+    font-size: 1.4em;
+    font-weight: bold;
+    color: var(--primary);
+}
+.jp-forat .jp-fitxa {
+    box-shadow: none;
+}
+.jp-forat.jp-malament {
+    border-color: var(--danger);
+    background: var(--danger-light);
+}
+
+/* ---- QUADRÍCULA: els estils del dibuix són a css/quadricula.css; aquí, el camp 'punts' ---- */
+.jp-quadricula {
+    width: 100%;
+    max-width: 380px;
+    touch-action: manipulation;
+}
+.jp-quadricula.jp-malament .jp-q {
+    outline: 3px solid var(--danger);
+}
+.jp-linia-svg {
+    width: 100%;
+    max-width: 380px;
+}

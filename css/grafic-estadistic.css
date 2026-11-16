@@ -1,0 +1,136 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/grafic-estadistic.css
+ROL: Estils dels gràfics comuns: el gràfic estadístic (js/passos/grafic-estadistic.js:
+     barres, sectors, histograma i polígon, pictogrames) i la gràfica amb context
+     (js/passos/grafica-context.js: una magnitud al llarg del temps), que en comparteix
+     els eixos (.ge-*).
+ARQUITECTURA:
+- Colors del tema de la pàgina (css/temes.css) i de css/tokens.css: cap color fix.
+- Els sectors i la seva llegenda fan servir .ge-c0 … .ge-c5 (tons del tema i de
+  l'accent); la categoria també s'escriu a la llegenda, no es llegeix només pel color.
+DEPENDÈNCIES: Es carrega després de tokens.css, temes.css i shared.css.
+============================================================================
+*/
+
+.ge {
+    max-width: 100%;
+    height: auto;
+    font-family: inherit;
+}
+
+/* ---- EIXOS ---- */
+.ge-linia {
+    stroke: var(--border-light);
+    stroke-width: 1;
+}
+.ge-linia.ge-forta {
+    stroke: var(--border-heavy);
+}
+.ge-eix {
+    stroke: var(--text-soft);
+    stroke-width: 1.5;
+}
+.ge-marca {
+    font-size: 11px;
+    fill: var(--text-muted);
+}
+.ge-cat {
+    font-size: 12.5px;
+    fill: var(--text-main);
+}
+.ge-titol {
+    font-size: 12px;
+    font-weight: bold;
+    fill: var(--text-soft);
+}
+
+/* ---- BARRES, HISTOGRAMA I POLÍGON ---- */
+.ge-barra {
+    fill: var(--primary);
+}
+.ge-barra.ge-hist {
+    fill: color-mix(in srgb, var(--primary) 40%, white);
+    stroke: var(--primary);
+    stroke-width: 1.5;
+}
+.ge-poligon {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+}
+.ge-punt {
+    fill: var(--accent);
+    stroke: white;
+    stroke-width: 1.5;
+}
+
+/* ---- SECTORS (i la seva llegenda) ---- */
+.ge-sector {
+    stroke: white;
+    stroke-width: 2;
+}
+.ge-c0 {
+    fill: var(--primary);
+}
+.ge-c1 {
+    fill: var(--accent);
+}
+.ge-c2 {
+    fill: color-mix(in srgb, var(--primary) 55%, white);
+}
+.ge-c3 {
+    fill: color-mix(in srgb, var(--accent) 55%, white);
+}
+.ge-c4 {
+    fill: var(--primary-dark);
+}
+.ge-c5 {
+    fill: var(--accent-dark, var(--accent));
+}
+.ge-dins {
+    font-size: 13px;
+    font-weight: bold;
+    fill: white;
+    /* contorn fosc: es llegeix també sobre els sectors clars */
+    paint-order: stroke;
+    stroke: var(--text-main);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+/* ---- PICTOGRAMES ---- */
+.ge-icona {
+    fill: var(--primary);
+}
+.ge-icona.ge-gran {
+    fill: var(--accent);
+}
+
+/* ---- GRÀFICA AMB CONTEXT (js/passos/grafica-context.js) ---- */
+.gc-corba {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 3;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+.gc-corba.gc-mini {
+    stroke-width: 2.5;
+}
+.gc-punt {
+    fill: var(--primary-dark);
+    stroke: white;
+    stroke-width: 1.5;
+}
+.gc-petita .ge-marca {
+    font-size: 10px;
+}
+
+/* ---- Al joc de passos: el gràfic de la pregunta ---- */
+.jp-figura-pregunta .ge {
+    display: block;
+    margin: 0 auto;
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ca" class="tema-algebra">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Activitat interactiva de matemàtiques — Expressions algebraiques: reduir i treure parèntesis">
+    <link rel="icon" href="icon.png">
+    <title>Expressions Algebraiques</title>
+
+    <link rel="stylesheet" href="vendor/katex-0.16.11/katex.min.css">
+    <script defer src="vendor/katex-0.16.11/katex.min.js"></script>
+
+    <!-- Configuració per defecte d'aquest joc -->
+    <script>
+        window.APP_CONFIG = {
+            defaultSessions:      1,
+            defaultOperations:    8,
+            defaultIntents:       3,
+            defaultEnllocMitjana: 1
+        };
+    </script>
+
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/temes.css">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/teclat.css">
+    <link rel="stylesheet" href="css/passos.css">
+    <link rel="stylesheet" href="css/chromebook.css">
+    <link rel="stylesheet" href="css/seguent.css">
+    <link rel="stylesheet" href="css/codi.css">
+</head>
+<body>
+
+<div class="title-row">
+    <a href="index.html"
+       class="home-icon-link"
+       title="Tornar a l'inici"
+       aria-label="Tornar a l'inici">
+        <img src="icon.png" alt="Inici">
+    </a>
+    <h1>Expressions Algebraiques</h1>
+</div>
+<div class="subtitle">Reduir i treure parèntesis</div>
+
+<div class="panel" id="main-panel">
+
+    <div id="game-screen" style="display:none;">
+        <div class="header-info">
+            <div class="header-left">
+                <div class="session-text" id="session-display">Sessió 1 de 1</div>
+                <div class="level-text" id="lvl-display">Expressió 1 de 8</div>
+            </div>
+            <div class="score-text" id="score-display">Punts: 0</div>
+            <div id="attempts-display" class="attempts-counter">Intents: 3</div>
+        </div>
+
+        <!-- La resolució i el pas que toca: els pinta js/passos/joc-passos.js -->
+        <div id="jp-joc"></div>
+    </div>
+</div>
+
+<script type="module" src="js/expressions-algebraiques/expressions-algebraiques.js"></script>
+</body>
+</html>
