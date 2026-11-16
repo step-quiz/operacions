@@ -393,6 +393,9 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   `tableHtml` is unchanged apart from that. Table CSS for the board: `css/pissarra.css` (`.pis-fila
   table.centrat`, `tr.final`, `tr.pis-objectiu`). Browser: suites 6 (link), 7 (B, laptop and phone, `provaDetall`
   counts the marked operation above the grey row as the detail), 9 (faithful ghosts in the table).
+- Fixed 2026-11-16: the ghost of a power (3²) started 1.9 px too high, because the board rule for `<sup>` was
+  scoped to `.pis-fila table.centrat` and the ghost flies outside the table; `.pis-fantasma sup` now shares it.
+  Suite 9 picks an exercise whose first step is a power, so the check no longer depends on chance.
 
 ## Known limits
 

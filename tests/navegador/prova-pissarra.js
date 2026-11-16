@@ -749,11 +749,22 @@ function engegaServidor() {
             );
             await p.close();
 
-            // Prioritat: a la taula, els tokens de l'operació volen de la seva cel·la i es fusionen en el resultat
+            // Prioritat: a la taula, els tokens de l'operació volen de la seva cel·la i es fusionen en el resultat.
+            // El primer pas, una potència (3²): el seu superíndex també ha de ser el mateix al fantasma
             p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
-            await p.goto(BASE + '/resolucio.html?activitat=prioritat&nivell=4');
+            await p.goto(BASE + '/resolucio.html?activitat=prioritat&nivell=3');
             await p.waitForFunction(() => window.resolucio);
-            await provaPasCongelat(p, '#pissarra', 'prioritat, pas 2 (la taula)', () =>
+            for (let k = 0; k < 40; k++) {
+                const ambPotencia = await p.evaluate(() => /[²³] =/.test(window.resolucio.pissarra.passos[1].text));
+                if (ambPotencia) break;
+                await p.click('#un-altre');
+                await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
+            }
+            ok(
+                'prioritat: hi ha un exercici que comença per una potència',
+                await p.evaluate(() => /[²³] =/.test(window.resolucio.pissarra.passos[1].text))
+            );
+            await provaPasCongelat(p, '#pissarra', 'prioritat, pas 2 (la taula, una potència)', () =>
                 p.evaluate(() => {
                     window.resolucio.pissarra.seguent();
                 })
