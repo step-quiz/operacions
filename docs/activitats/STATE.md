@@ -22,7 +22,8 @@ https://claude.ai/artifact/TpqHeTWA7N9HrBMpeNCx6s, holds David's answers of 14/1
 | 9 | «Mira-ho a la gràfica» in Sistemes d'equacions | `js/sistemes-equacions/grafica.js` (+2 lines in the controller, +1 `<link>`) | DONE |
 | 10 | Shared statistics chart + Gràfics estadístics | `grafics-estadistics.html`, `GE`; `js/passos/grafic-estadistic.js`, `css/grafic-estadistic.css` | DONE |
 | 11 | Shared context graph + Gràfiques en context | `grafiques-context.html`, `GX`; `js/passos/grafica-context.js` | DONE |
-| 12–22 | See «Pending items» | — | PENDING |
+| 12 | Canvi d'unitats (E13) + shared unit ladder | `canvi-unitats.html`, `CU`; `js/passos/escala-unitats.js`, `css/escala-unitats.css` | DONE (2026-11-16) |
+| 13–22 | See «Pending items» | — | PENDING |
 
 Deliveries 1–11 reached `main` on 2026-11-16 through B's 3-way merge: base `7f79b4b` (the snapshot A worked on),
 A's delivery ZIP committed on top of it as `555ff07`, merged with B's work up to stage 5 of «Resolució pas a pas».
@@ -41,6 +42,9 @@ Conflicts were only textual (`tests/run-all.js`, `CONTRIBUTING.md`, the changelo
   (bars, pie, histogram, pictogram), `grafica-context.js` (magnitude over time, curved trams), `figura-fraccio.js`.
 - **Shared widgets still missing** (accepted in X2 with the grid and the statistics chart): a **number line with
   intervals** (E12, B10) and a **sign table** (B3, B10). Build each once, pure and tested, in `js/passos/`.
+  Built since: `escala-unitats.js` (the unit ladder; E14 «Àrees i volums» may reuse it for cm vs cm²).
+- **Long answers:** a `decimal` field of the step player holds 6 characters unless its template piece says
+  `llarg: n` (Canvi d'unitats uses 11).
 - **Per-activity options** (teacher's choices): add them to `OPCIONS_ACTIVITAT` in `index.html` and read them with
   `urlParams.get(...)`; `tests/check-repo.js` suite 13 checks both. Never declare the generic parameters
   (`totalsessions`, `totaloperations`, `maxintents`, `maxenllocmitjana`, `nivell`, `fixed`, `esvaiment`, `inici`,
@@ -80,7 +84,7 @@ Conflicts were only textual (`tests/run-all.js`, `CONTRIBUTING.md`, the changelo
 
 | # | Item | David's decision | Spec (trimmed to the decision) |
 |---|------|------------------|--------------------------------|
-| 12 | **E13 Canvi d'unitats** (1r–3r ESO), new page | «només l'escala» | Only the unit ladder on screen. Step 1: how many jumps and in which direction; step 2: multiply or divide. Levels: length/mass/capacity (×10 per jump); area (×100) and volume (×1000); volume ↔ capacity (1 dm³ = 1 L). Time (h-min-s) and compound units (km/h ↔ m/s) were proposed but are not ladder-based: leave them out unless David says otherwise. Errors: direction inverted; ×10 per jump for area units. |
+| 12 | **E13 Canvi d'unitats** (1r–3r ESO), new page — **DONE 2026-11-16** | «només l'escala»; 16/11 (dialog): no time or compound units; the ladder as stairs (km top-left, mm bottom-right) with source and target marked; three steps (jumps and direction, operation, result); 3 levels + option `magnitud` | Built as specified: `js/canvi-unitats/` (`math-engine.js`, `errors.js` with 6 types: SENTIT, COMPTA_UNITATS, SALTS, DEU_PER_GRAO, COMA, EQUIVALENCIA; `strings.js`; controller), level 1 ×10 magnitudes, 2 area and volume, 3 volume ↔ capacity (equivalence step first) and everything; results with at most 6 decimals and below 10⁹; factors and results grouped in threes (1 000 000). |
 | 13 | **E14 Àrees i volums** (1r–3r ESO), new page | «fes-ho tot. amb un paràmetre per poder escollir si volem 2D, 3D, o tot» | Three blocks: (1) triangle, parallelogram, trapezium, rhombus, circle: choose the formula, mark which segment is base and which is height (a slanted side as a trap), compute with units; (2) composite figures by adding or subtracting; (3) area and volume of prisms, cylinders, pyramids, cones, spheres. Option `dim` = '' (all) · `2` · `3`. Errors: slanted side as height; forgetting ÷2; radius ↔ diameter; area ↔ perimeter; cm vs cm². |
 | 14 | **E2 Operacions combinades** (1r–3r ESO) | «parlem»: «fes només operacions combinades amb enters, no facis operacions combinades amb fraccions» | Integers only, with parentheses and powers with a negative base. Proposed as a new block in the «Pas a pas» mode of `prioritat` (the student picks the operation that comes first and solves it; the result stays centred below), but `prioritat` works with naturals (results ≤ 200, never negative). **Ask David** whether it goes inside `prioritat` or on a new page. Reuse `prioritat`'s `blockers()` errors. Note that `prioritat` also has scenario B («Resolució pas a pas», `js/prioritat/resolucio.js`). |
 | 15 | **E4 Potències** (2n–4t ESO), extends `potencies` | «només aquests: A potencies: exponent zero i negatiu (2⁻³ = 1/8, a³ : a⁵ = a⁻²) i operar en notació científica» | Two new challenges in `potencies` only (**no radicals**): (a) zero and negative exponents, including the quotient of powers giving a negative exponent; (b) operating in scientific notation (×, ÷ and maybe ± with exponent adjustment). Errors: 2⁻³ = −8 or −6. |
@@ -95,7 +99,6 @@ Conflicts were only textual (`tests/run-all.js`, `CONTRIBUTING.md`, the changelo
 ## Open points for David (ask with the question dialog when you reach them)
 
 - **E2:** inside `prioritat` or a new page.
-- **E13:** confirm that time and compound units are out.
 - Item order: free to change if David wants.
 
 ## Notes

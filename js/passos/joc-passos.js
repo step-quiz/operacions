@@ -18,7 +18,8 @@
  *     nom         nom curt del pas, per a l'historial
  *     enunciat    la consigna
  *     plantilla   trossos: { tex } · { svg } · { camp: nom, sup?: true (casella d'exponent),
- *                 periode?: true (decimal amb casella de període) } · { frac: { num, den } } ·
+ *                 periode?: true (decimal amb casella de període), llarg?: n (un decimal de més de
+ *                 6 caràcters, p. ex. 0,000576) } · { frac: { num, den } } ·
  *                 { grup: [trossos], titol } (una columna amb el seu títol)
  *                 Com es pinta un camp depèn del seu tipus: enter/coeficient/exponent, una
  *                 casella; racional, una fracció de caselles; decimal, la casella i la del
@@ -186,12 +187,17 @@ export function iniciaJocPassos(config) {
         els.resolucio.appendChild(div);
     }
 
-    function creaCasella(nom, part = '', sup = false) {
+    // llarg: quants caràcters hi caben (6 per defecte; una casella més llarga també és més ampla)
+    function creaCasella(nom, part = '', sup = false, llarg = 6) {
         const inp = document.createElement('input');
         inp.type = 'text';
         inp.className = sup ? 'jp-camp jp-sup' : 'jp-camp';
         inp.autocomplete = 'off';
-        inp.maxLength = 6;
+        inp.maxLength = llarg;
+        if (llarg > 6) {
+            inp.classList.add('jp-llarg');
+            inp.style.setProperty('--jp-llarg', String(llarg));
+        }
         inp.dataset.nom = nom;
         inp.dataset.part = part;
         inp.setAttribute(
@@ -269,7 +275,7 @@ export function iniciaJocPassos(config) {
         if (tipus === 'decimal') {
             const dec = document.createElement('span');
             dec.className = 'jp-decimal';
-            dec.appendChild(creaCasella(nom, 'v'));
+            dec.appendChild(creaCasella(nom, 'v', false, tros.llarg || 6));
             if (tros.periode) {
                 const periode = creaCasella(nom, 'p');
                 periode.classList.add('jp-periode');

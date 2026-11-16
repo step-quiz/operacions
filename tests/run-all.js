@@ -36,6 +36,7 @@ const TESTS = [
     ['Sistemes: «Mira-ho a la gràfica» (rectes i punt de tall)', 'tests/sistemes-grafica.test.js'],
     ['Gràfics estadístics (gràfic comú, preguntes i errors)', 'tests/grafics-estadistics.test.js'],
     ['Gràfiques en context (gràfica comuna, històries i errors)', 'tests/grafiques-context.test.js'],
+    ["Canvi d'unitats (escala, passos i errors)", 'tests/canvi-unitats.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],

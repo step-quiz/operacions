@@ -1,0 +1,57 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/escala-unitats.css
+ROL: Estils de l'escala de les unitats comuna (js/passos/escala-unitats.js): els
+     graons, la unitat de partida i la d'arribada, la regla i la llegenda. La fa
+     servir Canvi d'unitats.
+ARQUITECTURA:
+- Colors del tema de la pàgina (css/temes.css) i de css/tokens.css: la unitat de
+  partida, --primary; la d'arribada, --accent.
+DEPENDÈNCIES: Es carrega després de tokens.css, temes.css i shared.css.
+============================================================================
+*/
+
+.eu {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+.eu-paret {
+    fill: var(--bg-soft);
+}
+.eu-cara {
+    fill: white;
+    stroke: var(--border-color);
+    stroke-width: 1.5;
+}
+.eu-unitat {
+    font-size: 15px;
+    font-weight: 700;
+    fill: var(--text-main);
+}
+.eu-origen .eu-cara {
+    fill: var(--primary-light);
+    stroke: var(--primary);
+    stroke-width: 2.5;
+}
+.eu-origen .eu-unitat {
+    fill: var(--primary-dark);
+}
+.eu-desti .eu-cara {
+    fill: var(--accent-light);
+    stroke: var(--accent);
+    stroke-width: 2.5;
+}
+.eu-desti .eu-unitat {
+    fill: var(--accent-dark);
+}
+.eu-regla {
+    font-size: 13px;
+    fill: var(--text-soft);
+}
+.eu-llegenda {
+    font-size: 12px;
+    fill: var(--text-muted);
+}
