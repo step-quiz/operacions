@@ -9,7 +9,8 @@
  *      errors típics.
  * ARQUITECTURA: mòdul pur (cap DOM, cap atzar).
  *   EXPRESSIONS (arbres):
- *     {t:'num', v}            v: coeficient exacte (js/algebra/racionals.js)
+ *     {t:'num', v, dada?}     v: coeficient exacte (js/algebra/racionals.js); dada: true si
+ *                             és una dada substituïda (no va al davant ni fa de ½)
  *     {t:'var', n}            n: el nom de la lletra («v», «Δx», «v₀», «Ec»)
  *     {t:'add', terms:[{s, e}]}   s: +1 o −1
  *     {t:'mul', f:[e…]}       {t:'div', n, d}     {t:'pow', b, e: 2}     {t:'sqrt', e}
@@ -126,9 +127,12 @@ export function llegeixEquacio(text, noms) {
 
 // ── Escriptura ───────────────────────────────────────────────────────────────
 const esNum = e => e.t === 'num';
-const esMeitat = e =>
+/** Un nombre de la fórmula (el 2 de ½ · m · v²), no una dada (substitueix les marca amb dada: true). */
+const esConstant = e => esNum(e) && !e.dada;
+// «½ · …» només amb el 2 de la fórmula: una dada que val 2 (P = W / t amb t = 2) es queda «W / 2»
+export const esMeitat = e =>
     e.t === 'div' &&
-    esNum(e.d) &&
+    esConstant(e.d) &&
     comRacional(e.d.v).join() === '2,1' &&
     !esNum(e.n) &&
     e.n.t !== 'div' &&
@@ -206,7 +210,7 @@ export function substitueix(e, valors) {
         case 'var': {
             if (!(e.n in valors)) return e;
             const v = valors[e.n];
-            return v && typeof v === 'object' && !Array.isArray(v) ? v : N(v);
+            return v && typeof v === 'object' && !Array.isArray(v) ? v : { ...N(v), dada: true };
         }
         case 'add':
             return add(e.terms.map(({ s, e: x }) => ({ s, e: S(x) })));
@@ -289,11 +293,14 @@ const conte = (e, x) =>
                   : false;
 /** Un producte d'una llista de factors (un sol factor, sense «mul»). */
 const producte = f => (f.length === 1 ? f[0] : mul(f));
-/** Multiplica: els nombres van al davant (2 · (x − x₀)). */
+/**
+ * Multiplica: els nombres de la fórmula van al davant (2 · (x − x₀)); les dades, no, perquè amb nombres
+ * quedi en el mateix ordre que amb lletres (80000 · 0,02 com p · S).
+ */
 function multiplica(a, b) {
     const fa = a.t === 'mul' ? a.f : [a];
     const fb = b.t === 'mul' ? b.f : [b];
-    const f = [...fb.filter(esNum), ...fa, ...fb.filter(f => !esNum(f))].filter(x => !esU(x));
+    const f = [...fb.filter(esConstant), ...fa, ...fb.filter(f => !esConstant(f))].filter(x => !esU(x));
     return f.length ? producte(f) : N(1);
 }
 /** Treu termes d'una suma: torna la suma que queda. */

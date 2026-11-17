@@ -224,8 +224,9 @@ function comparaVistes(tancada, oberta, ara, nivell, on) {
  * claus i les marques, \mathbin, \mathrel, \left, \right i els espais;
  * \cdot → *, : (dividir) es manté, ^{…} → ^(…), \frac{a}{b} → ((a)/(b)),
  * \sqrt{a} → sqrt(a), \text{…} → «…», \boxed{a} → a, \textcolor{c}{a} → a,
- * \cancel{a} → a. Una ordre que no coneix fa fallar la prova (així una ordre nova
- * a la pissarra obliga a ensenyar-la aquí).
+ * \cancel{a} → a, \Bigl( i \Bigr) → ( i ), les lletres gregues de les fórmules
+ * (\Delta → Δ, \Omega → Ω, \eta → η) i \circ → °. Una ordre que no coneix fa fallar
+ * la prova (així una ordre nova a la pissarra obliga a ensenyar-la aquí).
  */
 export function textPla(tex) {
     let i = 0;
@@ -248,7 +249,12 @@ export function textPla(tex) {
             if (c === '}') throw new Error(`Sobra una «}» a: ${tex}`);
             if (c === '^') {
                 i++;
-                s += '^(' + grup() + ')';
+                // un exponent que és una ordre sola ({}^\circ): s'hi llegeix l'ordre sencera
+                const ordre = tex[i] === '\\' ? /^\\[A-Za-z]+/.exec(tex.slice(i)) : null;
+                if (ordre) {
+                    i += ordre[0].length;
+                    s += '^(' + textPla(ordre[0]) + ')';
+                } else s += '^(' + grup() + ')';
                 continue;
             }
             if (c === '\\') {
@@ -269,6 +275,20 @@ export function textPla(tex) {
                     case '\\qquad':
                     case '\\textstyle':
                     case '\\displaystyle':
+                    case '\\Bigl':
+                    case '\\Bigr':
+                        break;
+                    case '\\Delta':
+                        s += 'Δ';
+                        break;
+                    case '\\Omega':
+                        s += 'Ω';
+                        break;
+                    case '\\eta':
+                        s += 'η';
+                        break;
+                    case '\\circ':
+                        s += '°';
                         break;
                     case '\\cdot':
                         s += '*';

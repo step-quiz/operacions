@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-16: two scenarios; B for `equacions` and `fraccions` published, B for `prioritat` on the branch)
+## Status (2026-11-17: two scenarios; B for `equacions`, `fraccions` and `prioritat` published; B for `formules-steam` on the branch)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -129,6 +129,11 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     read by `ajusta()`), no header, levels or captions; fullscreen when entered with the button (a URL entry
     shows «Pantalla completa»); arrows, Space and a presenter remote (PageUp/PageDown; while a step animates,
     «next» finishes it first). Not chosen: the teacher typing the exercise.
+21. **Scenario B for `formules-steam`** (roadmap delivery 16, review artifact and dialog of 2026-11-17): David
+    wants the board **now, gradually** («a poc a poc»). Stage 1 (DONE on the branch 2026-11-17): the same order as
+    the activity — always a context (the first caption is the problem), numbers first, then the same operations
+    with letters; flipping the equality is a step of its own; the unit computed with the units as letters. No
+    detail on demand yet (a later stage: e.g. the operation written on both members before simplifying).
 
 ## Technical decisions (agent)
 
@@ -396,6 +401,33 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 - Fixed 2026-11-16: the ghost of a power (3²) started 1.9 px too high, because the board rule for `<sup>` was
   scoped to `.pis-fila table.centrat` and the ghost flies outside the table; `.pis-fantasma sup` now shares it.
   Suite 9 picks an exercise whose first step is a power, so the check no longer depends on chance.
+
+## Scenario B for `formules-steam`: how stage 1 was built (2026-11-17, decision 21)
+
+- `js/formules-steam/resolucio.js` (pure): `etapes(ex)` → one line per step: the formula (caption = the
+  activity's context + «Aïlla x…»), the data (each data letter flies down and turns into its number), one line per
+  `aillaPassos` step (caption says what is on the letter's member and what is done to both), `gira` as its own
+  step, the value (the numbers fuse into `r`), the unit line (`\text{unitat de } x:` + the last numeric expression
+  with each data number turned into its unit, flying from two lines up, `= u`), the result with the unit (class
+  `final`), the formula again (its leaves fly from line 0 with `id@k`) and the letters steps (last line `final`).
+  `exercici(nivell, cas)` reuses `generaPreguntaFS` (same cases, values and levels as the activity).
+- Piece ids: every expression node gets a permanent number in a `WeakMap`; `aillaPassos` reuses nodes from one
+  step to the next, so the same piece keeps its id on every line; data numbers and units are given their letter's
+  number. `a<n>` leaf (letter, number, unit), `s<n>` sign of a term, `p<n>` «·» before a factor, `h<n>` the «·» of
+  «½ ·», `e<n>` the exponent, `l<n>`/`r<n>` parentheses (`\Bigl(` when a fraction is inside), `q` «=», `r` result,
+  `u` unit. Only the pieces that make the change fly: the leaves (and term signs) that pass to the other member,
+  the letter that loses its square, all leaves when flipping, the numbers fused into the value. Max 7 per step.
+- No unit line when the expression has a sum with a bare formula number (T = t + 273) or a data value has no
+  units (η): the result caption then names the magnitude («La temperatura … es mesura en °C»).
+- Algebra changes for this (they also change the activity): `substitueix` marks data numbers with `dada: true`;
+  `multiplica` only puts **formula** numbers first, so numbers and letters keep the same order (80000 · 0,02 like
+  p · S, 2 · 6 like a · t); `esMeitat` (now exported) ignores a data value 2 (W / 2 is no longer drawn «½ · W»).
+- `textPla` learned `\Delta`, `\Omega`, `\eta`, `\circ` (also as a bare exponent, `{}^\circ`), `\Bigl`, `\Bigr`.
+  `tests/check-repo.js` §9 reads quoted registry keys (`'formules-steam'`).
+- Tests: `tests/formules-steam.test.js` suite 3 (30 exercises per case, the shared battery with an own float
+  evaluator of both sides with the problem's values, KaTeX, second person, context, `final` rows, same operations
+  with numbers and letters, which cases skip the unit line, a hand-made v = Δx / Δt example). Browser: suite 6
+  (the link carries the question's level), suite 7 (B at level 4, laptop and phone; `provaDetall` skipped).
 
 ## Known limits
 

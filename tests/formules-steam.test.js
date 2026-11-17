@@ -232,4 +232,223 @@ suite('2. Nivells i decisions del David');
     );
 }
 
+suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
+{
+    const { provaActivitat } = require('./pissarra-activitat');
+    const p = loadModule(
+        [
+            'js/utils.js',
+            'js/algebra/racionals.js',
+            'js/formules-steam/algebra.js',
+            'js/formules-steam/cataleg.js',
+            'js/formules-steam/strings.js',
+            'js/formules-steam/math-engine.js',
+            'js/pissarra/formules.js',
+            'js/pissarra/comprova.js',
+            'js/formules-steam/resolucio.js',
+        ],
+        { seed: 20261118 }
+    );
+    const { Resolucio, textPla, FORMULES, coeficient } = p;
+    const formula = ex => FORMULES.find(f => f.id === ex.formula);
+
+    /**
+     * El model independent: calcula el text pla d'un costat d'una fila (textPla: «((2*Ec)/(m))», «sqrt(…)»,
+     * «t^(2)», «2,5») amb els valors de les lletres (vars: nom en text pla → nombre).
+     */
+    function calcula(s, vars) {
+        const noms = Object.keys(vars).sort((a, b) => b.length - a.length);
+        let i = 0;
+        const err = () => new Error(`no s’entén «${s}» (a la posició ${i})`);
+        const mira = t => s.startsWith(t, i) && ((i += t.length), true);
+        function primari() {
+            if (mira('sqrt(') || mira('(')) {
+                const arrel = s[i - 2] === 't';
+                const v = expr();
+                if (!mira(')')) throw err();
+                return arrel ? Math.sqrt(v) : v;
+            }
+            const m = /^\d+(,\d+)?/.exec(s.slice(i));
+            if (m) {
+                i += m[0].length;
+                return Number(m[0].replace(',', '.'));
+            }
+            const nom = noms.find(n => s.startsWith(n, i));
+            if (!nom) throw err();
+            i += nom.length;
+            return vars[nom];
+        }
+        function potencia() {
+            const b = primari();
+            if (!mira('^(')) return b;
+            const e = expr();
+            if (!mira(')')) throw err();
+            return b ** e;
+        }
+        function unari() {
+            return mira('-') ? -unari() : potencia();
+        }
+        function terme() {
+            let v = unari();
+            for (;;)
+                if (mira('*')) v *= unari();
+                else if (mira('/')) v /= unari();
+                else return v;
+        }
+        function expr() {
+            let v = terme();
+            for (;;)
+                if (mira('+')) v += terme();
+                else if (mira('-')) v -= terme();
+                else return v;
+        }
+        const v = expr();
+        if (i !== s.length) throw err();
+        return v;
+    }
+    const SENSE = '(sense unitats)';
+    /** El que cal saber d'un exercici per comprovar-ne les files: les lletres en text pla i la unitat. */
+    function model(ex) {
+        const f = formula(ex);
+        const vars = Object.fromEntries(Object.entries(f.lletres).map(([n, [t]]) => [textPla(t), num(ex.valors[n])]));
+        const [uText, uTex] = f.aillar[ex.x].unitats[ex.x];
+        return { vars, unitat: uText === SENSE ? '' : textPla(uTex), senseUnitats: uText === SENSE };
+    }
+    /** '' si la fila (TeX amb claus) és certa per a l'exercici, o què falla. */
+    function veritat(fila, ex, m) {
+        const pla = textPla(fila);
+        if (pla.startsWith('«unitatde»')) {
+            const fi = `=${m.senseUnitats ? '«senseunitats»' : m.unitat}`;
+            return pla.endsWith(fi) ? '' : `${pla}: no acaba amb «${fi}»`;
+        }
+        const costats = pla.split('=');
+        if (costats.length !== 2) return `${pla}: no és una igualtat`;
+        let [a, b] = costats;
+        // el resultat amb la unitat: «Δt=3«h»»
+        if (m.unitat && b.endsWith(m.unitat) && /^[\d,]+$/.test(b.slice(0, -m.unitat.length)))
+            b = b.slice(0, -m.unitat.length);
+        try {
+            const [A, B] = [calcula(a, m.vars), calcula(b, m.vars)];
+            return Math.abs(A - B) <= 1e-9 * Math.max(1, Math.abs(A), Math.abs(B)) ? '' : `${pla}: ${A} ≠ ${B}`;
+        } catch (e) {
+            return `${pla}: ${e.message}`;
+        }
+    }
+
+    const PLURAL = /\b(fem|tenim|sumem|restem|dividim|multipliquem|aïllem|escrivim|girem|substituïm|calculem)\b/i;
+    const dolents = { katex: [], plurals: [], context: [], final: [], resultat: [], mateixes: [], nivell: [] };
+    const anota = (llista, t) => llista.length < 5 && llista.push(t);
+    const senseUnitats = new Set();
+    const revisa = (passos, ex, on) => {
+        const formules = new Set();
+        for (const pas of passos) {
+            pas.files.filter(Boolean).forEach(fila => formules.add(fila));
+            for (const m of pas.text.matchAll(/\$([^$]+)\$/g)) formules.add(m[1]);
+            // el context del problema és el de l'activitat («fem un treball…»): només es miren les instruccions
+            const instruccio = pas.text.replace(/^[^]*\? (?=Aïlla)/, '');
+            if (PLURAL.test(instruccio)) anota(dolents.plurals, `${on}: «${instruccio}»`);
+        }
+        for (const t of formules)
+            if (!katexOk(t.replace(/\\htmlData\{[^}]*\}/g, ''))) anota(dolents.katex, `${on}: ${t}`);
+    };
+    function* exercicis() {
+        for (const cas of Resolucio.CASOS)
+            for (let k = 0; k < 30; k++) {
+                const ex = Resolucio.exercici(cas.nivell, cas);
+                const on = `${cas.f.id}, aïllar ${cas.x} (${Object.values(ex.valors).map(num).join(', ')})`;
+                const passos = Resolucio.passos(ex);
+                const m = model(ex);
+                if (k < 3) revisa(passos, ex, on);
+                // Sempre un context: la primera frase és el problema (acaba amb una pregunta)
+                if (!/\? Aïlla \$/.test(passos[0].text)) anota(dolents.context, `${on}: «${passos[0].text}»`);
+                const ultim = passos[passos.length - 1];
+                if (!ultim.classes[ultim.classes.length - 1].includes('final')) anota(dolents.final, on);
+                // El resultat amb la unitat, ressaltat
+                const files = ultim.files.map(f => (f ? textPla(f) : ''));
+                const xPla = textPla(formula(ex).lletres[ex.x][0]);
+                const r = files.findIndex(f => f === `${xPla}=${textDecimal(ex.valors[ex.x])}${m.unitat}`);
+                if (r < 0 || !ultim.classes[r].includes('final'))
+                    anota(dolents.resultat, `${on}: ${files.join(' | ')}`);
+                if (!files.some(f => f.startsWith('«unitatde»'))) senseUnitats.add(`${cas.f.id}:${cas.x}`);
+                // Les mateixes operacions amb nombres i amb lletres
+                const tipus = Resolucio.etapes(ex).map(e => e.tipus);
+                const ambNombres = tipus.slice(tipus.indexOf('dades') + 1, tipus.indexOf('valor'));
+                const ambLletres = tipus.slice(tipus.indexOf('lletres') + 1);
+                if (ambNombres.join() !== ambLletres.join())
+                    anota(dolents.mateixes, `${on}: ${ambNombres.join()} ≠ ${ambLletres.join()}`);
+                yield { on, passos, files: Resolucio.files(ex), m };
+            }
+    }
+    const { textDecimal } = p;
+    provaActivitat('fórmules STEAM', {
+        exercicis: exercicis(),
+        eines: p,
+        text: true,
+        veritat: (fila, ex) => veritat(fila, ex, ex.m),
+        maxPeces: 8,
+        minExercicis: Resolucio.CASOS.length * 30,
+    });
+    const llista = l => l.join('\n      → ');
+    ok('KaTeX dibuixa totes les files i les fórmules de les frases', !dolents.katex.length, llista(dolents.katex));
+    ok('les frases són en segona persona', !dolents.plurals.length, llista(dolents.plurals));
+    ok('sempre un context: la primera frase és el problema', !dolents.context.length, llista(dolents.context));
+    ok('l’última línia (la fórmula aïllada) és ressaltada', !dolents.final.length, llista(dolents.final));
+    ok('el resultat amb la unitat hi és, ressaltat', !dolents.resultat.length, llista(dolents.resultat));
+    ok(
+        'amb lletres es fan les mateixes operacions que amb nombres',
+        !dolents.mateixes.length,
+        llista(dolents.mateixes)
+    );
+    eq(
+        'sense càlcul d’unitats només hi ha T = t + 273 i les dades sense unitats',
+        [...senseUnitats].sort().join(', '),
+        'kelvin:t, rendiment:Pa, rendiment:Pu'
+    );
+    for (const n of Resolucio.NIVELLS)
+        for (let k = 0; k < 100; k++) {
+            const ex = Resolucio.exercici(n);
+            if (ex.nivell !== n) anota(dolents.nivell, `nivell ${n}: ${ex.formula}, ${ex.x} és del ${ex.nivell}`);
+        }
+    ok('exercici(nivell) dona un cas d’aquell nivell', !dolents.nivell.length, llista(dolents.nivell));
+
+    // Un exemple fet a mà: v = Δx / Δt, aïllar Δt amb Δx = 240 km i v = 80 km/h
+    const cas = Resolucio.CASOS.find(c => c.f.id === 'velocitat' && c.x === 'Δt');
+    const ex = {
+        nivell: 3,
+        formula: 'velocitat',
+        x: 'Δt',
+        valors: { v: coeficient(80), Δx: coeficient(240), Δt: coeficient(3) },
+    };
+    const passos = Resolucio.passos(ex);
+    eq(
+        'v = Δx / Δt amb Δx = 240 i v = 80: nombres, unitat i lletres',
+        passos
+            .at(-1)
+            .files.filter(Boolean)
+            .map(f => textPla(f))
+            .join(' | '),
+        [
+            'v=((Δx)/(Δt))',
+            '80=((240)/(Δt))',
+            '80*Δt=240',
+            'Δt=((240)/(80))',
+            'Δt=3',
+            '«unitatde»Δt«:»((«km»)/(«km/h»))=«h»',
+            'Δt=3«h»',
+            'v=((Δx)/(Δt))',
+            'v*Δt=Δx',
+            'Δt=((Δx)/(v))',
+        ].join(' | ')
+    );
+    const [, dades, mult] = passos;
+    ok(
+        'les dades baixen de les seves lletres i, en multiplicar, el Δt passa a l’altre membre',
+        Object.keys(dades.reanomena).length === 2 &&
+            Object.keys(mult.reanomena).length === 1 &&
+            /^SK\d*ka\d+$/.test(Object.values(mult.reanomena)[0].replace(/^S2/, 'SK')),
+        JSON.stringify([dades.reanomena, mult.reanomena])
+    );
+    ok('el cas de l’exemple és del nivell 3 (la lletra al denominador)', cas && cas.nivell === 3);
+}
+
 finish('TESTS DE FÓRMULES STEAM');

@@ -29,6 +29,20 @@
     <link rel="stylesheet" href="css/chromebook.css">
     <link rel="stylesheet" href="css/seguent.css">
     <link rel="stylesheet" href="css/codi.css">
+    <style>
+        /* «Mira com es resol»: la resolució pas a pas d'una fórmula del mateix nivell (resolucio.html) */
+        .mira-com {
+            display: block;
+            width: fit-content;
+            margin: 14px auto 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
+        }
+        .mira-com:hover { color: var(--primary-dark); border-bottom-style: solid; }
+    </style>
 </head>
 <body>
 
@@ -57,6 +71,7 @@
 
         <!-- La resolució i el pas que toca: els pinta js/passos/joc-passos.js -->
         <div id="jp-joc"></div>
+        <a class="mira-com" id="mira-com" href="resolucio.html?activitat=formules-steam" target="_blank" rel="noopener">Mira com es resol una fórmula com aquesta ↗</a>
     </div>
 </div>
 
