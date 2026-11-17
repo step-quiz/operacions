@@ -109,6 +109,10 @@
             -moz-appearance: textfield;
         }
         .expr-inline-input:focus { background: var(--primary-light); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
+        /* Reptes 4 i 5: les caselles d'una fracció, i el resultat decimal de l'esquema (més ample) */
+        .expr-frac .expr-frac-input { width: 70px; height: 44px; margin: 2px 0; }
+        .schema-input.schema-input-llarg { width: 110px; }
+        .pas-nou { display: inline-flex; align-items: center; }
         .expr-inline-input::-webkit-inner-spin-button,
         .expr-inline-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .expr-inline-input.error-flash {
@@ -264,6 +268,20 @@
                 <div class="selection-text">
                     <h3>Notació científica</h3>
                     <p>Passa nombres a notació científica i viceversa</p>
+                </div>
+            </button>
+
+            <button class="selection-card" onclick="selectRepte(4)">
+                <div class="selection-text">
+                    <h3>Exponent zero i negatiu</h3>
+                    <p>7<sup>0</sup> = 1, 2<sup>−3</sup> = 1/8, a<sup>3</sup> : a<sup>5</sup> = a<sup>−2</sup> i (2/3)<sup>−2</sup></p>
+                </div>
+            </button>
+
+            <button class="selection-card" onclick="selectRepte(5)">
+                <div class="selection-text">
+                    <h3>Operacions en notació científica</h3>
+                    <p>Multiplica i divideix nombres en notació científica</p>
                 </div>
             </button>
 

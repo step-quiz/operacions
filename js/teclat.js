@@ -48,6 +48,7 @@ export function injectaTeclat(lloc) {
 
 let _kbActiveInput = null;
 let _kbClearOnNext = false;
+let _kbTeclaSigne = null; // la tecla − (amb allowNegative), que a les caselles data-coma fa de coma
 let _kbTocDelegat = false;
 let _onEnter = null;
 
@@ -82,6 +83,8 @@ export function vesACasellaSeguent() {
  *   allowNegative     mostra la tecla − (per defecte, no)
  *   allowZero         mostra la tecla 0 (per defecte, sí)
  *   decimalComma      la tecla − passa a ser la coma decimal «,» (respostes decimals sense negatius)
+ *   Amb allowNegative, una casella amb data-coma="true" (un decimal, p. ex. la mantissa d'una
+ *   notació científica) canvia la tecla − per la coma mentre s'hi escriu; a les altres, torna a ser −.
  *   respectMaxLength  no escriu més caràcters que el maxlength de la casella
  *   onEnter(inp)      què fa la tecla «→» (per defecte, checkCurrentCell() o un Enter a la casella)
  */
@@ -97,6 +100,7 @@ export function initCustomKeyboard(options = {}) {
         if (!allowZero) grid.classList.add('kb-no-zero');
         else grid.classList.remove('kb-no-zero');
     }
+    _kbTeclaSigne = allowNeg && !options.decimalComma ? document.querySelector('#customKeyboard .kb-minus') : null;
     if (options.decimalComma) {
         const minusBtn = document.querySelector('#customKeyboard .kb-minus');
         if (minusBtn) {
@@ -193,6 +197,12 @@ export function showCustomKeyboard(inp) {
     inp.setAttribute('inputmode', 'none');
     inp.setAttribute('readonly', 'readonly');
     inp.classList.add('kb-active-input');
+    // La tecla − és la coma a les caselles de decimals (data-coma="true"), si el teclat té la tecla −
+    if (_kbTeclaSigne) {
+        const coma = inp.dataset.coma === 'true';
+        _kbTeclaSigne.dataset.key = coma ? ',' : '-';
+        _kbTeclaSigne.textContent = coma ? ',' : '−';
+    }
     const kb = document.getElementById('customKeyboard');
     if (kb) {
         kb.classList.add('kb-visible');

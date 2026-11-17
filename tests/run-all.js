@@ -39,6 +39,7 @@ const TESTS = [
     ["Canvi d'unitats (escala, passos i errors)", 'tests/canvi-unitats.test.js'],
     ['Àrees i volums (figures, passos i errors)', 'tests/arees-volums.test.js'],
     ["Prioritat d'operacions amb enters (signes, passos i errors)", 'tests/prioritat-enters.test.js'],
+    ['Potències: reptes 4 i 5 (exponents negatius i notació científica)', 'tests/potencies.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],
