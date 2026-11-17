@@ -25,11 +25,17 @@ export const TEXTOS_PASSOS = {
         no: 'No',
         amaga: 'Amaga-ho',
         mostraPassos: n => `Mostra les ${n} línies`,
+        // La recta (camps 'recta')
+        hiEntra: '● Hi entra',
+        noHiEntra: '○ No hi entra',
+        esquerra: '← Cap a l’esquerra',
+        dreta: 'Cap a la dreta →',
         liniesMes: n => (n === 1 ? '1 línia més · Mostra-la' : `${n} línies més · Mostra-les`),
     },
     avisos: {
         NO_ENTER: 'Escriu nombres enters a les caselles.',
         FALTEN_PUNTS: 'Encara falten punts per situar a la quadrícula.',
+        FALTA_RECTA: 'Toca el nombre a la recta i tria si hi entra i cap a quin costat va.',
         NO_DECIMAL: 'Escriu un nombre decimal: xifres i, si cal, una coma. El període, només amb xifres.',
         DEN_ZERO: 'El denominador no pot ser 0.',
         NO_SIMPLIFICADA: 'El valor és correcte, però encara es pot simplificar.',
