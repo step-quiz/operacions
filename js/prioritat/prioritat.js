@@ -12,6 +12,11 @@
  *       a operació. Toca l'operació que es pot fer (si encara no es pot, se li
  *       diu per què) i en tria el resultat; cada pas s'escriu sota l'anterior,
  *       amb el resultat centrat sota l'operació d'on surt.
+ *     · Amb ?nombres=enters (opció de l'índex «Nombres»), operacions combinades
+ *       amb enters (decisió del David, 16/11/2026): sumes i restes amb parèntesis,
+ *       la regla dels signes i les potències de base negativa, en 3 nivells al
+ *       llarg de la sessió (math-engine.js LEVELS_ENTERS). Funciona amb totes les
+ *       modalitats; els errors dels signes tenen el seu missatge i la seva marca.
  *     · «Esvaïment» (?esvaiment=1, js/esvaiment.js): «Pas a pas» on els primers
  *       passos es mostren resolts (d'un en un) i l'alumne fa els últims; com
  *       més encerta, més passos fa ell. Sense intents, punts ni codi.
@@ -51,6 +56,11 @@ Object.assign(window, { buildLevel });
 // ?modalitat=passos → «Pas a pas»; qualsevol altre valor (o cap) → «Resultat final».
 // ?esvaiment=1 (js/esvaiment.js) fa servir sempre «Pas a pas».
 const STEP_MODE = ESVAIMENT !== null || urlParams.get('modalitat') === 'passos';
+
+// ?nombres=enters → operacions combinades amb enters; qualsevol altre valor (o cap) → naturals
+const ENTERS = urlParams.get('nombres') === 'enters';
+const NIVELLS = ENTERS ? MathEngine.LEVELS_ENTERS : MathEngine.LEVELS;
+const { fmt } = Strings;
 
 // ============================================================
 // DOM
@@ -96,10 +106,10 @@ let phase = 'op'; // 'op': cal tocar l'operació · 'result': cal triar-ne el re
 let esv = null;
 
 // El nivell es reparteix al llarg de la sessió: sigui quin sigui el nombre
-// d'operacions, la primera és del nivell 0 i l'última del nivell 9.
+// d'operacions, la primera és del nivell 0 i l'última del nivell 9 (amb enters, del 5).
 function levelFor(opIndex) {
     if (TOTAL_OPERATIONS <= 1) return 0;
-    return Math.round((opIndex * (MathEngine.LEVELS.length - 1)) / (TOTAL_OPERATIONS - 1));
+    return Math.round((opIndex * (NIVELLS.length - 1)) / (TOTAL_OPERATIONS - 1));
 }
 
 // ============================================================
@@ -121,6 +131,12 @@ function legendHtml(red, green) {
 
 function diagLegendHtml(diag) {
     if (!diag) return '';
+    // Error dels signes: la marca és on el signe surt malament
+    if (diag.signe)
+        return legendHtml(
+            diag.powRed >= 0 ? 'Aquesta potència té el signe malament' : 'Aquí el signe del resultat surt malament',
+            ''
+        );
     const orderRed = [...diag.red].some(i => i !== diag.powRed);
     let html = legendHtml(
         orderRed ? "Aquesta operació l'has feta massa aviat" : '',
@@ -140,10 +156,10 @@ function renderChipPool(values) {
     values.forEach(val => {
         const chip = document.createElement('div');
         chip.className = 'num-chip';
-        chip.textContent = val;
+        chip.textContent = fmt(val);
         chip.dataset.val = val;
         chip.setAttribute('role', 'button');
-        chip.setAttribute('aria-label', `Resposta ${val}`);
+        chip.setAttribute('aria-label', `Resposta ${fmt(val)}`);
 
         chip.addEventListener('click', () => _selectChip(chip));
 
@@ -163,7 +179,7 @@ function renderChipPool(values) {
 function renderSolution(ok) {
     const title = ok
         ? "✅ Correcte! Es resol d'aquesta manera:"
-        : `La resposta correcta és <strong>${correctAnswer}</strong>. Es resol d'aquesta manera:`;
+        : `La resposta correcta és <strong>${fmt(correctAnswer)}</strong>. Es resol d'aquesta manera:`;
     const table = Renderer.tableHtml(MathEngine.solve(MathEngine.startLine(tokens)));
     els.solutionBox.innerHTML = `<div class="solution-title">${title}</div><div class="taula-wrap">${table}</div>`;
     els.solutionBox.style.display = 'block';
@@ -179,11 +195,22 @@ function buildLevel() {
     _selectedChip = null;
 
     const nivell = levelFor(state.currentOperation);
-    const ex = MathEngine.generateExercise(nivell);
+    const ex = ENTERS ? MathEngine.generateExerciseEnters(nivell) : MathEngine.generateExercise(nivell);
     tokens = ex.toks;
-    // «Mira com es resol»: el grup de la resolució pas a pas (1: nivells 0–2, 2: 3, 3: 4–5, 4: 6–8, 5: 9)
+    // «Mira com es resol»: el grup de la resolució pas a pas (1: nivells 0–2, 2: 3, 3: 4–5, 4: 6–8, 5: 9;
+    // amb enters, 6: nivells 0–1, 7: 2–3, 8: 4–5)
     if (els.miraCom) {
-        const grup = nivell <= 2 ? 1 : nivell === 3 ? 2 : nivell <= 5 ? 3 : nivell <= 8 ? 4 : 5;
+        const grup = ENTERS
+            ? 6 + Math.floor(nivell / 2)
+            : nivell <= 2
+              ? 1
+              : nivell === 3
+                ? 2
+                : nivell <= 5
+                  ? 3
+                  : nivell <= 8
+                    ? 4
+                    : 5;
         els.miraCom.href = `resolucio.html?activitat=prioritat&nivell=${grup}`;
     }
     correctAnswer = ex.val;
@@ -198,7 +225,7 @@ function buildLevel() {
 }
 
 function buildResultLevel() {
-    const distractors = MathEngine.buildDistractors(tokens, correctAnswer);
+    const distractors = MathEngine.buildDistractors(tokens, correctAnswer, ENTERS);
     optionIds = new Map(distractors.map(d => [d.v, d.id]));
     const values = shuffle([correctAnswer, ...distractors.map(d => d.v)]);
 
@@ -275,7 +302,7 @@ function _onTouchStart(e) {
     const touch = e.touches[0];
     _touchStartX = touch.clientX;
     _touchStartY = touch.clientY;
-    els.dragGhost.textContent = _touchChip.dataset.val;
+    els.dragGhost.textContent = fmt(Number(_touchChip.dataset.val));
     document.addEventListener('touchmove', _onTouchMove, { passive: false });
     document.addEventListener('touchend', _onTouchEnd, { passive: false });
     document.addEventListener('touchcancel', _onTouchCancel, { passive: false });
@@ -335,10 +362,10 @@ function handleAnswer(val) {
     if (val === correctAnswer) {
         chip.classList.add('used');
         els.dropZone.className = 'drop-zone dz-correct';
-        els.dropZone.textContent = String(val);
+        els.dropZone.textContent = fmt(val);
         els.feedback.textContent = '';
         renderExpression();
-        recordAnswerToHistory(`${exprText} = ?`, String(val), true);
+        recordAnswerToHistory(`${exprText} = ?`, fmt(val), true);
         finishOperation(true);
     } else {
         chip.classList.add('chip-wrong');
@@ -348,8 +375,8 @@ function handleAnswer(val) {
         const diag = errId === 'calc' ? null : MathEngine.diagnose(tokens, errId);
         renderExpression(diag);
         els.feedback.innerHTML =
-            `<div>${val} no és correcte. ${Strings.feedbackFor(errId, tokens, diag)}</div>` + diagLegendHtml(diag);
-        recordAnswerToHistory(`${exprText} = ?`, String(val), false);
+            `<div>${fmt(val)} no és correcte. ${Strings.feedbackFor(errId, tokens, diag)}</div>` + diagLegendHtml(diag);
+        recordAnswerToHistory(`${exprText} = ?`, fmt(val), false);
         penalize();
     }
 }
@@ -472,7 +499,7 @@ function finishEsv() {
     esvAccio(null);
     const senseErrors = !esv.errors;
     const canvi = ESVAIMENT.acabaItem({ senseErrors, nPassos: esv.nPassos });
-    recordAnswerToHistory(`${Strings.toText(tokens)} = ?`, String(correctAnswer), senseErrors);
+    recordAnswerToHistory(`${Strings.toText(tokens)} = ?`, fmt(correctAnswer), senseErrors);
     updateHeader();
 
     els.chipPool.style.display = 'none';
@@ -526,9 +553,9 @@ function askResult() {
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'num-chip';
-        chip.textContent = val;
+        chip.textContent = fmt(val);
         chip.dataset.val = val;
-        chip.setAttribute('aria-label', `Resultat ${val}`);
+        chip.setAttribute('aria-label', `Resultat ${fmt(val)}`);
         chip.addEventListener('click', () => handleStepResult(val, chip));
         els.chipPool.appendChild(chip);
     });
@@ -574,7 +601,7 @@ function handleStepResult(val, chip) {
     const row = rows[rows.length - 1];
     if (ESVAIMENT && val !== MathEngine.opValue(row.line, row.op)) {
         // Es mostra el resultat bo i el pas queda «amb ajuda»
-        recordAnswerToHistory(`${Strings.opText(row.line, row.op)} = ?`, String(val), false);
+        recordAnswerToHistory(`${Strings.opText(row.line, row.op)} = ?`, fmt(val), false);
         const bo = MathEngine.opValue(row.line, row.op);
         esvAjuda(row.op, Strings.Esv.resultatBo(row.line, row.op, val, bo));
         return;
@@ -582,7 +609,7 @@ function handleStepResult(val, chip) {
     if (val !== MathEngine.opValue(row.line, row.op)) {
         chip.classList.add('chip-wrong');
         els.feedback.innerHTML = `<div>${Strings.wrongResultMsg(row.line, row.op, val)}</div>`;
-        recordAnswerToHistory(`${Strings.opText(row.line, row.op)} = ?`, String(val), false);
+        recordAnswerToHistory(`${Strings.opText(row.line, row.op)} = ?`, fmt(val), false);
         penalize();
         return;
     }
@@ -594,7 +621,7 @@ function handleStepResult(val, chip) {
             finishEsv();
             return;
         }
-        recordAnswerToHistory(`${Strings.toText(tokens)} = ?`, String(correctAnswer), true);
+        recordAnswerToHistory(`${Strings.toText(tokens)} = ?`, fmt(correctAnswer), true);
         finishOperation(true);
     } else {
         askOp();
@@ -670,7 +697,7 @@ function finishOperation(ok) {
         if (!ok) {
             // Es mantenen les marques de l'últim error perquè l'alumne les compari amb la resolució
             els.dropZone.className = 'drop-zone dz-reveal';
-            els.dropZone.textContent = String(correctAnswer);
+            els.dropZone.textContent = fmt(correctAnswer);
         }
         renderSolution(ok);
     }

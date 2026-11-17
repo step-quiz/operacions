@@ -9,7 +9,9 @@
  *   de l'activitat sense «.html» (el de resolucio.html?activitat=…); pagina: on es fa
  *   l'exercici (l'escenari A, «Ara fes-ho tu»); nivells: [[valor, nom]]; carrega():
  *   el procediment pur de l'activitat ({ NIVELLS, exercici(nivell), passos(exercici,
- *   { oberts }), files(exercici) }), carregat només quan cal.
+ *   { oberts }), files(exercici) }), carregat només quan cal; enllac(nivell) (opcional):
+ *   l'adreça d'«Ara fes-ho tu» (si no n'hi ha, pagina?nivell=…).
+ *   Prioritat: els nivells 6–8 són d'enters, i «Ara fes-ho tu» hi afegeix ?nombres=enters.
  * - Les claus són les de SUPORTA_PISSARRA (js/pissarra/mode.js) i les de «pissarra:
  *   true» a index.html (tests/check-repo.js ho comprova).
  * DEPENDÈNCIES: el procediment de cada activitat (p. ex. js/equacions/resolucio.js).
@@ -47,7 +49,11 @@ export const ACTIVITATS = Object.freeze({
             [3, 'Potències'],
             [4, 'Parèntesis'],
             [5, 'Tot combinat'],
+            [6, 'Enters: sumes i restes'],
+            [7, 'Enters: regla dels signes'],
+            [8, 'Enters: potències i tot'],
         ]),
+        enllac: nivell => (nivell >= 6 ? 'prioritat.html?nombres=enters' : `prioritat.html?nivell=${nivell}`),
         carrega: () => import('../prioritat/resolucio.js').then(m => m.Resolucio),
     }),
 });
