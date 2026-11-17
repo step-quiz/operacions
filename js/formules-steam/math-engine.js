@@ -363,6 +363,8 @@ export function generaPreguntaFS(nivell, cas = null) {
             pregunta: T.opcional,
             resum: `\\text{${T.resum}}\\ ${L[x]} = ${texDecimal(valors[x])}${unitatTex(x)}`,
             inici: texEq(eq, L),
+            // L2 (David, 17/11): nombres 8 − 2 per error; lletres +2 sense errors, +1 amb un, 0 amb més
+            punts: { maxAbans: 8, despres: [2, 1] },
         },
         text: `${f.nom}: aïllar ${x}`,
         clau: `${f.id}|${x}|${ks.map(fmt).join(',')}`,

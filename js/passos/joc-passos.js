@@ -20,7 +20,9 @@
  *                             opcional (opcional): { desDe, pregunta, si, no, resum, inici } — els passos des
  *                             de desDe són opcionals: abans, l'alumne tria si els vol fer (si → les línies
  *                             fetes es pleguen en una franja amb el resum, que es pot desplegar, i s'escriu
- *                             la línia inici; no → la pregunta s'acaba amb els punts que porti)
+ *                             la línia inici; no → la pregunta s'acaba amb els punts que porti); amb
+ *                             punts: { maxAbans, despres }, els punts es reparteixen entre les dues parts
+ *                             (js/punts.js puntsAmbPartOpcional); sense, la regla de sempre
  *
  *   PAS (dades, sense funcions; la correcció és a correccio.js)
  *     id, mena    id únic dins de la pregunta; mena: quin pas és (el diagnòstic en mira això)
@@ -105,6 +107,7 @@ import {
     startGame,
     validateConfig,
 } from '../game-core.js';
+import { puntsAmbPartOpcional } from '../punts.js';
 import { corregeixPas, esCampFraccio, textResposta } from './correccio.js';
 import { svgFiguraFraccio } from './figura-fraccio.js';
 import { parabolaPerTresPunts, svgQuadricula } from './quadricula.js';
@@ -157,6 +160,7 @@ export function iniciaJocPassos(config) {
     let marcades = []; // les línies escrites amb color: [{ div, tex }] (tex: com han de quedar)
     let triantOpcional = false; // l'alumne tria si fa els passos opcionals
     let ambOpcionals = false; // ha triat fer-los
+    let errorsAbans = 0; // els errors abans dels passos opcionals (els punts de pregunta.opcional.punts)
 
     // ---- BUILD LEVEL (cridat per game-core; les sessions fixes el sembren) ----
     function buildLevel() {
@@ -697,6 +701,7 @@ export function iniciaJocPassos(config) {
     function triaOpcionals() {
         const op = pregunta.opcional;
         triantOpcional = true;
+        errorsAbans = MAX_INTENTS - state.attemptsLeft;
         hideCustomKeyboard();
         els.comptador.hidden = true;
         els.enunciat.textContent = op.pregunta;
@@ -880,7 +885,17 @@ export function iniciaJocPassos(config) {
         triantOpcional = false;
         recordResult(Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3));
         els.pas.hidden = true;
-        acabaPregunta(puntsDeLaPregunta());
+        const repartiment = pregunta.opcional && pregunta.opcional.punts;
+        if (!repartiment) {
+            acabaPregunta(puntsDeLaPregunta());
+            return;
+        }
+        const errors = MAX_INTENTS - state.attemptsLeft;
+        acabaPregunta(
+            ambOpcionals
+                ? puntsAmbPartOpcional(errorsAbans, errors - errorsAbans, repartiment)
+                : puntsAmbPartOpcional(errors, null, repartiment)
+        );
     }
 
     // Intents esgotats: s'escriu la resta de la resolució i l'alumne continua quan vol

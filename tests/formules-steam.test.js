@@ -206,7 +206,11 @@ suite('1. Totes les fórmules i totes les lletres');
             if (!katexOk(q.formula.tex) || BAD.test(JSON.stringify(q.problema) + q.text))
                 anota(dolents.katex, `${on}: pregunta`);
             // Els passos opcionals són exactament els de lletres
-            if (q.passos.findIndex(p => p.mena === 'lletres') !== q.opcional.desDe || !katexOk(q.opcional.resum))
+            if (
+                q.passos.findIndex(p => p.mena === 'lletres') !== q.opcional.desDe ||
+                !katexOk(q.opcional.resum) ||
+                JSON.stringify(q.opcional.punts) !== JSON.stringify({ maxAbans: 8, despres: [2, 1] })
+            )
                 anota(dolents.ops, `${on}: opcionals des de ${q.opcional.desDe}`);
         }
     const msg = l => l.join('\n      → ');
