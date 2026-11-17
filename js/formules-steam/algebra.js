@@ -170,9 +170,21 @@ export function text(e) {
     }
     throw new Error(`node desconegut ${e.t}`);
 }
-/** En TeX; lletres: { nom: tex } (per defecte, el nom tal qual). */
-export function tex(e, lletres = {}) {
-    const T = x => tex(x, lletres);
+/** El color de les peces que passen a l'altre membre (decisió del David: cap vermell). */
+export const COLOR_MOU = '#0e7490';
+const pinta = t => '\\textcolor{' + COLOR_MOU + '}{' + t + '}';
+/**
+ * En TeX; lletres: { nom: tex } (per defecte, el nom tal qual); marcats (opcional): un Set de nodes que
+ * es pinten de COLOR_MOU (el que passa a l'altre membre en un pas).
+ */
+export function tex(e, lletres = {}, marcats = null) {
+    const marcat = Boolean(marcats && marcats.has(e));
+    // dins d'una peça pintada, res més no es pinta (cap color dins d'un altre)
+    const t = texNode(e, lletres, marcat ? null : marcats);
+    return marcat ? pinta(t) : t;
+}
+function texNode(e, lletres, marcats) {
+    const T = x => tex(x, lletres, marcats);
     switch (e.t) {
         case 'num':
             return texDecimal(e.v);
@@ -190,7 +202,10 @@ export function tex(e, lletres = {}) {
         case 'mul':
             return e.f.map(x => (x.t === 'add' ? `\\left(${T(x)}\\right)` : T(x))).join(' \\cdot ');
         case 'div':
-            if (esMeitat(e)) return `\\tfrac{1}{2} \\cdot ${e.n.t === 'add' ? `\\left(${T(e.n)}\\right)` : T(e.n)}`;
+            if (esMeitat(e)) {
+                const meitat = marcats && marcats.has(e.d) ? pinta('\\tfrac{1}{2}') : '\\tfrac{1}{2}';
+                return `${meitat} \\cdot ${e.n.t === 'add' ? `\\left(${T(e.n)}\\right)` : T(e.n)}`;
+            }
             return `\\dfrac{${T(e.n)}}{${T(e.d)}}`;
         case 'pow':
             return atomic(e.b) && e.b.t !== 'sqrt' ? `${T(e.b)}^{2}` : `\\left(${T(e.b)}\\right)^{2}`;
@@ -200,7 +215,7 @@ export function tex(e, lletres = {}) {
     throw new Error(`node desconegut ${e.t}`);
 }
 export const textEq = ([a, b]) => `${text(a)} = ${text(b)}`;
-export const texEq = ([a, b], lletres) => `${tex(a, lletres)} = ${tex(b, lletres)}`;
+export const texEq = ([a, b], lletres, marcats = null) => `${tex(a, lletres, marcats)} = ${tex(b, lletres, marcats)}`;
 
 // ── Substituir i avaluar ─────────────────────────────────────────────────────
 /** Canvia les lletres de valors ({ nom: coeficient o node }) per nombres (o pel node donat). */
@@ -397,16 +412,33 @@ export function textOperacio(op) {
     }[op.tipus];
 }
 
-/** La mateixa operació en TeX (el que hi ha darrere de «per», en mode matemàtic). */
-export function texOperacio(op, lletres = {}) {
+/** La mateixa operació en TeX (el que hi ha darrere de «per», en mode matemàtic); marca: en color. */
+export function texOperacio(op, lletres = {}, marca = false) {
     if (!op.per) return "\\text{Fes l'arrel quadrada dels dos membres}";
     const p = tex(op.per, lletres);
-    const per = op.per.t === 'add' ? `\\left(${p}\\right)` : p;
+    const entre = op.per.t === 'add' ? `\\left(${p}\\right)` : p;
+    const per = marca ? pinta(entre) : entre;
     return {
         resta: `\\text{Resta } ${per} \\text{ als dos membres}`,
         suma: `\\text{Suma } ${per} \\text{ als dos membres}`,
         multiplica: `\\text{Multiplica els dos membres per } ${per}`,
         divideix: `\\text{Divideix els dos membres per } ${per}`,
+    }[op.tipus];
+}
+
+/**
+ * La mateixa operació en text amb fórmules entre $…$ (els botons i les consignes del joc de passos les
+ * dibuixen amb KaTeX): «Multiplica els dos membres per $\\Delta t$».
+ */
+export function formulesOperacio(op, lletres = {}) {
+    if (!op.per) return "Fes l'arrel quadrada dels dos membres";
+    const p = tex(op.per, lletres);
+    const per = '$' + (op.per.t === 'add' ? `\\left(${p}\\right)` : p) + '$';
+    return {
+        resta: `Resta ${per} als dos membres`,
+        suma: `Suma ${per} als dos membres`,
+        multiplica: `Multiplica els dos membres per ${per}`,
+        divideix: `Divideix els dos membres per ${per}`,
     }[op.tipus];
 }
 

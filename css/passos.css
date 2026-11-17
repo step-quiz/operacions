@@ -334,6 +334,13 @@ h1 {
     text-transform: uppercase;
     color: var(--text-muted);
 }
+/* Un títol que no es pot posar en majúscules (una unitat: «m» no és «M») */
+.jp-grup-titol.jp-grup-titol-literal {
+    font-size: 0.85em;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text-main);
+}
 .jp-grup-cos {
     display: flex;
     align-items: center;
@@ -465,4 +472,171 @@ h1 {
 .jp-linia-svg {
     width: 100%;
     max-width: 380px;
+}
+
+/* ---- TARGETES «PROBLEMA» I «FÓRMULA» (pregunta.problema, pregunta.formula) ---- */
+.jp-targeta {
+    width: 100%;
+    max-width: 38em;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 16px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+    color: var(--text-main);
+}
+.jp-targeta-etq {
+    font-size: 0.72em;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.jp-targeta p {
+    margin: 0;
+    font-size: 1.05em;
+    line-height: 1.5;
+}
+.jp-targeta-pregunta {
+    font-weight: bold;
+}
+.jp-formula-cos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 28px;
+}
+/* La fórmula, una mica més gran que el text (no el doble) */
+.jp-formula-tex {
+    font-size: 1.3em;
+}
+/* Llegenda: lletra · magnitud · unitat, amb les columnes separades subtilment */
+.jp-llegenda {
+    border-collapse: collapse;
+    font-size: 0.95em;
+}
+.jp-llegenda td {
+    padding: 1px 12px;
+    color: var(--text-muted);
+}
+.jp-llegenda td + td {
+    border-left: 1px solid var(--border-color);
+}
+.jp-llegenda td:first-child {
+    padding-left: 0;
+    color: var(--text-main);
+}
+.jp-enllac {
+    align-self: center;
+    margin: 0 0 8px;
+    font-size: 0.92em;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+}
+.jp-enllac:hover {
+    color: var(--primary-dark);
+    border-bottom-style: solid;
+}
+
+/* ---- FASES I FRANGES PLEGADES (pregunta.opcional, config.plegaAntigues) ---- */
+.jp-fase {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+.jp-plegat {
+    width: 100%;
+    max-width: 38em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+/* Ha de quedar clar que és plegat i que es pot desplegar: fletxa, vora discontínua, «Mostra…» */
+.jp-plega {
+    font: inherit;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 8px 14px;
+    background: var(--bg-soft);
+    color: var(--text-main);
+    border: 2px dashed var(--primary);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    touch-action: manipulation;
+}
+.jp-plegat-fase .jp-plega {
+    background: var(--success-light);
+}
+.jp-plega:focus-visible {
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
+}
+@media (hover: hover) {
+    .jp-plega:hover {
+        border-style: solid;
+    }
+}
+.jp-plega-fletxa {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 9px;
+    border-color: transparent transparent transparent var(--primary);
+    transition: transform 0.15s;
+}
+.jp-plega[aria-expanded='true'] .jp-plega-fletxa {
+    transform: rotate(90deg);
+}
+.jp-plega-resum {
+    font-size: 1.1em;
+}
+.jp-plega-accio {
+    margin-left: auto;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: underline;
+}
+.jp-plegat-cos {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 0;
+    border-left: 2px dashed var(--border-color);
+    border-right: 2px dashed var(--border-color);
+}
+.jp-plegat-cos[hidden] {
+    display: none;
+}
+/* La primera línia d'una fase nova (la fórmula amb lletres) */
+.jp-linia.jp-inici-fase {
+    color: var(--text-main);
+    font-size: 1.25em;
+}
+/* Fórmules dins dels botons i de la consigna */
+.jp-opcio .jp-formula,
+.jp-enunciat .jp-formula {
+    font-weight: normal;
+}
+.jp-opcio .jp-formula .katex {
+    font-size: 1.12em;
+}
+@media (prefers-reduced-motion: reduce) {
+    .jp-plega-fletxa {
+        transition: none;
+    }
 }

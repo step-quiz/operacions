@@ -12,6 +12,15 @@
  *                             enunciat (opcional): el problema, en text, a sobre de la resolució;
  *                             svg (opcional): una figura (p. ex. una gràfica) a sobre de la resolució;
  *                             text: la mateixa, per a l'historial; clau (opcional): per no repetir-la
+ *                             problema (opcional): { context, pregunta } — una targeta «Problema»: el
+ *                             context (els trossos entre **…** en negreta) i la pregunta en una línia a part;
+ *                             formula (opcional): { nom, tex, llegenda: [[tex, magnitud, unitat]] } — una
+ *                             targeta «Fórmula» amb la llegenda en taula;
+ *                             enllac (opcional): { href, text } — un enllaç sota les targetes (pestanya nova);
+ *                             opcional (opcional): { desDe, pregunta, si, no, resum, inici } — els passos des
+ *                             de desDe són opcionals: abans, l'alumne tria si els vol fer (si → les línies
+ *                             fetes es pleguen en una franja amb el resum, que es pot desplegar, i s'escriu
+ *                             la línia inici; no → la pregunta s'acaba amb els punts que porti)
  *
  *   PAS (dades, sense funcions; la correcció és a correccio.js)
  *     id, mena    id únic dins de la pregunta; mena: quin pas és (el diagnòstic en mira això)
@@ -20,7 +29,8 @@
  *     plantilla   trossos: { tex } · { svg } · { camp: nom, sup?: true (casella d'exponent),
  *                 periode?: true (decimal amb casella de període), llarg?: n (un decimal de més de
  *                 6 caràcters, p. ex. 0,000576) } · { frac: { num, den } } ·
- *                 { grup: [trossos], titol } (una columna amb el seu títol)
+ *                 { grup: [trossos], titol, literal? } (una columna amb el seu títol; literal: el títol
+ *                 tal com és, sense majúscules ni lletra petita, p. ex. una dada amb la unitat)
  *                 Com es pinta un camp depèn del seu tipus: enter/coeficient/exponent, una
  *                 casella; racional, una fracció de caselles; decimal, la casella i la del
  *                 període; pintat, la figura de pas.figura per pintar-hi parts; fitxa, una
@@ -32,13 +42,20 @@
  *                 { camp, quadricula: { limit, previa } } en diu la mida. Amb dos punts es veu la
  *                 recta (o, amb previa: 'parabola', amb tres punts la paràbola que hi passa).
  *     camps, solucio, parell, proporcional   vegeu correccio.js
- *     opcions     [[valor, text, svg?], …] dels camps 'tria' (es pinten com a botons; amb svg,
- *                 el botó és el dibuix, amb el text a sota: p. ex. «Gràfica B»). La primera lletra
+ *     opcions     [[valor, text, svg?, formules?], …] dels camps 'tria' (es pinten com a botons; amb
+ *                 svg, el botó és el dibuix, amb el text a sota: p. ex. «Gràfica B»; amb formules, el
+ *                 botó mostra aquest text amb les fórmules entre $…$ dibuixades amb KaTeX, i text queda
+ *                 per a l'historial i per als lectors de pantalla). La primera lletra
  *                 del text es veu en majúscula, si el pas no porta literal: true (p. ex. les
  *                 lletres dels segments d'una figura, «b = 6 cm», o les unitats, «cm²»)
+ *     formules    (opcional) true: la consigna porta fórmules entre $…$ (KaTeX)
  *     nota        text d'ajuda sota les caselles (opcional)
  *     dades       el que necessita el diagnòstic
  *     linia       TeX del pas resolt: queda escrit a la resolució
+ *     liniaMarcada (opcional) la mateixa línia amb el que es mou en color: es veu així fins que un pas
+ *                 posterior comença una altra operació (marcaAnterior) o no en porta (llavors, linia)
+ *     marcaAnterior (opcional) TeX que substitueix l'última línia escrita en resoldre el pas (la mateixa
+ *                 amb el que es mourà en color); abans es tornen a escriure normals les línies marcades
  *
  *   FUNCIONAMENT
  *     - Cada pas resolt s'afegeix a la resolució, sota la pregunta.
@@ -59,6 +76,9 @@
  *     diagnostica: (pas, valors) => ({ missatge, etiqueta }) | null,
  *     enEncertar: (pregunta, pas, valors) => passos nous | null,  // opcional
  *     textResposta: (pas, valors) => text,         // opcional (historial)
+ *     desplacament: true,   // opcional: després de cada encert, es veuen les dues últimes línies i el pas
+ *     plegaAntigues: true,  // opcional: en pantalles baixes, amb més de 4 línies en una fase, les del mig
+ *                           //   es pleguen (es veuen la primera i les dues últimes)
  *   });
  *   La pàgina ha de tenir la capçalera habitual (#session-display, #lvl-display,
  *   #score-display, #attempts-display) i un <div id="jp-joc"></div> dins de #game-screen.
@@ -133,6 +153,10 @@ export function iniciaJocPassos(config) {
     let penalitzant = false;
     let darrera = ''; // la pregunta anterior, per no repetir-la tot seguit
     let fitxaTriada = null; // la targeta tocada, a punt de col·locar
+    let zona = null; // on s'escriuen les línies (la fase que es fa ara)
+    let marcades = []; // les línies escrites amb color: [{ div, tex }] (tex: com han de quedar)
+    let triantOpcional = false; // l'alumne tria si fa els passos opcionals
+    let ambOpcionals = false; // ha triat fer-los
 
     // ---- BUILD LEVEL (cridat per game-core; les sessions fixes el sembren) ----
     function buildLevel() {
@@ -154,6 +178,14 @@ export function iniciaJocPassos(config) {
         index = 0;
 
         els.resolucio.innerHTML = '';
+        marcades = [];
+        triantOpcional = false;
+        ambOpcionals = false;
+        zona = els.resolucio;
+        if (pregunta.problema) afegeixProblema(pregunta.problema);
+        if (pregunta.formula) afegeixFormula(pregunta.formula);
+        if (pregunta.enllac) afegeixEnllac(pregunta.enllac);
+        if (pregunta.opcional || config.plegaAntigues) novaFase();
         if (pregunta.enunciat) {
             const problema = document.createElement('p');
             problema.className = 'jp-problema';
@@ -175,18 +207,189 @@ export function iniciaJocPassos(config) {
     }
 
     // ---- PINTAR ----
+    /** Un text amb fórmules entre $…$: el text tal qual i les fórmules amb KaTeX. */
+    function pintaAmbFormules(el, text) {
+        el.textContent = '';
+        String(text)
+            .split('$')
+            .forEach((tros, i) => {
+                if (!tros) return;
+                if (i % 2 === 0) el.appendChild(document.createTextNode(tros));
+                else {
+                    const span = document.createElement('span');
+                    span.className = 'jp-formula';
+                    katex.render(tros, span, { throwOnError: false });
+                    el.appendChild(span);
+                }
+            });
+    }
+
+    function targeta(classe, etiqueta) {
+        const div = document.createElement('div');
+        div.className = `jp-targeta ${classe}`;
+        const etq = document.createElement('div');
+        etq.className = 'jp-targeta-etq';
+        etq.textContent = etiqueta;
+        div.appendChild(etq);
+        els.resolucio.appendChild(div);
+        return div;
+    }
+
+    /** Un paràgraf amb els trossos entre **…** en negreta. */
+    function paragraf(text, classe = '') {
+        const p = document.createElement('p');
+        if (classe) p.className = classe;
+        String(text)
+            .split('**')
+            .forEach((tros, i) => {
+                if (!tros) return;
+                if (i % 2 === 0) p.appendChild(document.createTextNode(tros));
+                else {
+                    const b = document.createElement('b');
+                    b.textContent = tros;
+                    p.appendChild(b);
+                }
+            });
+        return p;
+    }
+
+    /** La targeta «Problema»: el context i la pregunta en una línia a part (les dades, en negreta). */
+    function afegeixProblema({ context, pregunta: preg }) {
+        const div = targeta('jp-targeta-problema', ui.problema);
+        if (context) div.appendChild(paragraf(context));
+        div.appendChild(paragraf(preg, 'jp-targeta-pregunta'));
+    }
+
+    /** La targeta «Fórmula»: el nom, la fórmula i la llegenda (lletra · magnitud · unitat). */
+    function afegeixFormula({ nom, tex, llegenda }) {
+        const div = targeta('jp-targeta-formula', nom ? `${ui.formula} · ${nom}` : ui.formula);
+        const cos = document.createElement('div');
+        cos.className = 'jp-formula-cos';
+        const f = document.createElement('div');
+        f.className = 'jp-formula-tex';
+        katex.render(tex, f, { throwOnError: false });
+        cos.appendChild(f);
+        if (llegenda && llegenda.length) {
+            const taula = document.createElement('table');
+            taula.className = 'jp-llegenda';
+            for (const [lletra, magnitud, unitat] of llegenda) {
+                const tr = document.createElement('tr');
+                const td = [0, 1, 2].map(() => document.createElement('td'));
+                katex.render(lletra, td[0], { throwOnError: false });
+                td[1].textContent = magnitud;
+                td[2].textContent = unitat || '—';
+                tr.append(...td);
+                taula.appendChild(tr);
+            }
+            cos.appendChild(taula);
+        }
+        div.appendChild(cos);
+    }
+
+    function afegeixEnllac({ href, text }) {
+        const a = document.createElement('a');
+        a.className = 'jp-enllac';
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = text;
+        els.resolucio.appendChild(a);
+    }
+
+    /** Una fase nova de la resolució: les línies que s'escriuen a partir d'ara hi van. */
+    function novaFase() {
+        zona = document.createElement('div');
+        zona.className = 'jp-fase';
+        els.resolucio.appendChild(zona);
+    }
+
+    /** Una franja plegada (es pot desplegar): resum (TeX) i, a dins, els elements. */
+    function plega(elements, resumTex, textBoto) {
+        const caixa = document.createElement('div');
+        caixa.className = 'jp-plegat';
+        const boto = document.createElement('button');
+        boto.type = 'button';
+        boto.className = 'jp-plega';
+        boto.setAttribute('aria-expanded', 'false');
+        const fletxa = document.createElement('span');
+        fletxa.className = 'jp-plega-fletxa';
+        fletxa.setAttribute('aria-hidden', 'true');
+        const resum = document.createElement('span');
+        resum.className = 'jp-plega-resum';
+        if (resumTex) katex.render(resumTex, resum, { throwOnError: false });
+        const accio = document.createElement('span');
+        accio.className = 'jp-plega-accio';
+        boto.append(fletxa, resum, accio);
+        const cos = document.createElement('div');
+        cos.className = 'jp-plegat-cos';
+        cos.hidden = true;
+        cos.append(...elements);
+        const posa = obert => {
+            cos.hidden = !obert;
+            boto.setAttribute('aria-expanded', String(obert));
+            accio.textContent = obert ? ui.amaga : textBoto(cos.querySelectorAll('.jp-linia').length);
+        };
+        boto.addEventListener('click', () => posa(cos.hidden));
+        posa(false);
+        caixa.append(boto, cos);
+        caixa.afegeix = els2 => {
+            cos.append(...els2);
+            posa(!cos.hidden);
+        };
+        return caixa;
+    }
+
+    /**
+     * En pantalles baixes, si la fase té més de 4 línies, les del mig es pleguen: es veuen la primera (la
+     * fórmula de la fase) i les dues últimes.
+     */
+    function plegaAntigues() {
+        if (!config.plegaAntigues || !zona || zona === els.resolucio) return;
+        if (!(window.matchMedia && window.matchMedia('(max-height: 860px)').matches)) return;
+        const linies = Array.from(zona.children).filter(el => el.classList.contains('jp-linia'));
+        if (linies.length <= 4 && !zona.querySelector(':scope > .jp-plegat')) return;
+        const mig = linies.slice(1, -2);
+        if (!mig.length) return;
+        let franja = zona.querySelector(':scope > .jp-plegat');
+        if (franja) franja.afegeix(mig);
+        else {
+            franja = plega(mig, '', n => ui.liniesMes(n));
+            zona.insertBefore(franja, linies[linies.length - 2]);
+        }
+    }
+
+    /** Després d'un encert: que es vegin les dues últimes línies i el pas (si hi caben). */
+    function mostraUltimes() {
+        const linies = (zona || els.resolucio).querySelectorAll(':scope > .jp-linia');
+        const des = linies[Math.max(0, linies.length - 2)];
+        const suau = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        const comportament = suau ? 'smooth' : 'auto';
+        if (des) {
+            const dalt = des.getBoundingClientRect().top;
+            const baix = els.pas.getBoundingClientRect().bottom;
+            if (baix - dalt <= window.innerHeight - 16) {
+                window.scrollBy({ top: dalt - 8, behavior: comportament });
+                return;
+            }
+        }
+        els.pas.scrollIntoView({ block: 'end', behavior: comportament });
+    }
+
     function afegeixSvg(svg, classe = '') {
         const div = document.createElement('div');
         div.className = `jp-linia jp-linia-svg ${classe}`.trim();
         div.innerHTML = svg;
-        els.resolucio.appendChild(div);
+        (zona || els.resolucio).appendChild(div);
     }
 
-    function afegeixLinia(tex, classe = '') {
+    // net: com ha de quedar la línia quan es treguin els colors (desmarca)
+    function afegeixLinia(tex, classe = '', net = tex) {
         const div = document.createElement('div');
         div.className = `jp-linia ${classe}`.trim();
+        div.dataset.tex = net;
         katex.render(tex, div, { throwOnError: false });
-        els.resolucio.appendChild(div);
+        (zona || els.resolucio).appendChild(div);
+        return div;
     }
 
     // llarg: quants caràcters hi caben (6 per defecte; una casella més llarga també és més ampla)
@@ -235,7 +438,8 @@ export function iniciaJocPassos(config) {
             grup.className = 'jp-grup';
             if (tros.titol) {
                 const titol = document.createElement('div');
-                titol.className = 'jp-grup-titol';
+                // literal: el títol tal com és (p. ex. una dada amb la unitat: «10 m», no «10 M»)
+                titol.className = tros.literal ? 'jp-grup-titol jp-grup-titol-literal' : 'jp-grup-titol';
                 titol.textContent = tros.titol;
                 grup.appendChild(titol);
             }
@@ -430,9 +634,13 @@ export function iniciaJocPassos(config) {
         const pas = passos[index];
         const esTria = Object.values(pas.camps).includes('tria');
         triada = null;
-        els.comptador.textContent = passos.length > 1 ? `${ui.pas} ${index + 1} ${ui.de} ${passos.length}` : '';
-        els.comptador.hidden = passos.length <= 1;
-        els.enunciat.textContent = pas.enunciat;
+        // Amb passos opcionals, cada fase compta a part
+        const desDe = pregunta.opcional ? pregunta.opcional.desDe : passos.length;
+        const [primer, total] = index < desDe ? [0, desDe] : [desDe, passos.length - desDe];
+        els.comptador.textContent = total > 1 ? `${ui.pas} ${index - primer + 1} ${ui.de} ${total}` : '';
+        els.comptador.hidden = total <= 1;
+        if (pas.formules) pintaAmbFormules(els.enunciat, pas.enunciat);
+        else els.enunciat.textContent = pas.enunciat;
         els.plantilla.innerHTML = '';
         pas.plantilla.forEach(tros => pintaTros(tros, els.plantilla, pas));
         els.plantilla.hidden = pas.plantilla.length === 0;
@@ -445,7 +653,7 @@ export function iniciaJocPassos(config) {
         els.opcions.hidden = !esTria;
         els.opcions.classList.toggle('jp-opcions-svg', esTria && pas.opcions.some(o => o[2]));
         if (esTria) {
-            pas.opcions.forEach(([valor, text, svg]) => {
+            pas.opcions.forEach(([valor, text, svg, formules]) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'jp-opcio';
@@ -458,6 +666,9 @@ export function iniciaJocPassos(config) {
                     nom.className = 'jp-opcio-nom';
                     nom.textContent = text;
                     btn.appendChild(nom);
+                    btn.setAttribute('aria-label', text);
+                } else if (formules) {
+                    pintaAmbFormules(btn, formules);
                     btn.setAttribute('aria-label', text);
                 } else btn.textContent = text;
                 btn.addEventListener('click', () => {
@@ -478,7 +689,53 @@ export function iniciaJocPassos(config) {
         const primera = caselles()[0];
         if (primera) enfoca(primera);
         else hideCustomKeyboard();
-        els.pas.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        if (config.desplacament && index > 0) mostraUltimes();
+        else els.pas.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    // ---- PASSOS OPCIONALS: l'alumne tria si els fa ----
+    function triaOpcionals() {
+        const op = pregunta.opcional;
+        triantOpcional = true;
+        hideCustomKeyboard();
+        els.comptador.hidden = true;
+        els.enunciat.textContent = op.pregunta;
+        els.plantilla.hidden = true;
+        els.fitxes.hidden = true;
+        els.nota.hidden = true;
+        els.ok.hidden = true;
+        mostraDiagnostic('');
+        els.opcions.innerHTML = '';
+        els.opcions.hidden = false;
+        els.opcions.classList.remove('jp-opcions-svg');
+        for (const [text, si] of [
+            [op.si || ui.si, true],
+            [op.no || ui.no, false],
+        ]) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'jp-opcio jp-opcio-literal jp-opcio-tria-fase';
+            btn.textContent = text;
+            btn.addEventListener('click', () => (si ? fesOpcionals() : acaba()));
+            els.opcions.appendChild(btn);
+        }
+        els.pas.hidden = false;
+        if (config.desplacament) mostraUltimes();
+    }
+
+    function fesOpcionals() {
+        const op = pregunta.opcional;
+        triantOpcional = false;
+        ambOpcionals = true;
+        desmarca();
+        // Les línies fetes es pleguen en una franja amb el resum; la fase nova comença amb la línia inici
+        const fetes = Array.from(zona.children);
+        const franja = plega(fetes, op.resum, n => ui.mostraPassos(n));
+        franja.classList.add('jp-plegat-fase');
+        zona.appendChild(franja);
+        novaFase();
+        if (op.inici) afegeixLinia(op.inici, 'jp-inici-fase');
+        mostraPas();
     }
 
     // ---- RESPONDRE ----
@@ -507,7 +764,7 @@ export function iniciaJocPassos(config) {
     // obligatòria que falti; si no en falta cap, corregeix
     function checkCurrentCell() {
         const pas = passos[index];
-        if (state.isTransitioning || penalitzant || Object.values(pas.camps).includes('tria')) return;
+        if (state.isTransitioning || penalitzant || triantOpcional || Object.values(pas.camps).includes('tria')) return;
         const totes = caselles();
         const activa = getKbActiveInput() || document.activeElement;
         const buida = inp => inp.value.trim() === '';
@@ -580,16 +837,47 @@ export function iniciaJocPassos(config) {
         // L'activitat pot refer els passos que queden a partir de la resposta de l'alumne
         const nous = config.enEncertar ? config.enEncertar(pregunta, passos[index], valors) : null;
         if (nous) passos = nous;
+        const pas = passos[index];
         index++;
         const final = index >= passos.length;
-        afegeixLinia(passos[index - 1].linia, final ? 'jp-final' : '');
-        if (passos[index - 1].svgResolt) afegeixSvg(passos[index - 1].svgResolt);
+        const fiFase = pregunta.opcional && !ambOpcionals && index === pregunta.opcional.desDe;
+        // El que es mou, en color: una operació nova torna normals les línies marcades i marca l'anterior
+        if (pas.marcaAnterior || !pas.liniaMarcada) desmarca();
+        if (pas.marcaAnterior) {
+            const ultima = Array.from(zona.querySelectorAll(':scope > .jp-linia')).pop();
+            if (ultima && ultima.dataset.tex) {
+                marcades.push({ div: ultima, tex: ultima.dataset.tex });
+                katex.render(pas.marcaAnterior, ultima, { throwOnError: false });
+            }
+        }
+        const classe = final || fiFase ? 'jp-final' : '';
+        const div = afegeixLinia(pas.liniaMarcada || pas.linia, classe, pas.linia);
+        if (pas.liniaMarcada) marcades.push({ div, tex: pas.linia });
+        if (pas.svgResolt) afegeixSvg(pas.svgResolt);
         hideCustomKeyboard();
+        plegaAntigues();
+        if (fiFase) {
+            desmarca();
+            triaOpcionals();
+            return;
+        }
         if (!final) {
             mostraPas();
             return;
         }
-        // Pregunta resolta: la franja «Molt bé! +N punts» i el botó «Següent» (game-core.js)
+        desmarca();
+        acaba();
+    }
+
+    /** Torna a escriure normals les línies marcades amb color. */
+    function desmarca() {
+        for (const { div, tex } of marcades) katex.render(tex, div, { throwOnError: false });
+        marcades = [];
+    }
+
+    /** Pregunta resolta: la franja «Molt bé! +N punts» i el botó «Següent» (game-core.js). */
+    function acaba() {
+        triantOpcional = false;
         recordResult(Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3));
         els.pas.hidden = true;
         acabaPregunta(puntsDeLaPregunta());
@@ -599,7 +887,9 @@ export function iniciaJocPassos(config) {
     // (la franja «Intents esgotats · 0 punts» i el botó «Següent», de game-core.js)
     function esgota() {
         recordResult(4);
-        passos.slice(index).forEach(pas => {
+        desmarca();
+        const fi = pregunta.opcional && !ambOpcionals ? pregunta.opcional.desDe : passos.length;
+        passos.slice(index, fi).forEach(pas => {
             afegeixLinia(pas.linia, 'jp-donada');
             if (pas.svgResolt) afegeixSvg(pas.svgResolt);
         });

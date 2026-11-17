@@ -14,8 +14,12 @@
  *   de la dada i hi cap; la unitat és la del context; les operacions coincideixen amb
  *   nombres i amb lletres; cada opció dolenta té el seu error, i el diagnòstic el
  *   reconeix; KaTeX dibuixa totes les fórmules.
- * - 2. Els nivells (1-4) i les decisions del David: sempre un context i la llegenda amb
- *   les unitats; enlloc no hi diu de quina matèria són les fórmules; sense codi.
+ *   El pas de les dades: cada casella és una dada (amb la seva unitat) i la solució n'és la lletra.
+ *   Les opcions i les consignes amb fórmules ($…$) i les línies amb color (el que passa a l'altre
+ *   membre) també les dibuixa KaTeX; els passos amb lletres són els opcionals.
+ * - 2. Els nivells (1-4) i les decisions del David: sempre un context; el problema (context amb les
+ *   dades en negreta i pregunta) i la fórmula amb la llegenda en targetes separades; enlloc no hi
+ *   diu de quina matèria són les fórmules; sense codi.
  * ÚS: node tests/formules-steam.test.js
  * ============================================================================
  */
@@ -143,6 +147,31 @@ suite('1. Totes les fórmules i totes les lletres');
                         anota(dolents.errors, `${on}, ${pas.id}: opcions ${textos.join(' | ')}`);
                 }
                 // La bona s'accepta; cada distractor té el seu error i el diagnòstic el reconeix
+                if (pas.mena === 'dades') {
+                    // Cada casella porta el títol de la seva dada i la solució és la lletra d'aquesta dada
+                    pas.plantilla.forEach((g, i) => {
+                        const lletra = noms.find(k => `l${noms.indexOf(k)}` === pas.solucio[`c${i}`]);
+                        if (!lletra || !g.titol.startsWith(w.textDecimal(valors[lletra])))
+                            anota(dolents.errors, `${on}: la casella «${g.titol}» no és de ${lletra}`);
+                    });
+                    if (corregeixPas(pas, { ...pas.solucio }).estat !== 'ok')
+                        anota(dolents.errors, `${on}, dades: la bona no s'accepta`);
+                    const [c0, dist] = Object.entries(pas.dades.distractors)[0];
+                    for (const [v, codi] of dist) {
+                        vistos.add(codi);
+                        const c = corregeixPas(pas, { ...pas.solucio, [c0]: v });
+                        const d = diagnosticaFS(pas, c.valors);
+                        if (c.estat !== 'error' || !d || d.errorType !== codi)
+                            anota(dolents.errors, `${on}, dades: ${v} → ${c.estat}`);
+                    }
+                    continue;
+                }
+                for (const o of pas.opcions || [])
+                    if (o[3] && preguntes % 3 === 0)
+                        for (const f of o[3].split('$').filter((_, i) => i % 2))
+                            if (!katexOk(f)) anota(dolents.katex, `${on}, ${pas.id}: ${f}`);
+                for (const t of [pas.liniaMarcada, pas.marcaAnterior].filter(Boolean))
+                    if (preguntes % 3 === 0 && !katexOk(t)) anota(dolents.katex, `${on}, ${pas.id}: ${t}`);
                 const resp = pas.camps.r
                     ? { r: { v: w.textDecimal(pas.solucio.r), p: '' } }
                     : { tria: pas.solucio.tria };
@@ -174,7 +203,11 @@ suite('1. Totes les fórmules i totes les lletres');
             const [ae, be] = textUltim.split(' = ');
             if (ae !== x && be !== x) anota(dolents.final, `${on}: «${textUltim}»`);
             if (be === x && !/aligned/.test(ultim.linia)) anota(dolents.final, `${on}: no es gira`);
-            if (!katexOk(q.tex) || BAD.test(q.enunciat + q.text)) anota(dolents.katex, `${on}: pregunta`);
+            if (!katexOk(q.formula.tex) || BAD.test(JSON.stringify(q.problema) + q.text))
+                anota(dolents.katex, `${on}: pregunta`);
+            // Els passos opcionals són exactament els de lletres
+            if (q.passos.findIndex(p => p.mena === 'lletres') !== q.opcional.desDe || !katexOk(q.opcional.resum))
+                anota(dolents.ops, `${on}: opcionals des de ${q.opcional.desDe}`);
         }
     const msg = l => l.join('\n      → ');
     ok(`${preguntes} preguntes: els valors compleixen la fórmula`, !dolents.valors.length, msg(dolents.valors));
@@ -214,9 +247,22 @@ suite('2. Nivells i decisions del David');
         ['cinetica:v', 'posicio:a', 'paralel:R'].every(c => perNivell(4).includes(c))
     );
     const q = generaPreguntaFS(1);
+    const senseNegreta = [];
+    for (const cas of CASOS_FS) {
+        const qc = generaPreguntaFS(cas.nivell, cas);
+        const dades = Object.keys(cas.f.lletres).length - 1;
+        if (
+            !qc.problema.context ||
+            !/\?$/.test(qc.problema.pregunta) ||
+            ((qc.problema.context + qc.problema.pregunta).match(/\*\*[^*]+\*\*/g) || []).length !== dades ||
+            qc.formula.llegenda.length !== dades + 1
+        )
+            senseNegreta.push(`${cas.f.id}:${cas.x} «${qc.problema.context}» «${qc.problema.pregunta}»`);
+    }
     ok(
-        'sempre un context i la llegenda amb les unitats',
-        /\?/.test(q.enunciat) && /La fórmula és .*, on .* és /.test(q.enunciat)
+        'sempre un context: problema (dades en negreta, pregunta a part) i fórmula amb la llegenda',
+        !senseNegreta.length && q.formula.nom && q.tex === '',
+        senseNegreta.slice(0, 5).join('\n      → ')
     );
     const fitxers = [
         'formules-steam.html',

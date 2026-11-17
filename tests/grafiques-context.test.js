@@ -508,7 +508,7 @@ suite('5. La pàgina');
     const jp = fs.readFileSync(path.join(ROOT, 'js/passos/joc-passos.js'), 'utf8');
     ok(
         'el joc de passos pinta les opcions que són dibuixos',
-        /pas\.opcions\.forEach\(\(\[valor, text, svg\]\)/.test(jp) && /jp-opcio-svg/.test(jp)
+        /pas\.opcions\.forEach\(\(\[valor, text, svg(, formules)?\]\)/.test(jp) && /jp-opcio-svg/.test(jp)
     );
 }
 
