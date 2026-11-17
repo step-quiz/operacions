@@ -55,6 +55,25 @@ globalThis.location = { search: '', pathname: '/test.html' };
     eq('NaN → 0, no vàlid', P.validaPunts(NaN), { punts: 0, ok: false });
     eq("'8' (text) → 8", P.validaPunts('8'), { punts: 8, ok: true });
 
+    suite('2b. Una part opcional (Fórmules STEAM: nombres 8 − 2 per error, lletres +2 / +1 / 0)');
+    const R = { maxAbans: 8, despres: [2, 1] };
+    eq('sense errors i amb lletres: 10', P.puntsAmbPartOpcional(0, 0, R), 10);
+    eq('sense errors i sense lletres: 8', P.puntsAmbPartOpcional(0, null, R), 8);
+    eq('un error amb lletres: 8 + 1 = 9', P.puntsAmbPartOpcional(0, 1, R), 9);
+    eq('dos errors amb lletres: 8 + 0', P.puntsAmbPartOpcional(0, 2, R), 8);
+    eq('un error amb nombres i cap amb lletres: 6 + 2', P.puntsAmbPartOpcional(1, 0, R), 8);
+    eq(
+        'cinc errors amb nombres: 0 (+ lletres)',
+        [P.puntsAmbPartOpcional(5, null, R), P.puntsAmbPartOpcional(5, 0, R)],
+        [0, 2]
+    );
+    ok(
+        'sempre uns punts vàlids (enter de 0 a 10)',
+        [0, 1, 2, 3, 4, 5, 9].every(a =>
+            [null, 0, 1, 2, 7].every(d => P.validaPunts(P.puntsAmbPartOpcional(a, d, R)).ok)
+        )
+    );
+
     suite('3. sumaPunts (game-core.js): la porta d’entrada dels punts a la sessió');
     const errors = [];
     const consoleError = console.error;

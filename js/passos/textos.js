@@ -18,6 +18,14 @@ export const TEXTOS_PASSOS = {
         intents: 'Intents',
         sessio: 'Sessió',
         ok: 'OK',
+        // Targetes, passos opcionals i franges plegades (pregunta.problema, .formula, .opcional)
+        problema: 'Problema',
+        formula: 'Fórmula',
+        si: 'Sí',
+        no: 'No',
+        amaga: 'Amaga-ho',
+        mostraPassos: n => `Mostra les ${n} línies`,
+        liniesMes: n => (n === 1 ? '1 línia més · Mostra-la' : `${n} línies més · Mostra-les`),
     },
     avisos: {
         NO_ENTER: 'Escriu nombres enters a les caselles.',

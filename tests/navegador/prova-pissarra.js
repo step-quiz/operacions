@@ -595,10 +595,10 @@ function engegaServidor() {
             // Fórmules STEAM: «Mira com es resol» porta a la resolució del nivell de la fórmula que toca
             const s = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await s.goto(BASE + '/formules-steam.html?totaloperations=3&nivell=2');
-            await s.waitForSelector('#jp-joc .jp-opcio');
+            await s.waitForSelector('#jp-joc .jp-enllac');
             eq(
                 'fórmules STEAM del nivell 2 → «Mira com es resol» del nivell 2',
-                await s.getAttribute('#mira-com', 'href'),
+                await s.getAttribute('#jp-joc .jp-enllac', 'href'),
                 'resolucio.html?activitat=formules-steam&nivell=2'
             );
             await s.close();

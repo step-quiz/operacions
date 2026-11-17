@@ -49,7 +49,7 @@ operacions/
 │   ├── percentatges/           ← Joc de passos: math-engine.js, errors.js, strings.js i el controlador
 │   ├── canvi-unitats/          ← Joc de passos: math-engine.js (canvis i passos, amb l'escala comuna), errors.js, strings.js i el controlador
 │   ├── potencies/              ← potencies.js (el joc, amb el seu sistema de passos) i reptes-nous.js (reptes 4 i 5: exercicis, passos, correcció i errors, pur)
-│   ├── formules-steam/         ← Joc de passos: algebra.js (llegir, aïllar i errors, pur), cataleg.js (fórmules, contextos i unitats), math-engine.js, errors.js, strings.js i el controlador; resolucio.js, la resolució pas a pas (pur)
+│   ├── formules-steam/         ← Joc de passos (amb les targetes del problema i la fórmula, els passos amb lletres opcionals i els colors del que es mou: opcions de joc-passos.js que només fa servir aquesta activitat): algebra.js (llegir, aïllar i errors, pur), cataleg.js (fórmules, contextos i unitats), math-engine.js, errors.js, strings.js i el controlador; resolucio.js, la resolució pas a pas (pur)
 │   ├── arees-volums/           ← Joc de passos: math-engine.js (figures i passos, amb les figures de mesura comunes), errors.js, strings.js i el controlador
 │   ├── recta/                  ← Joc de passos: math-engine.js, errors.js, strings.js i el controlador
 │   ├── grafiques-context/      ← math-engine.js (històries, gràfica i pregunta, amb els distractors), errors.js, strings.js i el controlador
