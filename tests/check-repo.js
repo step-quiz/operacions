@@ -735,7 +735,7 @@ suite('9. «Resolució pas a pas» (resolucio.html, l’escenari B)');
     // L'escenari B: resolucio.html, el registre js/resolucio/activitats.js (les mateixes activitats) i el
     // procediment de cada una (js/<activitat>/resolucio.js)
     const reg = exists('js/resolucio/activitats.js') ? read('js/resolucio/activitats.js') : '';
-    const registrades = [...reg.matchAll(/^ {4}(\w+): Object\.freeze\(\{/gm)].map(m => m[1]).sort();
+    const registrades = [...reg.matchAll(/^ {4}'?([\w-]+)'?: Object\.freeze\(\{/gm)].map(m => m[1]).sort();
     ok(
         'resolucio.html carrega js/resolucio/resolucio.js i css/pissarra.css',
         exists('resolucio.html') &&
@@ -1060,8 +1060,14 @@ suite("13. Generador d'enllaços: opcions pròpies, pàgines autònomes i Batxil
             !batxAmbCodi.length,
             batxAmbCodi.join(', ')
         );
-        const esoSenseCodi = eso.map(a => a.file).filter(senseCodi);
-        ok("cap activitat d'ESO porta senseCodi: true", !esoSenseCodi.length, esoSenseCodi.join(', '));
+        // Excepció decidida pel David (17/11/2026): Fórmules STEAM no dona codi
+        const ESO_SENSE_CODI = ['formules-steam.html'];
+        const esoSenseCodi = eso.map(a => a.file).filter(f => senseCodi(f) && !ESO_SENSE_CODI.includes(f));
+        ok(
+            "cap activitat d'ESO porta senseCodi: true (llevat de Fórmules STEAM)",
+            !esoSenseCodi.length,
+            esoSenseCodi.join(', ')
+        );
         const core = read('js/game-core.js');
         ok(
             'game-core.js: amb senseCodi no hi ha icona «Codi» ni botó «Copiar codi» i no es genera cap codi',

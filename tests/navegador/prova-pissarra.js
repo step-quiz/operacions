@@ -15,10 +15,12 @@
  *   5. el botó «Activar la resolució pas a pas» d'index.html;
  *   6. escenari A: prioritat, equacions i fraccions, també amb ?pissarra=1, són les
  *      de sempre (cap pissarra); a equacions, «Mira com es resol» obre la resolució
- *      del mateix nivell en una pestanya nova;
- *   7. escenari B, resolucio.html?activitat=equacions (portàtil i mòbil): cada pas
- *      amb els seus símbols, «Vull més detall» a cada pas que en té (la línia del pas
- *      en gris com a objectiu, els subpassos al calaix, «Menys detall»), el nivell,
+ *      del mateix nivell en una pestanya nova; a fraccions, prioritat i fórmules STEAM,
+ *      l'enllaç porta el nivell que toca;
+ *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat i
+ *      formules-steam (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
+ *      detall» a cada pas que en té (la línia del pas en gris com a objectiu, els
+ *      subpassos al calaix, «Menys detall»; fórmules STEAM encara no en té), el nivell,
  *      «Un altre exercici» i «Ara fes-ho tu»; sense activitat, la llista;
  *   8. si una animació falla, la cua del motor (encua) mostra el pas i continua;
  *   9. a l'inici del moviment, cada fantasma es dibuixa exactament damunt del seu
@@ -590,6 +592,16 @@ function engegaServidor() {
                 'resolucio.html?activitat=fraccions&nivell=4'
             );
             await f.close();
+            // Fórmules STEAM: «Mira com es resol» porta a la resolució del nivell de la fórmula que toca
+            const s = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await s.goto(BASE + '/formules-steam.html?totaloperations=3&nivell=2');
+            await s.waitForSelector('#jp-joc .jp-opcio');
+            eq(
+                'fórmules STEAM del nivell 2 → «Mira com es resol» del nivell 2',
+                await s.getAttribute('#mira-com', 'href'),
+                'resolucio.html?activitat=formules-steam&nivell=2'
+            );
+            await s.close();
             // Prioritat: la primera expressió de la sessió és del nivell 0 → el grup 1 de la resolució
             const q = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await q.goto(BASE + '/prioritat.html?totaloperations=3');
@@ -604,20 +616,23 @@ function engegaServidor() {
 
         suite('7. Escenari B: resolucio.html (mirar com es resol)');
         {
-            for (const [act, lloc, viewport] of [
+            for (const [act, lloc, viewport, nivellInicial = 3] of [
                 ['equacions', 'portàtil', { width: 1366, height: 768 }],
                 ['equacions', 'mòbil', { width: 375, height: 740 }],
                 ['fraccions', 'portàtil', { width: 1366, height: 768 }],
                 ['fraccions', 'mòbil', { width: 375, height: 740 }],
                 ['prioritat', 'portàtil', { width: 1366, height: 768 }],
                 ['prioritat', 'mòbil', { width: 375, height: 740 }],
+                // Fórmules STEAM: el nivell 4 (les pissarres més llargues); encara sense detall a demanda
+                ['formules-steam', 'portàtil', { width: 1366, height: 768 }, 4],
+                ['formules-steam', 'mòbil', { width: 375, height: 740 }, 4],
             ]) {
                 const nom = `${act}, ${lloc}`;
                 const p = await navegador.newPage({ viewport });
                 const errors = [];
                 p.on('pageerror', e => errors.push(String(e)));
                 p.on('console', m => m.type() === 'error' && errors.push(m.text()));
-                await p.goto(`${BASE}/resolucio.html?activitat=${act}&nivell=3`);
+                await p.goto(`${BASE}/resolucio.html?activitat=${act}&nivell=${nivellInicial}`);
                 await p.waitForFunction(() => window.resolucio);
                 const r = await p.evaluate(RECORRE_DEMO, 'resolucio');
                 ok(
@@ -627,7 +642,7 @@ function engegaServidor() {
                 );
                 ok(`${nom}: l'últim pas té el resultat ressaltat`, r.final);
                 ok(`${nom}: la pàgina no surt de la pantalla`, !r.ample);
-                await provaDetall(p, 'resolucio', nom);
+                if (act !== 'formules-steam') await provaDetall(p, 'resolucio', nom);
                 // Nivell, «Un altre exercici» i «Ara fes-ho tu»
                 await p.click('#nivells button[data-nivell="1"]');
                 await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
@@ -657,7 +672,8 @@ function engegaServidor() {
                 'sense activitat, la pàgina diu quines en tenen',
                 (await p.isVisible('a[href="resolucio.html?activitat=equacions"]')) &&
                     (await p.isVisible('a[href="resolucio.html?activitat=fraccions"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=prioritat"]'))
+                    (await p.isVisible('a[href="resolucio.html?activitat=prioritat"]')) &&
+                    (await p.isVisible('a[href="resolucio.html?activitat=formules-steam"]'))
             );
             await p.close();
         }
