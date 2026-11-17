@@ -3,7 +3,13 @@
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/potencies/potencies.js
  * ROL: Joc «Potències — ESO» (potencies.html). Abans era dins de l'HTML.
- * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa game-core.js, config.js.
+ *      Cinc reptes: 1 propietats, 2 base negativa, 3 notació científica, i (lliurament
+ *      15 del full de ruta) 4 exponent zero i negatiu i 5 operacions en notació
+ *      científica (× i :). La matemàtica dels reptes 4 i 5 és a reptes-nous.js (pur,
+ *      amb la correcció i els missatges dels errors); aquí, passosNous() la converteix
+ *      en passos d'aquest joc.
+ * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa game-core.js, config.js,
+ *      reptes-nous.js.
  * ============================================================================
  */
 
@@ -24,6 +30,7 @@ import {
     acabaPregunta,
     puntsDeLaPregunta,
 } from '../game-core.js';
+import { comprova, generaRepte4, generaRepte5 } from './reptes-nous.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
 // window només les que es criden des de fora: game-core.js (buildLevel…) i els onclick de l'HTML.
@@ -146,6 +153,10 @@ function renderExpr(p) {
                         : `−${p.base}<sup class="expr-sup">${p.exp}</sup>`
                 )
             );
+            break;
+
+        case 'nou': // reptes 4 i 5 (reptes-nous.js): l'expressió ja ve en HTML
+            els.expressionBox.appendChild(mkSpan(p.html));
             break;
 
         case 'notsci':
@@ -486,6 +497,7 @@ function buildStepsRepte3(p) {
                 inpM.className = 'expr-inline-input';
                 inpM.id = 'step-input-mant';
                 inpM.autocomplete = 'off';
+                inpM.dataset.coma = 'true'; // al teclat dels tàctils, la tecla − fa de coma
                 box.appendChild(inpM);
                 // " · " i "10^[input]" — "10" dins del wrapper per tenir superíndex real
                 box.appendChild(mkSpan('&thinsp;·&thinsp;', 'expr-op'));
@@ -511,6 +523,7 @@ function buildStepsRepte3(p) {
                 // Helper per bloquejar un input en verd
                 function lockGreen(inp) {
                     inp.readOnly = true;
+                    inp.dataset.locked = 'true'; // bloquejada: el teclat propi no hi escriu i no es buida
                     inp.style.color = 'var(--success)';
                     inp.style.borderColor = 'var(--success)';
                     inp.style.background = 'var(--success-light)';
@@ -657,6 +670,116 @@ function buildStepsRepte3(p) {
     }
 }
 
+// ── Reptes 4 i 5 (reptes-nous.js) ───────────────────────────────
+// Cada pas de dades es converteix en un pas d'aquest joc. Les caselles van a
+// l'expression-box (on: 'expressio') o a sota (on: 'esquema'); el resultat de cada
+// pas bo s'afegeix a l'expressió, darrere d'un «=» si ja n'hi havia un altre.
+
+/** Un tros nou de l'expressió (amb «=» al davant si ja n'hi ha un altre). */
+function trosNou() {
+    const tros = document.createElement('span');
+    tros.className = 'pas-nou';
+    if (els.expressionBox.querySelector('.pas-nou')) tros.appendChild(mkSpan('=', 'expr-eq'));
+    els.expressionBox.appendChild(tros);
+    return tros;
+}
+/** Escriu el resultat d'un pas bo: al tros de les caselles (si n'hi ha) o en un de nou. */
+function escriuResultat(tros, html) {
+    if (!html) return;
+    const lloc = tros || trosNou();
+    lloc.querySelectorAll('input, .pas-caselles').forEach(el => el.remove());
+    lloc.appendChild(mkSpan(html, 'expr-result'));
+}
+function casella(id, classe, decimal = false) {
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = classe;
+    inp.id = id;
+    inp.autocomplete = 'off';
+    if (decimal) inp.dataset.coma = 'true'; // al teclat dels tàctils, la tecla − fa de coma
+    return inp;
+}
+const valorDe = id => (document.getElementById(id) || {}).value || '';
+/** Un exponent amb la seva base: base^[casella] (dins d'un embolcall, com al repte 1). */
+function exponentAmbBase(base, id) {
+    const wrap = document.createElement('span');
+    wrap.className = 'expr-base-sup expr-base-sup-pad pas-caselles';
+    wrap.appendChild(mkSpan(base));
+    wrap.appendChild(casella(id, 'expr-sup-input'));
+    return wrap;
+}
+
+function passosNous(p) {
+    return p.passos.map(pas => {
+        const step = { title: pas.titol, tros: null, missatgeError: '' };
+        // El resultat de comprova(): bo (true), avís (no resta intents) o error (amb el seu missatge)
+        const valora = r => {
+            if (r.estat === 'ok') return true;
+            if (r.estat === 'avis') {
+                els.stepFeedback.innerText = r.missatge;
+                els.stepFeedback.className = 'important';
+            } else step.missatgeError = r.missatge || '';
+            return false;
+        };
+        const senseEsquema = c => {
+            c.innerHTML = '';
+            els.stepBtns.innerHTML = '';
+        };
+        step.buildBtns = () => {
+            els.stepBtns.innerHTML = '';
+        };
+        if (pas.mena === 'tria') {
+            step.hideBtnOk = true;
+            step.buildSchema = buildEmpty();
+            step.buildBtns = buildBtnSelect(pas.opcions.map(([value, label]) => ({ label, value })));
+            step.validate = () => valora(comprova(pas, selectedOption));
+        } else if (pas.on === 'esquema') {
+            step.buildSchema = c => {
+                senseEsquema(c);
+                c.appendChild(mkSpan(pas.prefix, 'schema-text'));
+                c.appendChild(mkSpan('=', 'schema-eq'));
+                if (pas.mena === 'exponent') c.appendChild(exponentAmbBase(pas.base, 'step-input'));
+                else c.appendChild(casella('step-input', 'schema-input schema-input-llarg', true));
+            };
+            step.validate = () => valora(comprova(pas, valorDe('step-input')));
+        } else {
+            step.buildSchema = senseEsquema;
+            step.appendToExpr = () => {
+                const tros = trosNou();
+                step.tros = tros;
+                if (pas.mena === 'exponent') tros.appendChild(exponentAmbBase(pas.base, 'step-input'));
+                else if (pas.mena === 'fraccio') {
+                    const f = document.createElement('span');
+                    f.className = 'expr-frac pas-caselles';
+                    const [num, den] = [document.createElement('span'), document.createElement('span')];
+                    num.className = 'expr-frac-num';
+                    den.className = 'expr-frac-den';
+                    num.appendChild(casella('step-input-num', 'expr-inline-input expr-frac-input'));
+                    den.appendChild(casella('step-input-den', 'expr-inline-input expr-frac-input'));
+                    f.append(num, den);
+                    tros.appendChild(f);
+                } else {
+                    // notacio: [mantissa] · 10^[exponent]
+                    const grup = document.createElement('span');
+                    grup.className = 'pas-caselles';
+                    grup.appendChild(casella('step-input-mant', 'expr-inline-input', true));
+                    grup.appendChild(mkSpan('&thinsp;·&thinsp;', 'expr-op'));
+                    grup.appendChild(exponentAmbBase('10', 'step-input-exp'));
+                    tros.appendChild(grup);
+                }
+            };
+            step.validate = () => {
+                if (pas.mena === 'exponent') return valora(comprova(pas, valorDe('step-input')));
+                if (pas.mena === 'fraccio')
+                    return valora(comprova(pas, { num: valorDe('step-input-num'), den: valorDe('step-input-den') }));
+                return valora(comprova(pas, { m: valorDe('step-input-mant'), e: valorDe('step-input-exp') }));
+            };
+        }
+        step.onCorrect = pas.resultat ? () => escriuResultat(step.tros, pas.resultat) : null;
+        return step;
+    });
+}
+
 // ================================================================
 // SISTEMA GENÈRIC DE PASSOS
 // ================================================================
@@ -733,8 +856,10 @@ function clearAndFocus() {
         ...els.stepSchema.querySelectorAll('input'),
         ...els.expressionBox.querySelectorAll('.expr-sup-input, .expr-inline-input'),
     ];
+    // Es buiden totes les caselles menys les bloquejades (les que ja són bones, en verd). No es mira
+    // readOnly: als tàctils, el teclat propi també posa readonly a la casella on escriu
     allInputs.forEach(inp => {
-        if (!inp.readOnly) {
+        if (inp.dataset.locked !== 'true') {
             inp.value = '';
             // Restablir estil si estava marcat en vermell
             inp.style.color = '';
@@ -743,11 +868,11 @@ function clearAndFocus() {
             inp.style.fontWeight = '';
         }
     });
-    const first = allInputs[0] || null;
+    const first = allInputs.find(inp => inp.dataset.locked !== 'true') || null;
     if (first) {
         if (isTouchDevice()) {
-            kbMarkForOverwrite(first);
             showCustomKeyboard(first);
+            kbMarkForOverwrite(first); // després de showCustomKeyboard, que ho desfaria
         } else {
             first.focus();
         }
@@ -777,6 +902,12 @@ function checkStep() {
             flashError();
             penalize();
             if (state.attemptsLeft > 0) clearAndFocus();
+            // Reptes 4 i 5: l'error típic que s'ha reconegut, i per què
+            if (step.missatgeError) {
+                els.stepFeedback.innerText = step.missatgeError;
+                els.stepFeedback.className = 'error';
+                step.missatgeError = '';
+            }
         }
         return;
     }
@@ -801,7 +932,7 @@ function selectRepte(n) {
     startGame();
 }
 
-// Torna al menú general de potències (els 3 reptes). Es recarrega la pàgina: així no queda cap
+// Torna al menú general de potències (els 5 reptes). Es recarrega la pàgina: així no queda cap
 // temporitzador ni estat de la partida anterior. Si ja hi ha progrés, es demana confirmació.
 function tornaAlMenu() {
     const hiHaProgres =
@@ -865,8 +996,12 @@ function buildLevel() {
     do {
         if (selectedRepte === 1) p = genRepte1(state.currentOperation);
         else if (selectedRepte === 2) p = genRepte2(state.currentOperation);
-        else p = genRepte3(state.currentOperation);
-        key = JSON.stringify({ t: p.type, ...p });
+        else if (selectedRepte === 3) p = genRepte3(state.currentOperation);
+        else {
+            p = (selectedRepte === 4 ? generaRepte4 : generaRepte5)(state.currentOperation);
+            p.type = 'nou';
+        }
+        key = p.type === 'nou' ? p.text : JSON.stringify({ t: p.type, ...p });
         tries++;
     } while (usedProblems.has(key) && tries < 30);
     usedProblems.add(key);
@@ -878,7 +1013,8 @@ function buildLevel() {
     // Construeix els passos
     if (selectedRepte === 1) currentSteps = buildStepsRepte1(p);
     else if (selectedRepte === 2) currentSteps = buildStepsRepte2(p);
-    else currentSteps = buildStepsRepte3(p);
+    else if (selectedRepte === 3) currentSteps = buildStepsRepte3(p);
+    else currentSteps = passosNous(p);
 
     currentStepIdx = 0;
     showCurrentStep();
@@ -915,6 +1051,9 @@ function showCorrectAnswer(p) {
             break;
         case 'baseneg':
             showResult(String(p.result));
+            break;
+        case 'nou':
+            showResult(p.solucioHtml);
             break;
         case 'notsci':
             if (p.dir === 'to_sci') {
@@ -956,7 +1095,12 @@ document.addEventListener('keydown', e => {
 });
 
 function checkCurrentCell() {
-    const inputs = Array.from(els.stepSchema.querySelectorAll('input'));
+    // Les caselles de l'esquema i les de l'expressió que encara es poden escriure (p. ex. el numerador i
+    // el denominador d'una fracció): la tecla → va a la buida següent i, si no n'hi ha, comprova
+    const inputs = [
+        ...els.stepSchema.querySelectorAll('input'),
+        ...els.expressionBox.querySelectorAll('input:not([readonly])'),
+    ];
     if (!inputs.length) {
         checkStep();
         return;
