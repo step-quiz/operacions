@@ -56,6 +56,7 @@ export const EXERCISE_CODES = {
     'triangle-rectangle': 'TR',
     'raons-trigonometria': 'RT',
     'teorema-sin-cos': 'TC',
+    'formules-steam': 'FS', // reservat: no genera codi (senseCodi, decisió del David, 17/11/2026)
     // Batxillerat
     'asimptotes': 'AS', // asimptotes.js genera el codi pel seu compte (no fa servir game-core.js)
     // Batxillerat (codis reservats: aquestes activitats ara no generen codi,

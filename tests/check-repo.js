@@ -1060,8 +1060,14 @@ suite("13. Generador d'enllaços: opcions pròpies, pàgines autònomes i Batxil
             !batxAmbCodi.length,
             batxAmbCodi.join(', ')
         );
-        const esoSenseCodi = eso.map(a => a.file).filter(senseCodi);
-        ok("cap activitat d'ESO porta senseCodi: true", !esoSenseCodi.length, esoSenseCodi.join(', '));
+        // Excepció decidida pel David (17/11/2026): Fórmules STEAM no dona codi
+        const ESO_SENSE_CODI = ['formules-steam.html'];
+        const esoSenseCodi = eso.map(a => a.file).filter(f => senseCodi(f) && !ESO_SENSE_CODI.includes(f));
+        ok(
+            "cap activitat d'ESO porta senseCodi: true (llevat de Fórmules STEAM)",
+            !esoSenseCodi.length,
+            esoSenseCodi.join(', ')
+        );
         const core = read('js/game-core.js');
         ok(
             'game-core.js: amb senseCodi no hi ha icona «Codi» ni botó «Copiar codi» i no es genera cap codi',
