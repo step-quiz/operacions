@@ -26,8 +26,8 @@ https://claude.ai/artifact/TpqHeTWA7N9HrBMpeNCx6s, holds David's answers of 14/1
 | 13 | Àrees i volums (E14) + shared measurement figures | `arees-volums.html`, `AV`; `js/passos/figures-mesura.js`, `css/figures-mesura.css` | DONE (2026-11-16) |
 | 14 | Operacions combinades amb enters (E2), inside `prioritat` | `prioritat.html?nombres=enters`; `js/prioritat/` (engine, strings, renderer, board), `resolucio.html` levels 6–8 | DONE (2026-11-16) |
 | 15 | Potències: reptes 4 i 5 (E4) | `potencies.html` (menu cards 4 and 5); `js/potencies/reptes-nous.js` | DONE (2026-11-17) |
-| 16 | Fórmules STEAM (E11) | `formules-steam.html` (no code); `js/formules-steam/`; board `js/formules-steam/resolucio.js` | ACTIVITY DONE (2026-11-17); board stage 1 DONE on the branch (2026-11-17, no detail on demand yet) |
-| 17 | Inequacions (E12) | `inequacions.html`, `IQ`; `js/inequacions/`; shared number line `js/passos/recta-intervals.js` (step-player field `recta`) | DONE on the branch (2026-11-17) |
+| 16 | Fórmules STEAM (E11) | `formules-steam.html` (no code); `js/formules-steam/`; board `js/formules-steam/resolucio.js` | DONE (2026-11-17): activity, UI review and board stage 1 (no detail on demand yet) |
+| 17 | Inequacions (E12) | `inequacions.html`, `IQ`; `js/inequacions/`; shared number line `js/passos/recta-intervals.js` (step-player field `recta`) | DONE (2026-11-17; board after David tries it) |
 | 18–22 | See «Pending items» | — | PENDING |
 
 Deliveries 1–11 reached `main` on 2026-11-16 through B's 3-way merge: base `7f79b4b` (the snapshot A worked on),
@@ -130,6 +130,8 @@ skipping the letters gives at most 8 (`js/punts.js puntsAmbPartOpcional`, `pregu
 | 22 | **B10 Logaritmes i equacions no lineals** (4t ESO–1r Batx), new page | «comença pel que tu vulguis» | Three blocks: logarithms (definition, log₂ 8 = 3 because 2³ = 8; properties); exponential, logarithmic and radical equations with **checking the solutions as a mandatory step**; quadratic and rational inequalities with the sign table (reuse B3's widget). The first block is free to choose. Errors: log(a + b) = log a + log b; keeping false solutions; x² > 4 → x > 2. |
 
 ## Open points for David (ask with the question dialog when you reach them)
+
+- Everything still open (work and decisions) is summarised in [`PENDING.md`](../../PENDING.md) at the root.
 
 - Item order: free to change if David wants.
 
