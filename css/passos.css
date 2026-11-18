@@ -473,6 +473,10 @@ h1 {
     width: 100%;
     max-width: 380px;
 }
+/* La recta numèrica resolta (js/passos/recta-intervals.js): tan ampla com la que s'ha respost */
+.jp-linia-svg:has(.jp-recta-svg) {
+    max-width: 560px;
+}
 
 /* ---- TARGETES «PROBLEMA» I «FÓRMULA» (pregunta.problema, pregunta.formula) ---- */
 .jp-targeta {
@@ -639,4 +643,106 @@ h1 {
     .jp-plega-fletxa {
         transition: none;
     }
+}
+
+/* ---- RECTA NUMÈRICA AMB INTERVALS (camps 'recta', js/passos/recta-intervals.js) ---- */
+.jp-recta {
+    width: 100%;
+    max-width: 36em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 4px;
+}
+.jp-recta.jp-malament {
+    border-color: var(--danger);
+}
+.jp-recta-dibuix {
+    width: 100%;
+}
+/* A la resolució, la mida pròpia (560 px) si hi cap; mentre es respon, tota l'amplada */
+.jp-recta-svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+.jp-recta-dibuix .jp-recta-svg {
+    width: 100%;
+    max-width: 560px;
+}
+.jp-r-eix,
+.jp-r-marca {
+    stroke: var(--text-main);
+    stroke-width: 2;
+}
+.jp-r-fletxa {
+    fill: var(--text-main);
+}
+.jp-r-text {
+    fill: var(--text-muted);
+    font-size: 15px;
+    font-family: inherit;
+}
+.jp-r-text-fraccio {
+    fill: var(--primary-dark);
+    font-weight: bold;
+}
+.jp-r-raig {
+    stroke: var(--primary);
+    stroke-width: 7;
+    stroke-linecap: round;
+}
+.jp-r-punt {
+    stroke: var(--primary);
+    stroke-width: 3;
+}
+.jp-r-ple {
+    fill: var(--primary);
+}
+.jp-r-buit {
+    fill: white;
+}
+/* Zona per tocar cada marca: invisible, però amb el cursor i un ressalt suau */
+.jp-r-toc {
+    fill: transparent;
+    cursor: pointer;
+}
+@media (hover: hover) {
+    .jp-r-toc:hover {
+        fill: var(--primary-light);
+        opacity: 0.5;
+    }
+}
+.jp-recta-botons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 22px;
+}
+.jp-recta-grup {
+    display: flex;
+    gap: 8px;
+}
+.jp-recta-boto {
+    font: inherit;
+    font-weight: bold;
+    color: var(--primary-dark);
+    background: white;
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.jp-recta-boto[aria-pressed='true'] {
+    background: var(--primary);
+    color: white;
+}
+.jp-recta-boto:focus-visible {
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
 }

@@ -36,7 +36,9 @@
  *                 Com es pinta un camp depèn del seu tipus: enter/coeficient/exponent, una
  *                 casella; racional, una fracció de caselles; decimal, la casella i la del
  *                 període; pintat, la figura de pas.figura per pintar-hi parts; fitxa, una
- *                 casella buida on es deixa una de les targetes de pas.fitxes.
+ *                 casella buida on es deixa una de les targetes de pas.fitxes; recta, la recta
+ *                 numèrica del tros { camp, recta: { marques } } (js/passos/recta-intervals.js): l'alumne
+ *                 toca una marca i tria si el punt hi entra (ple) i cap a quin costat va la semirecta.
  *     fitxes      [{ id, tex } | { id, svg }]: les targetes per arrossegar (o tocar i col·locar)
  *     figura      { parts, unitats }: la figura del camp 'pintat' (js/passos/figura-fraccio.js)
  *     svgResolt   (opcional) un SVG que s'afegeix a la resolució amb la línia (p. ex. la recta dibuixada)
@@ -53,7 +55,8 @@
  *     formules    (opcional) true: la consigna porta fórmules entre $…$ (KaTeX)
  *     nota        text d'ajuda sota les caselles (opcional)
  *     dades       el que necessita el diagnòstic
- *     linia       TeX del pas resolt: queda escrit a la resolució
+ *     linia       TeX del pas resolt: queda escrit a la resolució (buit: no s'hi escriu cap línia, p. ex.
+ *                 si el pas només deixa un dibuix, svgResolt)
  *     liniaMarcada (opcional) la mateixa línia amb el que es mou en color: es veu així fins que un pas
  *                 posterior comença una altra operació (marcaAnterior) o no en porta (llavors, linia)
  *     marcaAnterior (opcional) TeX que substitueix l'última línia escrita en resoldre el pas (la mateixa
@@ -111,6 +114,7 @@ import { puntsAmbPartOpcional } from '../punts.js';
 import { corregeixPas, esCampFraccio, textResposta } from './correccio.js';
 import { svgFiguraFraccio } from './figura-fraccio.js';
 import { parabolaPerTresPunts, svgQuadricula } from './quadricula.js';
+import { svgRecta } from './recta-intervals.js';
 import { TEXTOS_PASSOS } from './textos.js';
 
 const MARCAT = `
@@ -508,6 +512,7 @@ export function iniciaJocPassos(config) {
             return dibuix;
         }
         if (tipus === 'punts') return creaQuadricula(nom, tros.quadricula || {}, pas);
+        if (tipus === 'recta') return creaRecta(nom, tros.recta || { marques: [] });
         if (tipus === 'fitxa') {
             const forat = document.createElement('div');
             forat.className = 'jp-forat';
@@ -527,6 +532,81 @@ export function iniciaJocPassos(config) {
             return forat;
         }
         return creaCasella(nom, '', !!tros.sup);
+    }
+
+    // ---- RECTA (camps 'recta'): tocar una marca hi posa el punt; els botons diuen si hi entra i el costat ----
+    function creaRecta(nom, { marques }) {
+        const caixa = document.createElement('div');
+        caixa.className = 'jp-recta';
+        caixa.dataset.nom = nom;
+        const estat = { i: null, ple: null, costat: null };
+        const dibuix = document.createElement('div');
+        dibuix.className = 'jp-recta-dibuix';
+        const botons = document.createElement('div');
+        botons.className = 'jp-recta-botons';
+        const grups = [
+            [
+                'ple',
+                [
+                    [true, ui.hiEntra],
+                    [false, ui.noHiEntra],
+                ],
+            ],
+            [
+                'costat',
+                [
+                    ['esq', ui.esquerra],
+                    ['dre', ui.dreta],
+                ],
+            ],
+        ];
+        const desa = () => {
+            caixa.dataset.resposta = JSON.stringify(estat);
+            caixa.classList.remove('jp-malament');
+        };
+        const pinta = () => {
+            dibuix.innerHTML = svgRecta({
+                marques,
+                punt: estat.i === null ? null : { i: estat.i, ple: estat.ple !== false },
+                costat: estat.i === null ? null : estat.costat,
+                interactiva: true,
+            });
+            dibuix.querySelectorAll('.jp-r-toc').forEach(r =>
+                r.addEventListener('click', () => {
+                    estat.i = Number(r.dataset.i);
+                    desa();
+                    pinta();
+                })
+            );
+            botons.querySelectorAll('button').forEach(b => {
+                const v = JSON.parse(b.dataset.valor);
+                b.setAttribute('aria-pressed', String(estat[b.dataset.clau] === v));
+            });
+        };
+        for (const [clau, opcions] of grups) {
+            const grup = document.createElement('div');
+            grup.className = 'jp-recta-grup';
+            grup.setAttribute('role', 'group');
+            for (const [valor, text] of opcions) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'jp-recta-boto';
+                b.dataset.clau = clau;
+                b.dataset.valor = JSON.stringify(valor);
+                b.textContent = text;
+                b.addEventListener('click', () => {
+                    estat[clau] = valor;
+                    desa();
+                    pinta();
+                });
+                grup.appendChild(b);
+            }
+            botons.appendChild(grup);
+        }
+        caixa.append(dibuix, botons);
+        desa();
+        pinta();
+        return caixa;
     }
 
     // ---- QUADRÍCULA (camps 'punts'): tocar-la hi posa (o en treu) el punt més proper ----
@@ -758,6 +838,9 @@ export function iniciaJocPassos(config) {
         els.plantilla.querySelectorAll('.jp-quadricula').forEach(q => {
             resp[q.dataset.nom] = JSON.parse(q.dataset.punts);
         });
+        els.plantilla.querySelectorAll('.jp-recta').forEach(r => {
+            resp[r.dataset.nom] = JSON.parse(r.dataset.resposta);
+        });
         els.plantilla.querySelectorAll('.jp-forat').forEach(f => {
             const fitxa = f.querySelector('.jp-fitxa');
             resp[f.dataset.nom] = fitxa ? fitxa.dataset.id : '';
@@ -814,7 +897,7 @@ export function iniciaJocPassos(config) {
             casellesDe(nom).forEach(inp => inp.classList.add('jp-malament'));
             els.plantilla
                 .querySelectorAll(
-                    `.jp-dibuix[data-nom="${nom}"], .jp-forat[data-nom="${nom}"], .jp-quadricula[data-nom="${nom}"]`
+                    `.jp-dibuix[data-nom="${nom}"], .jp-forat[data-nom="${nom}"], .jp-quadricula[data-nom="${nom}"], .jp-recta[data-nom="${nom}"]`
                 )
                 .forEach(el => el.classList.add('jp-malament'));
         });
@@ -856,8 +939,9 @@ export function iniciaJocPassos(config) {
             }
         }
         const classe = final || fiFase ? 'jp-final' : '';
-        const div = afegeixLinia(pas.liniaMarcada || pas.linia, classe, pas.linia);
-        if (pas.liniaMarcada) marcades.push({ div, tex: pas.linia });
+        // Un pas sense línia (només deixa un dibuix, svgResolt) no escriu res
+        const div = pas.linia ? afegeixLinia(pas.liniaMarcada || pas.linia, classe, pas.linia) : null;
+        if (div && pas.liniaMarcada) marcades.push({ div, tex: pas.linia });
         if (pas.svgResolt) afegeixSvg(pas.svgResolt);
         hideCustomKeyboard();
         plegaAntigues();
@@ -905,7 +989,7 @@ export function iniciaJocPassos(config) {
         desmarca();
         const fi = pregunta.opcional && !ambOpcionals ? pregunta.opcional.desDe : passos.length;
         passos.slice(index, fi).forEach(pas => {
-            afegeixLinia(pas.linia, 'jp-donada');
+            if (pas.linia) afegeixLinia(pas.linia, 'jp-donada');
             if (pas.svgResolt) afegeixSvg(pas.svgResolt);
         });
         els.plantilla.hidden = true;

@@ -41,6 +41,7 @@ const TESTS = [
     ["Prioritat d'operacions amb enters (signes, passos i errors)", 'tests/prioritat-enters.test.js'],
     ['Potències: reptes 4 i 5 (exponents negatius i notació científica)', 'tests/potencies.test.js'],
     ['Fórmules STEAM (aïllar una lletra, passos i errors)', 'tests/formules-steam.test.js'],
+    ['Inequacions (passos, recta, interval i errors)', 'tests/inequacions.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],

@@ -21,6 +21,8 @@
  *                  punts        els punts [[x, y], …] que l'alumne ha situat a la quadrícula; la
  *                               solució és { punts: [[x, y], …] } (aquests, en qualsevol ordre) o
  *                               { recta: [m, n], quants } (tants punts diferents de y = mx + n)
+ *                  recta        { i, ple, costat } (js/passos/recta-intervals.js): la marca on és el
+ *                               punt, si hi entra (ple) i el costat de la semirecta ('esq' | 'dre')
  *     solucio    { nom: valor }: racional → [n, d] irreductible
  *     parell     [nom, nom]: aquests dos camps es poden respondre en qualsevol ordre
  *     proporcional  [nom, nom, nom]: val qualsevol terna d'enters proporcional a la solució
@@ -87,7 +89,7 @@ export function esCampFraccio(tipus) {
  * @param {object} pas    { camps, solucio, parell?, proporcional?, opcions? }
  * @param {object} resp   { nom: text } · racional: { nom: { n: text, d: text } } · tria: { tria: valor }
  * @returns {object} estat: 'ok' | 'error' (resta un intent) | 'incomplet' | 'avis' (no en resta cap;
- *                   codi: NO_ENTER, NO_DECIMAL, DEN_ZERO, NO_SIMPLIFICADA o FALTEN_PUNTS); camp: el que falta o el de l'avís;
+ *                   codi: NO_ENTER, NO_DECIMAL, DEN_ZERO, NO_SIMPLIFICADA, FALTEN_PUNTS o FALTA_RECTA); camp: el que falta o el de l'avís;
  *                   valors: el que ha escrit, ja com a nombres (racionals simplificats);
  *                   malament: noms dels camps equivocats
  */
@@ -112,6 +114,13 @@ export function corregeixPas(pas, resp = {}) {
             if (!punts.length) return { estat: 'incomplet', camp: nom };
             if (punts.length < quants) return { estat: 'avis', codi: 'FALTEN_PUNTS', camp: nom };
             escrit[nom] = punts;
+            continue;
+        }
+        if (tipus === 'recta') {
+            if (!r || r.i === null || r.i === undefined) return { estat: 'incomplet', camp: nom };
+            if (r.ple === null || r.ple === undefined || !r.costat)
+                return { estat: 'avis', codi: 'FALTA_RECTA', camp: nom };
+            escrit[nom] = { i: r.i, ple: r.ple, costat: r.costat };
             continue;
         }
         if (tipus === 'pintat') {
@@ -142,12 +151,15 @@ export function corregeixPas(pas, resp = {}) {
         if (d === 0) return { estat: 'avis', codi: 'DEN_ZERO', camp: nom };
         escrit[nom] = fraccio ? [n, d] : n;
     }
+    const igualRecta = (a, b) => a.i === b.i && a.ple === b.ple && a.costat === b.costat;
     const encerta = (nom, sol) =>
         pas.camps[nom] === 'punts'
             ? puntsCorrectes(escrit[nom], sol[nom])
-            : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
-              ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
-              : escrit[nom] === sol[nom];
+            : pas.camps[nom] === 'recta'
+              ? igualRecta(escrit[nom], sol[nom])
+              : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
+                ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
+                : escrit[nom] === sol[nom];
     // Camps equivocats respecte d'una solució (amb un parell, també en l'altre ordre)
     function malamentRespecte(sol) {
         if (pas.proporcional) {
@@ -220,6 +232,8 @@ export function errorPerDistractors(pas, valors) {
             ? x === y
             : racionalsIguals(comRacional(x), comRacional(y));
     for (const nom of Object.keys(pas.camps)) {
+        // la recta no té distractors per valor: el diagnòstic el fa l'activitat (punt, costat…)
+        if (pas.camps[nom] === 'recta') continue;
         if (!(nom in valors) || igual(valors[nom], pas.solucio[nom])) continue;
         const trobat = (distractors[nom] || []).find(([valor]) => igual(valor, valors[nom]));
         return trobat ? trobat[1] : null;
