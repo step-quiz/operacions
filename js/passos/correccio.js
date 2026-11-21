@@ -23,6 +23,8 @@
  *                               { recta: [m, n], quants } (tants punts diferents de y = mx + n)
  *                  recta        { i, ple, costat } (js/passos/recta-intervals.js): la marca on és el
  *                               punt, si hi entra (ple) i el costat de la semirecta ('esq' | 'dre')
+ *                  taula        la taula de signes (js/passos/taula-signes.js): punts de prova i cel·les;
+ *                               la solució és { prova: bool, files: { id: [valor per columna] } }
  *     solucio    { nom: valor }: racional → [n, d] irreductible
  *     parell     [nom, nom]: aquests dos camps es poden respondre en qualsevol ordre
  *     proporcional  [nom, nom, nom]: val qualsevol terna d'enters proporcional a la solució
@@ -42,6 +44,7 @@ import {
     sumaCoef,
     textRacional,
 } from '../algebra/racionals.js';
+import { llegeixTaula, taulaCorrecta } from './taula-signes.js';
 
 // ── Correcció ────────────────────────────────────────────────────────────────
 const buit = s => s === undefined || s === null || String(s).trim() === '';
@@ -123,6 +126,12 @@ export function corregeixPas(pas, resp = {}) {
             escrit[nom] = { i: r.i, ple: r.ple, costat: r.costat };
             continue;
         }
+        if (tipus === 'taula') {
+            const t = llegeixTaula(r, pas.solucio[nom], taulaDelCamp(pas, nom));
+            if (t.estat) return { ...t, camp: nom };
+            escrit[nom] = t.valor;
+            continue;
+        }
         if (tipus === 'pintat') {
             const n = parseStrictInt(r);
             if (!(n > 0)) return { estat: 'incomplet', camp: nom };
@@ -153,13 +162,15 @@ export function corregeixPas(pas, resp = {}) {
     }
     const igualRecta = (a, b) => a.i === b.i && a.ple === b.ple && a.costat === b.costat;
     const encerta = (nom, sol) =>
-        pas.camps[nom] === 'punts'
-            ? puntsCorrectes(escrit[nom], sol[nom])
-            : pas.camps[nom] === 'recta'
-              ? igualRecta(escrit[nom], sol[nom])
-              : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
-                ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
-                : escrit[nom] === sol[nom];
+        pas.camps[nom] === 'taula'
+            ? taulaCorrecta(escrit[nom], sol[nom], taulaDelCamp(pas, nom))
+            : pas.camps[nom] === 'punts'
+              ? puntsCorrectes(escrit[nom], sol[nom])
+              : pas.camps[nom] === 'recta'
+                ? igualRecta(escrit[nom], sol[nom])
+                : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
+                  ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
+                  : escrit[nom] === sol[nom];
     // Camps equivocats respecte d'una solució (amb un parell, també en l'altre ordre)
     function malamentRespecte(sol) {
         if (pas.proporcional) {
@@ -191,6 +202,19 @@ export function corregeixPas(pas, resp = {}) {
     if (malament.length) return { estat: 'error', valors, malament };
     if (perSimplificar) return { estat: 'avis', codi: 'NO_SIMPLIFICADA', camp: perSimplificar, valors };
     return { estat: 'ok', valors };
+}
+
+/** La taula del camp nom (el tros { camp: nom, taula } de la plantilla, també dins d'un grup). */
+function taulaDelCamp(pas, nom) {
+    const busca = trossos => {
+        for (const t of trossos || []) {
+            if (t.camp === nom && t.taula) return t.taula;
+            const dins = t.grup && busca(t.grup);
+            if (dins) return dins;
+        }
+        return null;
+    };
+    return busca(pas.plantilla);
 }
 
 /** La resposta escrita, en text pla, per a l'historial de la sessió (una activitat la pot fer a mida). */

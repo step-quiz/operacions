@@ -1,0 +1,78 @@
+/* ============================================================================
+ * FITXER: css/taula-signes.css
+ * ROL: La taula de signes del joc de passos (js/passos/taula-signes.js): la interactiva
+ *      (punts de prova i botons que canvien de valor) i la resolta (a la resolució).
+ *      Prioritat: Chromebook tàctil 1366×768, portàtil i tauletes; al mòbil, es desplaça de costat.
+ * ============================================================================ */
+
+.jp-taula {
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 6px auto;
+}
+.jp-taula table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-size: 1rem;
+}
+.jp-taula th,
+.jp-taula td {
+    border: 1px solid var(--primary-light, #c9d6e8);
+    padding: 6px 8px;
+    text-align: center;
+    white-space: nowrap;
+}
+.jp-taula thead th {
+    background: var(--primary-lighter, #eef3fa);
+    font-weight: bold;
+}
+.jp-taula tbody th {
+    text-align: left;
+    font-weight: bold;
+    background: #fafbfd;
+}
+/* Les columnes dels punts, més estretes i amb un fons suau */
+.jp-taula .jp-taula-punt {
+    background: #f6f8fb;
+}
+.jp-taula thead .jp-taula-punt {
+    background: var(--primary-lighter, #eef3fa);
+    color: var(--primary-dark);
+}
+.jp-taula-cella {
+    font: inherit;
+    font-weight: bold;
+    font-size: 1.1rem;
+    min-width: 2.6em;
+    min-height: 2.4em;
+    color: var(--primary-dark);
+    background: white;
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.jp-taula-cella[data-valor] {
+    background: var(--primary);
+    color: white;
+}
+.jp-taula-cella:focus-visible {
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
+}
+.jp-taula input.jp-taula-prova {
+    width: 3.2em;
+    text-align: center;
+}
+.jp-taula td.jp-malament {
+    background: var(--danger-light);
+}
+.jp-taula td.jp-malament .jp-taula-cella {
+    border-color: var(--danger);
+}
+/* La taula resolta (a la resolució): sense botons */
+.jp-taula-resolta td {
+    font-weight: bold;
+    font-size: 1.05rem;
+}

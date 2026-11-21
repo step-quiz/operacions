@@ -42,9 +42,11 @@ const TESTS = [
     ['Potències: reptes 4 i 5 (exponents negatius i notació científica)', 'tests/potencies.test.js'],
     ['Fórmules STEAM (aïllar una lletra, passos i errors)', 'tests/formules-steam.test.js'],
     ['Inequacions (passos, recta, interval i errors)', 'tests/inequacions.test.js'],
+    ["Estudi d'una funció (derivades, taula de signes, gràfica i errors)", 'tests/estudi-funcio.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],
+    ["Estudi d'una funció al navegador (si hi ha Playwright)", 'tests/navegador/prova-estudi-funcio.js'],
     ['Tests de derivades', 'js/derivades/run-tests.js'],
     ['Documentació ↔ codi', 'tests/docs_vs_codi.py'],
 ];

@@ -30,12 +30,15 @@ export const TEXTOS_PASSOS = {
         noHiEntra: '○ No hi entra',
         esquerra: '← Cap a l’esquerra',
         dreta: 'Cap a la dreta →',
+        // La taula de signes (camps 'taula')
+        puntDeProva: 'punt de prova de',
         liniesMes: n => (n === 1 ? '1 línia més · Mostra-la' : `${n} línies més · Mostra-les`),
     },
     avisos: {
         NO_ENTER: 'Escriu nombres enters a les caselles.',
         FALTEN_PUNTS: 'Encara falten punts per situar a la quadrícula.',
         FALTA_RECTA: 'Toca el nombre a la recta i tria si hi entra i cap a quin costat va.',
+        FALTA_TAULA: 'Encara hi ha caselles de la taula per omplir: toca cada interrogant fins que surti el que toca.',
         NO_DECIMAL: 'Escriu un nombre decimal: xifres i, si cal, una coma. El període, només amb xifres.',
         DEN_ZERO: 'El denominador no pot ser 0.',
         NO_SIMPLIFICADA: 'El valor és correcte, però encara es pot simplificar.',

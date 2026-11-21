@@ -69,6 +69,7 @@ export const EXERCISE_CODES = {
     'ruffini': 'RU',
     'grafica-i-funcio': 'GF',
     'grafica-funcio-i-derivada': 'GD',
+    'estudi-funcio': 'EF', // reservat: no genera codi (Batxillerat, senseCodi)
     'rectes-plans': 'RP',
     'esglaonar-matriu': 'EM',
     'inversa-matriu': 'IM',

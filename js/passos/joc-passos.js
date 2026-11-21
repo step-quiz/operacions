@@ -39,6 +39,9 @@
  *                 casella buida on es deixa una de les targetes de pas.fitxes; recta, la recta
  *                 numèrica del tros { camp, recta: { marques } } (js/passos/recta-intervals.js): l'alumne
  *                 toca una marca i tria si el punt hi entra (ple) i cap a quin costat va la semirecta.
+ *                 taula, la taula de signes del tros { camp, taula } (js/passos/taula-signes.js): un punt
+ *                 de prova a cada interval i, a cada cel·la de les files editables, un botó que canvia de
+ *                 valor en tocar-lo (+/−, 0/∄, ↗/↘, màxim/mínim…).
  *     fitxes      [{ id, tex } | { id, svg }]: les targetes per arrossegar (o tocar i col·locar)
  *     figura      { parts, unitats }: la figura del camp 'pintat' (js/passos/figura-fraccio.js)
  *     svgResolt   (opcional) un SVG que s'afegeix a la resolució amb la línia (p. ex. la recta dibuixada)
@@ -115,6 +118,7 @@ import { corregeixPas, esCampFraccio, textResposta } from './correccio.js';
 import { svgFiguraFraccio } from './figura-fraccio.js';
 import { parabolaPerTresPunts, svgQuadricula } from './quadricula.js';
 import { svgRecta } from './recta-intervals.js';
+import { creaTaulaSignes } from './taula-signes.js';
 import { TEXTOS_PASSOS } from './textos.js';
 
 const MARCAT = `
@@ -513,6 +517,8 @@ export function iniciaJocPassos(config) {
         }
         if (tipus === 'punts') return creaQuadricula(nom, tros.quadricula || {}, pas);
         if (tipus === 'recta') return creaRecta(nom, tros.recta || { marques: [] });
+        if (tipus === 'taula')
+            return creaTaulaSignes(nom, tros.taula, { buida: TEXTOS_PASSOS.avisos.buit, provaAria: ui.puntDeProva });
         if (tipus === 'fitxa') {
             const forat = document.createElement('div');
             forat.className = 'jp-forat';
@@ -841,6 +847,10 @@ export function iniciaJocPassos(config) {
         els.plantilla.querySelectorAll('.jp-recta').forEach(r => {
             resp[r.dataset.nom] = JSON.parse(r.dataset.resposta);
         });
+        // La taula de signes: els punts de prova ja hi són (caselles p<i>); s'hi afegeixen els botons
+        els.plantilla.querySelectorAll('.jp-taula').forEach(t => {
+            resp[t.dataset.nom] = { ...(resp[t.dataset.nom] || {}), ...JSON.parse(t.dataset.resposta) };
+        });
         els.plantilla.querySelectorAll('.jp-forat').forEach(f => {
             const fitxa = f.querySelector('.jp-fitxa');
             resp[f.dataset.nom] = fitxa ? fitxa.dataset.id : '';
@@ -900,6 +910,10 @@ export function iniciaJocPassos(config) {
                     `.jp-dibuix[data-nom="${nom}"], .jp-forat[data-nom="${nom}"], .jp-quadricula[data-nom="${nom}"], .jp-recta[data-nom="${nom}"]`
                 )
                 .forEach(el => el.classList.add('jp-malament'));
+            // La taula de signes marca ella mateixa les cel·les equivocades
+            els.plantilla
+                .querySelectorAll(`.jp-taula[data-nom="${nom}"]`)
+                .forEach(t => t.dispatchEvent(new CustomEvent('jp-corregeix', { detail: { sol: pas.solucio[nom] } })));
         });
         penalitza(r.malament);
     }
