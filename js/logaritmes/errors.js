@@ -2,19 +2,26 @@
  * ============================================================================
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/logaritmes/errors.js
- * ROL: Diagnòstic dels errors de «Logaritmes i equacions», bloc 1 (ERRORS_LG, strings.js).
+ * ROL: Diagnòstic dels errors de «Logaritmes i equacions»: bloc 1, logaritmes (ERRORS_LG,
+ *      diagnosticaLG) i bloc 2, equacions (ERRORS_EQ, diagnosticaEQ; strings.js).
  *   - Passos de triar: el valor de l'opció falsa ja és l'error.
  *   - x com a potència: el signe de l'exponent, l'exponent invertit.
  *   - El valor del logaritme: x : a (log₂ 8 = 4), l'argument com a resultat.
  *   - Forma exponencial ↔ logarítmica: base i exponent intercanviats.
  *   - Calculadora: ln en lloc de log (o al revés).
+ *   Equacions:
+ *   - Passos de triar (també les comprovacions): el valor de l'opció falsa ja és l'error.
+ *   - La x d'igualar exponents: igualar sense la mateixa base, la potència d'una potència,
+ *     el signe de l'exponent. La x d'una logarítmica: A = m·b, A = mᵇ, A = m.
+ *   - El segon grau: les solucions amb el signe canviat. aˣ = N: log N − log a, N/a, el
+ *     quocient a l'inrevés.
  * ARQUITECTURA: mòdul pur.
  * DEPENDÈNCIES: algebra/racionals.js, strings.js.
  * ============================================================================
  */
 
 import { comRacional } from '../algebra/racionals.js';
-import { ERRORS_LG } from './strings.js';
+import { ERRORS_EQ, ERRORS_LG } from './strings.js';
 
 const valorLG = v => {
     const [n, d] = comRacional(v);
@@ -86,4 +93,52 @@ export function textRespostaLG(pas, valors) {
                   : String(+(n / d).toFixed(6)).replace('.', ',');
         })
         .join(' ; ');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BLOC 2: EQUACIONS
+// ═════════════════════════════════════════════════════════════════════════════
+const igualsEQ = (a, b, tol = 1e-9) => Math.abs(a - b) <= tol;
+function diagnosticaXEQ(pas, valors) {
+    const x = valorLG(valors.x);
+    const d = pas.dades;
+    if (pas.id === 'exponents') {
+        const { a, i, j, p, q } = d;
+        if (igualsEQ(x, (a ** j - q) / p)) return 'EQ_EXPONENT_SENSE_BASE';
+        if (igualsEQ(x, (j - q) / (i * p)) || igualsEQ(x, (j - q) / p)) return 'EQ_POTENCIA_DE_POTENCIA';
+        if (j && igualsEQ(x, (-j - i * q) / (i * p))) return 'EQ_SIGNE_EXPONENT';
+        return 'EQ_PRIMER_GRAU';
+    }
+    const { b, m, p, q } = d;
+    if (igualsEQ(x, (m * b - q) / p)) return 'EQ_LOG_PRODUCTE';
+    if (igualsEQ(x, (m ** b - q) / p)) return 'EQ_BASE_EXPONENT';
+    if (igualsEQ(x, (m - q) / p)) return 'EQ_TREU_LOG';
+    return 'EQ_PRIMER_GRAU';
+}
+function diagnosticaArrelsEQ(pas, valors) {
+    const [r1, r2] = pas.dades.arrels;
+    const e = [valorLG(valors.x1), valorLG(valors.x2)].sort((u, v) => u - v);
+    const oposades = [-r1, -r2].sort((u, v) => u - v);
+    if (r1 + r2 !== 0 && igualsEQ(e[0], oposades[0]) && igualsEQ(e[1], oposades[1])) return 'EQ_SIGNE_ARRELS';
+    return 'EQ_SEGON_GRAU';
+}
+function diagnosticaCalculadoraEQ(pas, valors) {
+    const { a, N } = pas.dades;
+    const v = valorLG(valors.v);
+    const tol = 1.5e-4;
+    if (igualsEQ(v, Math.log10(N / a), tol) || igualsEQ(v, Math.log(N / a), tol)) return 'EQ_LOG_QUOCIENT';
+    if (igualsEQ(v, N / a, tol)) return 'EQ_DIVIDEIX';
+    if (igualsEQ(v, Math.log(a) / Math.log(N), tol)) return 'EQ_INVERS';
+    return 'EQ_CALC';
+}
+
+/** { missatge, etiqueta, codi } o null. */
+export function diagnosticaEQ(pas, valors) {
+    let codi = null;
+    if (pas.mena === 'tria') codi = String(valors.tria || '').split('#')[0];
+    else if (pas.mena === 'x') codi = diagnosticaXEQ(pas, valors);
+    else if (pas.mena === 'arrels') codi = diagnosticaArrelsEQ(pas, valors);
+    else if (pas.mena === 'calculadoraEQ') codi = diagnosticaCalculadoraEQ(pas, valors);
+    const e = codi && ERRORS_EQ[codi];
+    return e ? { missatge: e.missatge, etiqueta: e.etiqueta, codi } : null;
 }
