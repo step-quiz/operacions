@@ -22,7 +22,7 @@ built» in `docs/activitats/STATE.md` (theme class, CSS chain, index entry, `js/
 |---|---|---|---|
 | ~~18~~ | ~~Integrals, wave 2~~ | — | **DONE 2026-11-21** (agent A): `integrals.html?tipus=quasi`, `js/integrals/quasi-bank.js`; see `docs/activitats/STATE.md`. Waves 1, 3, 4 only if David asks. |
 | ~~19~~ | ~~Estudi d'una funció~~ | — | **DONE 2026-11-21** (agent A): `estudi-funcio.html` (`?funcions=polinomiques`, `racionals` or `pau`), shared widgets `js/passos/taula-signes.js` (sign table, field type `taula`) and `js/passos/esbos-funcio.js` (sketch, ported from `step-quiz/pau`); #22 can reuse the sign table. See `docs/activitats/STATE.md`. |
-| 20 | **Binomial** (1r–2n Batx), new page | «només vull la Binomial. No vull la Normal.» | n and p from a context; P(X = k), P(X ≤ k), ≥, complement; mean np, σ = √(npq). No normal, no approximation. |
+| ~~20~~ | ~~Binomial~~ | — | **DONE 2026-11-21** (agent A): `binomial.html` (`?tipus=exacte`, `directe` or `contrari`), `js/binomial/`; `pas.tolerancia` for decimal fields in `js/passos/correccio.js`. No mean/σ (David, 21/11). See `docs/activitats/STATE.md`. |
 | 21 | **Complexos** (1r Batx), completes `complexos.html` | «sí que entren a 1r de Batxillerat. fes-ho» | Fill the «Potència» tab (now «en construcció»): binomial ↔ polar (quadrant!), product/quotient in polar, De Moivre, n-th roots drawn on the plane. |
 | 22 | **Logaritmes i equacions no lineals** (4t ESO–1r Batx), new page | «comença pel que tu vulguis» | Logarithms (definition, properties); exponential, logarithmic and radical equations with **mandatory checking**; quadratic and rational inequalities with the sign table (reuse #19's widget and the number line `js/passos/recta-intervals.js` from #17). |
 

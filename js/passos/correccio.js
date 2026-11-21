@@ -25,6 +25,8 @@
  *                               punt, si hi entra (ple) i el costat de la semirecta ('esq' | 'dre')
  *                  taula        la taula de signes (js/passos/taula-signes.js): punts de prova i cel·les;
  *                               la solució és { prova: bool, files: { id: [valor per columna] } }
+ *     tolerancia { nom: nombre } opcional: un camp decimal val bé si s'allunya de la solució com a
+ *                  màxim aquesta quantitat (respostes arrodonides: 0,0001 a 4 decimals)
  *     solucio    { nom: valor }: racional → [n, d] irreductible
  *     parell     [nom, nom]: aquests dos camps es poden respondre en qualsevol ordre
  *     proporcional  [nom, nom, nom]: val qualsevol terna d'enters proporcional a la solució
@@ -168,9 +170,11 @@ export function corregeixPas(pas, resp = {}) {
               ? puntsCorrectes(escrit[nom], sol[nom])
               : pas.camps[nom] === 'recta'
                 ? igualRecta(escrit[nom], sol[nom])
-                : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
-                  ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
-                  : escrit[nom] === sol[nom];
+                : pas.camps[nom] === 'decimal' && pas.tolerancia && nom in pas.tolerancia
+                  ? Math.abs(escrit[nom][0] / escrit[nom][1] - valorDe(sol[nom])) <= pas.tolerancia[nom] + 1e-12
+                  : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
+                    ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
+                    : escrit[nom] === sol[nom];
     // Camps equivocats respecte d'una solució (amb un parell, també en l'altre ordre)
     function malamentRespecte(sol) {
         if (pas.proporcional) {
@@ -203,6 +207,9 @@ export function corregeixPas(pas, resp = {}) {
     if (perSimplificar) return { estat: 'avis', codi: 'NO_SIMPLIFICADA', camp: perSimplificar, valors };
     return { estat: 'ok', valors };
 }
+
+/** Un valor de la solució (nombre o racional [n, d]) com a nombre. */
+const valorDe = v => (Array.isArray(v) ? v[0] / v[1] : v);
 
 /** La taula del camp nom (el tros { camp: nom, taula } de la plantilla, també dins d'un grup). */
 function taulaDelCamp(pas, nom) {
