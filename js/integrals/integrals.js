@@ -21,7 +21,7 @@
  */
 
 import { MAX_INTENTS, TOTAL_OPERATIONS } from '../config.js';
-import { shuffle } from '../utils.js';
+import { nivellProgressiu, shuffle } from '../utils.js';
 import {
     state,
     endSession,
@@ -41,6 +41,10 @@ import { QuestionBank } from './question-bank.js';
 // Les crides internes fan servir window.buildLevel() perquè les sessions fixes
 // (js/fixed-sessions.js) hi puguin afegir la llavor de cada pregunta.
 Object.assign(window, { buildLevel });
+
+// ?tipus= (immediates · quasi · buit: totes) el llegeix question-bank.js;
+// ?constant= (exacta · ajust · buit: progressiu) fixa el nivell de les quasi-immediates.
+const NIVELL_CONSTANT = { exacta: 1, ajust: 2 }[new URLSearchParams(window.location.search).get('constant')] || 0;
 
 let errorHistory = [];
 let challengeData = null;
@@ -66,7 +70,10 @@ function buildLevel() {
     els.feedback.style.opacity = '0';
     els.feedback.innerHTML = '';
 
-    challengeData = QuestionBank.generateChallenge();
+    // Nivell de les quasi-immediates: 1 = f′ exacta, 2 = llevat d'una constant.
+    // ?constant=exacta|ajust el fixa (opció de l'índex); si no, la 1a meitat de la sessió és 1 i la 2a, 2.
+    const nivell = nivellProgressiu(NIVELL_CONSTANT, state.currentOperation, TOTAL_OPERATIONS, 2);
+    challengeData = QuestionBank.generateChallenge({ nivell });
 
     katex.render(challengeData.promptTex, els.fxDisplay, { throwOnError: false });
 
@@ -99,7 +106,20 @@ function renderFeedback(opt, showSolution = false) {
     const fc = els.feedback;
 
     if (opt.isCorrect) {
-        fc.innerHTML = `<strong class="feedback-correct">${opt.feedback}</strong>`;
+        // Text curt (sense TeX) + la igualtat completa renderitzada amb KaTeX: abans els
+        // missatges duien TeX cru («\\int x^{3}\\,dx = …») i es veien les barres.
+        const ok = document.createElement('strong');
+        ok.className = 'feedback-correct';
+        ok.textContent = /\\/.test(opt.feedback) ? 'Molt bé!' : opt.feedback;
+        fc.innerHTML = '';
+        fc.appendChild(ok);
+        if (challengeData?.promptTex) {
+            const eq = document.createElement('div');
+            eq.className = 'feedback-formula';
+            const lhs = challengeData.promptTex.replace('\\displaystyle', '');
+            katex.render(`${lhs} = ${challengeData.solutionTex} + C`, eq, { throwOnError: false });
+            fc.appendChild(eq);
+        }
         fc.style.opacity = '1';
         return;
     }
@@ -335,6 +355,15 @@ function _errorTypeLabel(type) {
         EXP_WRONG_COEF: "Coeficient de l'exponencial incorrecte",
         NO_PRIMITIVE: 'Funció original no integrada',
         INTEGRAL_CONFUSION: 'Confusió entre primitiva i derivada',
+        QI_MULT_INNER: 'Multiplicació per f′ en lloc de dividir-hi',
+        QI_CONST_FACTOR: 'Constant de f′ no ajustada',
+        QI_KEEP_FPRIME: 'Factor f′ deixat a la primitiva',
+        QI_POW_NO_DIVIDE: 'Divisió per (n+1) oblidada (quasi-immediata)',
+        QI_POW_SAME_EXP: 'Exponent no incrementat (quasi-immediata)',
+        QI_POW_DERIV: "S'ha derivat la potència en lloc d'integrar",
+        QI_LOG_DERIV: 'Derivada de 1/f en lloc de ln|f|',
+        QI_EXP_POWER: "Regla de la potència aplicada a l'exponencial",
+        QI_TRIG_SIGN: 'Signe de la primitiva del sinus o del cosinus',
     };
     return labels[type] || type;
 }

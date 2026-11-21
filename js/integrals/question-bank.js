@@ -15,8 +15,12 @@
  *   'int-power'       → ∫x^n dx         (n ∈ {2,3,4,5,−2,−3})
  *   'int-power-coef'  → ∫a·x^n dx       (a∈{−3,−2,−1,2,3}, n com int-power)
  *   'int-exp-kx'      → ∫e^{kx} dx      (|k|≥2, k enter)
+ *   Quasi-immediates (quasi-bank.js, onada 2), ∫c·x^{m−1}·g(Ax^m+B) dx:
+ *   'int-quasi-pot' · 'int-quasi-log' · 'int-quasi-exp' · 'int-quasi-cos' · 'int-quasi-sin'
+ *   generateChallenge({ nivell }) → nivell 1: f′ exacta · 2: llevat d'una constant
  * SELECTOR PER URL:
- *   ?families=int-power              → activa sols la potència bàsica
+ *   ?tipus=immediates | quasi        → un sol grup (sense tipus: tots dos, meitat i meitat)
+ *   ?families=int-power              → activa sols la potència bàsica (mana sobre tipus)
  *   ?families=int-power,int-exp-kx   → potència + exponencial
  *   (sense paràmetre → totes les famílies)
  * DEPENDÈNCIES: Requereix math-engine.js i distractor-lib.js.
@@ -26,6 +30,8 @@
 import { shuffle } from '../utils.js';
 import { DistractorLib } from './distractor-lib.js';
 import { MathEngine } from './math-engine.js';
+import { QuasiBank } from './quasi-bank.js';
+import { Strings } from './strings.js';
 
 export const QuestionBank = (() => {
     // =========================================================================
@@ -257,33 +263,73 @@ export const QuestionBank = (() => {
     }
 
     // =========================================================================
+    // FAMÍLIES QUASI-IMMEDIATES (onada 2) — quasi-bank.js
+    // =========================================================================
+    /** Converteix un generador de QuasiBank en un generador de repte complet. */
+    function _quasi(gen) {
+        return (nivell = 1) => {
+            const q = gen(nivell);
+            const distractors = _selectDistractors(q.wrong, q.solutionTex, 3);
+            return {
+                promptTex: q.promptTex,
+                solutionTex: q.solutionTex,
+                options: [_correct(q.solutionTex, Strings.Correct[q.meta.family]), ..._wrongs(distractors)],
+                meta: q.meta,
+            };
+        };
+    }
+
+    // =========================================================================
     // REGISTRE DE FAMÍLIES
     // =========================================================================
+    const IMMEDIATES = ['int-power', 'int-power-coef', 'int-exp-kx'];
+    const QUASI = Object.keys(QuasiBank.Families);
     const FamilyRegistry = {
         'int-power': generatePowerInt,
         'int-power-coef': generatePowerCoef,
         'int-exp-kx': generateExpKx,
     };
+    QUASI.forEach(id => {
+        FamilyRegistry[id] = _quasi(QuasiBank.Families[id]);
+    });
 
     // =========================================================================
-    // SELECTOR PER URL (?families=int-power,int-exp-kx)
+    // SELECCIÓ PER URL
+    //   ?tipus=immediates | quasi  (buit: totes; és l'opció de l'índex)
+    //   ?families=id1,id2          (prioritari sobre tipus; per a proves)
     // =========================================================================
-    function buildActiveFamilies() {
-        const raw = new URLSearchParams(window.location.search).get('families');
-        if (!raw) return Object.values(FamilyRegistry);
-        const active = raw
-            .split(',')
-            .map(id => id.trim())
-            .filter(id => FamilyRegistry[id])
-            .map(id => FamilyRegistry[id]);
-        return active.length > 0 ? active : Object.values(FamilyRegistry);
+    /** Grups actius: llistes d'id. Amb «totes», un grup per tipus (meitat i meitat). */
+    function buildActiveGroups(search = window.location.search) {
+        const params = new URLSearchParams(search);
+        const raw = params.get('families');
+        if (raw) {
+            const ids = raw
+                .split(',')
+                .map(id => id.trim())
+                .filter(id => FamilyRegistry[id]);
+            if (ids.length > 0) {
+                return [ids.filter(id => IMMEDIATES.includes(id)), ids.filter(id => QUASI.includes(id))].filter(
+                    g => g.length > 0
+                );
+            }
+        }
+        const tipus = params.get('tipus') || '';
+        if (tipus === 'immediates') return [IMMEDIATES];
+        if (tipus === 'quasi') return [QUASI];
+        return [IMMEDIATES, QUASI];
     }
 
-    const activeFamilies = buildActiveFamilies();
+    const activeGroups = buildActiveGroups();
+    const activeFamilies = activeGroups.flat().map(id => FamilyRegistry[id]);
 
-    function generateChallenge() {
-        const generator = activeFamilies[Math.floor(Math.random() * activeFamilies.length)];
-        return generator();
+    /**
+     * @param {{nivell?: number}} opts  nivell 1 = f′ exacta · 2 = llevat d'una
+     *        constant (només afecta les quasi-immediates)
+     */
+    function generateChallenge({ nivell = 1 } = {}) {
+        const group = activeGroups[Math.floor(Math.random() * activeGroups.length)];
+        const id = group[Math.floor(Math.random() * group.length)];
+        return FamilyRegistry[id](nivell);
     }
 
     // =========================================================================
@@ -292,7 +338,9 @@ export const QuestionBank = (() => {
     return {
         generateChallenge,
         FamilyRegistry,
+        IMMEDIATES,
+        QUASI,
         activeFamilies,
-        _testing: { _selectDistractors },
+        _testing: { _selectDistractors, buildActiveGroups },
     };
 })();

@@ -35,7 +35,7 @@ operacions/
 │   │   ├── distractor-lib.js   ← Generador de distractors pedagògics
 │   │   ├── question-bank.js    ← Registre de famílies de preguntes
 │   │   └── derivades.js        ← Controlador DOM (l'únic que carrega l'HTML; importa la resta)
-│   ├── integrals/              ← Mateixa estructura que derivades/
+│   ├── integrals/              ← Mateixa estructura que derivades/ (+ quasi-bank.js: les quasi-immediates)
 │   ├── recta-numerica/         ← Mateixa estructura
 │   ├── asimptotes/             ← Mateixa estructura (amb noms *-asimptotes.js)
 │   ├── fraccions/fraccions.js  ← Jocs més antics: tot el joc en un sol fitxer (fraccions/resolucio.js: la resolució pas a pas, pura)
@@ -320,6 +320,7 @@ Els alumnes ja han enviat codis de tots aquests formats, i el professor els pot 
 | `families` | ids separats per comes | totes | Famílies actives (derivades/integrals) |
 | `modalitat` | `passos` · `a`, `b` | — | Modalitat de joc: «Pas a pas» a `prioritat`; nivell a `vocabulari` |
 | `nombres` | `enters` | — | `prioritat`: operacions combinades amb enters |
+| `tipus`, `constant` | `immediates`/`quasi` · `exacta`/`ajust` | totes · progressiu | `integrals`: grup de famílies i nivell de les quasi-immediates (f′ exacta o llevat d'una constant) |
 | `esvaiment` | 1 | — | Mode «Esvaïment» (exemples resolts que es van esvaint); només a les pàgines de `SUPORTA_ESVAIMENT` |
 | `inici` | 0-9 | 0 | Amb `esvaiment=1`: passos que fa l'alumne al primer exercici |
 | `pissarra` | 1 | — | Ja no fa res (la «Resolució pas a pas» és a `resolucio.html?activitat=…`) |

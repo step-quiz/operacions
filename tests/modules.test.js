@@ -170,6 +170,7 @@ suite('Integrals');
         'js/integrals/math-engine.js',
         'js/integrals/strings.js',
         'js/integrals/distractor-lib.js',
+        'js/integrals/quasi-bank.js',
         'js/integrals/question-bank.js',
     ]);
     const gen = withReset(w, () => w.QuestionBank.generateChallenge());
@@ -875,6 +876,225 @@ suite("Fraccions › diagnòstic d'errors (P06)");
     ok(
         'cada tipus té etiqueta',
         Object.values(w.ERRORS).every(e => e && e.etiqueta)
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Integrals, onada 2: quasi-immediates. Es recalcula cada resposta de manera
+// independent: un avaluador petit del TeX que fa servir el banc (fraccions,
+// potències, e^, ln|·|, sin, cos, \cdot, producte implícit) i una derivada
+// numèrica. La correcta, derivada, ha de donar l'integrand en 5 punts; cap
+// distractor no hi pot coincidir (seria una altra resposta correcta).
+// ─────────────────────────────────────────────────────────────────────────────
+function texEval(tex) {
+    const src = tex
+        .replace(/\\displaystyle|\\int|\\,dx|\\left|\\right/g, '')
+        .replace(/\\,/g, '')
+        .replace(/\s+/g, '');
+    let i = 0;
+    const peek = () => src[i];
+    const eat = str => (src.startsWith(str, i) ? ((i += str.length), true) : false);
+    const need = str => {
+        if (!eat(str)) throw new Error(`s'esperava «${str}» a ${i}: ${src}`);
+    };
+    const group = () => {
+        need('{');
+        const v = expr();
+        need('}');
+        return v;
+    };
+    function atom() {
+        if (eat('\\frac')) {
+            const a = group();
+            const b = group();
+            return x => a(x) / b(x);
+        }
+        if (eat('\\ln|')) {
+            const a = expr();
+            need('|');
+            return x => Math.log(Math.abs(a(x)));
+        }
+        for (const [name, f] of [
+            ['\\sin', Math.sin],
+            ['\\cos', Math.cos],
+        ]) {
+            if (eat(name)) {
+                need('(');
+                const a = expr();
+                need(')');
+                return x => f(a(x));
+            }
+        }
+        if (eat('e^')) {
+            const a = group();
+            return x => Math.exp(a(x));
+        }
+        if (eat('(')) {
+            const a = expr();
+            need(')');
+            return a;
+        }
+        if (eat('x')) return x => x;
+        const m = /^\d+/.exec(src.slice(i));
+        if (m) {
+            i += m[0].length;
+            const v = Number(m[0]);
+            return () => v;
+        }
+        throw new Error(`caràcter inesperat «${peek()}» a ${i}: ${src}`);
+    }
+    function power() {
+        const b = atom();
+        if (eat('^')) {
+            const e = peek() === '{' ? group() : atom();
+            return x => Math.pow(b(x), e(x));
+        }
+        return b;
+    }
+    function term() {
+        let v = power();
+        for (;;) {
+            if (eat('\\cdot')) {
+                const a = v,
+                    b = power();
+                v = x => a(x) * b(x);
+            } else if (i < src.length && !'+-)}|'.includes(peek())) {
+                const a = v,
+                    b = power();
+                v = x => a(x) * b(x);
+            } else return v;
+        }
+    }
+    function expr() {
+        let sign = 1;
+        if (eat('-')) sign = -1;
+        else eat('+');
+        const first = term();
+        let v = x => sign * first(x);
+        for (;;) {
+            if (eat('+')) {
+                const a = v,
+                    b = term();
+                v = x => a(x) + b(x);
+            } else if (eat('-')) {
+                const a = v,
+                    b = term();
+                v = x => a(x) - b(x);
+            } else return v;
+        }
+    }
+    const f = expr();
+    if (i !== src.length) throw new Error(`sobra text a ${i}: ${src}`);
+    return f;
+}
+
+suite('Integrals, onada 2: quasi-immediates');
+{
+    const files = [
+        'js/utils.js',
+        'js/integrals/math-engine.js',
+        'js/integrals/strings.js',
+        'js/integrals/distractor-lib.js',
+        'js/integrals/quasi-bank.js',
+        'js/integrals/question-bank.js',
+    ];
+    const w = loadModule(files, { search: '?tipus=quasi' });
+    const QB = w.QuestionBank;
+    const XS = [0.31, 0.77, 1.13, 1.58, 2.21];
+    const deriv = (F, x) => {
+        const h = 1e-5;
+        return (F(x + h) - F(x - h)) / (2 * h);
+    };
+    const near = (a, b) => Math.abs(a - b) <= 1e-4 * Math.max(1, Math.abs(a), Math.abs(b));
+    // Punts on l'integrand està ben definit (ln|f| i 1/f: f ≠ 0)
+    const okPts = (g, F) => XS.filter(x => Number.isFinite(g(x)) && Number.isFinite(F(x)) && Math.abs(g(x)) < 1e6);
+    const ERR_TYPES = new Set(Object.keys(w.Strings.Hints));
+
+    for (const nivell of [1, 2]) {
+        const err = { parse: [], solution: [], distractor: [], tipus: [], hint: [], nivell: [], fam: [] };
+        const fams = {};
+        for (let t = 0; t < 2000; t++) {
+            const q = QB.generateChallenge({ nivell });
+            fams[q.meta.family] = (fams[q.meta.family] || 0) + 1;
+            if (!QB.QUASI.includes(q.meta.family)) err.fam.push(q.meta.family);
+            let g, F;
+            try {
+                g = texEval(q.promptTex);
+                F = texEval(q.solutionTex);
+            } catch (e) {
+                err.parse.push(e.message);
+                continue;
+            }
+            const pts = okPts(g, F);
+            if (pts.length < 3 || !pts.every(x => near(deriv(F, x), g(x))))
+                err.solution.push(`${q.promptTex} → ${q.solutionTex}`);
+            // Nivell 1: el factor de fora és f′ exactament (c = mA); nivell 2: no
+            const { A, m, c } = q.meta.params;
+            if ((nivell === 1) !== (c === m * A)) err.nivell.push(`${q.promptTex} (c=${c}, f′=${m * A})`);
+            for (const o of q.options.filter(o => !o.isCorrect)) {
+                if (!ERR_TYPES.has(o.errorType)) err.tipus.push(o.errorType);
+                if (!o.feedback) err.hint.push(o.tex);
+                let D;
+                try {
+                    D = texEval(o.tex);
+                } catch (e) {
+                    err.parse.push(e.message);
+                    continue;
+                }
+                const dp = okPts(g, D);
+                if (dp.length >= 3 && dp.every(x => near(deriv(D, x), g(x))))
+                    err.distractor.push(`${q.promptTex}: ${o.tex} (${o.errorType}) també és primitiva`);
+            }
+        }
+        const show = a => (a.length ? ` — ${a.length}: ${a.slice(0, 3).join(' ; ')}` : '');
+        ok(
+            `nivell ${nivell}: el TeX de l'enunciat i de les opcions es pot avaluar${show(err.parse)}`,
+            !err.parse.length
+        );
+        ok(
+            `nivell ${nivell}: la derivada de la resposta correcta és l'integrand${show(err.solution)}`,
+            !err.solution.length
+        );
+        ok(`nivell ${nivell}: cap distractor no és també una primitiva${show(err.distractor)}`, !err.distractor.length);
+        ok(
+            `nivell ${nivell}: ${nivell === 1 ? 'f′ exacta a l’integrand' : 'f′ llevat d’una constant'}${show(err.nivell)}`,
+            !err.nivell.length
+        );
+        ok(
+            `nivell ${nivell}: cada distractor té un tipus d'error amb ajuda i un feedback${show([...err.tipus, ...err.hint])}`,
+            !err.tipus.length && !err.hint.length
+        );
+        ok(
+            `nivell ${nivell}: ?tipus=quasi només dona quasi-immediates i surten les 5 famílies (${JSON.stringify(fams)})`,
+            !err.fam.length && Object.keys(fams).length === 5
+        );
+    }
+
+    // Comprovacions del 4 opcions/una correcta/sense repetir (les comunes)
+    const gen = withReset(w, i => QB.generateChallenge({ nivell: 1 + (i % 2) }));
+    checkMultipleChoice('quasi-immediates', gen, { solutionKey: 'solutionTex', nOptions: 4 });
+
+    // Selecció per URL
+    const groups = s => JSON.stringify(QB._testing.buildActiveGroups(s));
+    ok(
+        '?tipus=immediates → només les 3 immediates; sense tipus → els dos grups (meitat i meitat)',
+        groups('?tipus=immediates') === JSON.stringify([QB.IMMEDIATES]) &&
+            groups('') === JSON.stringify([QB.IMMEDIATES, QB.QUASI])
+    );
+    ok(
+        '?families= continua manant (p. ex. int-power,int-quasi-log → dos grups d’un)',
+        groups('?families=int-power,int-quasi-log') === JSON.stringify([['int-power'], ['int-quasi-log']])
+    );
+
+    // Prova de mutació: si l'avaluador no detectés una primitiva errònia, les
+    // comprovacions de dalt no valdrien res. Una primitiva amb el coeficient
+    // canviat (×2) ha de fallar sempre.
+    const q = QB.generateChallenge({ nivell: 2 });
+    const g = texEval(q.promptTex);
+    const bad = texEval(`2\\cdot (${q.solutionTex})`);
+    ok(
+        `mutació: el doble de la primitiva no passa la comprovació (${q.solutionTex})`,
+        !okPts(g, bad).every(x => near(deriv(bad, x), g(x)))
     );
 }
 

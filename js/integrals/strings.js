@@ -92,6 +92,39 @@ export const Strings = (() => {
             'Hi ha una confusió entre les regles de derivació i integració. ' +
             "Recorda: la primitiva d'una funció és aquella expressió tal que, en derivar-la, " +
             'recuperes la funció original. Verifica sempre el teu resultat derivant-lo.',
+
+        // -------------------------------------------------------
+        // Quasi-immediates (regla de la cadena al revés) — onada 2
+        // -------------------------------------------------------
+        QI_MULT_INNER:
+            "En una quasi-immediata ∫f′·g(f) dx la derivada de l'interior f′ ja és dins de la integral: " +
+            'és la que «es consumeix» en integrar. Si en falta una part constant, cal dividir-hi, no multiplicar. ' +
+            'Verifica derivant: d/dx[G(f)] = G′(f)·f′.',
+        QI_CONST_FACTOR:
+            "Abans d'integrar, compara el factor de fora amb f′. Si hi és sencera (∫2x·(x²+1)³dx), la primitiva és G(f) " +
+            "sense cap constant: (x²+1)⁴/4. Si hi és llevat d'una constant (∫x·(x²+1)³dx), escriu x = ½·2x " +
+            'i treu el ½ fora: ½·(x²+1)⁴/4 = (x²+1)⁴/8.',
+        QI_KEEP_FPRIME:
+            'El factor f′ (la x, la x² …) no es queda a la primitiva. Quan derives G(f), la regla de la cadena ' +
+            "ja el fa aparèixer: d/dx[sin(x²)] = cos(x²)·2x. Si el deixes, en derivar n'apareix un de més.",
+        QI_POW_NO_DIVIDE:
+            "∫f′·fⁿ dx = fⁿ⁺¹/(n+1): igual que ∫xⁿdx, l'exponent puja i es divideix pel nou exponent. " +
+            "L'únic canvi és que la «x» ara és tota la funció f.",
+        QI_POW_SAME_EXP:
+            "En integrar una potència l'exponent puja de n a n+1. Si el resultat té el mateix exponent, " +
+            "en derivar-lo t'apareix un exponent més baix i no recuperes l'integrand.",
+        QI_POW_DERIV:
+            "Has fet la derivada de la potència (l'exponent baixa) en lloc de la primitiva (l'exponent puja). " +
+            'Derivar i integrar fan operacions inverses.',
+        QI_LOG_DERIV:
+            "∫f′/f dx = ln|f|: és la potència d'exponent −1, l'únic cas en què la regla de la potència no serveix " +
+            '(dividiria per 0). −1/f² és la derivada de 1/f, no la seva primitiva.',
+        QI_EXP_POWER:
+            "La regla de la potència és per a fⁿ amb l'exponent fix. A e^f l'exponent és la funció: " +
+            "∫f′·e^f dx = e^f, perquè la derivada d'e^f és e^f·f′.",
+        QI_TRIG_SIGN:
+            '(sin f)′ = cos f·f′ i (cos f)′ = −sin f·f′. Per tant ∫f′·cos f dx = sin f i ∫f′·sin f dx = −cos f. ' +
+            'El signe menys va amb la primitiva del sinus, no amb la del cosinus.',
     };
 
     // ============================================================================
@@ -104,6 +137,11 @@ export const Strings = (() => {
         'int-power': 'Molt bé! Recorda: ∫x^n dx = x^{n+1}/(n+1).',
         'int-power-coef': 'Molt bé! Recorda: ∫ax^n dx = a·x^{n+1}/(n+1).',
         'int-exp-kx': 'Molt bé! Recorda: ∫e^{kx} dx = (1/k)·e^{kx}.',
+        'int-quasi-pot': 'Molt bé! ∫f′·fⁿ dx = fⁿ⁺¹/(n+1).',
+        'int-quasi-log': 'Molt bé! ∫f′/f dx = ln|f|.',
+        'int-quasi-exp': 'Molt bé! ∫f′·e^f dx = e^f.',
+        'int-quasi-cos': 'Molt bé! ∫f′·cos f dx = sin f.',
+        'int-quasi-sin': 'Molt bé! ∫f′·sin f dx = −cos f.',
     };
 
     // ============================================================================
@@ -139,6 +177,27 @@ export const Strings = (() => {
                 "No apliquis la regla de la potència a l'exponencial. " +
                 "L'exponent de e^{kx} no s'incrementa en integrar; el que canvia és el coeficient.",
             no_primitive: 'Aquesta és la funció original, no la seva primitiva.',
+        },
+
+        // ------------------------------------------------------------------
+        // QUASI-IMMEDIATES  ∫c·x^{m−1}·g(f) dx  (onada 2)
+        // ------------------------------------------------------------------
+        quasi: {
+            no_primitive: 'Aquesta és la funció de dins de la integral, no la seva primitiva.',
+            mult_inner:
+                "Has multiplicat per la derivada de l'interior en lloc de dividir-hi. " +
+                "Deriva la teva resposta: t'apareix un factor de més.",
+            const_factor:
+                "La constant no quadra. Compara el factor de fora amb la derivada de l'interior, f′: " +
+                'si hi és sencera, desapareix; si no, cal ajustar-la (multiplicar i dividir).',
+            keep_fprime:
+                'El factor f′ no es queda a la primitiva: en derivar G(f), la regla de la cadena ja el torna a posar.',
+            pow_no_divide: "Has pujat l'exponent, però no has dividit pel nou exponent (n+1).",
+            pow_same_exp: "Has dividit per (n+1), però l'exponent no ha pujat.",
+            pow_deriv: "Has derivat la potència (l'exponent ha baixat) en lloc d'integrar-la.",
+            log_deriv: 'Això és la derivada de 1/f, no la seva primitiva. ∫f′/f dx = ln|f|.',
+            exp_power: "No apliquis la regla de la potència a l'exponencial: ∫f′·e^f dx = e^f.",
+            trig_sign: 'Compte amb el signe: ∫f′·cos f dx = sin f, però ∫f′·sin f dx = −cos f.',
         },
 
         // ------------------------------------------------------------------

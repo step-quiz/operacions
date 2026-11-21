@@ -33,6 +33,11 @@
           ?families=int-exp-kx             → sols exponencials
           ?families=int-power,int-exp-kx   → potències + exponencials
           (sense paràmetre → totes les famílies)
+          ?tipus=immediates | quasi        → opció de l'índex (buit: totes)
+          ?constant=exacta | ajust         → quasi-immediates de nivell 1 o 2
+                                             (buit: progressiu, 1a meitat 1 i 2a meitat 2)
+          Famílies quasi: int-quasi-pot, int-quasi-log, int-quasi-exp,
+                          int-quasi-cos, int-quasi-sin (js/integrals/quasi-bank.js)
     -->
     <script type="module" src="js/integrals/integrals.js"></script>
 

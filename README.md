@@ -240,6 +240,8 @@ Un alumne pot fer la mateixa prova més d'un cop i enviar cada codi pel formular
 | `tipus` | `calcul`, `variacio`, `invers`, `encadenats` | segons el nivell | Tipus de problema (percentatges) |
 | `tipus` | `llegir`, `dibuixar`, `dos-punts`, `classificar` | tots, un rere l'altre | Tipus de pregunta (la recta) |
 | `tipus` | `dibuixar`, `llegir` | primer dibuixar i després llegir | Sentit (la paràbola) |
+| `tipus` | `immediates`, `quasi` | totes (meitat i meitat) | Integrals: només immediates (∫xⁿ, ∫axⁿ, ∫e^{kx}) o només quasi-immediates (∫f′·fⁿ, ∫f′/f, ∫f′·e^f, ∫f′·cos f, ∫f′·sin f) |
+| `constant` | `exacta`, `ajust` | progressiu (1a meitat `exacta`, 2a `ajust`) | Integrals quasi-immediates: nivell 1, l'integrand porta f′ sencera (∫2x(x²+1)³dx); nivell 2, f′ llevat d'una constant (∫x·e^{x²}dx = ½e^{x²}) |
 | `fraccions` | `1` | només enters | Coeficients fraccionaris (identitats notables) |
 | `modalitat` | `a`, `b` | `a` | Fàcil (arrossegar targetes) o difícil (escriure i pintar) (fracció, decimal i percentatge) |
 | `dim`, `modalitat` | 2/3 · a/b | — | Dimensió i nivell (vocabulari) |
