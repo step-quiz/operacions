@@ -1,0 +1,232 @@
+/* ============================================================================
+ * FITXER: css/complexos-polar.css
+ * ROL: Les pestanyes «Forma polar» i «Potències i arrels» de complexos.html
+ *      (js/complexos/polar.js): menú d'apartats i de nivell, el pla complex
+ *      (js/complexos/pla-complex.js), els passos i les caselles amb arrel.
+ *      Prioritat: Chromebook tàctil 1366×768 i tauletes (pla i passos un al costat de l'altre).
+ * ============================================================================ */
+
+.cx-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.cx-apartats,
+.cx-nivells {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+.cx-apartat,
+.cx-nivell {
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border-heavy);
+    background: white;
+    color: var(--text-muted);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.cx-nivell {
+    font-size: 0.78rem;
+    padding: 4px 10px;
+}
+.cx-apartat.actiu,
+.cx-nivell.actiu {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.cx-enunciat {
+    font-size: 1.15rem;
+}
+.cx-cos {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    gap: 20px;
+    align-items: start;
+}
+@media (max-width: 680px) {
+    .cx-cos {
+        grid-template-columns: 1fr;
+    }
+}
+.cx-pla-lloc {
+    display: flex;
+    justify-content: center;
+}
+.cx-pla {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    background: white;
+    border-radius: 12px;
+    border: 1.5px solid var(--border-light);
+}
+.cx-eix {
+    stroke: #94a3b8;
+    stroke-width: 1.2;
+}
+.cx-eix-nom,
+.cx-marca-eix {
+    font-size: 11px;
+    fill: #64748b;
+}
+.cx-quadrant {
+    fill: transparent;
+    cursor: pointer;
+}
+.cx-quadrant:hover {
+    fill: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.cx-quadrant-nom {
+    font-size: 22px;
+    font-weight: 800;
+    fill: color-mix(in srgb, var(--primary) 25%, white);
+    pointer-events: none;
+}
+.cx-vector,
+.cx-vector-2,
+.cx-vector-resultat {
+    stroke-width: 2.6;
+}
+.cx-vector {
+    stroke: var(--primary);
+}
+.cx-vector-2 {
+    stroke: #0f766e;
+}
+.cx-vector-resultat {
+    stroke: #c2410c;
+}
+.cx-fletxa {
+    fill: #475569;
+}
+.cx-vector-nom {
+    font-size: 15px;
+    font-weight: 700;
+    font-style: italic;
+    fill: var(--primary-dark);
+}
+.cx-vector-2-nom {
+    fill: #0f766e;
+}
+.cx-vector-resultat-nom {
+    fill: #c2410c;
+}
+.cx-cercle {
+    fill: none;
+    stroke: #94a3b8;
+    stroke-width: 1.3;
+    stroke-dasharray: 5 4;
+}
+.cx-poligon {
+    fill: color-mix(in srgb, #c2410c 12%, transparent);
+    stroke: #c2410c;
+    stroke-width: 2;
+}
+.cx-marca {
+    fill: white;
+    stroke: #64748b;
+    stroke-width: 1.6;
+    cursor: pointer;
+}
+.cx-marca-sel,
+.cx-marca-fixa {
+    fill: #c2410c;
+    stroke: white;
+    stroke-width: 1.6;
+}
+.cx-marca-fixa {
+    cursor: default;
+}
+
+.cx-passos {
+    min-width: 0;
+}
+.cx-linia {
+    padding: 6px 0;
+    overflow-x: auto;
+    color: var(--text-main);
+}
+.cx-pas-actual {
+    margin-top: 8px;
+}
+.cx-pas-titol {
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+.cx-pas-num {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    background: var(--bg-soft-alt);
+    padding: 1px 7px;
+    border-radius: 6px;
+}
+.cx-camps {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+.cx-camp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.1rem;
+}
+.cx-arrel {
+    display: inline-flex;
+    align-items: center;
+}
+.cx-arrel-signe {
+    font-size: 1.6rem;
+    color: var(--text-main);
+    margin-right: 1px;
+}
+.cx-radicand {
+    border-top-width: 3px;
+}
+.cx-signe {
+    font: inherit;
+    font-weight: 800;
+    font-size: 1.2rem;
+    width: 38px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid var(--border-heavy);
+    background: white;
+    cursor: pointer;
+}
+.cx-nota {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 4px 0 10px;
+}
+.step-input.cx-malament {
+    border-color: var(--danger);
+    background: var(--danger-light);
+}
+.cx-comprova {
+    margin-top: 4px;
+}
+/* Al pla només es toquen els quadrants i les marques: la resta deixa passar el toc */
+.cx-pla line,
+.cx-pla text,
+.cx-pla polygon,
+.cx-pla .cx-cercle,
+.cx-pla .cx-marca-fixa {
+    pointer-events: none;
+}

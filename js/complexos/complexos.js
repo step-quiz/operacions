@@ -3,11 +3,14 @@
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/complexos/complexos.js
  * ROL: Joc «Nombres Complexos» (complexos.html). Abans era dins de l'HTML.
+ *      Les pestanyes «Forma polar» i «Potències i arrels» són a polar.js (DOM) i
+ *      polar-engine.js (exercicis, correcció i errors); aquí només s'hi connecten.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa utils.js, fixed-sessions.js.
  * ============================================================================
  */
 
 import { FixedSessions } from '../fixed-sessions.js';
+import { enterCx, iniciaPestanyaCx } from './polar.js';
 import { parseStrictInt, randInt } from '../utils.js';
 import {
     getKbActiveInput,
@@ -122,13 +125,14 @@ function switchOp(op, btn) {
     document.querySelectorAll('.ops-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     currentOp = op;
-    ['sumaresta', 'producte', 'divisio', 'potencia'].forEach(id => {
+    ['sumaresta', 'producte', 'divisio', 'polar', 'potencies'].forEach(id => {
         document.getElementById('panel-' + id).style.display = id === op ? '' : 'none';
     });
     hideCustomKeyboard();
     if (op === 'sumaresta') initSumaResta();
     else if (op === 'producte') initProducte();
     else if (op === 'divisio') initDivisio();
+    else if (op === 'polar' || op === 'potencies') iniciaPestanyaCx(op);
 }
 
 // ─── INPUT GENÈRIC ────────────────────────────────────────────────
@@ -168,6 +172,7 @@ function onEnterPressed() {
     if (currentOp === 'sumaresta') enterSR();
     else if (currentOp === 'producte') enterPR();
     else if (currentOp === 'divisio') enterDV();
+    else if (currentOp === 'polar' || currentOp === 'potencies') enterCx();
 }
 function focusInput(inp) {
     if (isTouchDevice()) {
@@ -882,5 +887,11 @@ window.onload = () => {
     // El teclat numèric comú (js/teclat.js); la tecla «→» fa el mateix que Enter
     injectaTeclat(document.getElementById('lloc-teclat'));
     initCustomKeyboard({ allowNegative: true, onEnter: onEnterPressed });
-    initSumaResta();
+    // ?pestanya=polar | potencies obre directament una de les pestanyes noves (enllaç de l'índex)
+    const pestanya = new URLSearchParams(window.location.search).get('pestanya');
+    const boto = [...document.querySelectorAll('.ops-tab')].find(b =>
+        (b.getAttribute('onclick') || '').includes(`'${pestanya}'`)
+    );
+    if ((pestanya === 'polar' || pestanya === 'potencies') && boto) switchOp(pestanya, boto);
+    else initSumaResta();
 };

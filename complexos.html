@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="css/teclat.css">
+    <link rel="stylesheet" href="vendor/katex-0.16.11/katex.min.css">
+    <link rel="stylesheet" href="css/complexos-polar.css">
+    <script defer src="vendor/katex-0.16.11/katex.min.js"></script>
     <style>
         :root {
             --gris: var(--text-muted);
@@ -199,7 +202,8 @@
     <button class="ops-tab active" onclick="switchOp('sumaresta',this)">Suma / Resta</button>
     <button class="ops-tab" onclick="switchOp('producte',this)">Producte</button>
     <button class="ops-tab" onclick="switchOp('divisio',this)">Divisió</button>
-    <button class="ops-tab disabled" onclick="switchOp('potencia',this)">Potència <span class="tab-badge">aviat</span></button>
+    <button class="ops-tab" onclick="switchOp('polar',this)">Forma polar</button>
+    <button class="ops-tab" onclick="switchOp('potencies',this)">Potències i arrels</button>
 </div>
 
 <div class="app-card" id="appCard">
@@ -257,14 +261,9 @@
         <div id="resDV"></div>
     </div>
 
-    <!-- ═══ POTÈNCIA (WIP) ══════════════════════════════════ -->
-    <div id="panel-potencia" style="display:none">
-        <div class="wip-container">
-            <div class="wip-icon">🏗️</div>
-            <div class="wip-title">Potència de complexos</div>
-            <div class="wip-text">Aquesta activitat està en construcció. Aviat podràs practicar potències amb la fórmula de De Moivre!</div>
-        </div>
-    </div>
+    <!-- ═══ FORMA POLAR i POTÈNCIES I ARRELS (js/complexos/polar.js) ═══ -->
+    <div id="panel-polar" style="display:none"></div>
+    <div id="panel-potencies" style="display:none"></div>
 
     <div id="lloc-teclat"></div><!-- el teclat numèric (js/teclat.js) es posa aquí -->
 </div>
