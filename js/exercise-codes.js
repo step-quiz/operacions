@@ -70,6 +70,7 @@ export const EXERCISE_CODES = {
     'grafica-i-funcio': 'GF',
     'grafica-funcio-i-derivada': 'GD',
     'estudi-funcio': 'EF', // reservat: no genera codi (Batxillerat, senseCodi)
+    'logaritmes': 'LG', // reservat: no genera codi (Batxillerat, senseCodi)
     'binomial': 'BI', // reservat: no genera codi (Batxillerat, senseCodi)
     'rectes-plans': 'RP',
     'esglaonar-matriu': 'EM',

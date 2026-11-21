@@ -45,6 +45,7 @@ const TESTS = [
     ["Estudi d'una funció (derivades, taula de signes, gràfica i errors)", 'tests/estudi-funcio.test.js'],
     ['Distribució binomial (problemes, passos, tolerància i errors)', 'tests/binomial.test.js'],
     ['Complexos: forma polar, potències i arrels (passos i errors)', 'tests/complexos-polar.test.js'],
+    ['Logaritmes (definició, propietats, calculadora i errors)', 'tests/logaritmes.test.js'],
     ['Resolució pas a pas (pissarra)', 'tests/pissarra.test.js'],
     ['Resolució pas a pas al navegador (si hi ha Playwright)', 'tests/navegador/prova-pissarra.js'],
     ['Activitats jugades al navegador (si hi ha Playwright)', 'tests/navegador/prova-activitats.js'],
@@ -54,6 +55,7 @@ const TESTS = [
         'Complexos, forma polar i potències al navegador (si hi ha Playwright)',
         'tests/navegador/prova-complexos-polar.js',
     ],
+    ['Logaritmes al navegador (si hi ha Playwright)', 'tests/navegador/prova-logaritmes.js'],
     ['Tests de derivades', 'js/derivades/run-tests.js'],
     ['Documentació ↔ codi', 'tests/docs_vs_codi.py'],
 ];

@@ -417,6 +417,8 @@ export function iniciaJocPassos(config) {
         }
         inp.dataset.nom = nom;
         inp.dataset.part = part;
+        // La part «v» d'un decimal: al teclat tàctil amb la tecla −, aquesta fa de coma (js/teclat.js)
+        if (part === 'v') inp.dataset.coma = 'true';
         inp.setAttribute(
             'aria-label',
             part === 'n' ? 'numerador' : part === 'd' ? 'denominador' : sup ? 'exponent' : 'nombre'
