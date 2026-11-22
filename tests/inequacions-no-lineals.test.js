@@ -431,6 +431,10 @@ suite('3. La recta amb trams, nivells, controlador i índex');
         ['no-lineals', 'segon-grau', 'racionals', 'especials'].every(t => linia.includes(`['${t}', `))
     );
     ok(
+        'el camp D del codi diu el tipus: 0-4 primer grau, 5-8 de 2n grau i racionals',
+        /state\.dificultatCodi = NO_LINEALS \? 5 \+ NIVELL_NL : NIVELL_URL/.test(ctl)
+    );
+    ok(
         'codi IQ (A2): inequacions.html continua donant codi',
         !/senseCodi/.test(fs.readFileSync(path.join(ROOT, 'inequacions.html'), 'utf8'))
     );

@@ -90,6 +90,8 @@ const _urlNivell = new URLSearchParams(window.location.search).get('nivell');
 // altre mòdul es pot llegir però no reassignar.
 export const state = {
     currentDifficulty: _urlNivell ? Math.min(Math.max(parseInt(_urlNivell, 10) || 0, 0), 3) : 0,
+    // El camp D del codi, si l'activitat el fixa (p. ex. Inequacions: el tipus i el nivell); si no, la dificultat
+    dificultatCodi: null,
     sessionHistory: [],
     sessionResults: [], // codis per pregunta [1,2,3,4,…] (màxim MAX_RESULTS)
     currentSession: 0,
@@ -467,7 +469,7 @@ export function codiFinal() {
         const nomFitxer = window.location.pathname.split('/').pop().replace('.html', '');
         _codiFinal = generaCodi({
             exCode: EXERCISE_CODES[nomFitxer] || 'XX', // 'XX': pàgina sense codi a la taula
-            dif: state.currentDifficulty || 0,
+            dif: state.dificultatCodi ?? (state.currentDifficulty || 0),
             sessions: Math.min(TOTAL_SESSIONS, 5),
             questions: Math.min(TOTAL_OPERATIONS, 10),
             nota10: calculaNotaSobre10(),

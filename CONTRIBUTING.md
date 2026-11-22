@@ -264,7 +264,7 @@ Lsss-DDMM-HHMM-EE-D-S-QQ-NNN-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR   (59-79 caràcters)
 | DDMM | 4 | Data (dia i mes) |
 | HHMM | 4 | Hora i minuts |
 | EE | 2 | Codi d'exercici (taula EXERCISE_CODES de `js/exercise-codes.js`) |
-| D | 1 | Dificultat (0=sense nivells, 1-3) |
+| D | 1 | Dificultat (0=sense nivells, 1-3). Algunes pàgines hi diuen una altra cosa (`ETIQUETES_DIFICULTAT` de `js/exercise-codes.js`, que l'analitzador fa servir per escriure-ho): a Inequacions (IQ), 0-4 primer grau (progressiu o nivell 1-4) i 5-8 de 2n grau i racionals (progressiu o nivell 1-3); l'activitat el fixa amb `state.dificultatCodi` (`game-core.js`) |
 | S | 1 | Sessions completades (1-5) |
 | QQ | 2 | Preguntes per sessió (01-10) |
 | NNN | 3 | Nota ×10 arrodonida (000-100) |

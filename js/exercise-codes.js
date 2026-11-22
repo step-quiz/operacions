@@ -86,3 +86,30 @@ export const EXERCISE_CODES = {
 
 // Lookup invers: codi 2 lletres -> nom exercici
 export const EXERCISE_NAMES = Object.fromEntries(Object.entries(EXERCISE_CODES).map(([nom, codi]) => [codi, nom]));
+
+/**
+ * El camp D del codi (una xifra) per a les pàgines on no és només «nivell 1-3». Ho fa servir
+ * l'analitzador per escriure'l; les altres pàgines: 0 = sense nivell, n = «Nivell n».
+ *   IQ (Inequacions): 0 primer grau (progressiu), 1-4 primer grau nivell 1-4; 5 de 2n grau i
+ *      racionals (progressiu), 6-8 de 2n grau i racionals nivell 1-3 (lliurament 22c).
+ */
+export const ETIQUETES_DIFICULTAT = {
+    IQ: {
+        0: '1r grau',
+        1: '1r grau, nivell 1',
+        2: '1r grau, nivell 2',
+        3: '1r grau, nivell 3',
+        4: '1r grau, nivell 4',
+        5: '2n grau i racionals',
+        6: '2n grau i racionals, nivell 1',
+        7: '2n grau i racionals, nivell 2',
+        8: '2n grau i racionals, nivell 3',
+    },
+};
+
+/** El text del camp D d'un codi: '' si no n'hi ha (0 a les pàgines sense etiquetes pròpies). */
+export function etiquetaDificultat(exCode, d) {
+    const propies = ETIQUETES_DIFICULTAT[exCode];
+    if (propies) return propies[d] || `Nivell ${d}`;
+    return d > 0 ? `Nivell ${d}` : '';
+}

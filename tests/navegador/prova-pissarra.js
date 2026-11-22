@@ -199,6 +199,9 @@ const FANTASMES_FIDELS = sel => {
 
 /** Prova un pas congelat: requadres nets (si n'hi ha) i fantasmes fidels. fes: el que dispara el pas. */
 async function provaPasCongelat(pagina, sel, nom, fes) {
+    // Les lletres ja carregades: si una font arriba tard (màquina carregada), la línia es mou ~1,5 px
+    // després de posar-hi els fantasmes i la mesura falla sense que el motor faci res malament
+    await pagina.evaluate(() => document.fonts.ready.then(() => true));
     await pagina.evaluate(ALENTEIX(25));
     await fes();
     const ambRequadres = await pagina
@@ -899,12 +902,19 @@ function engegaServidor() {
             await lliure();
             ok('↺ torna a animar el mateix pas', anima && (await pas()) === 1);
             // L'espai acaba el pas que s'anima; Av Pàg i Re Pàg passen els passos
+            // (amb la màquina carregada, Av Pàg pot trigar a engegar el pas: l'espai només quan ja s'anima,
+            // que és el que es prova; si arribés abans, actuaria sobre el botó que tingués el focus)
             await p.keyboard.press('PageDown');
-            await p.waitForTimeout(100);
+            await p
+                .waitForFunction(() => window.resolucio.pissarra.ocupat || window.resolucio.pissarra.pas === 2, null, {
+                    timeout: 8000,
+                })
+                .catch(() => {});
             await p.keyboard.press('Space');
             await lliure();
             eq('Av Pàg passa al pas següent i l’espai l’acaba de cop', await pas(), 2);
             await p.keyboard.press('PageUp');
+            await p.waitForFunction(() => window.resolucio.pissarra.pas === 1, null, { timeout: 8000 }).catch(() => {});
             await lliure();
             eq('Re Pàg torna al pas anterior', await pas(), 1);
             // Mode professor

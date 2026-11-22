@@ -435,3 +435,8 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 - A keyed phrase in a text row that wraps over two lines cross-fades in place (no ghost).
 - `fraccions`' steps have different heights: the work panel keeps its height during an animation, but it
   still changes from one kind of step to another.
+
+- **2026-11-22 (agent A, with David's go-ahead):** `tests/navegador/prova-pissarra.js` failed now and then inside the full
+  `run-all` (machine under load), never alone. Fixed in the test only: §12 waits for the step to start after
+  PageDown before Space and for step 1 after PageUp; `provaPasCongelat` waits for `document.fonts.ready` before
+  freezing the ghosts. No engine change.

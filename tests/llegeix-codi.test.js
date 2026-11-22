@@ -188,7 +188,7 @@ const DOLENTS = [
 (async () => {
     const { parseCode, esV2, MAX_RES } = await importa('js/analitzador-stepquiz/llegeix-codi.js');
     const cv = await importa('js/codi-verificacio.js');
-    const { EXERCISE_CODES, EXERCISE_NAMES } = await importa('js/exercise-codes.js');
+    const { EXERCISE_CODES, EXERCISE_NAMES, etiquetaDificultat } = await importa('js/exercise-codes.js');
 
     suite('1. Un codi de cada format i de cada època');
     for (const f of FORMATS) camps(f.nom, parseCode(f.codi), f.esperat);
@@ -284,6 +284,32 @@ const DOLENTS = [
                 results: '111211143111214111311112141111',
             }),
             'Gabc-1206-0930-EN-1-3-10-075-111211143111214111311112141111'
+        );
+        // Inequacions (IQ): el camp D diu el tipus i el nivell, de 0 a 8 (exercise-codes.js)
+        const iq = [0, 4, 5, 6, 8].map(d => {
+            const p = parseCode(
+                cv.construeixCodiV2({
+                    salt: 'mno',
+                    ara: dates[0],
+                    exCode: 'IQ',
+                    dif: String(d),
+                    sessions: '1',
+                    questions: '06',
+                    notaInt: 80,
+                    results: '1'.repeat(6).padEnd(30, '0'),
+                })
+            );
+            return p.valid && p.difficulty === d ? etiquetaDificultat('IQ', d) : null;
+        });
+        eq(
+            'Inequacions: el camp D de 0 a 8 es llegeix i té nom (1r grau / 2n grau i racionals, i el nivell)',
+            iq.join(' | '),
+            '1r grau | 1r grau, nivell 4 | 2n grau i racionals | 2n grau i racionals, nivell 1 | 2n grau i racionals, nivell 3'
+        );
+        eq(
+            'les altres pàgines: 0 no té nom i n és «Nivell n»',
+            [etiquetaDificultat('EN', 0), etiquetaDificultat('EN', 2)].join('|'),
+            '|Nivell 2'
         );
         ok(
             'js/codi-finestra.js munta el codi amb construeixCodiV2, i tots els generadors fan servir generaCodi()',

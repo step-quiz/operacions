@@ -11,12 +11,14 @@
  *      ?tipus=       '' primer grau (lliurament 17) · 2n grau i racionals (lliurament 22c,
  *                    no-lineals.js): 'no-lineals' (progressiu, nivells 1 a 3), 'segon-grau' (1),
  *                    'racionals' (2), 'especials' (3: no s'anul·la mai o solució doble).
+ * CODI: el camp D diu el tipus i el nivell (0-4 primer grau, 5-8 de 2n grau i racionals).
  * JOC DE PASSOS: desplacament (es veuen les dues últimes línies i el pas), com a Fórmules STEAM.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). KaTeX (global, vendor/).
  * ============================================================================
  */
 
 import { urlParams } from '../config.js';
+import { state } from '../game-core.js';
 import { nivellProgressiu } from '../utils.js';
 import { iniciaJocPassos } from '../passos/joc-passos.js';
 import { diagnosticaIQ } from './errors.js';
@@ -28,6 +30,10 @@ const NIVELL_URL = Math.min(Math.max(parseInt(urlParams.get('nivell') || '0', 10
 const TIPUS = urlParams.get('tipus') || '';
 const NIVELL_NL = { 'segon-grau': 1, 'racionals': 2, 'especials': 3 }[TIPUS] || 0;
 const NO_LINEALS = TIPUS === 'no-lineals' || NIVELL_NL > 0;
+
+// El camp D del codi diu quin tipus s'ha fet (js/exercise-codes.js, ETIQUETES_DIFICULTAT.IQ):
+// 0-4 primer grau (progressiu o nivell), 5-8 de 2n grau i racionals (progressiu o nivell)
+state.dificultatCodi = NO_LINEALS ? 5 + NIVELL_NL : NIVELL_URL;
 
 if (NO_LINEALS) {
     const sub = document.querySelector('.subtitle');

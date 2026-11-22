@@ -116,7 +116,7 @@ export function parseCode(raw) {
         /^\d{4}$/.test(p[1]) &&
         /^\d{4}$/.test(p[2]) &&
         /^[A-Z0-9]{2}$/.test(p[3]) &&
-        /^[0-3]$/.test(p[4]) &&
+        /^\d$/.test(p[4]) && // D: 0-3 a gairebé totes les pàgines; Inequacions arriba a 8
         /^[1-5]$/.test(p[5]) &&
         /^\d{2}$/.test(p[6]) &&
         /^\d{3}$/.test(p[7]) &&

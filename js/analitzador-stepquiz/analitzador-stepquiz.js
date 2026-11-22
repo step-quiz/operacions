@@ -10,6 +10,7 @@
 
 import { MASCARA_DIFICULTATS_TOTES, MASCARA_SENTITS_TOTS } from '../codi-verificacio.js';
 import { parseCode, esV2, MAX_RES } from './llegeix-codi.js';
+import { ETIQUETES_DIFICULTAT, etiquetaDificultat } from '../exercise-codes.js';
 import { marcaIntents, agrupaProves, estadistiquesPreguntes } from './intents.js';
 
 // Aquest fitxer és un mòdul ES: les seves funcions no són globals. Exposem a
@@ -241,7 +242,12 @@ function renderRow(row) {
         open = expIdx === row.idx;
     // A CB el camp D del codi és el curs (1 = 2n ESO, 2 = 4t ESO), no la dificultat. Els codis v3 de CB
     // porten les dificultats triades: es mostren (1, 1,2, 2,3…) i, si són totes, res.
-    let dif = p.difficulty > 0 && p.exerciseCode !== 'CB' ? p.difficulty : '<span class="mu">—</span>';
+    const etDif = p.exerciseCode !== 'CB' ? etiquetaDificultat(p.exerciseCode, p.difficulty) : '';
+    let dif = !etDif
+        ? '<span class="mu">—</span>'
+        : ETIQUETES_DIFICULTAT[p.exerciseCode]
+          ? `<span title="${esc(etDif)}">${p.difficulty}</span>`
+          : p.difficulty;
     if (p.format === 'v3' && p.exerciseCode === 'CB' && p.cbDifMask !== MASCARA_DIFICULTATS_TOTES) {
         dif = `<span title="Dificultat ${esc(p.cbDificultats.map(d => d.valor + ' · ' + d.nom).join(', '))}">${esc(p.cbDificultats.map(d => d.valor).join(','))}</span>`;
     }
@@ -312,7 +318,7 @@ function renderDet(row) {
     items.push({ k: 'Activitat', v: p.exercise || p.exerciseCode || '—' });
     items.push(...cbItems(p));
     if (esV2(p) && p.exerciseCode !== 'CB') {
-        items.push({ k: 'Dificultat', v: p.difficulty === 0 ? '—' : `Nivell ${p.difficulty}` });
+        items.push({ k: 'Dificultat', v: etiquetaDificultat(p.exerciseCode, p.difficulty) || '—' });
         items.push({ k: 'Sessions', v: String(p.sessions) });
         items.push({ k: 'Preguntes', v: String(p.questions) });
     } else if (esV2(p) && p.exerciseCode === 'CB') {
@@ -925,7 +931,7 @@ function renderSingle(raw, p) {
         },
     ];
     if (esV2(p) && p.exerciseCode !== 'CB') {
-        items.push({ k: 'Dificultat', v: p.difficulty === 0 ? '—' : `Nivell ${p.difficulty}` });
+        items.push({ k: 'Dificultat', v: etiquetaDificultat(p.exerciseCode, p.difficulty) || '—' });
         items.push({ k: 'Sessions', v: String(p.sessions) });
         items.push({ k: 'Preguntes', v: String(p.questions) });
     }

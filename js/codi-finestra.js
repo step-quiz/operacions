@@ -30,7 +30,8 @@ let _tecla = null;
  * Munta un codi v2 nou, amb la sal i l'hora d'ara. L'activitat el crida un sol cop, en acabar.
  * @param {object} o
  * @param {string} o.exCode      codi d'exercici (2 lletres, js/exercise-codes.js)
- * @param {number} [o.dif]       dificultat 0-3 (0 = sense nivells)
+ * @param {number} [o.dif]       el camp D, una xifra: la dificultat 0-3 (0 = sense nivells) o, a les
+ *                               pàgines d'ETIQUETES_DIFICULTAT (exercise-codes.js), el que hi diu (0-9)
  * @param {number} o.sessions    sessions fetes (1-5)
  * @param {number} o.questions   preguntes per sessió
  * @param {number} o.nota10      nota sobre 10
@@ -45,7 +46,7 @@ export function generaCodi({ exCode, dif = 0, sessions, questions, nota10, resul
         salt,
         ara: new Date(),
         exCode,
-        dif: String(fita(dif, 0, 3)),
+        dif: String(fita(dif, 0, 9)),
         sessions: String(fita(sessions, 1, 5)),
         questions: String(fita(questions, 1, 99)).padStart(2, '0'),
         notaInt: fita(nota10 * 10, 0, 100),

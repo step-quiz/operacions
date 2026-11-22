@@ -24,7 +24,7 @@ built» in `docs/activitats/STATE.md` (theme class, CSS chain, index entry, `js/
 | ~~19~~ | ~~Estudi d'una funció~~ | — | **DONE 2026-11-21** (agent A): `estudi-funcio.html` (`?funcions=polinomiques`, `racionals` or `pau`), shared widgets `js/passos/taula-signes.js` (sign table, field type `taula`) and `js/passos/esbos-funcio.js` (sketch, ported from `step-quiz/pau`); #22 can reuse the sign table. See `docs/activitats/STATE.md`. |
 | ~~20~~ | ~~Binomial~~ | — | **DONE 2026-11-21** (agent A): `binomial.html` (`?tipus=exacte`, `directe` or `contrari`), `js/binomial/`; `pas.tolerancia` for decimal fields in `js/passos/correccio.js`. No mean/σ (David, 21/11). See `docs/activitats/STATE.md`. |
 | ~~21~~ | ~~Complexos~~ | — | **DONE 2026-11-21** (agent A): the «Potència» tab became two tabs, «Forma polar» and «Potències i arrels» (`complexos.html?pestanya=polar` or `potencies`), `js/complexos/polar*.js`, `pla-complex.js`. See `docs/activitats/STATE.md`. |
-| 22 | **Logaritmes i equacions no lineals** (4t ESO–1r Batx) | «comença pel que tu vulguis» | **22a DONE 2026-11-21** (agent A): `logaritmes.html` (Batx, no code, `LG` reserved), block 1 logarithms. **22b DONE 2026-11-21** (agent A): block 2 equations in `logaritmes.html` (`?tipus=equacions|basiques|mitjanes|irracionals`): exponential (same base; change of variable; with logarithms and calculator), logarithmic (simple; with properties), radical; mandatory checking only for logarithmic and radical. **22c DONE 2026-11-22** (agent A): quadratic and rational inequalities in `inequacions.html` (`?tipus=no-lineals|segon-grau|racionals|especials`, code IQ): sign table from #19, number line from #17 with segments (`trams`). **Item 22 complete.** Originally planned: 22c quadratic and rational inequalities as new types of `inequacions.html` (keeps code IQ), sign table from #19 and number line from #17. Decisions: review artifact «Logaritmes i equacions no lineals (22)», see `docs/activitats/STATE.md`. |
+| ~~22~~ | ~~Logaritmes i equacions no lineals~~ | — | **DONE 2026-11-21/22** (agent A): 22a `logaritmes.html` block 1 logarithms (Batx, no code, `LG` reserved); 22b block 2 equations (`?tipus=equacions|basiques|mitjanes|irracionals`); 22c quadratic and rational inequalities as new types of `inequacions.html` (`?tipus=no-lineals|segon-grau|racionals|especials`, code IQ; the code's D field tells the type and level, see `js/exercise-codes.js` `ETIQUETES_DIFICULTAT`). See `docs/activitats/STATE.md`. |
 
 **Decisions owed before each of them:** levels, step design, errors, UI. Ask with a review artifact (as for
 #16 and #17), not by guessing.
@@ -58,9 +58,8 @@ built» in `docs/activitats/STATE.md` (theme class, CSS chain, index entry, `js/
 
 ## 5. Decisions owed by David (summary)
 
-1. Order of deliveries 18–22 (default: as listed).
-2. Design of each delivery 18–22 (review artifact each time).
-3. After trying them in class: go for the Fórmules STEAM board detail (§2) and the Inequacions board (§2).
-4. Whether to make the exception for P2 (animation inside Fórmules STEAM).
-5. Real student error cases for Fórmules STEAM (E1).
-6. When to resume the «Resolució pas a pas» stages 4 and 6 and the fading pilots (§3, §4).
+1. Roadmap 18–22: all done (2026-11-22); new deliveries only if David proposes them.
+2. After trying them in class: go for the Fórmules STEAM board detail (§2) and the Inequacions board (§2).
+3. Whether to make the exception for P2 (animation inside Fórmules STEAM).
+4. Real student error cases for Fórmules STEAM (E1).
+5. When to resume the «Resolució pas a pas» stages 4 and 6 and the fading pilots (§3, §4).

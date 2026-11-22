@@ -212,6 +212,9 @@ async function sessio(pagina, tipus, N, malament, tactil = false) {
         const errorsJs = [];
         pagina.on('pageerror', e => errorsJs.push(String(e)));
         pagina.on('console', m => m.type() === 'error' && errorsJs.push(m.text()));
+        // El codi de cada sessió (game-core.js l'escriu a la consola): el camp D diu el tipus
+        const codis = [];
+        pagina.on('console', m => /^Codi v2:/.test(m.text()) && codis.push(m.text().split(' ')[2]));
         const malament = [];
         suite('1. Una sessió de cada nivell, de cap a cap (Chromebook 1366×768)');
         let subtitol = '';
@@ -222,6 +225,9 @@ async function sessio(pagina, tipus, N, malament, tactil = false) {
         ok('cada inequació es resol de cap a cap amb 10 punts', !malament.length, malament.join('\n      → '));
         ok('el subtítol és el de 2n grau i racionals', /2n grau i racionals/.test(subtitol), subtitol);
         ok('cap error a la consola', !errorsJs.length, errorsJs.join('\n      → '));
+        await pagina.waitForTimeout(500);
+        const ds = codis.map(c => c.split('-')[4]).join(',');
+        ok('el codi IQ diu el tipus i el nivell al camp D (6, 7, 8)', ds === '6,7,8', `${codis.join(' ')} → ${ds}`);
         await pagina.goto(`${BASE}/inequacions.html?totaloperations=1`);
         await pagina.waitForTimeout(600);
         ok(
