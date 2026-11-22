@@ -4,7 +4,8 @@
  * FITXER: js/inequacions/strings.js
  * ROL: Textos d'«Inequacions» (inequacions.html): consignes dels passos (amb les
  *      fórmules entre $…$, que el joc de passos dibuixa amb KaTeX) i notes. Els missatges
- *      dels errors són a errors.js.
+ *      dels errors són a errors.js. TEXTOS_IQ, primer grau (lliurament 17); TEXTOS_NL,
+ *      inequacions de 2n grau i racionals (lliurament 22c).
  * ARQUITECTURA: mòdul pur (cap DOM).
  * DEPENDÈNCIES: Cap.
  * ============================================================================
@@ -38,5 +39,40 @@ export const TEXTOS_IQ = {
         coeficient: 'Escriu també l’1 i el −1 davant de la x. El signe: arrossega’l (o toca’l i després el requadre).',
         coeficientINombre:
             'El coeficient de la x i el nombre, cadascun amb el seu signe (−6, no 6). Escriu també l’1 i el −1.',
+    },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+// INEQUACIONS DE 2n GRAU I RACIONALS (lliurament 22c)
+// ═════════════════════════════════════════════════════════════════════════════
+export const TEXTOS_NL = {
+    subtitol: 'Inequacions de 2n grau i racionals: la taula de signes, la recta i l’interval',
+    enunciat: {
+        passa: 'Primer, passa-ho tot a l’esquerra: a la dreta hi ha de quedar 0.',
+        zeros: eq => `On s’anul·la? Resol $${eq}$.`,
+        zerosFraccio: (n, d) => `On s’anul·len el numerador i el denominador? Resol $${n} = 0$ i $${d} = 0$.`,
+        zerosTria: eq => `On s’anul·la? Resol $${eq}$.`,
+        taula: expr =>
+            `Omple la taula de signes de $${expr}$: a cada interval, escriu un punt de prova (un enter de dins) i toca el signe que hi té. A cada punt, $0$ si s’hi anul·la o $\\nexists$ si no hi existeix.`,
+        trams: ineq =>
+            `Marca la solució de $${ineq}$ a la recta: toca els trams que hi entren i els punts que hi entren (punt ple). Si no en té cap, toca «Cap solució».`,
+        interval: ineq => `Quina és la solució de $${ineq}$?`,
+    },
+    nomPas: {
+        passa: 'tot a un costat',
+        zeros: 'zeros',
+        taula: 'taula de signes',
+        trams: 'recta',
+        interval: 'interval',
+    },
+    camps: { x1: 'x_1 =', x2: 'x_2 =', n: '\\text{numerador: } x =', d: '\\text{denominador: } x =' },
+    nota: { dues: 'Les dues solucions, en qualsevol ordre.' },
+    files: { prova: 'Punt de prova', signe: 'Signe' },
+    celles: { mes: '+', menys: '−', zero: '0', no: '∄' },
+    opcionsZeros: {
+        cap: 'No s’anul·la mai: no té solucions reals',
+        doble: a => `Només a $x = ${a}$ (solució doble)`,
+        dues: (a, b) => `A $x = ${a}$ i a $x = ${b}$`,
+        una: a => `Només a $x = ${a}$`,
     },
 };

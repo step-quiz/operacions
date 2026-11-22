@@ -26,6 +26,7 @@ export const TEXTOS_PASSOS = {
         amaga: 'Amaga-ho',
         mostraPassos: n => `Mostra les ${n} línies`,
         // La recta (camps 'recta')
+        capSolucio: '∅ Cap solució',
         hiEntra: '● Hi entra',
         noHiEntra: '○ No hi entra',
         esquerra: '← Cap a l’esquerra',

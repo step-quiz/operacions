@@ -42,6 +42,7 @@ const TESTS = [
     ['Potències: reptes 4 i 5 (exponents negatius i notació científica)', 'tests/potencies.test.js'],
     ['Fórmules STEAM (aïllar una lletra, passos i errors)', 'tests/formules-steam.test.js'],
     ['Inequacions (passos, recta, interval i errors)', 'tests/inequacions.test.js'],
+    ['Inequacions de 2n grau i racionals (taula de signes, recta amb trams)', 'tests/inequacions-no-lineals.test.js'],
     ["Estudi d'una funció (derivades, taula de signes, gràfica i errors)", 'tests/estudi-funcio.test.js'],
     ['Distribució binomial (problemes, passos, tolerància i errors)', 'tests/binomial.test.js'],
     ['Complexos: forma polar, potències i arrels (passos i errors)', 'tests/complexos-polar.test.js'],
@@ -58,6 +59,10 @@ const TESTS = [
     ],
     ['Logaritmes al navegador (si hi ha Playwright)', 'tests/navegador/prova-logaritmes.js'],
     ['Equacions dels logaritmes al navegador (si hi ha Playwright)', 'tests/navegador/prova-logaritmes-equacions.js'],
+    [
+        'Inequacions de 2n grau i racionals al navegador (si hi ha Playwright)',
+        'tests/navegador/prova-inequacions-no-lineals.js',
+    ],
     ['Tests de derivades', 'js/derivades/run-tests.js'],
     ['Documentació ↔ codi', 'tests/docs_vs_codi.py'],
 ];

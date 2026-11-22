@@ -39,6 +39,8 @@
  *                 casella buida on es deixa una de les targetes de pas.fitxes; recta, la recta
  *                 numèrica del tros { camp, recta: { marques } } (js/passos/recta-intervals.js): l'alumne
  *                 toca una marca i tria si el punt hi entra (ple) i cap a quin costat va la semirecta.
+ *                 trams, la recta amb trams del tros { camp, trams: { punts } } (inequacions de 2n grau i
+ *                 racionals): l'alumne marca els trams i els punts que hi entren, o «Cap solució».
  *                 taula, la taula de signes del tros { camp, taula } (js/passos/taula-signes.js): un punt
  *                 de prova a cada interval i, a cada cel·la de les files editables, un botó que canvia de
  *                 valor en tocar-lo (+/−, 0/∄, ↗/↘, màxim/mínim…).
@@ -117,7 +119,7 @@ import { puntsAmbPartOpcional } from '../punts.js';
 import { corregeixPas, esCampFraccio, textResposta } from './correccio.js';
 import { svgFiguraFraccio } from './figura-fraccio.js';
 import { parabolaPerTresPunts, svgQuadricula } from './quadricula.js';
-import { svgRecta } from './recta-intervals.js';
+import { creaRectaTrams, svgRecta } from './recta-intervals.js';
 import { creaTaulaSignes } from './taula-signes.js';
 import { TEXTOS_PASSOS } from './textos.js';
 
@@ -519,6 +521,7 @@ export function iniciaJocPassos(config) {
         }
         if (tipus === 'punts') return creaQuadricula(nom, tros.quadricula || {}, pas);
         if (tipus === 'recta') return creaRecta(nom, tros.recta || { marques: [] });
+        if (tipus === 'trams') return creaRectaTrams(nom, tros.trams, { capSolucio: ui.capSolucio });
         if (tipus === 'taula')
             return creaTaulaSignes(nom, tros.taula, { buida: TEXTOS_PASSOS.avisos.buit, provaAria: ui.puntDeProva });
         if (tipus === 'fitxa') {

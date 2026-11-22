@@ -23,6 +23,7 @@
  *                               { recta: [m, n], quants } (tants punts diferents de y = mx + n)
  *                  recta        { i, ple, costat } (js/passos/recta-intervals.js): la marca on és el
  *                               punt, si hi entra (ple) i el costat de la semirecta ('esq' | 'dre')
+ *                  trams        { trams: [bool], inclosos: [bool] } (recta amb trams, recta-intervals.js)
  *                  taula        la taula de signes (js/passos/taula-signes.js): punts de prova i cel·les;
  *                               la solució és { prova: bool, files: { id: [valor per columna] } }
  *     tolerancia { nom: nombre } opcional: un camp decimal val bé si s'allunya de la solució com a
@@ -32,7 +33,8 @@
  *     proporcional  [nom, nom, nom]: val qualsevol terna d'enters proporcional a la solució
  *     alternatives  [solucio, …]: altres respostes que també són correctes (p. ex. (−x + 3)² per (x − 3)²)
  *
- * DEPENDÈNCIES: utils.js (gcd, parseStrictInt) i algebra/racionals.js.
+ * DEPENDÈNCIES: utils.js (gcd, parseStrictInt), algebra/racionals.js, passos/taula-signes.js i
+ *      passos/recta-intervals.js.
  * ============================================================================
  */
 
@@ -47,6 +49,7 @@ import {
     textRacional,
 } from '../algebra/racionals.js';
 import { llegeixTaula, taulaCorrecta } from './taula-signes.js';
+import { llegeixTrams, tramsIguals } from './recta-intervals.js';
 
 // ── Correcció ────────────────────────────────────────────────────────────────
 const buit = s => s === undefined || s === null || String(s).trim() === '';
@@ -128,6 +131,12 @@ export function corregeixPas(pas, resp = {}) {
             escrit[nom] = { i: r.i, ple: r.ple, costat: r.costat };
             continue;
         }
+        if (tipus === 'trams') {
+            const t = llegeixTrams(r);
+            if (t.estat) return { ...t, camp: nom };
+            escrit[nom] = t.valor;
+            continue;
+        }
         if (tipus === 'taula') {
             const t = llegeixTaula(r, pas.solucio[nom], taulaDelCamp(pas, nom));
             if (t.estat) return { ...t, camp: nom };
@@ -170,11 +179,13 @@ export function corregeixPas(pas, resp = {}) {
               ? puntsCorrectes(escrit[nom], sol[nom])
               : pas.camps[nom] === 'recta'
                 ? igualRecta(escrit[nom], sol[nom])
-                : pas.camps[nom] === 'decimal' && pas.tolerancia && nom in pas.tolerancia
-                  ? Math.abs(escrit[nom][0] / escrit[nom][1] - valorDe(sol[nom])) <= pas.tolerancia[nom] + 1e-12
-                  : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
-                    ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
-                    : escrit[nom] === sol[nom];
+                : pas.camps[nom] === 'trams'
+                  ? tramsIguals(escrit[nom], sol[nom])
+                  : pas.camps[nom] === 'decimal' && pas.tolerancia && nom in pas.tolerancia
+                    ? Math.abs(escrit[nom][0] / escrit[nom][1] - valorDe(sol[nom])) <= pas.tolerancia[nom] + 1e-12
+                    : esCampFraccio(pas.camps[nom]) || pas.camps[nom] === 'decimal'
+                      ? racionalsIguals(escrit[nom], comRacional(sol[nom]))
+                      : escrit[nom] === sol[nom];
     // Camps equivocats respecte d'una solució (amb un parell, també en l'altre ordre)
     function malamentRespecte(sol) {
         if (pas.proporcional) {
@@ -264,7 +275,7 @@ export function errorPerDistractors(pas, valors) {
             : racionalsIguals(comRacional(x), comRacional(y));
     for (const nom of Object.keys(pas.camps)) {
         // la recta no té distractors per valor: el diagnòstic el fa l'activitat (punt, costat…)
-        if (pas.camps[nom] === 'recta') continue;
+        if (pas.camps[nom] === 'recta' || pas.camps[nom] === 'trams') continue;
         if (!(nom in valors) || igual(valors[nom], pas.solucio[nom])) continue;
         const trobat = (distractors[nom] || []).find(([valor]) => igual(valor, valors[nom]));
         return trobat ? trobat[1] : null;
