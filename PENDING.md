@@ -33,10 +33,10 @@ built» in `docs/activitats/STATE.md` (theme class, CSS chain, index entry, `js/
 
 | From | Item | Status / decision owed |
 |---|---|---|
-| #16 Fórmules STEAM | Board stage 2: **«Vull més detall»** on `resolucio.html?activitat=formules-steam` (e.g. «80 · Δt = (240/Δt) · Δt» before simplifying) | Agreed in principle; build after David tries stage 1 in class. Design: `docs/pissarra/STATE.md` decision 21. |
+| ~~#16 Fórmules STEAM~~ | ~~Board stage 2: «Vull més detall»~~ | **DONE 2026-11-22** (decision 22, `docs/pissarra/STATE.md`). |
 | #16 Fórmules STEAM | **P2**: the board's flying animation inside the activity (instead of only colouring what moves) | David: «més endavant». Needs an exception to decision 14 (activity and board are independent); ask first. |
 | #16 Fórmules STEAM | **E1**: real student errors to add to the error taxonomy | Waiting for David to send cases from class. |
-| #17 Inequacions | **U2**: the «Resolució pas a pas» board for inequalities (with the number line drawn at the end) | Agreed: after David tries the activity. |
+| #17 Inequacions | **U2**: the «Resolució pas a pas» board for first-degree inequalities (with the number line drawn at the end) | **Designed 2026-11-22** (decision 22, C1–C7, `docs/pissarra/STATE.md`); next delivery, after David tries the FS detail. |
 | #17 Inequacions | U4 listed «llegir 5 > x com x > 5»: the flip is automatic (P4), so the student never types it | Nothing to do unless David wants that step back. |
 
 ## 3. «Resolució pas a pas» engine plan (`docs/pissarra/STATE.md`)

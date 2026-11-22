@@ -20,16 +20,17 @@ import { cellesMalament } from '../passos/taula-signes.js';
 
 export const ERRORS_IQ = {
     SIGNE_NO_GIRAT: {
-        etiqueta: 'signe sense girar',
+        etiqueta: 'el signe no ha canviat',
         missatge:
-            'Has dividit els dos membres per un nombre negatiu: el signe de la desigualtat s’ha de girar (< passa a >, ≤ passa a ≥).',
+            'Has dividit els dos membres per un nombre negatiu: el signe de desigualtat canvia (< passa a >, ≤ passa a ≥).',
     },
     SIGNE_GIRAT_POSITIU: {
-        etiqueta: 'signe girat sense motiu',
-        missatge: 'Has dividit per un nombre positiu: el signe es queda com estava. Només es gira amb un negatiu.',
+        etiqueta: 'signe canviat sense motiu',
+        missatge:
+            'Has dividit per un nombre positiu: el signe de desigualtat no canvia. Només canvia si multipliques o divideixes per un negatiu.',
     },
     SIGNE_GIRAT_SENSE_MOTIU: {
-        etiqueta: 'signe girat en passar un terme',
+        etiqueta: 'signe canviat en passar un terme',
         missatge: 'Sumar o restar el mateix als dos membres no canvia el signe de la desigualtat.',
     },
     SIGNE_ESTRICTE: {
@@ -125,12 +126,12 @@ export const ERRORS_NL = {
     DIVIDEIX_X: {
         etiqueta: 'dividir per x',
         missatge:
-            'No es pot dividir per x: no saps si és positiva o negativa (i, si és negativa, el signe es gira). Passa-ho tot a un costat: x² − 3x > 0.',
+            'No es pot dividir per x: no saps si és positiva o negativa (i, si és negativa, el signe de desigualtat canvia). Passa-ho tot a un costat: x² − 3x > 0.',
     },
     MULTIPLICA_DEN: {
         etiqueta: 'multiplicar pel denominador',
         missatge:
-            'No pots multiplicar pel denominador ni treure’l: no saps si és positiu o negatiu (si és negatiu, el signe es gira). Passa el nombre a l’esquerra i fes una sola fracció.',
+            'No pots multiplicar pel denominador ni treure’l: no saps si és positiu o negatiu (si és negatiu, el signe de desigualtat canvia). Passa el nombre a l’esquerra i fes una sola fracció.',
     },
     RESTA_SENSE_DEN: {
         etiqueta: 'restar sense el denominador',

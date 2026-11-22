@@ -5,7 +5,7 @@
  * ROL: «Resolució pas a pas» de «Fórmules STEAM» (l'escenari B: l'alumne mira com
  *      s'aïlla una lletra d'una fórmula, a resolucio.html?activitat=formules-steam):
  *      el guió de la pissarra, pas a pas. Lliurament 16 del full de ruta, primera etapa
- *      de la pissarra (sense detall a demanda).
+ *      de la pissarra; la segona (22/11/2026), el detall a demanda (vegeu la secció DETALL).
  * ARQUITECTURA:
  * - Mòdul PUR (sense DOM): passos(ex, { oberts }) torna la llista de passos de la
  *   pissarra (js/pissarra/formules.js guio i historial, en TeX, una línia per fila);
@@ -64,6 +64,7 @@ export const Resolucio = (() => {
                     if (e.fr) return `\\dfrac{${tros(e.fr[0])}}{${tros(e.fr[1])}}`;
                     if (e.arrel) return `\\sqrt{${tros(e.arrel)}}`;
                     if (e.quad) return `{${tros(e.quad[0])}}^{${tros([e.quad[1]])}}`;
+                    if (e.cancel) return `\\cancel{${tros(e.cancel)}}`;
                     const t = clau(clauDe(e.id), e.tex);
                     return e.tipus === 'op' ? `\\mathbin{${t}}` : e.tipus === 'rel' ? `\\mathrel{${t}}` : t;
                 })
@@ -80,9 +81,11 @@ export const Resolucio = (() => {
                   ? [...idsDe(e.fr[0]), ...idsDe(e.fr[1])]
                   : e.arrel
                     ? idsDe(e.arrel)
-                    : e.quad
-                      ? [...idsDe(e.quad[0]), e.quad[1].id]
-                      : [e.id]
+                    : e.cancel
+                      ? idsDe(e.cancel)
+                      : e.quad
+                        ? [...idsDe(e.quad[0]), e.quad[1].id]
+                        : [e.id]
         );
     /** Només les lletres, els nombres i les unitats (les peces a<n>). */
     const fullesDe = es => idsDe(es).filter(id => /^a\d+$/.test(id));
@@ -273,6 +276,7 @@ export const Resolucio = (() => {
                     linia,
                     text: fraseOperacio(p, x, L),
                     mou: Object.fromEntries(queden(mogudes).map(id => [id, id])),
+                    detall: detallOperacio(p, x, L, R),
                 });
                 anterior = linia;
                 if (p.gira) {
@@ -302,6 +306,7 @@ export const Resolucio = (() => {
             linia: [P(idX, texX), P('q', '=', 'rel'), P('r', valorTex)],
             text: `Fes les operacions: $${texX} = ${valorTex}$.`,
             fusiona: { r: fullesDe(R.peces(valorExpr, L)) },
+            detall: detallValor(valorExpr, ultim, x, L, R, valorTex),
         });
 
         // 5. La unitat
@@ -366,6 +371,285 @@ export const Resolucio = (() => {
         return out;
     }
 
+    // ---- DETALL A DEMANDA («Vull més detall»; decisions del David del 22/11/2026, B1–B4) ----
+    //
+    // Les operacions d'aïllar (també amb lletres) s'obren en dos subpassos i el pas:
+    //   1. l'operació escrita als dos membres (80 · Δt = (240/Δt) · Δt; v₀ + a · t − v₀ = v − v₀);
+    //   2. el que se simplifica, ratllat (\cancel): el que multiplica i divideix, o el que suma i resta;
+    //   i llavors la línia del pas. L'arrel: √(v²) = √(…) i llavors v = √(…). Sense detall: la meitat (½ · …),
+    //   la fórmula, les dades, girar la igualtat i la unitat. Les còpies de l'operació porten l'id de la peça
+    //   amb un prefix: D (al membre de la lletra) i E (a l'altre, que és on queda).
+    // El valor, quan hi ha més d'una operació: una per subpas, en l'ordre de la calculadora (2 · 150 : 6 →
+    //   300 : 6 → 50); si algun resultat parcial no és un decimal curt, sense detall.
+
+    /** Una còpia dels elements amb els ids amb prefix (la mateixa peça, en un altre lloc). */
+    const copia = (es, pre) =>
+        es.map(e =>
+            e.raw !== undefined
+                ? e
+                : e.fr
+                  ? { fr: [copia(e.fr[0], pre), copia(e.fr[1], pre)] }
+                  : e.arrel
+                    ? { arrel: copia(e.arrel, pre) }
+                    : e.cancel
+                      ? { cancel: copia(e.cancel, pre) }
+                      : e.quad
+                        ? { quad: [copia(e.quad[0], pre), copia([e.quad[1]], pre)[0]] }
+                        : { ...e, id: pre + e.id }
+        );
+    const entreRaw = es => [{ raw: '\\Bigl(' }, ...es, { raw: '\\Bigr)' }];
+    /** Els elements d'una expressió, entre parèntesis si és una suma (o una fracció, si es diu). */
+    const ambParentesi = (e, es, fraccio = false) => (e.t === 'add' || (fraccio && e.t === 'div') ? entreRaw(es) : es);
+    const desDe = ids => Object.fromEntries(ids.map(id => [id, id]));
+
+    function detallOperacio(p, x, L, R) {
+        const { op, S, O, costat } = p;
+        const Q = P('q', '=', 'rel');
+        const membres = (Sx, Ox) => (costat === 0 ? [...Sx, Q, ...Ox] : [...Ox, Q, ...Sx]);
+        const T = e => `$${petit(tex(e, L))}$`;
+        const xT = `$${L[x]}$`;
+        const final = R.equacio(p.despres, L);
+        if (op.tipus === 'multiplica') {
+            if (esMeitat(S)) return null;
+            const d = R.peces(S.d, L);
+            const fd = fullesDe(d);
+            if (2 * fd.length > 7) return null;
+            const Dd = copia(d, 'D');
+            const Ed = copia(d, 'E');
+            const linia1 = membres(
+                [...ambParentesi(S, R.peces(S, L), true), P('Dp', '\\cdot', 'op'), ...ambParentesi(S.d, Dd)],
+                [...ambParentesi(O, R.peces(O, L)), P('Ep', '\\cdot', 'op'), ...ambParentesi(S.d, Ed)]
+            );
+            const linia2 = membres(
+                [
+                    { raw: '\\Bigl(' },
+                    { fr: [R.peces(S.n, L), [{ cancel: d }]] },
+                    { raw: '\\Bigr)' },
+                    P('Dp', '\\cdot', 'op'),
+                    { cancel: ambParentesi(S.d, Dd) },
+                ],
+                [...ambParentesi(O, R.peces(O, L)), P('Ep', '\\cdot', 'op'), ...ambParentesi(S.d, Ed)]
+            );
+            return {
+                titol: 'Detall: la mateixa operació als dos membres',
+                subpassos: [
+                    {
+                        linia: linia1,
+                        text: `Multiplica els dos membres per ${T(S.d)}.`,
+                        reparteix: Object.fromEntries(fd.map(id => [id, [`D${id}`, `E${id}`]])),
+                    },
+                    {
+                        linia: linia2,
+                        text: `Al membre de ${xT}, ${T(S.d)} divideix i multiplica: se simplifica.`,
+                        mou: desDe([...fd, ...fd.map(id => `D${id}`)]),
+                    },
+                ],
+                textAcaba: `Escriu el que queda: $${petit(texEq(p.despres, L))}$.`,
+                acaba: {
+                    mou: Object.fromEntries(fd.filter(id => idsDe(final).includes(id)).map(id => [id, `E${id}`])),
+                },
+            };
+        }
+        if (op.tipus === 'divideix') {
+            const per = op.per;
+            const pp = R.peces(per, L);
+            const fp = fullesDe(pp);
+            if (2 * fp.length > 7) return null;
+            const Dp = copia(pp, 'D');
+            const Ep = copia(pp, 'E');
+            const linia1 = membres([{ fr: [R.peces(S, L), Dp] }], [{ fr: [R.peces(O, L), Ep] }]);
+            // El numerador amb els factors sense la lletra ratllats
+            const num = S.f.flatMap((f, j) => {
+                const cos = f.t === 'add' ? entreRaw(R.peces(f, L)) : R.peces(f, L);
+                const dot = j > 0 ? [P(`p${R.num(f)}`, '\\cdot', 'op')] : [];
+                return contéX(f, x) ? [...dot, ...cos] : [...dot, { cancel: cos }];
+            });
+            const linia2 = membres([{ fr: [num, [{ cancel: Dp }]] }], [{ fr: [R.peces(O, L), Ep] }]);
+            return {
+                titol: 'Detall: la mateixa operació als dos membres',
+                subpassos: [
+                    {
+                        linia: linia1,
+                        text: `Divideix els dos membres per ${T(per)}.`,
+                        reparteix: Object.fromEntries(fp.map(id => [id, [`D${id}`, `E${id}`]])),
+                    },
+                    {
+                        linia: linia2,
+                        text: `Al membre de ${xT}, ${T(per)} multiplica i divideix: se simplifica.`,
+                        mou: desDe([...fp, ...fp.map(id => `D${id}`)]),
+                    },
+                ],
+                textAcaba: `Escriu el que queda: $${petit(texEq(p.despres, L))}$.`,
+                acaba: {
+                    mou: Object.fromEntries(fp.filter(id => idsDe(final).includes(id)).map(id => [id, `E${id}`])),
+                },
+            };
+        }
+        if (op.tipus === 'resta' || op.tipus === 'suma') {
+            const termes = op.mou; // els termes que passen a l'altre membre
+            const fulles = termes.flatMap(t => fullesDe(R.peces(t.e, L)));
+            if (2 * fulles.length > 7 || S.t !== 'add') return null;
+            // Un terme amb el signe canviat (el que s'afegeix als dos membres), amb prefix
+            const afegit = (t, pre) => [
+                P(`${pre}s${R.num(t.e)}`, t.s > 0 ? '-' : '+', 'op'),
+                ...copia(t.e.t === 'add' ? entreRaw(R.peces(t.e, L)) : R.peces(t.e, L), pre),
+            ];
+            const Op = R.peces(O, L);
+            const altre = [...Op, ...termes.flatMap(t => afegit(t, 'E'))];
+            const linia1 = membres([...R.peces(S, L), ...termes.flatMap(t => afegit(t, 'D'))], altre);
+            const treu = new Set(termes.map(t => t.e));
+            const sRatllat = S.terms.flatMap(({ s: sg, e }, j) => {
+                const cos = e.t === 'add' ? entreRaw(R.peces(e, L)) : R.peces(e, L);
+                const signe = j > 0 || sg < 0 ? [P(`s${R.num(e)}`, sg < 0 ? '-' : '+', 'op')] : [];
+                return treu.has(e) ? [{ cancel: [...signe, ...cos] }] : [...signe, ...cos];
+            });
+            const linia2 = membres([...sRatllat, ...termes.map(t => ({ cancel: afegit(t, 'D') }))], altre);
+            const perT = T(op.per);
+            const idsFinal = new Set(idsDe(final));
+            const acabaMou = {};
+            for (const t of termes)
+                for (const id of [`s${R.num(t.e)}`, ...fullesDe(R.peces(t.e, L))])
+                    if (idsFinal.has(id)) acabaMou[id] = `E${id}`;
+            return {
+                titol: 'Detall: la mateixa operació als dos membres',
+                subpassos: [
+                    {
+                        linia: linia1,
+                        text: `${op.tipus === 'resta' ? 'Resta' : 'Suma'} ${perT} als dos membres.`,
+                        reparteix: Object.fromEntries(fulles.map(id => [id, [`D${id}`, `E${id}`]])),
+                    },
+                    {
+                        linia: linia2,
+                        text: `Al membre de ${xT}, ${perT} suma i resta: s’anul·la (dona 0).`,
+                        mou: desDe([...fulles, ...fulles.map(id => `D${id}`)]),
+                    },
+                ],
+                textAcaba: `Escriu el que queda: $${petit(texEq(p.despres, L))}$.`,
+                acaba: { mou: acabaMou },
+            };
+        }
+        if (op.tipus === 'arrel') {
+            const b = R.peces(S.b, L);
+            const fb = fullesDe(b);
+            const linia1 = membres([{ arrel: R.peces(S, L) }], [{ arrel: R.peces(O, L) }]);
+            return {
+                titol: 'Detall: la mateixa operació als dos membres',
+                subpassos: [
+                    {
+                        linia: linia1,
+                        text: 'Fes l’arrel quadrada dels dos membres.',
+                        mou: desDe([...fb, `e${R.num(S)}`].filter(id => idsDe(linia1).includes(id)).slice(0, 7)),
+                    },
+                ],
+                textAcaba: `L’arrel quadrada desfà el quadrat (la lletra és positiva): $${petit(texEq(p.despres, L))}$.`,
+                acaba: { mou: desDe(fb.filter(id => idsDe(final).includes(id))) },
+            };
+        }
+        return null;
+    }
+
+    /** Un decimal curt (com a molt 4 decimals) i no negatiu, o null. */
+    const curt = v => {
+        const r = Math.round(v * 1e4) / 1e4;
+        return v >= 0 && Math.abs(v - r) < 1e-9 * Math.max(1, Math.abs(v)) ? r : null;
+    };
+    /**
+     * Fa una operació de l'expressió (la primera, en l'ordre de la calculadora, que només té nombres):
+     * { e: expressió nova, node: el node fet, valor, text } o null si ja és un nombre. node.v === undefined si
+     * el resultat no és un decimal curt.
+     */
+    function unaOperacio(e) {
+        const fet = (node, v, t) => ({ node, valor: v, text: t, nou: { t: 'num', v } });
+        const T = n => texDecimal(n.v);
+        if (esNum(e)) return null;
+        if (e.t === 'add') {
+            const k = e.terms.findIndex(t => !esNum(t.e));
+            if (k >= 0) {
+                const r = unaOperacio(e.terms[k].e);
+                if (!r) return null;
+                return { ...r, e: { t: 'add', terms: e.terms.map((t, j) => (j === k ? { s: t.s, e: r.e } : t)) } };
+            }
+            const [a, b, ...resta] = e.terms;
+            const v = a.s * a.e.v + b.s * b.e.v;
+            const f = fet(
+                [a.e, b.e],
+                v,
+                `${a.s < 0 ? '-' : ''}${T(a.e)} ${b.s < 0 ? '-' : '+'} ${T(b.e)} = ${texDecimal(v)}`
+            );
+            const nou = resta.length ? { t: 'add', terms: [{ s: 1, e: f.nou }, ...resta] } : f.nou;
+            return { ...f, e: nou };
+        }
+        if (e.t === 'mul') {
+            const k = e.f.findIndex(g => !esNum(g));
+            if (k >= 0) {
+                const r = unaOperacio(e.f[k]);
+                if (!r) return null;
+                return { ...r, e: { t: 'mul', f: e.f.map((g, j) => (j === k ? r.e : g)) } };
+            }
+            const [a, b, ...resta] = e.f;
+            const v = a.v * b.v;
+            const f = fet([a, b], v, `${T(a)} \\cdot ${T(b)} = ${texDecimal(v)}`);
+            return { ...f, e: resta.length ? { t: 'mul', f: [f.nou, ...resta] } : f.nou };
+        }
+        if (e.t === 'div') {
+            for (const c of ['n', 'd'])
+                if (!esNum(e[c])) {
+                    const r = unaOperacio(e[c]);
+                    if (!r) return null;
+                    return { ...r, e: { ...e, [c]: r.e } };
+                }
+            const v = e.n.v / e.d.v;
+            const f = fet([e.n, e.d], v, `${T(e.n)} : ${T(e.d)} = ${texDecimal(curt(v) ?? v)}`);
+            return { ...f, e: f.nou };
+        }
+        if (e.t === 'pow' || e.t === 'sqrt') {
+            const fill = e.t === 'pow' ? e.b : e.e;
+            if (!esNum(fill)) {
+                const r = unaOperacio(fill);
+                if (!r) return null;
+                return { ...r, e: e.t === 'pow' ? { ...e, b: r.e } : { ...e, e: r.e } };
+            }
+            const v = e.t === 'pow' ? fill.v ** 2 : Math.sqrt(fill.v);
+            const t =
+                e.t === 'pow' ? `${T(fill)}^2 = ${texDecimal(v)}` : `\\sqrt{${T(fill)}} = ${texDecimal(curt(v) ?? v)}`;
+            const f = fet([fill], v, t);
+            return { ...f, e: f.nou };
+        }
+        return null;
+    }
+
+    /** El detall del valor: una operació per subpas (si n'hi ha més d'una i tots els parcials són curts). */
+    function detallValor(valorExpr, ultim, x, L, R, valorTex) {
+        const xAEsquerra = ultim[0].t === 'var' && ultim[0].n === x;
+        const nodeX = xAEsquerra ? ultim[0] : ultim[1];
+        const linia = e => [P(`a${R.num(nodeX)}`, L[x]), P('q', '=', 'rel'), ...R.peces(e, L)];
+        const passosV = [];
+        let e = valorExpr;
+        for (let guarda = 0; guarda < 10; guarda++) {
+            const r = unaOperacio(e);
+            if (!r) break;
+            const v = curt(r.valor);
+            if (v === null) return null;
+            r.nou.v = v;
+            passosV.push({ ...r, abans: e });
+            e = r.e;
+        }
+        if (passosV.length < 2) return null;
+        // Abans del primer subpas, la línia és la de l'última operació (o la girada): la lletra pot ser a la dreta
+        const subpassos = passosV.slice(0, -1).map(r => ({
+            linia: linia(r.e),
+            text: `Calcula: $${r.text}$.`,
+            fusiona: { [`a${R.num(r.nou)}`]: r.node.flatMap(n => fullesDe(R.peces(n, L))) },
+        }));
+        const darrer = passosV[passosV.length - 1];
+        return {
+            titol: 'Detall: les operacions, una a una',
+            subpassos,
+            textAcaba: `Calcula: $${darrer.text}$. Així, $${L[x]} = ${valorTex}$.`,
+            acaba: { fusiona: { r: darrer.node.flatMap(n => fullesDe(R.peces(n, L))) } },
+        };
+    }
+
     /** La frase d'una operació: què hi ha al membre de la lletra i què es fa als dos membres. */
     function fraseOperacio(p, x, L) {
         const { op, S } = p;
@@ -406,18 +690,39 @@ export const Resolucio = (() => {
                       ? contéX(e.e, x)
                       : false;
 
-    const files = ex => etapes(ex).length;
+    /** Les files de la pissarra: totes les línies, amb tots els passos oberts. */
+    const files = ex => etapes(ex).reduce((n, e) => n + 1 + (e.detall ? e.detall.subpassos.length : 0), 0);
 
+    /**
+     * El guió d'un exercici. oberts: els passos (els seus id, '3', '4'…) que s'escriuen amb el detall; mentre es
+     * fan els subpassos, la línia del pas es veu en gris com a objectiu.
+     */
     function passos(ex, { oberts = new Set() } = {}) {
         const llista = etapes(ex);
-        const g = guio(llista.length);
+        const g = guio(files(ex));
         const H = historial(g, { prefix: 'S', pinta, oberts, objectiu: true });
-        for (const e of llista)
-            H.escriu(e.linia, e.text, {
+        for (const e of llista) {
+            const op = {
                 ...(e.mou && Object.keys(e.mou).length ? { mou: e.mou } : {}),
                 ...(e.fusiona ? { fusiona: e.fusiona } : {}),
                 final: !!e.final,
-            });
+            };
+            const det = e.detall;
+            if (det)
+                Object.assign(op, {
+                    titol: det.titol,
+                    detall: D => {
+                        for (const sp of det.subpassos)
+                            D.escriu(sp.linia, sp.text, {
+                                ...(sp.mou ? { mou: sp.mou } : {}),
+                                ...(sp.fusiona ? { fusiona: sp.fusiona } : {}),
+                                ...(sp.reparteix ? { reparteix: sp.reparteix } : {}),
+                            });
+                        D.acaba(det.textAcaba, det.acaba);
+                    },
+                });
+            H.escriu(e.linia, e.text, op);
+        }
         return g.passos;
     }
 

@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-17: two scenarios; B for `equacions`, `fraccions` and `prioritat` published; B for `formules-steam` on the branch)
+## Status (2026-11-22: two scenarios; B for `equacions`, `fraccions`, `prioritat` and `formules-steam` (with detail on demand since 2026-11-22) published)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -134,6 +134,17 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     the activity — always a context (the first caption is the problem), numbers first, then the same operations
     with letters; flipping the equality is a step of its own; the unit computed with the units as letters. No
     detail on demand yet (a later stage: e.g. the operation written on both members before simplifying).
+
+22. **Detail on demand in `formules-steam`, and the inequalities board** (review artifact «Pissarres pendents»,
+    2026-11-22): first the detail of Fórmules STEAM, then the board of first-degree inequalities, **one delivery
+    at a time, step by step, human in the loop** (David tries each before the next). FS detail (B1–B4): on every
+    isolating operation, also with letters; two sub-steps (the operation on both members; what cancels, struck
+    with `\cancel`) and the step line; the root: √(v²) = √(…); the value: one operation per sub-step when there are
+    two or more. Inequalities (C1–C7, next delivery): first degree only, the 4 levels; same captions and order as
+    the `equacions` board (reuse its engine, DRY); dividing by a negative: the caption says «el signe de
+    desigualtat canvia» (never «es gira»: David finds it childish), highlighted in another colour; 4 > x → x < 4 as
+    a step of its own (students write it wrong); two final steps, the number line (SVG) and the interval; the
+    `equacions` detail plus dividing by a negative; «Mira com es resol» / «Ara fes-ho tu» and the index icon.
 
 ## Technical decisions (agent)
 
@@ -428,6 +439,27 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   evaluator of both sides with the problem's values, KaTeX, second person, context, `final` rows, same operations
   with numbers and letters, which cases skip the unit line, a hand-made v = Δx / Δt example). Browser: suite 6
   (the link carries the question's level), suite 7 (B at level 4, laptop and phone; `provaDetall` skipped).
+
+## Scenario B for `formules-steam`: stage 2, detail on demand (2026-11-22, decision 22)
+
+- `js/formules-steam/resolucio.js`: every `etapes()` entry may carry `detall: { titol, subpassos, textAcaba, acaba }`
+  (same shape as `equacions`); `passos()` writes it with `H.escriu(…, { detall: D => … })`; `files()` counts the
+  rows with every step opened. Lines learnt `{ cancel: elements }` (`\cancel{…}`, `textPla` already read it).
+- `detallOperacio(p, x, L, R)`: copies of the operated expression get the piece ids with a prefix, `D` on the
+  letter's member and `E` on the other one (where it stays): sub-step 1 `reparteix` each leaf to both copies;
+  sub-step 2 rewrites the line with the cancelling pieces struck (`mou` id → id); `D.acaba` moves the `E` copies
+  to the real ids of the step line. `multiplica` (S = n/d; not for ½ ·), `divideix` (the factors without the letter
+  struck in the numerator), `resta`/`suma` (the term and its opposite struck), `arrel` (one sub-step). No detail if
+  the operation would move more than 7 pieces (3 leaves), e.g. x₀ with three terms or R of a parallel circuit.
+- `detallValor`: `unaOperacio(e)` does the first operation with only numbers (calculator order); every partial
+  result must be a short decimal (≤ 4 decimals, ≥ 0), otherwise no detail; one sub-step per operation, the last
+  one is `D.acaba` (fuses into `r`).
+- **Engine** (`js/pissarra/formules.js`): a reference `id@k` with k ≥ 2 now counts only lines of the same level or
+  outside, plus the lines of the detail being closed — not the lines of another opened detail in between (the
+  unit line takes its units from `@2`, which must be the same line whether the value step is open or not).
+- Tests: `tests/formules-steam.test.js` suite 3 gives the battery a `vista` (every view, every row true), a
+  hand-made opened example (80 · Δt = (240/Δt) · Δt, struck, 80 · Δt = 240; the division likewise), which step types
+  have detail, and detail in the letters part. Browser: suite 7 now runs `provaDetall` for `formules-steam` too.
 
 ## Known limits
 

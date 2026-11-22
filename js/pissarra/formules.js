@@ -275,7 +275,8 @@ export function enLinies(inici, peces, { ample = AMPLE_LINIA, sagnat = '\\qquad 
  *   · reparteix: { idVell: [idsNous] } la peça de la línia anterior hi baixa a diversos llocs alhora
  *                                     (el 2 de 2(x + 3), que va als dos termes);
  *   · un id vell «id@k» és la peça id d'una línia escrita k línies més amunt (id@1 = id): p. ex. un
- *     subpas que fa un càlcul al marge i després torna a agafar nombres de la línia de l'enunciat;
+ *     subpas que fa un càlcul al marge i després torna a agafar nombres de la línia de l'enunciat; amb
+ *     k ≥ 2 no es compten les línies d'un detall obert entremig (les d'un nivell més endins);
  *   · la resta de peces de la línia nova hi apareixen al seu lloc, i a la línia anterior en queda una
  *     còpia (no es mou res de les línies que ja estaven escrites);
  *   · anterior: línia                la línia anterior canvia alhora (p. ex. s'hi afegeix «=»);
@@ -471,9 +472,13 @@ export function historial(
             if (op.classeAnterior !== undefined) ant.classe = op.classeAnterior;
             // De la línia anterior (que es queda) vola una còpia de cada peça que baixa; «id@k»: la peça id de
             // la línia escrita k línies més amunt (p. ex. «0n@2», de la de just abans de l'anterior)
+            // Amb k ≥ 2 es compten només les línies del mateix nivell o de fora, i les del detall que es tanca
+            // (no les d'un altre detall obert entremig): així la referència és la mateixa amb el pas d'abans
+            // obert o tancat
+            const delNivell = escrites.filter(l => l.nivell <= nivell || (m.tanca && l.dins.includes(m.tanca)));
             const vella = ref => {
                 const [id, k = '1'] = String(ref).split('@');
-                const l = escrites[r - Number(k)];
+                const l = Number(k) === 1 ? escrites[r - 1] : delNivell[delNivell.length - Number(k)];
                 if (!l || !(Number(k) >= 1)) throw new Error(`No hi ha cap línia escrita ${k} línies amunt («${ref}»)`);
                 return clauLinia(l.idLinia, id);
             };

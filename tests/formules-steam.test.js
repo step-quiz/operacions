@@ -412,7 +412,9 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
                 // Sempre un context: la primera frase és el problema (acaba amb una pregunta)
                 if (!/\? Aïlla \$/.test(passos[0].text)) anota(dolents.context, `${on}: «${passos[0].text}»`);
                 const ultim = passos[passos.length - 1];
-                if (!ultim.classes[ultim.classes.length - 1].includes('final')) anota(dolents.final, on);
+                // (l'última fila escrita: les del final de la pissarra són per als detalls, i en aquesta vista són buides)
+                const darrera = ultim.files.map(Boolean).lastIndexOf(true);
+                if (!ultim.classes[darrera].includes('final')) anota(dolents.final, on);
                 // El resultat amb la unitat, ressaltat
                 const files = ultim.files.map(f => (f ? textPla(f) : ''));
                 const xPla = textPla(formula(ex).lletres[ex.x][0]);
@@ -426,7 +428,7 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
                 const ambLletres = tipus.slice(tipus.indexOf('lletres') + 1);
                 if (ambNombres.join() !== ambLletres.join())
                     anota(dolents.mateixes, `${on}: ${ambNombres.join()} ≠ ${ambLletres.join()}`);
-                yield { on, passos, files: Resolucio.files(ex), m };
+                yield { on, passos, vista: o => Resolucio.passos(ex, o), files: Resolucio.files(ex), m };
             }
     }
     const { textDecimal } = p;
@@ -499,6 +501,46 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
         JSON.stringify([dades.reanomena, mult.reanomena])
     );
     ok('el cas de l’exemple és del nivell 3 (la lletra al denominador)', cas && cas.nivell === 3);
+    // El detall (decisions del 22/11/2026, B1–B2): l'operació als dos membres, el que se simplifica ratllat i el pas
+    const obert = Resolucio.passos(ex, { oberts: new Set(['3', '4']) });
+    eq(
+        'v = Δx / Δt, «Vull més detall» de multiplicar i dividir: als dos membres, ratllat i el pas',
+        obert
+            .at(-1)
+            .files.filter(Boolean)
+            .slice(2, 9)
+            .map(f => textPla(f) + (/\\cancel/.test(f) ? ' (ratllat)' : ''))
+            .join(' | '),
+        [
+            '80*Δt=(((240)/(Δt)))*Δt',
+            '80*Δt=(((240)/(Δt)))*Δt (ratllat)',
+            '80*Δt=240',
+            '((80*Δt)/(80))=((240)/(80))',
+            '((80*Δt)/(80))=((240)/(80)) (ratllat)',
+            'Δt=((240)/(80))',
+            'Δt=3',
+        ].join(' | ')
+    );
+    {
+        const amb = new Set();
+        const sense = new Set();
+        for (const c of Resolucio.CASOS)
+            for (let k = 0; k < 5; k++)
+                for (const e of Resolucio.etapes(Resolucio.exercici(c.nivell, c)))
+                    (e.detall ? amb : sense).add(e.tipus);
+        ok(
+            'detall a les operacions d’aïllar i al valor; mai a la fórmula, les dades, girar, la unitat ni el resultat (B1, B4)',
+            ['multiplica', 'divideix', 'resta', 'suma', 'arrel', 'valor'].every(t => amb.has(t)) &&
+                ['formula', 'dades', 'gira', 'unitat', 'resultat', 'lletres'].every(t => !amb.has(t)),
+            `amb: ${[...amb]} · sense: ${[...sense]}`
+        );
+        const lletres = Resolucio.etapes(ex);
+        const iLletres = lletres.findIndex(e => e.tipus === 'lletres');
+        ok(
+            'també hi ha detall a la part de les lletres (B3)',
+            lletres.slice(iLletres + 1).some(e => e.detall)
+        );
+    }
 }
 
 finish('TESTS DE FÓRMULES STEAM');

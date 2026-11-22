@@ -20,7 +20,7 @@
  *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat i
  *      formules-steam (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
  *      detall» a cada pas que en té (la línia del pas en gris com a objectiu, els
- *      subpassos al calaix, «Menys detall»; fórmules STEAM encara no en té), el nivell,
+ *      subpassos al calaix, «Menys detall»), el nivell,
  *      «Un altre exercici» i «Ara fes-ho tu»; sense activitat, la llista;
  *   8. si una animació falla, la cua del motor (encua) mostra el pas i continua;
  *   9. a l'inici del moviment, cada fantasma es dibuixa exactament damunt del seu
@@ -645,7 +645,7 @@ function engegaServidor() {
                 );
                 ok(`${nom}: l'últim pas té el resultat ressaltat`, r.final);
                 ok(`${nom}: la pàgina no surt de la pantalla`, !r.ample);
-                if (act !== 'formules-steam') await provaDetall(p, 'resolucio', nom);
+                await provaDetall(p, 'resolucio', nom);
                 // Nivell, «Un altre exercici» i «Ara fes-ho tu»
                 await p.click('#nivells button[data-nivell="1"]');
                 await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
