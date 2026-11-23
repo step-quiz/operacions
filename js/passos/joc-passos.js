@@ -14,8 +14,9 @@
  *                             text: la mateixa, per a l'historial; clau (opcional): per no repetir-la
  *                             problema (opcional): { context, pregunta } — una targeta «Problema»: el
  *                             context (els trossos entre **…** en negreta) i la pregunta en una línia a part;
- *                             formula (opcional): { nom, tex, llegenda: [[tex, magnitud, unitat]] } — una
- *                             targeta «Fórmula» amb la llegenda en taula;
+ *                             formula (opcional): { nom, tex, llegenda: [[tex, magnitud, unitat]], etiqueta }
+ *                             — una targeta «Fórmula» (o el títol que digui etiqueta, p. ex. «Fórmules»)
+ *                             amb la llegenda en taula;
  *                             enllac (opcional): { href, text } — un enllaç sota les targetes (pestanya nova);
  *                             opcional (opcional): { desDe, pregunta, si, no, resum, inici } — els passos des
  *                             de desDe són opcionals: abans, l'alumne tria si els vol fer (si → les línies
@@ -275,8 +276,9 @@ export function iniciaJocPassos(config) {
     }
 
     /** La targeta «Fórmula»: el nom, la fórmula i la llegenda (lletra · magnitud · unitat). */
-    function afegeixFormula({ nom, tex, llegenda }) {
-        const div = targeta('jp-targeta-formula', nom ? `${ui.formula} · ${nom}` : ui.formula);
+    function afegeixFormula({ nom, tex, llegenda, etiqueta }) {
+        const titol = etiqueta || ui.formula;
+        const div = targeta('jp-targeta-formula', nom ? `${titol} · ${nom}` : titol);
         const cos = document.createElement('div');
         cos.className = 'jp-formula-cos';
         const f = document.createElement('div');

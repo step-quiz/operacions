@@ -31,6 +31,7 @@ export const EXERCISE_CODES = {
     'percentatges': 'PE',
     'canvi-unitats': 'CU',
     'arees-volums': 'AV',
+    'cilindres': 'CF',
     'recta': 'RC',
     'parabola': 'PA',
     'grafiques-context': 'GX',

@@ -746,3 +746,43 @@ h1 {
     outline: 3px solid var(--primary-dark);
     outline-offset: 2px;
 }
+
+/* ---- CILINDRES AMB UN FULL (js/cilindres/math-engine.js svgCilindres) ---- */
+.jp-linia-svg:has(.jp-cf-svg) {
+    max-width: 520px;
+}
+.jp-cf-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.jp-cf-full {
+    fill: white;
+    stroke: var(--text-main);
+    stroke-width: 1.5;
+}
+.jp-cf-vora {
+    stroke: var(--text-main);
+    stroke-width: 1.5;
+}
+/* El costat del full que fa de circumferència, del mateix color al full i a la base (cap vermell) */
+.jp-cf-c1,
+.jp-cf-c2 {
+    fill: none;
+    stroke-width: 4;
+}
+.jp-cf-c1 {
+    stroke: var(--primary);
+}
+/* el segon, violeta: ben diferent del color del tema (cap vermell, decisió del David) */
+.jp-cf-c2 {
+    stroke: #7c3aed;
+}
+.jp-cf-text {
+    fill: var(--text-main);
+    font-size: 13px;
+}
+.jp-cf-petit {
+    fill: var(--text-muted);
+    font-size: 12px;
+}
