@@ -35,6 +35,7 @@ https://claude.ai/artifact/TpqHeTWA7N9HrBMpeNCx6s, holds David's answers of 14/1
 | 22a | Logaritmes i equacions (B10), block 1: logarithms, new page | `logaritmes.html` (`?tipus=`), `LG` reserved (no code, Batx menu); `js/logaritmes/` | DONE (2026-11-21) |
 | 22b | Logaritmes i equacions (B10), block 2: exponential, logarithmic and radical equations | `logaritmes.html` (`?tipus=equacions\|basiques\|mitjanes\|irracionals`); `js/logaritmes/equacions.js` | DONE (2026-11-21) |
 | 22c | Logaritmes i equacions (B10), block 3: quadratic/rational inequalities (in `inequacions.html`, code IQ) | `inequacions.html` (`?tipus=no-lineals\|segon-grau\|racionals\|especials`); `js/inequacions/no-lineals.js`; number line with segments in `js/passos/recta-intervals.js` | DONE (2026-11-22) |
+| 23 | Cilindres amb un full (David's request of 2026-11-23), new page | `cilindres.html`, `CF`; `js/cilindres/` (follow-through correction `refaPassos` through the player's `enEncertar`) | ACTIVITY DONE on the branch (2026-11-23); board after David tries it |
 
 Deliveries 1–11 reached `main` on 2026-11-16 through B's 3-way merge: base `7f79b4b` (the snapshot A worked on),
 A's delivery ZIP committed on top of it as `555ff07`, merged with B's work up to stage 5 of «Resolució pas a pas».
@@ -103,7 +104,7 @@ Conflicts were only textual (`tests/run-all.js`, `CONTRIBUTING.md`, the changelo
 - `js/teclat.js`: on touch devices the active input becomes `readonly` with `inputmode="none"`; a capture-phase
   `pointerdown` routes taps to the keyboard; «→» calls `window.checkCurrentCell()`.
 - Themes: `tema-algebra` (SG, EA, IN, IQ), `tema-nombres` (FD, PE), `tema-funcions` (RC, PA, GX), `tema-estadistica` (GE),
-  `tema-geometria` (CU, AV);
+  `tema-geometria` (CU, AV, CF);
   the CSS uses theme variables and tokens only (no hard-coded state colours).
 
 ## Pending items (in the order David accepted; his quotes are binding)
