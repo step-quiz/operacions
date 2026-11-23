@@ -1,7 +1,7 @@
 # PENDING.md — open work and open decisions (operacions)
 
 Single entry point for a cold-start agent: everything still to build and every decision still owed by David,
-as of **2026-11-18** (after PR #31: «Inequacions»). Each item points to the document that holds the detail;
+as of **2026-11-23** (after agent A's deliveries 18–22 and the FS detail, merged by ZIP on 21–22/11). Each item points to the document that holds the detail;
 where this file and a state document disagree, the state document wins (it records later decisions).
 Update this file in the same commit as any change that closes, adds or reorders an item.
 
@@ -38,6 +38,23 @@ built» in `docs/activitats/STATE.md` (theme class, CSS chain, index entry, `js/
 | #16 Fórmules STEAM | **E1**: real student errors to add to the error taxonomy | Waiting for David to send cases from class. |
 | #17 Inequacions | **U2**: the «Resolució pas a pas» board for first-degree inequalities (with the number line drawn at the end) | **Designed 2026-11-22** (decision 22, C1–C7, `docs/pissarra/STATE.md`); next delivery, after David tries the FS detail. |
 | #17 Inequacions | U4 listed «llegir 5 > x com x > 5»: the flip is automatic (P4), so the student never types it | Nothing to do unless David wants that step back. |
+
+## 2b. New request: «Cilindres amb un full» (David, 2026-11-23) — NEXT TO BUILD
+
+David's statement: take a 21 cm × 30 cm rectangle (an A4 sheet) and roll it into a cylinder in the two possible
+ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):**
+- **Model: the side becomes the circumference of the base** (rolling the sheet), not the diameter:
+  2πr = 21 → r = 21/(2π), V₁ = π r² h = 21²·30/(4π) ≈ 1 052,8 cm³; V₂ = 30²·21/(4π) ≈ 1 504,0 cm³
+  (V₂/V₁ = 30/21: the wider cylinder always holds more). David first wrote «diàmetre»; the agent pointed out
+  that rolling makes the side the circumference and he chose that model.
+- **Both an activity (scenario A) and a «Resolució pas a pas» board (scenario B)**, like Fórmules STEAM.
+- **Sizes:** the first exercise is the A4 sheet 21 × 30; the following ones, other rectangles.
+- **What is asked at the end:** which cylinder has more volume; both volumes with decimals; and the volumes as
+  capacities in **mL**. David's words: «atenció, el Volum es mesura en cm³; la Capacitat es mesura en mL»
+  (1 cm³ = 1 mL: the step must say «volum … cm³» and «capacitat … mL», never mix them).
+- Still to design with David (review artifact or dialog, as usual): step list (radius from the circumference,
+  base area, volume, comparison, mL), levels, errors (diameter instead of circumference; r = C/π; forgetting to
+  square; mixing cm³ and mL), figure (the sheet and the two cylinders, SVG), page name, menu and code.
 
 ## 3. «Resolució pas a pas» engine plan (`docs/pissarra/STATE.md`)
 
