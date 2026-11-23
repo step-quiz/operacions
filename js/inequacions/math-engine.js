@@ -244,7 +244,13 @@ function nivell12(n) {
         nota: T.nota.coeficient,
     });
     const ailla = pasAilla(a, r, s, { dreta, enter: true });
-    return { tex, passos: [passa, ailla.pas], sol: ailla.sol, signe: ailla.signe, dades: { a, b, c, s, dreta } };
+    return {
+        tex,
+        passos: [passa, ailla.pas],
+        sol: ailla.sol,
+        signe: ailla.signe,
+        dades: { a, b, c, s, dreta, davant },
+    };
 }
 
 /** Nivell 3: p(x + q) ⊙ r·x + t. Distributiva, passar (x a l'esquerra, nombres a la dreta), aïllar. */

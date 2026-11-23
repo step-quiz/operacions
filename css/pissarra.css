@@ -170,6 +170,44 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     overflow: visible;
 }
 
+/* La recta numèrica (inequacions, js/passos/recta-intervals.js): els colors de l'activitat
+   (css/passos.css), amb els nombres més grossos perquè es llegeixin a la pissarra */
+.pis-fila.figura svg.jp-recta-svg {
+    width: min(100%, 20em);
+}
+.pis-escenari .jp-r-eix,
+.pis-escenari .jp-r-marca {
+    stroke: var(--text-main);
+    stroke-width: 2;
+}
+.pis-escenari .jp-r-fletxa {
+    fill: var(--text-main);
+}
+.pis-escenari .jp-r-text {
+    fill: var(--text-main);
+    font-size: 19px;
+    font-family: inherit;
+}
+.pis-escenari .jp-r-text-fraccio {
+    fill: var(--primary-dark, #1d4ed8);
+    font-weight: bold;
+}
+.pis-escenari .jp-r-raig {
+    stroke: var(--primary, #3b82f6);
+    stroke-width: 7;
+    stroke-linecap: round;
+}
+.pis-escenari .jp-r-punt {
+    stroke: var(--primary, #3b82f6);
+    stroke-width: 3;
+}
+.pis-escenari .jp-r-ple {
+    fill: var(--primary, #3b82f6);
+}
+.pis-escenari .jp-r-buit {
+    fill: var(--panel-bg, #fff);
+}
+
 /* Marques dins de les fórmules (\htmlData{k=…,marca=…}) */
 .pis-escenari .katex [data-marca='mes'] {
     background: color-mix(in srgb, var(--success) 30%, transparent);

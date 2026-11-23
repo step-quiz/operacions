@@ -145,6 +145,8 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     desigualtat canvia» (never «es gira»: David finds it childish), highlighted in another colour; 4 > x → x < 4 as
     a step of its own (students write it wrong); two final steps, the number line (SVG) and the interval; the
     `equacions` detail plus dividing by a negative; «Mira com es resol» / «Ara fes-ho tu» and the index icon.
+    **Both done**: FS detail 2026-11-22 (agent A), inequalities board 2026-11-23 (section «Scenario B for
+    `inequacions`» below).
 
 ## Technical decisions (agent)
 
@@ -460,6 +462,40 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 - Tests: `tests/formules-steam.test.js` suite 3 gives the battery a `vista` (every view, every row true), a
   hand-made opened example (80 · Δt = (240/Δt) · Δt, struck, 80 · Δt = 240; the division likewise), which step types
   have detail, and detail in the letters part. Browser: suite 7 now runs `provaDetall` for `formules-steam` too.
+
+## Scenario B for `inequacions` (first degree, 2026-11-23, decision 22 C1–C7)
+
+- `js/inequacions/resolucio.js`, exported as **`ResolucioIQ`** (the registry loads `m.ResolucioIQ`): in the test
+  harness every module shares one global scope and `Resolucio` is already the `equacions` one, which this module
+  imports and reuses (DRY, C2).
+- `planteja(ex)` turns the activity's question (`generaPreguntaIQ`, its `dades`) into an `equacions` equation
+  (canonical `lA·x + lB = rC·x + rD`, display terms) plus the canonical sign: levels 1–2 `a·x + b ⊙ c` (or
+  `b − a·x` when `davant`, now recorded in `dades`), level 3 `p(x + q) ⊙ r·x + t`, level 4 after removing the
+  denominators `k1(x + a) ± k2·x ⊙ c·L`. Steps = `MathEngine.determineSteps`; lines = `Resolucio.pecesDe`; moves =
+  `moviments`; detail = `detallPas`. Only changes: piece `q` shows the sign; «la igualtat es manté» → «la
+  desigualtat es manté»; the solve detail says why the sign keeps or changes; `textAcaba` of the division gives
+  the fraction.
+- Dividing by a negative (C3): caption «Com que divideixes per un nombre negatiu, el signe de desigualtat canvia»
+  (never «es gira»), `mou.q = 'q'` (the sign flies down and changes) and mark `tria` on it; also in the first
+  detail sub-step.
+- x on the right (levels 1–2, `dreta`): the lines are drawn mirrored (members swapped, sign flipped), so x stays on
+  the right as in the activity; captions say «Passa els nombres a l'esquerra»; then «4 > x → x < 4» is a step of
+  its own (C4) with the sign marked.
+- Level 4: own first step «Treu els denominadors» (numerators and x fly, c → c·L) with a detail (L · each member,
+  then `D.acaba` fuses L and the denominator into k1, k2). `maxPeces` 12 because of that `acaba` (11 pieces).
+- Fractional solutions (levels 3–4): the number piece of the last line is drawn `\dfrac` (`frac`). A member equal to
+  0 (solution 0 at levels 1–2) is piece `R0z` in `equacions`: `ambZero` renames the moves that land on `R0n`.
+- Final rows (C5): the number line (`svgRecta` from the activity's `recta` step data, new option `clau` → the
+  solution label carries `data-k`, the number flies in) and the interval (the activity's pieces; x and the number
+  come from the «x ⊙ s» line with `@2`), `final`. Board number-line styles: `css/pissarra.css` (`.pis-escenari
+  .jp-r-*`, `svg.jp-recta-svg` wider).
+- Registry entry `inequacions` (levels «Coeficient positiu», «Coeficient negatiu», «Parèntesis», «Denominadors»),
+  `SUPORTA_PISSARRA`, `pissarra: true`; the activity links «Mira com es resol una inequació com aquesta» only for
+  first degree (not `?tipus=` 2nd degree / rational). `textPla` reads `\in` and `\infty`.
+- Tests: `tests/inequacions.test.js` suite 4: the shared battery over 1,600 inequalities with every view; `veritat`
+  evaluates both members exactly (BigInt fractions) at s − 1, s, s + 1 against the final `x ⊙ s`, and checks the
+  interval; captions, sign mark, mirrored flip, number line, final row, level-4 first step, the activity link.
+  Browser: suite 6 (link with level) and suite 7 (level 4 laptop, level 2 phone, every detail).
 
 ## Known limits
 

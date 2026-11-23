@@ -15,6 +15,13 @@
  *   fracció amb probabilitat 1/3; sense «sense solució» ni «tots els nombres».
  * - 3. La recta comuna: un SVG amb les marques, el punt ple o buit i la semirecta; la
  *   correcció del camp 'recta' (incomplet, avís i bona).
+ * - 4. La «Resolució pas a pas» (js/inequacions/resolucio.js, decisió 22 del David, C1–C7):
+ *   la bateria comuna (tests/pissarra-activitat.js) amb milers d'inequacions dels quatre
+ *   nivells, tancades i amb tot el detall: cada línia que es veu té la mateixa solució
+ *   (aritmètica exacta, a banda i banda de la solució i a la solució mateixa), la recta i
+ *   l'interval diuen el mateix; en dividir per un negatiu, «el signe de desigualtat canvia»
+ *   (mai «es gira») i el signe es ressalta; 4 > x → x < 4 és un pas propi; KaTeX dibuixa
+ *   tot; l'activitat hi enllaça.
  * ÚS: node tests/inequacions.test.js
  * ============================================================================
  */
@@ -232,6 +239,245 @@ suite('3. La recta comuna (js/passos/recta-intervals.js) i el camp «recta»');
     );
     eq('la bona', corregeixPas(pas, { rc: { i: 3, ple: true, costat: 'esq' } }).estat, 'ok');
     eq('el costat equivocat és un error', corregeixPas(pas, { rc: { i: 3, ple: true, costat: 'dre' } }).estat, 'error');
+}
+
+suite('4. Resolució pas a pas (resolucio.html?activitat=inequacions): la pissarra');
+{
+    const { provaActivitat } = require('./pissarra-activitat');
+    const p = loadModule(
+        [
+            'js/utils.js',
+            'js/algebra/racionals.js',
+            'js/passos/recta-intervals.js',
+            'js/inequacions/strings.js',
+            'js/inequacions/math-engine.js',
+            'js/equacions/math-engine.js',
+            'js/pissarra/formules.js',
+            'js/pissarra/comprova.js',
+            'js/equacions/resolucio.js',
+            'js/inequacions/resolucio.js',
+        ],
+        { seed: 20261124 }
+    );
+    const R = p.ResolucioIQ;
+    const { textPla } = p;
+
+    // Aritmètica exacta (fraccions amb BigInt), independent del codi que es prova
+    const gcd = (a, b) => {
+        a = a < 0n ? -a : a;
+        b = b < 0n ? -b : b;
+        while (b) [a, b] = [b, a % b];
+        return a;
+    };
+    const Q = (n, d = 1n) => {
+        n = BigInt(n);
+        d = BigInt(d);
+        if (d === 0n) throw new Error('divisió per 0');
+        if (d < 0n) [n, d] = [-n, -d];
+        const g = gcd(n, d) || 1n;
+        return { n: n / g, d: d / g };
+    };
+    const suma = (a, b) => Q(a.n * b.d + b.n * a.d, a.d * b.d);
+    const resta = (a, b) => Q(a.n * b.d - b.n * a.d, a.d * b.d);
+    const prod = (a, b) => Q(a.n * b.n, a.d * b.d);
+    const quoc = (a, b) => Q(a.n * b.d, a.d * b.n);
+    const cmp = (a, b) => {
+        const v = a.n * b.d - b.n * a.d;
+        return v < 0n ? -1 : v > 0n ? 1 : 0;
+    };
+    /** Un membre en text pla («12*((x+2)/(6))-3x», «-x:(-1)»), amb x = un valor exacte. */
+    function avalua(text, x) {
+        let i = 0;
+        function primari() {
+            if (text[i] === '(') {
+                i++;
+                const v = expressio();
+                if (text[i] !== ')') throw new Error(`falta «)» a ${text}`);
+                i++;
+                return v;
+            }
+            if (text[i] === 'x') {
+                i++;
+                return x;
+            }
+            const m = /^\d+/.exec(text.slice(i));
+            if (!m) throw new Error(`no s'entén «${text.slice(i)}» a ${text}`);
+            i += m[0].length;
+            return Q(m[0]);
+        }
+        function terme() {
+            let v = primari();
+            for (;;) {
+                if (text[i] === '*') v = (i++, prod(v, primari()));
+                else if (text[i] === ':') v = (i++, quoc(v, primari()));
+                else if (text[i] === '/') v = (i++, quoc(v, primari()));
+                else if (text[i] === '(' || text[i] === 'x') v = prod(v, primari());
+                else return v;
+            }
+        }
+        function expressio() {
+            let v = text[i] === '-' ? (i++, prod(Q(-1), terme())) : terme();
+            while (text[i] === '+' || text[i] === '-') {
+                const c = text[i++];
+                const w2 = terme();
+                v = c === '+' ? suma(v, w2) : resta(v, w2);
+            }
+            return v;
+        }
+        const v = expressio();
+        if (i !== text.length) throw new Error(`sobra «${text.slice(i)}» a ${text}`);
+        return v;
+    }
+    const COMPARA = { '<': c => c < 0, '>': c => c > 0, '≤': c => c <= 0, '≥': c => c >= 0 };
+    const SIGNE_TEXT = { lt: '<', gt: '>', le: '≤', ge: '≥' };
+    const solQ = d => (Array.isArray(d.sol) ? Q(d.sol[0], d.sol[1]) : Q(d.sol));
+    /** Els punts de prova: la solució i un a cada banda. */
+    const proves = d => [resta(solQ(d), Q(1)), solQ(d), suma(solQ(d), Q(1))];
+    const certaFinal = (d, x) => COMPARA[SIGNE_TEXT[d.signe]](cmp(x, solQ(d)));
+    /** Què ha de dir l'interval: x ∈ (−∞, s) o similars. */
+    const intervalBo = d => {
+        const esq = d.signe === 'lt' || d.signe === 'le';
+        const tancat = d.signe === 'le' || d.signe === 'ge';
+        return { esq, tancat };
+    };
+
+    /** Una línia és certa si, a la solució i a banda i banda, és certa on ho és la solució final. */
+    function veritat(fila, ex) {
+        const d = ex.dades;
+        const pla = textPla(fila);
+        try {
+            const m = /^x∈([[(])(.+),(.+)([\])])$/.exec(pla);
+            if (m) {
+                const { esq, tancat } = intervalBo(d);
+                const [, o, e1, e2, t] = m;
+                const fi = esq ? e2 : e1;
+                const inf = esq ? e1 : e2;
+                const okFi = cmp(avalua(fi, Q(0)), solQ(d)) === 0;
+                const okInf = inf === (esq ? '-∞' : '+∞');
+                const okVores = esq ? o === '(' && t === (tancat ? ']' : ')') : t === ')' && o === (tancat ? '[' : '(');
+                return okFi && okInf && okVores
+                    ? ''
+                    : `${pla}: l'interval no és el de x ${SIGNE_TEXT[d.signe]} ${d.sol}`;
+            }
+            const r = /^(.*?)([<>≤≥])(.*)$/.exec(pla);
+            if (!r) return `${pla}: no és una inequació`;
+            const [, esq, signe, dre] = r;
+            for (const x of proves(d)) {
+                const c = cmp(resta(avalua(esq, x), avalua(dre, x)), Q(0));
+                if (COMPARA[signe](c) !== certaFinal(d, x))
+                    return `${pla}: a x = ${x.n}/${x.d} no coincideix amb x ${SIGNE_TEXT[d.signe]} ${JSON.stringify(d.sol)}`;
+            }
+            return '';
+        } catch (e) {
+            return `${pla}: ${e.message}`;
+        }
+    }
+
+    const dolents = { katex: [], plurals: [], gira: [], negatiu: [], mirall: [], recta: [], final: [], nivell4: [] };
+    const anota = (l, t) => l.length < 5 && l.push(t);
+    const PLURAL = /\b(calculem|fem|tenim|sabem|passem|sumem|restem|dividim|multipliquem|aïllem|resolem)\b/i;
+    const revisaKatex = (passos, on) => {
+        const formules = new Set();
+        for (const ps of passos) {
+            ps.files.filter(f => f && !f.startsWith('<svg')).forEach(f => formules.add(f));
+            for (const m of ps.text.matchAll(/\$([^$]+)\$/g)) formules.add(m[1]);
+            if (PLURAL.test(ps.text)) anota(dolents.plurals, `${on}: «${ps.text}»`);
+            if (/gira/.test(ps.text)) anota(dolents.gira, `${on}: «${ps.text}»`);
+        }
+        for (const f of formules) {
+            const html = katex.renderToString(f, {
+                throwOnError: false,
+                strict: 'ignore',
+                trust: c => c.command === '\\htmlData',
+            });
+            if (/katex-error/.test(html)) anota(dolents.katex, `${on}: ${f}`);
+        }
+    };
+    let ambMirall = 0,
+        ambNegatiu = 0,
+        ambFraccio = 0;
+    function* exercicis() {
+        for (const nivell of R.NIVELLS)
+            for (let k = 0; k < 400; k++) {
+                const ex = R.exercici(nivell);
+                const d = ex.dades;
+                const on = `nivell ${nivell}, ${ex.tex}`;
+                const passos = R.passos(ex);
+                const vista = ({ oberts }) => R.passos(ex, { oberts });
+                const ultim = passos[passos.length - 1];
+                if (k < 40) {
+                    revisaKatex(passos, on);
+                    revisaKatex(
+                        vista({ oberts: new Set(passos.filter(x => x.teDetall).map(x => x.id)) }),
+                        `${on} (detall)`
+                    );
+                }
+                // Dividir per un negatiu: la frase i el signe ressaltat
+                const aillar = passos.find(x => /^Aïlla la x/.test(x.text));
+                const negatiu = / entre \$-/.test(aillar ? aillar.text : '');
+                if (negatiu) ambNegatiu++;
+                if (aillar) {
+                    const canvia = /el signe de desigualtat canvia/.test(aillar.text);
+                    const fila = aillar.files.filter(Boolean)[passos.indexOf(aillar)];
+                    const ressaltat = /marca=tria/.test(aillar.files.join(''));
+                    if (canvia !== negatiu || ressaltat !== negatiu)
+                        anota(dolents.negatiu, `${on}: «${aillar.text}» ${fila || ''}`);
+                }
+                // 4 > x → x < 4: un pas propi, amb el signe ressaltat
+                if (d.dreta) {
+                    ambMirall++;
+                    const gir = passos.find(x => /^Escriu-la amb la x a l'esquerra/.test(x.text));
+                    if (!gir || !/canvia/.test(gir.text)) anota(dolents.mirall, on);
+                }
+                if (Array.isArray(d.sol)) ambFraccio++;
+                // La recta: el punt ple si hi entra; el nombre de la solució hi vola (data-k)
+                const svg = ultim.files.find(f => f.startsWith('<svg')) || '';
+                const ple = d.signe === 'le' || d.signe === 'ge';
+                if (!svg || /jp-r-ple/.test(svg) !== ple || !/data-k="/.test(svg)) anota(dolents.recta, on);
+                if (!ultim.classes.some(c => /final/.test(c))) anota(dolents.final, on);
+                if (nivell === 4 && !/^Treu els denominadors/.test(passos[1].text)) anota(dolents.nivell4, on);
+                yield {
+                    on,
+                    passos,
+                    vista,
+                    files: R.files(ex),
+                    dades: d,
+                };
+            }
+    }
+    provaActivitat('inequacions', {
+        exercicis: exercicis(),
+        eines: p,
+        text: true,
+        linies: fila => (fila && !fila.startsWith('<svg') ? [fila] : []),
+        veritat,
+        maxPeces: 12,
+        minExercicis: 1600,
+    });
+    const llista = l => l.join('\n      → ');
+    ok('KaTeX dibuixa totes les files i les fórmules de les frases', !dolents.katex.length, llista(dolents.katex));
+    ok('les frases són en segona persona', !dolents.plurals.length, llista(dolents.plurals));
+    ok('mai «es gira» (el David: «el signe de desigualtat canvia»)', !dolents.gira.length, llista(dolents.gira));
+    ok(
+        `dividir per un negatiu (${ambNegatiu}): «el signe de desigualtat canvia» i el signe ressaltat; si no, res`,
+        ambNegatiu > 100 && !dolents.negatiu.length,
+        llista(dolents.negatiu)
+    );
+    ok(
+        `amb la x a la dreta (${ambMirall}): «x < 4» és un pas propi`,
+        ambMirall > 50 && !dolents.mirall.length,
+        llista(dolents.mirall)
+    );
+    ok(`hi ha solucions fraccionàries (${ambFraccio})`, ambFraccio > 50);
+    ok('la recta: el punt ple quan hi entra, i el nombre hi vola', !dolents.recta.length, llista(dolents.recta));
+    ok('l’última línia (l’interval) és ressaltada', !dolents.final.length, llista(dolents.final));
+    ok('nivell 4: el primer pas treu els denominadors', !dolents.nivell4.length, llista(dolents.nivell4));
+    ok(
+        'l’activitat hi enllaça («Mira com es resol», amb el nivell)',
+        /resolucio\.html\?activitat=inequacions&nivell=\$\{nivell\}/.test(
+            fs.readFileSync(path.join(ROOT, 'js/inequacions/inequacions.js'), 'utf8')
+        )
+    );
 }
 
 finish('TESTS D’INEQUACIONS');

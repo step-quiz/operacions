@@ -17,8 +17,8 @@
  *      de sempre (cap pissarra); a equacions, «Mira com es resol» obre la resolució
  *      del mateix nivell en una pestanya nova; a fraccions, prioritat i fórmules STEAM,
  *      l'enllaç porta el nivell que toca;
- *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat i
- *      formules-steam (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
+ *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat,
+ *      formules-steam i inequacions (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
  *      detall» a cada pas que en té (la línia del pas en gris com a objectiu, els
  *      subpassos al calaix, «Menys detall»), el nivell,
  *      «Un altre exercici» i «Ara fes-ho tu»; sense activitat, la llista;
@@ -605,6 +605,16 @@ function engegaServidor() {
                 'resolucio.html?activitat=formules-steam&nivell=2'
             );
             await s.close();
+            // Inequacions: «Mira com es resol» porta a la resolució del mateix nivell
+            const iq = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await iq.goto(BASE + '/inequacions.html?totaloperations=3&nivell=3');
+            await iq.waitForSelector('#jp-joc .jp-enllac');
+            eq(
+                'inequacions del nivell 3 → «Mira com es resol» del nivell 3',
+                await iq.getAttribute('#jp-joc .jp-enllac', 'href'),
+                'resolucio.html?activitat=inequacions&nivell=3'
+            );
+            await iq.close();
             // Prioritat: la primera expressió de la sessió és del nivell 0 → el grup 1 de la resolució
             const q = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await q.goto(BASE + '/prioritat.html?totaloperations=3');
@@ -629,6 +639,9 @@ function engegaServidor() {
                 // Fórmules STEAM: el nivell 4 (les pissarres més llargues); encara sense detall a demanda
                 ['formules-steam', 'portàtil', { width: 1366, height: 768 }, 4],
                 ['formules-steam', 'mòbil', { width: 375, height: 740 }, 4],
+                // Inequacions de primer grau: el nivell 4 (denominadors) i el 2 (dividir per un negatiu)
+                ['inequacions', 'portàtil', { width: 1366, height: 768 }, 4],
+                ['inequacions', 'mòbil', { width: 375, height: 740 }, 2],
             ]) {
                 const nom = `${act}, ${lloc}`;
                 const p = await navegador.newPage({ viewport });
@@ -676,7 +689,8 @@ function engegaServidor() {
                 (await p.isVisible('a[href="resolucio.html?activitat=equacions"]')) &&
                     (await p.isVisible('a[href="resolucio.html?activitat=fraccions"]')) &&
                     (await p.isVisible('a[href="resolucio.html?activitat=prioritat"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=formules-steam"]'))
+                    (await p.isVisible('a[href="resolucio.html?activitat=formules-steam"]')) &&
+                    (await p.isVisible('a[href="resolucio.html?activitat=inequacions"]'))
             );
             await p.close();
         }

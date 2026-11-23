@@ -9,11 +9,13 @@
  *      marca, tria si el punt hi entra i cap a quin costat va la semirecta.
  * ARQUITECTURA: mòdul pur (torna text SVG; cap DOM).
  *   svgRecta({ marques: [{ v, text }], punt: { i, ple } | null, costat: 'esq' | 'dre' | null,
- *              interactiva })
+ *              interactiva, clau })
  *     marques   en ordre creixent; v: el valor (un nombre, per situar-la), text: el que s'hi
  *               escriu (p. ex. «5/2»); les marques que no són enteres van una mica més amunt
  *     punt      i: l'índex de la marca on és el punt
  *     interactiva  cada marca porta una zona per tocar (class jp-r-toc, data-i)
+ *     clau      (la «Resolució pas a pas») el nombre de la marca del punt porta data-k="clau", perquè
+ *               la pissarra hi pugui fer volar el nombre de la línia d'abans
  *   Els colors són classes (css/passos.css): jp-r-eix, jp-r-marca, jp-r-raig, jp-r-punt.
  *
  *   RECTA AMB TRAMS (lliurament 22c, inequacions de 2n grau i racionals; camp 'trams')
@@ -36,7 +38,7 @@ const ALT = 78;
 const Y = 34;
 
 /** La recta en SVG (vegeu la capçalera). */
-export function svgRecta({ marques, punt = null, costat = null, interactiva = false }) {
+export function svgRecta({ marques, punt = null, costat = null, interactiva = false, clau = '' }) {
     const min = marques[0].v;
     const max = marques[marques.length - 1].v;
     const x = v => MARGE + ((v - min) / (max - min || 1)) * (AMPLE - 2 * MARGE);
@@ -60,8 +62,9 @@ export function svgRecta({ marques, punt = null, costat = null, interactiva = fa
         parts.push(`<line class="jp-r-marca" x1="${xm}" y1="${Y - 7}" x2="${xm}" y2="${Y + 7}"/>`);
         // Les fraccions, a sobre de l'eix (així no topen amb els enters del costat)
         const yText = entera ? Y + 28 : Y - 16;
+        const k = clau && punt && punt.i === i ? ` data-k="${clau}"` : '';
         parts.push(
-            `<text class="jp-r-text${entera ? '' : ' jp-r-text-fraccio'}" x="${xm}" y="${yText}" text-anchor="middle">${m.text}</text>`
+            `<text class="jp-r-text${entera ? '' : ' jp-r-text-fraccio'}"${k} x="${xm}" y="${yText}" text-anchor="middle">${m.text}</text>`
         );
         if (interactiva)
             parts.push(

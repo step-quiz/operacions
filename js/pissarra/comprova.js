@@ -336,6 +336,12 @@ export function textPla(tex) {
                     case '\\ge':
                         s += '≥';
                         break;
+                    case '\\in':
+                        s += '∈';
+                        break;
+                    case '\\infty':
+                        s += '∞';
+                        break;
                     case '\\{':
                         s += '{';
                         break;

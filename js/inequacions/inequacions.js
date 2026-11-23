@@ -12,6 +12,8 @@
  *                    no-lineals.js): 'no-lineals' (progressiu, nivells 1 a 3), 'segon-grau' (1),
  *                    'racionals' (2), 'especials' (3: no s'anul·la mai o solució doble).
  * CODI: el camp D diu el tipus i el nivell (0-4 primer grau, 5-8 de 2n grau i racionals).
+ * ENLLAÇ: a primer grau, «Mira com es resol» (pregunta.enllac) porta a
+ *      resolucio.html?activitat=inequacions amb el nivell de la inequació (js/inequacions/resolucio.js).
  * JOC DE PASSOS: desplacament (es veuen les dues últimes línies i el pas), com a Fórmules STEAM.
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). KaTeX (global, vendor/).
  * ============================================================================
@@ -45,7 +47,10 @@ iniciaJocPassos({
     generaPregunta({ index, total }) {
         if (NO_LINEALS) return generaPreguntaNL(NIVELL_NL || nivellProgressiu(0, index, total));
         const nivell = NIVELL_URL || Math.min(4, 1 + Math.floor((total > 0 ? index / total : 0) * 4));
-        return generaPreguntaIQ(nivell);
+        const pregunta = generaPreguntaIQ(nivell);
+        // «Mira com es resol»: la pissarra d'una inequació del mateix nivell (pestanya nova)
+        pregunta.enllac = { href: `resolucio.html?activitat=inequacions&nivell=${nivell}`, text: TEXTOS_IQ.enllac };
+        return pregunta;
     },
     diagnostica: diagnosticaIQ,
     textResposta: NO_LINEALS ? textRespostaNL : textRespostaIQ,

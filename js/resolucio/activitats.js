@@ -13,6 +13,8 @@
  *   l'adreça d'«Ara fes-ho tu» (si no n'hi ha, pagina?nivell=…).
  *   Prioritat: els nivells 6–8 són d'enters, i «Ara fes-ho tu» hi afegeix ?nombres=enters.
  *   Fórmules STEAM: els nivells 1–4 de l'activitat (formules-steam.html?nivell=1…4).
+ *   Inequacions: només les de primer grau, els nivells 1–4 (inequacions.html?nivell=1…4); el
+ *   procediment s'exporta com a ResolucioIQ.
  * - Les claus són les de SUPORTA_PISSARRA (js/pissarra/mode.js) i les de «pissarra:
  *   true» a index.html (tests/check-repo.js ho comprova).
  * DEPENDÈNCIES: el procediment de cada activitat (p. ex. js/equacions/resolucio.js).
@@ -67,5 +69,16 @@ export const ACTIVITATS = Object.freeze({
             [4, 'Quadrats i fórmules llargues'],
         ]),
         carrega: () => import('../formules-steam/resolucio.js').then(m => m.Resolucio),
+    }),
+    'inequacions': Object.freeze({
+        nom: 'Inequacions de primer grau',
+        pagina: 'inequacions.html',
+        nivells: Object.freeze([
+            [1, 'Coeficient positiu'],
+            [2, 'Coeficient negatiu'],
+            [3, 'Parèntesis'],
+            [4, 'Denominadors'],
+        ]),
+        carrega: () => import('../inequacions/resolucio.js').then(m => m.ResolucioIQ),
     }),
 });
