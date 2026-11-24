@@ -17,20 +17,20 @@
       { file: 'area-perimetre.html', label: 'Àrea i perímetre', yt: 'area-perimetre-tutorial.html', fixed: true },
       { file: 'canvi-unitats.html', label: "Canvi d'unitats", yt: '', difficulty: true, fixed: true },
       { file: 'arees-volums.html', label: 'Àrees i volums', yt: '', difficulty: true, fixed: true },
-      { file: 'cilindres.html', label: 'Cilindres amb un full', yt: '', fixed: true, pissarra: true },
+      { file: 'cilindres.html', label: 'Cilindres amb un full', yt: '', fixed: true },
       { separator: true },
       { file: 'enters.html', label: 'Nombres enters', yt: 'https://youtu.be/7M6oAKwovag', fixed: true },
       { file: 'enters-ordenar.html', label: 'Ordenar nombres enters', yt: '', fixed: true },
       { file: 'recta-numerica.html', label: 'Recta numèrica', yt: '', difficulty: true, fixed: true },
       { separator: true },
       { file: 'potencies.html', label: 'Potències', yt: '', fixed: true },
-      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true, pissarra: true },
+      { file: 'prioritat.html', label: "Prioritat d'operacions", yt: '', fixed: true, modalitat: true, esvaiment: true },
       { file: 'factoritzar.html', label: 'Descompondre en factors primers', yt: 'https://youtu.be/s2LGUllVMfM', fixed: true },
       { file: 'arbre.html', label: 'Arbres de factorització', yt: '', autonoma: true },
       { file: 'mcd-mcm.html', label: 'Màxim comú divisor i mínim comú múltiple', yt: 'https://youtu.be/B3JmbWrQzyQ', fixed: true },
       { separator: true },
       { file: 'proporciodirecta.html', label: 'Proporció directa', yt: 'https://a.step-quiz.net/a-proporciodirecta-tutorial.html', difficulty: true, fixed: true },
-      { file: 'fraccions.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI', difficulty: true, fixed: true, pissarra: true },
+      { file: 'fraccions.html', label: 'Fraccions', yt: 'https://youtu.be/5jTHP_4fWkI', difficulty: true, fixed: true },
       { file: 'decimals.html', label: 'Nombres decimals', yt: 'https://a.step-quiz.net/a-decimals-tutorial.html', difficulty: true, fixed: true },
       { file: 'fraccio-decimal-percentatge.html', label: 'Fracció, decimal i percentatge', yt: '', difficulty: true, fixed: true },
       { file: 'percentatges.html', label: 'Percentatges', yt: '', difficulty: true, fixed: true },
@@ -38,9 +38,9 @@
       { file: 'llenguatge-algebraic.html', label: 'Llenguatge algebraic', yt: '', fixed: true },
       { file: 'expressions-algebraiques.html', label: 'Expressions algebraiques', yt: '', difficulty: true, fixed: true },
       { file: 'identitats-notables.html', label: 'Identitats notables', yt: '', difficulty: true, fixed: true },
-      { file: 'equacions.html', label: 'Equacions de 1r grau', yt: 'https://youtu.be/Ad9BBLqYgyc', fixed: true, pissarra: true },
-      { file: 'formules-steam.html', label: 'Fórmules STEAM', yt: '', fixed: true, pissarra: true },
-      { file: 'inequacions.html', label: 'Inequacions', yt: '', fixed: true, pissarra: true },
+      { file: 'equacions.html', label: 'Equacions de 1r grau', yt: 'https://youtu.be/Ad9BBLqYgyc', fixed: true },
+      { file: 'formules-steam.html', label: 'Fórmules STEAM', yt: '', fixed: true },
+      { file: 'inequacions.html', label: 'Inequacions', yt: '', fixed: true },
       { file: 'gots-fitxes.html', label: 'Gots i fitxes (equacions)', yt: '', difficulty: true, fixed: true },
       { file: 'sistemes-equacions.html', label: "Sistemes d'equacions", yt: '', fixed: true },
       { file: 'equacions-segon-grau.html', label: 'Equacions de 2n grau', yt: '', difficulty: true, fixed: true },
@@ -333,57 +333,22 @@
 
     .help-btn { display: none; }
 
-    /* ── Botó «Activar la resolució pas a pas» ──
-       Desactivat (per defecte): tot com sempre. Activat: els menús només ofereixen les
-       activitats amb resolució pas a pas (pissarra: true) i l'enllaç porta a resolucio.html, on
-       l'alumne mira com es resol un exercici (l'escenari B; l'activitat de sempre és l'A). */
-    .pissarra-toggle {
-      display: flex; align-items: center; gap: 8px;
+    /* ── Botó «Resolució pas a pas» ──
+       Obre el portal de les resolucions (resolucio.html) en una pestanya nova: l'alumne hi tria una
+       activitat i mira com es resol un exercici (l'escenari B; l'activitat de sempre és l'A). El lila
+       és la marca de la resolució pas a pas (el mateix --rpp de css/resolucio.css). */
+    .resolucio-boto {
+      display: flex; align-items: center; gap: 8px; width: max-content;
       margin: 0 auto 16px; height: 38px; padding: 0 18px;
-      border-radius: 999px; border: 1px solid var(--border-heavy);
-      background: #ffffff; color: var(--text-main);
-      font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+      border-radius: 999px; border: 1px solid #6d28d9;
+      background: #6d28d9; color: #ffffff; text-decoration: none;
+      font-size: 14px; font-weight: 700;
       opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards;
-      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+      transition: background-color 0.2s, box-shadow 0.2s;
     }
-    .pissarra-toggle:hover { background-color: #cbd5e1; border-color: #94a3b8; }
-    .pissarra-toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #ffffff; }
-    .pissarra-toggle[aria-pressed="true"]:hover { background: #1d4ed8; }
-    .pissarra-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-    .pissarra-toggle svg { width: 18px; height: 18px; flex-shrink: 0; }
-    .pissarra-toggle[hidden] { display: none; }
-    .cd-wrap.buit .cd-label { color: var(--text-muted); font-style: italic; }
-    .copy-btn:disabled, .open-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
-
-    /* Amb la resolució pas a pas activada (body.resolucio-pas-a-pas):
-       1. tots els blaus passen a ser els lila equivalents (els de prioritat.html: #7c3aed, #6d28d9…);
-       2. les opcions de configuració desapareixen: l'enllaç és «resolucio.html?activitat=…». */
-    .sub-panel, .title-row-2 { transition: background-color 0.3s, color 0.3s; }
-    body.resolucio-pas-a-pas {
-      --bg-body: #faf9fd;
-      --eso-bg: #f5f3ff;
-      --batx-bg: #f3f1f9;
-      --math-title: #8b5cf6;
-      --accent: #7c3aed;
-    }
-    body.resolucio-pas-a-pas .cd-wrap.open .cd-trigger { box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
-    body.resolucio-pas-a-pas .cd-option:hover,
-    body.resolucio-pas-a-pas .cd-option.active,
-    body.resolucio-pas-a-pas .cd-option.selected { background: #f5f3ff; }
-    body.resolucio-pas-a-pas .open-btn:hover,
-    body.resolucio-pas-a-pas .pissarra-toggle[aria-pressed="true"]:hover { background: #6d28d9; }
-    body.resolucio-pas-a-pas .inline-icon { filter: hue-rotate(48deg); }   /* la sabatilla blava, lila */
-    /* Els grisos blavosos (vores, fons de l'enllaç, estats «hover»), en gris lila */
-    body.resolucio-pas-a-pas .sub-panel,
-    body.resolucio-pas-a-pas .cd-trigger,
-    body.resolucio-pas-a-pas .cd-list,
-    body.resolucio-pas-a-pas .link-output,
-    body.resolucio-pas-a-pas .copy-btn { border-color: #d6cdee; }
-    body.resolucio-pas-a-pas .link-output { background: #ece8f6; }
-    body.resolucio-pas-a-pas .cd-trigger:hover { background: #ede9fe; border-color: #c4b5fd; }
-    body.resolucio-pas-a-pas .copy-btn:hover { background-color: #ddd6fe; border-color: #a78bfa; }
-    body.resolucio-pas-a-pas .sub-panel-params .row,
-    body.resolucio-pas-a-pas #row-fixed-batx { display: none !important; }
+    .resolucio-boto:hover { background: #5b21b6; box-shadow: 0 0 0 3px #ede9fe; }
+    .resolucio-boto:focus-visible { outline: 3px solid #6d28d9; outline-offset: 2px; }
+    .resolucio-boto svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     /* ── Animació derrapada sabatilla ── */
     .icon-wrap {
@@ -459,6 +424,7 @@
     @media (prefers-reduced-motion: reduce) { .petjada-link:hover img, .petjada-link:focus-visible img { animation: none; } }
   </style>
 <link rel="stylesheet" href="css/chromebook.css">
+<link rel="stylesheet" href="css/peu.css">
 </head>
 <body>
 
@@ -473,10 +439,10 @@
     <div class="title-row-2">Matemàtiques</div>
   </div>
 
-  <button id="btn-pissarra" class="pissarra-toggle" type="button" aria-pressed="false" hidden>
+  <a id="btn-resolucio" class="resolucio-boto" href="resolucio.html" target="_blank" rel="noopener">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 10.5h3M14 9l3 3M17 9l-3 3"/></svg>
-    <span class="pissarra-toggle-text">Activar la resolució pas a pas</span>
-  </button>
+    <span>Resolució pas a pas</span>
+  </a>
 
   <div id="mobile-nav-container" class="mobile-nav">
     <input type="radio" id="nav-eso" name="mobile-nav" value="panel-eso" checked>
@@ -633,20 +599,6 @@
       label.textContent = def.label;
       render();
 
-      // Canvia les activitats del menú (el botó «Activar la resolució pas a pas»). Si la triada
-      // ja no hi és, es tria la primera; si no n'hi ha cap, getValue() torna null.
-      const BUIT = "Encara no n'hi ha cap";
-      function setActivities(llista) {
-        activities = llista;
-        options = activities.filter(a => !a.separator);
-        if (!options.some(a => a.file === currentFile)) currentFile = options.length ? options[0].file : null;
-        const sel = options.find(a => a.file === currentFile);
-        label.textContent = sel ? sel.label : BUIT;
-        wrap.classList.toggle('buit', !sel);
-        wrap.classList.remove('open');
-        render();
-      }
-
       // Part visible (px, comptada des de dalt de l'opció) de la primera opció que queda tallada.
       const PEEK_PX = 20;
 
@@ -733,7 +685,7 @@
         }
       });
 
-      return { getValue, openList, setActivities };
+      return { getValue, openList };
     }
 
     // ── Panel init ──
@@ -829,17 +781,6 @@
 
       function build() {
         const file = dropdown.getValue();
-        // Amb la resolució pas a pas activada, un menú pot quedar buit: no hi ha enllaç
-        els.copy.disabled = els.open.disabled = !file;
-        if (!file) {
-          els.link.textContent = '';
-          return;
-        }
-        // Amb la resolució pas a pas activada no hi ha opcions: l'enllaç és la resolució de l'activitat
-        if (resolucioPasAPas) {
-          els.link.textContent = `${BASE_URL}resolucio.html?activitat=${file.replace(/\.html$/, '')}`;
-          return;
-        }
         const selected = activities.find(a => a.file === file);
         if (selected && selected.autonoma) {
           els.link.textContent = `${BASE_URL}${file}`;
@@ -945,38 +886,11 @@
         if (selected && selected.yt) window.open(selected.yt, '_blank');
       });
 
-      // El botó «Activar la resolució pas a pas»: el menú ofereix només les activitats amb
-      // pissarra: true (o totes, si es desactiva) i l'enllaç és «resolucio.html?activitat=…».
-      function setResolucioPasAPas() {
-        dropdown.setActivities(resolucioPasAPas ? activities.filter(a => a.pissarra) : activities);
-        refresh();
-      }
-
-      return Object.assign({}, dropdown, { setResolucioPasAPas });
+      return dropdown;
     }
-
-    // «Activar la resolució pas a pas» (desactivat per defecte: tot com sempre). Les activitats
-    // que la tenen porten «pissarra: true» a la llista i han de coincidir amb SUPORTA_PISSARRA
-    // de js/pissarra/mode.js i amb js/resolucio/activitats.js (tests/check-repo.js ho comprova).
-    let resolucioPasAPas = false;
 
     const dropdownEso = initPanel('eso',  ACTIVITIES_ESO,  DEFAULT_ESO, ESO_LLISTA_FINS);
-    const dropdownBatx = initPanel('batx', ACTIVITIES_BATX, DEFAULT_BATX);
-
-    {
-      const boto = document.getElementById('btn-pissarra');
-      const text = boto.querySelector('.pissarra-toggle-text');
-      // Mentre cap activitat no la tingui, el botó no surt
-      boto.hidden = ![...ACTIVITIES_ESO, ...ACTIVITIES_BATX].some(a => a.pissarra);
-      boto.addEventListener('click', () => {
-        resolucioPasAPas = !resolucioPasAPas;
-        boto.setAttribute('aria-pressed', String(resolucioPasAPas));
-        document.body.classList.toggle('resolucio-pas-a-pas', resolucioPasAPas);   // lila i sense opcions
-        text.textContent = resolucioPasAPas ? 'Desactivar la resolució pas a pas' : 'Activar la resolució pas a pas';
-        dropdownEso.setResolucioPasAPas();
-        dropdownBatx.setResolucioPasAPas();
-      });
-    }
+    initPanel('batx', ACTIVITIES_BATX, DEFAULT_BATX);
 
     // Tanca dropdowns en clicar fora
     document.addEventListener('click', () => {
@@ -1004,14 +918,10 @@
     });
   </script>
 
-  <footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f9fa; border-top: 1px solid #ccc; padding: 10px; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box; text-align: center;">
-    <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" style="flex-shrink: 0;">
-      <img alt="Llicència CC BY-NC-SA" style="border-width:0; height: 31px;" src="https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png" />
-    </a>
-    <span style="font-size: 0.85em; color: #333;">
-      © 2026 <strong>David Arso Civil</strong> · Departament de Matemàtiques, INS Miquel Tarradell.
-      <br style="display: none;" /> Contingut: <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" style="color: #333; text-decoration: underline;">CC BY-NC-SA 4.0</a> · Codi: <a href="https://opensource.org/license/mit" style="color: #333; text-decoration: underline;">MIT</a>.
-    </span>
+  <!-- El peu, flotant i sempre a la vista (css/peu.css, el mateix que a resolucio.html) -->
+  <footer class="peu" title="© 2026 David Arso Civil · Departament de Matemàtiques, INS Miquel Tarradell. Contingut: CC BY-NC-SA 4.0 · Codi: MIT.">
+    <a class="peu-cc" rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca"><img alt="Llicència CC BY-NC-SA" src="https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png" width="62" height="22"></a>
+    <span class="peu-text">© 2026 <strong>David Arso Civil</strong> · <span class="peu-dept">Departament de Matemàtiques, </span>INS Miquel Tarradell<span class="peu-llicencies"> · Contingut: <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca">CC BY-NC-SA 4.0</a> · Codi: <a href="https://opensource.org/license/mit">MIT</a></span></span>
   </footer>
 
   <a href="https://a.step-quiz.net/" title="Activitats adaptades" aria-label="Activitats adaptades" class="bottom-icon"

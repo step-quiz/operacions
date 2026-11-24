@@ -16,6 +16,9 @@ ARQUITECTURA:
 - El detall a demanda («Vull més detall») va en un calaix gris, enfonsat, que
   s'obre amb un petit gir 3D (.pis-calaix a les files HTML, .pis-fila.detall a
   les files TeX).
+- Les figures i taules d'activitats concretes (la recta dels intervals, els
+  cilindres, la taula de prioritat) són a css/pissarra-figures.css: el motor no
+  coneix les activitats.
 - Origen: estil.css dels procediments animats de step-quiz/pau (octubre 2026).
 DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 ============================================================================
@@ -174,79 +177,6 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     overflow: visible;
 }
 
-/* La recta numèrica (inequacions, js/passos/recta-intervals.js): els colors de l'activitat
-   (css/passos.css), amb els nombres més grossos perquè es llegeixin a la pissarra */
-.pis-fila.figura svg.jp-recta-svg {
-    width: min(100%, 20em);
-}
-.pis-escenari .jp-r-eix,
-.pis-escenari .jp-r-marca {
-    stroke: var(--text-main);
-    stroke-width: 2;
-}
-.pis-escenari .jp-r-fletxa {
-    fill: var(--text-main);
-}
-.pis-escenari .jp-r-text {
-    fill: var(--text-main);
-    font-size: 19px;
-    font-family: inherit;
-}
-.pis-escenari .jp-r-text-fraccio {
-    fill: var(--primary-dark, #1d4ed8);
-    font-weight: bold;
-}
-.pis-escenari .jp-r-raig {
-    stroke: var(--primary, #3b82f6);
-    stroke-width: 7;
-    stroke-linecap: round;
-}
-.pis-escenari .jp-r-punt {
-    stroke: var(--primary, #3b82f6);
-    stroke-width: 3;
-}
-.pis-escenari .jp-r-ple {
-    fill: var(--primary, #3b82f6);
-}
-.pis-escenari .jp-r-buit {
-    fill: var(--panel-bg, #fff);
-}
-
-/* El full i els dos cilindres (Cilindres amb un full, js/cilindres/math-engine.js svgCilindres): els colors
-   de l'activitat (css/passos.css), sense vermell; el cilindre 1, blau (el color del tema de la pàgina de
-   la resolució és lila, com el del cilindre 2) */
-.pis-fila.figura svg.jp-cf-svg {
-    width: min(100%, 24em);
-}
-.pis-escenari .jp-cf-full {
-    fill: var(--panel-bg, #fff);
-    stroke: var(--text-main);
-    stroke-width: 1.5;
-}
-.pis-escenari .jp-cf-vora {
-    stroke: var(--text-main);
-    stroke-width: 1.5;
-}
-.pis-escenari .jp-cf-c1,
-.pis-escenari .jp-cf-c2 {
-    fill: none;
-    stroke-width: 4;
-}
-.pis-escenari .jp-cf-c1 {
-    stroke: #0369a1;
-}
-.pis-escenari .jp-cf-c2 {
-    stroke: #7c3aed;
-}
-.pis-escenari .jp-cf-text {
-    fill: var(--text-main);
-    font-size: 15px;
-}
-.pis-escenari .jp-cf-petit {
-    fill: var(--text-muted);
-    font-size: 13px;
-}
-
 /* Marques dins de les fórmules (\htmlData{k=…,marca=…}) */
 .pis-escenari .katex [data-marca='mes'] {
     background: color-mix(in srgb, var(--success) 30%, transparent);
@@ -396,6 +326,12 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 }
 .pis-boto:hover:not(:disabled) {
     border-color: var(--pis-cat);
+    background: var(--pis-cat-fons);
+    box-shadow: inset 0 0 0 1px var(--pis-cat);
+}
+.pis-boto.principal:hover:not(:disabled) {
+    background: var(--pis-cat);
+    box-shadow: 0 0 0 3px var(--pis-cat-fons);
 }
 .pis-boto:disabled {
     opacity: 0.4;
@@ -467,13 +403,39 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     font-size: 12px;
     color: var(--text-muted, #64748b);
 }
-.pis-velocitat select {
-    font: inherit;
-    color: var(--text-main, #1e293b);
-    background: var(--panel-bg, #fff);
+/* La velocitat: tres botons enganxats (0,6× · 1× · 1,6×), el triat ple del color de l'activitat */
+.pis-velocitat-tria {
+    display: inline-flex;
     border: 1px solid var(--border-heavy, #cbd5e1);
-    border-radius: 6px;
-    padding: 4px 6px;
+    border-radius: 999px;
+    background: var(--panel-bg, #fff);
+    padding: 2px;
+    gap: 2px;
+}
+.pis-velocitat-boto {
+    font: inherit;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    min-width: 40px;
+    padding: 3px 8px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--text-soft, #475569);
+    cursor: pointer;
+}
+.pis-velocitat-boto:hover:not([aria-checked='true']) {
+    background: var(--pis-cat-fons);
+    color: var(--text-main, #1e293b);
+}
+.pis-velocitat-boto[aria-checked='true'] {
+    background: var(--pis-cat);
+    color: #fff;
+    font-weight: 600;
+}
+.pis-velocitat-boto:focus-visible {
+    outline: 2px solid var(--pis-cat);
+    outline-offset: 1px;
 }
 
 /* El text del pas i, al costat, «Vull més detall» / «Menys detall» (si el reproductor té detall) */
@@ -500,6 +462,7 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 }
 .pis-detall-boto:hover:not(:disabled) {
     background: var(--pis-cat-fons);
+    box-shadow: inset 0 0 0 1px var(--pis-cat);
 }
 .pis-detall-boto:disabled {
     opacity: 0.55;
@@ -524,6 +487,7 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 }
 .pis-repeteix:hover:not(:disabled) {
     background: var(--pis-cat-fons);
+    box-shadow: inset 0 0 0 1px var(--pis-cat);
 }
 .pis-repeteix:disabled {
     opacity: 0.55;
@@ -676,55 +640,6 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     }
 }
 
-/* ── La taula «centrada» de prioritat d'operacions dins de la pissarra (resolucio.html?activitat=prioritat):
-   la mateixa disposició que a l'activitat (prioritat.html), una fila per línia; la fila del resultat,
-   ressaltada, i la de l'objectiu (un pas obert), en gris ── */
-.pis-fila table.centrat {
-    border-collapse: collapse;
-    margin: 0 auto;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
-    font-size: 1.4em;
-}
-.pis-fila table.centrat td {
-    padding: 0 0.12em;
-    text-align: center;
-    vertical-align: baseline;
-    white-space: nowrap;
-    line-height: 1.9;
-}
-.pis-fila table.centrat td.igual {
-    padding: 0 0.35em;
-    color: var(--text-muted, #64748b);
-}
-.pis-fila table.centrat td.reserva {
-    visibility: hidden;
-}
-.pis-fila table.centrat td.tok-paren {
-    color: var(--text-soft, #475569);
-}
-/* El superíndex d'una potència (3²), també al fantasma que vola fora de la taula: si no, el fantasma
-   comença 1,9 px més amunt que el seu original */
-.pis-fila table.centrat sup,
-.pis-fantasma sup {
-    font-size: 0.62em;
-    line-height: 0;
-    position: relative;
-    top: -0.15em;
-    margin-left: 1px;
-}
-.pis-fila table.centrat td.dest {
-    color: var(--pis-dest, #00008b);
-    border-bottom: 0.09em solid currentColor;
-}
-.pis-fila table.centrat tr.final td:not(.igual) {
-    color: var(--pis-cat);
-    background: var(--pis-cat-fons);
-}
-.pis-fila table.centrat tr.pis-objectiu td {
-    color: var(--pis-objectiu, #9aa5b8);
-}
-
 /* ── «▴ PLEGA» (reproductor.js): un botó a la cantonada de cada calaix obert ─ */
 .pis-plecs {
     position: absolute;
@@ -750,6 +665,7 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     cursor: pointer;
 }
 .pis-plega:hover {
-    border-color: #000;
-    box-shadow: inset 0 0 0 1px #000;
+    border-color: var(--pis-cat);
+    background: var(--pis-cat-fons);
+    box-shadow: inset 0 0 0 1px var(--pis-cat);
 }

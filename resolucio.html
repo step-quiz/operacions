@@ -2,7 +2,7 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Resolució pas a pas animada d'un exercici (Step Quiz): mira com es resol, i demana més detall dels passos que no entenguis.">
     <link rel="icon" href="icon.png">
     <title>Resolució pas a pas</title>
@@ -10,260 +10,65 @@
     <link rel="stylesheet" href="css/temes.css">
     <link rel="stylesheet" href="vendor/katex-0.16.11/katex.min.css">
     <link rel="stylesheet" href="css/pissarra.css">
-    <style>
-        /* La capçalera porta el color del bloc de l'activitat (css/temes.css: resolucio.js posa la classe
-           tema-… a <html>; el David, 24/11/2026). El lila de la resolució pas a pas (el de l'índex amb el botó
-           activat) és només dins de <main>: els nivells, la vora del pas i el color de la pissarra. */
-        main {
-            --primary: #7c3aed;
-            --primary-light: #f5f3ff;
-        }
-        * { box-sizing: border-box; }
-        [hidden] { display: none !important; }
-        body {
-            margin: 0;
-            background: #f8fafc;
-            color: var(--text-main);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            line-height: 1.5;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        header {
-            background: var(--primary);
-            color: #fff;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-        }
-        header h1 { margin: 0; font-size: 1.1rem; }
-        header nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; justify-content: flex-end; }
-        header a,
-        header button {
-            font: inherit;
-            color: #fff;
-            background: transparent;
-            text-decoration: none;
-            font-size: 0.85rem;
-            padding: 6px 11px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 6px;
-            white-space: nowrap;
-            cursor: pointer;
-        }
-        header a:hover,
-        header button:hover { background: rgba(255, 255, 255, 0.18); border-color: #fff; }
-        /* «Ara fes-ho tu», l'acció que volem que facin: destacada, blanca */
-        header #fes-ho-tu { background: #fff; color: var(--primary-dark); border-color: #fff; font-weight: 600; }
-        header #fes-ho-tu:hover { background: #000; color: #fff; border-color: #000; }
-        /* «Projectar» i «Pantalla completa», a la dreta de tot i petits */
-        header #professor,
-        header #pantalla { font-size: 0.75rem; padding: 4px 9px; }
-        header [aria-pressed="true"] { background: #fff; color: #333; border-color: #fff; }
-        main {
-            flex: 1;
-            width: 100%;
-            max-width: 920px;
-            margin: 0 auto;
-            padding-block: 20px 24px;
-            padding-left: max(16px, env(safe-area-inset-left, 0px));
-            padding-right: max(16px, env(safe-area-inset-right, 0px));
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        /* Una columna (mòbil, tauleta): els nivells, el pas, la pissarra i els botons, l'un sota l'altre. La
-           columna lateral no fa caixa: els seus elements es col·loquen amb «order» (com les DEMO de la PAU). */
-        .lateral { display: contents; }
-        .barra { order: 1; }
-        .lateral > .pis-explicacio-fila { order: 2; }
-        #pissarra { order: 3; }
-        .lateral > .pis-controls { order: 4; }
-        .barra {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px 14px;
-        }
-        #nivells { display: flex; flex-wrap: wrap; gap: 8px; }
-        .tria, .accio {
-            font: inherit;
-            font-size: 15px;
-            padding: 6px 14px;
-            border-radius: 999px;
-            border: 1px solid var(--border-heavy);
-            background: #fff;
-            color: var(--text-main);
-            cursor: pointer;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-        .tria[aria-pressed="true"] {
-            border-color: var(--primary);
-            background: var(--primary-light);
-            font-weight: 700;
-        }
-        /* En passar-hi el ratolí, que es vegi clar: vora negra gruixuda i fons gris (el 30 % de negre). La
-           vora gruixuda és una ombra a dins, perquè el botó no canviï de mida. */
-        .tria:hover,
-        .accio:hover {
-            border-color: #000;
-            box-shadow: inset 0 0 0 2px #000;
-            background: #b3b3b3;
-            color: #000;
-        }
-        .accions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
-        /* La pissarra: l'alçada que queda a la finestra (resolucio.js, ajustaAlcada); la barra de desplaçament
-           només surt quan el que hi ha escrit no hi cap, i el seu espai queda reservat perquè el text no balli
-           quan apareix (com a la PAU, no al mòbil, on les barres no ocupen lloc) */
-        @media (min-width: 521px) { #pissarra .pis-escenari { scrollbar-gutter: stable; } }
-        /* A les finestres baixes (un Chromebook), la lletra de la pissarra un 20 % més petita (com a la PAU) */
-        @media (max-height: 750px) { #pissarra .pis-escenari { --pis-escala: 0.8; } }
-        /* Els botons, enganxats a baix de la finestra si la pissarra no hi cap (una columna) */
-        .lateral > .pis-controls {
-            position: sticky;
-            bottom: 0;
-            z-index: 6;
-            background: #f8fafc;
-            padding-block: 6px 8px;
-            margin-block: -6px -8px;
-        }
-        .marca-controls { height: 1px; margin-top: -15px; order: 5; }
-        .lateral > .pis-controls.enganxat { box-shadow: 0 -8px 14px -10px rgba(15, 23, 42, 0.35); }
-        /* El pas (què es fa) ben visible, amb «Vull més detall» al costat; sempre de tres línies d'alçada, perquè
-           els botons de sota no pugin i baixin d'un pas a l'altre (com a la PAU) */
-        .lateral > .pis-explicacio-dalt {
-            margin: 0;
-            padding: 10px 14px;
-            background: #fff;
-            border: 1.5px solid var(--text-main);
-            border-left: 5px solid var(--primary);
-            border-radius: 10px;
-            min-height: calc(3 * 1.5 * 19px + 24px);
-            align-items: flex-start;
-        }
-        .lateral > .pis-explicacio-dalt .pis-explicacio { min-height: 0; }
-        .lateral > .pis-explicacio-dalt .pis-num-pas { font-size: 15px; font-weight: 700; color: var(--text-main); }
-        .lateral > .pis-explicacio-dalt .pis-text-pas { font-size: 19px; max-width: none; }
-        .lateral > .pis-explicacio-dalt .pis-detall-boto { font-weight: 400; font-size: 16px; padding: 6px 16px; }
-        .lateral > .pis-explicacio-dalt .pis-detall-boto:hover:not(:disabled) {
-            background: var(--primary);
-            color: #fff;
-            box-shadow: 0 0 0 3px #000;
-        }
-        @media (max-width: 520px) {
-            .lateral > .pis-explicacio-dalt .pis-text-pas { font-size: 16px; }
-            .lateral > .pis-explicacio-dalt { min-height: calc(3 * 1.5 * 16px + 24px); }
-        }
-        /* Portàtils (Chromebook) i pantalles grans: dues columnes, com les DEMO de la PAU (el David, 24/11/2026).
-           A l'esquerra, enganxada i sempre a la vista, el pas, els botons i, a sota, els nivells; a la dreta, la
-           pissarra, amb tota l'alçada de la finestra. */
-        @media (min-width: 1000px) {
-            header { padding-block: 7px; }
-            main {
-                max-width: 1600px;
-                display: grid;
-                grid-template-columns: clamp(340px, 30vw, 460px) minmax(0, 1fr);
-                column-gap: 22px;
-                align-items: start;
-                padding-block: 12px;
-            }
-            .lateral {
-                display: flex;
-                flex-direction: column;
-                gap: 22px;
-                grid-column: 1;
-                grid-row: 1;
-                min-width: 0;
-                position: sticky;
-                top: 12px;
-            }
-            .lateral > * { order: 0; }
-            .marca-controls { display: none; }
-            .lateral > .pis-controls { position: static; margin: 0; padding: 0; background: none; box-shadow: none; }
-            #pissarra { grid-column: 2; grid-row: 1; min-width: 0; position: sticky; top: 12px; }
-            .lateral > .barra { order: 5; flex-direction: column; align-items: flex-start; }
-            .accions { margin-left: 0; }
-            .lateral > .pis-explicacio-dalt { flex-wrap: wrap; }
-            .lateral > .pis-explicacio-dalt .pis-explicacio { display: block; }
-            .lateral > .pis-explicacio-dalt .pis-num-pas::after { content: ' · '; }
-            .lateral > .pis-explicacio-dalt .pis-text-pas { font-size: 18px; }
-            /* Els botons com a la PAU: un 20 % més petits, la velocitat a la mateixa línia, a la dreta, i els
-               punts dels passos a tota l'amplada de la columna, a sota */
-            .lateral .pis-reproductor { gap: 10px; }
-            .lateral .pis-botons { gap: 5px; }
-            .lateral .pis-boto { width: 34px; height: 34px; }
-            .lateral .pis-boto.principal { width: 38px; height: 38px; }
-            .lateral .pis-boto svg { width: 14px; height: 14px; }
-            .lateral .pis-velocitat { order: 0; margin-left: auto; }
-            .lateral .pis-punts { flex-basis: 100%; order: 1; }
-        }
-        /* Projectar (el mode professor, per al projector): la pissarra gran, sense les frases ni els nivells (el
-           professor ho explica de paraula); es passen els passos amb les fletxes, l'espai o un comandament (Re
-           Pàg / Av Pàg). La capçalera queda (hi ha el botó per sortir), sense el títol; una sola columna. */
-        body.professor header h1, body.professor .barra, body.professor .lateral > .pis-explicacio-fila,
-        body.professor footer { display: none; }
-        body.professor main { max-width: none; display: flex; padding: 10px 24px 10px; }
-        body.professor .lateral { display: contents; }
-        body.professor #pissarra { position: static; }
-        body.professor .lateral > .pis-controls { position: sticky; margin-block: -6px -8px; padding-block: 6px 8px; background: #f8fafc; }
-        body.professor #pissarra .pis-escenari { --pis-escala: 1.8; font-size: 1.8em; }
-        .avis { padding: 14px 16px; border: 1px solid var(--border-heavy); border-radius: 10px; background: #fff; }
-        .avis ul { margin: 8px 0 0; }
-        /* El peu de l'índex (la mateixa informació), al final de la pàgina, no fix (com a la PAU) */
-        footer {
-            background: #f8f9fa;
-            border-top: 1px solid #ccc;
-            padding-block: 10px;
-            padding-left: max(16px, env(safe-area-inset-left, 0px));
-            padding-right: max(16px, env(safe-area-inset-right, 0px));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            text-align: center;
-        }
-        footer img { border-width: 0; height: 31px; display: block; }
-        footer span { font-size: 0.85em; color: #333; }
-        footer span a { color: #333; text-decoration: underline; }
-    </style>
+    <link rel="stylesheet" href="css/pissarra-figures.css">
+    <link rel="stylesheet" href="css/peu.css">
+    <link rel="stylesheet" href="css/resolucio.css">
     <script src="vendor/katex-0.16.11/katex.min.js"></script>
 </head>
 <body>
-    <header>
+    <!-- La capçalera: al portal, «← Step Quiz» i el títol; a una resolució, «← Resolucions», el nom de
+         l'activitat, «Ara fes-ho tu» i «Projectar» (js/resolucio/resolucio.js) -->
+    <header class="cap">
+        <a class="cap-torna" id="torna" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+            <span id="torna-text">Step Quiz</span>
+        </a>
         <h1 id="titol">Resolució pas a pas</h1>
-        <nav aria-label="Accions">
+        <nav class="cap-accions" aria-label="Accions">
             <a id="fes-ho-tu" href="index.html" hidden>Ara fes-ho tu</a>
-            <a href="index.html">← Step Quiz</a>
             <button type="button" id="professor" aria-pressed="false" hidden>Projectar</button>
             <button type="button" id="pantalla" hidden>Pantalla completa</button>
         </nav>
     </header>
-    <main>
-        <!-- La columna de l'esquerra (pantalles grans): resolucio.js hi posa el pas i els botons, a sobre dels nivells -->
+
+    <!-- El portal (sense activitat): una targeta per activitat, agrupades per bloc -->
+    <main class="portal" id="portal" hidden>
+        <div class="portal-intro">
+            <h2>Mira com es resol, pas a pas</h2>
+            <p>Tria una activitat. Tu marques el ritme: a cada pas veus què es fa i per què, i si no ho entens, pots demanar més detall.</p>
+            <p class="nota">Per a la classe: dins de cada resolució, el botó «Projectar» fa la pissarra gran.</p>
+        </div>
+        <div id="blocs"></div>
+    </main>
+
+    <!-- Una resolució: a l'esquerra (pantalles grans) el pas, els botons i el nivell; a la dreta, la pissarra -->
+    <main class="resolucio" id="resolucio" hidden>
         <div class="lateral" id="lateral">
-            <div class="barra" id="barra" hidden>
-                <div id="nivells" role="group" aria-label="Nivell"></div>
-                <div class="accions">
-                    <button type="button" class="accio" id="un-altre">Un altre exercici</button>
+            <div class="barra" id="barra">
+                <div class="nivell" id="nivell">
+                    <span class="nivell-etiqueta" id="nivell-etiqueta">Nivell</span>
+                    <div class="nivell-tria">
+                        <button type="button" class="nivell-boto" id="nivell-boto" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="nivell-etiqueta nivell-boto">
+                            <span class="nivell-num" id="nivell-num"></span>
+                            <span class="nivell-nom" id="nivell-nom"></span>
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 8 10 13 15 8"/></svg>
+                        </button>
+                        <div class="nivell-llista" id="nivells" role="listbox" tabindex="-1" aria-labelledby="nivell-etiqueta" hidden></div>
+                    </div>
                 </div>
+                <button type="button" class="accio" id="un-altre">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+                    Un altre exercici
+                </button>
             </div>
         </div>
         <div id="pissarra"></div>
     </main>
-    <!-- El peu de l'índex (la mateixa informació), al final de la pàgina (no fix, com a la PAU; el David, 24/11/2026) -->
-    <footer>
-      <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca">
-        <img alt="Llicència CC BY-NC-SA" src="https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png" />
-      </a>
-      <span>
-        © 2026 <strong>David Arso Civil</strong> · Departament de Matemàtiques, INS Miquel Tarradell.
-        Contingut: <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca">CC BY-NC-SA 4.0</a> · Codi: <a href="https://opensource.org/license/mit">MIT</a>.
-      </span>
+
+    <!-- El peu, flotant i sempre a la vista (css/peu.css; el David, 24/11/2026) -->
+    <footer class="peu" title="© 2026 David Arso Civil · Departament de Matemàtiques, INS Miquel Tarradell. Contingut: CC BY-NC-SA 4.0 · Codi: MIT.">
+        <a class="peu-cc" rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca"><img alt="Llicència CC BY-NC-SA" src="https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png" width="62" height="22"></a>
+        <span class="peu-text">© 2026 <strong>David Arso Civil</strong> · <span class="peu-dept">Departament de Matemàtiques, </span>INS Miquel Tarradell<span class="peu-llicencies"> · Contingut: <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca">CC BY-NC-SA 4.0</a> · Codi: <a href="https://opensource.org/license/mit">MIT</a></span></span>
     </footer>
     <script type="module" src="js/resolucio/resolucio.js"></script>
 </body>

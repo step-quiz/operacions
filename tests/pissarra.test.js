@@ -7,7 +7,7 @@
  * - Les parts pures es carreguen com a mòduls de debò (import() de Node):
  *   formules.js (claus, guió, historial, files llargues), pla.js (el pla de cada
  *   transició), comprova.js (revisió dels guions, regla del detall a demanda i
- *   text pla de cada fila), mode.js i el registre de l'escenari B.
+ *   text pla de cada fila) i el registre de l'escenari B (js/resolucio/activitats.js).
  * - La revisió dels guions i la del detall es proven amb guions bons i amb
  *   guions dolents fets a mà: cada error ha de sortir.
  * - REGLES DE TOTS ELS GUIONS (secció 5): cada guió registrat a GUIONS (avui,
@@ -26,7 +26,7 @@ const { pathToFileURL } = require('url');
 const { ROOT, suite, ok, eq, finish } = require('./harness');
 const { provaActivitat } = require('./pissarra-activitat');
 
-// Entorn mínim: mode.js llegeix window.location en carregar-se
+// Entorn mínim (alguns mòduls llegeixen window.location en carregar-se)
 globalThis.window = globalThis;
 globalThis.location = { search: '', pathname: '/test.html' };
 
@@ -179,7 +179,6 @@ function solucioLineal(text) {
 (async () => {
     const F = await importa('js/pissarra/formules.js');
     const C = await importa('js/pissarra/comprova.js');
-    const M = await importa('js/pissarra/mode.js');
     const PL = await importa('js/pissarra/pla.js');
     const { DEMOS } = await importa('js/pissarra/demo.js');
 
@@ -800,20 +799,37 @@ function solucioLineal(text) {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    suite('6. Les activitats amb resolució pas a pas (mode.js, js/resolucio/activitats.js)');
+    suite('6. Les activitats amb resolució pas a pas (js/resolucio/activitats.js, la llista única)');
     {
-        const { ACTIVITATS } = await importa('js/resolucio/activitats.js');
-        ok('SUPORTA_PISSARRA és una llista', Array.isArray(M.SUPORTA_PISSARRA));
-        eq(
-            'SUPORTA_PISSARRA és la llista de js/resolucio/activitats.js',
-            M.SUPORTA_PISSARRA.slice().sort().join(),
-            Object.keys(ACTIVITATS).sort().join()
+        const { ACTIVITATS, TEMES } = await importa('js/resolucio/activitats.js');
+        ok('equacions hi és', 'equacions' in ACTIVITATS);
+        const temes = TEMES.map(([t]) => t);
+        const mal = Object.entries(ACTIVITATS).filter(
+            ([, a]) =>
+                !temes.includes(a.tema) ||
+                !a.nom ||
+                !a.frase ||
+                !a.exemple ||
+                !a.nivells.length ||
+                a.nivells.some(([, n]) => !n)
         );
-        ok('equacions hi és', M.SUPORTA_PISSARRA.includes('equacions'));
-        eq(
-            'mode.js ja no exporta res per a les activitats (l’escenari A no té pissarra)',
-            Object.keys(M).join(),
-            'SUPORTA_PISSARRA'
+        ok(
+            'cada activitat té tema (un bloc de TEMES), nom, frase, exemple i nivells amb nom (el portal)',
+            !mal.length,
+            mal.map(([k]) => k).join(', ')
+        );
+        const exemplesDolents = Object.entries(ACTIVITATS).filter(([, a]) => {
+            try {
+                katex.renderToString(a.exemple, { throwOnError: true });
+                return false;
+            } catch (e) {
+                return true;
+            }
+        });
+        ok(
+            'KaTeX dibuixa l’exemple de cada targeta',
+            !exemplesDolents.length,
+            exemplesDolents.map(([k]) => k).join(', ')
         );
         for (const [nom, a] of Object.entries(ACTIVITATS)) {
             const procediment = await a.carrega();

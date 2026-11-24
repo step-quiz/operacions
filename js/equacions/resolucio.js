@@ -16,6 +16,8 @@
  * - El detall a demanda de cada pas (detallPas) porta, en subpassos, fins a la línia
  *   del pas: distributiva, ajuntar els termes amb x, passar les x, passar els nombres
  *   i aïllar la x (ajuntar els nombres no en té). Vegeu la secció del detall.
+ * - ajudants: pc, IGUAL, tex, ambSigne i factor, els mateixos per a les inequacions (no se'n fa
+ *   una còpia).
  * - tests/equacions.test.js comprova milers d'equacions de tots els nivells: el guió
  *   és correcte, cada línia que es veu (també les del detall) té la solució de
  *   l'equació, KaTeX dibuixa totes les fórmules i el detall compleix la seva regla.
@@ -556,5 +558,17 @@ export const Resolucio = (() => {
     /** Una equació nova del nivell (1, 2 o 3, com els de l'activitat). */
     const exercici = nivell => MathEngine.generateEquation(0, { nivell, totalOperations: 10 });
 
-    return Object.freeze({ NIVELLS: [1, 2, 3], exercici, passos, files, detallPas, moviments, pecesDe, texLinia });
+    // Els ajudants de les peces, per a les inequacions (js/inequacions/resolucio.js), que en fan servir el motor
+    const ajudants = Object.freeze({ pc, IGUAL, tex, ambSigne, factor });
+    return Object.freeze({
+        NIVELLS: [1, 2, 3],
+        exercici,
+        passos,
+        files,
+        detallPas,
+        moviments,
+        pecesDe,
+        texLinia,
+        ajudants,
+    });
 })();

@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-22: two scenarios; B for `equacions`, `fraccions`, `prioritat` and `formules-steam` (with detail on demand since 2026-11-22) published)
+## Status (2026-11-24: two scenarios; B for `equacions`, `fraccions`, `prioritat`, `formules-steam`, `inequacions` and `cilindres` published; a portal at `resolucio.html` opened from the index)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -516,6 +516,36 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 - Level hover: thick black border drawn as an inset shadow, grey #b3b3b3 background. «Vull més detall» not bold,
   hover = filled purple with a black ring. Projecting: one column, no title, levels, caption or footer; big board.
   `pissarra-demo.html` keeps the old layout (no `dalt`).
+
+## Audit of 2026-11-24 (David approved all 19 points of the review artifact) — SUPERSEDES the layout section above where they disagree
+
+- **Index (P1):** the toggle «Activar la resolució pas a pas» is gone (it tinted the index lilac, hid the options,
+  filtered the menus and left Batxillerat empty). Instead, a lilac link button «Resolució pas a pas»
+  (`#btn-resolucio`, `target="_blank"`: David chose a new tab) opens the portal. No `pissarra: true` flags.
+- **Portal (P2, P3):** `resolucio.html` without parameters. One card per activity, grouped by block (`TEMES` in
+  `js/resolucio/activitats.js`; each section carries `tema-…` so the card uses the block colour): example formula
+  (KaTeX, `exemple`), a sentence (`frase`), level chips linking straight to `&nivell=n`, and «Copia l'enllaç»
+  (activity link; on failure the button shows the URL). Lilac header (`--rpp` in `css/resolucio.css`).
+- **Back arrow (P4):** on a resolution page, «← Resolucions» goes to the portal; the portal's goes to the index.
+- **Single list (C1):** `js/resolucio/activitats.js` is the only list; `js/pissarra/mode.js` deleted.
+- **Footer (U1):** `css/peu.css`, a floating pill always in view, shared by `index.html` and `resolucio.html`
+  (`--peu-reserva` = the space pages leave free at the bottom). Hidden while projecting (David's choice).
+- **Level (U2, U3):** a dropdown (listbox) as in the index menus, number badge + name; equations levels got names
+  (la x en un costat / als dos costats / amb parèntesis). «Un altre exercici» is a filled action button next to it.
+- **Header on phones (U4):** one line: back icon, activity name, «Ara fes-ho tu»; «Projectar» hidden below 700 px.
+- **One accent (U5):** the whole resolution page uses the block colour (the lilac `--primary` override in `<main>`
+  was removed). **Speed (U6):** three joined buttons 0,6× · 1× · 1,6× (radiogroup) in `reproductor.js`.
+  **Hover (U7):** one state everywhere on light surfaces: soft theme background + theme border (+ inset ring).
+- **Layout (C4, B1, B2):** CSS only (`css/resolucio.css`, C3): a `100dvh` shell where only the board shrinks, so the
+  player never moves between steps (B2: on a tablet the «next» button used to drop 66 px per step); no
+  `ajustaAlcada`, no sticky player, no IntersectionObserver. Projecting fills width and height (B1: at ≥ 1000 px
+  the board used to shrink to its content, 218 px for a sum of fractions, because the grid's `align-items: start`
+  stayed active). Very low windows (≤ 520 px high, < 1000 px wide) scroll with a fixed-height board.
+- **Code (C2, C6):** equations export `ajudants` (`pc`, `IGUAL`, `tex`, `ambSigne`, `factor`) used by inequacions;
+  `gcd` from `js/utils.js` replaces three local `mcd`. Activity figures/tables moved to `css/pissarra-figures.css`.
+- **Not done (C5):** unifying the export names (`Resolucio`, `ResolucioIQ`, `ResolucioCF`) would make two
+  `Resolucio` clash in the test loader (`tests/harness.js` runs every module in one scope, and inequacions loads
+  equations next to it). Kept as is; documented in `activitats.js`.
 
 ## Scenario B for `cilindres` (2026-11-24, PENDING §2b)
 

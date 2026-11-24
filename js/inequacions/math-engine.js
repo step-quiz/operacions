@@ -25,7 +25,7 @@
  * ============================================================================
  */
 
-import { pick, randInt, randIntNonZero } from '../utils.js';
+import { gcd, pick, randInt, randIntNonZero } from '../utils.js';
 import { coeficient, comRacional, oposatCoef, quocientCoef, texRacional, textRacional } from '../algebra/racionals.js';
 import { svgRecta } from '../passos/recta-intervals.js';
 import { TEXTOS_IQ } from './strings.js';
@@ -306,14 +306,13 @@ function nivell3() {
     }
 }
 
-const mcd = (a, b) => (b ? mcd(b, a % b) : Math.abs(a));
 /** Nivell 4: (x + a)/m ± x/n ⊙ c. Treure denominadors, distributiva i ajuntar, passar, aïllar. */
 function nivell4() {
     const volFraccio = ambFraccions(); // entera amb probabilitat 2/3 i fracció amb 1/3
     for (;;) {
         const [m, n] = [pick([2, 3, 4, 5, 6]), pick([2, 3, 4, 5, 6])];
         if (m === n) continue;
-        const L = (m * n) / mcd(m, n);
+        const L = (m * n) / gcd(m, n);
         const [k1, k2] = [L / m, L / n];
         const mes = randInt(1, 2) === 1;
         const A = mes ? k1 + k2 : k1 - k2;

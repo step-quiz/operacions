@@ -28,10 +28,11 @@
  *   pinta amb \dfrac (la peça porta frac).
  * - tests/inequacions.test.js passa la bateria comuna (tests/pissarra-activitat.js):
  *   cada línia que es veu (també les del detall) té la mateixa solució.
- * DEPENDÈNCIES: equacions/math-engine.js, equacions/resolucio.js, pissarra/formules.js,
+ * DEPENDÈNCIES: utils.js (gcd), equacions/math-engine.js, equacions/resolucio.js (i els seus ajudants), pissarra/formules.js,
  *      algebra/racionals.js, passos/recta-intervals.js, math-engine.js.
  * ============================================================================
  */
+import { gcd } from '../utils.js';
 import { MathEngine } from '../equacions/math-engine.js';
 import { Resolucio } from '../equacions/resolucio.js';
 import { clau, guio, historial } from '../pissarra/formules.js';
@@ -45,15 +46,10 @@ export const ResolucioIQ = (() => {
     /** La marca del signe de desigualtat quan canvia (groc: formules.js MARQUES). */
     const MARCA = 'tria';
 
-    const pc = (id, t, tipus = '') => ({ id, t: String(t), tipus });
-    const IGUAL = () => pc('q', '=', 'igual');
-    /** El TeX d'un text de les peces: «−» → «-», «·» → «\cdot». */
-    const tex = t => String(t).replace(/−/g, '-').replace(/·/g, '\\cdot ');
-    const ambSigne = v => (v < 0 ? `−${-v}` : String(v));
-    const factor = v => (v < 0 ? `(−${-v})` : String(v));
+    // Les peces, el «=», el TeX i els nombres amb signe s'escriuen com a les equacions (els mateixos ajudants)
+    const { pc, IGUAL, tex, ambSigne, factor } = Equacions.ajudants;
     /** El TeX d'un racional [n, d]: 3, -2, \dfrac{7}{3}, -\dfrac{7}{3}. */
     const texQ = ([n, d]) => (d === 1 ? tex(ambSigne(n)) : `${n < 0 ? '-' : ''}\\dfrac{${Math.abs(n)}}{${d}}`);
-    const mcd = (a, b) => (b ? mcd(b, a % b) : Math.abs(a));
 
     /**
      * La inequació com una equació de les equacions (la forma canònica lA·x + lB ⊙ rC·x + rD) i el signe ⊙;
@@ -99,7 +95,7 @@ export const ResolucioIQ = (() => {
             };
         }
         const { m, n, a, c, s, mes } = d;
-        const L = (m * n) / mcd(m, n);
+        const L = (m * n) / gcd(m, n);
         const [k1, k2] = [L / m, L / n];
         return {
             eq: {
@@ -160,7 +156,7 @@ export const ResolucioIQ = (() => {
                 { fraccio: [num, [pc('Fd', m)]] },
                 pc('Fo', mes ? '+' : '−', 'op'),
                 { fraccio: [[pc('Gx', 'x', 'x')], [pc('Gd', n)]] },
-                IGUAL(),
+                IGUAL,
                 ...(c < 0 ? [pc('Rs', '−')] : []),
                 pc('Rc', Math.abs(c)),
             ],
@@ -185,7 +181,7 @@ export const ResolucioIQ = (() => {
                     pc('A2', L),
                     pc('d2', '·'),
                     { fraccio: [[pc('Gx', 'x', 'x')], [pc('Gd', n)]] },
-                    IGUAL(),
+                    IGUAL,
                     pc('A3', L),
                     pc('d3', '·'),
                     pc('Rc', factor(c)),

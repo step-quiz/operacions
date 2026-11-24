@@ -1,0 +1,812 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/resolucio.css
+ROL: L'estil de resolucio.html: el PORTAL (sense activitat: una targeta per
+     activitat, agrupades per bloc) i la pàgina de CADA RESOLUCIÓ (la pissarra,
+     el pas, el reproductor, el nivell i «Un altre exercici").
+ARQUITECTURA:
+- js/resolucio/resolucio.js posa a <body> la classe «portal» o «activitat», i a
+  <html> la classe tema-… de l'activitat (css/temes.css): tota la pàgina d'una
+  resolució fa servir el color del bloc (--primary…), un sol accent (el David,
+  24/11/2026). El lila (--rpp) és la marca de la resolució pas a pas: només el
+  porten la capçalera del portal i el botó de l'índex.
+- La pàgina d'una resolució és una «aplicació» d'una pantalla (100dvh): la
+  capçalera, el contingut i el peu flotant (css/peu.css). La pissarra ocupa
+  tota l'alçada que queda i té la seva barra; així els botons del reproductor
+  no es mouen mai d'un pas a l'altre. Tot amb CSS: cap càlcul d'alçades en JS.
+  · Una columna (mòbil, tauleta): el nivell, el pas, la pissarra i els botons.
+  · 1000 px o més: dues columnes; a l'esquerra el pas, els botons i el nivell;
+    a la dreta, la pissarra.
+  · Finestres molt baixes (mòbil apaïsat): la pàgina es desplaça, amb la
+    pissarra d'alçada fixa.
+  · Projectar (body.professor): una columna a tota l'amplada, la pissarra gran i
+    sense el pas, el nivell ni el peu.
+- Un sol estil per als estats (el David, 24/11/2026): en passar-hi el ratolí,
+  fons suau del tema (--primary-light) i vora del tema, prou marcada per veure-la
+  al projector; el focus del teclat, un anell del tema.
+DEPENDÈNCIES: css/tokens.css, css/temes.css, css/pissarra.css, css/peu.css.
+============================================================================
+*/
+
+:root {
+    --rpp: #6d28d9; /* el lila de la resolució pas a pas */
+    --rpp-fons: #f6f3fd;
+    --rpp-suau: #ede9fe;
+}
+
+* {
+    box-sizing: border-box;
+}
+[hidden] {
+    display: none !important;
+}
+html {
+    height: 100%;
+}
+body {
+    margin: 0;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: var(--text-main);
+    font-family:
+        'Segoe UI',
+        system-ui,
+        -apple-system,
+        sans-serif;
+    line-height: 1.5;
+}
+:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ── CAPÇALERA ─────────────────────────────────────────────────────────────── */
+.cap {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 50px;
+    padding-block: 7px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    background: var(--primary);
+    color: #fff;
+}
+body.portal .cap {
+    background: var(--rpp);
+}
+.cap h1 {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cap-sub {
+    font-weight: 400;
+    opacity: 0.85;
+}
+.cap-accions {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+.cap a,
+.cap button {
+    font: inherit;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.cap a:hover,
+.cap button:hover {
+    background: #fff;
+    border-color: #fff;
+    color: var(--primary-dark);
+}
+body.portal .cap a:hover {
+    color: var(--rpp);
+}
+.cap :focus-visible {
+    outline-color: #fff;
+}
+.cap-torna svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+/* «Ara fes-ho tu», l'acció que volem que facin: destacada, blanca */
+.cap #fes-ho-tu {
+    background: #fff;
+    border-color: #fff;
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+.cap #fes-ho-tu:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+}
+/* «Projectar» i «Pantalla completa», petits */
+.cap #professor,
+.cap #pantalla {
+    font-size: 0.75rem;
+    padding: 4px 9px;
+}
+.cap [aria-pressed='true'] {
+    background: #fff;
+    color: var(--primary-dark);
+    border-color: #fff;
+}
+/* Mòbil: una sola línia; la fletxa sense text, sense el subtítol i sense «Projectar» */
+@media (max-width: 699px) {
+    .cap {
+        gap: 10px;
+    }
+    .cap .cap-torna {
+        padding: 6px 8px;
+    }
+    .cap-torna span,
+    .cap-sub {
+        display: none;
+    }
+    .cap #professor,
+    .cap #pantalla {
+        display: none !important;
+    }
+    .cap h1 {
+        font-size: 1rem;
+    }
+}
+
+/* ── LA PÀGINA D'UNA RESOLUCIÓ ─────────────────────────────────────────────── */
+body.activitat {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+.resolucio {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 14px;
+    padding-bottom: var(--peu-reserva);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+/* Una columna: la columna lateral no fa caixa; els seus elements es col·loquen amb «order» */
+.lateral {
+    display: contents;
+}
+.barra {
+    order: 1;
+}
+.lateral > .pis-explicacio-fila {
+    order: 2;
+}
+#pissarra {
+    order: 3;
+}
+.lateral > .pis-controls {
+    order: 4;
+}
+/* La pissarra: tota l'alçada que queda; la barra només surt quan el que hi ha escrit no hi cap, i el seu espai
+   queda reservat perquè el text no balli quan apareix (no al mòbil, on les barres no ocupen lloc) */
+#pissarra {
+    flex: 1 1 0;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+}
+#pissarra .pis-escenari {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+@media (min-width: 521px) {
+    #pissarra .pis-escenari {
+        scrollbar-gutter: stable;
+    }
+}
+/* A les finestres baixes (un Chromebook), la lletra de la pissarra un 20 % més petita (com a la PAU) */
+@media (max-height: 750px) {
+    #pissarra .pis-escenari {
+        --pis-escala: 0.8;
+    }
+}
+.lateral > .pis-controls {
+    margin: 0;
+}
+/* Només la pissarra s'encongeix: el pas (encara que el text sigui llarg), els botons i el nivell, mai */
+.barra,
+.lateral > .pis-explicacio-fila,
+.lateral > .pis-controls {
+    flex-shrink: 0;
+}
+/* Els botons, a l'esquerra, i la velocitat, a la dreta, en una línia; els punts dels passos, a sota */
+.lateral .pis-velocitat {
+    order: 0;
+    margin-left: auto;
+}
+.lateral .pis-punts {
+    flex-basis: 100%;
+    order: 1;
+}
+
+/* El pas (què es fa), ben visible, amb «Vull més detall» */
+.lateral > .pis-explicacio-dalt {
+    margin: 0;
+    padding: 10px 14px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--text-main);
+    border-left: 5px solid var(--primary);
+    border-radius: 10px;
+    min-height: calc(3 * 1.5 * 19px + 24px);
+    align-items: flex-start;
+}
+.lateral > .pis-explicacio-dalt .pis-explicacio {
+    min-height: 0;
+}
+.lateral > .pis-explicacio-dalt .pis-num-pas {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.lateral > .pis-explicacio-dalt .pis-text-pas {
+    font-size: 19px;
+    max-width: none;
+}
+.lateral > .pis-explicacio-dalt .pis-detall-boto {
+    font-weight: 400;
+    font-size: 16px;
+    padding: 6px 16px;
+}
+@media (max-width: 520px) {
+    .resolucio {
+        gap: 10px;
+        padding-top: 10px;
+    }
+    .lateral > .pis-explicacio-dalt {
+        min-height: calc(2 * 1.5 * 16px + 22px);
+        padding: 8px 12px;
+    }
+    .lateral > .pis-explicacio-dalt .pis-text-pas {
+        font-size: 16px;
+    }
+    .lateral > .pis-explicacio-dalt .pis-detall-boto {
+        font-size: 15px;
+        padding: 4px 12px;
+    }
+    .lateral .pis-controls {
+        gap: 6px;
+    }
+    .lateral .pis-reproductor {
+        gap: 6px 10px;
+    }
+    /* «Velocitat» no hi cap: el diu el títol del grup (els lectors de pantalla el llegeixen) */
+    .lateral .pis-velocitat > span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+    .lateral .pis-velocitat-boto {
+        min-width: 34px;
+        padding: 3px 6px;
+    }
+}
+
+/* El nivell (un desplegable) i «Un altre exercici» (una acció, del color del tema) */
+.barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.nivell {
+    position: relative;
+    flex: 1 1 150px;
+    min-width: 0;
+    max-width: 440px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.nivell-etiqueta {
+    flex: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-soft);
+}
+.nivell-tria {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.nivell-boto {
+    width: 100%;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px 0 6px;
+    border: 1px solid var(--border-heavy);
+    border-radius: 8px;
+    background: var(--panel-bg);
+    color: var(--text-main);
+    font: inherit;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+}
+.nivell-num {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 4px;
+    border-radius: 6px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.nivell-nom {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.nivell-boto > svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+}
+.nivell.obert .nivell-boto > svg {
+    transform: rotate(180deg);
+}
+.nivell-boto:hover,
+.nivell.obert .nivell-boto {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: inset 0 0 0 1px var(--primary);
+}
+.nivell-llista {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    top: calc(100% + 5px);
+    max-height: min(330px, 60vh);
+    overflow-y: auto;
+    padding: 4px;
+    border: 1px solid var(--border-heavy);
+    border-radius: 10px;
+    background: var(--panel-bg);
+    box-shadow:
+        0 8px 30px -4px rgba(15, 23, 42, 0.16),
+        0 2px 8px -2px rgba(15, 23, 42, 0.08);
+}
+.nivell.amunt .nivell-llista {
+    top: auto;
+    bottom: calc(100% + 5px);
+}
+.nivell-llista:focus {
+    outline: none;
+}
+.nivell-opcio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1.3;
+    cursor: pointer;
+}
+.nivell-opcio:hover,
+.nivell-opcio.actiu {
+    background: var(--primary-light);
+}
+.nivell-opcio.actiu {
+    box-shadow: inset 0 0 0 2px var(--primary);
+}
+.nivell-opcio[aria-selected='true'] {
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+.nivell-check {
+    flex: none;
+    width: 13px;
+    height: 13px;
+    margin-left: auto;
+    color: var(--primary);
+    opacity: 0;
+}
+.nivell-opcio[aria-selected='true'] .nivell-check {
+    opacity: 1;
+}
+.accio {
+    flex: none;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 16px 0 12px;
+    border: 1px solid var(--primary);
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.accio svg {
+    width: 18px;
+    height: 18px;
+}
+.accio:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+@media (max-width: 560px) {
+    .nivell-etiqueta {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+    .accio {
+        padding: 0 12px 0 10px;
+        font-size: 14px;
+    }
+}
+
+/* Finestres molt baixes (un mòbil apaïsat): la pàgina es desplaça i la pissarra té una alçada fixa */
+@media (max-height: 520px) and (max-width: 999px) {
+    body.activitat {
+        height: auto;
+        overflow: visible;
+    }
+    #pissarra {
+        flex: none;
+        height: max(240px, 70vh);
+    }
+}
+
+/* Portàtils (Chromebook) i pantalles grans: dues columnes, com les DEMO de la PAU */
+@media (min-width: 1000px) {
+    body.activitat:not(.professor) .resolucio {
+        max-width: 1600px;
+        display: grid;
+        grid-template-columns: clamp(340px, 30vw, 460px) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+        column-gap: 22px;
+        padding-top: 12px;
+    }
+    body.activitat:not(.professor) .lateral {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+        min-height: 0;
+    }
+    body.activitat:not(.professor) .lateral > * {
+        order: 0;
+    }
+    body.activitat:not(.professor) .lateral > .barra {
+        order: 5;
+    }
+    body.activitat:not(.professor) #pissarra {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
+        min-height: 0;
+    }
+    .lateral > .pis-explicacio-dalt {
+        flex-wrap: wrap;
+    }
+    .lateral > .pis-explicacio-dalt .pis-explicacio {
+        display: block;
+    }
+    .lateral > .pis-explicacio-dalt .pis-num-pas::after {
+        content: ' · ';
+    }
+    .lateral > .pis-explicacio-dalt .pis-text-pas {
+        font-size: 18px;
+    }
+    /* Els botons com a la PAU: un 20 % més petits */
+    .lateral .pis-reproductor {
+        gap: 10px;
+    }
+    .lateral .pis-botons {
+        gap: 5px;
+    }
+    .lateral .pis-boto {
+        width: 34px;
+        height: 34px;
+    }
+    .lateral .pis-boto.principal {
+        width: 38px;
+        height: 38px;
+    }
+    .lateral .pis-boto svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Projectar (el mode professor, per al projector): la pissarra gran, a tota l'amplada i l'alçada, sense les frases,
+   el nivell ni el peu (el professor ho explica de paraula); els botons centrats a sota. La capçalera queda (hi ha
+   el botó per sortir), sense el títol. */
+body.professor .cap h1,
+body.professor .barra,
+body.professor .lateral > .pis-explicacio-fila,
+body.professor .peu {
+    display: none;
+}
+body.professor .resolucio {
+    max-width: none;
+    padding: 10px 24px 12px;
+}
+body.professor .lateral {
+    display: contents;
+}
+body.professor .lateral > .pis-controls .pis-reproductor {
+    justify-content: center;
+}
+body.professor #pissarra .pis-escenari {
+    --pis-escala: 1.8;
+    font-size: 1.8em;
+}
+
+/* ── EL PORTAL (resolucio.html sense activitat) ─────────────────────────────── */
+body.portal {
+    background: var(--rpp-fons);
+}
+.portal {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+    padding-top: 30px;
+    padding-bottom: calc(var(--peu-reserva) + 24px);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.portal-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.portal-intro h2 {
+    margin: 0;
+    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+.portal-intro p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--text-soft);
+    font-size: 1.05rem;
+}
+.portal-intro .nota {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+}
+.bloc {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.bloc-titol {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--primary-dark);
+}
+.bloc-titol::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--primary);
+}
+.targetes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 16px;
+}
+.targeta {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    background: var(--panel-bg);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    transition:
+        box-shadow 0.2s,
+        transform 0.2s,
+        border-color 0.2s;
+}
+.targeta:hover,
+.targeta:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 12px 28px -16px rgba(15, 23, 42, 0.4);
+    transform: translateY(-2px);
+}
+/* La fórmula d'exemple, sobre el fons de punts de la pissarra */
+.targeta-exemple {
+    min-height: 108px;
+    display: grid;
+    place-items: center;
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--border-light);
+    background-color: var(--primary-light);
+    background-image: radial-gradient(rgba(15, 23, 42, 0.12) 1.1px, transparent 1.3px);
+    background-size: 22px 22px;
+    background-position: 11px 11px;
+    color: var(--primary-dark);
+    font-size: 1.45rem;
+    overflow-x: auto;
+}
+.targeta-cos {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px 14px;
+}
+.targeta h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+}
+/* Tota la targeta és l'enllaç a la resolució (els xips dels nivells i «Copia l'enllaç» queden a sobre) */
+.targeta-enllac {
+    color: inherit;
+    text-decoration: none;
+}
+.targeta-enllac::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}
+.targeta-enllac:focus-visible {
+    outline: none;
+}
+.targeta:has(.targeta-enllac:focus-visible) {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+.targeta-frase {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.95rem;
+}
+.targeta-nivells {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+}
+.xip-nivell {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 4px;
+    border: 1px solid var(--border-heavy);
+    border-radius: 999px;
+    background: var(--panel-bg);
+    color: var(--text-main);
+    font-size: 13px;
+    text-decoration: none;
+}
+.xip-nivell b {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+.xip-nivell:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: inset 0 0 0 1px var(--primary);
+}
+.targeta-peu {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-light);
+}
+.targeta-mira {
+    font-weight: 600;
+    color: var(--primary);
+}
+.copia {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--border-heavy);
+    border-radius: 8px;
+    background: var(--panel-bg);
+    color: var(--text-soft);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+.copia svg {
+    width: 14px;
+    height: 14px;
+}
+.copia:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+@media (prefers-reduced-motion: reduce) {
+    .targeta,
+    .nivell-boto > svg {
+        transition: none;
+    }
+    .targeta:hover,
+    .targeta:focus-within {
+        transform: none;
+    }
+}

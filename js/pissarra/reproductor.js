@@ -11,7 +11,8 @@
  *   opcionals; per defecte, true menys teclat):
  *     reprodueix  botó per reproduir tots els passos seguits
  *     punts       un punt per pas (es pot clicar per anar-hi)
- *     velocitat   lenta / normal / ràpida
+ *     velocitat   tres botons enganxats: 0,6× (lenta), 1× (normal) i 1,6× (ràpida); el triat porta
+ *                 aria-checked (un grup de ràdio)
  *     teclat      espai = reprodueix (o acaba el pas que s'anima), fletxes ← → i Re Pàg / Av Pàg (un
  *                 comandament de presentacions) = pas anterior o següent
  *                 (per defecte false: dins d'una activitat el teclat és de l'alumne)
@@ -63,13 +64,20 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
             'html': icona(d),
         });
     const id = 'pis-velocitat-' + ++comptador;
+    const VELOCITATS = [
+        ['0.6', '0,6×', 'Lenta'],
+        ['1', '1×', 'Normal'],
+        ['1.6', '1,6×', 'Ràpida'],
+    ];
     const r = {
         reinicia: boto('', 'Torna a començar', ICONES.reinicia),
         anterior: boto('', 'Pas anterior', ICONES.anterior),
         reprodueix: o.reprodueix ? boto('principal', 'Reprodueix', ICONES.reprodueix) : null,
         seguent: boto(o.reprodueix ? '' : 'principal', 'Pas següent', ICONES.seguent),
         punts: o.punts ? element('div', { 'class': 'pis-punts', 'role': 'group', 'aria-label': 'Passos' }) : null,
-        velocitat: o.velocitat ? element('select', { id }) : null,
+        velocitat: o.velocitat
+            ? element('div', { 'class': 'pis-velocitat-tria', 'role': 'radiogroup', 'aria-labelledby': id })
+            : null,
         numPas: element('span', { class: 'pis-num-pas' }),
         // ↺ «Torna-ho a veure»: torna a animar el pas que es veu
         repeteix: element('button', {
@@ -88,21 +96,30 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
     let detall = typeof o.detall === 'function' ? o.detall : null; // (oberts) → passos
     let oberts = new Set();
     if (r.velocitat) {
-        for (const [valor, nom] of [
-            ['0.6', 'lenta'],
-            ['1', 'normal'],
-            ['1.6', 'ràpida'],
-        ]) {
-            r.velocitat.append(element('option', { value: valor, text: nom, selected: valor === '1' ? '' : null }));
+        for (const [valor, text, nom] of VELOCITATS) {
+            const b = element('button', {
+                'type': 'button',
+                'class': 'pis-velocitat-boto',
+                'role': 'radio',
+                'aria-checked': String(valor === '1'),
+                'title': nom,
+                'aria-label': nom,
+                'data-velocitat': valor,
+                'text': text,
+            });
+            b.addEventListener('click', () => {
+                for (const x of r.velocitat.children) x.setAttribute('aria-checked', String(x === b));
+                pissarra.velocitat(parseFloat(valor) || 1);
+            });
+            r.velocitat.append(b);
         }
-        r.velocitat.addEventListener('change', () => pissarra.velocitat(parseFloat(r.velocitat.value) || 1));
     }
     const bloc = element('div', { class: 'pis-controls' }, [
         element('div', { class: 'pis-reproductor' }, [
             element('div', { class: 'pis-botons' }, [r.reinicia, r.anterior, r.reprodueix, r.seguent]),
             r.punts,
             r.velocitat
-                ? element('label', { class: 'pis-velocitat', for: id, text: 'Velocitat ' }, [r.velocitat])
+                ? element('div', { class: 'pis-velocitat' }, [element('span', { id, text: 'Velocitat' }), r.velocitat])
                 : null,
         ]),
     ]);
