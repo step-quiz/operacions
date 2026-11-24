@@ -681,7 +681,7 @@ function solucioLineal(text) {
         ok(
             'obre(): el subpas va dins d’un calaix nou, amb el títol (escapat) i la seva frase',
             s1.files[0].includes(
-                '<div class="pis-calaix pis-calaix-nou"><div class="pis-calaix-titol">Multiplica &lt;a&gt; poc a poc</div>'
+                '<div class="pis-calaix pis-calaix-nou" data-plega="2"><div class="pis-calaix-titol">Multiplica &lt;a&gt; poc a poc</div>'
             ) && s1.files[0].includes('<p class="pis-calaix-nota">El 3, dues vegades.</p>')
         );
         eq('obre(): el subpas és el 2a, fill del 2', `${s1.id}<${s1.pare}`, '2a<2');
@@ -725,9 +725,9 @@ function solucioLineal(text) {
             reparteix: { b: ['s', 't'] },
         });
         eq(
-            'objectiu: el subpas al calaix i la línia del pas, en gris, a sota',
+            'objectiu: el subpas al calaix (la primera fila, amb «plega:» per al botó «Plega») i la línia del pas, en gris, a sota',
             o1.classes.join('|'),
-            '|detall|objectiu|'
+            '|detall plega:2|objectiu|'
         );
         eq('objectiu: la línia en gris ja té les claus de la línia del pas', C.clausDe(o1.files[2]).join(), 'L2kr');
         eq('objectiu: no compta com una línia escrita (estat)', o1.estat.length, 2);
