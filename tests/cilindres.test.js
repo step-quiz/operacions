@@ -12,6 +12,11 @@
  * - 2. Les decisions del David (23/11/2026): el costat és la circumferència; nivell 1 el
  *   full A4 (21 × 30, V₁ ≈ 1 052,8 cm³), nivell 2 altres rectangles; capacitat en mL;
  *   quatre opcions al plegat; la pàgina, el codi CF.
+ * - 3. La «Resolució pas a pas» (js/cilindres/resolucio.js): la bateria comuna
+ *   (tests/pissarra-activitat.js) amb centenars de fulls, tancats i amb el detall del radi:
+ *   cada línia és certa amb un model propi (r = c/2π, A = π·r² i V = A·h, amb 2 decimals en
+ *   cadena com l'alumne; «≈» vol dir a menys de mig centèsim); els costats del full volen
+ *   a la fórmula; volum en cm³ i capacitat en mL; KaTeX; l'activitat hi enllaça.
  * ÚS: node tests/cilindres.test.js
  * ============================================================================
  */
@@ -175,6 +180,175 @@ suite('2. Les decisions del David');
     ok(
         'la figura: el full i els dos cilindres',
         /jp-cf-full/.test(q.svg) && (q.svg.match(/<ellipse/g) || []).length === 2
+    );
+}
+
+suite('3. Resolució pas a pas (resolucio.html?activitat=cilindres): la pissarra');
+{
+    const { provaActivitat } = require('./pissarra-activitat');
+    const p = loadModule(
+        [
+            'js/utils.js',
+            'js/algebra/racionals.js',
+            'js/passos/correccio.js',
+            'js/cilindres/strings.js',
+            'js/cilindres/math-engine.js',
+            'js/pissarra/formules.js',
+            'js/pissarra/comprova.js',
+            'js/cilindres/resolucio.js',
+        ],
+        { seed: 20261124 }
+    );
+    const R = p.ResolucioCF;
+    const dos2 = v => Math.round(v * 100) / 100;
+    /** El model de cada cilindre: r exacte; A amb el radi arrodonit; V amb l'àrea arrodonida. */
+    const model = ex =>
+        ex.dades.cilindres.map(({ c, h }) => {
+            const r = c / (2 * Math.PI);
+            const A = Math.PI * dos2(r) ** 2;
+            return { r, A, V: dos2(A) * h, h };
+        });
+    /** Un membre en text pla («((21)/(2π))», «π*3,34^(2)», «2πr_1»), amb les variables del model. */
+    function avalua(text, vars) {
+        let i = 0;
+        const primari = () => {
+            if (text[i] === '(') {
+                i++;
+                const v = suma();
+                if (text[i] !== ')') throw new Error(`falta «)» a ${text}`);
+                i++;
+                return v;
+            }
+            if (text[i] === 'π') return (i++, Math.PI);
+            const vr = /^([rAVh])_(\d)/.exec(text.slice(i));
+            if (vr) {
+                i += vr[0].length;
+                return vars[Number(vr[2]) - 1][vr[1]];
+            }
+            const m = /^\d+(,\d+)?/.exec(text.slice(i));
+            if (!m) throw new Error(`no s'entén «${text.slice(i)}» a ${text}`);
+            i += m[0].length;
+            return Number(m[0].replace(',', '.'));
+        };
+        const potencia = () => {
+            const b = primari();
+            if (text[i] !== '^') return b;
+            i++;
+            return b ** primari();
+        };
+        const producte = () => {
+            let v = potencia();
+            for (;;) {
+                if (text[i] === '*') v = (i++, v * potencia());
+                else if (text[i] === '/') v = (i++, v / potencia());
+                else if (/[(πrAVh\d]/.test(text[i] || '')) v *= potencia();
+                else return v;
+            }
+        };
+        function suma() {
+            let v = producte();
+            while (text[i] === '+' || text[i] === '-') v = text[i++] === '+' ? v + producte() : v - producte();
+            return v;
+        }
+        const v = suma();
+        if (i !== text.length) throw new Error(`sobra «${text.slice(i)}» a ${text}`);
+        return v;
+    }
+    const PROVA = {
+        '=': (x, y) => Math.abs(x - y) <= 1e-9 * Math.max(1, Math.abs(y)),
+        '≈': (x, y) => Math.abs(x - y) <= 0.0051,
+        '>': (x, y) => x > y,
+    };
+    function veritat(fila, ex) {
+        // sense els textos («Cilindre 1:», «cm», «mL») ni els seus exponents
+        const pla = p.textPla(fila).replace(/«[^»]*»(\^\(\d\))?/g, '');
+        try {
+            const trossos = pla.split(/([=≈>])/);
+            if (trossos[0] === '') trossos.splice(0, 2); // «≈ 1051,50» (la capacitat): res a comparar
+            const vars = model(ex);
+            for (let j = 0; j + 2 < trossos.length; j += 2) {
+                // «2πr_1=21 h_1=30»: dues igualtats seguides sense separador (el «\qquad» no deixa res)
+                const dreta = trossos[j + 2].replace(/(\d)(h_\d)$/, '$1');
+                const [x, y] = [avalua(trossos[j].replace(/^.*\d(?=h_\d$)/, ''), vars), avalua(dreta, vars)];
+                if (!PROVA[trossos[j + 1]](x, y)) return `${pla}: ${x} ${trossos[j + 1]} ${y} no és cert`;
+            }
+            return '';
+        } catch (e) {
+            return `${pla}: ${e.message}`;
+        }
+    }
+    const dolents = { katex: [], plurals: [], vola: [], unitats: [], final: [] };
+    const anota2 = (l, t) => l.length < 5 && l.push(t);
+    const PLURAL = /\b(calculem|fem|tenim|sabem|passem|sumem|dividim|multipliquem|aïllem|enrotllem)\b/i;
+    function* exercicis() {
+        for (const nivell of R.NIVELLS)
+            for (let k = 0; k < (nivell === 1 ? 5 : 300); k++) {
+                const ex = R.exercici(nivell);
+                const on = `nivell ${nivell}, ${ex.dades.a} × ${ex.dades.b}`;
+                const passos = R.passos(ex);
+                const vista = ({ oberts }) => R.passos(ex, { oberts });
+                if (k < 20) {
+                    const tot = vista({ oberts: new Set(passos.filter(x => x.teDetall).map(x => x.id)) });
+                    const formules = new Set();
+                    for (const ps of [...passos, ...tot]) {
+                        ps.files.filter(f => f && !f.startsWith('<svg')).forEach(f => formules.add(f));
+                        for (const m of ps.text.matchAll(/\$([^$]+)\$/g)) formules.add(m[1]);
+                        if (PLURAL.test(ps.text)) anota2(dolents.plurals, `${on}: «${ps.text}»`);
+                    }
+                    for (const f of formules)
+                        if (
+                            /katex-error/.test(
+                                katex.renderToString(f, {
+                                    throwOnError: false,
+                                    strict: 'ignore',
+                                    trust: c => c.command === '\\htmlData',
+                                })
+                            )
+                        )
+                            anota2(dolents.katex, `${on}: ${f}`);
+                }
+                // Els costats del full volen a la fórmula (des dels textos de la figura, amb data-k)
+                const plegats = passos.filter(x => /^Enrotlla el full/.test(x.text));
+                if (
+                    plegats.length !== 2 ||
+                    plegats.some(x => Object.values(x.reanomena || {}).filter(v => /^C\dk[ab]$/.test(v)).length !== 2)
+                )
+                    anota2(dolents.vola, on);
+                // Volum en cm³, capacitat en mL
+                const ultim = passos[passos.length - 1];
+                const plans = ultim.files.filter(f => f && !f.startsWith('<svg')).map(f => p.textPla(f));
+                const vols = plans.filter(f => /^V_\d/.test(f));
+                const caps = plans.filter(f => /Capacitat/.test(f));
+                if (
+                    vols.length !== 2 ||
+                    !vols.every(f => /«cm»\^\(3\)$/.test(f)) ||
+                    caps.length !== 2 ||
+                    !caps.every(f => /«mL»$/.test(f))
+                )
+                    anota2(dolents.unitats, `${on}: ${plans.join(' | ')}`);
+                if (!ultim.classes.some(c => /final/.test(c))) anota2(dolents.final, on);
+                yield { on, passos, vista, files: R.files(ex), dades: ex.dades };
+            }
+    }
+    provaActivitat('cilindres', {
+        exercicis: exercicis(),
+        eines: p,
+        text: true,
+        linies: fila => (fila && !fila.startsWith('<svg') ? [fila] : []),
+        veritat: (fila, ex) => veritat(fila, { dades: ex.dades }),
+        maxPeces: 8,
+        minExercicis: 300,
+    });
+    const llista = l => l.join('\n      → ');
+    ok('KaTeX dibuixa totes les files i les fórmules de les frases', !dolents.katex.length, llista(dolents.katex));
+    ok('les frases són en segona persona', !dolents.plurals.length, llista(dolents.plurals));
+    ok('els dos costats del full volen de la figura a la fórmula', !dolents.vola.length, llista(dolents.vola));
+    ok('el volum en cm³ i la capacitat en mL', !dolents.unitats.length, llista(dolents.unitats));
+    ok('l’última línia és ressaltada', !dolents.final.length, llista(dolents.final));
+    const html = fs.readFileSync(path.join(ROOT, 'js/cilindres/cilindres.js'), 'utf8');
+    ok(
+        'l’activitat hi enllaça («Mira com es resol», amb el nivell)',
+        /resolucio\.html\?activitat=cilindres&nivell=\$\{pregunta\.dades\.nivell\}/.test(html)
     );
 }
 

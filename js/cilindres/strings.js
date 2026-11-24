@@ -13,6 +13,8 @@
 export const TEXTOS_CF = {
     element: 'Full',
     formules: 'Fórmules',
+    /** L'enllaç a la «Resolució pas a pas». */
+    enllac: 'Mira com es resol un full com aquest ↗',
     /** La targeta «Problema»: quins costats s'uneixen per fer cada cilindre. */
     problema: (a, b, cil) => {
         const unint = k => {

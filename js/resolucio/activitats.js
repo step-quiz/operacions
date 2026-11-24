@@ -15,6 +15,7 @@
  *   Fórmules STEAM: els nivells 1–4 de l'activitat (formules-steam.html?nivell=1…4).
  *   Inequacions: només les de primer grau, els nivells 1–4 (inequacions.html?nivell=1…4); el
  *   procediment s'exporta com a ResolucioIQ.
+ *   Cilindres amb un full: nivell 1 el full A4, nivell 2 altres fulls; s'exporta com a ResolucioCF.
  * - Les claus són les de SUPORTA_PISSARRA (js/pissarra/mode.js) i les de «pissarra:
  *   true» a index.html (tests/check-repo.js ho comprova).
  * DEPENDÈNCIES: el procediment de cada activitat (p. ex. js/equacions/resolucio.js).
@@ -80,5 +81,14 @@ export const ACTIVITATS = Object.freeze({
             [4, 'Denominadors'],
         ]),
         carrega: () => import('../inequacions/resolucio.js').then(m => m.ResolucioIQ),
+    }),
+    'cilindres': Object.freeze({
+        nom: 'Cilindres amb un full',
+        pagina: 'cilindres.html',
+        nivells: Object.freeze([
+            [1, 'El full A4'],
+            [2, 'Altres fulls'],
+        ]),
+        carrega: () => import('../cilindres/resolucio.js').then(m => m.ResolucioCF),
     }),
 });

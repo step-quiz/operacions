@@ -497,6 +497,25 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   interval; captions, sign mark, mirrored flip, number line, final row, level-4 first step, the activity link.
   Browser: suite 6 (link with level) and suite 7 (level 4 laptop, level 2 phone, every detail).
 
+## Scenario B for `cilindres` (2026-11-24, PENDING §2b)
+
+- `js/cilindres/resolucio.js`, exported as **`ResolucioCF`** (registry loads `m.ResolucioCF`). Levels: 1 the A4
+  sheet (21 × 30), 2 other sheets, as the activity (`generaPreguntaCF`).
+- Row 0: the activity's figure (`svgCilindres(a, b, cil, claus)`: new `claus` option puts `data-k` on the «a cm» and
+  «b cm» labels). First caption: the problem (context + question). Per cylinder k: folding line «Cilindre k: 2πr_k
+  = c cm   h_k = h cm» (c and h fly from the sheet labels, `@1` for cylinder 1, `@5` for cylinder 2: David's «the
+  side flies to the base circumference», like the Pythagoras demo); radius «r_k = c / 2π ≈ r cm» with the only
+  detail (decided: «Vull més detall» on the radius): divide both members by 2π (`reparteix` 2 and π to both
+  denominators), 2π/2π simplifies, `D.acaba` «Fes la divisió amb la calculadora»; area «A_k = π · r² ≈ A cm²» (r
+  flies); volume «V_k = A · h ≈ V cm³» (A flies, h from `hv@3`). Values: the activity's 2-decimal chain.
+- Then «V_big cm³ > V_small cm³» (the volumes fly; caption: the one rolled along the longer side holds more) and
+  one capacity line per cylinder in mL (David: volume in cm³, capacity in mL), the last `final`.
+- 16 rows with both details open; `maxPeces` 8. Board styles: `css/pissarra.css` `.pis-escenari .jp-cf-*`;
+  cylinder 1 blue (#0369a1) on the board because the board page's theme colour is the purple of cylinder 2.
+- Tests: `tests/cilindres.test.js` suite 3 (shared battery over 305 sheets, every view; a float model with r exact,
+  A = π·round(r)², V = round(A)·h checks every «=», «≈» (≤ 0.0051) and «>»; verified to catch a wrong area or
+  height); browser suites 6 and 7.
+
 ## Known limits
 
 - An SVG element that travels must not be rotated or skewed (its ghost maps the bbox with a uniform scale).
