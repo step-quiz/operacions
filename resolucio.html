@@ -56,7 +56,8 @@
         main {
             max-width: 920px;
             margin: 0 auto;
-            padding: 20px 16px 40px;
+            /* a baix, lloc per al peu fix (dues línies al mòbil) */
+            padding: 20px 16px 110px;
         }
         .barra {
             display: flex;
@@ -99,9 +100,9 @@
            paraula); es passen els passos amb les fletxes, l'espai o un comandament (Re Pàg / Av Pàg) */
         /* Projectar: la capçalera queda (hi ha el botó per sortir), sense el títol */
         body.professor header h1, body.professor #nivells { display: none; }
-        body.professor main { max-width: none; padding: 10px 24px 16px; }
+        body.professor main { max-width: none; padding: 10px 24px 70px; }
         body.professor .barra { margin-bottom: 8px; }
-        body.professor #pissarra .pis-escenari { --pis-escala: 1.8; font-size: 1.8em; max-height: calc(100vh - 175px); }
+        body.professor #pissarra .pis-escenari { --pis-escala: 1.8; font-size: 1.8em; max-height: calc(100vh - 235px); }
         body.professor #pissarra .pis-explicacio-fila { display: none; }
         /* El pas (què es fa) ben visible, entre els nivells i la pissarra, amb «Vull més detall» al costat */
         #pissarra .pis-explicacio-dalt {
@@ -148,6 +149,16 @@
         </div>
         <div id="pissarra"></div>
     </main>
+    <!-- El peu de l'índex (la mateixa informació), fix a baix i sempre visible (el David, 24/11/2026) -->
+    <footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f9fa; border-top: 1px solid #ccc; padding: 10px; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box; text-align: center;">
+      <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" style="flex-shrink: 0;">
+        <img alt="Llicència CC BY-NC-SA" style="border-width:0; height: 31px;" src="https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png" />
+      </a>
+      <span style="font-size: 0.85em; color: #333;">
+        © 2026 <strong>David Arso Civil</strong> · Departament de Matemàtiques, INS Miquel Tarradell.
+        <br style="display: none;" /> Contingut: <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" style="color: #333; text-decoration: underline;">CC BY-NC-SA 4.0</a> · Codi: <a href="https://opensource.org/license/mit" style="color: #333; text-decoration: underline;">MIT</a>.
+      </span>
+    </footer>
     <script type="module" src="js/resolucio/resolucio.js"></script>
 </body>
 </html>

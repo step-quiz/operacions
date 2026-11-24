@@ -506,7 +506,8 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   `dalt: true`, `js/pissarra/reproductor.js`: the row ↺ / «Pas n de m» / caption / «Vull més detall» is prepended to
   the board container); «Vull més detall» not bold, hover = filled purple with a black ring. The play buttons stay
   under the board. Projecting keeps the header (it holds the toggle) and hides the title, levels and the
-  explanation row. `pissarra-demo.html` keeps the old layout (no `dalt`).
+  explanation row. `pissarra-demo.html` keeps the old layout (no `dalt`). Footer: the same fixed footer as
+  `index.html` (copied markup), always visible; `main` keeps 110 px at the bottom for it.
 
 ## Scenario B for `cilindres` (2026-11-24, PENDING §2b)
 
