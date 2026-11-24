@@ -522,6 +522,14 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   flies); volume «V_k = A · h ≈ V cm³» (A flies, h from `hv@3`). Values: the activity's 2-decimal chain.
 - Then «V_big cm³ > V_small cm³» (the volumes fly; caption: the one rolled along the longer side holds more) and
   one capacity line per cylinder in mL (David: volume in cm³, capacity in mL), the last `final`.
+- **David's corrections (2026-11-24)**, which supersede the two items above where they differ: the figure no longer
+  writes «2πr = 21 · h = 30» under each cylinder (also in the activity: it gave the folding answer away); the
+  folding line is only «Cilindre k: 2πr_k = c» (no units, no h); «h_k = h» is a line of its own just before the
+  volume (h flies from the sheet label); before A₁ and V₁ the general formulas A_base = πr² and V = A_base · h (not
+  for cylinder 2); capacities in **litres** (V/1000, all decimals: 1,0515 L and 1,50108 L for A4) and a final line
+  «L_big / L_small ≈ 1,43» with the percentage (the caption says «gairebé la meitat més» only between 40 % and
+  60 %; for A4 it is 43 %, David had guessed «pràcticament un 50 %»); at level 1 the first caption says the sheet
+  is almost a real DIN A4 (21 × 29,7 cm). 21 rows with both details open. The activity still asks capacity in mL.
 - 16 rows with both details open; `maxPeces` 8. Board styles: `css/pissarra.css` `.pis-escenari .jp-cf-*`;
   cylinder 1 blue (#0369a1) on the board because the board page's theme colour is the purple of cylinder 2.
 - Tests: `tests/cilindres.test.js` suite 3 (shared battery over 305 sheets, every view; a float model with r exact,

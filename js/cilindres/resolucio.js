@@ -65,7 +65,8 @@ export const ResolucioCF = (() => {
 
     // ---- LES LÍNIES DE CADA CILINDRE ----
 
-    const liniaPlegat = (k, { c, h }) => ({
+    // Les dades, sense unitats (el David, 24/11/2026): 2πr = 21 al plegat i h = 30 just abans del volum
+    const liniaPlegat = (k, { c }) => ({
         peces: [
             P('T', `\\text{Cilindre ${k}:}\\quad`),
             P('d', '2'),
@@ -73,13 +74,14 @@ export const ResolucioCF = (() => {
             P('r', `r_${k}`),
             rel('q', '='),
             P('c', String(c)),
-            CM('uc'),
-            P('H', `\\qquad h_${k}`),
-            rel('qh', '='),
-            P('hv', String(h)),
-            CM('uh'),
         ],
     });
+    const liniaAltura = (k, { h }) => ({ peces: [P('H', `h_${k}`), rel('q', '='), P('hv', String(h))] });
+    /** Les fórmules generals (només al cilindre 1). */
+    const formulaArea = { peces: [P('A', 'A_{\\text{base}}'), rel('q', '='), P('p', '\\pi'), P('r', 'r^2')] };
+    const formulaVolum = {
+        peces: [P('V', 'V'), rel('q', '='), P('A', 'A_{\\text{base}}'), P('m', '\\cdot', 'op'), P('h', 'h')],
+    };
     const liniaRadi = (k, { c, r }) => ({
         peces: [
             P('r', `r_${k}`),
@@ -146,46 +148,72 @@ export const ResolucioCF = (() => {
 
     // ---- LA PISSARRA ----
 
-    /** Les files de la pissarra: totes les línies, amb el detall dels dos radis obert. */
-    const files = () => 1 + 2 * (4 + 2) + 3;
+    /** Un volum en litres (V cm³ = V/1000 L): 1051,50 → 1,0515 (tots els decimals, sense zeros al final). */
+    const litres = V => texDecimal([Math.round(V * 100), 100000]);
 
-    /** El guió: la figura, els passos de cada cilindre, quin té més volum i les capacitats. */
+    /**
+     * Les files de la pissarra: totes les línies, amb el detall dels dos radis obert. Cilindre 1: plegat, radi (2
+     * subpassos), A = πr², A₁, V = A · h, h₁, V₁; cilindre 2: plegat, radi (2), A₂, h₂, V₂; després, quin té més
+     * volum, les dues capacitats en litres i la comparació.
+     */
+    const files = () => 1 + (7 + 2) + (5 + 2) + 4;
+
+    /** El guió (vegeu files). */
     function passos(ex, { oberts = new Set() } = {}) {
-        const { a } = ex.dades;
+        const { a, b, nivell } = ex.dades;
         const vals = valors(ex);
         const g = guio(files(ex));
         const H = historial(g, { prefix: 'C', pinta: pintador(ex), oberts, objectiu: true });
-        const { context, pregunta } = TEXTOS_CF.problema(ex.dades.a, ex.dades.b, ex.dades.cilindres);
-        H.escriu({ figura: true }, `${context.replace(/\*\*/g, '')} ${pregunta}`);
+        const { context, pregunta } = TEXTOS_CF.problema(a, b, ex.dades.cilindres);
+        // Al nivell 1, que el full és com un DIN A4 de debò (21 × 29,7 cm)
+        const a4 = nivell === 1 ? ' Són gairebé les mides d’un full DIN A4 de debò, que fa 21 cm × 29,7 cm.' : '';
+        H.escriu({ figura: true }, `${context.replace(/\*\*/g, '')}${a4} ${pregunta.replace('en mL', 'en litres')}`);
+        // el text del full amb cada costat: a (el de sota) o b (el del costat)
+        const costat = x => (x === a ? 'a' : 'b');
 
         vals.forEach((v, i) => {
             const k = i + 1;
             const { c, h } = v;
-            // el text del full amb cada costat: a (el de sota) o b (el del costat)
-            const costat = x => (x === a ? 'a' : 'b');
-            const fins = i === 0 ? 1 : 5; // quantes línies amunt és la figura
+            const primer = i === 0;
+            // la figura és 1 línia amunt del primer plegat i 8 del segon; l'altura, 6 i 3 línies després
             H.escriu(
                 liniaPlegat(k, v),
-                `Enrotlla el full unint els costats de ${h} cm: el de ${c} cm fa la volta i és la longitud de la circumferència de la base, $2\\pi r_${k}$; el de ${h} cm queda dret i és l'altura.`,
-                { mou: { c: `${costat(c)}@${fins}`, hv: `${costat(h)}@${fins}` } }
+                `Enrotlla el full unint els costats de ${h} cm: el de ${c} cm fa la volta i és la longitud de la circumferència de la base, $2\\pi r_${k}$.`,
+                { mou: { c: `${costat(c)}@${primer ? 1 : 8}` } }
             );
             H.escriu(
                 liniaRadi(k, v),
                 `Aïlla el radi: divideix ${c} entre $2\\pi$ amb la calculadora i escriu-lo amb 2 decimals.`,
                 { mou: { r: 'r', c: 'c', d: 'd', p: 'p' }, ...detallRadi(k, v) }
             );
-            H.escriu(liniaArea(k, v), `L'àrea de la base és $\\pi r^2$: posa-hi el radi i escriu-la amb 2 decimals.`, {
-                mou: { v: 'v' },
+            if (primer)
+                H.escriu(formulaArea, "L'àrea de la base és la d'un cercle: $A_{\\text{base}} = \\pi r^2$.", {
+                    mou: { p: 'p' },
+                });
+            H.escriu(
+                liniaArea(k, v),
+                `Posa-hi el radi del cilindre ${k} i escriu l'àrea amb 2 decimals.`,
+                primer ? { mou: { p: 'p', v: 'v@2' } } : { mou: { v: 'v' } }
+            );
+            if (primer)
+                H.escriu(
+                    formulaVolum,
+                    "El volum d'un cilindre és l'àrea de la base per l'altura: $V = A_{\\text{base}} \\cdot h$.",
+                    { mou: { A: 'A@2' } }
+                );
+            // l'altura: el costat que queda dret, des del full
+            H.escriu(liniaAltura(k, v), `L'altura és el costat que queda dret: ${h} cm.`, {
+                mou: { hv: `${costat(h)}@${primer ? 6 : 11}` },
             });
-            H.escriu(liniaVolum(k, v), "El volum és l'àrea de la base per l'altura: $V = A_{\\text{base}} \\cdot h$.", {
-                mou: { a: 'w', h: 'hv@3' },
+            H.escriu(liniaVolum(k, v), `Calcula el volum del cilindre ${k}: l'àrea de la base per l'altura.`, {
+                mou: { a: `w@${primer ? 3 : 2}`, h: 'hv' },
             });
         });
 
-        // Quin té més volum: els dos volums hi baixen
+        // Quin té més volum: els dos volums hi baixen (V₂ és a la línia anterior; V₁, 6 més amunt)
         const gran = vals[0].V > vals[1].V ? 0 : 1;
         const petit = 1 - gran;
-        const desDe = j => (j === 1 ? 'w@1' : 'w@5'); // el volum del cilindre 2 és a la línia anterior
+        const desDe = j => (j === 1 ? 'w@1' : 'w@6');
         H.escriu(
             {
                 peces: [
@@ -199,25 +227,39 @@ export const ResolucioCF = (() => {
             `Compara els volums: el cilindre ${gran + 1} té més volum. És el que fa la volta amb el costat més llarg.`,
             { mou: { g: desDe(gran), l: desDe(petit) } }
         );
-        // Les capacitats, en mL: 1 cm³ correspon a 1 mL
+        // Les capacitats, en litres: 1 L = 1 dm³ = 1000 cm³
         vals.forEach((v, i) => {
             const k = i + 1;
-            const font = i === gran ? 'g' : 'l';
             H.escriu(
                 {
                     peces: [
                         P('C', `\\text{Capacitat del cilindre ${k}}`),
                         rel('ap', '\\approx'),
-                        P('w', num(v.V)),
-                        P('u', '\\ \\text{mL}'),
+                        P('w', litres(v.V)),
+                        P('u', '\\ \\text{L}'),
                     ],
                 },
                 k === 1
-                    ? 'El volum es mesura en cm³ i la capacitat, en mL: 1 cm³ correspon a 1 mL, i el nombre és el mateix.'
-                    : "I la capacitat de l'altre cilindre.",
-                { mou: { w: `${font}@${k}` }, final: k === 2 }
+                    ? `La capacitat, en litres: $1\\ \\text{L} = 1\\ \\text{dm}^3 = 1000\\ \\text{cm}^3$. Divideix el volum entre 1000: $${num(v.V)} : 1000 = ${litres(v.V)}$.`
+                    : `I la capacitat de l'altre cilindre: $${num(v.V)} : 1000 = ${litres(v.V)}$.`,
+                { mou: { w: `${i === gran ? 'g' : 'l'}@${k}` } }
             );
         });
+        // Quantes vegades hi cap: el gran entre el petit (la capacitat del cilindre 2 és a la línia anterior)
+        const quoc = vals[gran].V / vals[petit].V;
+        const percent = Math.round((quoc - 1) * 100);
+        const font = j => `w@${j === 1 ? 1 : 2}`;
+        H.escriu(
+            {
+                peces: [
+                    fraccio([P('n', litres(vals[gran].V))], [P('d', litres(vals[petit].V))]),
+                    rel('ap', '\\approx'),
+                    P('x', num(quoc)),
+                ],
+            },
+            `Compara les capacitats: al cilindre ${gran + 1} hi cap ${num(quoc).replace('{,}', ',')} vegades el que hi cap al cilindre ${petit + 1}, és a dir, ${percent >= 40 && percent <= 60 ? `gairebé la meitat més (un ${percent} % més)` : `un ${percent} % més`}, amb el mateix full.`,
+            { mou: { n: font(gran), d: font(petit) }, final: true }
+        );
         return g.passos;
     }
 

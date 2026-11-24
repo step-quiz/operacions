@@ -356,9 +356,6 @@ export function svgCilindres(a, b, cil, claus = {}) {
         parts.push(
             `<text class="jp-cf-text" x="${cx}" y="${top + hh + ry + 18}" text-anchor="middle">${T.nomCilindre(k + 1)}</text>`
         );
-        parts.push(
-            `<text class="jp-cf-petit" x="${cx}" y="${top + hh + ry + 34}" text-anchor="middle">2πr = ${c} · h = ${h}</text>`
-        );
         x = cx + Math.max(r, 46) + 60;
     });
     parts.push('</svg>');
