@@ -176,10 +176,29 @@ function problemaDe(text, dades) {
 /** «la densitat» → «densitat» (a la llegenda, sense l'article). */
 const senseArticle = t => t.replace(/^(el|la|els|les)\s+/i, '').replace(/^l['’]/i, '');
 
-/** Una pregunta nova de la fórmula f aïllant x (o d'un cas del nivell 1-4, si no se'n diu cap). */
-export function generaPreguntaFS(nivell, cas = null) {
+/**
+ * Els casos que pot donar una pregunta: els de la fórmula «formula» (la resolució pas a pas en tria una) o, si
+ * no, els del nivell n i de la matèria «materia» (física, química o tecnologia; cap: totes). Si la matèria no
+ * té cap cas d'aquest nivell (la química no té arrels), els del nivell més proper que en tingui.
+ */
+export function casosFS(n, { materia = null, formula = null } = {}) {
+    if (formula) return CASOS_FS.filter(c => c.f.id === formula);
+    const daMateria = CASOS_FS.filter(c => !materia || c.f.materia === materia);
+    for (let d = 0; d <= 3; d++)
+        for (const k of [n - d, n + d]) {
+            const casos = daMateria.filter(c => c.nivell === k);
+            if (casos.length) return casos;
+        }
+    return daMateria;
+}
+
+/**
+ * Una pregunta nova de la fórmula f aïllant x (cas) o, si no se'n diu cap, d'un cas del nivell 1-4; opcions:
+ * materia (només d'aquesta matèria) o formula (només d'aquesta fórmula, aïllant qualsevol lletra).
+ */
+export function generaPreguntaFS(nivell, cas = null, opcions = {}) {
     const n = [1, 2, 3, 4].includes(nivell) ? nivell : 1;
-    const { f, x } = cas || pick(CASOS_FS.filter(c => c.nivell === n));
+    const { f, x } = cas || pick(casosFS(n, opcions));
     const noms = nomsDe(f);
     const L = texDe(f);
     const ctx = f.aillar[x];
@@ -369,7 +388,14 @@ export function generaPreguntaFS(nivell, cas = null) {
         text: `${f.nom}: aïllar ${x}`,
         clau: `${f.id}|${x}|${ks.map(fmt).join(',')}`,
         passos,
-        dades: { formula: f.id, incognita: x, valors, nivell: nivellDe(f, x), context: textProblema },
+        dades: {
+            formula: f.id,
+            materia: f.materia,
+            incognita: x,
+            valors,
+            nivell: nivellDe(f, x),
+            context: textProblema,
+        },
     };
 }
 

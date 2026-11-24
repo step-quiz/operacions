@@ -9,7 +9,9 @@
  * ARQUITECTURA:
  * - Mòdul PUR (sense DOM): passos(ex, { oberts }) torna la llista de passos de la
  *   pissarra (js/pissarra/formules.js guio i historial, en TeX, una línia per fila);
- *   exercici(nivell) en genera un amb el mateix motor que l'activitat
+ *   exercici(formula) en genera un amb el mateix motor que l'activitat; NIVELLS són les
+ *   fórmules per matèries ([clau, nom, matèria]: a resolucio.html es tria la matèria i després
+ *   la fórmula, el David 24/11/2026), i exercici(formula) aïlla qualsevol lletra seva
  *   (math-engine.js generaPreguntaFS: la fórmula, la lletra i les dades).
  * - L'ordre és el de l'activitat (decisions del David del 17/11/2026: sempre un
  *   context, primer amb nombres i després les mateixes operacions amb lletres):
@@ -43,7 +45,7 @@
 import { clau, guio, historial } from '../pissarra/formules.js';
 import { texDecimal, textDecimal } from '../algebra/racionals.js';
 import { aillaPassos, esMeitat, llegeixEquacio, substitueixEq, tex, texEq } from './algebra.js';
-import { FORMULES, nomsDe, texDe } from './cataleg.js';
+import { FORMULES, MATERIES, nomsDe, texDe } from './cataleg.js';
 import { CASOS_FS, generaPreguntaFS } from './math-engine.js';
 
 export const Resolucio = (() => {
@@ -727,10 +729,21 @@ export const Resolucio = (() => {
     }
 
     /** Un exercici nou del nivell (1–4, com l'activitat), o del cas { f, x } que es digui. */
+    /**
+     * Un exercici nou. A resolucio.html, «nivell» és la clau d'una fórmula (NIVELLS: la matèria i després la
+     * fórmula, el David 24/11/2026): surt aquella fórmula, aïllant qualsevol de les seves lletres. Un nombre de
+     * l'1 al 4 encara dona un cas d'aquell nivell de dificultat (els tests), i cas, aquell cas exacte.
+     */
     function exercici(nivell, cas = null) {
-        const { dades } = generaPreguntaFS(nivell, cas);
+        const formula = typeof nivell === 'string' ? nivell : null;
+        const { dades } = generaPreguntaFS(formula ? 1 : nivell, cas, { formula });
         return { nivell: dades.nivell, formula: dades.formula, x: dades.incognita, valors: dades.valors };
     }
 
-    return Object.freeze({ NIVELLS: [1, 2, 3, 4], CASOS: CASOS_FS, exercici, passos, files, etapes, pinta });
+    /** Les fórmules, per matèries (les de MATERIES, en aquest ordre): [clau, nom, matèria]. */
+    const NIVELLS = Object.freeze(
+        MATERIES.flatMap(([m]) => FORMULES.filter(f => f.materia === m).map(f => Object.freeze([f.id, f.nom, m])))
+    );
+
+    return Object.freeze({ NIVELLS, CASOS: CASOS_FS, exercici, passos, files, etapes, pinta });
 })();

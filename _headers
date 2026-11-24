@@ -1,0 +1,20 @@
+# Capçaleres de Cloudflare Pages (https://developers.cloudflare.com/pages/configuration/headers/).
+#
+# Memòria cau: el navegador pot guardar els fitxers, però abans de fer-los servir ha de preguntar
+# al servidor si han canviat (no-cache). Si no han canviat, el servidor respon «304» i no torna a
+# enviar res, així que és ràpid; si han canviat, el navegador rep la versió nova. Així, després de
+# cada publicació, ningú no queda amb una barreja de fitxers vells i nous (p. ex. un resolucio.html
+# nou amb un js/resolucio/resolucio.js vell), que és el que feia que una pàgina no carregués bé
+# fins que s'obria en una finestra d'incògnit (el David, 24/11/2026).
+#
+# Les biblioteques de vendor/ porten la versió al nom de la carpeta (katex-0.16.11) i no canvien
+# mai: aquestes sí que es poden guardar un any sense preguntar.
+
+/*
+  Cache-Control: no-cache
+
+# (Si dues regles coincideixen, Cloudflare ajunta les capçaleres: «! Cache-Control» treu la de la
+# regla de dalt abans de posar-hi la pròpia.)
+/vendor/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable

@@ -568,14 +568,21 @@ function engegaServidor() {
                 'resolucio.html?activitat=fraccions&nivell=4'
             );
             await f.close();
-            // Fórmules STEAM: «Mira com es resol» porta a la resolució del nivell de la fórmula que toca
+            // Fórmules STEAM: «Mira com es resol» porta a la resolució de la mateixa fórmula; amb ?materia=quimica,
+            // totes les fórmules són de química
             const s = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
-            await s.goto(BASE + '/formules-steam.html?totaloperations=3&nivell=2');
+            await s.goto(BASE + '/formules-steam.html?totaloperations=3&nivell=2&materia=quimica');
             await s.waitForSelector('#jp-joc .jp-enllac');
-            eq(
-                'fórmules STEAM del nivell 2 → «Mira com es resol» del nivell 2',
-                await s.getAttribute('#jp-joc .jp-enllac', 'href'),
-                'resolucio.html?activitat=formules-steam&nivell=2'
+            const hrefSteam = await s.getAttribute('#jp-joc .jp-enllac', 'href');
+            const quimiques = await s.evaluate(() =>
+                import('/js/formules-steam/cataleg.js').then(m =>
+                    m.FORMULES.filter(f => f.materia === 'quimica').map(f => f.id)
+                )
+            );
+            const fSteam = (/^resolucio\.html\?activitat=formules-steam&nivell=([a-z]+)$/.exec(hrefSteam) || [])[1];
+            ok(
+                `fórmules STEAM de química → «Mira com es resol» de la mateixa fórmula, de química (${hrefSteam})`,
+                quimiques.includes(fSteam)
             );
             await s.close();
             // Inequacions: «Mira com es resol» porta a la resolució del mateix nivell
@@ -620,8 +627,8 @@ function engegaServidor() {
                 ['prioritat', 'portàtil', { width: 1366, height: 768 }],
                 ['prioritat', 'mòbil', { width: 375, height: 740 }],
                 // Fórmules STEAM: el nivell 4 (les pissarres més llargues); encara sense detall a demanda
-                ['formules-steam', 'portàtil', { width: 1366, height: 768 }, 4],
-                ['formules-steam', 'mòbil', { width: 375, height: 740 }, 4],
+                ['formules-steam', 'portàtil', { width: 1366, height: 768 }, 'posicio'],
+                ['formules-steam', 'mòbil', { width: 375, height: 740 }, 'boyle'],
                 // Inequacions de primer grau: el nivell 4 (denominadors) i el 2 (dividir per un negatiu)
                 ['inequacions', 'portàtil', { width: 1366, height: 768 }, 4],
                 ['inequacions', 'mòbil', { width: 375, height: 740 }, 2],
@@ -651,33 +658,50 @@ function engegaServidor() {
                     return getComputedStyle(f).position === 'fixed' && r.bottom <= innerHeight && r.top > 0;
                 });
                 ok(`${nom}: el peu flotant es veu`, peu);
-                // Nivell (el desplegable), «Un altre exercici» i «Ara fes-ho tu»
+                // Nivell (el desplegable), «Un altre exercici» i «Ara fes-ho tu». Els nivells que es veuen: els de
+                // l'activitat o, amb grups (Fórmules STEAM), les fórmules de la matèria triada
+                const visibles = () =>
+                    p.$$eval('#nivells [role="option"]:not([hidden])', os =>
+                        os.map(o => [o.dataset.nivell, o.textContent.trim()])
+                    );
+                // El que ha de fer el registre: quants nivells es veuen i on porta «Ara fes-ho tu»
+                const registre = (v, quants) =>
+                    p.evaluate(
+                        async ([a, v, quants]) => {
+                            const reg = (await import('/js/resolucio/activitats.js')).ACTIVITATS[a];
+                            const grup = (document.querySelector('.grup[aria-checked="true"]') || {}).dataset;
+                            const g = grup ? grup.grup : undefined;
+                            const n = reg.nivells
+                                ? reg.nivells.length
+                                : (await reg.carrega()).NIVELLS.filter(x => x[2] === g).length;
+                            if (quants) return n;
+                            return reg.enllac
+                                ? reg.enllac(reg.nivells ? Number(v) : v, g)
+                                : `${reg.pagina}?nivell=${v}`;
+                        },
+                        [act, v, quants]
+                    );
                 await p.click('#nivell-boto');
                 ok(`${nom}: el desplegable del nivell s'obre`, await p.isVisible('#nivells'));
-                eq(
-                    `${nom}: el desplegable té tots els nivells`,
-                    await p.$$eval('#nivells [role="option"]', os => os.length),
-                    await p.evaluate(
-                        a => import('/js/resolucio/activitats.js').then(m => m.ACTIVITATS[a].nivells.length),
-                        act
-                    )
-                );
+                const vs = await visibles();
+                eq(`${nom}: el desplegable té tots els nivells (del grup)`, vs.length, await registre(null, true));
                 eq(
                     `${nom}: la fletxa de la capçalera torna al portal`,
                     await p.getAttribute('#torna', 'href'),
                     'resolucio.html'
                 );
-                await p.click('#nivells [data-nivell="1"]');
+                const [[v1, nom1], [v2]] = vs;
+                await p.click(`#nivells [data-nivell="${v1}"]`);
                 await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
                 eq(
                     `${nom}: el nivell queda a l'adreça`,
                     await p.evaluate(() => location.search),
-                    `?activitat=${act}&nivell=1`
+                    `?activitat=${act}&nivell=${v1}`
                 );
                 eq(
-                    `${nom}: «Ara fes-ho tu» porta a l'activitat, amb el nivell`,
+                    `${nom}: «Ara fes-ho tu» porta a l'activitat, amb el nivell (o la matèria)`,
                     await p.getAttribute('#fes-ho-tu', 'href'),
-                    `${act}.html?nivell=1`
+                    await registre(v1)
                 );
                 eq(
                     `${nom}: un exercici nou comença pel primer pas`,
@@ -685,7 +709,11 @@ function engegaServidor() {
                     0
                 );
                 ok(`${nom}: en triar, el desplegable es tanca`, !(await p.isVisible('#nivells')));
-                eq(`${nom}: el botó diu el nivell triat`, (await p.textContent('#nivell-num')).trim(), '1');
+                eq(
+                    `${nom}: el botó diu el nivell triat`,
+                    (await p.textContent('#nivell-nom')).trim(),
+                    nom1.replace(/^\d+/, '')
+                );
                 await p.click('#un-altre');
                 eq(`${nom}: «Un altre exercici» també`, await p.evaluate(() => window.resolucio.pissarra.pas), 0);
                 // El nivell amb el teclat: ↓ obre, ↓ baixa, Retorn tria
@@ -695,13 +723,36 @@ function engegaServidor() {
                 await p.keyboard.press('Enter');
                 await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
                 eq(
-                    `${nom}: amb el teclat (↓ ↓ Retorn) es tria el nivell 2, i les fletxes no passen cap pas`,
+                    `${nom}: amb el teclat (↓ ↓ Retorn) es tria el segon nivell, i les fletxes no passen cap pas`,
                     [
                         await p.evaluate(() => location.search),
                         await p.evaluate(() => window.resolucio.pissarra.pas),
                     ].join(' '),
-                    `?activitat=${act}&nivell=2 0`
+                    `?activitat=${act}&nivell=${v2} 0`
                 );
+                // Fórmules STEAM: primer la matèria (els botons) i després la fórmula
+                if (act === 'formules-steam') {
+                    eq(`${nom}: hi ha els botons de les tres matèries`, await p.$$eval('.grup', bs => bs.length), 3);
+                    await p.click('.grup[data-grup="quimica"]');
+                    await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
+                    const fq = new URLSearchParams(await p.evaluate(() => location.search)).get('nivell');
+                    const quimiques = await p.evaluate(() =>
+                        import('/js/formules-steam/cataleg.js').then(m =>
+                            m.FORMULES.filter(f => f.materia === 'quimica').map(f => f.id)
+                        )
+                    );
+                    ok(
+                        `${nom}: «Química» posa una fórmula de química (${fq}) i només en mostra de química`,
+                        quimiques.includes(fq) &&
+                            (await visibles()).every(([v]) => quimiques.includes(v)) &&
+                            (await p.getAttribute('.grup[data-grup="quimica"]', 'aria-checked')) === 'true'
+                    );
+                    eq(
+                        `${nom}: «Ara fes-ho tu» porta a les fórmules de química`,
+                        await p.getAttribute('#fes-ho-tu', 'href'),
+                        'formules-steam.html?materia=quimica'
+                    );
+                }
                 ok(`${nom}: cap error a la consola`, !errors.length, errors.join('\n      → '));
                 await p.close();
             }
@@ -753,6 +804,10 @@ function engegaServidor() {
                 'resolucio.html?activitat=equacions&nivell=2'
             );
             eq('al portal, la fletxa torna a l’índex', await p.getAttribute('#torna', 'href'), 'index.html');
+            ok(
+                'a la targeta de Fórmules STEAM, un xip per matèria (Física, Química, Tecnologia)',
+                await p.isVisible('a.xip-nivell[href="resolucio.html?activitat=formules-steam&grup=quimica"]')
+            );
             ok(
                 'sense activitat, la pàgina diu quines en tenen',
                 (await p.isVisible('a[href="resolucio.html?activitat=equacions"]')) &&

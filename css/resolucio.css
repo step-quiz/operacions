@@ -325,6 +325,39 @@ body.activitat {
     align-items: center;
     gap: 10px;
 }
+/* Els grups (les matèries de Fórmules STEAM): tres botons enganxats, el triat ple del color del tema */
+.grups {
+    flex: 1 1 100%;
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--border-heavy);
+    border-radius: 999px;
+    background: var(--panel-bg);
+    max-width: 440px;
+}
+.grup {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--text-soft);
+    font: inherit;
+    font-size: 15px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.grup:hover:not([aria-checked='true']) {
+    background: var(--primary-light);
+    color: var(--text-main);
+}
+.grup[aria-checked='true'] {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+}
 .nivell {
     position: relative;
     flex: 1 1 150px;
@@ -402,7 +435,7 @@ body.activitat {
     position: absolute;
     z-index: 20;
     left: 0;
-    right: 0;
+    min-width: max(100%, 250px);
     top: calc(100% + 5px);
     max-height: min(330px, 60vh);
     overflow-y: auto;
