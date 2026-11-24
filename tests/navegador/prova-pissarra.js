@@ -50,6 +50,12 @@ try {
 
 const PORT = 8700 + Math.floor(Math.random() * 200);
 const BASE = `http://localhost:${PORT}`;
+/**
+ * Un error de la consola que compta: no ho és un recurs de fora que no carrega (la icona de la llicència del peu,
+ * de licensebuttons.net, quan les proves no tenen internet).
+ */
+const errorPropi = m =>
+    m.type() === 'error' && !(/^Failed to load resource/.test(m.text()) && !(m.location().url || '').startsWith(BASE));
 
 // ── Respostes calculades a partir del que es veu a la pàgina (sense fer servir el codi de les activitats) ──
 
@@ -394,7 +400,7 @@ function engegaServidor() {
             suite(`1-2. Les demos pas a pas, a mida de ${nom}`);
             const pagina = await navegador.newPage({ viewport });
             const errors = [];
-            pagina.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            pagina.on('console', m => errorPropi(m) && errors.push(m.text()));
             pagina.on('pageerror', e => errors.push(String(e)));
             await pagina.goto(BASE + '/pissarra-demo.html');
             await pagina.waitForFunction(() => window.demoPissarra);
@@ -660,7 +666,7 @@ function engegaServidor() {
                 const p = await navegador.newPage({ viewport });
                 const errors = [];
                 p.on('pageerror', e => errors.push(String(e)));
-                p.on('console', m => m.type() === 'error' && errors.push(m.text()));
+                p.on('console', m => errorPropi(m) && errors.push(m.text()));
                 await p.goto(`${BASE}/resolucio.html?activitat=${act}&nivell=${nivellInicial}`);
                 await p.waitForFunction(() => window.resolucio);
                 const r = await p.evaluate(RECORRE_DEMO, 'resolucio');
@@ -713,7 +719,7 @@ function engegaServidor() {
         {
             const p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             const errors = [];
-            p.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            p.on('console', m => errorPropi(m) && errors.push(m.text()));
             p.on('pageerror', e => errors.push(String(e)));
             await p.goto(BASE + '/pissarra-demo.html?demo=equacio');
             await p.waitForFunction(() => window.demoPissarra);
@@ -903,7 +909,7 @@ function engegaServidor() {
             const p = await navegador.newPage({ viewport: { width: 1280, height: 800 } });
             const errors = [];
             p.on('pageerror', e => errors.push(String(e)));
-            p.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            p.on('console', m => errorPropi(m) && errors.push(m.text()));
             await p.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
             await p.waitForFunction(() => window.resolucio);
             const lliure = () => p.waitForFunction(() => !window.resolucio.pissarra.ocupat, null, { timeout: 8000 });
