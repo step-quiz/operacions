@@ -9,8 +9,8 @@
  *   (refaPassos, com el joc de passos amb enEncertar): cap resposta ben feta no es rebutja;
  *   el volum de l'alumne queda a prop del model propi (V = c²·h / 4π); la comparació és
  *   la del model; cada distractor es diagnostica amb el seu codi; KaTeX dibuixa tot.
- * - 2. Les decisions del David (23/11/2026): el costat és la circumferència; nivell 1 el
- *   full A4 (21 × 30, V₁ ≈ 1 052,8 cm³), nivell 2 altres rectangles; capacitat en mL;
+ * - 2. Les decisions del David (23 i 24/11/2026): el costat és la circumferència; nivell 1 el
+ *   full DIN A4 de debò (21 × 29,7, V₁ ≈ 1 042,3 cm³), nivell 2 altres rectangles; capacitat en mL;
  *   quatre opcions al plegat; la pàgina, el codi CF.
  * - 3. La «Resolució pas a pas» (js/cilindres/resolucio.js): la bateria comuna
  *   (tests/pissarra-activitat.js) amb centenars de fulls, tancats i amb el detall del radi:
@@ -136,15 +136,15 @@ suite('1. Centenars de fulls, amb tres alumnes (correcció amb arrossegament)');
 suite('2. Les decisions del David');
 {
     const q = generaPreguntaCF(1);
-    eq('nivell 1: el full A4, 21 × 30', `${q.dades.a} × ${q.dades.b}`, '21 × 30');
+    eq('nivell 1: el full DIN A4 de debò, 21 × 29,7', `${q.dades.a} × ${q.dades.b}`, '21 × 29.7');
     const [c1, c2] = q.dades.cilindres;
     ok(
-        'al full A4, el cilindre 1 fa la volta amb 21 cm i té 30 cm d’altura (l’enunciat del David)',
-        c1.c === 21 && c1.h === 30 && c2.c === 30 && c2.h === 21
+        'al full A4, el cilindre 1 fa la volta amb 21 cm i té 29,7 cm d’altura',
+        c1.c === 21 && c1.h === 29.7 && c2.c === 29.7 && c2.h === 21
     );
     ok(
-        `V₁ ≈ 1052,8 cm³ i V₂ ≈ 1504,0 cm³ (model: ${model(c1).toFixed(1)} i ${model(c2).toFixed(1)})`,
-        Math.abs(model(c1) - 1052.8) < 0.1 && Math.abs(model(c2) - 1504.0) < 0.1
+        `V₁ ≈ 1042,3 cm³ i V₂ ≈ 1474,1 cm³ (model: ${model(c1).toFixed(1)} i ${model(c2).toFixed(1)})`,
+        Math.abs(model(c1) - 1042.3) < 0.1 && Math.abs(model(c2) - 1474.1) < 0.1
     );
     const radi = q.passos.find(p => p.id === 'radi1');
     ok(

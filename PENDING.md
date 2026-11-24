@@ -48,7 +48,7 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
   (V₂/V₁ = 30/21: the wider cylinder always holds more). David first wrote «diàmetre»; the agent pointed out
   that rolling makes the side the circumference and he chose that model.
 - **Both an activity (scenario A) and a «Resolució pas a pas» board (scenario B)**, like Fórmules STEAM.
-- **Sizes:** the first exercise is the A4 sheet 21 × 30; the following ones, other rectangles.
+- **Sizes:** the first exercise is the A4 sheet (since 2026-11-24 the real DIN A4, 21 × 29,7: with 21 × 30 the litres were 1,0515 and 1,50108, too many 5s, David); the following ones, other rectangles.
 - **What is asked at the end:** which cylinder has more volume; both volumes with decimals; and the volumes as
   capacities in **mL**. David's words: «atenció, el Volum es mesura en cm³; la Capacitat es mesura en mL»
   (1 cm³ = 1 mL: the step must say «volum … cm³» and «capacitat … mL», never mix them).

@@ -512,7 +512,7 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 ## Scenario B for `cilindres` (2026-11-24, PENDING §2b)
 
 - `js/cilindres/resolucio.js`, exported as **`ResolucioCF`** (registry loads `m.ResolucioCF`). Levels: 1 the A4
-  sheet (21 × 30), 2 other sheets, as the activity (`generaPreguntaCF`).
+  sheet (21 × 29,7 since 2026-11-24; it was 21 × 30), 2 other sheets, as the activity (`generaPreguntaCF`).
 - Row 0: the activity's figure (`svgCilindres(a, b, cil, claus)`: new `claus` option puts `data-k` on the «a cm» and
   «b cm» labels). First caption: the problem (context + question). Per cylinder k: folding line «Cilindre k: 2πr_k
   = c cm   h_k = h cm» (c and h fly from the sheet labels, `@1` for cylinder 1, `@5` for cylinder 2: David's «the
@@ -526,10 +526,13 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   writes «2πr = 21 · h = 30» under each cylinder (also in the activity: it gave the folding answer away); the
   folding line is only «Cilindre k: 2πr_k = c» (no units, no h); «h_k = h» is a line of its own just before the
   volume (h flies from the sheet label); before A₁ and V₁ the general formulas A_base = πr² and V = A_base · h (not
-  for cylinder 2); capacities in **litres** (V/1000, all decimals: 1,0515 L and 1,50108 L for A4) and a final line
+  for cylinder 2); capacities in **litres** (V/1000, all decimals: 1,04098 L and 1,47609 L for the real A4) and a final line
   «L_big / L_small ≈ 1,43» with the percentage (the caption says «gairebé la meitat més» only between 40 % and
-  60 %; for A4 it is 43 %, David had guessed «pràcticament un 50 %»); at level 1 the first caption says the sheet
-  is almost a real DIN A4 (21 × 29,7 cm). 21 rows with both details open. The activity still asks capacity in mL.
+  60 %; for A4 it is 42 %, David had guessed «pràcticament un 50 %»); at level 1 the first caption says it is a
+  DIN A4. Then (same day) level 1 became the **real DIN A4, 21 × 29,7** (activity and board): with 21 × 30 the
+  results had too many 5s (1,0515 L vs 1,50108 L) and could be confused; sizes with a decimal are written with a
+  comma (`textCm`, `texCm` in `strings.js`). David chose not to mention √2 (the ratio of the capacities equals the
+  ratio of the sides, 29,7/21 ≈ √2). 21 rows with both details open. The activity still asks capacity in mL.
 - 16 rows with both details open; `maxPeces` 8. Board styles: `css/pissarra.css` `.pis-escenari .jp-cf-*`;
   cylinder 1 blue (#0369a1) on the board because the board page's theme colour is the purple of cylinder 2.
 - Tests: `tests/cilindres.test.js` suite 3 (shared battery over 305 sheets, every view; a float model with r exact,

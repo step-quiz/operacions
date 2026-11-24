@@ -26,7 +26,7 @@
 import { clau, guio, historial } from '../pissarra/formules.js';
 import { texDecimal } from '../algebra/racionals.js';
 import { generaPreguntaCF, svgCilindres } from './math-engine.js';
-import { TEXTOS_CF } from './strings.js';
+import { TEXTOS_CF, texCm, textCm } from './strings.js';
 
 export const ResolucioCF = (() => {
     const dos = v => Math.round(v * 100) / 100;
@@ -73,10 +73,10 @@ export const ResolucioCF = (() => {
             P('p', '\\pi'),
             P('r', `r_${k}`),
             rel('q', '='),
-            P('c', String(c)),
+            P('c', texCm(c)),
         ],
     });
-    const liniaAltura = (k, { h }) => ({ peces: [P('H', `h_${k}`), rel('q', '='), P('hv', String(h))] });
+    const liniaAltura = (k, { h }) => ({ peces: [P('H', `h_${k}`), rel('q', '='), P('hv', texCm(h))] });
     /** Les fórmules generals (només al cilindre 1). */
     const formulaArea = { peces: [P('A', 'A_{\\text{base}}'), rel('q', '='), P('p', '\\pi'), P('r', 'r^2')] };
     const formulaVolum = {
@@ -86,7 +86,7 @@ export const ResolucioCF = (() => {
         peces: [
             P('r', `r_${k}`),
             rel('q', '='),
-            fraccio([P('c', String(c))], [P('d', '2'), P('p', '\\pi')]),
+            fraccio([P('c', texCm(c))], [P('d', '2'), P('p', '\\pi')]),
             rel('ap', '\\approx'),
             P('v', num(r)),
             CM('u'),
@@ -110,7 +110,7 @@ export const ResolucioCF = (() => {
             rel('q', '='),
             P('a', num(A)),
             P('m', '\\cdot', 'op'),
-            P('h', String(h)),
+            P('h', texCm(h)),
             rel('ap', '\\approx'),
             P('w', num(V)),
             CM('u', 3),
@@ -123,11 +123,11 @@ export const ResolucioCF = (() => {
             peces: [
                 fraccio([P('d', '2'), P('p', '\\pi'), P('r', `r_${k}`)], [P('d2', '2'), P('p2', '\\pi')]),
                 rel('q', '='),
-                fraccio([P('c', String(c))], [P('d3', '2'), P('p3', '\\pi')]),
+                fraccio([P('c', texCm(c))], [P('d3', '2'), P('p3', '\\pi')]),
             ],
         };
         const simplificada = {
-            peces: [P('r', `r_${k}`), rel('q', '='), fraccio([P('c', String(c))], [P('d3', '2'), P('p3', '\\pi')])],
+            peces: [P('r', `r_${k}`), rel('q', '='), fraccio([P('c', texCm(c))], [P('d3', '2'), P('p3', '\\pi')])],
         };
         return {
             titol: 'Detall: aïllar el radi',
@@ -139,7 +139,7 @@ export const ResolucioCF = (() => {
                 D.escriu(simplificada, `A l'esquerra, 2π entre 2π és 1: queda r${k} sol.`, {
                     mou: { r: 'r', q: 'q', c: 'c', d3: 'd3', p3: 'p3' },
                 });
-                D.acaba(`Fes la divisió amb la calculadora: $${c} : (2\\pi) \\approx ${num(r)}$.`, {
+                D.acaba(`Fes la divisió amb la calculadora: $${texCm(c)} : (2\\pi) \\approx ${num(r)}$.`, {
                     mou: { r: 'r', q: 'q', c: 'c', d: 'd3', p: 'p3' },
                 });
             },
@@ -165,8 +165,8 @@ export const ResolucioCF = (() => {
         const g = guio(files(ex));
         const H = historial(g, { prefix: 'C', pinta: pintador(ex), oberts, objectiu: true });
         const { context, pregunta } = TEXTOS_CF.problema(a, b, ex.dades.cilindres);
-        // Al nivell 1, que el full és com un DIN A4 de debò (21 × 29,7 cm)
-        const a4 = nivell === 1 ? ' Són gairebé les mides d’un full DIN A4 de debò, que fa 21 cm × 29,7 cm.' : '';
+        // Al nivell 1, que el full és un DIN A4 (21 × 29,7 cm)
+        const a4 = nivell === 1 ? ' És un full DIN A4, el de la impressora.' : '';
         H.escriu({ figura: true }, `${context.replace(/\*\*/g, '')}${a4} ${pregunta.replace('en mL', 'en litres')}`);
         // el text del full amb cada costat: a (el de sota) o b (el del costat)
         const costat = x => (x === a ? 'a' : 'b');
@@ -178,12 +178,12 @@ export const ResolucioCF = (() => {
             // la figura és 1 línia amunt del primer plegat i 8 del segon; l'altura, 6 i 3 línies després
             H.escriu(
                 liniaPlegat(k, v),
-                `Enrotlla el full unint els costats de ${h} cm: el de ${c} cm fa la volta i és la longitud de la circumferència de la base, $2\\pi r_${k}$.`,
+                `Enrotlla el full unint els costats de ${textCm(h)} cm: el de ${textCm(c)} cm fa la volta i és la longitud de la circumferència de la base, $2\\pi r_${k}$.`,
                 { mou: { c: `${costat(c)}@${primer ? 1 : 8}` } }
             );
             H.escriu(
                 liniaRadi(k, v),
-                `Aïlla el radi: divideix ${c} entre $2\\pi$ amb la calculadora i escriu-lo amb 2 decimals.`,
+                `Aïlla el radi: divideix ${textCm(c)} entre $2\\pi$ amb la calculadora i escriu-lo amb 2 decimals.`,
                 { mou: { r: 'r', c: 'c', d: 'd', p: 'p' }, ...detallRadi(k, v) }
             );
             if (primer)
@@ -202,7 +202,7 @@ export const ResolucioCF = (() => {
                     { mou: { A: 'A@2' } }
                 );
             // l'altura: el costat que queda dret, des del full
-            H.escriu(liniaAltura(k, v), `L'altura és el costat que queda dret: ${h} cm.`, {
+            H.escriu(liniaAltura(k, v), `L'altura és el costat que queda dret: ${textCm(h)} cm.`, {
                 mou: { hv: `${costat(h)}@${primer ? 6 : 11}` },
             });
             H.escriu(liniaVolum(k, v), `Calcula el volum del cilindre ${k}: l'àrea de la base per l'altura.`, {
