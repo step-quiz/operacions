@@ -36,7 +36,7 @@ built» in `docs/activitats/STATE.md` (theme class, CSS chain, index entry, `js/
 | ~~#16 Fórmules STEAM~~ | ~~Board stage 2: «Vull més detall»~~ | **DONE 2026-11-22** (decision 22, `docs/pissarra/STATE.md`). |
 | #16 Fórmules STEAM | **P2**: the board's flying animation inside the activity (instead of only colouring what moves) | David: «més endavant». Needs an exception to decision 14 (activity and board are independent); ask first. |
 | #16 Fórmules STEAM | **E1**: real student errors to add to the error taxonomy | Waiting for David to send cases from class. |
-| #17 Inequacions | **U2**: the «Resolució pas a pas» board for first-degree inequalities (with the number line drawn at the end) | **Designed 2026-11-22** (decision 22, C1–C7, `docs/pissarra/STATE.md`); next delivery, after David tries the FS detail. |
+| ~~#17 Inequacions~~ | ~~**U2**: the «Resolució pas a pas» board for first-degree inequalities~~ | **DONE 2026-11-23** (`resolucio.html?activitat=inequacions`, `js/inequacions/resolucio.js`; `docs/pissarra/STATE.md` «Scenario B for `inequacions`»). Waiting for David to try it. |
 | #17 Inequacions | U4 listed «llegir 5 > x com x > 5»: the flip is automatic (P4), so the student never types it | Nothing to do unless David wants that step back. |
 
 ## 2b. «Cilindres amb un full» (David, 2026-11-23) — ACTIVITY BUILT 2026-11-23; BOARD PENDING
@@ -83,7 +83,7 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
 ## 5. Decisions owed by David (summary)
 
 1. Roadmap 18–22: all done (2026-11-22); new deliveries only if David proposes them.
-2. After trying them in class: go for the Fórmules STEAM board detail (§2) and the Inequacions board (§2).
+2. Try the Inequacions board (§2, built 2026-11-23) and the «Cilindres amb un full» activity (§2b); then the cylinders board.
 3. Whether to make the exception for P2 (animation inside Fórmules STEAM).
 4. Real student error cases for Fórmules STEAM (E1).
 5. When to resume the «Resolució pas a pas» stages 4 and 6 and the fading pilots (§3, §4).

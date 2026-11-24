@@ -27,7 +27,7 @@ https://claude.ai/artifact/TpqHeTWA7N9HrBMpeNCx6s, holds David's answers of 14/1
 | 14 | Operacions combinades amb enters (E2), inside `prioritat` | `prioritat.html?nombres=enters`; `js/prioritat/` (engine, strings, renderer, board), `resolucio.html` levels 6–8 | DONE (2026-11-16) |
 | 15 | Potències: reptes 4 i 5 (E4) | `potencies.html` (menu cards 4 and 5); `js/potencies/reptes-nous.js` | DONE (2026-11-17) |
 | 16 | Fórmules STEAM (E11) | `formules-steam.html` (no code); `js/formules-steam/`; board `js/formules-steam/resolucio.js` | DONE (2026-11-17): activity, UI review and board stage 1 (no detail on demand yet) |
-| 17 | Inequacions (E12) | `inequacions.html`, `IQ`; `js/inequacions/`; shared number line `js/passos/recta-intervals.js` (step-player field `recta`) | DONE (2026-11-17; board after David tries it) |
+| 17 | Inequacions (E12) | `inequacions.html`, `IQ`; `js/inequacions/`; shared number line `js/passos/recta-intervals.js` (step-player field `recta`); board `js/inequacions/resolucio.js` | DONE (2026-11-17); board (first degree) DONE 2026-11-23 |
 | 18 | Integrals, wave 2: quasi-immediates (B1), inside `integrals` | `integrals.html?tipus=quasi&constant=exacta` (or `ajust`); `js/integrals/quasi-bank.js` | DONE (2026-11-21) |
 | 19 | Estudi d'una funció (B3), new page | `estudi-funcio.html` (`?funcions=`), `EF` reserved (no code); `js/estudi-funcio/`; shared `js/passos/taula-signes.js` (field type `taula`) and `js/passos/esbos-funcio.js` | DONE (2026-11-21) |
 | 20 | Distribució binomial (B16), new page | `binomial.html` (`?tipus=`), `BI` reserved (no code); `js/binomial/`; decimal tolerance `pas.tolerancia` in `js/passos/correccio.js` | DONE (2026-11-21) |

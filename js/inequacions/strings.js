@@ -15,6 +15,8 @@ const nombre = n => (n < 0 ? `$-${-n}$` : `$${n}$`);
 
 export const TEXTOS_IQ = {
     element: 'Inequació',
+    /** L'enllaç a la «Resolució pas a pas» (només primer grau). */
+    enllac: 'Mira com es resol una inequació com aquesta ↗',
     enunciat: {
         passaNombre: b => `Passa el ${nombre(b)} a l’altre membre. Escriu els nombres i posa-hi el signe.`,
         passaTot: 'Passa les $x$ a l’esquerra i els nombres a la dreta. Escriu els nombres i posa-hi el signe.',
