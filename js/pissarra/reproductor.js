@@ -21,7 +21,10 @@
  *                 historial amb detall i objectiu). Amb aquesta opció, al costat del text
  *                 del pas surt «Vull més detall» quan el pas en té: la línia del pas baixa en
  *                 gris com a objectiu i els subpassos s'escriuen a sobre, dins del calaix, un a
- *                 cada «Pas següent»; mentre s'és dins del detall, «Menys detall» el plega.
+ *                 cada «Pas següent»; mentre s'és dins del detall, «Menys detall» el plega. A més,
+ *                 cada calaix obert porta a la cantonada el botó «▴ Plega», que el plega des de
+ *                 qualsevol pas (el David, 24/11/2026): es queda al mateix pas, i el detall queda
+ *                 plegat fins que es torni a demanar.
  * - Torna { reprodueix(), atura(), carrega(passos o detall), element }: carrega() posa un
  *   guió nou (o, amb una funció, el guió d'un exercici nou amb el detall tancat).
  * - L'alumne sempre marca el ritme: res no avança sol si no prem «Reprodueix».
@@ -79,6 +82,9 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         textPas: element('span', { class: 'pis-text-pas' }),
         detall: element('button', { class: 'pis-detall-boto', type: 'button', hidden: '' }),
     };
+    // Els botons «▴ Plega», un per calaix obert, en una capa de la pissarra (es desplacen amb ella)
+    const plecs = pissarra.element ? element('div', { class: 'pis-plecs' }) : null;
+    if (plecs) pissarra.element.append(plecs);
     let detall = typeof o.detall === 'function' ? o.detall : null; // (oberts) → passos
     let oberts = new Set();
     if (r.velocitat) {
@@ -155,6 +161,42 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         r.anterior.disabled = idx === 0;
         r.reinicia.disabled = idx === 0;
         r.seguent.disabled = idx === darrer;
+        pintaPlecs();
+    }
+
+    /** Un botó «▴ Plega» a la cantonada de dalt a la dreta de cada calaix obert que es veu (no durant una animació). */
+    function pintaPlecs() {
+        if (!plecs) return;
+        plecs.replaceChildren();
+        const e = pissarra.element;
+        const capa = e.querySelector('.pis-pissarra > .pis-capa:not(.pis-nova)');
+        if (!detall || pissarra.ocupat || !capa || !oberts.size) return;
+        const marques = [];
+        for (const f of capa.querySelectorAll('.pis-fila'))
+            for (const c of f.classList) if (c.startsWith('plega:')) marques.push([c.slice(6), f]);
+        for (const k of capa.querySelectorAll('[data-plega]')) marques.push([k.dataset.plega, k]);
+        const o = e.getBoundingClientRect();
+        const vistos = new Set();
+        for (const [id, el] of marques) {
+            const obert = [...oberts].find(x => String(x) === id);
+            if (obert === undefined || vistos.has(id)) continue;
+            vistos.add(id);
+            const q = el.getBoundingClientRect();
+            const b = element('button', {
+                'class': 'pis-plega',
+                'type': 'button',
+                'title': 'Plega aquest detall',
+                'aria-label': 'Plega aquest detall',
+                'text': '▴ Plega',
+            });
+            b.style.top = q.top - o.top + e.scrollTop + 4 + 'px';
+            b.style.right = Math.max(4, e.clientLeft + e.clientWidth - (q.right - o.left) + 6) + 'px';
+            b.addEventListener('click', ev => {
+                ev.stopPropagation(); // no és un clic a la pissarra (afanya)
+                plega(obert);
+            });
+            plecs.append(b);
+        }
     }
 
     function marcaReproduccio(estat) {
@@ -219,6 +261,22 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
         r.detall.focus();
     }
 
+    /**
+     * «▴ Plega» (el calaix del pas obert «id»): el detall es tanca i es queda al mateix pas; si s'era dins
+     * del detall, al pas que s'havia obert (com «Menys detall»). Les línies pugen, sense vols.
+     */
+    async function plega(id) {
+        const pas = pissarra.passos[pissarra.pas];
+        if (!detall || pissarra.ocupat || !pas) return;
+        atura();
+        oberts = new Set([...oberts].filter(x => !dins(String(x), String(id))));
+        const nous = detall(new Set(oberts));
+        const dinsDelDetall = (pas.pares || []).some(x => String(x) === String(id));
+        let j = nous.findIndex(p => String(p.id) === String(dinsDelDetall ? id : pas.id));
+        if (j < 0) j = Math.min(pissarra.pas, nous.length - 1);
+        await pissarra.canviaGuio(nous, j, { senseVols: true });
+    }
+
     /** Un guió nou (una llista de passos) o, amb una funció (oberts) → passos, un exercici nou amb el detall. */
     function carrega(guio) {
         atura();
@@ -232,6 +290,11 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
     }
 
     pissarra.escolta(pinta);
+    let rellotgePlecs = null;
+    addEventListener('resize', () => {
+        clearTimeout(rellotgePlecs);
+        rellotgePlecs = setTimeout(pintaPlecs, 450); // després que la pissarra s'hagi tornat a ajustar
+    });
     r.detall.addEventListener('click', canviaDetall);
     if (r.reprodueix) r.reprodueix.addEventListener('click', reprodueix);
     r.seguent.addEventListener('click', () => {

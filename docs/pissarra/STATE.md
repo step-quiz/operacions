@@ -497,17 +497,25 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   interval; captions, sign mark, mirrored flip, number line, final row, level-4 first step, the activity link.
   Browser: suite 6 (link with level) and suite 7 (level 4 laptop, level 2 phone, every detail).
 
-## `resolucio.html` layout (David, 2026-11-24)
+## `resolucio.html` layout (David, 2026-11-24; revised the same day after the UI review)
 
-- No intro note. Header grey (#666): «Ara fes-ho tu» (plain, not highlighted), «Projectar» (the old «Mode
-  professor»; while active «Deixa de projectar»; «Pantalla completa» next to it when needed), «← Step Quiz».
-- Below: the levels (hover: thick black border drawn as an inset shadow so the size does not change, grey #b3b3b3
-  background) and «Un altre exercici». Then the step explanation, big, in a white box above the board (player option
-  `dalt: true`, `js/pissarra/reproductor.js`: the row ↺ / «Pas n de m» / caption / «Vull més detall» is prepended to
-  the board container); «Vull més detall» not bold, hover = filled purple with a black ring. The play buttons stay
-  under the board. Projecting keeps the header (it holds the toggle) and hides the title, levels and the
-  explanation row. `pissarra-demo.html` keeps the old layout (no `dalt`). Footer: the same fixed footer as
-  `index.html` (copied markup), always visible; `main` keeps 110 px at the bottom for it.
+- Header in the colour of the activity's content block (`tema` in `js/resolucio/activitats.js` → class `tema-…` on
+  `<html>`, `css/temes.css`; the lilac `--primary` is now scoped to `<main>`). Buttons: «Ara fes-ho tu»
+  highlighted (white background), «← Step Quiz», and «Projectar» last and smaller («Deixa de projectar» while
+  active; «Pantalla completa» next to it when needed).
+- ≥ 1000 px: two columns as in `pau`'s DEMO pages. Left (sticky): the step caption (↺ / «Pas n de m» · caption /
+  «Vull més detall», always 3 lines tall), the player (smaller buttons, speed on the same line, dots full width),
+  then the levels and «Un altre exercici». Right: the board with the full window height (`ajustaAlcada` in
+  `resolucio.js`). Below 1000 px: levels, caption, board, player (sticky at the bottom, shadow when stuck).
+- The board no longer reserves the height of the whole script (trailing empty rows collapse, MOTOR.md §3b), so
+  there is no scrollbar until what is written does not fit; `scrollbar-gutter: stable` above 520 px; font ×0.8 in
+  windows lower than 750 px.
+- Every open detail drawer has «▴ Plega» (fold it from any step; it stays folded). No «fold all» button (David
+  said no).
+- Footer: the same content as `index.html`, at the end of the page, **not fixed** (as in `pau`).
+- Level hover: thick black border drawn as an inset shadow, grey #b3b3b3 background. «Vull més detall» not bold,
+  hover = filled purple with a black ring. Projecting: one column, no title, levels, caption or footer; big board.
+  `pissarra-demo.html` keeps the old layout (no `dalt`).
 
 ## Scenario B for `cilindres` (2026-11-24, PENDING §2b)
 

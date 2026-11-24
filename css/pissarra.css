@@ -90,6 +90,10 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 .pis-fila .katex {
     font-size: 1em;
 }
+/* Les files buides del final del pas (les que s'escriuran més endavant): no ocupen lloc */
+.pis-fila.pis-buida {
+    display: none;
+}
 /* El resultat (una mica separat de les files del costat) */
 .pis-fila.final {
     background: var(--pis-cat-fons);
@@ -719,4 +723,33 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
 }
 .pis-fila table.centrat tr.pis-objectiu td {
     color: var(--pis-objectiu, #9aa5b8);
+}
+
+/* ── «▴ PLEGA» (reproductor.js): un botó a la cantonada de cada calaix obert ─ */
+.pis-plecs {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 0;
+    z-index: 4;
+}
+.pis-plega {
+    position: absolute;
+    font: inherit;
+    font-family:
+        'Segoe UI',
+        system-ui,
+        -apple-system,
+        sans-serif;
+    font-size: 13px;
+    line-height: 1.2;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--pis-calaix-vora);
+    background: var(--panel-bg, #fff);
+    color: var(--text-main, #1e293b);
+    cursor: pointer;
+}
+.pis-plega:hover {
+    border-color: #000;
+    box-shadow: inset 0 0 0 1px #000;
 }

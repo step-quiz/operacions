@@ -424,6 +424,10 @@ export function creaPissarra(contenidor, { files: nFiles, etiqueta = 'Resolució
                 fila.innerHTML = figura || html ? tex : esFilaText(tex) ? textAmbFrases(tex.slice(1)) : renderitza(tex);
             c.append(fila);
         }
+        // Les files buides del final (les que el guió escriurà més endavant) no ocupen lloc: la pissarra
+        // creix a mesura que s'escriu, i la barra només surt quan el que hi ha escrit no hi cap (el David,
+        // 24/11/2026; abans es reservava des del primer pas l'alçada de tota la resolució)
+        for (let i = nFiles - 1; i >= 0 && !pas.files[i]; i--) c.children[i].classList.add('pis-buida');
         return c;
     }
 
