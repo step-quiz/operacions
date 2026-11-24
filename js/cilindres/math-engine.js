@@ -313,8 +313,13 @@ export function refaPassos(pregunta, pas, valors) {
 }
 
 // ── La figura ────────────────────────────────────────────────────────────────
-/** El full (a × b) i els dos cilindres: el costat que fa de circumferència, del seu color a tots dos llocs. */
-export function svgCilindres(a, b, cil) {
+/**
+ * El full (a × b) i els dos cilindres: el costat que fa de circumferència, del seu color a tots dos llocs.
+ * claus (la «Resolució pas a pas», js/cilindres/resolucio.js): { a, b } → els textos «a cm» i «b cm» del full
+ * porten data-k, perquè la pissarra en pugui fer volar el nombre a la fórmula.
+ */
+export function svgCilindres(a, b, cil, claus = {}) {
+    const dk = k => (claus[k] ? ` data-k="${claus[k]}"` : '');
     const esc = 3; // px per cm (els fulls fan com a molt 40 cm)
     const [w, hgt] = [a * esc, b * esc];
     const colors = ['jp-cf-c1', 'jp-cf-c2'];
@@ -332,8 +337,10 @@ export function svgCilindres(a, b, cil) {
             parts.push(`<line class="${cls}" x1="${x0}" y1="${y0 + hgt}" x2="${x0 + w}" y2="${y0 + hgt}"/>`);
         else parts.push(`<line class="${cls}" x1="${x0 + w}" y1="${y0}" x2="${x0 + w}" y2="${y0 + hgt}"/>`);
     }
-    parts.push(`<text class="jp-cf-text" x="${x0 + w / 2}" y="${y0 + hgt + 18}" text-anchor="middle">${a} cm</text>`);
-    parts.push(`<text class="jp-cf-text" x="${x0 + w + 6}" y="${y0 + hgt / 2}">${b} cm</text>`);
+    parts.push(
+        `<text class="jp-cf-text"${dk('a')} x="${x0 + w / 2}" y="${y0 + hgt + 18}" text-anchor="middle">${a} cm</text>`
+    );
+    parts.push(`<text class="jp-cf-text"${dk('b')} x="${x0 + w + 6}" y="${y0 + hgt / 2}">${b} cm</text>`);
     // Els dos cilindres, dibuixats a escala (radi i altura)
     let x = Math.max(x0 + w + 90, 200);
     cil.forEach(({ c, h }, k) => {

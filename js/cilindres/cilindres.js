@@ -7,6 +7,8 @@
  *      i que els passos es corregeixen amb arrossegament (enEncertar: refaPassos).
  * PARÀMETRES: ?nivell=1 (sempre el full A4, 21 × 30), 2 (altres rectangles); 0 o absent: la
  *      primera pregunta és el full A4 i les altres, altres rectangles (decisió del David).
+ * ENLLAÇ: «Mira com es resol» (pregunta.enllac) porta a resolucio.html?activitat=cilindres amb el
+ *      nivell del full (js/cilindres/resolucio.js).
  * DEPENDÈNCIES: Mòdul ES (<script type="module">). KaTeX (global, vendor/).
  * ============================================================================
  */
@@ -22,7 +24,13 @@ const NIVELL_URL = Math.min(Math.max(parseInt(urlParams.get('nivell') || '0', 10
 iniciaJocPassos({
     element: TEXTOS_CF.element,
     generaPregunta({ index }) {
-        return generaPreguntaCF(NIVELL_URL || (index === 0 ? 1 : 2));
+        const pregunta = generaPreguntaCF(NIVELL_URL || (index === 0 ? 1 : 2));
+        // «Mira com es resol»: la pissarra d'un full del mateix nivell (pestanya nova)
+        pregunta.enllac = {
+            href: `resolucio.html?activitat=cilindres&nivell=${pregunta.dades.nivell}`,
+            text: TEXTOS_CF.enllac,
+        };
+        return pregunta;
     },
     diagnostica: diagnosticaCF,
     textResposta: textRespostaCF,

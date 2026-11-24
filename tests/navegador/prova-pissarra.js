@@ -18,7 +18,7 @@
  *      del mateix nivell en una pestanya nova; a fraccions, prioritat i fórmules STEAM,
  *      l'enllaç porta el nivell que toca;
  *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat,
- *      formules-steam i inequacions (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
+ *      formules-steam, inequacions i cilindres (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
  *      detall» a cada pas que en té (la línia del pas en gris com a objectiu, els
  *      subpassos al calaix, «Menys detall»), el nivell,
  *      «Un altre exercici» i «Ara fes-ho tu»; sense activitat, la llista;
@@ -50,6 +50,12 @@ try {
 
 const PORT = 8700 + Math.floor(Math.random() * 200);
 const BASE = `http://localhost:${PORT}`;
+/**
+ * Un error de la consola que compta: no ho és un recurs de fora que no carrega (la icona de la llicència del peu,
+ * de licensebuttons.net, quan les proves no tenen internet).
+ */
+const errorPropi = m =>
+    m.type() === 'error' && !(/^Failed to load resource/.test(m.text()) && !(m.location().url || '').startsWith(BASE));
 
 // ── Respostes calculades a partir del que es veu a la pàgina (sense fer servir el codi de les activitats) ──
 
@@ -394,7 +400,7 @@ function engegaServidor() {
             suite(`1-2. Les demos pas a pas, a mida de ${nom}`);
             const pagina = await navegador.newPage({ viewport });
             const errors = [];
-            pagina.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            pagina.on('console', m => errorPropi(m) && errors.push(m.text()));
             pagina.on('pageerror', e => errors.push(String(e)));
             await pagina.goto(BASE + '/pissarra-demo.html');
             await pagina.waitForFunction(() => window.demoPissarra);
@@ -615,6 +621,16 @@ function engegaServidor() {
                 'resolucio.html?activitat=inequacions&nivell=3'
             );
             await iq.close();
+            // Cilindres: «Mira com es resol» porta a la resolució del nivell del full
+            const cf = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await cf.goto(BASE + '/cilindres.html?totaloperations=3&nivell=2');
+            await cf.waitForSelector('#jp-joc .jp-enllac');
+            eq(
+                'cilindres del nivell 2 → «Mira com es resol» del nivell 2',
+                await cf.getAttribute('#jp-joc .jp-enllac', 'href'),
+                'resolucio.html?activitat=cilindres&nivell=2'
+            );
+            await cf.close();
             // Prioritat: la primera expressió de la sessió és del nivell 0 → el grup 1 de la resolució
             const q = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await q.goto(BASE + '/prioritat.html?totaloperations=3');
@@ -642,12 +658,15 @@ function engegaServidor() {
                 // Inequacions de primer grau: el nivell 4 (denominadors) i el 2 (dividir per un negatiu)
                 ['inequacions', 'portàtil', { width: 1366, height: 768 }, 4],
                 ['inequacions', 'mòbil', { width: 375, height: 740 }, 2],
+                // Cilindres amb un full: el full A4 (portàtil) i un altre full (mòbil)
+                ['cilindres', 'portàtil', { width: 1366, height: 768 }, 1],
+                ['cilindres', 'mòbil', { width: 375, height: 740 }, 2],
             ]) {
                 const nom = `${act}, ${lloc}`;
                 const p = await navegador.newPage({ viewport });
                 const errors = [];
                 p.on('pageerror', e => errors.push(String(e)));
-                p.on('console', m => m.type() === 'error' && errors.push(m.text()));
+                p.on('console', m => errorPropi(m) && errors.push(m.text()));
                 await p.goto(`${BASE}/resolucio.html?activitat=${act}&nivell=${nivellInicial}`);
                 await p.waitForFunction(() => window.resolucio);
                 const r = await p.evaluate(RECORRE_DEMO, 'resolucio');
@@ -690,7 +709,8 @@ function engegaServidor() {
                     (await p.isVisible('a[href="resolucio.html?activitat=fraccions"]')) &&
                     (await p.isVisible('a[href="resolucio.html?activitat=prioritat"]')) &&
                     (await p.isVisible('a[href="resolucio.html?activitat=formules-steam"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=inequacions"]'))
+                    (await p.isVisible('a[href="resolucio.html?activitat=inequacions"]')) &&
+                    (await p.isVisible('a[href="resolucio.html?activitat=cilindres"]'))
             );
             await p.close();
         }
@@ -699,7 +719,7 @@ function engegaServidor() {
         {
             const p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             const errors = [];
-            p.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            p.on('console', m => errorPropi(m) && errors.push(m.text()));
             p.on('pageerror', e => errors.push(String(e)));
             await p.goto(BASE + '/pissarra-demo.html?demo=equacio');
             await p.waitForFunction(() => window.demoPissarra);
@@ -889,7 +909,7 @@ function engegaServidor() {
             const p = await navegador.newPage({ viewport: { width: 1280, height: 800 } });
             const errors = [];
             p.on('pageerror', e => errors.push(String(e)));
-            p.on('console', m => m.type() === 'error' && errors.push(m.text()));
+            p.on('console', m => errorPropi(m) && errors.push(m.text()));
             await p.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
             await p.waitForFunction(() => window.resolucio);
             const lliure = () => p.waitForFunction(() => !window.resolucio.pissarra.ocupat, null, { timeout: 8000 });
@@ -937,16 +957,18 @@ function engegaServidor() {
             const dins = await p.evaluate(() => ({
                 classe: document.body.classList.contains('professor'),
                 adreca: location.search,
-                frase: getComputedStyle(document.querySelector('.pis-text-pas')).display,
+                frase: getComputedStyle(document.querySelector('.pis-explicacio-fila')).display,
                 mida: parseFloat(getComputedStyle(document.querySelector('.pis-pissarra')).fontSize),
-                capcalera: getComputedStyle(document.querySelector('header')).display,
+                titol: getComputedStyle(document.querySelector('header h1')).display,
+                boto: document.querySelector('#professor').textContent,
             }));
             ok(
-                `mode professor: pissarra gran (${dins.mida}px), sense frases ni capçalera, i a l’adreça`,
+                `«Projectar»: pissarra gran (${dins.mida}px), sense frases ni títol, «Deixa de projectar» i a l’adreça`,
                 dins.classe &&
                     dins.adreca.endsWith('&professor=1') &&
                     dins.frase === 'none' &&
-                    dins.capcalera === 'none' &&
+                    dins.titol === 'none' &&
+                    dins.boto === 'Deixa de projectar' &&
                     dins.mida > 40,
                 JSON.stringify(dins)
             );

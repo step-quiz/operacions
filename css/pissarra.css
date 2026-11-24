@@ -208,6 +208,41 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     fill: var(--panel-bg, #fff);
 }
 
+/* El full i els dos cilindres (Cilindres amb un full, js/cilindres/math-engine.js svgCilindres): els colors
+   de l'activitat (css/passos.css), sense vermell; el cilindre 1, blau (el color del tema de la pàgina de
+   la resolució és lila, com el del cilindre 2) */
+.pis-fila.figura svg.jp-cf-svg {
+    width: min(100%, 24em);
+}
+.pis-escenari .jp-cf-full {
+    fill: var(--panel-bg, #fff);
+    stroke: var(--text-main);
+    stroke-width: 1.5;
+}
+.pis-escenari .jp-cf-vora {
+    stroke: var(--text-main);
+    stroke-width: 1.5;
+}
+.pis-escenari .jp-cf-c1,
+.pis-escenari .jp-cf-c2 {
+    fill: none;
+    stroke-width: 4;
+}
+.pis-escenari .jp-cf-c1 {
+    stroke: #0369a1;
+}
+.pis-escenari .jp-cf-c2 {
+    stroke: #7c3aed;
+}
+.pis-escenari .jp-cf-text {
+    fill: var(--text-main);
+    font-size: 15px;
+}
+.pis-escenari .jp-cf-petit {
+    fill: var(--text-muted);
+    font-size: 13px;
+}
+
 /* Marques dins de les fórmules (\htmlData{k=…,marca=…}) */
 .pis-escenari .katex [data-marca='mes'] {
     background: color-mix(in srgb, var(--success) 30%, transparent);
@@ -321,6 +356,16 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     gap: 12px;
     margin-top: 12px;
     text-align: left;
+}
+/* La fila de l'explicació a sobre de la pissarra (creaReproductor amb dalt: true): fora de .pis-controls,
+   necessita els mateixos colors */
+.pis-explicacio-dalt {
+    --pis-cat: var(--primary, #3b82f6);
+    --pis-cat-fons: var(--primary-light, rgba(59, 130, 246, 0.1));
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 .pis-reproductor {
     display: flex;

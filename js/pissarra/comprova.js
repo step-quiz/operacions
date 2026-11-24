@@ -339,6 +339,12 @@ export function textPla(tex) {
                     case '\\in':
                         s += '∈';
                         break;
+                    case '\\pi':
+                        s += 'π';
+                        break;
+                    case '\\approx':
+                        s += '≈';
+                        break;
                     case '\\infty':
                         s += '∞';
                         break;

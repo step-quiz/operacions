@@ -23,8 +23,10 @@
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             line-height: 1.5;
         }
+        /* La capçalera: gris (el 60 % de negre, el David 24/11/2026), amb «Ara fes-ho tu», «Projectar» i la
+           tornada a l'índex a la dreta */
         header {
-            background: #2e1065;
+            background: #666666;
             color: #fff;
             padding: 12px 20px;
             display: flex;
@@ -33,21 +35,30 @@
             gap: 14px;
         }
         header h1 { margin: 0; font-size: 1.1rem; }
-        header a {
+        header nav { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; justify-content: flex-end; }
+        header a,
+        header button {
+            font: inherit;
             color: #fff;
+            background: transparent;
             text-decoration: none;
             font-size: 0.85rem;
             padding: 6px 11px;
-            border: 1px solid rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             border-radius: 6px;
             white-space: nowrap;
+            cursor: pointer;
         }
+        header a:hover,
+        header button:hover { background: rgba(255, 255, 255, 0.18); border-color: #fff; }
+        header [aria-pressed="true"] { background: #fff; color: #333; border-color: #fff; }
+        header [hidden] { display: none; }
         main {
             max-width: 920px;
             margin: 0 auto;
-            padding: 20px 16px 40px;
+            /* a baix, lloc per al peu fix (dues línies al mòbil) */
+            padding: 20px 16px 110px;
         }
-        .nota { margin: 0 0 14px; color: var(--text-muted); max-width: 70ch; }
         .barra {
             display: flex;
             flex-wrap: wrap;
@@ -73,23 +84,47 @@
             background: var(--primary-light);
             font-weight: 700;
         }
-        .accio.principal {
-            border-color: var(--primary);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
+        /* En passar-hi el ratolí, que es vegi clar: vora negra gruixuda i fons gris (el 30 % de negre). La
+           vora gruixuda és una ombra a dins, perquè el botó no canviï de mida. */
+        .tria:hover,
+        .accio:hover {
+            border-color: #000;
+            box-shadow: inset 0 0 0 2px #000;
+            background: #b3b3b3;
+            color: #000;
         }
         .accions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
         /* La pissarra té la seva barra quan la resolució és llarga (es veu sempre l'última línia) */
         #pissarra .pis-escenari { max-height: min(64vh, 620px); }
-        /* Mode professor (per al projector): la pissarra gran, sense les frases (el professor ho explica de
+        /* Projectar (el mode professor, per al projector): la pissarra gran, sense les frases (el professor ho explica de
            paraula); es passen els passos amb les fletxes, l'espai o un comandament (Re Pàg / Av Pàg) */
-        .tria[aria-pressed="true"], .accio[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-light); font-weight: 700; }
-        body.professor header, body.professor .nota, body.professor #nivells { display: none; }
-        body.professor main { max-width: none; padding: 10px 24px 16px; }
+        /* Projectar: la capçalera queda (hi ha el botó per sortir), sense el títol */
+        body.professor header h1, body.professor #nivells { display: none; }
+        body.professor main { max-width: none; padding: 10px 24px 70px; }
         body.professor .barra { margin-bottom: 8px; }
-        body.professor #pissarra .pis-escenari { --pis-escala: 1.8; font-size: 1.8em; max-height: calc(100vh - 175px); }
-        body.professor #pissarra .pis-text-pas { display: none; }
+        body.professor #pissarra .pis-escenari { --pis-escala: 1.8; font-size: 1.8em; max-height: calc(100vh - 235px); }
+        body.professor #pissarra .pis-explicacio-fila { display: none; }
+        /* El pas (què es fa) ben visible, entre els nivells i la pissarra, amb «Vull més detall» al costat */
+        #pissarra .pis-explicacio-dalt {
+            margin: 0 0 10px;
+            padding: 10px 14px;
+            background: #fff;
+            border: 1px solid var(--border-heavy);
+            border-left: 5px solid var(--primary);
+            border-radius: 10px;
+        }
+        #pissarra .pis-explicacio-dalt .pis-explicacio { min-height: 0; }
+        #pissarra .pis-explicacio-dalt .pis-num-pas { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        #pissarra .pis-explicacio-dalt .pis-text-pas { font-size: 19px; max-width: none; }
+        #pissarra .pis-explicacio-dalt .pis-detall-boto { font-weight: 400; font-size: 16px; padding: 6px 16px; }
+        #pissarra .pis-explicacio-dalt .pis-detall-boto:hover:not(:disabled) {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 0 0 3px #000;
+        }
+        @media (max-width: 520px) {
+            #pissarra .pis-explicacio-dalt .pis-text-pas { font-size: 16px; }
+        }
         .avis { padding: 14px 16px; border: 1px solid var(--border-heavy); border-radius: 10px; background: #fff; }
         .avis ul { margin: 8px 0 0; }
     </style>
@@ -98,21 +133,32 @@
 <body>
     <header>
         <h1 id="titol">Resolució pas a pas</h1>
-        <a href="index.html">← Step Quiz</a>
+        <nav aria-label="Accions">
+            <a id="fes-ho-tu" href="index.html" hidden>Ara fes-ho tu</a>
+            <button type="button" id="professor" aria-pressed="false" hidden>Projectar</button>
+            <button type="button" id="pantalla" hidden>Pantalla completa</button>
+            <a href="index.html">← Step Quiz</a>
+        </nav>
     </header>
     <main>
-        <p class="nota">Mira com es resol, pas a pas: fes servir els botons de sota la pissarra (o les fletxes del teclat). Si un pas no l'entens, prem «Vull més detall».</p>
         <div class="barra" id="barra" hidden>
             <div id="nivells" role="group" aria-label="Nivell"></div>
             <div class="accions">
-                <button type="button" class="accio" id="professor" aria-pressed="false">Mode professor</button>
-                <button type="button" class="accio" id="pantalla" hidden>Pantalla completa</button>
                 <button type="button" class="accio" id="un-altre">Un altre exercici</button>
-                <a class="accio principal" id="fes-ho-tu" href="index.html">Ara fes-ho tu</a>
             </div>
         </div>
         <div id="pissarra"></div>
     </main>
+    <!-- El peu de l'índex (la mateixa informació), fix a baix i sempre visible (el David, 24/11/2026) -->
+    <footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f9fa; border-top: 1px solid #ccc; padding: 10px; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-sizing: border-box; text-align: center;">
+      <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" style="flex-shrink: 0;">
+        <img alt="Llicència CC BY-NC-SA" style="border-width:0; height: 31px;" src="https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png" />
+      </a>
+      <span style="font-size: 0.85em; color: #333;">
+        © 2026 <strong>David Arso Civil</strong> · Departament de Matemàtiques, INS Miquel Tarradell.
+        <br style="display: none;" /> Contingut: <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" style="color: #333; text-decoration: underline;">CC BY-NC-SA 4.0</a> · Codi: <a href="https://opensource.org/license/mit" style="color: #333; text-decoration: underline;">MIT</a>.
+      </span>
+    </footer>
     <script type="module" src="js/resolucio/resolucio.js"></script>
 </body>
 </html>

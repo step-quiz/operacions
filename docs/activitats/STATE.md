@@ -35,7 +35,7 @@ https://claude.ai/artifact/TpqHeTWA7N9HrBMpeNCx6s, holds David's answers of 14/1
 | 22a | Logaritmes i equacions (B10), block 1: logarithms, new page | `logaritmes.html` (`?tipus=`), `LG` reserved (no code, Batx menu); `js/logaritmes/` | DONE (2026-11-21) |
 | 22b | Logaritmes i equacions (B10), block 2: exponential, logarithmic and radical equations | `logaritmes.html` (`?tipus=equacions\|basiques\|mitjanes\|irracionals`); `js/logaritmes/equacions.js` | DONE (2026-11-21) |
 | 22c | Logaritmes i equacions (B10), block 3: quadratic/rational inequalities (in `inequacions.html`, code IQ) | `inequacions.html` (`?tipus=no-lineals\|segon-grau\|racionals\|especials`); `js/inequacions/no-lineals.js`; number line with segments in `js/passos/recta-intervals.js` | DONE (2026-11-22) |
-| 23 | Cilindres amb un full (David's request of 2026-11-23), new page | `cilindres.html`, `CF`; `js/cilindres/` (follow-through correction `refaPassos` through the player's `enEncertar`) | ACTIVITY DONE on the branch (2026-11-23); board after David tries it |
+| 23 | Cilindres amb un full (David's request of 2026-11-23), new page | `cilindres.html`, `CF`; `js/cilindres/` (follow-through correction `refaPassos` through the player's `enEncertar`); board `js/cilindres/resolucio.js` | DONE (activity 2026-11-23, board 2026-11-24) |
 
 Deliveries 1–11 reached `main` on 2026-11-16 through B's 3-way merge: base `7f79b4b` (the snapshot A worked on),
 A's delivery ZIP committed on top of it as `555ff07`, merged with B's work up to stage 5 of «Resolució pas a pas».

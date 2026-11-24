@@ -39,7 +39,7 @@ built» in `docs/activitats/STATE.md` (theme class, CSS chain, index entry, `js/
 | ~~#17 Inequacions~~ | ~~**U2**: the «Resolució pas a pas» board for first-degree inequalities~~ | **DONE 2026-11-23** (`resolucio.html?activitat=inequacions`, `js/inequacions/resolucio.js`; `docs/pissarra/STATE.md` «Scenario B for `inequacions`»). Waiting for David to try it. |
 | #17 Inequacions | U4 listed «llegir 5 > x com x > 5»: the flip is automatic (P4), so the student never types it | Nothing to do unless David wants that step back. |
 
-## 2b. «Cilindres amb un full» (David, 2026-11-23) — ACTIVITY BUILT 2026-11-23; BOARD PENDING
+## 2b. «Cilindres amb un full» (David, 2026-11-23) — ACTIVITY BUILT 2026-11-23; BOARD BUILT 2026-11-24
 
 David's statement: take a 21 cm × 30 cm rectangle (an A4 sheet) and roll it into a cylinder in the two possible
 ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):**
@@ -60,8 +60,9 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
   rounding r and A to 2 decimals → volume off by ≤ 0.32 %, π ≈ 3.14 → ≤ 0.36 %, truncating → ≤ 1.04 %; so each
   step is checked against the student's previous answer (follow-through, `refaPassos`), never a % tolerance on
   the final volume.
-- **Still pending: the «Resolució pas a pas» board** (F2: the sheet's side flies to the base circumference, like
-  the Pythagoras demo; «Vull més detall» on the radius step), after David tries the activity.
+- **Board DONE 2026-11-24** (`resolucio.html?activitat=cilindres`, `js/cilindres/resolucio.js`; `docs/pissarra/STATE.md`
+  «Scenario B for `cilindres`»): the sheet's sides fly to 2πr and h; «Vull més detall» on the radius. Waiting for
+  David to try it.
 
 ## 3. «Resolució pas a pas» engine plan (`docs/pissarra/STATE.md`)
 
@@ -83,7 +84,7 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
 ## 5. Decisions owed by David (summary)
 
 1. Roadmap 18–22: all done (2026-11-22); new deliveries only if David proposes them.
-2. Try the Inequacions board (§2, built 2026-11-23) and the «Cilindres amb un full» activity (§2b); then the cylinders board.
+2. Try the Inequacions board (§2, built 2026-11-23) and the «Cilindres amb un full» activity and board (§2b, 2026-11-23/24).
 3. Whether to make the exception for P2 (animation inside Fórmules STEAM).
 4. Real student error cases for Fórmules STEAM (E1).
 5. When to resume the «Resolució pas a pas» stages 4 and 6 and the fading pilots (§3, §4).
