@@ -3,11 +3,14 @@
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/formules-steam/cataleg.js
  * ROL: Les fórmules de «Fórmules STEAM» (formules-steam.html): fórmules que surten
- *      quan estudiem el món que ens envolta (decisió del David, 17/11/2026: enlloc no es
- *      diu de quina matèria són). Per a cada fórmula: el nom, l'equació (en la notació
- *      que llegeix algebra.js), les lletres (TeX i significat), com es generen uns
- *      valors que encaixen (genera) i, per a cada lletra que es pot aïllar, el context
- *      (sempre n'hi ha un), les unitats i les unitats equivocades típiques.
+ *      quan estudiem el món que ens envolta. Per a cada fórmula: el nom, la matèria
+ *      (física, química o tecnologia: el David, 24/11/2026, en canvi de la decisió del
+ *      17/11 de no dir-ho enlloc), l'equació (en la notació que llegeix algebra.js), les
+ *      lletres (TeX i significat), com es generen uns valors que encaixen (genera) i, per
+ *      a cada lletra que es pot aïllar, el context (sempre n'hi ha un), les unitats i les
+ *      unitats equivocades típiques.
+ *   MATERIES     [[clau, nom]]: física, química i tecnologia (l'electricitat i les màquines són
+ *                de tecnologia); cada fórmula en porta una (materia).
  * ARQUITECTURA: mòdul pur (l'atzar, a través de utils.js). Els valors són coeficients
  *      exactes (js/algebra/racionals.js): els decimals amb coma surten exactes.
  *   unitats      { lletra: [text, TeX] } (la unitat de cada lletra en aquest context)
@@ -30,10 +33,31 @@ const cd = (n, d) => c(Math.round(n * d), d);
 const G = c(98, 10); // g = 9,8 m/s²
 const u = (text, tex = `\\text{${text}}`) => [text, tex];
 
+/** Les matèries, en aquest ordre (la resolució pas a pas i l'activitat deixen triar-ne una). */
+export const MATERIES = Object.freeze([
+    ['fisica', 'Física'],
+    ['quimica', 'Química'],
+    ['tecnologia', 'Tecnologia'],
+]);
+
+/** Algunes substàncies i la seva massa molar (g/mol), per als contextos de química. */
+const SUBSTANCIES = [
+    [18, "l'aigua", "d'aigua"],
+    [44, 'el diòxid de carboni', 'de diòxid de carboni'],
+    [180, 'la glucosa', 'de glucosa'],
+    [32, "l'oxigen", "d'oxigen"],
+    [40, "l'hidròxid de sodi", "d'hidròxid de sodi"],
+    [58.5, 'el clorur de sodi', 'de clorur de sodi'],
+];
+/** La substància d'una massa molar escrita amb coma («58,5»). */
+const substancia = text => SUBSTANCIES.find(([m]) => String(m).replace('.', ',') === text) || SUBSTANCIES[0];
+const majuscula = t => t.charAt(0).toUpperCase() + t.slice(1);
+
 export const FORMULES = [
     {
         id: 'densitat',
         nom: 'Densitat',
+        materia: 'fisica',
         eq: 'd = m/V',
         lletres: { d: ['d', 'la densitat'], m: ['m', 'la massa'], V: ['V', 'el volum'] },
         genera: () => {
@@ -58,6 +82,7 @@ export const FORMULES = [
     {
         id: 'velocitat',
         nom: 'Velocitat mitjana',
+        materia: 'fisica',
         eq: 'v = Δx/Δt',
         lletres: {
             v: ['v', 'la velocitat'],
@@ -87,6 +112,7 @@ export const FORMULES = [
     {
         id: 'newton',
         nom: 'Segona llei de Newton',
+        materia: 'fisica',
         eq: 'F = m*a',
         lletres: { F: ['F', 'la força'], m: ['m', 'la massa'], a: ['a', "l'acceleració"] },
         genera: () => {
@@ -112,6 +138,7 @@ export const FORMULES = [
     {
         id: 'hooke',
         nom: 'Llei de Hooke',
+        materia: 'fisica',
         eq: 'F = k*Δx',
         lletres: { F: ['F', 'la força'], k: ['k', 'la constant de la molla'], Δx: ['\\Delta x', "l'allargament"] },
         genera: () => {
@@ -137,6 +164,7 @@ export const FORMULES = [
     {
         id: 'ohm',
         nom: "Llei d'Ohm",
+        materia: 'tecnologia',
         eq: 'V = I*R',
         lletres: { V: ['V', 'la tensió'], I: ['I', 'la intensitat'], R: ['R', 'la resistència'] },
         genera: () => {
@@ -161,6 +189,7 @@ export const FORMULES = [
     {
         id: 'kelvin',
         nom: 'Kelvin i graus Celsius',
+        materia: 'fisica',
         eq: 'T = t + 273',
         lletres: { T: ['T', 'la temperatura en kelvin'], t: ['t', 'la temperatura en graus Celsius'] },
         genera: () => {
@@ -179,6 +208,7 @@ export const FORMULES = [
     {
         id: 'acceleracio',
         nom: 'Acceleració',
+        materia: 'fisica',
         eq: 'a = (v - v₀)/t',
         lletres: {
             'a': ['a', "l'acceleració"],
@@ -216,6 +246,7 @@ export const FORMULES = [
     {
         id: 'mrua',
         nom: 'Velocitat en un moviment accelerat',
+        materia: 'fisica',
         eq: 'v = v₀ + a*t',
         lletres: {
             'v': ['v', 'la velocitat final'],
@@ -253,6 +284,7 @@ export const FORMULES = [
     {
         id: 'pes',
         nom: 'Pes',
+        materia: 'fisica',
         eq: 'P = m*g',
         lletres: { P: ['P', 'el pes'], m: ['m', 'la massa'], g: ['g', 'la gravetat'] },
         genera: () => {
@@ -278,6 +310,7 @@ export const FORMULES = [
     {
         id: 'pressio',
         nom: 'Pressió',
+        materia: 'fisica',
         eq: 'p = F/S',
         lletres: { p: ['p', 'la pressió'], F: ['F', 'la força'], S: ['S', 'la superfície'] },
         genera: () => {
@@ -303,6 +336,7 @@ export const FORMULES = [
     {
         id: 'potencial',
         nom: 'Energia potencial',
+        materia: 'fisica',
         eq: 'Ep = m*g*h',
         lletres: {
             Ep: ['E_p', "l'energia potencial"],
@@ -333,6 +367,7 @@ export const FORMULES = [
     {
         id: 'cinetica',
         nom: 'Energia cinètica',
+        materia: 'fisica',
         eq: 'Ec = m*v^2/2',
         lletres: { Ec: ['E_c', "l'energia cinètica"], m: ['m', 'la massa'], v: ['v', 'la velocitat'] },
         genera: () => {
@@ -357,6 +392,7 @@ export const FORMULES = [
     {
         id: 'treball',
         nom: 'Treball',
+        materia: 'fisica',
         eq: 'W = F*d',
         lletres: { W: ['W', 'el treball'], F: ['F', 'la força'], d: ['d', 'la distància'] },
         genera: () => {
@@ -381,6 +417,7 @@ export const FORMULES = [
     {
         id: 'potencia',
         nom: 'Potència',
+        materia: 'fisica',
         eq: 'P = W/t',
         lletres: { P: ['P', 'la potència'], W: ['W', 'el treball'], t: ['t', 'el temps'] },
         genera: () => {
@@ -405,6 +442,7 @@ export const FORMULES = [
     {
         id: 'calor',
         nom: 'Calor',
+        materia: 'fisica',
         eq: 'Q = m*c*ΔT',
         lletres: {
             Q: ['Q', 'la calor'],
@@ -446,6 +484,7 @@ export const FORMULES = [
     {
         id: 'electrica',
         nom: 'Potència elèctrica',
+        materia: 'tecnologia',
         eq: 'P = V*I',
         lletres: { P: ['P', 'la potència'], V: ['V', 'la tensió'], I: ['I', 'la intensitat'] },
         genera: () => {
@@ -469,6 +508,7 @@ export const FORMULES = [
     {
         id: 'energia',
         nom: 'Energia consumida',
+        materia: 'tecnologia',
         eq: 'E = P*t',
         lletres: { E: ['E', "l'energia"], P: ['P', 'la potència'], t: ['t', 'el temps'] },
         genera: () => {
@@ -492,6 +532,7 @@ export const FORMULES = [
     {
         id: 'palanca',
         nom: 'Llei de la palanca',
+        materia: 'tecnologia',
         eq: 'F*d = R*r',
         lletres: {
             F: ['F', 'la força'],
@@ -523,6 +564,7 @@ export const FORMULES = [
     {
         id: 'politges',
         nom: 'Politges',
+        materia: 'tecnologia',
         eq: 'n₁*d₁ = n₂*d₂',
         lletres: {
             'n₁': ['n_1', 'la velocitat de la politja motora'],
@@ -554,6 +596,7 @@ export const FORMULES = [
     {
         id: 'engranatges',
         nom: 'Engranatges',
+        materia: 'tecnologia',
         eq: 'n₁*z₁ = n₂*z₂',
         lletres: {
             'n₁': ['n_1', 'la velocitat de la roda motora'],
@@ -585,6 +628,7 @@ export const FORMULES = [
     {
         id: 'rendiment',
         nom: 'Rendiment',
+        materia: 'tecnologia',
         eq: 'η = Pu/Pa',
         lletres: {
             η: ['\\eta', 'el rendiment'],
@@ -614,6 +658,7 @@ export const FORMULES = [
     {
         id: 'posicio',
         nom: 'Posició en un moviment accelerat',
+        materia: 'fisica',
         eq: 'x = x₀ + v₀*t + a*t^2/2',
         lletres: {
             'x': ['x', 'la posició final'],
@@ -647,6 +692,7 @@ export const FORMULES = [
     {
         id: 'paralel',
         nom: 'Resistències en paral·lel',
+        materia: 'tecnologia',
         eq: '1/R = 1/R₁ + 1/R₂',
         lletres: {
             'R': ['R', 'la resistència equivalent'],
@@ -682,6 +728,119 @@ export const FORMULES = [
                 dolentes: ['1/Ω', 'Ω²', 'Ω/2'],
                 text: (v, f) =>
                     `Amb una resistència de ${f('R₂')} Ω en paral·lel, volem una resistència equivalent de ${f('R')} Ω. Quina resistència hi hem de posar?`,
+            },
+        },
+    },
+    {
+        id: 'concentracio',
+        nom: 'Concentració en massa',
+        materia: 'quimica',
+        eq: 'c = m/V',
+        lletres: { c: ['c', 'la concentració'], m: ['m', 'la massa de solut'], V: ['V', 'el volum de la dissolució'] },
+        genera: () => {
+            const c0 = c(pick([2, 4, 5, 8, 10, 20, 25, 40]));
+            const V = cd(pick([0.25, 0.5, 0.75, 1.5, 2, 2.5, 3]), 100);
+            return { c: c0, V, m: per(c0, V) };
+        },
+        aillar: {
+            m: {
+                unitats: { c: u('g/L'), m: u('g'), V: u('L') },
+                dolentes: ['g/L', 'L', 'g·L'],
+                text: (v, f) =>
+                    `Volem preparar una dissolució de sucre en aigua de concentració ${f('c')} g/L. Si en fem ${f('V')} L, quina massa de sucre hi hem de dissoldre?`,
+            },
+            V: {
+                unitats: { c: u('g/L'), m: u('g'), V: u('L') },
+                dolentes: ['g', 'g/L', 'g²/L'],
+                text: (v, f) =>
+                    `Una dissolució de sal en aigua té una concentració de ${f('c')} g/L i conté ${f('m')} g de sal. Quin volum de dissolució tenim?`,
+            },
+        },
+    },
+    {
+        id: 'mols',
+        nom: 'Quantitat de substància (mols)',
+        materia: 'quimica',
+        eq: 'n = m/M',
+        lletres: { n: ['n', 'la quantitat de substància'], m: ['m', 'la massa'], M: ['M', 'la massa molar'] },
+        genera: () => {
+            const [massa] = pick(SUBSTANCIES);
+            const M = cd(massa, 10);
+            const n = cd(pick([0.5, 1.5, 2, 2.5, 3, 4, 5]), 10);
+            return { M, n, m: per(n, M) };
+        },
+        aillar: {
+            m: {
+                unitats: { n: u('mol'), m: u('g'), M: u('g/mol') },
+                dolentes: ['mol', 'g/mol', 'mol²'],
+                text: (v, f) => {
+                    const [, nom, de] = substancia(f('M'));
+                    return `Tenim ${f('n')} mol ${de}. ${majuscula(nom)} té una massa molar de ${f('M')} g/mol. Quina massa en tenim?`;
+                },
+            },
+            M: {
+                unitats: { n: u('mol'), m: u('g'), M: u('g/mol') },
+                dolentes: ['g·mol', 'mol/g', 'g'],
+                text: (v, f) =>
+                    `Tenim ${f('n')} mol d'una substància que té una massa de ${f('m')} g. Quina és la seva massa molar?`,
+            },
+        },
+    },
+    {
+        id: 'molaritat',
+        nom: 'Molaritat',
+        materia: 'quimica',
+        eq: 'M = n/V',
+        lletres: { M: ['M', 'la molaritat'], n: ['n', 'la quantitat de solut'], V: ['V', 'el volum de la dissolució'] },
+        genera: () => {
+            const M = cd(pick([0.1, 0.4, 1.5, 3, 6]), 10);
+            const V = cd(pick([0.25, 0.5, 2, 2.5]), 100);
+            return { M, V, n: per(M, V) };
+        },
+        aillar: {
+            n: {
+                unitats: { M: u('mol/L'), n: u('mol'), V: u('L') },
+                dolentes: ['mol/L', 'L', 'mol·L'],
+                text: (v, f) =>
+                    `Al laboratori tenim ${f('V')} L d'una dissolució d'àcid clorhídric de concentració ${f('M')} mol/L. Quants mols d'àcid hi ha dissolts?`,
+            },
+            V: {
+                unitats: { M: u('mol/L'), n: u('mol'), V: u('L') },
+                dolentes: ['mol', 'mol/L', 'mol²/L'],
+                text: (v, f) =>
+                    `Volem preparar una dissolució de sucre de concentració ${f('M')} mol/L i tenim ${f('n')} mol de sucre. Quin volum de dissolució en podem fer?`,
+            },
+        },
+    },
+    {
+        id: 'boyle',
+        nom: 'Llei de Boyle',
+        materia: 'quimica',
+        eq: 'p₁*V₁ = p₂*V₂',
+        lletres: {
+            'p₁': ['p_1', 'la pressió inicial'],
+            'V₁': ['V_1', 'el volum inicial'],
+            'p₂': ['p_2', 'la pressió final'],
+            'V₂': ['V_2', 'el volum final'],
+        },
+        genera: () => {
+            const p1 = cd(pick([1, 1.5, 2]), 10);
+            const V1 = c(pick([6, 12, 24, 36]));
+            const k = cd(pick([2, 3, 4, 0.5]), 10);
+            return { 'p₁': p1, 'V₁': V1, 'p₂': per(p1, k), 'V₂': entre(V1, k) };
+        },
+        aillar: {
+            'V₂': {
+                unitats: { 'p₁': u('atm'), 'V₁': u('L'), 'p₂': u('atm'), 'V₂': u('L') },
+                dolentes: ['atm', 'atm·L', 'L/atm'],
+                text: (v, f) =>
+                    `Un gas és a una pressió de ${f('p₁')} atm i ocupa ${f('V₁')} L. Si, sense canviar la temperatura, la pressió passa a ${f('p₂')} atm, quin volum ocuparà?`,
+            },
+            'p₂': {
+                unitats: { 'p₁': u('atm'), 'V₁': u('L'), 'p₂': u('atm'), 'V₂': u('L') },
+                dolentes: ['L', 'atm·L', 'atm/L'],
+                text: (v, f) =>
+                    `Un gas és a una pressió de ${f('p₁')} atm i ocupa ${f('V₁')} L. Si, sense canviar la temperatura, el volum passa a ${f('V₂')} L, quina pressió tindrà?`,
             },
         },
     },

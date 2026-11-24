@@ -23,7 +23,9 @@
  *   d'un pas a l'altre. La capçalera: «← Resolucions» (el portal), el nom, «Ara fes-ho
  *   tu» i «Projectar»; el peu, flotant.
  * - El nivell es tria amb un desplegable (un listbox: fletxes, Inici/Fi, Retorn, Esc);
- *   «Un altre exercici», al costat, és una acció.
+ *   «Un altre exercici», al costat, és una acció. Una activitat amb grups (Fórmules STEAM: les
+ *   matèries) té abans uns botons per triar el grup, i el desplegable només mostra els nivells (les
+ *   fórmules) d'aquell grup; a l'adreça, &nivell=<clau de la fórmula> (o &grup=<matèria>, el portal).
  * - Projectar (el mode professor, per al projector; el David, 16/11/2026): el botó
  *   «Projectar» (o ?professor=1) fa la pissarra gran (--pis-escala) a tota la pantalla
  *   i amaga el títol, el nivell, les frases i el peu; amb el botó, pantalla completa.
@@ -81,15 +83,21 @@ function portal() {
             const exemple = element('div', { 'class': 'targeta-exemple', 'aria-hidden': 'true' });
             if (ambKatex) katex.render(a.exemple, exemple, { throwOnError: false, displayMode: false });
             else exemple.textContent = a.exemple;
+            // Un xip per nivell (amb el número) o, amb grups, un per grup (les matèries de Fórmules STEAM)
+            const xips = a.grups
+                ? a.grups.map(([g, n]) =>
+                      element('a', { class: 'xip-nivell', href: `${enllacActivitat(k)}&grup=${g}`, text: n })
+                  )
+                : a.nivells.map(([v, n]) =>
+                      element('a', { class: 'xip-nivell', href: enllacActivitat(k, v), title: n }, [
+                          element('b', { text: String(v) }),
+                          n,
+                      ])
+                  );
             const nivells = element(
                 'div',
                 { 'class': 'targeta-nivells', 'aria-label': `Nivells de ${a.nom}`, 'role': 'group' },
-                a.nivells.map(([v, n]) =>
-                    element('a', { class: 'xip-nivell', href: enllacActivitat(k, v), title: n }, [
-                        element('b', { text: String(v) }),
-                        n,
-                    ])
-                )
+                xips
             );
             const botoCopia = element('button', {
                 type: 'button',
@@ -132,14 +140,18 @@ function portal() {
 
 /**
  * El desplegable del nivell (un listbox, com els menús de l'índex): el botó en mostra el número i el nom; la
- * llista s'obre cap amunt si a sota no hi cap. tria(valor) es crida quan l'alumne en tria un.
+ * llista s'obre cap amunt si a sota no hi cap. tria(valor) es crida quan l'alumne en tria un. Amb grups (les
+ * matèries de Fórmules STEAM), cada nivell és [valor, nom, grup] i la llista només mostra els del grup triat
+ * (posaGrup); aleshores el valor és una clau (no un número) i el botó no en mostra el número.
  */
 function creaNivells(nivells, tria) {
     const caixa = $('nivell');
     const boto = $('nivell-boto');
     const llista = $('nivells');
+    const ambNumero = nivells.every(([v]) => typeof v === 'number');
     let actual = nivells[0][0];
-    let actiu = 0; // l'opció ressaltada amb el teclat
+    let grup = nivells[0][2];
+    let actiu = 0; // l'opció ressaltada amb el teclat (posició dins de les visibles)
     const opcions = nivells.map(([valor, nom], i) => {
         const o = element('div', {
             'class': 'nivell-opcio',
@@ -148,19 +160,22 @@ function creaNivells(nivells, tria) {
             'data-nivell': valor,
             'aria-selected': 'false',
         });
-        o.innerHTML = `<span class="nivell-num">${valor}</span>`;
+        if (ambNumero) o.append(element('span', { class: 'nivell-num', text: String(valor) }));
         o.append(element('span', { text: nom }));
         o.insertAdjacentHTML('beforeend', SVG_CHECK);
         o.addEventListener('click', () => escull(i));
         llista.append(o);
         return o;
     });
+    $('nivell-num').hidden = !ambNumero;
+    const visibles = () => opcions.filter((o, i) => nivells[i][2] === grup);
     const obert = () => !llista.hidden;
-    function ressalta(i) {
-        actiu = (i + opcions.length) % opcions.length;
-        opcions.forEach((o, j) => o.classList.toggle('actiu', j === actiu));
-        llista.setAttribute('aria-activedescendant', opcions[actiu].id);
-        opcions[actiu].scrollIntoView({ block: 'nearest' });
+    function ressalta(k) {
+        const vs = visibles();
+        actiu = (k + vs.length) % vs.length;
+        opcions.forEach(o => o.classList.toggle('actiu', o === vs[actiu]));
+        llista.setAttribute('aria-activedescendant', vs[actiu].id);
+        vs[actiu].scrollIntoView({ block: 'nearest' });
     }
     function obre() {
         llista.hidden = false;
@@ -171,7 +186,12 @@ function creaNivells(nivells, tria) {
         const r = boto.getBoundingClientRect();
         const alt = llista.offsetHeight;
         if (innerHeight - r.bottom < alt + 70 && r.top > innerHeight - r.bottom) caixa.classList.add('amunt');
-        ressalta(nivells.findIndex(([v]) => v === actual));
+        ressalta(
+            Math.max(
+                0,
+                visibles().findIndex(o => o.dataset.nivell === String(actual))
+            )
+        );
         llista.focus();
     }
     function tanca(tornaAlBoto = true) {
@@ -185,6 +205,7 @@ function creaNivells(nivells, tria) {
         tanca();
         tria(nivells[i][0]);
     }
+    const esculVisible = k => escull(opcions.indexOf(visibles()[k]));
     boto.addEventListener('click', () => (obert() ? tanca() : obre()));
     boto.addEventListener('keydown', e => {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -197,9 +218,9 @@ function creaNivells(nivells, tria) {
             'ArrowDown': () => ressalta(actiu + 1),
             'ArrowUp': () => ressalta(actiu - 1),
             'Home': () => ressalta(0),
-            'End': () => ressalta(opcions.length - 1),
-            'Enter': () => escull(actiu),
-            ' ': () => escull(actiu),
+            'End': () => ressalta(visibles().length - 1),
+            'Enter': () => esculVisible(actiu),
+            ' ': () => esculVisible(actiu),
             'Escape': () => tanca(),
             'Tab': () => tanca(false),
         };
@@ -211,13 +232,41 @@ function creaNivells(nivells, tria) {
         if (!caixa.contains(e.target)) tanca(false);
     });
     return {
-        /** Marca el nivell que es veu (al botó i a la llista). */
+        /** Marca el nivell que es veu (al botó i a la llista); amb grups, la llista passa al seu grup. */
         posa(valor) {
             actual = valor;
             const i = nivells.findIndex(([v]) => v === valor);
+            grup = nivells[i][2];
+            opcions.forEach((o, j) => (o.hidden = nivells[j][2] !== grup));
             $('nivell-num').textContent = String(valor);
             $('nivell-nom').textContent = nivells[i][1];
             opcions.forEach((o, j) => o.setAttribute('aria-selected', String(j === i)));
+        },
+    };
+}
+
+/**
+ * Els grups (les matèries de Fórmules STEAM): uns botons enganxats, abans del desplegable. tria(clau) es crida
+ * quan l'alumne en tria un; posa(clau) marca el que es veu.
+ */
+function creaGrups(grups, tria) {
+    const caixa = $('grups');
+    caixa.hidden = false;
+    const botons = grups.map(([k, nom]) => {
+        const b = element('button', {
+            'type': 'button',
+            'class': 'grup',
+            'role': 'radio',
+            'data-grup': k,
+            'text': nom,
+        });
+        b.addEventListener('click', () => tria(k));
+        caixa.append(b);
+        return b;
+    });
+    return {
+        posa(k) {
+            for (const b of botons) b.setAttribute('aria-checked', String(b.dataset.grup === k));
         },
     };
 }
@@ -237,9 +286,13 @@ async function inicia() {
         return;
     }
     const procediment = await activitat.carrega();
-    const valors = activitat.nivells.map(([v]) => v);
-    let nivell = Number(parametres.get('nivell'));
-    if (!valors.includes(nivell)) nivell = valors[0];
+    // Els nivells: els del registre o, amb grups, els del procediment ([valor, nom, grup]). A l'adreça, el valor
+    // (un número o una clau) o, amb grups, només el grup (el primer nivell d'aquell grup).
+    const nivells = activitat.nivells || procediment.NIVELLS;
+    const demanat = parametres.get('nivell');
+    const delGrup = activitat.grups && nivells.find(n => n[2] === parametres.get('grup'));
+    let nivell = (nivells.find(([v]) => String(v) === demanat) || delGrup || nivells[0])[0];
+    const grupDe = v => (nivells.find(([x]) => x === v) || [])[2];
 
     fesHoTu.hidden = false;
     botoProfessor.hidden = false;
@@ -248,11 +301,20 @@ async function inicia() {
     // El pas i els botons van a la columna de l'esquerra, a sobre del nivell (resolucio.html)
     lateral.prepend(zona.querySelector('.pis-explicacio-fila'), reproductor.element);
 
-    const triaNivell = creaNivells(activitat.nivells, valor => {
+    const triaNivell = creaNivells(nivells, valor => {
         if (pissarra.ocupat) return;
         nivell = valor;
         nouExercici();
     });
+    // Amb grups, primer el grup (la matèria) i després el nivell (la fórmula): triar un grup en mostra el primer
+    const triaGrup = activitat.grups
+        ? creaGrups(activitat.grups, k => {
+              if (pissarra.ocupat || k === grupDe(nivell)) return;
+              nivell = nivells.find(n => n[2] === k)[0];
+              nouExercici();
+          })
+        : null;
+    if (activitat.grups) $('nivell-etiqueta').textContent = 'Fórmula';
 
     /** Un exercici nou del nivell, amb el detall tancat; el nivell queda a l'adreça i a «Ara fes-ho tu». */
     function nouExercici() {
@@ -260,7 +322,10 @@ async function inicia() {
         const exercici = procediment.exercici(nivell);
         reproductor.carrega(oberts => procediment.passos(exercici, { oberts }));
         triaNivell.posa(nivell);
-        fesHoTu.href = activitat.enllac ? activitat.enllac(nivell) : `${activitat.pagina}?nivell=${nivell}`;
+        if (triaGrup) triaGrup.posa(grupDe(nivell));
+        fesHoTu.href = activitat.enllac
+            ? activitat.enllac(nivell, grupDe(nivell))
+            : `${activitat.pagina}?nivell=${nivell}`;
         posaAdreca();
     }
     /** L'adreça diu l'activitat, el nivell i, si hi és, el mode professor (per poder-la enllaçar). */

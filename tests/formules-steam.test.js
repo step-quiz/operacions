@@ -18,8 +18,8 @@
  *   Les opcions i les consignes amb fórmules ($…$) i les línies amb color (el que passa a l'altre
  *   membre) també les dibuixa KaTeX; els passos amb lletres són els opcionals.
  * - 2. Els nivells (1-4) i les decisions del David: sempre un context; el problema (context amb les
- *   dades en negreta i pregunta) i la fórmula amb la llegenda en targetes separades; enlloc no hi
- *   diu de quina matèria són les fórmules; sense codi.
+ *   dades en negreta i pregunta) i la fórmula amb la llegenda en targetes separades; cada fórmula és
+ *   d'una matèria (física, química, tecnologia) i ?materia= només en dona d'aquella; sense codi.
  * ÚS: node tests/formules-steam.test.js
  * ============================================================================
  */
@@ -268,14 +268,38 @@ suite('2. Nivells i decisions del David');
         !senseNegreta.length && q.formula.nom && q.tex === '',
         senseNegreta.slice(0, 5).join('\n      → ')
     );
-    const fitxers = [
-        'formules-steam.html',
-        ...fs.readdirSync(path.join(ROOT, 'js/formules-steam')).map(f => `js/formules-steam/${f}`),
-    ];
-    const materia = fitxers.filter(f =>
-        /F[íi]sica i [Qq]u[íi]mica|Tecnologia/.test(fs.readFileSync(path.join(ROOT, f), 'utf8'))
+    // La matèria (el David, 24/11/2026, en canvi de la decisió del 17/11 de no dir-la): cada fórmula és de
+    // física, química o tecnologia; l'electricitat i les màquines, de tecnologia
+    const claus = w.MATERIES.map(([k]) => k);
+    const senseMateria = w.FORMULES.filter(f => !claus.includes(f.materia)).map(f => f.id);
+    ok('cada fórmula és de física, química o tecnologia', !senseMateria.length, senseMateria.join(', '));
+    const de = m => w.FORMULES.filter(f => f.materia === m).map(f => f.id);
+    ok(
+        `totes tres matèries tenen fórmules (${claus.map(m => `${m}: ${de(m).length}`).join(', ')})`,
+        claus.every(m => de(m).length >= 4)
     );
-    ok('enlloc no diu de quina matèria són les fórmules', !materia.length, materia.join(', '));
+    ok(
+        'l’electricitat i les màquines són de tecnologia; la química té concentració, mols, molaritat i Boyle',
+        ['ohm', 'electrica', 'energia', 'paralel', 'palanca', 'politges', 'engranatges', 'rendiment'].every(id =>
+            de('tecnologia').includes(id)
+        ) && ['concentracio', 'mols', 'molaritat', 'boyle'].every(id => de('quimica').includes(id))
+    );
+    const malMateria = [];
+    for (const m of claus)
+        for (const n of [1, 2, 3, 4])
+            for (let k = 0; k < 30; k++) {
+                const qm = generaPreguntaFS(n, null, { materia: m });
+                if (qm.dades.materia !== m) malMateria.push(`${m}, nivell ${n}: ${qm.dades.formula}`);
+            }
+    ok(
+        '?materia=…: totes les preguntes són d’aquella matèria (també als nivells que no té: el més proper)',
+        !malMateria.length,
+        malMateria.slice(0, 5).join(', ')
+    );
+    const unaFormula = [
+        ...new Set(Array.from({ length: 40 }, () => generaPreguntaFS(1, null, { formula: 'boyle' }).dades.formula)),
+    ];
+    eq('amb una fórmula, totes les preguntes són d’aquella fórmula', unaFormula.join(), 'boyle');
     ok(
         'la pàgina no dona codi (senseCodi)',
         /senseCodi:\s*true/.test(fs.readFileSync(path.join(ROOT, 'formules-steam.html'), 'utf8'))
@@ -456,12 +480,25 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
         [...senseUnitats].sort().join(', '),
         'kelvin:t, rendiment:Pa, rendiment:Pu'
     );
-    for (const n of Resolucio.NIVELLS)
+    for (const n of [1, 2, 3, 4])
         for (let k = 0; k < 100; k++) {
             const ex = Resolucio.exercici(n);
             if (ex.nivell !== n) anota(dolents.nivell, `nivell ${n}: ${ex.formula}, ${ex.x} és del ${ex.nivell}`);
         }
     ok('exercici(nivell) dona un cas d’aquell nivell', !dolents.nivell.length, llista(dolents.nivell));
+    // A resolucio.html es tria la matèria i després la fórmula: NIVELLS són les fórmules, per matèries
+    eq(
+        'NIVELLS: totes les fórmules, una vegada, ordenades per matèria ([clau, nom, matèria])',
+        Resolucio.NIVELLS.map(([k, , m]) => `${m}:${k}`).join(),
+        p.MATERIES.flatMap(([m]) => p.FORMULES.filter(f => f.materia === m).map(f => `${m}:${f.id}`)).join()
+    );
+    const malFormula = [];
+    for (const [id] of Resolucio.NIVELLS)
+        for (let k = 0; k < 20; k++) {
+            const ex = Resolucio.exercici(id);
+            if (ex.formula !== id) malFormula.push(`${id} → ${ex.formula}`);
+        }
+    ok('exercici(clau d’una fórmula) dona aquella fórmula', !malFormula.length, malFormula.slice(0, 5).join(', '));
 
     // Un exemple fet a mà: v = Δx / Δt, aïllar Δt amb Δx = 240 km i v = 80 km/h
     const cas = Resolucio.CASOS.find(c => c.f.id === 'velocitat' && c.x === 'Δt');

@@ -13,11 +13,16 @@
  *   · frase: què s'hi veu (la targeta del portal); exemple: una fórmula en TeX, dibuixada a la
  *     targeta amb KaTeX (només és una mostra: no és cap exercici dels que surten);
  *   · pagina: on es fa l'exercici (l'escenari A, «Ara fes-ho tu»); nivells: [[valor, nom]];
+ *   · grups (en lloc de nivells): [[clau, nom]] (p. ex. les matèries de Fórmules STEAM): a la pàgina es
+ *     tria el grup i després el «nivell» d'aquell grup; els nivells, [[valor, nom, grup]], els dona el
+ *     procediment (NIVELLS), perquè el registre no hagi de carregar res; al portal, un xip per grup
+ *     (resolucio.html?activitat=…&grup=…);
  *   · carrega(): el procediment pur de l'activitat ({ NIVELLS, exercici(nivell), passos(exercici,
  *     { oberts }), files(exercici) }), carregat només quan cal;
- *   · enllac(nivell) (opcional): l'adreça d'«Ara fes-ho tu» (si no n'hi ha, pagina?nivell=…).
+ *   · enllac(nivell, grup) (opcional): l'adreça d'«Ara fes-ho tu» (si no n'hi ha, pagina?nivell=…).
  *   Prioritat: els nivells 6–8 són d'enters, i «Ara fes-ho tu» hi afegeix ?nombres=enters.
- *   Fórmules STEAM: els nivells 1–4 de l'activitat (formules-steam.html?nivell=1…4).
+ *   Fórmules STEAM: la matèria (física, química, tecnologia) i la fórmula (el David, 24/11/2026); «Ara
+ *   fes-ho tu» porta a formules-steam.html?materia=….
  *   Inequacions: només les de primer grau, els nivells 1–4 (inequacions.html?nivell=1…4); el
  *   procediment s'exporta com a ResolucioIQ.
  *   Cilindres amb un full: nivell 1 el full A4, nivell 2 altres fulls; s'exporta com a ResolucioCF.
@@ -89,15 +94,16 @@ export const ACTIVITATS = Object.freeze({
     'formules-steam': Object.freeze({
         tema: 'algebra',
         nom: 'Fórmules STEAM',
-        frase: 'Aïllar una lletra en fórmules de ciències i tecnologia, primer amb nombres.',
+        frase: 'Aïllar una lletra en fórmules de física, química i tecnologia, primer amb nombres.',
         exemple: 'E = P \\cdot t',
         pagina: 'formules-steam.html',
-        nivells: Object.freeze([
-            [1, 'Un pas'],
-            [2, 'Dos passos o més'],
-            [3, 'La lletra al denominador'],
-            [4, 'Quadrats i fórmules llargues'],
+        // Es tria la matèria i després la fórmula: les fórmules (el «nivell») les dona el procediment, NIVELLS
+        grups: Object.freeze([
+            ['fisica', 'Física'],
+            ['quimica', 'Química'],
+            ['tecnologia', 'Tecnologia'],
         ]),
+        enllac: (nivell, grup) => `formules-steam.html?materia=${grup}`,
         carrega: () => import('../formules-steam/resolucio.js').then(m => m.Resolucio),
     }),
     'inequacions': Object.freeze({

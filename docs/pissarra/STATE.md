@@ -547,6 +547,23 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   `Resolucio` clash in the test loader (`tests/harness.js` runs every module in one scope, and inequacions loads
   equations next to it). Kept as is; documented in `activitats.js`.
 
+## `formules-steam`: subjects instead of difficulty (David, 2026-11-24, after the audit)
+
+- **Reverses the 17/11 decision** «never say which subject a formula belongs to». Every formula in
+  `js/formules-steam/cataleg.js` has `materia` (`MATERIES`: `fisica`, `quimica`, `tecnologia`); electricity and
+  machines are technology. Four new chemistry formulas (there was none): `concentracio` (c = m/V, g/L), `mols`
+  (n = m/M, with a substance per molar mass), `molaritat` (M = n/V, mol/L), `boyle` (p₁·V₁ = p₂·V₂, atm, L).
+- **Activity:** `?materia=` filters the cases (`casosFS` in `math-engine.js`); a subject without cases of the level
+  falls back to the nearest level. Index: row «Matèria» (`OPCIONS_ACTIVITAT`). «Mira com es resol» opens the same
+  formula (`&nivell=<formula id>`).
+- **Board page:** the registry entry has `grups` (the subjects) instead of `nivells`; the procedure's `NIVELLS` are
+  `[id, nom, materia]` tuples ordered by subject; `exercici(id)` gives that formula with any isolatable letter
+  (numbers 1–4 still give a difficulty level, for the tests). `resolucio.js` shows three subject buttons (`.grup`,
+  a radiogroup) before the dropdown, which only lists that subject's formulas («Fórmula» label, no number badge);
+  URL `&nivell=<id>` or `&grup=<subject>` (portal chips). «Ara fes-ho tu» → `formules-steam.html?materia=…`.
+- **Cache (`_headers`):** `Cache-Control: no-cache` for every file (revalidate with ETag; 304 when unchanged) and
+  `immutable` for `vendor/` — David's browser kept a mix of old and new files after the deploy.
+
 ## Scenario B for `cilindres` (2026-11-24, PENDING §2b)
 
 - `js/cilindres/resolucio.js`, exported as **`ResolucioCF`** (registry loads `m.ResolucioCF`). Levels: 1 the A4

@@ -810,11 +810,13 @@ function solucioLineal(text) {
                 !a.nom ||
                 !a.frase ||
                 !a.exemple ||
-                !a.nivells.length ||
-                a.nivells.some(([, n]) => !n)
+                // nivells amb nom o, en lloc seu, grups amb nom (els nivells, aleshores, els dona el procediment)
+                !a.nivells === !a.grups ||
+                !(a.nivells || a.grups).length ||
+                (a.nivells || a.grups).some(([, n]) => !n)
         );
         ok(
-            'cada activitat té tema (un bloc de TEMES), nom, frase, exemple i nivells amb nom (el portal)',
+            'cada activitat té tema (un bloc de TEMES), nom, frase, exemple i nivells (o grups) amb nom (el portal)',
             !mal.length,
             mal.map(([k]) => k).join(', ')
         );
@@ -833,11 +835,19 @@ function solucioLineal(text) {
         );
         for (const [nom, a] of Object.entries(ACTIVITATS)) {
             const procediment = await a.carrega();
-            ok(
-                `el procediment «${nom}» té el que fa servir resolucio.html, i els nivells del registre són els seus`,
-                ['NIVELLS', 'exercici', 'passos', 'files'].every(k => k in procediment) &&
-                    a.nivells.map(([v]) => v).join() === procediment.NIVELLS.join()
-            );
+            const te = ['NIVELLS', 'exercici', 'passos', 'files'].every(k => k in procediment);
+            if (a.nivells)
+                ok(
+                    `el procediment «${nom}» té el que fa servir resolucio.html, i els nivells del registre són els seus`,
+                    te && a.nivells.map(([v]) => v).join() === procediment.NIVELLS.join()
+                );
+            else
+                ok(
+                    `el procediment «${nom}» dona els nivells ([valor, nom, grup]), i cada grup del registre en té`,
+                    te &&
+                        procediment.NIVELLS.every(n => n.length === 3 && n[1] && a.grups.some(([g]) => g === n[2])) &&
+                        a.grups.every(([g]) => procediment.NIVELLS.some(n => n[2] === g))
+                );
         }
     }
 
