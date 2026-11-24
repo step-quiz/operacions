@@ -31,14 +31,14 @@
  * - tests/fraccions.test.js comprova milers d'operacions de tots els nivells: el guió
  *   és correcte, cada línia que es veu (també les del detall) és certa, KaTeX
  *   dibuixa totes les fórmules i el detall compleix la seva regla.
- * DEPENDÈNCIES: utils.js (randInt), pissarra/formules.js.
+ * DEPENDÈNCIES: utils.js (gcd, randInt), pissarra/formules.js.
  * ============================================================================
  */
-import { randInt } from '../utils.js';
+import { gcd, randInt } from '../utils.js';
 import { clau, guio, historial } from '../pissarra/formules.js';
 
 export const Resolucio = (() => {
-    const mcd = (a, b) => (b ? mcd(b, a % b) : Math.abs(a));
+    const mcd = gcd;
     const mcm = (a, b) => (a / mcd(a, b)) * b;
 
     // ---- LES LÍNIES ----

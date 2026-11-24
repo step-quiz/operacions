@@ -12,7 +12,8 @@
  *   3. el reproductor: «Pas següent», «Pas anterior», «Torna a començar», els
  *      punts i les fletxes del teclat;
  *   4. carregaKatex() carrega KaTeX en una pàgina que no el té;
- *   5. el botó «Activar la resolució pas a pas» d'index.html;
+ *   5. el botó «Resolució pas a pas» d'index.html obre el portal (resolucio.html) en una
+ *      pestanya nova, i l'índex té el peu flotant;
  *   6. escenari A: prioritat, equacions i fraccions, també amb ?pissarra=1, són les
  *      de sempre (cap pissarra); a equacions, «Mira com es resol» obre la resolució
  *      del mateix nivell en una pestanya nova; a fraccions, prioritat i fórmules STEAM,
@@ -20,8 +21,10 @@
  *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat,
  *      formules-steam, inequacions i cilindres (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
  *      detall» a cada pas que en té (la línia del pas en gris com a objectiu, els
- *      subpassos al calaix, «Menys detall»), el nivell,
- *      «Un altre exercici» i «Ara fes-ho tu»; sense activitat, la llista;
+ *      subpassos al calaix, «Menys detall»), el nivell (el desplegable, també amb el
+ *      teclat), «Un altre exercici» i «Ara fes-ho tu»; el peu flotant a la vista; a la
+ *      tauleta, el botó «Pas següent» no es mou d'un pas a l'altre; sense activitat,
+ *      el portal (una targeta per activitat, amb els nivells i «Copia l'enllaç»);
  *   8. si una animació falla, la cua del motor (encua) mostra el pas i continua;
  *   9. a l'inici del moviment, cada fantasma es dibuixa exactament damunt del seu
  *      original (a resolucio.html, també en obrir un detall, i els <text> d'un
@@ -29,12 +32,13 @@
  *      que no es mou;
  *  10. la taula de prioritat no canvia de mida (R4);
  *  11. amb «reduir el moviment», cap símbol no viatja;
+ *  12. a classe: tocar per acabar el pas, ↺ i el mode Projectar (la pissarra a tota
+ *      l'amplada i l'alçada, també a pantalla ampla, i sense el peu);
  *   i cap error a la consola.
  * - Si Playwright no hi és (p. ex. a GitHub), la prova s'omet i no falla.
  * ÚS: node tests/navegador/prova-pissarra.js
  * ============================================================================
  */
-/* global ACTIVITIES_ESO, ACTIVITIES_BATX */ // les llistes d'index.html (dins de page.evaluate)
 'use strict';
 const path = require('path');
 const { spawn } = require('child_process');
@@ -468,81 +472,44 @@ function engegaServidor() {
             await pagina.close();
         }
 
-        suite('5. index.html: el botó «Activar la resolució pas a pas»');
+        suite('5. index.html: el botó «Resolució pas a pas» i el peu flotant');
         {
-            // L'index de debò: si cap activitat no té «pissarra: true», el botó no surt
-            const real = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
-            await real.goto(BASE + '/index.html');
-            const llista = await real.evaluate(
-                () => [...ACTIVITIES_ESO, ...ACTIVITIES_BATX].filter(a => a.pissarra).length
-            );
-            eq('el botó surt si i només si alguna activitat la té', await real.isVisible('#btn-pissarra'), llista > 0);
-            await real.close();
-
-            // Un index amb prioritat (ESO) marcada «pissarra: true» i cap de Batxillerat
             const pagina = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             const errors = [];
             pagina.on('pageerror', e => errors.push(String(e)));
-            await pagina.route('**/index.html', async ruta => {
-                const resposta = await ruta.fetch();
-                // Només prioritat té la resolució pas a pas (es treuen les marques de les altres)
-                let html = (await resposta.text()).replace(/, pissarra: true/g, '');
-                html = html.replace("{ file: 'prioritat.html',", "{ file: 'prioritat.html', pissarra: true,");
-                await ruta.fulfill({ response: resposta, body: html });
-            });
             await pagina.goto(BASE + '/index.html');
             await pagina.waitForTimeout(1900); // les animacions d'entrada
-            const enllac = s => pagina.textContent(`#l-${s}`);
-            const opcions = s => pagina.$$eval(`#cd-${s} .cd-option`, os => os.map(o => o.textContent.trim()));
-            ok('amb una activitat marcada, el botó surt', await pagina.isVisible('#btn-pissarra'));
-            eq('per defecte està desactivat', await pagina.getAttribute('#btn-pissarra', 'aria-pressed'), 'false');
-            const esoAbans = (await opcions('eso')).length;
-            ok('desactivat: el menú d’ESO té totes les activitats', esoAbans > 20);
-            ok('desactivat: l’enllaç no porta pissarra=1', !/pissarra=/.test(await enllac('eso')));
-
-            const fonsObre = () => pagina.$eval('#p-eso', b => getComputedStyle(b).backgroundColor);
-            eq('desactivat: «Obre» és blau', await fonsObre(), 'rgb(59, 130, 246)');
-            ok('desactivat: hi ha les opcions (sessions…)', await pagina.isVisible('#s-eso'));
-            await pagina.click('#btn-pissarra');
-            eq('activat: aria-pressed', await pagina.getAttribute('#btn-pissarra', 'aria-pressed'), 'true');
-            await pagina.mouse.move(5, 5);
-            await pagina.waitForTimeout(400); // la transició de colors
-            eq('activat: «Obre» és lila', await fonsObre(), 'rgb(124, 58, 237)');
-            const opcionsVisibles = await pagina.$$eval('.sub-panel-params .row, #row-fixed-batx', rs =>
-                rs.filter(r => r.offsetParent !== null).map(r => r.textContent.trim().split('\n')[0])
-            );
-            ok('activat: no hi ha cap opció de configuració', !opcionsVisibles.length, opcionsVisibles.join(', '));
+            ok('el botó «Resolució pas a pas» hi és', await pagina.isVisible('#btn-resolucio'));
             eq(
-                'activat: el text diu «Desactivar…»',
-                (await pagina.textContent('#btn-pissarra')).trim(),
-                'Desactivar la resolució pas a pas'
+                'és un enllaç a resolucio.html en una pestanya nova',
+                await pagina.$eval('#btn-resolucio', a => [a.getAttribute('href'), a.target].join(' ')),
+                'resolucio.html _blank'
             );
-            eq("activat: el menú d'ESO només té prioritat", (await opcions('eso')).join('|'), "Prioritat d'operacions");
+            const [nova] = await Promise.all([pagina.context().waitForEvent('page'), pagina.click('#btn-resolucio')]);
+            await nova.waitForSelector('.targeta', { timeout: 8000 });
             ok(
-                'activat: l’enllaç d’ESO és la resolució de prioritat («resolucio.html?activitat=prioritat»)',
-                /\/resolucio\.html\?activitat=prioritat$/.test((await enllac('eso')).trim())
+                'la pestanya nova és el portal de les resolucions',
+                new URL(nova.url()).pathname.endsWith('/resolucio.html')
             );
-            eq('activat: el menú de Batxillerat és buit', (await opcions('batx')).length, 0);
-            eq(
-                'activat: Batxillerat diu que encara no n’hi ha cap',
-                (await pagina.textContent('#cd-batx .cd-label')).trim(),
-                "Encara no n'hi ha cap"
-            );
+            await nova.close();
+            const opcions = s => pagina.$$eval(`#cd-${s} .cd-option`, os => os.length);
             ok(
-                'activat: sense activitat, «Obre» i «Copia» desactivats',
-                (await pagina.isDisabled('#p-batx')) && (await pagina.isDisabled('#c-batx'))
+                'els menús d’ESO i de Batxillerat tenen totes les activitats',
+                (await opcions('eso')) > 20 && (await opcions('batx')) > 5
             );
-            eq('activat: sense activitat, no hi ha enllaç', (await enllac('batx')).trim(), '');
-
-            await pagina.click('#btn-pissarra');
-            await pagina.mouse.move(5, 5);
-            await pagina.waitForTimeout(400);
-            eq('desactivat de nou: «Obre» torna a ser blau', await fonsObre(), 'rgb(59, 130, 246)');
-            ok('desactivat de nou: tornen les opcions', await pagina.isVisible('#s-eso'));
-            eq('desactivat de nou: totes les activitats', (await opcions('eso')).length, esoAbans);
-            ok('desactivat de nou: l’enllaç ja no porta pissarra=1', !/pissarra=/.test(await enllac('eso')));
-            ok('desactivat de nou: Batxillerat torna a tenir enllaç', /\.html/.test(await enllac('batx')));
-            ok('desactivat de nou: «Obre» actiu', !(await pagina.isDisabled('#p-batx')));
+            ok('les opcions (sessions…) hi són', await pagina.isVisible('#s-eso'));
+            const peu = await pagina.$eval('footer.peu', f => {
+                const r = f.getBoundingClientRect();
+                return {
+                    fix: getComputedStyle(f).position,
+                    baix: innerHeight - r.bottom,
+                    visible: r.top < innerHeight,
+                };
+            });
+            ok(
+                `el peu és flotant i es veu a baix (${JSON.stringify(peu)})`,
+                peu.fix === 'fixed' && peu.visible && peu.baix >= 4 && peu.baix <= 20
+            );
             ok("cap error a la consola de l'index", !errors.length, errors.join('\n      → '));
             await pagina.close();
         }
@@ -678,8 +645,29 @@ function engegaServidor() {
                 ok(`${nom}: l'últim pas té el resultat ressaltat`, r.final);
                 ok(`${nom}: la pàgina no surt de la pantalla`, !r.ample);
                 await provaDetall(p, 'resolucio', nom);
-                // Nivell, «Un altre exercici» i «Ara fes-ho tu»
-                await p.click('#nivells button[data-nivell="1"]');
+                // El peu, flotant i a la vista
+                const peu = await p.$eval('footer.peu', f => {
+                    const r = f.getBoundingClientRect();
+                    return getComputedStyle(f).position === 'fixed' && r.bottom <= innerHeight && r.top > 0;
+                });
+                ok(`${nom}: el peu flotant es veu`, peu);
+                // Nivell (el desplegable), «Un altre exercici» i «Ara fes-ho tu»
+                await p.click('#nivell-boto');
+                ok(`${nom}: el desplegable del nivell s'obre`, await p.isVisible('#nivells'));
+                eq(
+                    `${nom}: el desplegable té tots els nivells`,
+                    await p.$$eval('#nivells [role="option"]', os => os.length),
+                    await p.evaluate(
+                        a => import('/js/resolucio/activitats.js').then(m => m.ACTIVITATS[a].nivells.length),
+                        act
+                    )
+                );
+                eq(
+                    `${nom}: la fletxa de la capçalera torna al portal`,
+                    await p.getAttribute('#torna', 'href'),
+                    'resolucio.html'
+                );
+                await p.click('#nivells [data-nivell="1"]');
                 await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
                 eq(
                     `${nom}: el nivell queda a l'adreça`,
@@ -696,13 +684,75 @@ function engegaServidor() {
                     await p.evaluate(() => window.resolucio.pissarra.pas),
                     0
                 );
+                ok(`${nom}: en triar, el desplegable es tanca`, !(await p.isVisible('#nivells')));
+                eq(`${nom}: el botó diu el nivell triat`, (await p.textContent('#nivell-num')).trim(), '1');
                 await p.click('#un-altre');
                 eq(`${nom}: «Un altre exercici» també`, await p.evaluate(() => window.resolucio.pissarra.pas), 0);
+                // El nivell amb el teclat: ↓ obre, ↓ baixa, Retorn tria
+                await p.focus('#nivell-boto');
+                await p.keyboard.press('ArrowDown');
+                await p.keyboard.press('ArrowDown');
+                await p.keyboard.press('Enter');
+                await p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
+                eq(
+                    `${nom}: amb el teclat (↓ ↓ Retorn) es tria el nivell 2, i les fletxes no passen cap pas`,
+                    [
+                        await p.evaluate(() => location.search),
+                        await p.evaluate(() => window.resolucio.pissarra.pas),
+                    ].join(' '),
+                    `?activitat=${act}&nivell=2 0`
+                );
                 ok(`${nom}: cap error a la consola`, !errors.length, errors.join('\n      → '));
                 await p.close();
             }
+            // A la tauleta (una columna), el botó «Pas següent» no es mou d'un pas a l'altre (la pissarra ocupa
+            // tota l'alçada des del principi)
+            {
+                const t = await navegador.newPage({ viewport: { width: 820, height: 1000 } });
+                await t.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
+                await t.waitForFunction(() => window.resolucio);
+                const posicions = [];
+                for (let i = 0; i < 4; i++) {
+                    posicions.push(
+                        await t.$eval('.pis-boto[aria-label="Pas següent"]', b =>
+                            Math.round(b.getBoundingClientRect().top)
+                        )
+                    );
+                    await t.evaluate(() => window.resolucio.pissarra.seguent());
+                    await t.waitForFunction(() => !window.resolucio.pissarra.ocupat);
+                }
+                ok(
+                    `tauleta: el botó «Pas següent» és sempre al mateix lloc (${posicions.join(', ')})`,
+                    new Set(posicions).size === 1
+                );
+                await t.close();
+            }
             const p = await navegador.newPage();
             await p.goto(BASE + '/resolucio.html');
+            eq(
+                'sense activitat, el portal té una targeta per activitat',
+                await p.$$eval('.targeta', ts => ts.length),
+                6
+            );
+            ok(
+                'cada targeta té la fórmula d’exemple dibuixada amb KaTeX, els nivells i «Copia l’enllaç»',
+                await p.$$eval('.targeta', ts =>
+                    ts.every(
+                        t =>
+                            t.querySelector('.targeta-exemple .katex') &&
+                            t.querySelector('.xip-nivell') &&
+                            t.querySelector('.copia')
+                    )
+                )
+            );
+            eq(
+                'el xip del nivell 2 de les equacions hi porta directament',
+                await p.$$eval('.xip-nivell', xs =>
+                    xs.map(x => x.getAttribute('href')).find(h => h === 'resolucio.html?activitat=equacions&nivell=2')
+                ),
+                'resolucio.html?activitat=equacions&nivell=2'
+            );
+            eq('al portal, la fletxa torna a l’índex', await p.getAttribute('#torna', 'href'), 'index.html');
             ok(
                 'sense activitat, la pàgina diu quines en tenen',
                 (await p.isVisible('a[href="resolucio.html?activitat=equacions"]')) &&
@@ -960,14 +1010,16 @@ function engegaServidor() {
                 frase: getComputedStyle(document.querySelector('.pis-explicacio-fila')).display,
                 mida: parseFloat(getComputedStyle(document.querySelector('.pis-pissarra')).fontSize),
                 titol: getComputedStyle(document.querySelector('header h1')).display,
+                peu: getComputedStyle(document.querySelector('footer.peu')).display,
                 boto: document.querySelector('#professor').textContent,
             }));
             ok(
-                `«Projectar»: pissarra gran (${dins.mida}px), sense frases ni títol, «Deixa de projectar» i a l’adreça`,
+                `«Projectar»: pissarra gran (${dins.mida}px), sense frases, títol ni peu, «Deixa de projectar» i a l’adreça`,
                 dins.classe &&
                     dins.adreca.endsWith('&professor=1') &&
                     dins.frase === 'none' &&
                     dins.titol === 'none' &&
+                    dins.peu === 'none' &&
                     dins.boto === 'Deixa de projectar' &&
                     dins.mida > 40,
                 JSON.stringify(dins)
@@ -980,6 +1032,23 @@ function engegaServidor() {
                 !fora[0] && !fora[1].includes('professor'),
                 JSON.stringify(fora)
             );
+            // A pantalla ampla, la pissarra ocupa tota l'amplada i l'alçada, encara que el que hi ha escrit sigui
+            // estret (una suma de fraccions): abans s'encongia a l'amplada del contingut
+            {
+                const a = await navegador.newPage({ viewport: { width: 1366, height: 680 } });
+                await a.goto(BASE + '/resolucio.html?activitat=fraccions&nivell=1&professor=1');
+                await a.waitForFunction(() => window.resolucio);
+                const mida = await a.$eval('#pissarra .pis-escenari', e => {
+                    const r = e.getBoundingClientRect();
+                    const c = document.querySelector('.pis-controls').getBoundingClientRect();
+                    return { ample: Math.round(r.width), alt: Math.round(r.height), baixBotons: Math.round(c.bottom) };
+                });
+                ok(
+                    `«Projectar» a 1366 × 680: la pissarra fa tota l'amplada i l'alçada, amb els botons a baix (${JSON.stringify(mida)})`,
+                    mida.ample > 1250 && mida.alt > 420 && mida.baixBotons > 600 && mida.baixBotons <= 680
+                );
+                await a.close();
+            }
             await p.goto(BASE + '/resolucio.html?activitat=prioritat&nivell=4&professor=1');
             await p.waitForFunction(() => window.resolucio);
             ok(

@@ -16,9 +16,10 @@
  *      mòdul i les pàgines amb joc no tenen JS dins de l'HTML.
  *   8. Mode «Esvaïment» (?esvaiment=1): no genera mai el codi de verificació, i
  *      la llista de pàgines que l'admeten quadra amb index.html i amb el codi.
- *   9. «Resolució pas a pas» (resolucio.html): la llista de pàgines que
- *      l'admeten quadra amb index.html (botó «Activar la resolució pas a pas»)
- *      i amb el codi; no canvia les sessions fixes ni els codis.
+ *   9. «Resolució pas a pas» (resolucio.html): una sola llista d'activitats
+ *      (js/resolucio/activitats.js), cadascuna amb pàgina i procediment; index.html
+ *      només hi enllaça (botó «Resolució pas a pas», pestanya nova); no canvia
+ *      les sessions fixes ni els codis.
  *  10. Final de pregunta i punts: cap activitat suma punts pel seu compte
  *      (només sumaPunts() de game-core.js), ningú no fa servir la finestra
  *      antiga «Molt bé!» ni passa de pregunta sol, i les pàgines amb la franja
@@ -700,10 +701,14 @@ suite('8. Mode «Esvaïment» (?esvaiment=1)');
 // ─────────────────────────────────────────────────────────────────────────────
 suite('9. «Resolució pas a pas» (resolucio.html, l’escenari B)');
 {
-    const src = read('js/pissarra/mode.js');
-    const llista = src.match(/export const SUPORTA_PISSARRA\s*=\s*\[([^\]]*)\]/);
-    ok('js/pissarra/mode.js declara SUPORTA_PISSARRA', Boolean(llista));
-    const suporta = llista ? [...llista[1].matchAll(/'([^']+)'/g)].map(m => m[1]).sort() : [];
+    // La llista única: les claus de js/resolucio/activitats.js
+    const reg = exists('js/resolucio/activitats.js') ? read('js/resolucio/activitats.js') : '';
+    const registrades = [...reg.matchAll(/^ {4}'?([\w-]+)'?: Object\.freeze\(\{/gm)].map(m => m[1]).sort();
+    ok('js/resolucio/activitats.js registra alguna activitat', registrades.length > 0, registrades.join(', '));
+    ok(
+        'no hi ha cap altra llista de les activitats amb resolució (js/pissarra/mode.js ja no hi és)',
+        !exists('js/pissarra/mode.js')
+    );
 
     // Cap fitxer de la pissarra fa servir Math.random (les sessions fixes no canvien)
     const senseComentaris = f =>
@@ -713,41 +718,30 @@ suite('9. «Resolució pas a pas» (resolucio.html, l’escenari B)');
     const random = listFiles('js/pissarra', ['.js']).filter(f => /Math\.random/.test(senseComentaris(f)));
     ok('cap fitxer de js/pissarra/ fa servir Math.random', !random.length, random.join(', '));
 
-    // index.html: les activitats amb «pissarra: true» són exactament les de SUPORTA_PISSARRA
+    // index.html: un botó que obre el portal (resolucio.html) en una pestanya nova, i res més
     const idx = read('index.html');
-    const ambPissarra = [...idx.matchAll(/\{\s*file:\s*'([^']+)\.html'[^}]*\bpissarra:\s*true[^}]*\}/g)]
-        .map(m => m[1])
-        .sort();
     ok(
-        'index.html marca «pissarra: true» a les mateixes activitats que SUPORTA_PISSARRA',
-        JSON.stringify(ambPissarra) === JSON.stringify(suporta),
-        `index.html: ${ambPissarra.join(', ') || '—'} · SUPORTA_PISSARRA: ${suporta.join(', ') || '—'}`
+        'index.html té el botó «Resolució pas a pas», que obre resolucio.html en una pestanya nova',
+        /<a id="btn-resolucio"[^>]*href="resolucio\.html"[^>]*target="_blank"/.test(idx)
     );
     ok(
-        'index.html té el botó «Activar la resolució pas a pas» i aleshores l’enllaç és «resolucio.html?activitat=…»',
-        /id="btn-pissarra"/.test(idx) &&
-            /Activar la resolució pas a pas/.test(idx) &&
-            /if \(resolucioPasAPas\) \{\s*els\.link\.textContent = `\$\{BASE_URL\}resolucio\.html\?activitat=\$\{file\.replace\(/.test(
-                idx
-            )
+        'index.html ja no té l’interruptor «Activar la resolució pas a pas» ni les marques «pissarra: true»',
+        !/btn-pissarra|resolucioPasAPas|resolucio-pas-a-pas|\bpissarra:\s*true/.test(idx)
     );
 
-    // L'escenari B: resolucio.html, el registre js/resolucio/activitats.js (les mateixes activitats) i el
-    // procediment de cada una (js/<activitat>/resolucio.js)
-    const reg = exists('js/resolucio/activitats.js') ? read('js/resolucio/activitats.js') : '';
-    const registrades = [...reg.matchAll(/^ {4}'?([\w-]+)'?: Object\.freeze\(\{/gm)].map(m => m[1]).sort();
+    // L'escenari B: resolucio.html i el procediment de cada activitat (js/<activitat>/resolucio.js)
+    const pagina = exists('resolucio.html') ? read('resolucio.html') : '';
     ok(
-        'resolucio.html carrega js/resolucio/resolucio.js i css/pissarra.css',
-        exists('resolucio.html') &&
-            /src="js\/resolucio\/resolucio\.js"/.test(read('resolucio.html')) &&
-            /href=["']css\/pissarra\.css["']/.test(read('resolucio.html'))
+        'resolucio.html carrega js/resolucio/resolucio.js, css/pissarra.css, css/resolucio.css i el peu (css/peu.css)',
+        /src="js\/resolucio\/resolucio\.js"/.test(pagina) &&
+            ['pissarra', 'pissarra-figures', 'resolucio', 'peu'].every(c =>
+                new RegExp(`href=["']css/${c}\\.css["']`).test(pagina)
+            )
     );
-    ok(
-        'js/resolucio/activitats.js registra les mateixes activitats que SUPORTA_PISSARRA',
-        JSON.stringify(registrades) === JSON.stringify(suporta),
-        `activitats.js: ${registrades.join(', ') || '—'} · SUPORTA_PISSARRA: ${suporta.join(', ') || '—'}`
+    ok('resolucio.html no porta estils a dins (són a css/resolucio.css)', !/<style[\s>]/.test(pagina));
+    const senseProcediment = registrades.filter(
+        p => !exists(`${p}.html`) || !exists(path.join('js', p, 'resolucio.js'))
     );
-    const senseProcediment = suporta.filter(p => !exists(`${p}.html`) || !exists(path.join('js', p, 'resolucio.js')));
     ok(
         'cada activitat amb resolució té la seva pàgina i el seu procediment (js/<activitat>/resolucio.js)',
         !senseProcediment.length,

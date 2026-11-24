@@ -55,19 +55,20 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 | `js/pissarra/comprova.js` | Pure, for tests. `comprovaGuio(passos, nFiles, nom, {text})` → list of structural errors; `comprovaDetall(fesGuio, nFiles, nom, {text})` → the detail-on-demand rule over every view; `textPla(tex)` → plain text that can be evaluated (also `\Delta`, `\Omega`, `\eta`, `\circ`, `\Bigl`, `\Bigr`); `clausDe(tex)`. |
 | `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files, marc})` → controller. Script mode: `carrega(passos)`, `seguent()`, `salta(i)`, `repeteix()`, `afanya()` (finish the running animation at once: waits resolve, animations `finish()`, the remaining phases last 1 ms; false if idle), `canviaGuio(nous, i, {senseVols})` (another script, e.g. with a step opened, animated to its step i). The CSS custom property `--pis-escala` on the board (e.g. a teacher mode) multiplies the base TeX size. Free mode (the activity decides each state from what the student does): **`encua(pas, {anima, velocitat})`** (the queue: one paint at a time; it never blocks — if an animation throws, it logs, shows the step without animation and the activity goes on) and `enAcabar()` (a Promise for everything queued so far); `mostraPas(pas)` / `animaPas(pas)` are the unqueued primitives. Both modes: `velocitat(v)`, `escolta(f)`, `pas`, `total`, `ocupat`, `passos`, `element`; `pas.anunci` (text) is read by an aria-live region once the step shows. `marc: false` hides the frame and dotted background (only the animations show). With `prefers-reduced-motion` no symbol travels: changed rows fade in place. Also `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once), `textAmbFormules(text)` (captions), `element()`. |
 | `js/pissarra/reproductor.js` | DOM. `creaReproductor(container, pissarra, {reprodueix, punts, velocitat, teclat, dalt, detall})`: restart / previous / play / next buttons, one dot per step (smaller for sub-steps), speed, step caption («Pas 2b de 6») with a ↺ that replays the current step; a click on the board finishes the running step (`afanya`); keys (option `teclat`): Space (stop playback, else finish the step, else play), ←/→ and PageUp/PageDown (presenter remotes; «next» first finishes a running step); and with `detall: oberts => passos` the «Vull més detall» / «Menys detall» button and a «▴ Plega» button on every open drawer; `carrega(passos or oberts => passos)` loads a script or an exercise with detail. |
-| `js/pissarra/mode.js` | `SUPORTA_PISSARRA`: the activities that have scenario B (= the keys of `js/resolucio/activitats.js` = `pissarra: true` in `index.html`). Activities import nothing from `js/pissarra/`. |
-| `resolucio.html`, `js/resolucio/resolucio.js`, `js/resolucio/activitats.js` | Scenario B: watch an exercise being solved (§4). |
+| `js/resolucio/activitats.js` | **The single list** of the activities that have scenario B (`ACTIVITATS`: `tema`, `nom`, `frase`, `exemple` (TeX for the portal card), `pagina`, `nivells`, `carrega`, optional `enllac`) and the portal's block order (`TEMES`). Nothing else lists them (`js/pissarra/mode.js` and `pissarra: true` in `index.html` were removed on 24/11/2026). Activities import nothing from `js/pissarra/`. |
+| `resolucio.html`, `js/resolucio/resolucio.js`, `css/resolucio.css` | Scenario B: without parameters, the portal (one card per activity); with `?activitat=`, watch an exercise being solved (§4). |
 | `js/equacions/resolucio.js` | The pure procedure of `equacions` for scenario B (TeX script, captions, detail of each step). |
 | `js/prioritat/resolucio.js` | The pure procedure of `prioritat` for scenario B: the activity's centred table as one HTML row (`historial` with `pinta` = one `<tr>` per line, keys = the statement columns `c<c0>x<c1>`, `e` for «=»), one operation per step with the reason (`motiuPas`); detail «per què aquesta operació» = a mark-only sub-step (`D.canvia`, class `dest`) and `D.acaba`; 5 levels grouping the generator's 10. |
-| `js/cilindres/resolucio.js` | The pure procedure of «Cilindres amb un full» for scenario B (exported as `ResolucioCF`): the activity's figure as the first row (keyed side labels), then per cylinder folding (numbers fly from the sheet), radius (detail on demand), base area, volume; then which holds more and the capacities in mL. |
+| `js/cilindres/resolucio.js` | The pure procedure of «Cilindres amb un full» for scenario B (exported as `ResolucioCF`: the test loader, `tests/harness.js`, runs every module in one scope, so two `Resolucio` would clash): the activity's figure as the first row (keyed side labels), then per cylinder folding (numbers fly from the sheet), radius (detail on demand), base area, volume; then which holds more and the capacities in mL. |
 | `js/inequacions/resolucio.js` | The pure procedure of first-degree `inequacions` for scenario B (exported as `ResolucioIQ`): the inequality written as an `equacions` equation and solved with its engine, pieces, moves and detail; the inequality sign on piece `q` (flies and changes, marked `tria`, when dividing by a negative); mirrored lines when x is on the right, then «4 > x → x < 4»; level 4's denominators step; final rows: number line (SVG, keyed label) and interval. |
 | `js/formules-steam/resolucio.js` | The pure procedure of `formules-steam` for scenario B: own `pinta` over a tiny piece language (`{id, tex, tipus}`, `{fr}`, `{arrel}`, `{quad}`, `{raw}`); piece ids from a `WeakMap` node → number, so a node keeps its id on every line (data numbers and units take their letter's number); numbers first, then letters; flipping and the unit line are steps of their own; no detail yet (levels 1–4 as the activity). |
 | `js/fraccions/resolucio.js` | The pure procedure of `fraccions` for scenario B: a chain of equalities in TeX (common denominator, operate, simplify; levels 1–4), with detail for the common denominator (lcm by multiples of the larger denominator, then each fraction amplified on its own line), simplifying (gcd, then both divisions) and dividing (invert the second fraction). Side computations (lcm, gcd, amplifying) do not start with «=». |
 | `js/pissarra/demo.js`, `demo-pagina.js`, `pissarra-demo.html` | Five model scripts (order of operations, a linear equation, a sum of fractions, Pythagoras: the letters and the legs fly from an SVG triangle into the formula, and 2(x + 3) = 14 with `reparteix` and detail on demand on steps 2, 3 and 5, opened with the player's button) and the demo page. |
-| `css/pissarra.css` | All the look. Every class starts with `pis-`; row classes from procedures (`final`, `separat`, `destacat`, `text`, `figura`, `detall`) only apply inside `.pis-fila`. Colour = the activity's `--primary` / `--primary-light`. The detail drawer: `.pis-calaix*` and `.pis-fila.detall`. |
+| `css/pissarra.css` | The engine's look. Every class starts with `pis-`; row classes from procedures (`final`, `separat`, `destacat`, `text`, `figura`, `detall`) only apply inside `.pis-fila`. Colour = the activity's `--primary` / `--primary-light`. The detail drawer: `.pis-calaix*` and `.pis-fila.detall`. Hover state of every control on a light surface: `--pis-cat-fons` background + `--pis-cat` border. Speed: three joined buttons (`.pis-velocitat-tria`, a radiogroup). |
+| `css/pissarra-figures.css` | Activity-specific figures and tables inside the board (the intervals' number line `.jp-r-*`, the sheet and cylinders `.jp-cf-*`, `prioritat`'s centred table): the engine CSS knows no activity. Loaded by `resolucio.html` and `pissarra-demo.html`. |
 | `tests/pissarra.test.js` | Node tests (see §6). |
 | `tests/pissarra-activitat.js` | The common test battery of an activity's board (`provaActivitat`, see §6). |
-| `tests/navegador/prova-pissarra.js` | Playwright test of the demo page and of the index button (skipped when Playwright is missing). |
+| `tests/navegador/prova-pissarra.js` | Playwright test of the demo page, the index button, the portal and every resolution page (skipped when Playwright is missing). |
 
 ## 3. A step and a script
 
@@ -204,8 +205,10 @@ solutions, `cami0/1/2` one colour per tree path. `marca(tex, m)` colours a group
 as always, **no board inside it**). **B**: the student watches an exercise being solved, step by step, on the
 board (like Graspable Math, but without manipulating): `resolucio.html?activitat=<page>&nivell=<n>`. Links: A →
 B «Mira com es resol» (new tab, same level, a similar exercise, never the one being done), B → A «Ara fes-ho tu»
-(same tab, same level). The index button «Activar la resolució pas a pas» lists only the activities with B and
-links to `resolucio.html?activitat=…`. Activities never import `js/pissarra/` (`tests/check-repo.js` §9).
+(same tab, same level). The index button «Resolució pas a pas» opens the portal (`resolucio.html` without
+parameters) in a new tab: one card per activity, grouped by content block, with the example formula, a sentence,
+level chips that link straight to a level, and «Copia l'enllaç» for teachers. Activities never import
+`js/pissarra/` (`tests/check-repo.js` §9).
 
 To give an activity its scenario B (reference: `equacions`):
 
@@ -216,16 +219,22 @@ To give an activity its scenario B (reference: `equacions`):
    steps are those of `math-engine.js` `determineSteps`; `pintaTex` turns the activity's term model into keyed
    TeX; `moviments` says which symbols fly; `detallPas` gives each step's sub-steps (§3b) and the caption of the
    closing computation (`textAcaba`).
-2. **Register it** in `js/resolucio/activitats.js` (`nom`, `pagina`, `nivells`, `carrega: () => import(…)`), in
-   `SUPORTA_PISSARRA` (`js/pissarra/mode.js`) and with `pissarra: true` on its line in `index.html` (check-repo
-   §9 checks the three agree, and that `resolucio.html` and the procedure exist).
+2. **Register it** in `js/resolucio/activitats.js` (`tema`, `nom`, `frase`, `exemple`, `pagina`, named `nivells`,
+   `carrega: () => import(…)`). That is all: the portal and the index button pick it up. check-repo §9 checks that
+   the page and the procedure exist; `tests/pissarra.test.js` §6 that the card data is complete and KaTeX renders
+   the example.
 3. **The link from A**: an `<a target="_blank">` «Mira com es resol …» to `resolucio.html?activitat=…&nivell=…`
    (the activity computes the level).
 4. **Tests** with the common battery (§6) over thousands of seeded exercises: every row true, every detail
    view, KaTeX, captions in second person, `final` on the last step.
 
-`resolucio.html` (`js/resolucio/resolucio.js`): level buttons, «Un altre exercici», «Ara fes-ho tu», the board
-(`creaPissarra(zona, { files: 40 })`, own scroll bar when long) and the player with `teclat: true`;
+`resolucio.html?activitat=…` (`js/resolucio/resolucio.js`, `css/resolucio.css`): the whole page takes the
+activity's block colour (`tema-…` on `<html>`; one accent). A level dropdown (a listbox: arrows, Home/End, Enter,
+Esc; it opens upwards when there is no room below) with «Un altre exercici» next to it as a filled action button,
+«Ara fes-ho tu», the board (`creaPissarra(zona, { files: 40 })`) and the player with `teclat: true`. The page is a
+one-screen app (`100dvh`): the board takes all the remaining height with its own scroll bar, so the player never
+moves between steps — all CSS, no height computed in JS. The floating footer is `css/peu.css` (shared with
+`index.html`).
 `reproductor.carrega(oberts => procediment.passos(exercici, { oberts }))` gives the player the detail.
 
 The free mode of the board (`encua`, `enAcabar`, `mostraPas`, `animaPas`) and the HTML rows stay in the engine
@@ -254,7 +263,7 @@ for every activity.
    drawer, the grey target), `enLinies`, `comprovaGuio` (good and bad scripts, spreads and sources that stay
    included), `planifica` (copies of sources that stay, merge ghosts), the detail on demand (ids of every view,
    nested details, inherited `anterior`, `comprovaDetall` with a good script and four bad ones), `textPla`,
-   `mode.js` and the registry of scenario B.
+   and the registry of scenario B (card data, KaTeX of each example, each procedure's levels).
 2. **Rules of every script** (array `GUIONS`): structural lint, KaTeX renders every formula without
    `katex-error` (vendored KaTeX loaded in Node), second person captions, last step has a `final` row.
 3. **Truth of every line**: each TeX row → `textPla` → evaluated with an exact rational evaluator written in
@@ -278,10 +287,12 @@ for the demos: changing a value, a sign, a fusion source or a caption to first p
 `tests/navegador/prova-pissarra.js` (Playwright; skipped without it): every demo step ends with exactly the
 step's keys and no leftover ghosts, at 1366×700 and 375×740, no horizontal overflow; the player's «Vull més
 detall» / «Menys detall» on every step with detail (grey target, sub-steps in the drawer, keys after every step);
-player buttons and keyboard; `carregaKatex()` on a page without KaTeX; the index button (with an activity
-simulated); scenario A (the activities with `?pissarra=1` have no board; «Mira com es resol» opens B in a new
-tab with the level); scenario B (`resolucio.html` at both sizes: every step, every detail, level, «Un altre
-exercici», «Ara fes-ho tu», the list without an activity); an injected animation failure does not block the
+player buttons and keyboard; `carregaKatex()` on a page without KaTeX; the index button (opens the portal in a
+new tab) and the floating footer; scenario A (the activities with `?pissarra=1` have no board; «Mira com es resol» opens B in a new
+tab with the level); scenario B (`resolucio.html` at both sizes: every step, every detail, the level dropdown
+also by keyboard, «Un altre exercici», «Ara fes-ho tu», the footer in view; on a tablet the «next» button stays in
+place between steps; the portal's cards); projector mode fills the width and height (1366 × 680, a narrow sum of
+fractions) and hides the footer; an injected animation failure does not block the
 queue; at the start of a movement every ghost covers its original within 0.75 px (also when a detail opens, and
 SVG `<text>`), and no warning box covers a symbol that stays (animations slowed ×25 and frozen at t = 0);
 `prioritat`'s table keeps its width; reduced motion creates no ghost.
@@ -309,16 +320,15 @@ Source: `step-quiz/pau` `procediments/` at commit `945968a` (October 2026).
   demand, `comprovaDetall`. Since 15/11/2026: permanent line keys (flights are copies from lines that stay,
   merge ghosts into keys that were already there), the grey target of an opened step, `canviaGuio` and the
   player's detail button. These are candidates to port back to `pau`.
-- **Page layout of `resolucio.html` copied from `pau`** (24/11/2026, David's review): two columns at ≥ 1000 px
-  (`pau` `estil.css` §DISPOSICIÓ: left column `clamp(340px, 30vw, 460px)`, sticky, with the step caption, the
-  player and the levels; board on the right with the full window height), one column below with the player
-  `position: sticky; bottom: 0` and a shadow when stuck (`.enganxat`, IntersectionObserver on `.marca-controls`),
-  the step caption always 3 lines tall with a 1.5 px dark border, player buttons 20 % smaller (34/38 px) with the
-  speed on the same line and the dots full width below, `scrollbar-gutter: stable` above 520 px, and the board font
-  ×0.8 (`--pis-escala`) in windows lower than 750 px (`pau` `MIDA.finestraBaixa`). The rules live in
-  `resolucio.html`'s `<style>` and the height in `resolucio.js` (`ajustaAlcada`, the equivalent of the height part
-  of `pau`'s `ajusta`). The two stylesheets are **not** unified (two repositories): when one changes, check the
-  other.
+- **Page layout of `resolucio.html` derived from `pau`** (24/11/2026, David's review; reworked the same day after
+  the audit): two columns at ≥ 1000 px (left column `clamp(340px, 30vw, 460px)` with the step caption, the player
+  and the level; board on the right), one column below; the step caption at least 3 lines tall (2 on phones) with a
+  1.5 px dark border, player buttons 20 % smaller (34/38 px) on wide screens with the speed on the same line and the
+  dots full width below, `scrollbar-gutter: stable` above 520 px, and the board font ×0.8 (`--pis-escala`) in windows
+  lower than 750 px (`pau` `MIDA.finestraBaixa`). Unlike `pau`, the heights are pure CSS (`css/resolucio.css`: a
+  `100dvh` flex/grid shell where only the board shrinks); there is no `ajustaAlcada`, no sticky player and no
+  IntersectionObserver any more. The two stylesheets are **not** unified (two repositories): when one changes,
+  check the other.
 - Maths writers (`mates.js`, polynomials, equation solvers, matrices) are **not** ported yet: port each one
   with the first activity that needs it (fractions → `Fraccio`; Batxillerat matrices → `matrius.js`).
 

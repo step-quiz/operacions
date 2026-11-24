@@ -1,0 +1,136 @@
+/*
+============================================================================
+PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
+FITXER: css/pissarra-figures.css
+ROL: «Resolució pas a pas»: l'estil de les figures i taules d'activitats concretes
+     quan surten a la pissarra (la recta dels intervals, el full i els cilindres, la
+     taula «centrada» de prioritat). El motor (css/pissarra.css) no en sap res.
+ARQUITECTURA:
+- Tot va dins de .pis-escenari o .pis-fila (només val a la pissarra); fora de la
+  pissarra, cada activitat té el seu estil (css/passos.css, prioritat.html…).
+- El carreguen les pàgines amb pissarra (resolucio.html, pissarra-demo.html), just
+  després de css/pissarra.css.
+DEPENDÈNCIES: css/tokens.css, css/pissarra.css (--pis-cat, --pis-cat-fons).
+============================================================================
+*/
+/* La recta numèrica (inequacions, js/passos/recta-intervals.js): els colors de l'activitat
+   (css/passos.css), amb els nombres més grossos perquè es llegeixin a la pissarra */
+.pis-fila.figura svg.jp-recta-svg {
+    width: min(100%, 20em);
+}
+.pis-escenari .jp-r-eix,
+.pis-escenari .jp-r-marca {
+    stroke: var(--text-main);
+    stroke-width: 2;
+}
+.pis-escenari .jp-r-fletxa {
+    fill: var(--text-main);
+}
+.pis-escenari .jp-r-text {
+    fill: var(--text-main);
+    font-size: 19px;
+    font-family: inherit;
+}
+.pis-escenari .jp-r-text-fraccio {
+    fill: var(--primary-dark, #1d4ed8);
+    font-weight: bold;
+}
+.pis-escenari .jp-r-raig {
+    stroke: var(--primary, #3b82f6);
+    stroke-width: 7;
+    stroke-linecap: round;
+}
+.pis-escenari .jp-r-punt {
+    stroke: var(--primary, #3b82f6);
+    stroke-width: 3;
+}
+.pis-escenari .jp-r-ple {
+    fill: var(--primary, #3b82f6);
+}
+.pis-escenari .jp-r-buit {
+    fill: var(--panel-bg, #fff);
+}
+
+/* El full i els dos cilindres (Cilindres amb un full, js/cilindres/math-engine.js svgCilindres): els colors
+   de l'activitat (css/passos.css), sense vermell; el cilindre 1, blau, i el 2, lila (no depenen del tema de
+   la pàgina, que és el petroli de la geometria) */
+.pis-fila.figura svg.jp-cf-svg {
+    width: min(100%, 24em);
+}
+.pis-escenari .jp-cf-full {
+    fill: var(--panel-bg, #fff);
+    stroke: var(--text-main);
+    stroke-width: 1.5;
+}
+.pis-escenari .jp-cf-vora {
+    stroke: var(--text-main);
+    stroke-width: 1.5;
+}
+.pis-escenari .jp-cf-c1,
+.pis-escenari .jp-cf-c2 {
+    fill: none;
+    stroke-width: 4;
+}
+.pis-escenari .jp-cf-c1 {
+    stroke: #0369a1;
+}
+.pis-escenari .jp-cf-c2 {
+    stroke: #7c3aed;
+}
+.pis-escenari .jp-cf-text {
+    fill: var(--text-main);
+    font-size: 15px;
+}
+.pis-escenari .jp-cf-petit {
+    fill: var(--text-muted);
+    font-size: 13px;
+}
+
+/* ── La taula «centrada» de prioritat d'operacions dins de la pissarra (resolucio.html?activitat=prioritat):
+   la mateixa disposició que a l'activitat (prioritat.html), una fila per línia; la fila del resultat,
+   ressaltada, i la de l'objectiu (un pas obert), en gris ── */
+.pis-fila table.centrat {
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 1.4em;
+}
+.pis-fila table.centrat td {
+    padding: 0 0.12em;
+    text-align: center;
+    vertical-align: baseline;
+    white-space: nowrap;
+    line-height: 1.9;
+}
+.pis-fila table.centrat td.igual {
+    padding: 0 0.35em;
+    color: var(--text-muted, #64748b);
+}
+.pis-fila table.centrat td.reserva {
+    visibility: hidden;
+}
+.pis-fila table.centrat td.tok-paren {
+    color: var(--text-soft, #475569);
+}
+/* El superíndex d'una potència (3²), també al fantasma que vola fora de la taula: si no, el fantasma
+   comença 1,9 px més amunt que el seu original */
+.pis-fila table.centrat sup,
+.pis-fantasma sup {
+    font-size: 0.62em;
+    line-height: 0;
+    position: relative;
+    top: -0.15em;
+    margin-left: 1px;
+}
+.pis-fila table.centrat td.dest {
+    color: var(--pis-dest, #00008b);
+    border-bottom: 0.09em solid currentColor;
+}
+.pis-fila table.centrat tr.final td:not(.igual) {
+    color: var(--pis-cat);
+    background: var(--pis-cat-fons);
+}
+.pis-fila table.centrat tr.pis-objectiu td {
+    color: var(--pis-objectiu, #9aa5b8);
+}
