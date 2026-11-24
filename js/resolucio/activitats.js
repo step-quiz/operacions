@@ -5,7 +5,8 @@
  * ROL: Les activitats que tenen «Resolució pas a pas» (l'escenari B: l'alumne
  *      mira com es resol un exercici a resolucio.html, sense fer-lo).
  * ARQUITECTURA:
- * - ACTIVITATS: { clau: { nom, pagina, nivells, carrega } }. clau: el nom del fitxer
+ * - ACTIVITATS: { clau: { tema, nom, pagina, nivells, carrega } }. tema: el bloc de continguts (la classe
+ *   tema-… de l'activitat, css/temes.css), que dona el color a la capçalera de resolucio.html. clau: el nom del fitxer
  *   de l'activitat sense «.html» (el de resolucio.html?activitat=…); pagina: on es fa
  *   l'exercici (l'escenari A, «Ara fes-ho tu»); nivells: [[valor, nom]]; carrega():
  *   el procediment pur de l'activitat ({ NIVELLS, exercici(nivell), passos(exercici,
@@ -24,6 +25,7 @@
 
 export const ACTIVITATS = Object.freeze({
     'equacions': Object.freeze({
+        tema: 'algebra',
         nom: 'Equacions de 1r grau',
         pagina: 'equacions.html',
         nivells: Object.freeze([
@@ -34,6 +36,7 @@ export const ACTIVITATS = Object.freeze({
         carrega: () => import('../equacions/resolucio.js').then(m => m.Resolucio),
     }),
     'fraccions': Object.freeze({
+        tema: 'nombres',
         nom: 'Operacions amb fraccions',
         pagina: 'fraccions.html',
         nivells: Object.freeze([
@@ -45,6 +48,7 @@ export const ACTIVITATS = Object.freeze({
         carrega: () => import('../fraccions/resolucio.js').then(m => m.Resolucio),
     }),
     'prioritat': Object.freeze({
+        tema: 'nombres',
         nom: "Prioritat d'operacions",
         pagina: 'prioritat.html',
         nivells: Object.freeze([
@@ -61,6 +65,7 @@ export const ACTIVITATS = Object.freeze({
         carrega: () => import('../prioritat/resolucio.js').then(m => m.Resolucio),
     }),
     'formules-steam': Object.freeze({
+        tema: 'algebra',
         nom: 'Fórmules STEAM',
         pagina: 'formules-steam.html',
         nivells: Object.freeze([
@@ -72,6 +77,7 @@ export const ACTIVITATS = Object.freeze({
         carrega: () => import('../formules-steam/resolucio.js').then(m => m.Resolucio),
     }),
     'inequacions': Object.freeze({
+        tema: 'algebra',
         nom: 'Inequacions de primer grau',
         pagina: 'inequacions.html',
         nivells: Object.freeze([
@@ -83,6 +89,7 @@ export const ACTIVITATS = Object.freeze({
         carrega: () => import('../inequacions/resolucio.js').then(m => m.ResolucioIQ),
     }),
     'cilindres': Object.freeze({
+        tema: 'geometria',
         nom: 'Cilindres amb un full',
         pagina: 'cilindres.html',
         nivells: Object.freeze([

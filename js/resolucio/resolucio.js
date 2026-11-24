@@ -13,10 +13,14 @@
  *   Sense activitat (o una que no en té), la pàgina diu quines en tenen.
  * - Cada exercici és nou (el procediment de l'activitat el genera); el nivell
  *   queda a l'adreça per poder-la enllaçar.
- * - Disposició (el David, 24/11/2026): a la capçalera (gris), «Ara fes-ho tu»,
- *   «Projectar» i «← Step Quiz»; a sota, els nivells i «Un altre exercici»; després,
- *   el pas que es veu («Pas 2 de 5», què es fa i «Vull més detall», el reproductor
- *   amb dalt: true) i la pissarra, amb els botons de reproduir a sota.
+ * - Disposició (el David, 24/11/2026, a partir de les DEMO de step-quiz/pau): la
+ *   capçalera, del color del bloc de l'activitat (tema), amb «Ara fes-ho tu»
+ *   (destacat), «← Step Quiz» i «Projectar». A les pantalles de 1000 px o més, dues
+ *   columnes: a l'esquerra (enganxada) el pas que es veu («Pas 2 de 5», què es fa i
+ *   «Vull més detall»), els botons i els nivells; a la dreta, la pissarra amb tota
+ *   l'alçada de la finestra. En una columna, els nivells, el pas, la pissarra i els
+ *   botons, enganxats a baix si la pissarra no hi cap. ajustaAlcada() dona a la
+ *   pissarra l'alçada que queda; la barra només surt si el que hi ha escrit no hi cap.
  * - Projectar (el mode professor, per al projector; el David, 16/11/2026): el botó
  *   «Projectar» (o ?professor=1) fa la pissarra gran (--pis-escala) i amaga el
  *   títol, els nivells i les frases; amb el botó, pantalla completa. Els passos es
@@ -30,6 +34,7 @@ import { creaReproductor } from '../pissarra/reproductor.js';
 import { ACTIVITATS } from './activitats.js';
 
 const zona = document.getElementById('pissarra');
+const lateral = document.getElementById('lateral');
 const barra = document.getElementById('barra');
 const nivells = document.getElementById('nivells');
 const unAltre = document.getElementById('un-altre');
@@ -74,8 +79,39 @@ async function inicia() {
     barra.hidden = false;
     fesHoTu.hidden = false;
     botoProfessor.hidden = false;
+    if (activitat.tema) document.documentElement.classList.add('tema-' + activitat.tema);
     const pissarra = creaPissarra(zona, { files: 40 });
     const reproductor = creaReproductor(zona, pissarra, { teclat: true, dalt: true });
+    // El pas i els botons van a la columna de l'esquerra, a sobre dels nivells (resolucio.html)
+    const explicacio = zona.querySelector('.pis-explicacio-fila');
+    lateral.prepend(explicacio, reproductor.element);
+    // Si els botons queden enganxats a baix (una columna), una ombra a sobre (com a la PAU)
+    const marca = element('div', { 'class': 'marca-controls', 'aria-hidden': 'true' });
+    reproductor.element.after(marca);
+    if (typeof IntersectionObserver === 'function')
+        new IntersectionObserver(([e]) =>
+            reproductor.element.classList.toggle('enganxat', !e.isIntersecting && e.boundingClientRect.top > 0)
+        ).observe(marca);
+
+    /**
+     * L'alçada de la pissarra: amb dues columnes, tota la que queda a sota de la seva vora de dalt; amb una, la
+     * que queda a sobre dels botons. Si el que hi ha escrit no hi cap, la pissarra té la seva barra.
+     */
+    const escenari = pissarra.element;
+    const duesColumnes = matchMedia('(min-width: 1000px)');
+    function ajustaAlcada() {
+        const professor = document.body.classList.contains('professor');
+        const dalt = escenari.getBoundingClientRect().top + scrollY;
+        const sota = duesColumnes.matches && !professor ? 12 : reproductor.element.offsetHeight + 22;
+        const alcada = Math.max(260, Math.floor(innerHeight - dalt - sota));
+        escenari.style.maxHeight = alcada + 'px';
+        escenari.style.minHeight = duesColumnes.matches && !professor ? alcada + 'px' : '';
+    }
+    let rellotgeAlcada = null;
+    addEventListener('resize', () => {
+        clearTimeout(rellotgeAlcada);
+        rellotgeAlcada = setTimeout(ajustaAlcada, 100);
+    });
 
     /** Un exercici nou del nivell, amb el detall tancat; el nivell queda a l'adreça i a «Ara fes-ho tu». */
     function nouExercici() {
@@ -121,6 +157,7 @@ async function inicia() {
         if (!actiu && enPantalla() && document.exitFullscreen) document.exitFullscreen().catch(() => {});
         botoPantalla.hidden = !actiu || enPantalla() || !document.documentElement.requestFullscreen;
         posaAdreca();
+        ajustaAlcada();
         pissarra.reajusta();
     }
     botoProfessor.addEventListener('click', () =>
@@ -129,10 +166,12 @@ async function inicia() {
     botoPantalla.addEventListener('click', () => posaProfessor(true, { pantalla: true }));
     document.addEventListener('fullscreenchange', () => {
         botoPantalla.hidden = !document.body.classList.contains('professor') || enPantalla();
+        ajustaAlcada();
         pissarra.reajusta();
     });
 
     nouExercici();
+    ajustaAlcada();
     if (parametres.get('professor') === '1') posaProfessor(true);
     // Per a les proves amb el navegador (tests/navegador/prova-pissarra.js)
     window.resolucio = Object.freeze({ pissarra, reproductor, nouExercici });

@@ -340,9 +340,11 @@ const escapa = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').repla
  * nou: el pas on apareix (s'obre amb un petit gir 3D, css/pissarra.css). Una activitat hi pot posar el seu
  * (opció calaix de historial).
  */
-export function calaixHtml(linies, { titol = '', nou = false } = {}) {
+export function calaixHtml(linies, { id = null, titol = '', nou = false } = {}) {
+    // data-plega: el pas obert, per al botó «Plega» del reproductor (el David, 24/11/2026)
+    const plega = id === null || id === undefined ? '' : ` data-plega="${escapa(String(id))}"`;
     return (
-        `<div class="pis-calaix${nou ? ' pis-calaix-nou' : ''}">` +
+        `<div class="pis-calaix${nou ? ' pis-calaix-nou' : ''}"${plega}>` +
         (titol ? `<div class="pis-calaix-titol">${escapa(titol)}</div>` : '') +
         linies.join('') +
         '</div>'
@@ -418,9 +420,12 @@ export function historial(
         mostrades = escrites.concat(objectius);
         if (envolta) g.files[fila] = envolta(agrupa(0, mostrades.length, 0));
         else {
+            // La primera fila de cada calaix porta «plega:<id>» (el botó «Plega» del reproductor)
             mostrades.forEach((l, r) => {
+                const abans = r > 0 ? mostrades[r - 1].dins : [];
+                const plega = l.dins.filter((id, k) => abans[k] !== id).map(id => 'plega:' + id);
                 g.files[fila + r] = pintaLinia(r);
-                g.classes[fila + r] = [l.classe, l.dins.length ? 'detall' : ''].filter(Boolean).join(' ');
+                g.classes[fila + r] = [l.classe, l.dins.length ? 'detall' : '', ...plega].filter(Boolean).join(' ');
             });
             for (let r = mostrades.length; r + fila < g.files.length; r++) {
                 g.files[fila + r] = '';

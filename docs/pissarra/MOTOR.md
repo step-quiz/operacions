@@ -54,7 +54,7 @@ This is the engine of the PAU site (`step-quiz/pau`, `procediments/`; read its `
 | `js/pissarra/pla.js` | Pure. `planifica(keysA, keysB, pas)` → `{parelles, copies, repartides, desti, volades, velles, noves}`: which new symbol is which old one (same key, `reanomena`, `copia`, `reparteix`; a copy when the old one stays), where each disappearing symbol merges, which ghosts fly into a symbol and merge (`volades`: from a symbol that stays, or into one that was already there), what fades and what appears. Used by `pissarra.js`, unit-tested in Node. |
 | `js/pissarra/comprova.js` | Pure, for tests. `comprovaGuio(passos, nFiles, nom, {text})` → list of structural errors; `comprovaDetall(fesGuio, nFiles, nom, {text})` → the detail-on-demand rule over every view; `textPla(tex)` → plain text that can be evaluated (also `\Delta`, `\Omega`, `\eta`, `\circ`, `\Bigl`, `\Bigr`); `clausDe(tex)`. |
 | `js/pissarra/pissarra.js` | DOM. `creaPissarra(container, {files, marc})` → controller. Script mode: `carrega(passos)`, `seguent()`, `salta(i)`, `repeteix()`, `afanya()` (finish the running animation at once: waits resolve, animations `finish()`, the remaining phases last 1 ms; false if idle), `canviaGuio(nous, i, {senseVols})` (another script, e.g. with a step opened, animated to its step i). The CSS custom property `--pis-escala` on the board (e.g. a teacher mode) multiplies the base TeX size. Free mode (the activity decides each state from what the student does): **`encua(pas, {anima, velocitat})`** (the queue: one paint at a time; it never blocks — if an animation throws, it logs, shows the step without animation and the activity goes on) and `enAcabar()` (a Promise for everything queued so far); `mostraPas(pas)` / `animaPas(pas)` are the unqueued primitives. Both modes: `velocitat(v)`, `escolta(f)`, `pas`, `total`, `ocupat`, `passos`, `element`; `pas.anunci` (text) is read by an aria-live region once the step shows. `marc: false` hides the frame and dotted background (only the animations show). With `prefers-reduced-motion` no symbol travels: changed rows fade in place. Also `carregaKatex()` (lazy-loads `vendor/katex-0.16.11` once), `textAmbFormules(text)` (captions), `element()`. |
-| `js/pissarra/reproductor.js` | DOM. `creaReproductor(container, pissarra, {reprodueix, punts, velocitat, teclat, detall})`: restart / previous / play / next buttons, one dot per step (smaller for sub-steps), speed, step caption («Pas 2b de 6») with a ↺ that replays the current step; a click on the board finishes the running step (`afanya`); keys (option `teclat`): Space (stop playback, else finish the step, else play), ←/→ and PageUp/PageDown (presenter remotes; «next» first finishes a running step); and with `detall: oberts => passos` the «Vull més detall» / «Menys detall» button; `carrega(passos or oberts => passos)` loads a script or an exercise with detail. |
+| `js/pissarra/reproductor.js` | DOM. `creaReproductor(container, pissarra, {reprodueix, punts, velocitat, teclat, dalt, detall})`: restart / previous / play / next buttons, one dot per step (smaller for sub-steps), speed, step caption («Pas 2b de 6») with a ↺ that replays the current step; a click on the board finishes the running step (`afanya`); keys (option `teclat`): Space (stop playback, else finish the step, else play), ←/→ and PageUp/PageDown (presenter remotes; «next» first finishes a running step); and with `detall: oberts => passos` the «Vull més detall» / «Menys detall» button and a «▴ Plega» button on every open drawer; `carrega(passos or oberts => passos)` loads a script or an exercise with detail. |
 | `js/pissarra/mode.js` | `SUPORTA_PISSARRA`: the activities that have scenario B (= the keys of `js/resolucio/activitats.js` = `pissarra: true` in `index.html`). Activities import nothing from `js/pissarra/`. |
 | `resolucio.html`, `js/resolucio/resolucio.js`, `js/resolucio/activitats.js` | Scenario B: watch an exercise being solved (§4). |
 | `js/equacions/resolucio.js` | The pure procedure of `equacions` for scenario B (TeX script, captions, detail of each step). |
@@ -180,7 +180,19 @@ function passos({ oberts = new Set() } = {}) {
   grey (same keys, `objectiu`), the drawer opens above it with the first sub-line, and each «Pas següent» writes
   the next one; the sub-step of `D.acaba()` turns the grey line normal. While inside the detail the button says
   «Menys detall» and folds it back to the closed step (`canviaGuio(…, { senseVols: true })`: only what is in
-  both moves). Used by `resolucio.html` (scenario B, §4) and the demo.
+  both moves). Since 24/11/2026 every open drawer also carries a **«▴ Plega»** button at its top-right corner,
+  usable from any later step: the player removes that id (and the ids inside it) from `oberts` and calls
+  `canviaGuio(nous, j, { senseVols: true })`, where `j` is the same step id in the new script (or the opened step,
+  if the current step is inside that detail). A folded detail stays folded until «Vull més detall» is asked again.
+  The buttons live in a `.pis-plecs` layer inside `.pis-escenari` (they scroll with the board), are redrawn on
+  every `escolta` call and on resize, and are hidden while a step animates. How the player finds the drawers:
+  `historial()` adds the class `plega:<id>` to the first TeX row of each drawer (one per drawer starting on that
+  row), and `calaixHtml()` puts `data-plega="<id>"` on the `.pis-calaix` of HTML rows. Activities whose detail is
+  not a drawer (e.g. `prioritat`, which highlights the operation) get no «Plega»; «Menys detall» still works
+  inside the detail. Used by `resolucio.html` (scenario B, §4) and the demo.
+- **Trailing empty rows** of a step get `pis-buida` (`display: none`, `dibuixaCapa`): the board grows as lines are
+  written instead of reserving the height of the whole script from step 1, so the scrollbar only appears when
+  what is written does not fit (24/11/2026). Empty rows in the middle keep their height.
 
 Marks (coloured backgrounds; meanings never change): `mes` green = chosen/positive, `menys` red =
 removed/negative, `tria` yellow = added/being checked, `actual` lilac = being computed now, `solucio` lilac =
@@ -297,6 +309,16 @@ Source: `step-quiz/pau` `procediments/` at commit `945968a` (October 2026).
   demand, `comprovaDetall`. Since 15/11/2026: permanent line keys (flights are copies from lines that stay,
   merge ghosts into keys that were already there), the grey target of an opened step, `canviaGuio` and the
   player's detail button. These are candidates to port back to `pau`.
+- **Page layout of `resolucio.html` copied from `pau`** (24/11/2026, David's review): two columns at ≥ 1000 px
+  (`pau` `estil.css` §DISPOSICIÓ: left column `clamp(340px, 30vw, 460px)`, sticky, with the step caption, the
+  player and the levels; board on the right with the full window height), one column below with the player
+  `position: sticky; bottom: 0` and a shadow when stuck (`.enganxat`, IntersectionObserver on `.marca-controls`),
+  the step caption always 3 lines tall with a 1.5 px dark border, player buttons 20 % smaller (34/38 px) with the
+  speed on the same line and the dots full width below, `scrollbar-gutter: stable` above 520 px, and the board font
+  ×0.8 (`--pis-escala`) in windows lower than 750 px (`pau` `MIDA.finestraBaixa`). The rules live in
+  `resolucio.html`'s `<style>` and the height in `resolucio.js` (`ajustaAlcada`, the equivalent of the height part
+  of `pau`'s `ajusta`). The two stylesheets are **not** unified (two repositories): when one changes, check the
+  other.
 - Maths writers (`mates.js`, polynomials, equation solvers, matrices) are **not** ported yet: port each one
   with the first activity that needs it (fractions → `Fraccio`; Batxillerat matrices → `matrius.js`).
 
