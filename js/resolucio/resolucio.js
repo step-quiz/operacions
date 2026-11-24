@@ -13,10 +13,14 @@
  *   Sense activitat (o una que no en té), la pàgina diu quines en tenen.
  * - Cada exercici és nou (el procediment de l'activitat el genera); el nivell
  *   queda a l'adreça per poder-la enllaçar.
- * - Mode professor (per al projector; el David, 16/11/2026): el botó «Mode
- *   professor» (o ?professor=1) fa la pissarra gran (--pis-escala) i amaga la
- *   capçalera, els nivells i les frases; amb el botó, pantalla completa. Els
- *   passos es passen amb les fletxes, l'espai o un comandament (Re Pàg / Av Pàg).
+ * - Disposició (el David, 24/11/2026): a la capçalera (gris), «Ara fes-ho tu»,
+ *   «Projectar» i «← Step Quiz»; a sota, els nivells i «Un altre exercici»; després,
+ *   el pas que es veu («Pas 2 de 5», què es fa i «Vull més detall», el reproductor
+ *   amb dalt: true) i la pissarra, amb els botons de reproduir a sota.
+ * - Projectar (el mode professor, per al projector; el David, 16/11/2026): el botó
+ *   «Projectar» (o ?professor=1) fa la pissarra gran (--pis-escala) i amaga el
+ *   títol, els nivells i les frases; amb el botó, pantalla completa. Els passos es
+ *   passen amb les fletxes, l'espai o un comandament (Re Pàg / Av Pàg).
  * DEPENDÈNCIES: pissarra.js, reproductor.js, activitats.js (i el procediment de
  *      cada activitat). KaTeX el carrega la pàgina.
  * ============================================================================
@@ -68,8 +72,10 @@ async function inicia() {
     document.title = `Resolució pas a pas — ${activitat.nom}`;
     titol.textContent = `${activitat.nom}: resolució pas a pas`;
     barra.hidden = false;
+    fesHoTu.hidden = false;
+    botoProfessor.hidden = false;
     const pissarra = creaPissarra(zona, { files: 40 });
-    const reproductor = creaReproductor(zona, pissarra, { teclat: true });
+    const reproductor = creaReproductor(zona, pissarra, { teclat: true, dalt: true });
 
     /** Un exercici nou del nivell, amb el detall tancat; el nivell queda a l'adreça i a «Ara fes-ho tu». */
     function nouExercici() {
@@ -102,14 +108,14 @@ async function inicia() {
         if (!pissarra.ocupat) nouExercici();
     });
 
-    // Mode professor (per al projector): la pissarra gran, sense les frases. En entrar-hi amb el botó,
+    // Projectar (el mode professor, per al projector): la pissarra gran, sense les frases. En entrar-hi amb el botó,
     // pantalla completa (el navegador només la deixa demanar després d'un clic); amb ?professor=1, el botó
     // «Pantalla completa». Esc surt de la pantalla completa; el botó, del mode.
     const enPantalla = () => Boolean(document.fullscreenElement);
     function posaProfessor(actiu, { pantalla = false } = {}) {
         document.body.classList.toggle('professor', actiu);
         botoProfessor.setAttribute('aria-pressed', String(actiu));
-        botoProfessor.textContent = actiu ? 'Surt del mode professor' : 'Mode professor';
+        botoProfessor.textContent = actiu ? 'Deixa de projectar' : 'Projectar';
         if (pantalla && actiu && !enPantalla() && document.documentElement.requestFullscreen)
             document.documentElement.requestFullscreen().catch(() => {});
         if (!actiu && enPantalla() && document.exitFullscreen) document.exitFullscreen().catch(() => {});

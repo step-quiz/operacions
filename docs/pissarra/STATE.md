@@ -497,6 +497,17 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   interval; captions, sign mark, mirrored flip, number line, final row, level-4 first step, the activity link.
   Browser: suite 6 (link with level) and suite 7 (level 4 laptop, level 2 phone, every detail).
 
+## `resolucio.html` layout (David, 2026-11-24)
+
+- No intro note. Header grey (#666): «Ara fes-ho tu» (plain, not highlighted), «Projectar» (the old «Mode
+  professor»; while active «Deixa de projectar»; «Pantalla completa» next to it when needed), «← Step Quiz».
+- Below: the levels (hover: thick black border drawn as an inset shadow so the size does not change, grey #b3b3b3
+  background) and «Un altre exercici». Then the step explanation, big, in a white box above the board (player option
+  `dalt: true`, `js/pissarra/reproductor.js`: the row ↺ / «Pas n de m» / caption / «Vull més detall» is prepended to
+  the board container); «Vull més detall» not bold, hover = filled purple with a black ring. The play buttons stay
+  under the board. Projecting keeps the header (it holds the toggle) and hides the title, levels and the
+  explanation row. `pissarra-demo.html` keeps the old layout (no `dalt`).
+
 ## Scenario B for `cilindres` (2026-11-24, PENDING §2b)
 
 - `js/cilindres/resolucio.js`, exported as **`ResolucioCF`** (registry loads `m.ResolucioCF`). Levels: 1 the A4

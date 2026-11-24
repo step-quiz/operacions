@@ -951,16 +951,18 @@ function engegaServidor() {
             const dins = await p.evaluate(() => ({
                 classe: document.body.classList.contains('professor'),
                 adreca: location.search,
-                frase: getComputedStyle(document.querySelector('.pis-text-pas')).display,
+                frase: getComputedStyle(document.querySelector('.pis-explicacio-fila')).display,
                 mida: parseFloat(getComputedStyle(document.querySelector('.pis-pissarra')).fontSize),
-                capcalera: getComputedStyle(document.querySelector('header')).display,
+                titol: getComputedStyle(document.querySelector('header h1')).display,
+                boto: document.querySelector('#professor').textContent,
             }));
             ok(
-                `mode professor: pissarra gran (${dins.mida}px), sense frases ni capçalera, i a l’adreça`,
+                `«Projectar»: pissarra gran (${dins.mida}px), sense frases ni títol, «Deixa de projectar» i a l’adreça`,
                 dins.classe &&
                     dins.adreca.endsWith('&professor=1') &&
                     dins.frase === 'none' &&
-                    dins.capcalera === 'none' &&
+                    dins.titol === 'none' &&
+                    dins.boto === 'Deixa de projectar' &&
                     dins.mida > 40,
                 JSON.stringify(dins)
             );

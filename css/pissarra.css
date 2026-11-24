@@ -357,6 +357,16 @@ DEPENDÈNCIES: css/tokens.css (colors de text i vores), KaTeX (vendor/).
     margin-top: 12px;
     text-align: left;
 }
+/* La fila de l'explicació a sobre de la pissarra (creaReproductor amb dalt: true): fora de .pis-controls,
+   necessita els mateixos colors */
+.pis-explicacio-dalt {
+    --pis-cat: var(--primary, #3b82f6);
+    --pis-cat-fons: var(--primary-light, rgba(59, 130, 246, 0.1));
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 .pis-reproductor {
     display: flex;
     flex-wrap: wrap;

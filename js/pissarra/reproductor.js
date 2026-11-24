@@ -15,6 +15,8 @@
  *     teclat      espai = reprodueix (o acaba el pas que s'anima), fletxes ← → i Re Pàg / Av Pàg (un
  *                 comandament de presentacions) = pas anterior o següent
  *                 (per defecte false: dins d'una activitat el teclat és de l'alumne)
+ *     dalt        la fila de l'explicació (↺, «Pas 2 de 5», el text i «Vull més detall») va a sobre de la
+ *                 pissarra en lloc de sota (resolucio.html, el David 24/11/2026; per defecte false)
  *     detall      (oberts) → passos: el guió amb els passos d'«oberts» oberts (formules.js
  *                 historial amb detall i objectiu). Amb aquesta opció, al costat del text
  *                 del pas surt «Vull més detall» quan el pas en té: la línia del pas baixa en
@@ -48,7 +50,7 @@ const espera = ms => new Promise(resol => setTimeout(resol, ms));
 let comptador = 0; // per fer ids únics si una pàgina té més d'un reproductor
 
 export function creaReproductor(contenidor, pissarra, opcions = {}) {
-    const o = Object.assign({ reprodueix: true, punts: true, velocitat: true, teclat: false }, opcions);
+    const o = Object.assign({ reprodueix: true, punts: true, velocitat: true, teclat: false, dalt: false }, opcions);
     const boto = (classe, nom, d) =>
         element('button', {
             'class': 'pis-boto ' + classe,
@@ -97,12 +99,14 @@ export function creaReproductor(contenidor, pissarra, opcions = {}) {
                 ? element('label', { class: 'pis-velocitat', for: id, text: 'Velocitat ' }, [r.velocitat])
                 : null,
         ]),
-        element('div', { class: 'pis-explicacio-fila' }, [
-            r.repeteix,
-            element('p', { 'class': 'pis-explicacio', 'aria-live': 'polite' }, [r.numPas, r.textPas]),
-            r.detall,
-        ]),
     ]);
+    const filaExplicacio = element('div', { class: 'pis-explicacio-fila' + (o.dalt ? ' pis-explicacio-dalt' : '') }, [
+        r.repeteix,
+        element('p', { 'class': 'pis-explicacio', 'aria-live': 'polite' }, [r.numPas, r.textPas]),
+        r.detall,
+    ]);
+    if (o.dalt) contenidor.prepend(filaExplicacio);
+    else bloc.append(filaExplicacio);
     contenidor.append(bloc);
 
     let reproduint = false;
