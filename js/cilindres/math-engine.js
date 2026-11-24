@@ -11,7 +11,7 @@
  *          el radi, l'àrea de la base i el volum (escriure, amb 2 decimals); després,
  *          quin té més volum (triar) i la capacitat de cadascun en mL (1 cm³ = 1 mL);
  *        - el volum es diu en cm³ i la capacitat en mL (paraules del David);
- *        - nivell 1: el full A4 (21 × 30, l'enunciat del David); nivell 2: altres
+ *        - nivell 1: el full A4 (21 × 29,7, el DIN A4 de debò; abans 21 × 30); nivell 2: altres
  *          rectangles. Sense nivell 3.
  *      CORRECCIÓ AMB ARROSSEGAMENT: cada pas es corregeix amb el que l'alumne ha respost
  *      al pas anterior (l'àrea amb el seu radi, el volum amb la seva àrea, la capacitat amb
@@ -26,7 +26,7 @@
 
 import { randInt, shuffle } from '../utils.js';
 import { texDecimal } from '../algebra/racionals.js';
-import { TEXTOS_CF } from './strings.js';
+import { TEXTOS_CF, texCm, textCm } from './strings.js';
 
 const T = TEXTOS_CF;
 const LLARG = 9;
@@ -105,7 +105,7 @@ const pasRadi = (k, c) =>
         mena: 'radi',
         enunciat: T.enunciat.radi(k),
         plantilla: [
-            { tex: `2\\pi r_${k} = ${c} \\;\\Rightarrow\\; r_${k} = \\dfrac{${c}}{2\\pi} =` },
+            { tex: `2\\pi r_${k} = ${texCm(c)} \\;\\Rightarrow\\; r_${k} = \\dfrac{${texCm(c)}}{2\\pi} =` },
             { camp: 'r', llarg: LLARG },
             { tex: '\\text{cm}' },
         ],
@@ -116,7 +116,7 @@ const pasRadi = (k, c) =>
             [c / Math.PI, 'R_PER_PI'],
             [c / (2 * Math.PI) ** 2, 'DIVIDEIX_MALAMENT'],
         ],
-        linia: `r_${k} = \\dfrac{${c}}{2\\pi} \\approx ${texNum(c / (2 * Math.PI))}\\ \\text{cm}`,
+        linia: `r_${k} = \\dfrac{${texCm(c)}}{2\\pi} \\approx ${texNum(c / (2 * Math.PI))}\\ \\text{cm}`,
     });
 
 /** L'àrea de la base del cilindre k, amb el radi r (el de l'alumne). */
@@ -148,7 +148,7 @@ const pasVolum = (k, A, h, c) =>
         mena: 'volum',
         enunciat: T.enunciat.volum(k),
         plantilla: [
-            { tex: `V_${k} = A_${k} \\cdot h = ${texNum(A)} \\cdot ${h} =` },
+            { tex: `V_${k} = A_${k} \\cdot h = ${texNum(A)} \\cdot ${texCm(h)} =` },
             { camp: 'r', llarg: LLARG },
             { tex: '\\text{cm}^3' },
         ],
@@ -251,8 +251,10 @@ function passosDe(cil) {
 /** Una pregunta nova: nivell 1, el full A4; nivell 2, un altre rectangle. */
 export function generaPreguntaCF(nivell) {
     const a4 = nivell !== 2;
+    // el nivell 1: un full DIN A4 de debò, 21 × 29,7 cm (el David, 24/11/2026: amb 21 × 30 els resultats tenien
+    // massa cincs, 1,0515 L i 1,50108 L, i es podien confondre)
     let a = 21;
-    let b = 30;
+    let b = 29.7;
     if (!a4) {
         do {
             a = randInt(10, 40);
@@ -268,7 +270,7 @@ export function generaPreguntaCF(nivell) {
             tex: 'L = 2\\pi r \\qquad A_{\\text{base}} = \\pi r^2 \\qquad V = A_{\\text{base}} \\cdot h',
         },
         svg: svgCilindres(a, b, cil),
-        text: `Cilindres amb un full de ${a} × ${b}`,
+        text: `Cilindres amb un full de ${textCm(a)} × ${textCm(b)}`,
         clau: `${a}x${b}|${cil[0].c}`,
         passos: passosDe(cil),
         dades: { nivell: a4 ? 1 : 2, a, b, cilindres: cil },
@@ -338,9 +340,9 @@ export function svgCilindres(a, b, cil, claus = {}) {
         else parts.push(`<line class="${cls}" x1="${x0 + w}" y1="${y0}" x2="${x0 + w}" y2="${y0 + hgt}"/>`);
     }
     parts.push(
-        `<text class="jp-cf-text"${dk('a')} x="${x0 + w / 2}" y="${y0 + hgt + 18}" text-anchor="middle">${a} cm</text>`
+        `<text class="jp-cf-text"${dk('a')} x="${x0 + w / 2}" y="${y0 + hgt + 18}" text-anchor="middle">${textCm(a)} cm</text>`
     );
-    parts.push(`<text class="jp-cf-text"${dk('b')} x="${x0 + w + 6}" y="${y0 + hgt / 2}">${b} cm</text>`);
+    parts.push(`<text class="jp-cf-text"${dk('b')} x="${x0 + w + 6}" y="${y0 + hgt / 2}">${textCm(b)} cm</text>`);
     // Els dos cilindres, dibuixats a escala (radi i altura)
     let x = Math.max(x0 + w + 90, 200);
     cil.forEach(({ c, h }, k) => {
@@ -355,9 +357,6 @@ export function svgCilindres(a, b, cil, claus = {}) {
         parts.push(`<path class="${colors[k]}" d="M${cx - r} ${top + hh} A${r} ${ry} 0 0 0 ${cx + r} ${top + hh}"/>`);
         parts.push(
             `<text class="jp-cf-text" x="${cx}" y="${top + hh + ry + 18}" text-anchor="middle">${T.nomCilindre(k + 1)}</text>`
-        );
-        parts.push(
-            `<text class="jp-cf-petit" x="${cx}" y="${top + hh + ry + 34}" text-anchor="middle">2πr = ${c} · h = ${h}</text>`
         );
         x = cx + Math.max(r, 46) + 60;
     });

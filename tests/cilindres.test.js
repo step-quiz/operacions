@@ -9,8 +9,8 @@
  *   (refaPassos, com el joc de passos amb enEncertar): cap resposta ben feta no es rebutja;
  *   el volum de l'alumne queda a prop del model propi (V = c²·h / 4π); la comparació és
  *   la del model; cada distractor es diagnostica amb el seu codi; KaTeX dibuixa tot.
- * - 2. Les decisions del David (23/11/2026): el costat és la circumferència; nivell 1 el
- *   full A4 (21 × 30, V₁ ≈ 1 052,8 cm³), nivell 2 altres rectangles; capacitat en mL;
+ * - 2. Les decisions del David (23 i 24/11/2026): el costat és la circumferència; nivell 1 el
+ *   full DIN A4 de debò (21 × 29,7, V₁ ≈ 1 042,3 cm³), nivell 2 altres rectangles; capacitat en mL;
  *   quatre opcions al plegat; la pàgina, el codi CF.
  * - 3. La «Resolució pas a pas» (js/cilindres/resolucio.js): la bateria comuna
  *   (tests/pissarra-activitat.js) amb centenars de fulls, tancats i amb el detall del radi:
@@ -136,15 +136,15 @@ suite('1. Centenars de fulls, amb tres alumnes (correcció amb arrossegament)');
 suite('2. Les decisions del David');
 {
     const q = generaPreguntaCF(1);
-    eq('nivell 1: el full A4, 21 × 30', `${q.dades.a} × ${q.dades.b}`, '21 × 30');
+    eq('nivell 1: el full DIN A4 de debò, 21 × 29,7', `${q.dades.a} × ${q.dades.b}`, '21 × 29.7');
     const [c1, c2] = q.dades.cilindres;
     ok(
-        'al full A4, el cilindre 1 fa la volta amb 21 cm i té 30 cm d’altura (l’enunciat del David)',
-        c1.c === 21 && c1.h === 30 && c2.c === 30 && c2.h === 21
+        'al full A4, el cilindre 1 fa la volta amb 21 cm i té 29,7 cm d’altura',
+        c1.c === 21 && c1.h === 29.7 && c2.c === 29.7 && c2.h === 21
     );
     ok(
-        `V₁ ≈ 1052,8 cm³ i V₂ ≈ 1504,0 cm³ (model: ${model(c1).toFixed(1)} i ${model(c2).toFixed(1)})`,
-        Math.abs(model(c1) - 1052.8) < 0.1 && Math.abs(model(c2) - 1504.0) < 0.1
+        `V₁ ≈ 1042,3 cm³ i V₂ ≈ 1474,1 cm³ (model: ${model(c1).toFixed(1)} i ${model(c2).toFixed(1)})`,
+        Math.abs(model(c1) - 1042.3) < 0.1 && Math.abs(model(c2) - 1474.1) < 0.1
     );
     const radi = q.passos.find(p => p.id === 'radi1');
     ok(
@@ -260,16 +260,16 @@ suite('3. Resolució pas a pas (resolucio.html?activitat=cilindres): la pissarra
         '>': (x, y) => x > y,
     };
     function veritat(fila, ex) {
-        // sense els textos («Cilindre 1:», «cm», «mL») ni els seus exponents
+        // les fórmules generals (A_base = πr², V = A_base · h) no tenen valors
+        if (/^(A_«base»|V)=/.test(p.textPla(fila))) return '';
+        // sense els textos («Cilindre 1:», «cm», «L») ni els seus exponents
         const pla = p.textPla(fila).replace(/«[^»]*»(\^\(\d\))?/g, '');
         try {
             const trossos = pla.split(/([=≈>])/);
             if (trossos[0] === '') trossos.splice(0, 2); // «≈ 1051,50» (la capacitat): res a comparar
             const vars = model(ex);
             for (let j = 0; j + 2 < trossos.length; j += 2) {
-                // «2πr_1=21 h_1=30»: dues igualtats seguides sense separador (el «\qquad» no deixa res)
-                const dreta = trossos[j + 2].replace(/(\d)(h_\d)$/, '$1');
-                const [x, y] = [avalua(trossos[j].replace(/^.*\d(?=h_\d$)/, ''), vars), avalua(dreta, vars)];
+                const [x, y] = [avalua(trossos[j], vars), avalua(trossos[j + 2], vars)];
                 if (!PROVA[trossos[j + 1]](x, y)) return `${pla}: ${x} ${trossos[j + 1]} ${y} no és cert`;
             }
             return '';
@@ -307,13 +307,25 @@ suite('3. Resolució pas a pas (resolucio.html?activitat=cilindres): la pissarra
                         )
                             anota2(dolents.katex, `${on}: ${f}`);
                 }
-                // Els costats del full volen a la fórmula (des dels textos de la figura, amb data-k)
+                // Els costats del full volen a la fórmula (des dels textos de la figura, amb data-k): el costat que fa
+                // la volta al plegat i l'altura just abans del volum
+                const deFull = x => Object.values(x.reanomena || {}).filter(v => /^C\dk[ab]$/.test(v)).length;
                 const plegats = passos.filter(x => /^Enrotlla el full/.test(x.text));
+                const altures = passos.filter(x => /^L'altura és/.test(x.text));
                 if (
                     plegats.length !== 2 ||
-                    plegats.some(x => Object.values(x.reanomena || {}).filter(v => /^C\dk[ab]$/.test(v)).length !== 2)
+                    altures.length !== 2 ||
+                    [...plegats, ...altures].some(x => deFull(x) !== 1) ||
+                    passos.indexOf(altures[0]) !==
+                        passos.findIndex(x => /^Calcula el volum del cilindre 1/.test(x.text)) - 1
                 )
                     anota2(dolents.vola, on);
+                // Les fórmules generals, només al cilindre 1; el DIN A4 de debò al nivell 1
+                const generals = passos.filter(x =>
+                    /^(L'àrea de la base és la d'un cercle|El volum d'un cilindre)/.test(x.text)
+                );
+                if (generals.length !== 2 || (nivell === 1) !== /DIN A4/.test(passos[0].text))
+                    anota2(dolents.vola, `${on}: fórmules o A4`);
                 // Volum en cm³, capacitat en mL
                 const ultim = passos[passos.length - 1];
                 const plans = ultim.files.filter(f => f && !f.startsWith('<svg')).map(f => p.textPla(f));
@@ -323,7 +335,7 @@ suite('3. Resolució pas a pas (resolucio.html?activitat=cilindres): la pissarra
                     vols.length !== 2 ||
                     !vols.every(f => /«cm»\^\(3\)$/.test(f)) ||
                     caps.length !== 2 ||
-                    !caps.every(f => /«mL»$/.test(f))
+                    !caps.every(f => /«L»$/.test(f))
                 )
                     anota2(dolents.unitats, `${on}: ${plans.join(' | ')}`);
                 if (!ultim.classes.some(c => /final/.test(c))) anota2(dolents.final, on);
@@ -342,8 +354,12 @@ suite('3. Resolució pas a pas (resolucio.html?activitat=cilindres): la pissarra
     const llista = l => l.join('\n      → ');
     ok('KaTeX dibuixa totes les files i les fórmules de les frases', !dolents.katex.length, llista(dolents.katex));
     ok('les frases són en segona persona', !dolents.plurals.length, llista(dolents.plurals));
-    ok('els dos costats del full volen de la figura a la fórmula', !dolents.vola.length, llista(dolents.vola));
-    ok('el volum en cm³ i la capacitat en mL', !dolents.unitats.length, llista(dolents.unitats));
+    ok(
+        'els costats del full volen a 2πr i a h (just abans del volum); les fórmules generals només al cilindre 1; el DIN A4 al nivell 1',
+        !dolents.vola.length,
+        llista(dolents.vola)
+    );
+    ok('el volum en cm³ i la capacitat en litres (el David, 24/11)', !dolents.unitats.length, llista(dolents.unitats));
     ok('l’última línia és ressaltada', !dolents.final.length, llista(dolents.final));
     const html = fs.readFileSync(path.join(ROOT, 'js/cilindres/cilindres.js'), 'utf8');
     ok(

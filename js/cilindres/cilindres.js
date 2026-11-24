@@ -5,7 +5,7 @@
  * ROL: Controlador de «Cilindres amb un full» (cilindres.html, 2n d'ESO): diu al joc de
  *      passos comú (js/passos/joc-passos.js) quin full toca, com es diagnostiquen els errors
  *      i que els passos es corregeixen amb arrossegament (enEncertar: refaPassos).
- * PARÀMETRES: ?nivell=1 (sempre el full A4, 21 × 30), 2 (altres rectangles); 0 o absent: la
+ * PARÀMETRES: ?nivell=1 (sempre el full DIN A4, 21 × 29,7), 2 (altres rectangles); 0 o absent: la
  *      primera pregunta és el full A4 i les altres, altres rectangles (decisió del David).
  * ENLLAÇ: «Mira com es resol» (pregunta.enllac) porta a resolucio.html?activitat=cilindres amb el
  *      nivell del full (js/cilindres/resolucio.js).
