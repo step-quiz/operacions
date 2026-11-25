@@ -15,15 +15,16 @@
  *   (math-engine.js generaPreguntaFS: la fórmula, la lletra i les dades).
  * - L'ordre és el de l'activitat (decisions del David del 17/11/2026: sempre un
  *   context, primer amb nombres i després les mateixes operacions amb lletres):
- *     1. la fórmula (la frase porta el context del problema);
- *     2. les dades al lloc de les lletres (cada lletra baixa i es torna el seu nombre);
+ *     1. l'enunciat sol, amb la pissarra buida (el David, 25/11/2026);
+ *     2. la fórmula amb les dades al lloc de les lletres;
  *     3. una línia per operació (la mateixa als dos membres) i, si la lletra queda a
  *        la dreta, girar la igualtat, en un pas a part;
  *     4. el valor (els nombres es fusionen en el resultat);
  *     5. la unitat, operant amb les unitats com si fossin lletres (cada nombre es torna
  *        la seva unitat), i el resultat amb la unitat (ressaltat). En una suma amb un
  *        nombre sol (T = t + 273) no hi ha càlcul d'unitats: la unitat és la de la fórmula;
- *     6. la fórmula una altra vegada i les mateixes operacions amb lletres; l'última
+ *     6. la fórmula amb lletres (cada nombre de la línia de les dades torna a ser la seva
+ *        lletra) i les mateixes operacions; l'última
  *        línia, la fórmula de la lletra aïllada (ressaltada).
  * - Les peces: cada node de l'arbre de l'expressió (algebra.js) té un número per sempre
  *   (un WeakMap). Com que aillaPassos fa servir els mateixos nodes d'un pas al següent, la
@@ -224,17 +225,15 @@ export const Resolucio = (() => {
         const eqNum = substitueixEq(eq, coneguts);
         // Els nombres de les dades prenen el número de la seva lletra (així la lletra «es torna» el nombre)
         const dades = new Map(); // node del nombre → nom de la lletra
-        const dadesMogudes = [];
         for (let c = 0; c < 2; c++)
             aparella(eq[c], eqNum[c], (a, b) => {
                 if (a === b) return;
                 R.iguala(b, a);
-                if (a.t === 'var' && b.t === 'num') {
-                    dades.set(b, a.n);
-                    dadesMogudes.push(`a${R.num(a)}`);
-                }
+                if (a.t === 'var' && b.t === 'num') dades.set(b, a.n);
             });
         const fmt = k => textDecimal(valors[k]);
+        // Cada nombre de les dades té l'id de la seva lletra; les lletres que es veuen en tornar-hi
+        const lletresFormula = fullesDe(R.equacio(eq, L));
         const uDe = k => ctx.unitats[k];
         const texDada = k =>
             `${L[k]} = ${texDecimal(valors[k])}${uDe(k)[0] === SENSE_UNITATS ? '' : `\\ ${uDe(k)[1]}`}`;
@@ -242,20 +241,14 @@ export const Resolucio = (() => {
         const texX = L[x];
         const out = [];
 
-        // 1. La fórmula, amb el context
-        const formula = R.equacio(eq, L);
-        out.push({
-            tipus: 'formula',
-            linia: formula,
-            text: `${ctx.text(valors, fmt)} Aïlla $${texX}$ de la fórmula $${petit(texEq(eq, L))}$: primer, amb els nombres.`,
-        });
+        // 1. L'enunciat, sol: la pissarra encara és buida (el David, 25/11/2026: ni «Aïlla…» ni la fórmula)
+        out.push({ tipus: 'enunciat', linia: null, text: ctx.text(valors, fmt) });
 
-        // 2. Les dades
+        // 2. La fórmula amb les dades
         out.push({
             tipus: 'dades',
             linia: R.equacio(eqNum, L),
-            text: `Escriu cada dada al lloc de la seva lletra: ${llista(Object.keys(coneguts).map(k => `$${texDada(k)}$`))}.`,
-            mou: Object.fromEntries(dadesMogudes.map(id => [id, id])),
+            text: `Escriu la fórmula $${petit(texEq(eq, L))}$ amb cada dada al lloc de la seva lletra: ${llista(Object.keys(coneguts).map(k => `$${texDada(k)}$`))}.`,
         });
 
         /** Les etapes de les operacions d'una cadena (passos d'aillaPassos), a partir de la línia d'abans. */
@@ -356,12 +349,18 @@ export const Resolucio = (() => {
             final: true,
         });
 
-        // 6. Amb lletres: la fórmula una altra vegada (baixa de la primera línia) i les mateixes operacions
+        // 6. Amb lletres: la fórmula i les mateixes operacions
         out.push({
             tipus: 'lletres',
             linia: R.equacio(eq, L),
-            text: 'Ara fes les mateixes operacions amb lletres: torna a escriure la fórmula.',
-            mou: Object.fromEntries(fullesDe(formula).map(id => [id, `${id}@${out.length}`])),
+            text: 'Ara fes les mateixes operacions amb lletres: torna a escriure la fórmula amb les lletres.',
+            // la línia de les dades és la primera escrita (l'enunciat no n'escriu cap): cada nombre hi torna a
+            // ser la seva lletra
+            mou: (() => {
+                const k = out.length - 1;
+                const deDades = new Set(idsDe(out[1].linia));
+                return Object.fromEntries(lletresFormula.filter(id => deDades.has(id)).map(id => [id, `${id}@${k}`]));
+            })(),
         });
         const passosLletres = aillaPassos(eq, x);
         operacions(passosLletres);
@@ -693,7 +692,8 @@ export const Resolucio = (() => {
                       : false;
 
     /** Les files de la pissarra: totes les línies, amb tots els passos oberts. */
-    const files = ex => etapes(ex).reduce((n, e) => n + 1 + (e.detall ? e.detall.subpassos.length : 0), 0);
+    const files = ex =>
+        etapes(ex).reduce((n, e) => n + (e.linia ? 1 : 0) + (e.detall ? e.detall.subpassos.length : 0), 0);
 
     /**
      * El guió d'un exercici. oberts: els passos (els seus id, '3', '4'…) que s'escriuen amb el detall; mentre es
@@ -704,6 +704,11 @@ export const Resolucio = (() => {
         const g = guio(files(ex));
         const H = historial(g, { prefix: 'S', pinta, oberts, objectiu: true });
         for (const e of llista) {
+            // L'enunciat: un pas sense cap línia (la pissarra buida)
+            if (!e.linia) {
+                g.afegeix(e.text, { id: String(g.passos.length + 1), estat: [] });
+                continue;
+            }
             const op = {
                 ...(e.mou && Object.keys(e.mou).length ? { mou: e.mou } : {}),
                 ...(e.fusiona ? { fusiona: e.fusiona } : {}),

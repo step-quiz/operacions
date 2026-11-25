@@ -417,12 +417,14 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 
 ## Scenario B for `formules-steam`: how stage 1 was built (2026-11-17, decision 21)
 
-- `js/formules-steam/resolucio.js` (pure): `etapes(ex)` → one line per step: the formula (caption = the
-  activity's context + «Aïlla x…»), the data (each data letter flies down and turns into its number), one line per
+- `js/formules-steam/resolucio.js` (pure): `etapes(ex)` → one line per step, except step 1: **step 1 is only the
+  problem statement** (`tipus: 'enunciat'`, `linia: null`, caption = the activity's context, no «Aïlla x…», empty
+  board; `passos()` emits it with `g.afegeix(text, { id: '1', estat: [] })` and `files()` does not count it;
+  David, 2026-11-25), the formula with the data (caption names the formula; nothing flies, the board was empty), one line per
   `aillaPassos` step (caption says what is on the letter's member and what is done to both), `gira` as its own
   step, the value (the numbers fuse into `r`), the unit line (`\text{unitat de } x:` + the last numeric expression
   with each data number turned into its unit, flying from two lines up, `= u`), the result with the unit (class
-  `final`), the formula again (its leaves fly from line 0 with `id@k`) and the letters steps (last line `final`).
+  `final`), the formula with letters (the data numbers share their letter's id, so each one flies back from the data line, line 0, with `id@k`, and turns into its letter) and the letters steps (last line `final`).
   `exercici(nivell, cas)` reuses `generaPreguntaFS` (same cases, values and levels as the activity).
 - Piece ids: every expression node gets a permanent number in a `WeakMap`; `aillaPassos` reuses nodes from one
   step to the next, so the same piece keeps its id on every line; data numbers and units are given their letter's
@@ -437,6 +439,8 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   p · S, 2 · 6 like a · t); `esMeitat` (now exported) ignores a data value 2 (W / 2 is no longer drawn «½ · W»).
 - `textPla` learned `\Delta`, `\Omega`, `\eta`, `\circ` (also as a bare exponent, `{}^\circ`), `\Bigl`, `\Bigr`.
   `tests/check-repo.js` §9 reads quoted registry keys (`'formules-steam'`).
+- `tests/pissarra-activitat.js` rule 2 («every step moves a piece») skips the step written on an empty board (the one
+  after a statement-only step 1).
 - Tests: `tests/formules-steam.test.js` suite 3 (30 exercises per case, the shared battery with an own float
   evaluator of both sides with the problem's values, KaTeX, second person, context, `final` rows, same operations
   with numbers and letters, which cases skip the unit line, a hand-made v = Δx / Δt example). Browser: suite 6
@@ -459,6 +463,8 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 - **Engine** (`js/pissarra/formules.js`): a reference `id@k` with k ≥ 2 now counts only lines of the same level or
   outside, plus the lines of the detail being closed — not the lines of another opened detail in between (the
   unit line takes its units from `@2`, which must be the same line whether the value step is open or not).
+- `tests/pissarra-activitat.js` rule 2 («every step moves a piece») skips the step written on an empty board (the one
+  after a statement-only step 1).
 - Tests: `tests/formules-steam.test.js` suite 3 gives the battery a `vista` (every view, every row true), a
   hand-made opened example (80 · Δt = (240/Δt) · Δt, struck, 80 · Δt = 240; the division likewise), which step types
   have detail, and detail in the letters part. Browser: suite 7 now runs `provaDetall` for `formules-steam` too.
