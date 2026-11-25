@@ -502,7 +502,7 @@ function engegaServidor() {
                 'abans de triar cap activitat, les opcions (sessions…) són amagades',
                 !(await pagina.isVisible('#s-eso'))
             );
-            // El menú d'ESO s'obre sol en carregar, però el clic al botó lila l'ha tancat: s'obre si cal
+            // El menú d'ESO ja no s'obre sol en carregar (des del 25/11/2026): s'obre si cal
             if (!(await pagina.$eval('#cd-eso', w => w.classList.contains('open'))))
                 await pagina.click('#cd-eso .cd-trigger');
             await pagina.click('#cd-eso-opt-1');

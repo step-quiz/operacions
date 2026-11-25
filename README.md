@@ -25,6 +25,8 @@ No requereix instal·lació. Són arxius totalment estàtics, publicats a https:
 1. Obre `index.html` al navegador — és el **generador d'enllaços** per al professorat.
 2. Tria l'exercici al primer menú (ESO o Batxillerat; en obrir la pàgina hi diu *Escull una activitat*, en cursiva): llavors apareix el segon panell, amb la **sessió fixa** (a ESO, sempre la primera fila), les opcions de l'activitat i, després d'una fina línia, sessions, preguntes i intents.
 
+   En carregar-se, la pàgina entra amb fosos suaus i pauses curtes (la sabatilla derrapa, el títol, el subtítol i els panells pugen una mica, després el dock i, als 2,5 s, el peu); els menús d'activitat no s'obren sols. Els temps són al comentari «Entrada de la pàgina» del CSS d'`index.html`.
+
    A baix a l'esquerra hi ha el **dock**: el botó «Resolució pas a pas» (blanc, amb la lletra i la vora liles; en passar-hi el ratolí s'omple de lila), les icones (activitats adaptades, CB) i, a la fila de sota, la petjada que porta a `app.step-quiz.net` amb la llibreta (l'analitzador) just a la dreta.
 3. Copia l'enllaç i comparteix-lo amb els alumnes.
 4. En acabar, l'alumne obté un **codi de verificació** (format v2, 59–79 caràcters) amb nota, data i checksum antifrau. Les Competències Bàsiques (`step-quiz/cb`) en donen un de més complet, el **v3**, que a més diu quina convocatòria, dificultats i sentits s'havien triat i porta una empremta de les preguntes (vegeu [CONTRIBUTING.md](CONTRIBUTING.md)).

@@ -207,18 +207,28 @@
     .title-container { text-align: center; margin-bottom: 20px; }
     .title-row-1 { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 36px; font-weight: 800; color: #0f172a; margin: 0; }
     .title-row-2 { font-size: 19.2px; font-weight: 400; color: var(--math-title); margin-top: -12px; } /* 20 % més petit que abans (24px) */
-    .inline-icon { height: 82px; opacity: 0; animation: icon-slide-brake 0.9s cubic-bezier(0.1, 1.0, 0.2, 1.0) 0.1s forwards; }
-    .text-step { opacity: 0; animation: fade-in 0.43s ease-out 0.6s forwards; }
-    .title-row-2, #mobile-nav-container { opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
+    /* ── Entrada de la pàgina (dissenyada pel David a l'artifact «Entrada de l'índex», 25/11/2026) ──
+       Tot amb la mateixa corba suau, com apple.com; temps des que es carrega la pàgina:
+         0 s     la sabatilla derrapa des de 180 px (0,8 s)
+         0,2 s   «Step» i «Quiz»: fos i pugen 24 px (0,5 s)
+         0,3 s   «Matemàtiques» (i les pestanyes del mòbil): fos i puja 20 px (0,5 s)
+         0,6 s   els panells ESO i Batxillerat: fos i pugen 20 px (0,2 s)
+         1,1 s   el dock (botó, icones, petjada i llibreta): fos (0,3 s)
+         2,5 s   el peu, de cop
+       Els menús d'activitat ja no s'obren sols. */
+    :root { --corba-entrada: cubic-bezier(0.28, 0.11, 0.32, 1); }
+    .inline-icon { height: 82px; animation: icon-slide-brake 0.8s var(--corba-entrada) 0s both; }
+    .text-step { --puja: 24px; animation: fade-up 0.5s var(--corba-entrada) 0.2s both; }
+    .title-row-2, #mobile-nav-container { --puja: 20px; animation: fade-up 0.5s var(--corba-entrada) 0.3s both; }
 
-    @keyframes icon-slide-brake { from { transform: translateX(-90px) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+    @keyframes icon-slide-brake { from { transform: translateX(-180px) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fade-up { from { opacity: 0; transform: translateY(var(--puja, 20px)); } to { opacity: 1; transform: none; } }
 
     .main-wrapper { display: flex; gap: 30px; justify-content: center; width: 100%; max-width: 1000px; align-items: stretch; }
     .quiz-panel { width: var(--panel-w); max-width: 100%; display: flex; flex-direction: column; gap: 10px; }
     .sub-panel { padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-heavy); display: flex; flex-direction: column; }
-    #panel-eso  { opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
-    #panel-batx { opacity: 0; animation: fade-in 0.24s ease-out 1.80s forwards; }
+    #panel-eso, #panel-batx { --puja: 20px; animation: fade-up 0.2s var(--corba-entrada) 0.6s both; }
     #panel-eso  .sub-panel { background-color: var(--eso-bg); }
     #panel-batx .sub-panel { background-color: var(--batx-bg); }
 
@@ -348,7 +358,6 @@
       border-radius: 999px; border: 3px solid #6d28d9;
       background: #ffffff; color: #6d28d9; text-decoration: none;
       font-size: 14px; font-weight: 400;
-      opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards;
       transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
     }
     /* Hover ben visible: s'omple de lila, la lletra es torna blanca i el botó creix una mica */
@@ -376,7 +385,7 @@
         linear-gradient(to right, #b8c4d0, #b8c4d0) left top    / 26px 2px no-repeat,
         linear-gradient(to right, #cbd5e1, #cbd5e1) left bottom / 32px 2px no-repeat;
       border-radius: 1px;
-      animation: skid 0.55s cubic-bezier(0.15, 0, 0.6, 1) 0.20s forwards;
+      animation: skid 0.55s cubic-bezier(0.15, 0, 0.6, 1) 0.1s forwards;
     }
 
     /* Núvol de pols: apareix just quan s'atura i es dissipa */
@@ -393,7 +402,7 @@
         -10px  0px 5px 4px rgba(148,163,184,0.35),
         -18px -3px 4px 3px rgba(148,163,184,0.20),
          -6px -6px 3px 2px rgba(148,163,184,0.15);
-      animation: dust 0.9s ease-out 0.48s forwards;
+      animation: dust 0.9s ease-out 0.4s forwards;
     }
 
     @keyframes skid {
@@ -437,7 +446,13 @@
       display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
       pointer-events: none;
     }
-    .dock > * { pointer-events: auto; }
+    .dock > * { pointer-events: auto; animation: fade-in 0.3s var(--corba-entrada) 1.1s both; }
+    /* El peu, de cop als 2,5 s (només a l'índex: resolucio.html el mostra des del principi) */
+    .peu { animation: fade-in 10ms linear 2.5s both; }
+    @media (prefers-reduced-motion: reduce) {
+      .inline-icon, .text-step, .title-row-2, #mobile-nav-container, #panel-eso, #panel-batx, .dock > *, .peu { animation: none; }
+      .icon-wrap::before, .icon-wrap::after { animation: none; }
+    }
     .dock-icones { display: flex; gap: 10px; }
     .dock .petjada-link { margin-left: 2px; }
     .dock-fila2 { display: flex; align-items: center; gap: 14px; }
@@ -933,7 +948,7 @@
       return dropdown;
     }
 
-    const dropdownEso = initPanel('eso',  ACTIVITIES_ESO,  DEFAULT_ESO, ESO_LLISTA_FINS);
+    initPanel('eso',  ACTIVITIES_ESO,  DEFAULT_ESO, ESO_LLISTA_FINS);
     initPanel('batx', ACTIVITIES_BATX, DEFAULT_BATX);
 
     // Tanca dropdowns en clicar fora
@@ -949,17 +964,7 @@
       });
     });
 
-    // Obre els desplegables d'activitat per defecte
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        // ESO: l'alçada es calcula perquè la llista no tapi el botó «Obre»
-        dropdownEso.openList();
-        // Batxillerat: com abans
-        const wrapBatx = document.getElementById('cd-batx');
-        wrapBatx.querySelector('.cd-list').style.maxHeight = '320px';
-        wrapBatx.classList.add('open');
-      }, 1600);
-    });
+    // Els desplegables d'activitat ja no s'obren sols en carregar la pàgina (el David, 25/11/2026)
   </script>
 
   <!-- El peu, flotant i sempre a la vista (css/peu.css, el mateix que a resolucio.html) -->
