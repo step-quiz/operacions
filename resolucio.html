@@ -16,6 +16,11 @@
     <script src="vendor/katex-0.16.11/katex.min.js"></script>
 </head>
 <body>
+    <!-- La classe del portal o de l'activitat, abans de pintar res: sense això, al portal sortia un moment la
+         capçalera de color d'una activitat (el mòdul s'executa quan la pàgina ja s'ha pintat) -->
+    <script>
+        document.body.classList.add(new URLSearchParams(location.search).has('activitat') ? 'activitat' : 'portal');
+    </script>
     <!-- La capçalera: al portal, «← Step Quiz» i el títol; a una resolució, «← Resolucions», el nom de
          l'activitat, «Ara fes-ho tu» i «Projectar» (js/resolucio/resolucio.js) -->
     <header class="cap">
@@ -33,9 +38,6 @@
 
     <!-- El portal (sense activitat): una targeta per activitat, en una sola graella (cada targeta amb el color del seu bloc) -->
     <main class="portal" id="portal" hidden>
-        <div class="portal-intro">
-            <h2>Resolució pas a pas</h2>
-        </div>
         <div id="blocs"></div>
     </main>
 

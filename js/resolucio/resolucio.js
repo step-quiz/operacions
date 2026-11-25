@@ -23,7 +23,7 @@
  *   d'un pas a l'altre. La capçalera: «← Resolucions» (el portal), el nom, «Ara fes-ho
  *   tu» i «Projectar»; el peu, flotant.
  * - El nivell es tria amb un desplegable (un listbox: fletxes, Inici/Fi, Retorn, Esc);
- *   «Un altre exercici», al costat, és una acció. Una activitat amb grups (Fórmules STEAM: les
+ *   «Un altre exercici», a la línia de sota, és una acció. Una activitat amb grups (Fórmules STEAM: les
  *   matèries) té abans uns botons per triar el grup, i el desplegable només mostra els nivells (les
  *   fórmules) d'aquell grup; a l'adreça, &nivell=<clau de la fórmula> (o &grup=<matèria>, el portal).
  * - Projectar (el mode professor, per al projector; el David, 16/11/2026): el botó
