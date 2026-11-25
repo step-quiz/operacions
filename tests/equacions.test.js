@@ -198,12 +198,22 @@ suite('2. Resolució pas a pas (resolucio.html): el guió de cada equació');
         }
         if (!passos[passos.length - 1].classes.includes('final')) anota(senseFinal, on);
     };
+    const foraDelNivell = [];
     function* exercicis() {
         for (const nivell of Resolucio.NIVELLS)
             for (let k = 0; k < 600; k++) {
                 const eqn = Resolucio.exercici(nivell);
                 const on = `nivell ${nivell}, equació ${k}`;
                 const passos = Resolucio.passos(eqn);
+                // Només equacions del nivell triat (la barreja per repassar és de l'activitat; el David, 25/11/2026)
+                const costats = passos[0].text.replace(/^.*\$(.*)\$.*$/, '$1').split('=');
+                const delNivell =
+                    nivell === 1
+                        ? !/\(/.test(costats.join()) && costats.filter(c => /x/.test(c)).length === 1
+                        : nivell === 2
+                          ? !/\(/.test(costats.join()) && costats.every(c => /x/.test(c))
+                          : /\d\(x/.test(costats.join());
+                if (!delNivell && foraDelNivell.length < 5) foraDelNivell.push(`${on}: ${passos[0].text}`);
                 const vista = ({ oberts }) => Resolucio.passos(eqn, { oberts });
                 if (k < 60) {
                     revisades++;
@@ -234,6 +244,11 @@ suite('2. Resolució pas a pas (resolucio.html): el guió de cada equació');
         `KaTeX dibuixa totes les fórmules (${revisades} equacions, tancades i amb tot el detall)`,
         !errorsKatex.length,
         errorsKatex.join('\n      → ')
+    );
+    ok(
+        'cada nivell només dona equacions del nivell (1: la x en un costat; 2: als dos costats; 3: amb parèntesis)',
+        !foraDelNivell.length,
+        foraDelNivell.join('\n      → ')
     );
     ok('les frases són en segona persona', !plurals.length, plurals.join('\n      → '));
     ok('l’últim pas té el resultat ressaltat (classe «final»)', !senseFinal.length, senseFinal.join(', '));

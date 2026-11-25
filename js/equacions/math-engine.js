@@ -44,10 +44,14 @@ export const MathEngine = (() => {
     /**
      * Una equació nova. opcions: { nivell (0 = sense ?nivell=, progressió per opIndex; 1, 2, 3),
      * leftToRight (?lefttoright=1: al nivell 1 no surten formes amb la x només a la dreta),
-     * totalOperations (el nombre d'equacions de la sessió: l'última del mode sense nivell és diferent) }
+     * totalOperations (el nombre d'equacions de la sessió: l'última del mode sense nivell és diferent),
+     * pur (la resolució pas a pas: només equacions del nivell, sense les dels nivells d'abans que l'activitat
+     * barreja per repassar; el David, 25/11/2026) }
      */
-    function generateEquation(opIndex, { nivell = 0, leftToRight = false, totalOperations = 10 } = {}) {
+    function generateEquation(opIndex, { nivell = 0, leftToRight = false, totalOperations = 10, pur = false } = {}) {
         if (nivell === 1) return genN1(leftToRight);
+        if (pur && nivell === 2) return Math.random() < 0.4 ? genBothSidesX() : genMultiTermX();
+        if (pur && nivell === 3) return genParens();
         if (nivell === 2) {
             const r = Math.random();
             if (r < 0.25) return genN1(leftToRight);
