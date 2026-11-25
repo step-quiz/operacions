@@ -9,7 +9,8 @@
  * - Mòdul PUR (sense DOM): passos(eq, { oberts }) torna la llista de passos de la
  *   pissarra (js/pissarra/formules.js guio i historial, en TeX, una línia per fila i
  *   l'objectiu en gris quan un pas és obert); exercici(nivell) en genera una
- *   (math-engine.js, els nivells 1, 2 i 3 de l'activitat).
+ *   (math-engine.js, els nivells 1, 2 i 3 de l'activitat, amb pur: només les del nivell, sense
+ *   les dels nivells d'abans que l'activitat barreja per repassar).
  * - Els passos són els de l'activitat (math-engine.js determineSteps), amb una frase
  *   en segona persona. Només volen els símbols que fan el canvi (moviments); la resta
  *   de la línia nova hi apareix.
@@ -556,7 +557,7 @@ export const Resolucio = (() => {
     }
 
     /** Una equació nova del nivell (1, 2 o 3, com els de l'activitat). */
-    const exercici = nivell => MathEngine.generateEquation(0, { nivell, totalOperations: 10 });
+    const exercici = nivell => MathEngine.generateEquation(0, { nivell, totalOperations: 10, pur: true });
 
     // Els ajudants de les peces, per a les inequacions (js/inequacions/resolucio.js), que en fan servir el motor
     const ajudants = Object.freeze({ pc, IGUAL, tex, ambSigne, factor });
