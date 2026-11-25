@@ -502,7 +502,10 @@ function engegaServidor() {
                 'abans de triar cap activitat, les opcions (sessions…) són amagades',
                 !(await pagina.isVisible('#s-eso'))
             );
-            await pagina.click('#cd-eso-opt-1'); // el menú d'ESO ja és obert (s'obre sol en carregar)
+            // El menú d'ESO s'obre sol en carregar, però el clic al botó lila l'ha tancat: s'obre si cal
+            if (!(await pagina.$eval('#cd-eso', w => w.classList.contains('open'))))
+                await pagina.click('#cd-eso .cd-trigger');
+            await pagina.click('#cd-eso-opt-1');
             ok('en triar una activitat, les opcions (sessions…) apareixen', await pagina.isVisible('#s-eso'));
             ok(
                 'ESO: «Sessió fixa» és la primera fila del segon panell',
