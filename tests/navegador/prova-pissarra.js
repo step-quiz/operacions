@@ -809,15 +809,21 @@ function engegaServidor() {
                 6
             );
             ok(
-                'cada targeta té la fórmula d’exemple dibuixada amb KaTeX, els nivells, «Mira com es resol» i «Copia l’enllaç»',
+                'cada targeta té la fórmula d’exemple dibuixada amb KaTeX (o un esquema), els nivells, «Mira com es resol» i «Copia l’enllaç»',
                 await p.$$eval('.targeta', ts =>
                     ts.every(
                         t =>
-                            t.querySelector('.targeta-exemple .katex') &&
+                            t.querySelector('.targeta-exemple .katex, .targeta-exemple svg') &&
                             t.querySelector('.xip-nivell') &&
                             t.querySelector('.copia') &&
                             t.querySelector('a.targeta-mira')
                     )
+                )
+            );
+            ok(
+                'la targeta de Cilindres amb un full porta l’esquema del full i dels dos cilindres',
+                await p.$$eval('.targeta', ts =>
+                    ts.some(t => /Cilindres/.test(t.textContent) && t.querySelector('.targeta-exemple svg ellipse'))
                 )
             );
             eq(
