@@ -497,7 +497,27 @@ function engegaServidor() {
                 'els menús d’ESO i de Batxillerat tenen totes les activitats',
                 (await opcions('eso')) > 20 && (await opcions('batx')) > 5
             );
-            ok('les opcions (sessions…) hi són', await pagina.isVisible('#s-eso'));
+            // El segon panell (sessions…) s'amaga fins que es tria una activitat; després ja no desapareix
+            ok(
+                'abans de triar cap activitat, les opcions (sessions…) són amagades',
+                !(await pagina.isVisible('#s-eso'))
+            );
+            await pagina.click('#cd-eso-opt-1'); // el menú d'ESO ja és obert (s'obre sol en carregar)
+            ok('en triar una activitat, les opcions (sessions…) apareixen', await pagina.isVisible('#s-eso'));
+            ok(
+                'ESO: «Sessió fixa» és la primera fila del segon panell',
+                await pagina.$eval('#panel-eso .sub-panel-params .row', r => r.id === 'row-fixed-eso')
+            );
+            ok(
+                'el dock: el botó, a sobre de les icones, i la petjada, a sota',
+                await pagina.evaluate(() => {
+                    const y = s => document.querySelector(s).getBoundingClientRect();
+                    return (
+                        y('#btn-resolucio').bottom <= y('.dock-icones').top &&
+                        y('.dock-icones').bottom <= y('.petjada-link').top
+                    );
+                })
+            );
             const peu = await pagina.$eval('footer.peu', f => {
                 const r = f.getBoundingClientRect();
                 return {
@@ -786,13 +806,14 @@ function engegaServidor() {
                 6
             );
             ok(
-                'cada targeta té la fórmula d’exemple dibuixada amb KaTeX, els nivells i «Copia l’enllaç»',
+                'cada targeta té la fórmula d’exemple dibuixada amb KaTeX, els nivells, «Mira com es resol» i «Copia l’enllaç»',
                 await p.$$eval('.targeta', ts =>
                     ts.every(
                         t =>
                             t.querySelector('.targeta-exemple .katex') &&
                             t.querySelector('.xip-nivell') &&
-                            t.querySelector('.copia')
+                            t.querySelector('.copia') &&
+                            t.querySelector('a.targeta-mira')
                     )
                 )
             );
@@ -810,12 +831,12 @@ function engegaServidor() {
             );
             ok(
                 'sense activitat, la pàgina diu quines en tenen',
-                (await p.isVisible('a[href="resolucio.html?activitat=equacions"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=fraccions"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=prioritat"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=formules-steam"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=inequacions"]')) &&
-                    (await p.isVisible('a[href="resolucio.html?activitat=cilindres"]'))
+                (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=equacions"]')) &&
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=fraccions"]')) &&
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=prioritat"]')) &&
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=formules-steam"]')) &&
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=inequacions"]')) &&
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=cilindres"]'))
             );
             await p.close();
         }
