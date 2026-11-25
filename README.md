@@ -25,7 +25,7 @@ No requereix instal·lació. Són arxius totalment estàtics, publicats a https:
 1. Obre `index.html` al navegador — és el **generador d'enllaços** per al professorat.
 2. Tria l'exercici al primer menú (ESO o Batxillerat): llavors apareix el segon panell, amb la **sessió fixa** (a ESO, sempre la primera fila), les opcions de l'activitat i, després d'una fina línia, sessions, preguntes i intents.
 
-   A baix a l'esquerra hi ha el **dock**: el botó lila «Resolució pas a pas», les icones (activitats adaptades, CB, analitzador) i, a sota, la petjada que porta a `app.step-quiz.net`.
+   A baix a l'esquerra hi ha el **dock**: el botó «Resolució pas a pas» (blanc, amb la lletra i la vora liles; en passar-hi el ratolí s'omple de lila), les icones (activitats adaptades, CB) i, a la fila de sota, la petjada que porta a `app.step-quiz.net` amb la llibreta (l'analitzador) just a la dreta.
 3. Copia l'enllaç i comparteix-lo amb els alumnes.
 4. En acabar, l'alumne obté un **codi de verificació** (format v2, 59–79 caràcters) amb nota, data i checksum antifrau. Les Competències Bàsiques (`step-quiz/cb`) en donen un de més complet, el **v3**, que a més diu quina convocatòria, dificultats i sentits s'havien triat i porta una empremta de les preguntes (vegeu [CONTRIBUTING.md](CONTRIBUTING.md)).
 5. El professor carrega les respostes del formulari a `analitzador-stepquiz.html` per validar els codis i veure les notes. Si un alumne envia més d'un codi de la mateixa prova, la columna **Int.** de l'analitzador ho marca (`↻2/3` = 2n intent de 3, amb el canvi de nota) i el resum de Competències Bàsiques separa les proves de mida diferent i deixa triar quin intent compta (vegeu més avall).
