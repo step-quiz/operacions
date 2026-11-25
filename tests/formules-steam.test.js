@@ -468,7 +468,11 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
     const llista = l => l.join('\n      → ');
     ok('KaTeX dibuixa totes les files i les fórmules de les frases', !dolents.katex.length, llista(dolents.katex));
     ok('les frases són en segona persona', !dolents.plurals.length, llista(dolents.plurals));
-    ok('el primer pas és només l’enunciat (una pregunta, sense «Aïlla…» i amb la pissarra buida)', !dolents.context.length, llista(dolents.context));
+    ok(
+        'el primer pas és només l’enunciat (una pregunta, sense «Aïlla…» i amb la pissarra buida)',
+        !dolents.context.length,
+        llista(dolents.context)
+    );
     ok('l’última línia (la fórmula aïllada) és ressaltada', !dolents.final.length, llista(dolents.final));
     ok('el resultat amb la unitat hi és, ressaltat', !dolents.resultat.length, llista(dolents.resultat));
     ok(
