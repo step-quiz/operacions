@@ -71,14 +71,14 @@ async function copia(text) {
     }
 }
 
-/** El portal: una targeta per activitat, agrupades per bloc (TEMES), en l'ordre del registre. */
+/** El portal: una targeta per activitat, en l'ordre dels blocs (TEMES) i del registre, sense subtítols. */
 function portal() {
     document.body.classList.add('portal');
     $('portal').hidden = false;
     const ambKatex = typeof katex !== 'undefined';
-    const blocs = TEMES.map(([tema, nomBloc]) => {
+    const blocs = TEMES.map(([tema]) => {
         const activitats = Object.entries(ACTIVITATS).filter(([, a]) => a.tema === tema);
-        if (!activitats.length) return null;
+        if (!activitats.length) return [];
         const targetes = activitats.map(([k, a]) => {
             const exemple = element('div', { 'class': 'targeta-exemple', 'aria-hidden': 'true' });
             if (ambKatex) katex.render(a.exemple, exemple, { throwOnError: false, displayMode: false });
@@ -111,7 +111,7 @@ function portal() {
                 text.textContent = (await copia(url)) ? 'Copiat ✓' : url;
                 setTimeout(() => (text.textContent = "Copia l'enllaç"), 2500);
             });
-            return element('article', { class: 'targeta' }, [
+            return element('article', { class: `targeta tema-${tema}` }, [
                 exemple,
                 element('div', { class: 'targeta-cos' }, [
                     element('h3', {}, [
@@ -120,8 +120,11 @@ function portal() {
                     element('p', { class: 'targeta-frase', text: a.frase }),
                     nivells,
                     element('div', { class: 'targeta-peu' }, [
-                        element('span', {
+                        // Un botó com «Copia l'enllaç» (el mateix enllaç que el títol: fora del Tab i dels lectors)
+                        element('a', {
                             'class': 'targeta-mira',
+                            'href': enllacActivitat(k),
+                            'tabindex': '-1',
                             'aria-hidden': 'true',
                             'text': 'Mira com es resol →',
                         }),
@@ -130,12 +133,10 @@ function portal() {
                 ]),
             ]);
         });
-        return element('section', { 'class': `bloc tema-${tema}`, 'aria-labelledby': `bloc-${tema}` }, [
-            element('h2', { class: 'bloc-titol', id: `bloc-${tema}`, text: nomBloc }),
-            element('div', { class: 'targetes' }, targetes),
-        ]);
+        return targetes;
     });
-    $('blocs').replaceChildren(...blocs.filter(Boolean));
+    // Sense subtítols de bloc (el David, 25/11/2026): totes les targetes en una sola graella, en l'ordre dels blocs
+    $('blocs').replaceChildren(element('div', { class: 'targetes' }, blocs.flat()));
 }
 
 /**

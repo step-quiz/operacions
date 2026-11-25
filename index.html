@@ -13,7 +13,7 @@
     const BASE_URL = 'https://step-quiz.net/';
 
     const ACTIVITIES_ESO = [
-      { file: 'vocabulari.html', label: 'Vocabulari de geometria', yt: '' },
+      { file: 'vocabulari.html', label: 'Vocabulari de geometria', yt: '', fixed: true },
       { file: 'area-perimetre.html', label: 'Àrea i perímetre', yt: 'area-perimetre-tutorial.html', fixed: true },
       { file: 'canvi-unitats.html', label: "Canvi d'unitats", yt: '', difficulty: true, fixed: true },
       { file: 'arees-volums.html', label: 'Àrees i volums', yt: '', difficulty: true, fixed: true },
@@ -205,7 +205,7 @@
 
     .title-container { text-align: center; margin-bottom: 20px; }
     .title-row-1 { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 36px; font-weight: 800; color: #0f172a; margin: 0; }
-    .title-row-2 { font-size: 24px; font-weight: 400; color: var(--math-title); margin-top: -15px; }
+    .title-row-2 { font-size: 19.2px; font-weight: 400; color: var(--math-title); margin-top: -12px; } /* 20 % més petit que abans (24px) */
     .inline-icon { height: 82px; opacity: 0; animation: icon-slide-brake 0.9s cubic-bezier(0.1, 1.0, 0.2, 1.0) 0.1s forwards; }
     .text-step { opacity: 0; animation: fade-in 0.43s ease-out 0.6s forwards; }
     .title-row-2, #mobile-nav-container { opacity: 0; animation: fade-in 0.24s ease-out 1.50s forwards; }
@@ -318,13 +318,12 @@
     }
 
     @media (max-width: 480px) {
-      body { padding-bottom: 100px; padding-top: 10px !important; }
-      .bottom-icon { bottom: 88px !important; }
+      body { padding-top: 10px !important; }
       .copy-btn, .open-btn, .help-btn { font-size: 12px; }
       .title-container { margin-bottom: 10px; }
       .inline-icon { height: 60px; }
       .title-row-1 { font-size: 28px; }
-      .title-row-2 { font-size: 18px; margin-top: -10px; }
+      .title-row-2 { font-size: 14.4px; margin-top: -8px; }
     }
 
     .select-atencio-shake { animation: select-shake-wave 1.2s ease-in-out; }
@@ -336,13 +335,13 @@
 
     .help-btn { display: none; }
 
-    /* ── Botó «Resolució pas a pas» ──
+    /* ── Botó «Resolució pas a pas» (al dock de baix a l'esquerra, damunt de les icones) ──
        Obre el portal de les resolucions (resolucio.html) en una pestanya nova: l'alumne hi tria una
        activitat i mira com es resol un exercici (l'escenari B; l'activitat de sempre és l'A). El lila
        és la marca de la resolució pas a pas (el mateix --rpp de css/resolucio.css). */
     .resolucio-boto {
       display: flex; align-items: center; gap: 8px; width: max-content;
-      margin: 0 auto 16px; height: 38px; padding: 0 18px;
+      height: 38px; padding: 0 18px;
       border-radius: 999px; border: 1px solid #6d28d9;
       background: #6d28d9; color: #ffffff; text-decoration: none;
       font-size: 14px; font-weight: 700;
@@ -405,9 +404,9 @@
       100% { opacity: 0;   transform: scale(2.0) translateX(-10px); }
     }
 
-    /* Petjada: enllaç a l'app, cantonada superior esquerra */
-    .petjada-link { position: fixed; top: 10px; left: 12px; z-index: 102; display: block; line-height: 0; opacity: 0.85; transition: opacity 0.2s; }
-    .petjada-link img { height: 56px; width: auto; display: block; transform-origin: 50% 80%; }
+    /* Petjada: enllaç a l'app (al dock, just a sota de les icones) */
+    .petjada-link { display: block; line-height: 0; opacity: 0.85; transition: opacity 0.2s; }
+    .petjada-link img { height: 52px; width: auto; display: block; transform-origin: 50% 80%; }
     .petjada-link:hover, .petjada-link:focus-visible { opacity: 1; }
     .petjada-link:hover img, .petjada-link:focus-visible img { animation: petjada-blink-shake 1.5s ease-in-out; }
     @keyframes petjada-blink-shake {
@@ -423,15 +422,35 @@
       90%  { transform: translateX(-1px) rotate(-1deg); opacity: 0.7; }
       100% { transform: translateX(0) rotate(0);        opacity: 1; }
     }
-    @media (max-width: 480px) { .petjada-link { top: 6px; left: 8px; } .petjada-link img { height: 40px; } }
+    @media (max-width: 480px) { .petjada-link img { height: 40px; } }
     @media (prefers-reduced-motion: reduce) { .petjada-link:hover img, .petjada-link:focus-visible img { animation: none; } }
+
+    /* ── Dock de baix a l'esquerra (el David, 25/11/2026) ──
+       De dalt a baix: el botó «Resolució pas a pas», les icones (adaptades, CB, analitzador) i la petjada
+       (app.step-quiz.net). Va per sobre del peu flotant (css/peu.css), que ocupa fins a uns 46 px des de baix. */
+    .dock {
+      position: fixed; left: 14px; bottom: calc(56px + env(safe-area-inset-bottom, 0px)); z-index: 101;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+      pointer-events: none;
+    }
+    .dock > * { pointer-events: auto; }
+    .dock-icones { display: flex; gap: 10px; }
+    .dock .petjada-link { margin-left: 2px; }
+    /* Una columna (tauleta, mòbil): la pàgina deixa lloc a baix perquè el dock no tapi el botó «Obre» */
+    @media (max-width: 1050px) { body { padding-bottom: 240px; } }
+
+    /* El segon panell de cada columna s'amaga fins que es tria una activitat al primer menú;
+       després ja no es torna a amagar */
+    .sub-panel-params.per-triar { display: none; }
+    .sub-panel-params.revelat { animation: fade-in 0.3s ease-out; }
+
+    /* Fina línia horitzontal just abans de «Sessions» (ESO) */
+    .row-sessions { border-top: 1px solid var(--border-heavy); margin-top: 6px; padding-top: 10px; }
   </style>
 <link rel="stylesheet" href="css/chromebook.css">
 <link rel="stylesheet" href="css/peu.css">
 </head>
 <body>
-
-  <a href="https://app.step-quiz.net/" class="petjada-link" aria-label="Step Quiz App" title="Step Quiz App"><img src="icon-petjada.png" alt=""></a>
 
   <div class="title-container">
     <h1 class="title-row-1">
@@ -441,11 +460,6 @@
     </h1>
     <div class="title-row-2">Matemàtiques</div>
   </div>
-
-  <a id="btn-resolucio" class="resolucio-boto" href="resolucio.html" target="_blank" rel="noopener">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 10.5h3M14 9l3 3M17 9l-3 3"/></svg>
-    <span>Resolució pas a pas</span>
-  </a>
 
   <div id="mobile-nav-container" class="mobile-nav">
     <input type="radio" id="nav-eso" name="mobile-nav" value="panel-eso" checked>
@@ -466,13 +480,13 @@
           </div>
         </div>
       </div>
-      <div class="sub-panel sub-panel-params">
-        <div class="row" id="row-diff-eso" style="display:none"><label for="d-eso">Dificultat</label><select id="d-eso"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
+      <div class="sub-panel sub-panel-params per-triar">
         <div class="row" id="row-fixed-eso" style="display:none"><label for="fix-eso">Sessió fixa</label><select id="fix-eso"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
+        <div class="row" id="row-diff-eso" style="display:none"><label for="d-eso">Dificultat</label><select id="d-eso"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
         <div class="rows-opc" id="rows-opc-eso"></div>
         <div class="row" id="row-esv-eso" style="display:none" title="Exemples resolts que es van esvaint: l'alumne comença mirant un exercici resolt i cada cop en fa més passos ell. No dona codi."><label for="esv-eso">Esvaïment</label><select id="esv-eso"><option value="">No</option><option value="0">Sí, amb un exemple sencer</option><option value="1">Sí, l'alumne fa l'últim pas</option><option value="2">Sí, l'alumne fa els 2 últims</option><option value="3">Sí, l'alumne fa els 3 últims</option></select></div>
         <div class="row" id="row-mod-eso" style="display:none"><label for="mod-eso">Modalitat</label><select id="mod-eso"><option value="">Resultat final</option><option value="passos">Pas a pas</option></select></div>
-        <div class="row"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+        <div class="row row-sessions"><label for="s-eso">Sessions</label><select id="s-eso"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
         <div class="row"><label for="o-eso">Preguntes</label><select id="o-eso"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
         <div class="row"><label for="i-eso">Errors màx.</label><select id="i-eso"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
         <div class="row"><label for="m-eso">Criteri</label><select id="m-eso"><option value="1">Nota màxima</option><option value="0">Nota mitjana</option></select></div>
@@ -501,7 +515,7 @@
         </div>
         <div class="row" id="row-fixed-batx" style="display:none"><label for="fix-batx">Sessió fixa</label><select id="fix-batx"><option value="">— Aleatòria —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
       </div>
-      <div class="sub-panel sub-panel-params">
+      <div class="sub-panel sub-panel-params per-triar">
         <div class="rows-opc" id="rows-opc-batx"></div>
         <div class="link-block" style="margin-top:0">
           <div class="btn-row">
@@ -613,7 +627,13 @@
       function listHeight() {
         const panel = wrap.closest('.quiz-panel');
         const triggerBottom = trigger.getBoundingClientRect().bottom;
-        const available = panel.getBoundingClientRect().bottom - triggerBottom - 12;
+        // Mentre el segon panell és amagat (encara no s'ha triat cap activitat), el panell és curt:
+        // la llista pot baixar fins a prop del peu de la finestra
+        const params = panel.querySelector('.sub-panel-params');
+        const bottom = params && params.classList.contains('per-triar')
+          ? window.innerHeight - 70
+          : panel.getBoundingClientRect().bottom;
+        const available = bottom - triggerBottom - 12;
         const normal = Math.min(320, Math.max(100, available));
         if (!stopAfterFile) return normal;
 
@@ -628,7 +648,7 @@
       function reserveSpaceForButton(h) {
         wrap.style.marginBottom = '';
         const btnRow = wrap.closest('.quiz-panel').querySelector('.btn-row');
-        if (!btnRow) return;
+        if (!btnRow || !btnRow.offsetParent) return;   // el segon panell encara és amagat: no hi ha cap botó a tapar
         const real = Math.min(h, list.scrollHeight);   // una llista curta no ocupa tota l'alçada màxima
         const listBottom = trigger.getBoundingClientRect().bottom + 5 + real;   // 5 = separació de la llista
         const need = Math.ceil(listBottom + 10 - btnRow.getBoundingClientRect().top);   // 10 = aire
@@ -839,7 +859,16 @@
         }
       }
 
+      // El segon panell apareix quan l'usuari tria una activitat al primer menú, i ja no desapareix
+      const paramsPanel = document.querySelector(`#panel-${suffix} .sub-panel-params`);
+      function revealParams() {
+        if (!paramsPanel || !paramsPanel.classList.contains('per-triar')) return;
+        paramsPanel.classList.remove('per-triar');
+        paramsPanel.classList.add('revelat');
+      }
+
       function refresh() {
+        revealParams();
         manageDifficultyRow();
         manageFixedRow();
         manageOpcions();
@@ -927,46 +956,53 @@
     <span class="peu-text">© 2026 <strong>David Arso Civil</strong> · <span class="peu-dept">Departament de Matemàtiques, </span>INS Miquel Tarradell<span class="peu-llicencies"> · Contingut: <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca">CC BY-NC-SA 4.0</a> · Codi: <a href="https://opensource.org/license/mit">MIT</a></span></span>
   </footer>
 
-  <a href="https://a.step-quiz.net/" title="Activitats adaptades" aria-label="Activitats adaptades" class="bottom-icon"
-     style="position: fixed; bottom: 65px; left: 14px; z-index: 101;
-            width: 48px; height: 48px; border-radius: 50%;
-            background: #eceee0; border: 2px solid #b8be8a;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0.75; transition: opacity 0.2s, transform 0.2s;"
-     onmouseover="this.style.opacity='1'; this.style.transform='scale(1.3)'"
-     onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
-    <img src="icon-green.png" alt="Activitats adaptades"
-         style="width: 32px; height: 32px; object-fit: contain;"
-         onerror="this.style.display='none'">
-  </a>
+  <!-- Dock de baix a l'esquerra: «Resolució pas a pas», les icones i la petjada (l'app) -->
+  <nav class="dock" aria-label="Altres eines">
+    <a id="btn-resolucio" class="resolucio-boto" href="resolucio.html" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 10.5h3M14 9l3 3M17 9l-3 3"/></svg>
+      <span>Resolució pas a pas</span>
+    </a>
+    <div class="dock-icones">
+    <a href="https://a.step-quiz.net/" title="Activitats adaptades" aria-label="Activitats adaptades" class="bottom-icon"
+       style="width: 48px; height: 48px; border-radius: 50%;
+              background: #eceee0; border: 2px solid #b8be8a;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+              display: flex; align-items: center; justify-content: center;
+              opacity: 0.75; transition: opacity 0.2s, transform 0.2s;"
+       onmouseover="this.style.opacity='1'; this.style.transform='scale(1.3)'"
+       onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
+      <img src="icon-green.png" alt="Activitats adaptades"
+           style="width: 32px; height: 32px; object-fit: contain;"
+           onerror="this.style.display='none'">
+    </a>
 
-  <a href="https://cb.step-quiz.net" title="CB Step Quiz" aria-label="CB Step Quiz" class="bottom-icon"
-     style="position: fixed; bottom: 65px; left: 72px; z-index: 101;
-            width: 48px; height: 48px; border-radius: 50%;
-            background: #e2e8f0; border: 2px solid #b8be8a;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0.75; transition: opacity 0.2s, transform 0.2s;
-            font-size: 14px; font-weight: 800; color: #000000;
-            text-decoration: none; letter-spacing: 0.5px;"
-     onmouseover="this.style.opacity='1'; this.style.transform='scale(1.4)'"
-     onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
-    CB
-  </a>
+    <a href="https://cb.step-quiz.net" title="CB Step Quiz" aria-label="CB Step Quiz" class="bottom-icon"
+       style="width: 48px; height: 48px; border-radius: 50%;
+              background: #e2e8f0; border: 2px solid #b8be8a;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+              display: flex; align-items: center; justify-content: center;
+              opacity: 0.75; transition: opacity 0.2s, transform 0.2s;
+              font-size: 14px; font-weight: 800; color: #000000;
+              text-decoration: none; letter-spacing: 0.5px;"
+       onmouseover="this.style.opacity='1'; this.style.transform='scale(1.4)'"
+       onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
+      CB
+    </a>
 
-  <a href="analitzador-stepquiz.html" title="Analitzador de resultats" aria-label="Analitzador de resultats" class="bottom-icon"
-     style="position: fixed; bottom: 65px; left: 130px; z-index: 101;
-            width: 48px; height: 48px; border-radius: 50%;
-            background: #eceee0; border: 2px solid #b8be8a;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0.75; transition: opacity 0.2s, transform 0.2s;
-            font-size: 26px; text-decoration: none;"
-     onmouseover="this.style.opacity='1'; this.style.transform='scale(1.3)'"
-     onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
-    📒
-  </a>
+    <a href="analitzador-stepquiz.html" title="Analitzador de resultats" aria-label="Analitzador de resultats" class="bottom-icon"
+       style="width: 48px; height: 48px; border-radius: 50%;
+              background: #eceee0; border: 2px solid #b8be8a;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+              display: flex; align-items: center; justify-content: center;
+              opacity: 0.75; transition: opacity 0.2s, transform 0.2s;
+              font-size: 26px; text-decoration: none;"
+       onmouseover="this.style.opacity='1'; this.style.transform='scale(1.3)'"
+       onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)'">
+      📒
+    </a>
+    </div>
+    <a href="https://app.step-quiz.net/" class="petjada-link" aria-label="Step Quiz App" title="Step Quiz App"><img src="icon-petjada.png" alt=""></a>
+  </nav>
 
 
 </body>
