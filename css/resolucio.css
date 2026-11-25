@@ -5,6 +5,8 @@ FITXER: css/resolucio.css
 ROL: L'estil de resolucio.html: el PORTAL (sense activitat: una targeta per
      activitat, agrupades per bloc) i la pàgina de CADA RESOLUCIÓ (la pissarra,
      el pas, el reproductor, el nivell i «Un altre exercici").
+     Al portal no hi ha subtítols de bloc: una sola graella de targetes, cadascuna
+     amb la classe tema-… del seu bloc (el David, 25/11/2026).
 ARQUITECTURA:
 - js/resolucio/resolucio.js posa a <body> la classe «portal» o «activitat», i a
   <html> la classe tema-… de l'activitat (css/temes.css): tota la pàgina d'una
@@ -656,36 +658,6 @@ body.portal {
     letter-spacing: -0.01em;
     text-wrap: balance;
 }
-.portal-intro p {
-    margin: 0;
-    max-width: 62ch;
-    color: var(--text-soft);
-    font-size: 1.05rem;
-}
-.portal-intro .nota {
-    font-size: 0.92rem;
-    color: var(--text-muted);
-}
-.bloc {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-.bloc-titol {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    font-size: 1.05rem;
-    color: var(--primary-dark);
-}
-.bloc-titol::before {
-    content: '';
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    background: var(--primary);
-}
 .targetes {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
@@ -714,7 +686,7 @@ body.portal {
 }
 /* La fórmula d'exemple, sobre el fons de punts de la pissarra */
 .targeta-exemple {
-    min-height: 108px;
+    min-height: 72px;
     display: grid;
     place-items: center;
     padding: 20px 16px;
@@ -724,7 +696,7 @@ body.portal {
     background-size: 22px 22px;
     background-position: 11px 11px;
     color: var(--primary-dark);
-    font-size: 1.45rem;
+    font-size: 0.58rem; /* un 60 % més petita que abans (1.45rem; el David, 25/11/2026) */
     overflow-x: auto;
 }
 .targeta-cos {
@@ -805,11 +777,8 @@ body.portal {
     padding-top: 10px;
     border-top: 1px dashed var(--border-light);
 }
+.copia,
 .targeta-mira {
-    font-weight: 600;
-    color: var(--primary);
-}
-.copia {
     position: relative;
     z-index: 1;
     display: inline-flex;
@@ -824,11 +793,17 @@ body.portal {
     font-size: 13px;
     cursor: pointer;
 }
+.targeta-mira {
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+}
 .copia svg {
     width: 14px;
     height: 14px;
 }
-.copia:hover {
+.copia:hover,
+.targeta-mira:hover {
     border-color: var(--primary);
     background: var(--primary-light);
     color: var(--primary-dark);

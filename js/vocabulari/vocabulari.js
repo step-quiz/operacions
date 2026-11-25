@@ -7,6 +7,7 @@
  * ============================================================================
  */
 
+import { FixedSessions } from '../fixed-sessions.js'; // ?fixed=A/B/C: el mateix exercici per a tothom (ha de ser el primer)
 import { VocabEngine } from './vocabulari-engine.js';
 import { VocabFigures } from './vocabulari-figures.js';
 import { avisaCodiLlest, generaCodi, obreFinestraCodi, posaIconaCodi } from '../codi-finestra.js'; // icona i finestra del codi
@@ -240,6 +241,7 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
     function _startSession() {
         _op = 0;
         _punts = 0;
+        FixedSessions?.seed(`s${_sessio}`); // sessió fixa: el mateix ordre de figures per a tothom
 
         // Ordre aleatori de figures, repetint si cal fins a TOTAL_OPS
         const filtered = DIM ? VocabFigures.all.filter(f => f.dim === DIM) : VocabFigures.all;
@@ -264,6 +266,7 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
         _writeIdx = 0;
         _puntsFiguraActual = 0; // [CANVI 2]
         _selectedChip = null; // [CANVI 3]
+        FixedSessions?.seed(`s${_sessio}-q${_op}`); // sessió fixa: les mateixes etiquetes barrejades igual
 
         _figActual = _figures[_op % _figures.length];
         _etTotal = _figActual.etiquetes.length;
@@ -336,6 +339,7 @@ import { mostraSeguent } from '../seguent.js'; // la franja del final de pregunt
         _puntsTotal.push(_punts);
         if (_sessio + 1 >= TOTAL_SESS) {
             // El codi es genera ara, un sol cop: la icona i el botó «Copiar codi» mostren sempre aquest
+            FixedSessions?.restoreRandom(); // la sal del codi ha de ser aleatòria de veritat
             _codiFinal = _generaCodiFinal();
             avisaCodiLlest();
             _renderSummary();
