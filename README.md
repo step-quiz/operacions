@@ -23,7 +23,7 @@ No requereix instal·lació. Són arxius totalment estàtics, publicats a https:
 > **Per fer i publicar canvis** (Codespace, missatges que expliquin cada canvi, desfer-ne un): [`COM-TREBALLAR.md`](COM-TREBALLAR.md).
 
 1. Obre `index.html` al navegador — és el **generador d'enllaços** per al professorat.
-2. Tria l'exercici al primer menú (ESO o Batxillerat): llavors apareix el segon panell, amb la **sessió fixa** (a ESO, sempre la primera fila), les opcions de l'activitat i, després d'una fina línia, sessions, preguntes i intents.
+2. Tria l'exercici al primer menú (ESO o Batxillerat; en obrir la pàgina hi diu *Escull una activitat*, en cursiva): llavors apareix el segon panell, amb la **sessió fixa** (a ESO, sempre la primera fila), les opcions de l'activitat i, després d'una fina línia, sessions, preguntes i intents.
 
    A baix a l'esquerra hi ha el **dock**: el botó «Resolució pas a pas» (blanc, amb la lletra i la vora liles; en passar-hi el ratolí s'omple de lila), les icones (activitats adaptades, CB) i, a la fila de sota, la petjada que porta a `app.step-quiz.net` amb la llibreta (l'analitzador) just a la dreta.
 3. Copia l'enllaç i comparteix-lo amb els alumnes.
