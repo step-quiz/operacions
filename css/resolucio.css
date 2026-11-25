@@ -12,7 +12,7 @@ ARQUITECTURA:
   <html> la classe tema-… de l'activitat (css/temes.css): tota la pàgina d'una
   resolució fa servir el color del bloc (--primary…), un sol accent (el David,
   24/11/2026). El lila (--rpp) és la marca de la resolució pas a pas: només el
-  porten la capçalera del portal i el botó de l'índex.
+  porten l'enllaç «← Step Quiz» del portal (sense barra) i el botó de l'índex.
 - La pàgina d'una resolució és una «aplicació» d'una pantalla (100dvh): la
   capçalera, el contingut i el peu flotant (css/peu.css). La pissarra ocupa
   tota l'alçada que queda i té la seva barra; així els botons del reproductor
@@ -77,8 +77,35 @@ body {
     background: var(--primary);
     color: #fff;
 }
+/* Al portal, sense barra de color (el David, 25/11/2026): només «← Step Quiz», discret, sobre el fons de la
+   pàgina; el títol de la capçalera hi sobra (ja hi ha el gran, a sota) */
 body.portal .cap {
-    background: var(--rpp);
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-top: 18px;
+    background: none;
+    color: var(--rpp);
+}
+body.portal .cap h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+body.portal .cap a {
+    border-color: var(--border-heavy);
+    background: var(--panel-bg);
+    color: var(--rpp);
+}
+body.portal .cap a:hover {
+    border-color: var(--rpp);
+    background: var(--panel-bg);
+}
+body.portal .cap :focus-visible {
+    outline-color: var(--rpp);
 }
 .cap h1 {
     flex: 1 1 auto;
@@ -122,9 +149,6 @@ body.portal .cap {
     background: #fff;
     border-color: #fff;
     color: var(--primary-dark);
-}
-body.portal .cap a:hover {
-    color: var(--rpp);
 }
 .cap :focus-visible {
     outline-color: #fff;
@@ -653,7 +677,7 @@ body.portal {
 }
 .portal-intro h2 {
     margin: 0;
-    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+    font-size: clamp(1.28rem, 2.56vw, 1.76rem); /* un 20 % més petit (el David, 25/11/2026) */
     line-height: 1.15;
     letter-spacing: -0.01em;
     text-wrap: balance;
@@ -696,8 +720,61 @@ body.portal {
     background-size: 22px 22px;
     background-position: 11px 11px;
     color: var(--primary-dark);
-    font-size: 0.58rem; /* un 60 % més petita que abans (1.45rem; el David, 25/11/2026) */
+    font-size: 1.05rem; /* més gran que la de 0,58rem (el David, 25/11/2026) */
     overflow-x: auto;
+}
+/* Un esquema en lloc de la fórmula (Cilindres amb un full: el full i els dos cilindres) */
+.targeta-exemple svg {
+    display: block;
+    width: auto;
+    height: 92px;
+    max-width: 100%;
+    overflow: visible;
+}
+.esq-full {
+    fill: var(--panel-bg);
+    stroke: var(--text-main);
+    stroke-width: 1.2;
+}
+.esq-vora {
+    fill: none;
+    stroke: var(--text-main);
+    stroke-width: 1.2;
+}
+.esq-cos1,
+.esq-cos2 {
+    stroke: none;
+}
+.esq-cos1 {
+    fill: color-mix(in srgb, var(--primary) 18%, var(--panel-bg));
+}
+.esq-cos2 {
+    fill: color-mix(in srgb, #7c3aed 16%, var(--panel-bg));
+}
+/* el costat del full que fa la volta, del mateix color a la base (com a la figura de l'activitat) */
+.esq-c1,
+.esq-c2 {
+    fill: none;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+}
+.esq-c1 {
+    stroke: var(--primary);
+}
+.esq-c2 {
+    stroke: #7c3aed;
+}
+.esq-fletxa {
+    fill: none;
+    stroke: var(--text-soft);
+    stroke-width: 1.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.esq-text {
+    fill: var(--text-soft);
+    font-size: 9px;
+    font-family: inherit;
 }
 .targeta-cos {
     flex: 1 1 auto;

@@ -419,7 +419,7 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
             pas.files.filter(Boolean).forEach(fila => formules.add(fila));
             for (const m of pas.text.matchAll(/\$([^$]+)\$/g)) formules.add(m[1]);
             // el context del problema és el de l'activitat («fem un treball…»): només es miren les instruccions
-            const instruccio = pas.text.replace(/^[^]*\? (?=Aïlla)/, '');
+            const instruccio = pas === passos[0] ? '' : pas.text;
             if (PLURAL.test(instruccio)) anota(dolents.plurals, `${on}: «${instruccio}»`);
         }
         for (const t of formules)
@@ -433,8 +433,9 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
                 const passos = Resolucio.passos(ex);
                 const m = model(ex);
                 if (k < 3) revisa(passos, ex, on);
-                // Sempre un context: la primera frase és el problema (acaba amb una pregunta)
-                if (!/\? Aïlla \$/.test(passos[0].text)) anota(dolents.context, `${on}: «${passos[0].text}»`);
+                // El primer pas és només l'enunciat (acaba amb una pregunta) i la pissarra és buida
+                if (!/\?$/.test(passos[0].text) || /Aïlla/.test(passos[0].text) || passos[0].files.some(Boolean))
+                    anota(dolents.context, `${on}: «${passos[0].text}»`);
                 const ultim = passos[passos.length - 1];
                 // (l'última fila escrita: les del final de la pissarra són per als detalls, i en aquesta vista són buides)
                 const darrera = ultim.files.map(Boolean).lastIndexOf(true);
@@ -467,7 +468,11 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
     const llista = l => l.join('\n      → ');
     ok('KaTeX dibuixa totes les files i les fórmules de les frases', !dolents.katex.length, llista(dolents.katex));
     ok('les frases són en segona persona', !dolents.plurals.length, llista(dolents.plurals));
-    ok('sempre un context: la primera frase és el problema', !dolents.context.length, llista(dolents.context));
+    ok(
+        'el primer pas és només l’enunciat (una pregunta, sense «Aïlla…» i amb la pissarra buida)',
+        !dolents.context.length,
+        llista(dolents.context)
+    );
     ok('l’última línia (la fórmula aïllada) és ressaltada', !dolents.final.length, llista(dolents.final));
     ok('el resultat amb la unitat hi és, ressaltat', !dolents.resultat.length, llista(dolents.resultat));
     ok(
@@ -517,7 +522,6 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
             .map(f => textPla(f))
             .join(' | '),
         [
-            'v=((Δx)/(Δt))',
             '80=((240)/(Δt))',
             '80*Δt=240',
             'Δt=((240)/(80))',
@@ -529,13 +533,17 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
             'Δt=((Δx)/(v))',
         ].join(' | ')
     );
-    const [, dades, mult] = passos;
+    const [enunciat, dades, mult] = passos;
+    const lletres = passos.find(p => /^Ara fes les mateixes operacions amb lletres/.test(p.text));
     ok(
-        'les dades baixen de les seves lletres i, en multiplicar, el Δt passa a l’altre membre',
-        Object.keys(dades.reanomena).length === 2 &&
+        'el pas 1 és només l’enunciat (pissarra buida); les dades s’escriuen amb la fórmula; en multiplicar, el Δt passa a l’altre membre; amb lletres, cada nombre torna a ser la seva lletra',
+        !enunciat.files.some(Boolean) &&
+            !/Aïlla/.test(enunciat.text) &&
+            !dades.reanomena &&
+            Object.keys(lletres.reanomena).length === 3 &&
             Object.keys(mult.reanomena).length === 1 &&
             /^SK\d*ka\d+$/.test(Object.values(mult.reanomena)[0].replace(/^S2/, 'SK')),
-        JSON.stringify([dades.reanomena, mult.reanomena])
+        JSON.stringify([dades.reanomena, mult.reanomena, lletres.reanomena])
     );
     ok('el cas de l’exemple és del nivell 3 (la lletra al denominador)', cas && cas.nivell === 3);
     // El detall (decisions del 22/11/2026, B1–B2): l'operació als dos membres, el que se simplifica ratllat i el pas
@@ -545,7 +553,7 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
         obert
             .at(-1)
             .files.filter(Boolean)
-            .slice(2, 9)
+            .slice(1, 8)
             .map(f => textPla(f) + (/\\cancel/.test(f) ? ' (ratllat)' : ''))
             .join(' | '),
         [
@@ -568,7 +576,7 @@ suite('3. Resolució pas a pas (resolucio.html): la pissarra de cada fórmula');
         ok(
             'detall a les operacions d’aïllar i al valor; mai a la fórmula, les dades, girar, la unitat ni el resultat (B1, B4)',
             ['multiplica', 'divideix', 'resta', 'suma', 'arrel', 'valor'].every(t => amb.has(t)) &&
-                ['formula', 'dades', 'gira', 'unitat', 'resultat', 'lletres'].every(t => !amb.has(t)),
+                ['enunciat', 'dades', 'gira', 'unitat', 'resultat', 'lletres'].every(t => !amb.has(t)),
             `amb: ${[...amb]} · sense: ${[...sense]}`
         );
         const lletres = Resolucio.etapes(ex);

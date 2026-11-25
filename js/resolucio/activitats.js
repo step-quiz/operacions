@@ -11,7 +11,8 @@
  *   · tema: el bloc de continguts (la classe tema-… de css/temes.css): el color de la capçalera,
  *     dels botons i de la targeta del portal; el portal agrupa les targetes per tema (TEMES);
  *   · frase: què s'hi veu (la targeta del portal); exemple: una fórmula en TeX, dibuixada a la
- *     targeta amb KaTeX (només és una mostra: no és cap exercici dels que surten);
+ *     targeta amb KaTeX (només és una mostra: no és cap exercici dels que surten); esquema (opcional):
+ *     un SVG que la targeta mostra en lloc de la fórmula (Cilindres amb un full: el full i els dos cilindres);
  *   · pagina: on es fa l'exercici (l'escenari A, «Ara fes-ho tu»); nivells: [[valor, nom]];
  *   · grups (en lloc de nivells): [[clau, nom]] (p. ex. les matèries de Fórmules STEAM): a la pàgina es
  *     tria el grup i després el «nivell» d'aquell grup; els nivells, [[valor, nom, grup]], els dona el
@@ -43,6 +44,34 @@ export const TEMES = Object.freeze([
     ['estadistica', 'Estadística i probabilitat'],
     ['funcions', 'Funcions i gràfiques'],
 ]);
+
+/**
+ * L'esquema de «Cilindres amb un full» per a la targeta del portal (el David, 25/11/2026): el full A4 al mig i els
+ * dos cilindres que en surten, a escala (2,4 px per cm). A l'esquerra, enrotllat pel costat de 21 cm (la volta, en
+ * el color del tema, al full i a la base): alt i prim; a la dreta, pel de 29,7 cm (violeta): baix i ample.
+ */
+const ESQUEMA_CILINDRES = [
+    '<svg viewBox="18 4 216 88" role="img" aria-label="Un full A4 i els dos cilindres que es poden fer enrotllant-lo">',
+    // el cilindre alt (volta de 21 cm: r ≈ 3,34 cm; h = 29,7 cm)
+    '<path class="esq-cos1" d="M26 12V83A8 3 0 0 0 42 83V12Z"/>',
+    '<path class="esq-vora" d="M26 12V83M42 12V83"/>',
+    '<ellipse class="esq-c1" cx="34" cy="12" rx="8" ry="3"/>',
+    '<path class="esq-c1" d="M26 83A8 3 0 0 0 42 83"/>',
+    '<path class="esq-fletxa" d="M90 47H52M57 43L52 47L57 51"/>',
+    // el full, amb els dos costats que poden fer la volta
+    '<rect class="esq-full" x="96" y="10" width="50" height="73"/>',
+    '<path class="esq-c1" d="M96 83H146"/>',
+    '<path class="esq-c2" d="M146 10V83"/>',
+    '<text class="esq-text" x="120" y="78" text-anchor="middle">21 cm</text>',
+    '<text class="esq-text" x="140" y="47" text-anchor="middle" transform="rotate(-90 140 47)">29,7 cm</text>',
+    '<path class="esq-fletxa" d="M152 47H190M185 43L190 47L185 51"/>',
+    // el cilindre ample (volta de 29,7 cm: r ≈ 4,73 cm; h = 21 cm)
+    '<path class="esq-cos2" d="M202.7 33V83A11.3 4 0 0 0 225.3 83V33Z"/>',
+    '<path class="esq-vora" d="M202.7 33V83M225.3 33V83"/>',
+    '<ellipse class="esq-c2" cx="214" cy="33" rx="11.3" ry="4"/>',
+    '<path class="esq-c2" d="M202.7 83A11.3 4 0 0 0 225.3 83"/>',
+    '</svg>',
+].join('');
 
 export const ACTIVITATS = Object.freeze({
     'equacions': Object.freeze({
@@ -125,6 +154,7 @@ export const ACTIVITATS = Object.freeze({
         nom: 'Cilindres amb un full',
         frase: "Enrotllar un full de dues maneres: el radi, l'àrea de la base, el volum i la capacitat.",
         exemple: '2\\pi r = 21',
+        esquema: ESQUEMA_CILINDRES,
         pagina: 'cilindres.html',
         nivells: Object.freeze([
             [1, 'El full A4'],

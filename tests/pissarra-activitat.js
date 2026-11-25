@@ -12,7 +12,8 @@
  *        la pissarra) passa la revisió dels guions (comprova.js comprovaGuio);
  *     2. cada pas, menys el primer, mou alguna peça (reanomena, fusiona o
  *        reparteix), si escriu alguna línia (un pas que només destaca, com el
- *        detall de prioritat, no);
+ *        detall de prioritat, no) i la pissarra no era buida (si el primer pas
+ *        només és l'enunciat, com a Fórmules STEAM, el segon no té d'on moure);
  *     3. cap pas no en mou més de maxPeces;
  *     4. cada línia que es veu, a cada pas, és certa: veritat() és un model
  *        independent del codi que es prova (aritmètica exacta, feta al test);
@@ -86,7 +87,9 @@ function provaActivitat(
                 const aqui = `${on}${nomVista}, pas ${pas.id || i + 1}`;
                 // Un pas que no escriu cap línia (només destaca, p. ex. el detall de prioritat) no ha de moure res
                 const nomesMarca = i > 0 && pas.estat && pas.estat.length === llista[i - 1].estat.length;
-                if (i > 0 && !nomesMarca) {
+                // Si la pissarra era buida (el primer pas només és l'enunciat), no hi ha res d'on moure
+                const primeraLinia = i > 0 && llista[i - 1].estat && llista[i - 1].estat.length === 0;
+                if (i > 0 && !nomesMarca && !primeraLinia) {
                     animacions++;
                     const peces = pecesMogudes(pas);
                     mesPeces = Math.max(mesPeces, peces);
