@@ -77,23 +77,23 @@ body {
     background: var(--primary);
     color: #fff;
 }
-/* Al portal, sense barra de color (el David, 25/11/2026): només «← Step Quiz», discret, sobre el fons de la
-   pàgina; el títol de la capçalera hi sobra (ja hi ha el gran, a sota) */
+/* Al portal, sense barra de color i sense espai perdut (el David, 25/11/2026): «← Step Quiz» i el títol gran
+   en una sola línia, ben amunt */
 body.portal .cap {
     width: 100%;
     max-width: 1120px;
     margin: 0 auto;
-    padding-top: 18px;
+    gap: 16px;
+    padding-top: 12px;
+    padding-bottom: 0;
     background: none;
     color: var(--rpp);
 }
 body.portal .cap h1 {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+    color: var(--text-main);
+    font-size: clamp(1.09rem, 2.18vw, 1.5rem); /* el 85 % de l'anterior (el David, 25/11/2026) */
+    line-height: 1.15;
+    letter-spacing: -0.01em;
 }
 body.portal .cap a {
     border-color: var(--border-heavy);
@@ -344,7 +344,7 @@ body.activitat {
     }
 }
 
-/* El nivell (un desplegable) i «Un altre exercici» (una acció, del color del tema) */
+/* El nivell (un desplegable) i, a la línia de sota, «Un altre exercici» (una acció, del color del tema) */
 .barra {
     display: flex;
     flex-wrap: wrap;
@@ -384,9 +384,10 @@ body.activitat {
     color: #fff;
     font-weight: 600;
 }
+/* El nivell i «Un altre exercici», en línies separades (el David, 25/11/2026) */
 .nivell {
     position: relative;
-    flex: 1 1 150px;
+    flex: 1 1 100%;
     min-width: 0;
     max-width: 440px;
     display: flex;
@@ -664,23 +665,11 @@ body.portal {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 34px;
-    padding-top: 30px;
+    gap: 16px;
+    padding-top: 14px; /* poc espai a dalt: el títol ja és a la capçalera (el David, 25/11/2026) */
     padding-bottom: calc(var(--peu-reserva) + 24px);
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
-.portal-intro {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.portal-intro h2 {
-    margin: 0;
-    font-size: clamp(1.28rem, 2.56vw, 1.76rem); /* un 20 % més petit (el David, 25/11/2026) */
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
 }
 .targetes {
     display: grid;
