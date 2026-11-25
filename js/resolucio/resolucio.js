@@ -81,12 +81,17 @@ function portal() {
         if (!activitats.length) return [];
         const targetes = activitats.map(([k, a]) => {
             const exemple = element('div', { 'class': 'targeta-exemple', 'aria-hidden': 'true' });
-            if (ambKatex) katex.render(a.exemple, exemple, { throwOnError: false, displayMode: false });
+            // Un esquema (SVG del registre, p. ex. els cilindres) o la fórmula d'exemple
+            if (a.esquema) exemple.innerHTML = a.esquema;
+            else if (ambKatex) katex.render(a.exemple, exemple, { throwOnError: false, displayMode: false });
             else exemple.textContent = a.exemple;
-            // Un xip per nivell (amb el número) o, amb grups, un per grup (les matèries de Fórmules STEAM)
+            // Un xip per nivell o, amb grups, un per grup (les matèries de Fórmules STEAM); tots amb el número
             const xips = a.grups
-                ? a.grups.map(([g, n]) =>
-                      element('a', { class: 'xip-nivell', href: `${enllacActivitat(k)}&grup=${g}`, text: n })
+                ? a.grups.map(([g, n], i) =>
+                      element('a', { class: 'xip-nivell', href: `${enllacActivitat(k)}&grup=${g}`, title: n }, [
+                          element('b', { text: String(i + 1) }),
+                          n,
+                      ])
                   )
                 : a.nivells.map(([v, n]) =>
                       element('a', { class: 'xip-nivell', href: enllacActivitat(k, v), title: n }, [
