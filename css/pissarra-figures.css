@@ -134,3 +134,94 @@ DEPENDÈNCIES: css/tokens.css, css/pissarra.css (--pis-cat, --pis-cat-fons).
 .pis-fila table.centrat tr.pis-objectiu td {
     color: var(--pis-objectiu, #9aa5b8);
 }
+
+/* ── Descompondre en factors primers (js/factoritzar/resolucio.js): l'arbre i les divisions en columna ──
+   L'SVG de l'arbre fa la mida de l'arbre sencer des del primer pas (en em: creix amb el mode professor) */
+.pis-fila .jp-fa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35em;
+    width: 100%;
+    font-size: 1.6em;
+}
+.pis-fila .jp-fa-svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+}
+.jp-fa-n {
+    font-size: 20px;
+    font-family: inherit;
+    fill: currentColor;
+}
+.jp-fa-punt {
+    font-size: 20px;
+    fill: var(--text-muted, #64748b);
+}
+.jp-fa-branca {
+    stroke: var(--text-muted, #64748b);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+}
+/* Un primer: encerclat, un sol color (C3) */
+.jp-fa-cercle {
+    fill: var(--pis-cat-fons);
+    stroke: var(--pis-cat);
+    stroke-width: 1.6;
+}
+.jp-fa-n.jp-fa-primer {
+    fill: var(--pis-cat);
+    font-weight: 600;
+}
+/* El tros de l'arbre d'un pas obert, en gris mentre es fa el detall */
+.jp-fa-tros.pis-objectiu .jp-fa-n,
+.jp-fa-tros.pis-objectiu .jp-fa-punt {
+    fill: var(--pis-objectiu, #9aa5b8);
+}
+.jp-fa-tros.pis-objectiu .jp-fa-branca,
+.jp-fa-tros.pis-objectiu .jp-fa-cercle {
+    stroke: var(--pis-objectiu, #9aa5b8);
+    fill: none;
+}
+.pis-fila .jp-fa-calc,
+.pis-fila .jp-fa-prod {
+    white-space: nowrap;
+    line-height: 1.6;
+}
+.pis-fila .jp-fa-prod {
+    margin-top: 0.3em;
+    padding: 0 0.4em;
+    border-radius: 0.3em;
+}
+.pis-fila .jp-fa-prod.final {
+    color: var(--pis-cat);
+    background: var(--pis-cat-fons);
+}
+.pis-fila .jp-fa sup {
+    font-size: 0.62em;
+    line-height: 0;
+    position: relative;
+    top: -0.15em;
+    margin-left: 1px;
+}
+/* Les divisions en columna: el nombre, la ratlla vertical i el divisor; amplades fixes perquè les files
+   (i les de sota d'un calaix) quedin alineades */
+.pis-fila .jp-fa-col {
+    display: grid;
+    grid-template-columns: 3.4em 2.6em;
+    line-height: 1.55;
+}
+.jp-fa-col-n {
+    text-align: right;
+    padding-right: 0.4em;
+    border-right: 0.09em solid currentColor;
+}
+.jp-fa-col-p {
+    padding-left: 0.4em;
+    text-align: left;
+}
+.pis-fila .jp-fa-col.pis-objectiu {
+    color: var(--pis-objectiu, #9aa5b8);
+}

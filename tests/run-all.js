@@ -43,6 +43,7 @@ const TESTS = [
     ['Fórmules STEAM (aïllar una lletra, passos i errors)', 'tests/formules-steam.test.js'],
     ['Inequacions (passos, recta, interval i errors)', 'tests/inequacions.test.js'],
     ['Cilindres amb un full (passos amb arrossegament i errors)', 'tests/cilindres.test.js'],
+    ['Descompondre en factors primers (generador i resolució pas a pas)', 'tests/factoritzar.test.js'],
     ['Inequacions de 2n grau i racionals (taula de signes, recta amb trams)', 'tests/inequacions-no-lineals.test.js'],
     ["Estudi d'una funció (derivades, taula de signes, gràfica i errors)", 'tests/estudi-funcio.test.js'],
     ['Distribució binomial (problemes, passos, tolerància i errors)', 'tests/binomial.test.js'],

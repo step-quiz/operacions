@@ -27,7 +27,9 @@
  *   Inequacions: només les de primer grau, els nivells 1–4 (inequacions.html?nivell=1…4); el
  *   procediment s'exporta com a ResolucioIQ.
  *   Cilindres amb un full: nivell 1 el full A4, nivell 2 altres fulls; s'exporta com a ResolucioCF.
- *   (Els noms ResolucioIQ i ResolucioCF: els tests carreguen tots els mòduls en un mateix àmbit,
+ *   Descompondre en factors primers: nivells 1–3 l'arbre (primers 2, 3 i 5; també el 7; també l'11), nivell 4
+ *   les divisions en columna; «Ara fes-ho tu» porta a factoritzar.html (no té nivells); s'exporta com a ResolucioFA.
+ *   (Els noms ResolucioIQ, ResolucioCF i ResolucioFA: els tests carreguen tots els mòduls en un mateix àmbit,
  *   tests/harness.js, i les inequacions hi tenen al costat el Resolucio de les equacions.)
  * - No hi ha cap altra llista: index.html només hi enllaça (el botó «Resolució pas a pas» obre
  *   resolucio.html), i tests/check-repo.js comprova que cada clau té la seva pàgina i el seu
@@ -119,6 +121,22 @@ export const ACTIVITATS = Object.freeze({
         ]),
         enllac: nivell => (nivell >= 6 ? 'prioritat.html?nombres=enters' : `prioritat.html?nivell=${nivell}`),
         carrega: () => import('../prioritat/resolucio.js').then(m => m.Resolucio),
+    }),
+    'factoritzar': Object.freeze({
+        tema: 'nombres',
+        nom: 'Descompondre en factors primers',
+        frase: "L'arbre de factors, una branca rere l'altra, o les divisions en columna.",
+        exemple: '60 = 2^2 \\cdot 3 \\cdot 5',
+        pagina: 'factoritzar.html',
+        nivells: Object.freeze([
+            [1, 'Primers 2, 3 i 5'],
+            [2, 'També el 7'],
+            [3, "També l'11"],
+            [4, 'Divisions en columna'],
+        ]),
+        // L'activitat no té nivells (la dificultat puja amb la pregunta)
+        enllac: () => 'factoritzar.html',
+        carrega: () => import('../factoritzar/resolucio.js').then(m => m.ResolucioFA),
     }),
     'formules-steam': Object.freeze({
         tema: 'algebra',

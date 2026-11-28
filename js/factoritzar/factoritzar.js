@@ -3,12 +3,14 @@
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/factoritzar/factoritzar.js
  * ROL: Joc «Descomposició Factorial» (factoritzar.html). Abans era dins de l'HTML.
- * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa utils.js, game-core.js, config.js.
+ * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa utils.js, game-core.js, config.js i
+ *      math-engine.js (els nombres i la descomposició, compartits amb la resolució pas a pas).
  * ============================================================================
  */
 
 import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
-import { parseStrictInt, randInt } from '../utils.js';
+import { parseStrictInt } from '../utils.js';
+import { generateNumber, isPrime, primeFactorization } from './math-engine.js';
 import {
     state,
     hideCustomKeyboard,
@@ -50,6 +52,7 @@ const els = {
     stepInstruction: document.getElementById('step-instruction'),
     inputZone: document.getElementById('input-zone'),
     errorMsg: document.getElementById('error-msg'),
+    miraCom: document.getElementById('mira-com'), // «Mira com es resol» (resolucio.html)
 };
 
 // Estat específic de factoritzar
@@ -58,30 +61,7 @@ let factorsA = {};
 let currentTree = null;
 let isPenalizing = false;
 
-// ---- MATEMÀTIQUES ----
-function isPrime(n) {
-    if (n < 2) return false;
-    if (n < 4) return true;
-    if (n % 2 === 0 || n % 3 === 0) return false;
-    for (let i = 5; i * i <= n; i += 6) {
-        if (n % i === 0 || n % (i + 2) === 0) return false;
-    }
-    return true;
-}
-
-function primeFactorization(n) {
-    const factors = {};
-    let d = 2;
-    while (d * d <= n) {
-        while (n % d === 0) {
-            factors[d] = (factors[d] || 0) + 1;
-            n /= d;
-        }
-        d++;
-    }
-    if (n > 1) factors[n] = (factors[n] || 0) + 1;
-    return factors;
-}
+// ---- MATEMÀTIQUES ---- (isPrime, primeFactorization i generateNumber: math-engine.js)
 
 function formatFactorization(n, factors) {
     const primes = Object.keys(factors)
@@ -91,29 +71,6 @@ function formatFactorization(n, factors) {
         `<strong>${n}</strong> = ` +
         primes.map(p => (factors[p] === 1 ? `${p}` : `${p}<sup>${factors[p]}</sup>`)).join(' · ')
     );
-}
-
-// ---- GENERACIÓ DE NOMBRES ----
-function generateNumber(opIndex) {
-    const primePools = [
-        [2, 3, 5],
-        [2, 3, 5, 7],
-        [2, 3, 5, 7, 11],
-    ];
-    const difficulty = Math.min(opIndex, primePools.length - 1);
-    const pool = primePools[difficulty];
-
-    function makeNumber(minFactors, maxFactors) {
-        const numFactors = randInt(minFactors, maxFactors);
-        let n = 1;
-        for (let i = 0; i < numFactors; i++) {
-            n *= pool[randInt(0, Math.min(pool.length - 1, difficulty + 2))];
-        }
-        if (n < 6) n *= pool[randInt(0, 1)];
-        if (n > 150) return makeNumber(minFactors, maxFactors);
-        return n;
-    }
-    return makeNumber(2, 3 + Math.min(difficulty, 1));
 }
 
 // ---- ARBRE DE FACTORS ----
@@ -170,6 +127,12 @@ function buildLevel() {
 
     numberA = generateNumber(state.currentOperation);
     factorsA = primeFactorization(numberA);
+    // «Mira com es resol»: el nivell de la resolució pas a pas amb els mateixos primers (1: 2, 3 i 5; 2: també el 7;
+    // 3: també l'11), segons la pregunta, com generateNumber
+    if (els.miraCom) {
+        const nivell = Math.min(state.currentOperation, 2) + 1;
+        els.miraCom.href = `resolucio.html?activitat=factoritzar&nivell=${nivell}`;
+    }
 
     startPhase();
 }

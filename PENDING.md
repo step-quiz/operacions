@@ -1,7 +1,7 @@
 # PENDING.md — open work and open decisions (operacions)
 
 Single entry point for a cold-start agent: everything still to build and every decision still owed by David,
-as of **2026-11-23** (after agent A's deliveries 18–22 and the FS detail, merged by ZIP on 21–22/11). Each item points to the document that holds the detail;
+as of **2026-11-28** (after agent A's deliveries 18–22 and the FS detail, merged by ZIP on 21–22/11). Each item points to the document that holds the detail;
 where this file and a state document disagree, the state document wins (it records later decisions).
 Update this file in the same commit as any change that closes, adds or reorders an item.
 
@@ -68,8 +68,9 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
 
 | Stage / wave | Content | Status |
 |---|---|---|
-| Stage 4 | 1r–2n ESO boards: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
+| Stage 4 | 1r–2n ESO boards: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | **X1 DONE 2026-11-28** (decision 24: `resolucio.html?activitat=factoritzar`, levels 1–3 tree, 4 column), waiting for David to try it. Next: P8 `mcd-mcm` (starts from these trees, C3), then P2, P1 |
 | Stage 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
+| New ideas (decision 23, 2026-11-25) | After stage 4, in this order (David may change it): C1 exercise seed in the link + «Copia l'enllaç»; B1 «Comprovem-ho» step; A2 `expressions-algebraiques`; A1 `identitats-notables`; A4 `percentatges` (inverse problem as a level); A5 `triangle-rectangle`; A7 `mitjana` (context: the term mark); A8 `recta` and `parabola` (two independent boards); A9 `logaritmes`; B4 «Troba l'error» (pilot `equacions`, the student marks the errors). Later: C3 portal course filter | PENDING (design questions before each) |
 | Waves 4–7 | `potencies`/`enters`; `sistemes-equacions`/`radicals`; Batx `esglaonar-matriu` → `ruffini` → `complexos`; optional `mcd-mcm`, `inversa-matriu`, `derivades`/`integrals` | PENDING (overlap with the stages above; the stages are the current plan) |
 | Known limits | rotated/skewed SVG travellers; wrapping keyed phrases cross-fade; `fraccions` step heights differ | Documented, no fix planned |
 
@@ -84,7 +85,11 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
 ## 5. Decisions owed by David (summary)
 
 1. Roadmap 18–22: all done (2026-11-22); new deliveries only if David proposes them.
-2. Try the Inequacions board (§2, built 2026-11-23) and the «Cilindres amb un full» activity and board (§2b, 2026-11-23/24).
+2. Try the Inequacions board (§2, built 2026-11-23), the «Cilindres amb un full» activity and board (§2b, 2026-11-23/24)
+   and the factor-tree board (§3, X1, 2026-11-28).
 3. Whether to make the exception for P2 (animation inside Fórmules STEAM).
 4. Real student error cases for Fórmules STEAM (E1).
-5. When to resume the «Resolució pas a pas» stages 4 and 6 and the fading pilots (§3, §4).
+5. When to resume the «Resolució pas a pas» stages 4 and 6 and the fading pilots (§3, §4). Decision 23 (2026-11-25):
+   stage 4 first, then the new ideas of §3.
+6. The meaning of stage 6 items N1, N2, N4, N5, P3, P6, X3 is only in the review artifact of 2026-11-14, not in
+   this repository: ask David for it (or the artifact) before planning stage 6.

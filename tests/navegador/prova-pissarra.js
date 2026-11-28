@@ -19,7 +19,7 @@
  *      del mateix nivell en una pestanya nova; a fraccions, prioritat i fórmules STEAM,
  *      l'enllaç porta el nivell que toca;
  *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat,
- *      formules-steam, inequacions i cilindres (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
+ *      formules-steam, inequacions, cilindres i factoritzar (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
  *      detall» a cada pas que en té (la línia del pas en gris com a objectiu, els
  *      subpassos al calaix, «Menys detall»), el nivell (el desplegable, també amb el
  *      teclat), «Un altre exercici» i «Ara fes-ho tu»; el peu flotant a la vista; a la
@@ -276,7 +276,8 @@ const RECORRE_DEMO = async (on = 'demoPissarra') => {
         total: pissarra.total,
         dolents,
         ample,
-        final: !!document.querySelector('.pis-fila.final, .pis-fila tr.final'),
+        // TeX: la fila; HTML: l'element de la línia (una fila de taula, el resultat de factoritzar…)
+        final: !!document.querySelector('.pis-fila.final, .pis-fila .final'),
     };
 };
 
@@ -323,7 +324,7 @@ async function provaDetall(pagina, on, nom) {
                 detall: document.querySelectorAll(
                     '.pis-capa .pis-fila.detall, .pis-capa .pis-calaix-pas, .pis-capa tr:has(+ tr.pis-objectiu) td.dest'
                 ).length,
-                objectiu: document.querySelectorAll('.pis-capa .pis-fila.objectiu, .pis-capa tr.pis-objectiu').length,
+                objectiu: document.querySelectorAll('.pis-capa .pis-fila.objectiu, .pis-capa .pis-objectiu').length,
             };
         }, on);
     const espera = () => pagina.waitForFunction(o => !window[o].pissarra.ocupat, on);
@@ -628,6 +629,16 @@ function engegaServidor() {
                 'resolucio.html?activitat=cilindres&nivell=2'
             );
             await cf.close();
+            // Descompondre en factors primers: la primera pregunta (primers 2, 3 i 5) → el nivell 1 de la resolució
+            const fa = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await fa.goto(BASE + '/factoritzar.html?totaloperations=3');
+            await fa.waitForFunction(() => /nivell=\d/.test(document.querySelector('#mira-com').href));
+            eq(
+                'factoritzar: la primera pregunta → «Mira com es resol» del nivell 1',
+                await fa.getAttribute('#mira-com', 'href'),
+                'resolucio.html?activitat=factoritzar&nivell=1'
+            );
+            await fa.close();
             // Prioritat: la primera expressió de la sessió és del nivell 0 → el grup 1 de la resolució
             const q = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await q.goto(BASE + '/prioritat.html?totaloperations=3');
@@ -658,6 +669,9 @@ function engegaServidor() {
                 // Cilindres amb un full: el full A4 (portàtil) i un altre full (mòbil)
                 ['cilindres', 'portàtil', { width: 1366, height: 768 }, 1],
                 ['cilindres', 'mòbil', { width: 375, height: 740 }, 2],
+                // Descompondre en factors primers: l'arbre amb un 11 (portàtil) i la columna (mòbil)
+                ['factoritzar', 'portàtil', { width: 1366, height: 768 }, 3],
+                ['factoritzar', 'mòbil', { width: 375, height: 740 }, 4],
             ]) {
                 const nom = `${act}, ${lloc}`;
                 const p = await navegador.newPage({ viewport });
@@ -665,7 +679,7 @@ function engegaServidor() {
                 p.on('pageerror', e => errors.push(String(e)));
                 p.on('console', m => errorPropi(m) && errors.push(m.text()));
                 await p.goto(`${BASE}/resolucio.html?activitat=${act}&nivell=${nivellInicial}`);
-                await p.waitForFunction(() => window.resolucio);
+                await p.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
                 const r = await p.evaluate(RECORRE_DEMO, 'resolucio');
                 ok(
                     `${nom}: ${r.total} passos animats, cadascun amb els seus símbols`,
@@ -784,7 +798,7 @@ function engegaServidor() {
             {
                 const t = await navegador.newPage({ viewport: { width: 820, height: 1000 } });
                 await t.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
-                await t.waitForFunction(() => window.resolucio);
+                await t.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
                 const posicions = [];
                 for (let i = 0; i < 4; i++) {
                     posicions.push(
@@ -806,14 +820,14 @@ function engegaServidor() {
             eq(
                 'sense activitat, el portal té una targeta per activitat',
                 await p.$$eval('.targeta', ts => ts.length),
-                6
+                7
             );
             ok(
-                'cada targeta té la fórmula d’exemple dibuixada amb KaTeX, els nivells, «Mira com es resol» i «Copia l’enllaç»',
+                'cada targeta té la fórmula d’exemple dibuixada amb KaTeX (o l’esquema, a cilindres), els nivells, «Mira com es resol» i «Copia l’enllaç»',
                 await p.$$eval('.targeta', ts =>
                     ts.every(
                         t =>
-                            t.querySelector('.targeta-exemple .katex') &&
+                            t.querySelector('.targeta-exemple .katex, .targeta-exemple svg') &&
                             t.querySelector('.xip-nivell') &&
                             t.querySelector('.copia') &&
                             t.querySelector('a.targeta-mira')
@@ -839,7 +853,8 @@ function engegaServidor() {
                     (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=prioritat"]')) &&
                     (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=formules-steam"]')) &&
                     (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=inequacions"]')) &&
-                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=cilindres"]'))
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=cilindres"]')) &&
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=factoritzar"]'))
             );
             await p.close();
         }
@@ -883,7 +898,7 @@ function engegaServidor() {
             // Resolució d'una equació: un pas, obrir-ne el detall i un subpas (les línies d'abans es queden)
             let p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await p.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
-            await p.waitForFunction(() => window.resolucio);
+            await p.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
             await provaPasCongelat(p, '#pissarra', 'resolució, pas 2', () =>
                 p.evaluate(() => {
                     window.resolucio.pissarra.seguent();
@@ -911,7 +926,7 @@ function engegaServidor() {
             // Fraccions: el detall del comú denominador fa volar nombres d'una línia de més amunt (id@k)
             p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await p.goto(BASE + '/resolucio.html?activitat=fraccions&nivell=3');
-            await p.waitForFunction(() => window.resolucio);
+            await p.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
             const lliureF = () => p.waitForFunction(() => !window.resolucio.pissarra.ocupat);
             await p.evaluate(() => window.resolucio.pissarra.salta(1)); // el pas 2: el comú denominador
             await p.click('.pis-detall-boto'); // 2a: el mcm
@@ -935,7 +950,7 @@ function engegaServidor() {
             // El primer pas, una potència (3²): el seu superíndex també ha de ser el mateix al fantasma
             p = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await p.goto(BASE + '/resolucio.html?activitat=prioritat&nivell=3');
-            await p.waitForFunction(() => window.resolucio);
+            await p.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
             for (let k = 0; k < 40; k++) {
                 const ambPotencia = await p.evaluate(() => /[²³] =/.test(window.resolucio.pissarra.passos[1].text));
                 if (ambPotencia) break;
@@ -1007,7 +1022,7 @@ function engegaServidor() {
                     reducedMotion: reduit ? 'reduce' : 'no-preference',
                 });
                 await p.goto(BASE + '/resolucio.html?activitat=equacions&nivell=2');
-                await p.waitForFunction(() => window.resolucio);
+                await p.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
                 // Es compten els fantasmes que apareixen durant el pas
                 await p.evaluate(() => {
                     window.__fantasmes = 0;
@@ -1040,7 +1055,7 @@ function engegaServidor() {
             p.on('pageerror', e => errors.push(String(e)));
             p.on('console', m => errorPropi(m) && errors.push(m.text()));
             await p.goto(BASE + '/resolucio.html?activitat=equacions&nivell=3');
-            await p.waitForFunction(() => window.resolucio);
+            await p.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
             const lliure = () => p.waitForFunction(() => !window.resolucio.pissarra.ocupat, null, { timeout: 8000 });
             const pas = () => p.evaluate(() => window.resolucio.pissarra.pas);
             ok('al primer pas, el ↺ no hi és', !(await p.isVisible('.pis-repeteix')));
@@ -1116,7 +1131,7 @@ function engegaServidor() {
             {
                 const a = await navegador.newPage({ viewport: { width: 1366, height: 680 } });
                 await a.goto(BASE + '/resolucio.html?activitat=fraccions&nivell=1&professor=1');
-                await a.waitForFunction(() => window.resolucio);
+                await a.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
                 const mida = await a.$eval('#pissarra .pis-escenari', e => {
                     const r = e.getBoundingClientRect();
                     const c = document.querySelector('.pis-controls').getBoundingClientRect();
@@ -1129,7 +1144,7 @@ function engegaServidor() {
                 await a.close();
             }
             await p.goto(BASE + '/resolucio.html?activitat=prioritat&nivell=4&professor=1');
-            await p.waitForFunction(() => window.resolucio);
+            await p.waitForFunction(() => window.resolucio && window.resolucio.pissarra);
             ok(
                 '?professor=1 obre en mode professor, amb el botó «Pantalla completa»',
                 (await p.evaluate(() => document.body.classList.contains('professor'))) &&

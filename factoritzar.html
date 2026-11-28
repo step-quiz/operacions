@@ -39,6 +39,19 @@
 
         .phase-text { font-size: 0.9em; color: var(--accent); font-weight: 600; }
 
+        /* «Mira com es resol»: la resolució pas a pas d'un nombre semblant (resolucio.html) */
+        .mira-com {
+            display: block;
+            width: fit-content;
+            margin: 14px auto 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
+        }
+        .mira-com:hover { color: var(--primary-dark); border-bottom-style: solid; }
+
         /* ---- ARBRE DE FACTORS ---- */
         .tree-container {
             padding: 20px;
@@ -252,6 +265,7 @@
             <div id="input-zone"></div>
             <div class="error-msg" id="error-msg"></div>
         </div>
+        <a class="mira-com" id="mira-com" href="resolucio.html?activitat=factoritzar" target="_blank" rel="noopener">Mira com es descompon un nombre com aquest ↗</a>
     </div>
  </div>    
 <!-- 4. game-core DESPRÉS del body -->

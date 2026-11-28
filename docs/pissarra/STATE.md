@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-24: two scenarios; B for `equacions`, `fraccions`, `prioritat`, `formules-steam`, `inequacions` and `cilindres` published; a portal at `resolucio.html` opened from the index)
+## Status (2026-11-28: two scenarios; B for `equacions`, `fraccions`, `prioritat`, `formules-steam`, `inequacions`, `cilindres` and `factoritzar` (X1, built, waiting for David) published or delivered; a portal at `resolucio.html` opened from the index)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -29,7 +29,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
 | 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). B for `fraccions` published (PR #21). Scenario B for `prioritat` DONE on the branch (decision 19): stage 3 complete |
-| 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | PENDING |
+| 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | X1 DONE 2026-11-28 (decision 24, `factoritzar`), waiting for David to try it; P8, P2, P1 PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | DONE 2026-11-16 on the branch (decision 20) |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
 
@@ -147,6 +147,55 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     `equacions` detail plus dividing by a negative; «Mira com es resol» / «Ara fes-ho tu» and the index icon.
     **Both done**: FS detail 2026-11-22 (agent A), inequalities board 2026-11-23 (section «Scenario B for
     `inequacions`» below).
+
+23. **New board ideas** (review artifact «Idees per a Resolució pas a pas», https://claude.ai/artifact/EZr2YnUFQPL1AFz6vDHS2T,
+    2026-11-25, all 20 points answered). **Order (D1): stage 4 first, as planned** (P8 `mcd-mcm`, X1 factor tree,
+    P2 `enters`, P1 `potencies`); then the approved ideas in this order, which David may change: C1, B1, A2, A1, A4,
+    A5, A7, A8, A9, B4. Each one still gets its own design questions (levels, steps, errors, UI) before it is built.
+    **Approved:**
+    - A1 `identitats-notables`: expand (a ± b)² and (a + b)(a − b) one term per step (square of the first, double
+      product, square of the second), and factorise back; detail on demand on the double product (the usual error
+      is forgetting it).
+    - A2 `expressions-algebraiques`: the distributive property with one arrow per term (also a minus sign before the
+      bracket), then collect like terms marked with the same colour (C3 restraint). A preparation for `equacions`.
+    - A4 `percentatges`: increases and discounts with the multiplier (−20 % → 0,80); **the inverse problem (dividing
+      by the multiplier) is a level of its own** (David).
+    - A5 `triangle-rectangle` (Pythagoras): build on the engine's Pythagoras demo (keyed SVG elements, C4): the
+      triangle's sides fly into the formula, then isolate the hypotenuse or a leg.
+    - A7 `mitjana`: the frequency table fills column by column (x·f), sum, divide; no resizing (R4). **The context is
+      always a student's term mark** (David): «Calcular la nota mitjana del trimestre», or for the weighted mean
+      «… on cada examen o treball té un pes diferent en %».
+    - A8 `recta` and `parabola`: **two independent boards** (David), two portal cards: the line through two points
+      (slope m = Δy/Δx with the slope triangle drawn, then n) and the vertex of the parabola (x_v = −b/2a, then
+      the table of values around it).
+    - A9 `logaritmes` (Batxillerat, no code): the properties applied one per step, and exponential equations by
+      writing both members with the same base.
+    - B1 «Comprovem-ho»: a final step in `equacions`, `inequacions` and (when built) `sistemes-equacions` that
+      substitutes the solution into the original equation; whether fixed or a «Vull més detall», ask when built.
+    - B4 «Troba l'error»: the board solves an exercise with wrong step(s) taken from the activity's error taxonomy.
+      **David's conditions:** the student must know beforehand that there is an error, or two, or three, and that he
+      has to find them; **the student marks physically where he thinks the error is** (touch on tablets and touch
+      Chromebooks; a mouse click otherwise; the agent adds keyboard access). Pilot: `equacions`. Not U4 (rejected).
+      Design to be reviewed with David before building.
+    - C1 a seed in the link (`&exercici=…`) and a «Copia l'enllaç d'aquest exercici» button on every board, so the
+      teacher projects one exercise and the students open exactly the same one. (Not the rejected «the teacher types
+      the exercise».)
+    **Later:** C3 a course filter (1r–2n, 3r–4t, Batxillerat) on the portal, when it has more cards.
+    **Rejected:** A3 `canvi-unitats` scale board, A6 composite figures of `arees-volums`, A10 sine and cosine
+    rules, B2 printable worksheet, B3 «Què toca ara?» prediction mode (B stays passive, decision 14), B5 two methods
+    side by side, B6 reading captions aloud, C2 a «Mira com es resol» suggestion at the end of an activity session.
+
+24. **X1, the factor-tree board** (review artifact «Pissarra: arbre de factors», https://claude.ai/artifact/JBb6DFKtWVa5F7HnrvhXa2,
+    2026-11-28, all 10 points answered; David chose to start stage 4 with X1 instead of P8). A1 it belongs to
+    `factoritzar.html` («Descompondre en factors primers», block «Nombres i operacions»; `arbre.html` stays out). A2
+    levels 1 «Primers 2, 3 i 5», 2 «També el 7», 3 «També l'11», numbers up to 150 as the activity. B1 the
+    «natural» split. **B2 (David: «No», with a comment): the divisibility explanation appears only with «Vull més
+    detall»**; the step caption only states the split. B3 primes circled in one colour, in the step that writes them.
+    B4 one whole branch before the next, left to right. **B5 also the division in a column, as a level of its own
+    that the student chooses** (level 4). **C1 (David: «En parlem», comment «directament en potències»): the leaves
+    go straight to the powers** (60 = 2² · 3 · 5) in one step, no 2 · 2 · 3 · 5 line; the agent read this as decided
+    and told David in the artifact. **C2 another tree with the same leaves, always on demand** (detail of the last
+    step). C3 the `mcd-mcm` board (P8) will start from these trees. Section «Scenario B for `factoritzar`» below.
 
 ## Technical decisions (agent)
 
@@ -599,6 +648,49 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
 - Tests: `tests/cilindres.test.js` suite 3 (shared battery over 305 sheets, every view; a float model with r exact,
   A = π·round(r)², V = round(A)·h checks every «=», «≈» (≤ 0.0051) and «>»; verified to catch a wrong area or
   height); browser suites 6 and 7.
+
+## Scenario B for `factoritzar` (X1, 2026-11-28, decision 24)
+
+- `js/factoritzar/resolucio.js`, exported as **`ResolucioFA`**. The activity's maths moved to a pure module,
+  `js/factoritzar/math-engine.js` (`isPrime`, `primeFactorization`, `generateNumber`), imported by the game and the
+  board (same numbers). `exercici(nivell)`: `generateNumber(nivell − 1)`, retried until level 2 has a 7 and level 3
+  an 11; level 4 (column) any of the three pools.
+- **One HTML row** (`historial` with `pinta` + `envolta`, like `prioritat`). Tree levels: each line is a piece of
+  the tree (the root, or one split into two children); `envolta` draws every `<g>` piece inside one `<svg>` whose
+  viewBox is the **whole final tree from step 1** (R4), width in `em` (`w/20 em`, so teacher mode scales it);
+  drawers and the result line go below the SVG. Numbers are `<text data-k>`: the parent's number spreads
+  (`reparteix`) to both children; primes are circled (`.jp-fa-cercle`) in the split that writes them, and the
+  caption says so. While a split is detailed, its piece of the tree is the grey target (`pis-objectiu`).
+- **Natural split** (`parteix`): a times-table product with both factors ≤ 10 (the most equal pair: 60 = 6 · 10,
+  56 = 7 · 8), the 11 table up to 11 · 12, ends in 0 (n/10 · 10), ends in 5 (5 · n/5), else the smallest prime.
+  Children ordered small to large. Order: depth-first, left branch first.
+- **Detail** (B2): per split, the reason and the computation in the drawer: «El 60 és a la taula del 6: 6 · 10 =
+  60», «acaba en 0 / en 5 / en xifra parella … 98 : 2 = 49», for 3 two sub-steps (the number spreads into its digits
+  and their sum, then the division), for 7 and 11 «Prova de dividir … la divisió és exacta»; `D.acaba` flies the
+  two factors from the sub-line into the tree. Last step (C2, only if n has another first split): a small second
+  tree in the drawer (`unAltre`), and the result's powers are fused from its leaves.
+- **Drawer titles and sub-step captions are plain text** (Unicode «·», no `$…$`): the drawer of an HTML row is
+  escaped, not rendered by KaTeX (the side caption of a top-level step still uses `$…$`). Titles: «Per què es pot
+  partir el 60», «Per què es pot dividir el 60 entre 2», «Un altre arbre del 60».
+- **Result** (C1): `n = 2² · 3 · 5`, pieces `p<prime>` fused directly from the leaves with that prime
+  (`maxPeces` 8: 128 has 7 leaves), class `final`.
+- **Column** (level 4, B5): CSS grid rows `n | p` with fixed column widths (rows above and below a drawer stay
+  aligned); each step writes the quotient below and adds the divisor to the row above with `anterior` (always the
+  smallest prime; a prime divides by itself down to 1); detail as above; the result is fused from the divisors.
+- Moves between lines that are not consecutive use **absolute keys** through `extra` (`L<step id>k<piece>`), because
+  `id@k` inside a sub-step counts the lines of other open details too.
+- Every line carries `data-eq` (the equality it states, plain text) and the tree pieces `data-primers`, the column
+  rows `data-menor`: `tests/factoritzar.test.js` checks them with its own model (sieve, divisions) over 1 328
+  exercises (300 per level plus every activity number ≤ 150 as tree and column), closed and with every detail open;
+  verified to catch a wrong factor and a wrong circled prime. Styles: `css/pissarra-figures.css` `.jp-fa-*`.
+- Browser test fix (2026-11-28): `resolucio.html` has `<main id="resolucio">`, so `window.resolucio` is that element
+  before the module sets the controller; the browser tests now wait for `window.resolucio && window.resolucio.pissarra`
+  (on a slow machine suite 7 read `pissarra` of the element and stopped).
+  The checks of suite 7 for HTML rows were generalised: the final result is any `.pis-fila .final` and the grey target
+  any `.pis-capa .pis-objectiu` (they only knew table rows); the portal has 7 cards, and a card may show an SVG
+  scheme instead of KaTeX (cylinders, 25/11: that check had failed since then).
+- Activity link: `factoritzar.html` «Mira com es descompon un nombre com aquest ↗» (`#mira-com`), level =
+  min(question index, 2) + 1 (the same pool as `generateNumber`). «Ara fes-ho tu» → `factoritzar.html` (no levels).
 
 ## Known limits
 
