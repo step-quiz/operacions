@@ -3,7 +3,7 @@
 Agent-facing memory between sessions. English. Update it in the same commit as any change to the feature.
 How the engine works: [`MOTOR.md`](MOTOR.md). Where they disagree, this file wins (it records later decisions).
 
-## Status (2026-11-28: two scenarios; B for `equacions`, `fraccions`, `prioritat`, `formules-steam`, `inequacions`, `cilindres` and `factoritzar` (X1, built, waiting for David) published or delivered; a portal at `resolucio.html` opened from the index)
+## Status (2026-11-28: two scenarios; B for `equacions`, `fraccions`, `prioritat`, `formules-steam`, `inequacions`, `cilindres`, `factoritzar` (X1) and `mcd-mcm` (P8, built, waiting for David) published or delivered; a portal at `resolucio.html` opened from the index)
 
 | Wave | Part | Status |
 |---|---|---|
@@ -29,7 +29,7 @@ says what it will do, after it shows how it turned out, and David tries it befor
 | — | C4 keyed SVG elements (David: «implementa-la ja»), with the Pythagoras demo | DONE (2026-11-14) |
 | 2 | Common base: A2 pure transition plan (`planifica`), A1 `historial()` for HTML and TeX together with D1 the step tree (detail on demand), A3 common test battery, C1 `reparteix` | DONE (2026-11-14) |
 | 3 | «Vull més detall»: D6 pilot `equacions`, then `fraccions` and `prioritat`; D2 accordion, D3, D4 | REFRAMED 2026-11-15 (decisions 14–16): scenario B for `equacions` with the player's «Vull més detall» DONE and published (PR #20). Scenario B for `fraccions` DONE on the branch (decision 18). B for `fraccions` published (PR #21). Scenario B for `prioritat` DONE on the branch (decision 19): stage 3 complete |
-| 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | X1 DONE 2026-11-28 (decision 24, `factoritzar`), waiting for David to try it; P8, P2, P1 PENDING |
+| 4 | 1r–2n ESO: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | X1 DONE 2026-11-28 (decision 24, `factoritzar`); P8 DONE 2026-11-28 (decision 25, `mcd-mcm`), waiting for David to try it; P2, P1 PENDING |
 | 5 | Class use: U1 tap to finish + ↺ replay, U3 teacher mode (projector) | DONE 2026-11-16 on the branch (decision 20) |
 | 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
 
@@ -196,6 +196,22 @@ C new capabilities, P planned activities, X existing activities, N new activitie
     go straight to the powers** (60 = 2² · 3 · 5) in one step, no 2 · 2 · 3 · 5 line; the agent read this as decided
     and told David in the artifact. **C2 another tree with the same leaves, always on demand** (detail of the last
     step). C3 the `mcd-mcm` board (P8) will start from these trees. Section «Scenario B for `factoritzar`» below.
+
+25. **P8, the MCD and mcm board with David's Venn method** (review artifact «Pissarra: MCD i mcm»,
+    https://claude.ai/artifact/Lgg7LrmrGBNXJBEKxynarq, 2026-11-28, all 15 points answered, plus a two-question dialog).
+    David's method: with the prime factorisations of n and m, two Venn diagrams that always intersect; in A∩B each
+    common prime factor, one by one (no powers); in A\A∩B what is left of n, in B\A∩B what is left of m; if they are
+    coprime, a 1 in A∩B. MCD = product of A∩B, mcm = product of A∪B. Answers: **A1 levels N1 primes 2, 3, 5; N2 also 7;
+    N3 also 11 and 13; a 20 % of coprime pairs at every level (no level of its own)**; and (dialog) **the activity
+    changes the same way** (its question 3 has 11 and 13, 20 % coprime). A2 one step per tree, the tree split by split
+    as detail on demand. A3 trees side by side on top, Venn below, sizes reserved from step 1. B1 one step per common
+    factor. **B2 used leaves grey and dimmed to 30 %.** B3 one step for what is left of each number. **B4 (David):
+    the 1 is a common divisor; caption (dialog: second person) «Escriu un 1 a la intersecció: és l'únic divisor comú
+    de l'8 i del 15».** **B5 only two labels on the drawing, «Factors del 60» and «Factors del 90».** **B6 no colour
+    (it distracts).** **C1/C2 forced line break: «MCD(60, 90) = 2 · 3 · 5 =» and below «= 30»; results ALWAYS in power
+    form** (mcm(60, 90) = 2² · 3² · 5 = 180); the Venn diagram itself has no powers. **C3 «MCD» and «mcm» everywhere in
+    the activity** (done: texts, title, banners, theme comment in CONTRIBUTING). C4 no MCD · mcm check. D1 link and a
+    shared generator. D2 only two numbers. Section «Scenario B for `mcd-mcm`» below.
 
 ## Technical decisions (agent)
 
@@ -691,6 +707,30 @@ the activity; the engine pieces (`obre()`, the drawer) and the detail generators
   scheme instead of KaTeX (cylinders, 25/11: that check had failed since then).
 - Activity link: `factoritzar.html` «Mira com es descompon un nombre com aquest ↗» (`#mira-com`), level =
   min(question index, 2) + 1 (the same pool as `generateNumber`). «Ara fes-ho tu» → `factoritzar.html` (no levels).
+
+## Scenario B for `mcd-mcm` (P8, 2026-11-28, decision 25)
+
+- `js/mcd-mcm/resolucio.js`, exported as **`ResolucioMM`**. The activity's maths moved to a pure module,
+  `js/mcd-mcm/math-engine.js` (`computeMCD`, `computeMCM`, `generatePair(opIndex, { coprimers })`, `POOLS`,
+  `PROB_COPRIMERS` 0.2), imported by the game and the board; factorisation comes from `js/factoritzar/math-engine.js`.
+  `exercici(nivell)`: `generatePair(nivell − 1)`, retried until level 2 has a 7 and level 3 an 11 or a 13.
+- Trees: built with **`ResolucioFA.eines`** (the factor board's natural split, tree and layout), drawn side by side.
+- **Three HTML rows** (trees and drawers; the Venn diagram; the results). `historial` writes one row, so `envolta`
+  joins the three with U+E004 and `passos` splits every step's row (`tresFiles`): with one tall row the board stayed
+  scrolled at the top and the new Venn factors and results fell below the fold (seen on a 375 × 740 phone).
+- Every history line is a piece of a drawing or a result. Drawing pieces are wrapped in private-use sentinels
+  (U+E001 kind U+E002 svg U+E003, `marca`), so `envolta` finds them anywhere — also inside a drawer, where `ambNota`
+  wraps sub-lines — and moves them into their `<svg>`: `arbres` (roots, a whole tree, or in the detail one split) and
+  `venn` (a common factor, the 1, or what is left of a number). A whole tree hides its detail's split pieces (same
+  place), except while it is the grey target of the open detail. Both SVGs have their final viewBox from step 1 (R4);
+  the circles and labels appear with the first Venn step.
+- B2: the Venn pieces carry `data-usa` (keys of the leaves they used); `envolta` adds `jp-mm-usat` (opacity 0.3, grey)
+  to `<g data-fulla="key">`. Venn slots (`casella`): intersection 2 columns × 4 rows, outside 3 × 4, rows centred.
+- Results: `MCD(n, m) = 2 · 3 · 5 =` / `= 30` as a 2-column inline grid (the second «=» under the trailing one); one
+  line when the product is a single prime (`MCD(10, 15) = 5`) or 1. The powers are fused from the Venn pieces; the mcm
+  line is `final`. Font 0.72em of the row (0.58em under 600 px).
+- Tests: `tests/mcd-mcm.test.js` (912 exercises, closed and every detail open; own model: Euclid, the common factors
+  one by one and the remainders; verified to catch a wrong remainder and a wrong MCD value); browser suites 6–7.
 
 ## Known limits
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Activitat interactiva de matemàtiques — Step Quiz">
     <link rel="icon" href="icon.png">
-    <title>MCD i MCM</title>
+    <title>MCD i mcm</title>
 
     <script>
         window.APP_CONFIG = {
@@ -32,14 +32,14 @@
         .btn-submit  { background-color: var(--primary-dark); }
         @media (hover: hover) { .btn-submit:hover { background-color: var(--primary-hover); } }
 
-        /* ---- Fase (MCD / MCM) ---- */
+        /* ---- Fase (MCD / mcm) ---- */
         .phase-text { font-size: 0.9em; color: var(--accent); font-weight: 600; }
 
         .phase-banner { display: none; padding: 20px; text-align: center; animation: fadeIn 0.4s; }
         .phase-banner h3 { font-size: 1.4em; color: var(--primary-dark); margin: 0 0 8px 0; }
         .phase-banner p  { color: var(--text-muted); margin: 0; font-size: 1em; }
 
-        /* ---- Zona MCD/MCM ---- */
+        /* ---- Zona MCD/mcm ---- */
         .mcd-mcm-zone { padding: 20px; text-align: center; }
 
         .both-factorizations { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -82,6 +82,18 @@
         .factor-input::-webkit-inner-spin-button,
         .factor-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
+        /* «Mira com es resol»: la resolució pas a pas d'una parella semblant (resolucio.html) */
+        .mira-com {
+            display: block;
+            width: fit-content;
+            margin: 14px auto 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
+        }
+        .mira-com:hover { color: var(--primary-dark); border-bottom-style: solid; }
         .error-msg { color: var(--danger); font-size: 0.9em; font-weight: bold; margin-top: 8px; min-height: 1.2em; }
 
         /* ---- Animació intents ---- */
@@ -121,7 +133,7 @@
                 <div class="header-left">
                     <div class="session-text" id="session-display"></div>
                     <div class="level-text" id="lvl-display"></div>
-                    <div class="phase-text" id="phase-display">MCD / MCM</div>
+                    <div class="phase-text" id="phase-display">MCD / mcm</div>
                 </div>
                 <div class="score-text" id="score-display">Punts: 0</div>
                 <div id="attempts-display" class="attempts-counter">Intents: 4</div>
@@ -139,6 +151,7 @@
                 <div id="input-zone"></div>
                 <div class="error-msg" id="error-msg"></div>
             </div>
+            <a class="mira-com" id="mira-com" href="resolucio.html?activitat=mcd-mcm" target="_blank" rel="noopener">Mira com es resol amb dos nombres com aquests ↗</a>
         </div>
         <!-- #session-end-screen, #final-screen → injectats per injectSharedHTML() -->
     </div>

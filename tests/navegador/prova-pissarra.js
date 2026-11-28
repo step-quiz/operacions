@@ -19,7 +19,7 @@
  *      del mateix nivell en una pestanya nova; a fraccions, prioritat i fórmules STEAM,
  *      l'enllaç porta el nivell que toca;
  *   7. escenari B, resolucio.html?activitat=equacions, fraccions, prioritat,
- *      formules-steam, inequacions, cilindres i factoritzar (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
+ *      formules-steam, inequacions, cilindres, factoritzar i mcd-mcm (portàtil i mòbil): cada pas amb els seus símbols, «Vull més
  *      detall» a cada pas que en té (la línia del pas en gris com a objectiu, els
  *      subpassos al calaix, «Menys detall»), el nivell (el desplegable, també amb el
  *      teclat), «Un altre exercici» i «Ara fes-ho tu»; el peu flotant a la vista; a la
@@ -639,6 +639,16 @@ function engegaServidor() {
                 'resolucio.html?activitat=factoritzar&nivell=1'
             );
             await fa.close();
+            // MCD i mcm: la primera pregunta (primers 2, 3 i 5) → el nivell 1 de la resolució
+            const mm = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
+            await mm.goto(BASE + '/mcd-mcm.html?totaloperations=3');
+            await mm.waitForFunction(() => /nivell=\d/.test(document.querySelector('#mira-com').href));
+            eq(
+                'mcd-mcm: la primera pregunta → «Mira com es resol» del nivell 1',
+                await mm.getAttribute('#mira-com', 'href'),
+                'resolucio.html?activitat=mcd-mcm&nivell=1'
+            );
+            await mm.close();
             // Prioritat: la primera expressió de la sessió és del nivell 0 → el grup 1 de la resolució
             const q = await navegador.newPage({ viewport: { width: 1366, height: 768 } });
             await q.goto(BASE + '/prioritat.html?totaloperations=3');
@@ -672,6 +682,9 @@ function engegaServidor() {
                 // Descompondre en factors primers: l'arbre amb un 11 (portàtil) i la columna (mòbil)
                 ['factoritzar', 'portàtil', { width: 1366, height: 768 }, 3],
                 ['factoritzar', 'mòbil', { width: 375, height: 740 }, 4],
+                // MCD i mcm: els dos arbres i els diagrames de Venn (portàtil, amb l'11 i el 13; mòbil)
+                ['mcd-mcm', 'portàtil', { width: 1366, height: 768 }, 3],
+                ['mcd-mcm', 'mòbil', { width: 375, height: 740 }, 1],
             ]) {
                 const nom = `${act}, ${lloc}`;
                 const p = await navegador.newPage({ viewport });
@@ -820,7 +833,7 @@ function engegaServidor() {
             eq(
                 'sense activitat, el portal té una targeta per activitat',
                 await p.$$eval('.targeta', ts => ts.length),
-                7
+                8
             );
             ok(
                 'cada targeta té la fórmula d’exemple dibuixada amb KaTeX (o l’esquema, a cilindres), els nivells, «Mira com es resol» i «Copia l’enllaç»',
@@ -854,7 +867,8 @@ function engegaServidor() {
                     (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=formules-steam"]')) &&
                     (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=inequacions"]')) &&
                     (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=cilindres"]')) &&
-                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=factoritzar"]'))
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=factoritzar"]')) &&
+                    (await p.isVisible('a.targeta-enllac[href="resolucio.html?activitat=mcd-mcm"]'))
             );
             await p.close();
         }

@@ -68,7 +68,7 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
 
 | Stage / wave | Content | Status |
 |---|---|---|
-| Stage 4 | 1r–2n ESO boards: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | **X1 DONE 2026-11-28** (decision 24: `resolucio.html?activitat=factoritzar`, levels 1–3 tree, 4 column), waiting for David to try it. Next: P8 `mcd-mcm` (starts from these trees, C3), then P2, P1 |
+| Stage 4 | 1r–2n ESO boards: P8 `mcd-mcm`, X1 factor tree, P2 `enters`, P1 `potencies` | **X1 DONE 2026-11-28** (decision 24: `resolucio.html?activitat=factoritzar`, levels 1–3 tree, 4 column), waiting for David to try it. **P8 DONE 2026-11-28** (decision 25: `resolucio.html?activitat=mcd-mcm`, David's Venn method; the activity now has 11 and 13 in question 3 and 20 % coprime pairs, and writes «mcm»), waiting for David to try it. Next: P2 `enters`, then P1 `potencies` |
 | Stage 6 | 3r–4t ESO and Batxillerat: N1, P3, P4, N3, P5, P6, P7, N2, N4, N5, N6, X2, X3, P9, C2, C3 | PENDING |
 | New ideas (decision 23, 2026-11-25) | After stage 4, in this order (David may change it): C1 exercise seed in the link + «Copia l'enllaç»; B1 «Comprovem-ho» step; A2 `expressions-algebraiques`; A1 `identitats-notables`; A4 `percentatges` (inverse problem as a level); A5 `triangle-rectangle`; A7 `mitjana` (context: the term mark); A8 `recta` and `parabola` (two independent boards); A9 `logaritmes`; B4 «Troba l'error» (pilot `equacions`, the student marks the errors). Later: C3 portal course filter | PENDING (design questions before each) |
 | Waves 4–7 | `potencies`/`enters`; `sistemes-equacions`/`radicals`; Batx `esglaonar-matriu` → `ruffini` → `complexos`; optional `mcd-mcm`, `inversa-matriu`, `derivades`/`integrals` | PENDING (overlap with the stages above; the stages are the current plan) |
@@ -86,7 +86,7 @@ ways; compare the volumes V₁ and V₂. **Decided 2026-11-23 (question dialog):
 
 1. Roadmap 18–22: all done (2026-11-22); new deliveries only if David proposes them.
 2. Try the Inequacions board (§2, built 2026-11-23), the «Cilindres amb un full» activity and board (§2b, 2026-11-23/24)
-   and the factor-tree board (§3, X1, 2026-11-28).
+   the factor-tree board (§3, X1, 2026-11-28) and the MCD and mcm board (§3, P8, 2026-11-28).
 3. Whether to make the exception for P2 (animation inside Fórmules STEAM).
 4. Real student error cases for Fórmules STEAM (E1).
 5. When to resume the «Resolució pas a pas» stages 4 and 6 and the fading pilots (§3, §4). Decision 23 (2026-11-25):

@@ -2,13 +2,18 @@
  * ============================================================================
  * PROJECTE: Motor Educatiu Step Quiz (Vanilla JS)
  * FITXER: js/mcd-mcm/mcd-mcm.js
- * ROL: Joc «MCD i MCM» (mcd-mcm.html). Abans era dins de l'HTML.
- * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa utils.js, game-core.js, config.js.
+ * ROL: Joc «MCD i mcm» (mcd-mcm.html). Abans era dins de l'HTML. Notació: MCD i mcm a tot arreu
+ *      (decisió del David, 28/11/2026).
+ * DEPENDÈNCIES: Mòdul ES (<script type="module">). Importa utils.js, game-core.js, config.js i
+ *      math-engine.js (la parella, el MCD i el mcm, compartits amb la resolució pas a pas) i
+ *      factoritzar/math-engine.js (la descomposició).
  * ============================================================================
  */
 
 import { MAX_INTENTS, TOTAL_OPERATIONS, TOTAL_SESSIONS } from '../config.js';
-import { parseStrictInt, randInt } from '../utils.js';
+import { parseStrictInt } from '../utils.js';
+import { primeFactorization } from '../factoritzar/math-engine.js';
+import { computeMCD, computeMCM, generatePair } from './math-engine.js';
 import {
     state,
     hideCustomKeyboard,
@@ -46,6 +51,7 @@ const els = {
     stepInstruction: document.getElementById('step-instruction'),
     inputZone: document.getElementById('input-zone'),
     errorMsg: document.getElementById('error-msg'),
+    miraCom: document.getElementById('mira-com'), // «Mira com es resol» (resolucio.html)
 };
 
 // ============================================================
@@ -63,36 +69,7 @@ let mcdValue = 0,
 // ============================================================
 // MATEMÀTIQUES
 // ============================================================
-function primeFactorization(n) {
-    const factors = {};
-    let d = 2;
-    while (d * d <= n) {
-        while (n % d === 0) {
-            factors[d] = (factors[d] || 0) + 1;
-            n /= d;
-        }
-        d++;
-    }
-    if (n > 1) factors[n] = (factors[n] || 0) + 1;
-    return factors;
-}
-
-function computeMCD(fa, fb) {
-    let result = 1;
-    for (const p in fa) {
-        if (fb[p]) result *= Math.pow(parseInt(p), Math.min(fa[p], fb[p]));
-    }
-    return result;
-}
-
-function computeMCM(fa, fb) {
-    const allPrimes = new Set([...Object.keys(fa), ...Object.keys(fb)]);
-    let result = 1;
-    for (const p of allPrimes) {
-        result *= Math.pow(parseInt(p), Math.max(fa[p] || 0, fb[p] || 0));
-    }
-    return result;
-}
+// primeFactorization: factoritzar/math-engine.js; computeMCD, computeMCM i generatePair: math-engine.js
 
 function formatFactorization(n, factors) {
     const primes = Object.keys(factors)
@@ -102,46 +79,6 @@ function formatFactorization(n, factors) {
         `<strong>${n}</strong> = ` +
         primes.map(p => (factors[p] === 1 ? `${p}` : `${p}<sup>${factors[p]}</sup>`)).join(' · ')
     );
-}
-
-function generatePair(opIndex) {
-    const primePools = [
-        [2, 3, 5],
-        [2, 3, 5, 7],
-        [2, 3, 5, 7, 11],
-    ];
-    const difficulty = Math.min(opIndex, primePools.length - 1);
-    const pool = primePools[difficulty];
-
-    function makeNumber(minFactors, maxFactors) {
-        const numFactors = randInt(minFactors, maxFactors);
-        let n = 1;
-        for (let i = 0; i < numFactors; i++) n *= pool[randInt(0, Math.min(pool.length - 1, difficulty + 2))];
-        if (n < 6) n *= pool[randInt(0, 1)];
-        if (n > 150) return makeNumber(minFactors, maxFactors);
-        return n;
-    }
-
-    const allowCoprime = Math.random() < 0.15;
-    const maxMcm = allowCoprime ? 500 : 300;
-    let attempts = 0,
-        a,
-        b,
-        fa,
-        fb,
-        mcm,
-        mcd;
-    do {
-        a = makeNumber(2, 3 + Math.min(difficulty, 1));
-        b = makeNumber(2, 3 + Math.min(difficulty, 1));
-        fa = primeFactorization(a);
-        fb = primeFactorization(b);
-        mcd = computeMCD(fa, fb);
-        mcm = computeMCM(fa, fb);
-        attempts++;
-        if (attempts > 200) break;
-    } while (b === a || mcm > maxMcm || (allowCoprime ? mcd !== 1 : mcd === 1));
-    return [a, b];
 }
 
 // ============================================================
@@ -159,6 +96,12 @@ function buildLevel() {
     factorsB = primeFactorization(b);
     mcdValue = computeMCD(factorsA, factorsB);
     mcmValue = computeMCM(factorsA, factorsB);
+    // «Mira com es resol»: el nivell de la resolució pas a pas amb els mateixos primers (1: 2, 3 i 5; 2: també el 7;
+    // 3: també l'11 i el 13), segons la pregunta, com generatePair
+    if (els.miraCom) {
+        const nivell = Math.min(state.currentOperation, 2) + 1;
+        els.miraCom.href = `resolucio.html?activitat=mcd-mcm&nivell=${nivell}`;
+    }
 
     currentPhase = 'mcd';
     startPhase();
@@ -169,7 +112,7 @@ function startPhase() {
     els.errorMsg.textContent = '';
     els.phaseBanner.style.display = 'none';
     if (currentPhase === 'mcd') {
-        // Pregunta nova: buida la zona del MCD i el MCM de la pregunta anterior
+        // Pregunta nova: buida la zona del MCD i el mcm de la pregunta anterior
         els.mcdMcmZone.innerHTML = '';
         els.mcdMcmZone.style.display = 'none';
     }
@@ -186,7 +129,7 @@ function startPhase() {
     } else if (currentPhase === 'mcm') {
         els.phaseBanner.style.display = 'block';
         els.phaseBannerTitle.textContent = '🔗 Mínim Comú Múltiple';
-        els.phaseBannerText.textContent = `Calcula el MCM de ${numberA} i ${numberB}`;
+        els.phaseBannerText.textContent = `Calcula el mcm de ${numberA} i ${numberB}`;
         setTimeout(() => {
             els.phaseBanner.style.display = 'none';
             startMcdMcm('mcm');
@@ -205,7 +148,7 @@ function advancePhase() {
 
 function startMcdMcm(type) {
     els.mcdMcmZone.style.display = 'block';
-    const label = type === 'mcd' ? 'MCD' : 'MCM';
+    const label = type === 'mcd' ? 'MCD' : 'mcm';
     const fullName = type === 'mcd' ? 'màxim comú divisor' : 'mínim comú múltiple';
     const answer = type === 'mcd' ? mcdValue : mcmValue;
 
@@ -260,13 +203,13 @@ function checkMcdMcm(answer, label) {
     hideCustomKeyboard(); // [CANVI 5] Tanca el teclat custom en encertar
     els.resolutionPanel.style.display = 'none';
 
-    if (label === 'MCM') {
-        els.phaseDisplay.innerHTML = `🔗 MCD(${numberA}, ${numberB}) = ${mcdValue}<br>🔗 MCM(${numberA}, ${numberB}) = ${mcmValue}`;
+    if (label === 'mcm') {
+        els.phaseDisplay.innerHTML = `🔗 MCD(${numberA}, ${numberB}) = ${mcdValue}<br>🔗 mcm(${numberA}, ${numberB}) = ${mcmValue}`;
     }
 
     const resultDiv = document.createElement('div');
     resultDiv.className = 'factorization-display';
-    // MCD amb el color del tema, MCM amb el segon to (el verd és només per als encerts)
+    // MCD amb el color del tema, mcm amb el segon to (el verd és només per als encerts)
     resultDiv.style.background = label === 'MCD' ? 'var(--primary-light)' : 'var(--accent-light)';
     resultDiv.style.color = label === 'MCD' ? 'var(--primary-dark)' : 'var(--accent-dark)';
     resultDiv.innerHTML = `✅ ${label}(${numberA}, ${numberB}) = <strong>${answer}</strong>`;
@@ -277,7 +220,7 @@ function checkMcdMcm(answer, label) {
 
 function finishExercise(levelPoints) {
     recordResult(levelPoints > 0 ? Math.min(MAX_INTENTS - state.attemptsLeft + 1, 3) : 4);
-    // El MCD i el MCM calculats es queden a la vista fins que l'alumne prem «Següent»
+    // El MCD i el mcm calculats es queden a la vista fins que l'alumne prem «Següent»
     els.resolutionPanel.style.display = 'none';
     els.phaseBanner.style.display = 'none';
     acabaPregunta(levelPoints);
@@ -324,7 +267,7 @@ function updateHeader() {
     els.phaseDisplay.innerHTML =
         currentPhase === 'mcd'
             ? `🔗 MCD(${numberA}, ${numberB})`
-            : `🔗 MCD(${numberA}, ${numberB}) = ${mcdValue}<br>🔗 MCM(${numberA}, ${numberB}) = ?`;
+            : `🔗 MCD(${numberA}, ${numberB}) = ${mcdValue}<br>🔗 mcm(${numberA}, ${numberB}) = ?`;
 }
 
 // ============================================================
@@ -340,7 +283,7 @@ document.addEventListener('keydown', e => {
 // ============================================================
 // TECLAT CUSTOM — variables d'estat i checkCurrentCell
 // ============================================================
-// [CANVI 4] Variables que guarden quin MCD/MCM s'està demanant ara
+// [CANVI 4] Variables que guarden quin MCD/mcm s'està demanant ara
 let _activeAnswer = 0;
 let _activeLabel = '';
 

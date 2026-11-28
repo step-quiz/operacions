@@ -225,3 +225,72 @@ DEPENDÈNCIES: css/tokens.css, css/pissarra.css (--pis-cat, --pis-cat-fons).
 .pis-fila .jp-fa-col.pis-objectiu {
     color: var(--pis-objectiu, #9aa5b8);
 }
+
+/* ── MCD i mcm (js/mcd-mcm/resolucio.js): els dos arbres, els diagrames de Venn i els resultats ── */
+.pis-fila .jp-mm {
+    gap: 0.5em;
+}
+/* B6: els cercles sense color, només el traç; B5: només els rètols «Factors del …» */
+.jp-mm-cercle {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+}
+.jp-mm-retol {
+    font-size: 15px;
+    font-family: inherit;
+    fill: var(--text-muted, #64748b);
+}
+.jp-mm-v {
+    font-size: 20px;
+    font-family: inherit;
+    fill: currentColor;
+}
+/* B2: una fulla que ja és al diagrama, en gris i al 30 % */
+.jp-mm-usat {
+    opacity: 0.3;
+}
+.jp-mm-usat .jp-fa-n,
+.jp-mm-usat .jp-fa-n.jp-fa-primer {
+    fill: var(--text-muted, #64748b);
+}
+.jp-mm-usat .jp-fa-cercle {
+    stroke: var(--text-muted, #64748b);
+    fill: none;
+}
+/* El tros d'un pas obert (l'arbre sencer), en gris mentre es fa el detall */
+.jp-mm-tros.pis-objectiu .jp-fa-n,
+.jp-mm-tros.pis-objectiu .jp-fa-punt {
+    fill: var(--pis-objectiu, #9aa5b8);
+}
+.jp-mm-tros.pis-objectiu .jp-fa-branca,
+.jp-mm-tros.pis-objectiu .jp-fa-cercle {
+    stroke: var(--pis-objectiu, #9aa5b8);
+    fill: none;
+}
+/* C1, C2: «MCD(60, 90) = 2 · 3 · 5 =» i, a sota, «= 30» (el segon «=» sota el primer de la dreta) */
+.pis-fila .jp-mm-res {
+    font-size: 0.72em;
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    white-space: nowrap;
+    line-height: 1.6;
+    padding: 0 0.4em;
+    border-radius: 0.3em;
+}
+.pis-fila .jp-mm-res-1 {
+    display: block;
+}
+.pis-fila .jp-mm-res.final {
+    color: var(--pis-cat);
+    background: var(--pis-cat-fons);
+}
+.pis-fila .jp-mm-res.pis-objectiu {
+    color: var(--pis-objectiu, #9aa5b8);
+}
+@media (max-width: 600px) {
+    /* Al mòbil, «mcm(21, 91) = 3 · 7 · 13 =» ha de cabre sense tallar-se */
+    .pis-fila .jp-mm-res {
+        font-size: 0.58em;
+    }
+}

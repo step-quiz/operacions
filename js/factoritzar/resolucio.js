@@ -28,6 +28,8 @@
  *   línies que no són consecutives es donen amb claus absolutes (opció extra).
  * - Cada línia porta data-eq (la igualtat que afirma, en text pla) i els primers encerclats
  *   data-primer: tests/factoritzar.test.js les comprova amb un model propi.
+ * - ResolucioFA.eines: la llengua (el, El, del) i l'arbre (parteix, arbre, interiors, fulles, posicions i les
+ *   mides DX, DY, R), per a la resolució del MCD i el mcm, que comença amb dos arbres.
  * DEPENDÈNCIES: pissarra/formules.js, factoritzar/math-engine.js.
  * ============================================================================
  */
@@ -478,5 +480,7 @@ export const ResolucioFA = (() => {
         return g.passos;
     }
 
-    return Object.freeze({ NIVELLS, exercici, passos, files: () => 1, parteix, arbre, unAltre });
+    // Les eines de l'arbre, compartides amb la resolució del MCD i el mcm (js/mcd-mcm/resolucio.js)
+    const eines = Object.freeze({ el, El, del, parteix, arbre, interiors, fulles, posicions, DX, DY, R });
+    return Object.freeze({ NIVELLS, exercici, passos, files: () => 1, parteix, arbre, unAltre, eines });
 })();

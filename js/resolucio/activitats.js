@@ -29,7 +29,9 @@
  *   Cilindres amb un full: nivell 1 el full A4, nivell 2 altres fulls; s'exporta com a ResolucioCF.
  *   Descompondre en factors primers: nivells 1–3 l'arbre (primers 2, 3 i 5; també el 7; també l'11), nivell 4
  *   les divisions en columna; «Ara fes-ho tu» porta a factoritzar.html (no té nivells); s'exporta com a ResolucioFA.
- *   (Els noms ResolucioIQ, ResolucioCF i ResolucioFA: els tests carreguen tots els mòduls en un mateix àmbit,
+ *   MCD i mcm: nivells 1–3 (primers 2, 3 i 5; també el 7; també l'11 i el 13), els dos arbres i els diagrames de
+ *   Venn; «Ara fes-ho tu» porta a mcd-mcm.html; s'exporta com a ResolucioMM.
+ *   (Els noms ResolucioIQ, ResolucioCF, ResolucioFA i ResolucioMM: els tests carreguen tots els mòduls en un mateix àmbit,
  *   tests/harness.js, i les inequacions hi tenen al costat el Resolucio de les equacions.)
  * - No hi ha cap altra llista: index.html només hi enllaça (el botó «Resolució pas a pas» obre
  *   resolucio.html), i tests/check-repo.js comprova que cada clau té la seva pàgina i el seu
@@ -137,6 +139,21 @@ export const ACTIVITATS = Object.freeze({
         // L'activitat no té nivells (la dificultat puja amb la pregunta)
         enllac: () => 'factoritzar.html',
         carrega: () => import('../factoritzar/resolucio.js').then(m => m.ResolucioFA),
+    }),
+    'mcd-mcm': Object.freeze({
+        tema: 'nombres',
+        nom: 'MCD i mcm',
+        frase: 'Els dos arbres de factors i els diagrames de Venn: la intersecció dona el MCD i tot junt, el mcm.',
+        exemple: '\\mathrm{MCD}(60, 90) = 30',
+        pagina: 'mcd-mcm.html',
+        nivells: Object.freeze([
+            [1, 'Primers 2, 3 i 5'],
+            [2, 'També el 7'],
+            [3, "També l'11 i el 13"],
+        ]),
+        // L'activitat no té nivells (la dificultat puja amb la pregunta)
+        enllac: () => 'mcd-mcm.html',
+        carrega: () => import('../mcd-mcm/resolucio.js').then(m => m.ResolucioMM),
     }),
     'formules-steam': Object.freeze({
         tema: 'algebra',
